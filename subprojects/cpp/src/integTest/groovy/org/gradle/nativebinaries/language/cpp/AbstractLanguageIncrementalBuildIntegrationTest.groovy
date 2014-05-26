@@ -26,7 +26,9 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.Ignore
+import spock.lang.IgnoreRest
 
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.TextUtil.escapeString
 
@@ -421,6 +423,34 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         and:
         assert staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(newObjFile.name)
         assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
+    }
+
+    @IgnoreRest
+    @RequiresInstalledToolChain(GccCompatible)
+    def "recompiles binary when imported header file changes"() {
+        sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
+
+        given:
+        run "installMainExecutable"
+
+
+        when:
+        headerFile << """
+            int unused();
+"""
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask
+        executedAndNotSkipped mainCompileTask
+
+        if(objectiveCWithAslr()){
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
+        }
     }
 
     @RequiresInstalledToolChain(VisualCpp)
