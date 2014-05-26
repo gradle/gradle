@@ -146,6 +146,7 @@ Extension objects have been available for over 2 years and are now an establishe
 * Remove `org.gradle.util` from default imports.
 * Remove `AbstractOptions`.
 * Remove or rename `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`.
+* Remove unused `EclipseDomainModel`.
 
 ## Remove `sonar` plugin
 
