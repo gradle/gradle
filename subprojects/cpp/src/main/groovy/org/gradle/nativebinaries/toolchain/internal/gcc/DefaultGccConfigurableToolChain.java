@@ -40,7 +40,7 @@ public class DefaultGccConfigurableToolChain<T extends GccCommandLineToolConfigu
 
     private T newConfiguredGccTool(T defaultTool) {
         GccCommandLineToolConfigurationInternal gccToolInternal = (GccCommandLineToolConfigurationInternal) defaultTool;
-        DefaultGccCommandLineToolConfiguration platformTool = new DefaultGccCommandLineToolConfiguration(defaultTool.getName(), gccToolInternal.getToolType(), defaultTool.getExecutable());
+        DefaultGccCommandLineToolConfiguration platformTool = getInstantiator().newInstance(DefaultGccCommandLineToolConfiguration.class, defaultTool.getName(), gccToolInternal.getToolType(), defaultTool.getExecutable());
         Action<List<String>> argAction = gccToolInternal.getArgAction();
         platformTool.withArguments(argAction);
         return (T) platformTool;
