@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
-public interface BuildableComponentResolveResult extends ComponentResolveResult {
+public interface BuildableComponentResolveResult extends ComponentResolveResult, ResourceAwareResolveResult {
     /**
      * Marks the component as resolved, with the given meta-data.
      */
@@ -34,6 +36,11 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult 
      * Marks the component as not found.
      */
     void notFound(ModuleVersionSelector versionSelector);
+
+    /**
+     * Marks the component as not found.
+     */
+    void notFound(ModuleVersionIdentifier versionIdentifier);
 
     /**
      * Replaces the meta-data in the result. Result must already be resolved.

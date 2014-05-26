@@ -99,9 +99,22 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         result.failure == null
     }
 
-    def "fails with a not found exception when not found"() {
+    def "fails with not found exception when not found using selector"() {
+        def selector = Mock(ModuleVersionSelector)
+
         when:
-        result.notFound(Mock(ModuleVersionSelector))
+        result.notFound(selector)
+
+        then:
+        result.failure instanceof ModuleVersionNotFoundException
+        result.failure.selector == selector
+    }
+
+    def "fails with not found exception when not found using module version id"() {
+        def id = Mock(ModuleVersionIdentifier)
+
+        when:
+        result.notFound(id)
 
         then:
         result.failure instanceof ModuleVersionNotFoundException

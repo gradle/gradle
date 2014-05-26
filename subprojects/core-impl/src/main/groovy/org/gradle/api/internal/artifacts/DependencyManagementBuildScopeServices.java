@@ -17,10 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
@@ -50,7 +48,9 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
-import org.gradle.api.internal.notations.*;
+import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
+import org.gradle.api.internal.notations.DependencyNotationParser;
+import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.cache.CacheRepository;
@@ -64,12 +64,8 @@ import org.gradle.internal.resource.local.UniquePathKeyFileStore;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * The set of dependency management services that are created per build.
@@ -92,21 +88,9 @@ class DependencyManagementBuildScopeServices {
                 projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
 
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
-        DependencyProjectNotationParser projParser = new DependencyProjectNotationParser(factory);
-
-        NotationParser<Object, ? extends Dependency> moduleMapParser = new DependencyMapNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
-        NotationParser<Object, ? extends Dependency> moduleStringParser = new DependencyStringNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
-        NotationParser<Object, ? extends Dependency> selfResolvingDependencyFactory = new DependencyFilesNotationParser(instantiator);
-
-        List<NotationParser<Object, ? extends Dependency>> notationParsers = Arrays.asList(
-                moduleStringParser,
-                moduleMapParser,
-                selfResolvingDependencyFactory,
-                projParser,
-                new DependencyClassPathNotationParser(instantiator, classPathRegistry, fileLookup.getFileResolver()));
 
         return new DefaultDependencyFactory(
-                DependencyNotationParser.parser(notationParsers),
+                DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup),
                 new ClientModuleNotationParserFactory(instantiator).create(),
                 projectDependencyFactory);
     }

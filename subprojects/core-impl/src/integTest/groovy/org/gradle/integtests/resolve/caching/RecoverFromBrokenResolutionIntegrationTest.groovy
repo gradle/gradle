@@ -274,7 +274,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
                       from configurations.compile
                   }"""
         when:
-        ivyModule.repository.expectDirectoryListGet('group', 'projectA')
+        ivyModule.repository.directoryList('group', 'projectA').expectGet()
         ivyModule.ivy.expectGet()
         ivyModule.jar.expectGet()
 

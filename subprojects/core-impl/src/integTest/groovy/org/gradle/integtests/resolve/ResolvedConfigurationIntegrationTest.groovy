@@ -70,12 +70,6 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
         mavenRepo.module('org.foo', 'hiphop').publish()
         mavenRepo.module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
 
-        project.allprojects { apply plugin: 'java' }
-
-        project.repositories {
-            maven { url mavenRepo }
-        }
-
         project.configurations {
             someConf
         }

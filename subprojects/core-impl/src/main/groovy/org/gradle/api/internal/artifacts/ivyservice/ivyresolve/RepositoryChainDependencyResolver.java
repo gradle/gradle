@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
@@ -55,7 +56,14 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
         ModuleVersionSelector requested = dependency.getRequested();
         LOGGER.debug("Attempting to resolve module '{}' using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
-        final RepositoryChainModuleResolution latestResolved = findLatestModule(dependency, errors);
+
+        boolean dynamicSelector = componentChooser.canSelectMultipleComponents(dependency.getRequested());
+        List<RepositoryResolveState> resolveStates = new ArrayList<RepositoryResolveState>();
+        for (ModuleComponentRepository repository : repositories) {
+            resolveStates.add(createRepositoryResolveState(repository, dynamicSelector));
+        }
+
+        final RepositoryChainModuleResolution latestResolved = findLatestModule(dependency, resolveStates, dynamicSelector, errors);
         if (latestResolved != null) {
             LOGGER.debug("Using module '{}' from repository '{}'", latestResolved.module.getId(), latestResolved.repository.getName());
             for (Throwable error : errors) {
@@ -68,16 +76,21 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
         if (!errors.isEmpty()) {
             result.failed(new ModuleVersionResolveException(requested, errors));
         } else {
-            result.notFound(requested);
+            for (RepositoryResolveState resolveState : resolveStates) {
+                resolveState.applyTo(result);
+            }
+            if (dynamicSelector) {
+                result.notFound(requested);
+            } else {
+                result.notFound(DefaultModuleVersionIdentifier.newId(requested.getGroup(), requested.getName(), requested.getVersion()));
+            }
         }
     }
 
-    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, Collection<Throwable> failures) {
-        boolean dynamicSelector = componentChooser.canSelectMultipleComponents(dependency.getRequested());
+    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, List<RepositoryResolveState> resolveStates, boolean dynamicSelector, Collection<Throwable> failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
-        for (ModuleComponentRepository repository : repositories) {
-            queue.add(createRepositoryResolveState(repository, dynamicSelector));
-        }
+        queue.addAll(resolveStates);
+
         LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
 
         // A first pass to do local resolves only
@@ -148,7 +161,7 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
     }
 
     public static abstract class RepositoryResolveState {
-        private final BuildableModuleVersionMetaDataResolveResult resolveResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
+        private final DefaultBuildableModuleVersionMetaDataResolveResult resolveResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
         final ModuleComponentRepository repository;
 
         private boolean searchedLocally;
@@ -172,6 +185,10 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
         }
 
         protected abstract void process(DependencyMetaData dependency, ModuleComponentRepositoryAccess localModuleAccess, BuildableModuleVersionMetaDataResolveResult resolveResult);
+
+        protected void applyTo(ResourceAwareResolveResult result) {
+            resolveResult.applyTo(result);
+        }
 
         public boolean canMakeFurtherAttempts() {
             return !searchedRemotely;
@@ -214,6 +231,12 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
                         resolveResult.missing();
                     }
             }
+        }
+
+        @Override
+        protected void applyTo(ResourceAwareResolveResult result) {
+            selectionResult.applyTo(result);
+            super.applyTo(result);
         }
 
         private boolean resolveDependency(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleVersionMetaDataResolveResult resolveResult) {

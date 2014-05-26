@@ -230,7 +230,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "reports failure to resolve artifacts of non-existing component"() {
-        fixture.expectComponentNotFound().prepare()
+        fixture.expectComponentNotFound([module.ivy.uri.toString(), module.jar.uri.toString()]).prepare()
 
         when:
         module.ivy.expectGetMissing()

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
@@ -95,7 +96,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private boolean isSnapshotVersion(ModuleComponentIdentifier module) {
-        return module.getVersion().endsWith("SNAPSHOT");
+        return module.getVersion().endsWith("-SNAPSHOT");
     }
 
     @Override
@@ -135,7 +136,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
-        String metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml").getUri().toString();
+        URI metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml").getUri();
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {
@@ -146,7 +147,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return null;
     }
 
-    private MavenMetadata parseMavenMetadata(String metadataLocation) {
+    private MavenMetadata parseMavenMetadata(URI metadataLocation) {
         try {
             return mavenMetaDataLoader.load(metadataLocation);
         } catch (ResourceNotFoundException e) {
@@ -211,7 +212,7 @@ public class MavenResolver extends ExternalResourceResolver {
             } else {
                 ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
 
-                if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
+                if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
                     DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
                     result.resolved(ImmutableSet.of(artifactMetaData));
                 } else {

@@ -112,10 +112,6 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             return resource.getContentLength();
         }
 
-        public boolean exists() {
-            return resource.exists();
-        }
-
         public boolean isLocal() {
             return resource.isLocal();
         }

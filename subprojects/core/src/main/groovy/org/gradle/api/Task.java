@@ -38,7 +38,7 @@ import java.util.Set;
  *
  * <p>Each task belongs to a {@link Project}. You can use the various methods on {@link
  * org.gradle.api.tasks.TaskContainer} to create and lookup task instances. For example, {@link
- * org.gradle.api.tasks.TaskContainer#add(String)} creates an empty task with the given name. You can also use the
+ * org.gradle.api.tasks.TaskContainer#create(String)} creates an empty task with the given name. You can also use the
  * {@code task} keyword in your build file: </p>
  * <pre>
  * task myTask

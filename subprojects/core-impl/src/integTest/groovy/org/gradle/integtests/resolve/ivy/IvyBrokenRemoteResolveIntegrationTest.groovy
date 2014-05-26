@@ -43,15 +43,64 @@ task showMissing << { println configurations.missing.files }
 
         then:
         fails("showMissing")
-        failure
-            .assertHasDescription('Execution failed for task \':showMissing\'.')
-            .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
-            .assertHasCause('Could not find group:projectA:1.2.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+                .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+                .assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${module.ivy.uri}
+    ${module.jar.uri}
+""")
 
         when:
         server.resetExpectations()
         module.ivy.expectGet()
         module.jar.expectGet()
+
+        then:
+        succeeds('showMissing')
+    }
+
+    public void "reports and recovers from module missing from multiple repositories"() {
+        given:
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleInRepo1 = repo1.module("group", "projectA", "1.2").publish()
+        def moduleInRepo2 = repo2.module("group", "projectA", "1.2")
+
+        buildFile << """
+repositories {
+    ivy { url "${repo1.uri}"}
+    ivy { url "${repo2.uri}"}
+}
+configurations { missing }
+dependencies {
+    missing 'group:projectA:1.2'
+}
+task showMissing << { println configurations.missing.files }
+"""
+
+        when:
+        moduleInRepo1.ivy.expectGetMissing()
+        moduleInRepo1.jar.expectHeadMissing()
+        moduleInRepo2.ivy.expectGetMissing()
+        moduleInRepo2.jar.expectHeadMissing()
+
+        then:
+        fails("showMissing")
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+                .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+                .assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${moduleInRepo1.ivy.uri}
+    ${moduleInRepo1.jar.uri}
+    ${moduleInRepo2.ivy.uri}
+    ${moduleInRepo2.jar.uri}
+""")
+
+        when:
+        server.resetExpectations()
+        moduleInRepo1.ivy.expectGet()
+        moduleInRepo1.jar.expectGet()
 
         then:
         succeeds('showMissing')

@@ -26,8 +26,8 @@ import java.util.Collection;
 
 class NativeDependencyNotationParser {
     public static NotationParser<Object, NativeLibraryRequirement> parser() {
-        return new NotationParserBuilder<NativeLibraryRequirement>()
-                .resultingType(NativeLibraryRequirement.class)
+        return NotationParserBuilder
+                .toType(NativeLibraryRequirement.class)
                 .parser(new LibraryConverter())
                 .parser(new NativeLibraryRequirementMapNotationParser())
                 .toComposite();

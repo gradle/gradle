@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Actions;
@@ -100,7 +99,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(platform, Actions.<ConfigurableToolChain>doNothing());
     }
 
-    public void target(DomainObjectSet<Platform> platforms) {
+    public void target(Iterable<? extends Platform> platforms) {
         target(platforms, Actions.<ConfigurableToolChain>doNothing());
     }
 
@@ -112,12 +111,16 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(platformNames, Actions.<ConfigurableToolChain>doNothing());
     }
 
+    public void target(String... platformNames) {
+        target(Arrays.asList(platformNames), Actions.<ConfigurableToolChain>doNothing());
+    }
+
     public void target(Platform platform, Action<? super ConfigurableToolChain> action) {
         target(platform.getName(), action);
     }
 
-    public void target(DomainObjectSet<Platform> platforms, Action<? super ConfigurableToolChain> action) {
-        Set<String> platformNames = CollectionUtils.collect(platforms, new Transformer<String, Platform>() {
+    public void target(Iterable<? extends Platform> platforms, Action<? super ConfigurableToolChain> action) {
+        List<String> platformNames = CollectionUtils.collect(platforms, new Transformer<String, Platform>() {
             public String transform(Platform original) {
                 return original.getName();
             }

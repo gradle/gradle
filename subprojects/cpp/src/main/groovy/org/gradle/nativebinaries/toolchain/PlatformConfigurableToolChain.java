@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.nativebinaries.platform.Platform;
 
@@ -41,7 +40,7 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add support for a set of target platforms.
      */
-    public void target(DomainObjectSet<Platform> platform);
+    public void target(Iterable<? extends Platform> platform);
 
     /**
      * Add support for target platform specified by name.
@@ -54,9 +53,14 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     public void target(List<String> platformNames);
 
     /**
+     * Add support for target platforms specified by name.
+     */
+    public void target(String... platformNames);
+
+    /**
      * Add configuration for a set of target platforms with additional configuration action.
      */
-    public void target(DomainObjectSet<Platform> platform, Action<? super ConfigurableToolChain> action);
+    public void target(Iterable<? extends Platform> platform, Action<ConfigurableToolChain> action);
 
     /**
      * Add configuration for a target platform specified by name with additional configuration action.

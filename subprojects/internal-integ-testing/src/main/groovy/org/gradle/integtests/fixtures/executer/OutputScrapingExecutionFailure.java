@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.util.TextUtil;
 import org.hamcrest.Matcher;
 
 import java.util.ArrayList;
@@ -60,18 +61,18 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
         matcher = CAUSE_PATTERN.matcher(problem);
         if (!matcher.find()) {
-            description = problem.trim();
+            description = TextUtil.normaliseLineSeparators(problem.trim());
         } else {
-            description = problem.substring(0, matcher.start()).trim();
+            description = TextUtil.normaliseLineSeparators(problem.substring(0, matcher.start()).trim());
             while (true) {
                 int pos = matcher.end();
                 int prefix = matcher.group(1).length();
                 String prefixPattern = toPrefixPattern(prefix);
                 if (matcher.find(pos)) {
-                    String cause = problem.substring(pos, matcher.start()).trim().replaceAll(prefixPattern, "");
+                    String cause = TextUtil.normaliseLineSeparators(problem.substring(pos, matcher.start()).trim().replaceAll(prefixPattern, ""));
                     causes.add(cause);
                 } else {
-                    String cause = problem.substring(pos).trim().replaceAll(prefixPattern, "");
+                    String cause = TextUtil.normaliseLineSeparators(problem.substring(pos).trim().replaceAll(prefixPattern, ""));
                     causes.add(cause);
                     break;
                 }

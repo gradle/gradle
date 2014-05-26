@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository {
+public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;

@@ -19,18 +19,13 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.internal.typeconversion.MapKey;
-import org.gradle.internal.typeconversion.MapNotationParser;
-import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
 import java.util.Collection;
@@ -52,21 +47,21 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
         PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
 
-        NotationParser<Object, IvyArtifact> sourceNotationParser = new NotationParserBuilder<IvyArtifact>()
-                .resultingType(IvyArtifact.class)
+        NotationParser<Object, IvyArtifact> sourceNotationParser = NotationParserBuilder
+                .toType(IvyArtifact.class)
                 .parser(archiveTaskNotationParser)
                 .parser(publishArtifactNotationParser)
-                .parser(fileNotationParser)
+                .converter(fileNotationParser)
                 .toComposite();
 
         IvyArtifactMapNotationParser ivyArtifactMapNotationParser = new IvyArtifactMapNotationParser(sourceNotationParser);
 
-        NotationParserBuilder<IvyArtifact> parserBuilder = new NotationParserBuilder<IvyArtifact>()
-                .resultingType(IvyArtifact.class)
+        NotationParserBuilder<IvyArtifact> parserBuilder = NotationParserBuilder
+                .toType(IvyArtifact.class)
                 .parser(archiveTaskNotationParser)
                 .parser(publishArtifactNotationParser)
                 .parser(ivyArtifactMapNotationParser)
-                .parser(fileNotationParser);
+                .converter(fileNotationParser);
 
         return parserBuilder.toComposite();
     }
@@ -112,16 +107,16 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
     }
 
-    private class FileNotationParser implements NotationParser<Object, IvyArtifact> {
+    private class FileNotationParser implements NotationConverter<Object, IvyArtifact> {
         private final NotationParser<Object, File> fileResolverNotationParser;
 
         private FileNotationParser(FileResolver fileResolver) {
             this.fileResolverNotationParser = fileResolver.asNotationParser();
         }
 
-        public IvyArtifact parseNotation(Object notation) throws UnsupportedNotationException {
+        public void convert(Object notation, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            return parseFile(file);
+            result.converted(parseFile(file));
         }
 
         protected IvyArtifact parseFile(File file) {

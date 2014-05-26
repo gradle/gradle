@@ -35,7 +35,7 @@ repositories {
     }
 
     def setup() {
-        repo.allowDirectoryListGet("org.test", "moduleA")
+        repo.directoryList("org.test", "moduleA").allowGet()
     }
 }
 

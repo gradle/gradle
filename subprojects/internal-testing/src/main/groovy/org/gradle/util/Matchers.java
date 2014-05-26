@@ -16,6 +16,7 @@
 
 package org.gradle.util;
 
+import org.gradle.internal.SystemProperties;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
@@ -261,6 +262,21 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("an exception with message that is ").appendDescriptionOf(matcher);
+            }
+        };
+    }
+
+    @Factory
+    public static Matcher<String> normalizedLineSeparators(final Matcher<String> matcher) {
+        return new BaseMatcher<String>() {
+            public boolean matches(Object o) {
+                String string = (String) o;
+                return matcher.matches(string.replace(SystemProperties.getLineSeparator(), "\n"));
+            }
+
+            public void describeTo(Description description) {
+                matcher.describeTo(description);
+                description.appendText(" (ignore line separators)");
             }
         };
     }

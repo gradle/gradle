@@ -70,10 +70,6 @@ public class UrlExternalResource extends AbstractExternalResource {
         return connection.getLastModified();
     }
 
-    public boolean exists() {
-        return true;
-    }
-
     public InputStream openStream() throws IOException {
         return connection.getInputStream();
     }

@@ -21,7 +21,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ErrorHandlingNotationParserTest extends Specification {
     def NotationParser<String, String> target = Mock()
-    def parser = new ErrorHandlingNotationParser<String, String>("String", "<broken>", target)
+    def parser = new ErrorHandlingNotationParser<String, String>("a thing", "<broken>", false, target)
 
     def "reports unable to parse null"() {
         when:
@@ -29,7 +29,7 @@ class ErrorHandlingNotationParserTest extends Specification {
 
         then:
         UnsupportedNotationException e = thrown()
-        e.message == toPlatformLineSeparators('''Cannot convert a null value to an object of type String.
+        e.message == toPlatformLineSeparators('''Cannot convert a null value to a thing.
 The following types/formats are supported:
   - format 1
   - format 2
@@ -50,7 +50,7 @@ The following types/formats are supported:
 
         then:
         UnsupportedNotationException e = thrown()
-        e.message == toPlatformLineSeparators('''Cannot convert the provided notation to an object of type String: broken-part.
+        e.message == toPlatformLineSeparators('''Cannot convert the provided notation to a thing: broken-part.
 The following types/formats are supported:
   - format 1
   - format 2

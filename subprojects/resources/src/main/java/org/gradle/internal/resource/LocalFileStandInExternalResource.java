@@ -55,10 +55,6 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
         return localFile.length();
     }
 
-    public boolean exists() {
-        return true;
-    }
-
     public boolean isLocal() {
         return true;
     }

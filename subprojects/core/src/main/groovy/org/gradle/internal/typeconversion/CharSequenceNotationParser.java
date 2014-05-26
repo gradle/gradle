@@ -16,13 +16,14 @@
 
 package org.gradle.internal.typeconversion;
 
-public class CharSequenceNotationParser extends TypedNotationParser<CharSequence, String> {
-    public CharSequenceNotationParser() {
-        super(CharSequence.class);
+import java.util.Collection;
+
+class CharSequenceNotationParser implements NotationConverter<String, String> {
+    public void convert(String notation, NotationConvertResult<? super String> result) throws TypeConversionException {
+        result.converted(notation);
     }
 
-    @Override
-    protected String parseType(CharSequence notation) {
-        return notation.toString();
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add("String or CharSequence instances.");
     }
 }

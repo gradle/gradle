@@ -30,8 +30,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
-import static org.gradle.internal.Cast.cast;
-
 public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectList<ArtifactRepository>
         implements ArtifactRepositoryContainer {
 
@@ -43,6 +41,14 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
     public DefaultArtifactRepositoryContainer(Instantiator instantiator) {
         super(ArtifactRepository.class, instantiator, new RepositoryNamer());
+        whenObjectAdded(new Action<ArtifactRepository>() {
+            public void execute(ArtifactRepository artifactRepository) {
+                if (artifactRepository instanceof ArtifactRepositoryInternal) {
+                    ArtifactRepositoryInternal repository = (ArtifactRepositoryInternal) artifactRepository;
+                    repository.onAddToContainer(DefaultArtifactRepositoryContainer.this);
+                }
+            }
+        });
     }
 
     private static class RepositoryNamer implements Namer<ArtifactRepository> {
@@ -92,7 +98,6 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
         assertCanAdd(repository.getName());
         insertion.execute(repository);
-        cast(ArtifactRepositoryInternal.class, repository).onAddToContainer(this);
         return repository;
     }
 

@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,7 @@ public class ResourceVersionLister implements VersionLister {
         this.repository = repository;
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module) {
+    public VersionList getVersionList(final ModuleIdentifier module, final ResourceAwareResolveResult result) {
         return new DefaultVersionList() {
             final Set<URI> directories = new HashSet<URI>();
 
@@ -53,7 +54,7 @@ public class ResourceVersionLister implements VersionLister {
                 try {
                     List<String> versionStrings = listRevisionToken(versionListPattern);
                     for (String versionString : versionStrings) {
-                        add(new ListedVersion(versionString, pattern));
+                        add(versionString);
                     }
                 } catch (ResourceException e) {
                     throw e;
@@ -81,6 +82,7 @@ public class ResourceVersionLister implements VersionLister {
                     if (!directories.add(parent.getUri())) {
                         return Collections.emptyList();
                     }
+                    result.attempted(parent.getUri().toString());
                     List<String> all = repository.list(parent.getUri());
                     if (all == null) {
                         return Collections.emptyList();
@@ -138,6 +140,7 @@ public class ResourceVersionLister implements VersionLister {
                     return Collections.emptyList();
                 }
                 LOGGER.debug("using {} to list all in {}", repository, parent);
+                result.attempted(parent.toString());
                 List<String> paths = repository.list(parent);
                 if (paths == null) {
                     return Collections.emptyList();

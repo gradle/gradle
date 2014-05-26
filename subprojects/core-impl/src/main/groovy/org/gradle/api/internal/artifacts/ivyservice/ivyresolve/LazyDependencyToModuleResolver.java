@@ -51,7 +51,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
     private abstract class AbstractVersionResolveResult implements ModuleVersionIdResolveResult {
         final DependencyMetaData dependency;
-        private BuildableComponentResolveResult resolveResult;
+        private DefaultBuildableComponentResolveResult resolveResult;
 
         public AbstractVersionResolveResult(DependencyMetaData dependency) {
             this.dependency = dependency;
@@ -69,9 +69,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
                         dependencyResolver.resolve(dependency, resolveResult);
                     } catch (Throwable t) {
                         throw new ModuleVersionResolveException(dependency.getRequested(), t);
-                    }
-                    if (resolveResult.getFailure() instanceof ModuleVersionNotFoundException) {
-                        throw notFound();
                     }
                     if (resolveResult.getFailure() != null) {
                         throw resolveResult.getFailure();
@@ -99,8 +96,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
                 }
             }
         }
-
-        protected abstract ModuleVersionNotFoundException notFound();
     }
 
     private class StaticVersionResolveResult extends AbstractVersionResolveResult {
@@ -127,10 +122,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             }
             super.checkDescriptor(metaData);
         }
-
-        protected ModuleVersionNotFoundException notFound() {
-            return new ModuleVersionNotFoundException(id);
-        }
     }
 
     private class DynamicVersionResolveResult extends AbstractVersionResolveResult {
@@ -145,11 +136,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
         public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
             return resolve().getId();
-        }
-
-        @Override
-        protected ModuleVersionNotFoundException notFound() {
-            return new ModuleVersionNotFoundException(dependency.getRequested());
         }
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
@@ -28,16 +29,16 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
         this.timestamp = timestamp;
     }
 
-    public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
-        return delegate.artifactExists(timestamp(artifact));
+    public boolean artifactExists(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+        return delegate.artifactExists(timestamp(artifact), result);
     }
 
-    public LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact) {
-        return delegate.resolveArtifact(timestamp(artifact));
+    public LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+        return delegate.resolveArtifact(timestamp(artifact), result);
     }
 
-    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact) {
-        return delegate.resolveMetaDataArtifact(timestamp(artifact));
+    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+        return delegate.resolveMetaDataArtifact(timestamp(artifact), result);
     }
 
     protected ModuleVersionArtifactMetaData timestamp(ModuleVersionArtifactMetaData artifact) {

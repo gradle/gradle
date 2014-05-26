@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.MavenModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
@@ -37,8 +39,11 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
-    protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver) {
-        MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver);
+    protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+        MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
+        if (metaData == null) {
+            return null;
+        }
 
         if (isOrphanedPom(mavenMetaData(metaData), artifactResolver)) {
             return null;
@@ -52,17 +57,17 @@ public class MavenLocalResolver extends MavenResolver {
         }
 
         // check custom packaging
-        if(!metaData.isKnownJarPackaging()) {
+        if (!metaData.isKnownJarPackaging()) {
             ModuleVersionArtifactMetaData customArtifactMetaData = metaData.artifact(metaData.getPackaging(), metaData.getPackaging(), null);
 
-            if(artifactResolver.artifactExists(customArtifactMetaData)) {
+            if (artifactResolver.artifactExists(customArtifactMetaData, new DefaultResourceAwareResolveResult())) {
                 return false;
             }
         }
 
         ModuleVersionArtifactMetaData artifact = metaData.artifact("jar", "jar", null);
 
-        if(artifactResolver.artifactExists(artifact)) {
+        if (artifactResolver.artifactExists(artifact, new DefaultResourceAwareResolveResult())) {
             return false;
         }
 

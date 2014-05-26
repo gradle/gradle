@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
 
 import java.io.File;
 
-public class DefaultBuildableArtifactResolveResult implements BuildableArtifactResolveResult {
+public class DefaultBuildableArtifactResolveResult extends DefaultResourceAwareResolveResult implements BuildableArtifactResolveResult {
     private ArtifactResolveException failure;
     private File file;
 

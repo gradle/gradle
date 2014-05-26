@@ -195,7 +195,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "reports failure to resolve artifacts of non-existing component"() {
-        fixture.expectComponentNotFound().prepare()
+        fixture.expectComponentNotFound([module.pom.uri.toString(), module.artifact.uri.toString()]).prepare()
 
         when:
         module.pom.expectGetMissing()

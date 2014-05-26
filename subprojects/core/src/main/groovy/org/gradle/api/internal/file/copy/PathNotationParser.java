@@ -17,28 +17,44 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-public class PathNotationParser<T extends String> implements NotationParser<Object, T> {
+public class PathNotationParser implements NotationParser<Object, String> {
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Strings, Boolean, Number like: 'path/to', true, Boolean.TRUE, 42, 3.14");
-        candidateFormats.add("Closures, Callables");
+        candidateFormats.add("String or CharSequence instances e.g. 'some/path'");
+        candidateFormats.add("Boolean values e.g. true, Boolean.TRUE");
+        candidateFormats.add("Number values e.g. 42, 3.14");
+        candidateFormats.add("A File instance");
+        candidateFormats.add("A Closure that returns any supported value.");
+        candidateFormats.add("A Callable that returns any supported value.");
     }
 
-    public T parseNotation(Object notation) {
+    public static NotationParser<Object, String> create() {
+        return NotationParserBuilder
+                .toType(String.class)
+                .noImplicitConverters()
+                .allowNullInput()
+                .parser(new PathNotationParser())
+                .toComposite();
+    }
+
+    public String parseNotation(Object notation) {
         if (notation == null) {
             return null;
         }
         if (notation instanceof CharSequence
+                || notation instanceof File
                 || notation instanceof Number
                 || notation instanceof Boolean) {
-            return (T) notation.toString();
+            return notation.toString();
         }
         if (notation instanceof Closure) {
             final Closure closure = (Closure) notation;
@@ -54,10 +70,6 @@ public class PathNotationParser<T extends String> implements NotationParser<Obje
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-        DeprecationLogger.nagUserOfDeprecated(
-                String.format("Converting class %s to path using toString() method", notation.getClass().getName()),
-                "Please use java.io.File, java.lang.CharSequence, java.lang.Number, java.util.concurrent.Callable or groovy.lang.Closure"
-        );
-        return (T) notation.toString();
+        throw new UnsupportedNotationException(notation);
     }
 }

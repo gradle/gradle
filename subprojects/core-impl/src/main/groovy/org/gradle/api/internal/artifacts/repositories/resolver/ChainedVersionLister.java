@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.ResourceNotFoundException;
@@ -35,10 +36,10 @@ public class ChainedVersionLister implements VersionLister {
         this.versionListers = Arrays.asList(versionlisters);
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module)  {
+    public VersionList getVersionList(final ModuleIdentifier module, final ResourceAwareResolveResult result)  {
         final List<VersionList> versionLists = new ArrayList<VersionList>();
         for (VersionLister lister : versionListers) {
-            versionLists.add(lister.getVersionList(module));
+            versionLists.add(lister.getVersionList(module, result));
         }
         return new AbstractVersionList() {
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
@@ -67,8 +68,8 @@ public class ChainedVersionLister implements VersionLister {
                 }
             }
 
-            public Set<ListedVersion> getVersions() {
-                Set<ListedVersion> allVersions = new HashSet<ListedVersion>();
+            public Set<String> getVersions() {
+                Set<String> allVersions = new LinkedHashSet<String>();
                 for (VersionList versionList : versionLists) {
                     allVersions.addAll(versionList.getVersions());
                 }

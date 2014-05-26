@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
-public class DefaultBuildableComponentResolveResult implements BuildableComponentResolveResult {
+public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
     private ComponentMetaData metaData;
     private ModuleVersionResolveException failure;
 
@@ -31,7 +31,11 @@ public class DefaultBuildableComponentResolveResult implements BuildableComponen
     }
 
     public void notFound(ModuleVersionSelector versionSelector) {
-        failed(new ModuleVersionNotFoundException(versionSelector));
+        failed(new ModuleVersionNotFoundException(versionSelector, getAttempted()));
+    }
+
+    public void notFound(ModuleVersionIdentifier versionIdentifier) {
+        failed(new ModuleVersionNotFoundException(versionIdentifier, getAttempted()));
     }
 
     public void resolved(ComponentMetaData metaData) {

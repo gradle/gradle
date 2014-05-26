@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 /**
  * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
  */
-public interface BuildableModuleVersionMetaDataResolveResult {
+public interface BuildableModuleVersionMetaDataResolveResult extends ResourceAwareResolveResult {
     static enum State {
         Resolved, Missing, Failed, ProbablyMissing, Unknown
     }
@@ -33,6 +33,9 @@ public interface BuildableModuleVersionMetaDataResolveResult {
      */
     State getState();
 
+    /**
+     * Returns true if this result is available, ie the state is not {@link State#Unknown}.
+     */
     boolean hasResult();
 
     /**

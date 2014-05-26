@@ -15,10 +15,7 @@
  */
 package org.gradle.nativebinaries.platform.internal;
 
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.TypedNotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.internal.typeconversion.*;
 import org.gradle.nativebinaries.platform.Architecture;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
@@ -39,18 +36,20 @@ public class ArchitectureNotationParser {
     private static final List<String> ARM_ALIASES = Arrays.asList("arm");
 
     public static NotationParser<Object, Architecture> parser() {
-        return new NotationParserBuilder<Architecture>()
-                .resultingType(Architecture.class)
-                .parser(new Parser())
+        return NotationParserBuilder
+                .toType(Architecture.class)
+                .fromCharSequence(new Parser())
                 .toComposite();
     }
 
-    private static final class Parser extends TypedNotationParser<String, Architecture> {
-        private Parser() {
-            super(String.class);
+    private static final class Parser implements NotationConverter<String, Architecture> {
+        public void convert(String notation, NotationConvertResult<? super Architecture> result) throws TypeConversionException {
+            Architecture architecture = parseType(notation);
+            if (architecture != null) {
+                result.converted(architecture);
+            }
         }
 
-        @Override
         protected Architecture parseType(String notation) {
             if (X86_ALIASES.contains(notation.toLowerCase())) {
                 return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.X86, 32);
@@ -76,10 +75,9 @@ public class ArchitectureNotationParser {
             if (ARM_ALIASES.contains(notation.toLowerCase())) {
                 return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.ARM, 32);
             }
-            throw new UnsupportedNotationException(notation);
+            return null;
         }
 
-        @Override
         public void describe(Collection<String> candidateFormats) {
             List<String> validList = CollectionUtils.flattenCollections(String.class,
                     X86_ALIASES, X86_64_ALIASES, ITANIUM_ALIASES, PPC_32_ALIASES, PPC_64_ALIASES, SPARC_32_ALIASES, SPARC_64_ALIASES, ARM_ALIASES

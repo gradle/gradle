@@ -141,16 +141,13 @@ class BaseDirFileResolverTest {
     @Test public void testResolveRelativePath() {
         String relativeFileName = "relative"
         assertEquals(new File(baseDir, relativeFileName), baseDirConverter.resolve(relativeFileName))
+        assertEquals(new File(baseDir, relativeFileName), baseDirConverter.resolve(new StringBuffer(relativeFileName)))
         assertEquals(baseDir, baseDirConverter.resolve("."))
     }
 
     @Test public void testResolveFileWithAbsolutePath() {
         File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile))
-    }
-
-    @Test public void testResolveRelativeObject() {
-        assertEquals(new File(baseDir, "12"), baseDirConverter.resolve(12))
     }
 
     @Test public void testResolveFileWithRelativePath() {

@@ -62,10 +62,6 @@ public class SftpResource extends AbstractExternalResource {
         return metaData.getContentLength();
     }
 
-    public boolean exists() {
-        return true;
-    }
-
     public boolean isLocal() {
         return false;
     }

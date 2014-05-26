@@ -39,7 +39,7 @@ import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository {
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private Object baseUrl;
     private RepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;

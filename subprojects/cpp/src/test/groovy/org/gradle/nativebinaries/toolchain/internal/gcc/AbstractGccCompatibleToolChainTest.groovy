@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.gcc
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain
@@ -49,7 +50,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         isAvailable() >> true
     }
 
-    def instantiator = Mock(Instantiator)
+    def instantiator = new DirectInstantiator()
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolSearchPath, instantiator)
     def platform = Stub(Platform)
 
