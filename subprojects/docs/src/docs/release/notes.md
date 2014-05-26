@@ -388,6 +388,11 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `ArtifactRepositoryContainer.addBefore()` with no replacement.
 - `ArtifactRepositoryContainer.addAfter()` with no replacement.
 - `ArtifactRepositoryContainer.getResolvers()` with no replacement.
+- `GenerateEclipseClasspath.containers()` replaced with `eclipse.classpath.containers()`.
+- `GenerateEclipseClasspath.variables()` replaced with `eclipse.pathVariables()`.
+- `GenerateEclipseWtpComponent.resources()` replaced with `eclipse.wtp.component.resource()`.
+- `GenerateEclipseWtpComponent.properties()` replaced with `eclipse.wtp.component.property()`.
+- `GenerateEclipseWtpComponent.variables()` replaced with `eclipse.pathVariables()`.
 
 ### Removed deprecated properties
 
@@ -404,6 +409,22 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `CodeNarc.reportFile` replaced with `CodeNarc.reports.<type>.destination`.
 - `ResolvedArtifact.resolvedDependency` with `ResolvedArtifact.moduleVersion` as a partial replacement.
 - `ArtifactsRepositoryContainer` constants with no replacement.
+- `GenerateEclipseClasspath.sourceSets` replaced with `eclipse.classpath.sourceSets`.
+- `GenerateEclipseClasspath.plusConfigurations` replaced with `eclipse.classpath.plusConfigurations`.
+- `GenerateEclipseClasspath.minusConfigurations` replaced with `eclipse.classpath.minusConfigurations`.
+- `GenerateEclipseClasspath.containers` replaced with `eclipse.classpath.containers`.
+- `GenerateEclipseClasspath.defaultOutputDir` replaced with `eclipse.classpath.defaultOutputDir`.
+- `GenerateEclipseClasspath.downloadSources` replaced with `eclipse.classpath.downloadSources`.
+- `GenerateEclipseClasspath.downloadJavadoc` replaced with `eclipse.classpath.downloadJavadoc`.
+- `GenerateEclipseClasspath.variables` replaced with `eclipse.pathVariables`.
+- `GenerateEclipseWtpComponent.contextPath` replaced with `eclipse.wtp.component.contextPath`.
+- `GenerateEclipseWtpComponent.deployName` replaced with `eclipse.wtp.component.deployName`.
+- `GenerateEclipseWtpComponent.sourceDirs` replaced with `eclipse.wtp.component.sourceDirs`.
+- `GenerateEclipseWtpComponent.plusConfigurations` replaced with `eclipse.wtp.component.plusConfigurations`.
+- `GenerateEclipseWtpComponent.minusConfigurations` replaced with `eclipse.wtp.component.minusConfigurations`.
+- `GenerateEclipseWtpComponent.resources` replaced with `eclipse.wtp.component.resources`.
+- `GenerateEclipseWtpComponent.properties` replaced with `eclipse.wtp.component.properties`.
+- `GenerateEclipseWtpComponent.variables` replaced with `eclipse.pathVariables`.
 
 ### Changes to file DSL
 
