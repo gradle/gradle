@@ -41,7 +41,7 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add support for a set of target platforms.
      */
-    public void target(DomainObjectSet<Platform> platform);
+    public void target(Iterable<? extends Platform> platform);
 
     /**
      * Add support for target platform specified by name.
@@ -56,7 +56,7 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a set of target platforms with additional configuration action.
      */
-    public void target(DomainObjectSet<Platform> platform, Action<? super ConfigurableToolChain> action);
+    public void target(Iterable<? extends Platform> platform, Action<? super ConfigurableToolChain> action);
 
     /**
      * Add configuration for a target platform specified by name with additional configuration action.
