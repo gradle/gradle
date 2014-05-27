@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -28,7 +29,7 @@ import spock.lang.Unroll
 class GccToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
-    Instantiator instantiator = Mock(Instantiator)
+    Instantiator instantiator = new DirectInstantiator()
 
     final toolChain = new GccToolChain(instantiator , "gcc", OperatingSystem.current(), fileResolver, Stub(ExecActionFactory))
 

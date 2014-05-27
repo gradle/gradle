@@ -50,11 +50,13 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     public GccToolChain(Instantiator instantiator, String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
         super(name, operatingSystem, fileResolver, execActionFactory, new GccToolSearchPath(operatingSystem), instantiator);
         this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
-
-        add(new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "gcc"));
-        add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
-        add(new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, "g++"));
-        add(new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "cCompiler", ToolType.C_COMPILER, "gcc"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "cppCompiler", ToolType.CPP_COMPILER, "g++"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "linker", ToolType.LINKER, "g++"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "g++"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "objcCompiler", ToolType.OBJECTIVEC_COMPILER, "gcc"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "assembler", ToolType.ASSEMBLER, "as"));
     }
 
     @Override
