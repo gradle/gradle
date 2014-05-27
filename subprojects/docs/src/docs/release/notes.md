@@ -181,6 +181,9 @@ This will allow a build author to work around any limitations in Gradle, or inco
 
 ### Support for adding target platform specific configurations in native binary projects (GCC based toolchains)
 
+It's now a lot easier to define a target platform and how to build for it. Instead of implementing an interface you can describe a target platform
+and it's configuration in the Gradle DSL.
+
 When declaring a toolchain, the targeted platforms can be configured directly in the toolChain model. Furthermore target platform specific configurations
 can be declared:
 
@@ -208,6 +211,9 @@ can be declared:
 			}
 		}
 
+Have a look at the [User Guide](userguide/nativeBinaries.html#native_binaries:tool_chain) for more details on how to configure Gcc compatbile
+toolchains for cross compilation.
+
 ### New 'ivy' layout support for Ivy repositories
 
 When defining an 'ivy' repository, you can provide a named layout to describe how artifacts are organised within that repository.
@@ -222,7 +228,7 @@ is configured with the default ivy artifact and metadata patterns.
         }
     }
 
-See the [User Guide](userguide/dependency_management.html#N150B8) and the
+See the [User Guide](/dependency_management.html#N150B8) and the
 <a href="dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String, groovy.lang.Closure)">
 DSL Reference</a> for more detail on how to use named layouts.
 
