@@ -58,7 +58,7 @@ public class ToolSearchPath {
         File executable = executables.get(exeName);
         if(executable == null){
             executable = findExecutable(operatingSystem, exeName);
-            if(executable!=null){
+            if(executable != null){
                 executables.put(exeName, executable);
             }
         }
