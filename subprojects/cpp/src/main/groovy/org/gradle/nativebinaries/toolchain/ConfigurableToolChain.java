@@ -21,8 +21,8 @@ import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A configurable tool chain.
- * @param <T> the CommandLineToolConfiguration class
+ * @param <T> the tool class
  */
 @Incubating
-public interface ConfigurableToolChain<T extends CommandLineToolConfiguration> extends ToolChain, NamedDomainObjectSet<T> {
+public interface ConfigurableToolChain<T> extends ToolChain, NamedDomainObjectSet<T> {
 }
