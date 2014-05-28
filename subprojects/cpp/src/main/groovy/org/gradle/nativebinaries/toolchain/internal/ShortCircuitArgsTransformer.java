@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gcc;
-
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+package org.gradle.nativebinaries.toolchain.internal;
 
 import java.util.List;
 
