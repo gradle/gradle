@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.JDK5)
 class ZincScalaCompilerIntegrationTest extends AbstractIntegrationSpec {
+    @Requires(TestPrecondition.JDK5)
     def "gives sensible error when run with Java 5"() {
         buildFile <<
 """
