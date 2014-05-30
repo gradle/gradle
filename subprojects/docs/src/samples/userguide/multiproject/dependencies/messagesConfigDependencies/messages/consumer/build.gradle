@@ -1,6 +1,6 @@
 evaluationDependsOn(':producer')
 
-message = rootProject.producerMessage
+def message = rootProject.producerMessage
 
 task consume << {
     println("Consuming message: " + message)

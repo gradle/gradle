@@ -12,5 +12,5 @@ allprojects {
 // END SNIPPET after-evaluate
 
 allprojects {
-    hasTests = false
+    ext.hasTests = false
 }

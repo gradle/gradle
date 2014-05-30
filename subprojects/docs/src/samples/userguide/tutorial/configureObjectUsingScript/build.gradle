@@ -1,5 +1,5 @@
 task configure << {
-    pos = new java.text.FieldPosition(10)
+    def pos = new java.text.FieldPosition(10)
     // Apply the script
     apply from: 'other.gradle', to: pos
     println pos.beginIndex

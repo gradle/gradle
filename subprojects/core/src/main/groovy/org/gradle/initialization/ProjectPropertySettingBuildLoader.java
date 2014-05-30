@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import groovy.lang.MissingPropertyException;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
@@ -69,9 +70,13 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
         ExtraPropertiesExtension extraProperties = new DslObject(project).getExtensions().getExtraProperties();
         for (Map.Entry<String, String> entry: mergedProperties.entrySet()) {
-            if (project.hasProperty(entry.getKey())) {
-                project.setProperty(entry.getKey(), entry.getValue());    
-            } else {
+            try {
+                project.setProperty(entry.getKey(), entry.getValue());
+            } catch (MissingPropertyException e) {
+                if (!entry.getKey().equals(e.getProperty())) {
+                    throw e;
+                }
+                // Ignore and define as an extra property
                 extraProperties.set(entry.getKey(), entry.getValue());
             }
         }

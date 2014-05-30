@@ -464,13 +464,12 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * </ol>
      *
-     * <p>If the property is not found in any of these locations, it is added to the project's additional
-     * properties.</p>
+     * If the property is not found, a {@link groovy.lang.MissingPropertyException} is thrown.
      *
      * @param name The name of the property
      * @param value The value of the property
      */
-    void setProperty(String name, Object value);
+    void setProperty(String name, Object value) throws MissingPropertyException;
 
     /**
      * <p>Returns the {@link Convention} object for this task. A {@link Plugin} can use the convention object to

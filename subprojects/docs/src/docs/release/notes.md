@@ -325,6 +325,22 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `UIFactory` removed.
 - `ExternalUtility` removed.
 
+### Properties are no longer dynamically created on assignment
+
+Previously, Gradle would create a property on a domain object when assigning a value to a property that does not exist:
+
+    project.myProperty = 'some value'
+    assert myProperty == 'some value'
+
+This behaviour has been deprecated since Gradle 1.?? and is now an error. Instead, you should either use the `ext` namespace or use a local variable:
+
+    def myProperty = 'some value'
+    assert myProperty == 'some value'
+
+    // or
+    ext.myProperty == 'some value'
+    assert myProperty == 'some value'
+
 ### Removed deprecated plugins
 
 - `code-quality` plugin replaced by `checkstyle` and `codenarc`.
@@ -435,12 +451,14 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 ### Changes to file DSL
 
 The `Project.file()` method no longer accepts arbitrary inputs. Previously, this method would attempt to convert the result of calling `toString()`
-on its parameter, if the parameter type was not recognized. This is now a failure.
+on its parameter, if the parameter type was not recognized. This is now an error.
 
 This method is used indirectly in many places in the Gradle DSL.
 
 The `CopySpec.into()` method also no longer accepts arbitrary inputs. Previously, this method would attempt to conver the result of calling `toString()` on
-its parameter, if the parameter type was not recognized. This is now a failure.
+its parameter, if the parameter type was not recognized. This is now an error.
+
+The `Project.tarTree()` and `zipTree()` methods no longer ignores missing files. This is now an error.
 
 ### Changes to repository DSL
 
@@ -454,6 +472,8 @@ its parameter, if the parameter type was not recognized. This is now a failure.
 ### Task constructor injection changes
 
 Tasks are now constructed according to JSR-330. This means that a task type must either have a single public zero-args constructor, or annotate one constructor with `@Inject`.
+
+Previously, Gradle would accept a class with a single constructor with multiple parameters that was not annotated with `@Inject`. This was deprecated in Gradle 1.2 and is now an error.
 
 ### Task constructor changes
 
