@@ -25,7 +25,7 @@ libraries.ant = dependencies.module('org.apache.ant:ant:1.9.3') {
     dependency 'org.apache.ant:ant-launcher:1.9.3@jar'
 }
 
-libraries.asm =  'org.ow2.asm:asm-all:5.0.2'
+libraries.asm =  'org.ow2.asm:asm-all:5.0.3'
 libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)
 libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
