@@ -190,7 +190,7 @@ public class ScalaDocOptions extends AbstractOptions {
 
     @Override
     protected String getAntPropertyName(String fieldName) {
-        if (fieldName == "additionalParameters") {
+        if (fieldName.equals("additionalParameters")) {
             return "addParams";
         }
         return fieldName;
@@ -198,13 +198,13 @@ public class ScalaDocOptions extends AbstractOptions {
 
     @Override
     protected Object getAntPropertyValue(String fieldName, Object value) {
-        if (fieldName == "deprecation") {
+        if (fieldName.equals("deprecation")) {
             return toOnOffString(deprecation);
         }
-        if (fieldName == "unchecked") {
+        if (fieldName.equals("unchecked")) {
             return toOnOffString(unchecked);
         }
-        if (fieldName == "additionalParameters") {
+        if (fieldName.equals("additionalParameters")) {
             return additionalParameters.isEmpty() ? ' ' : Joiner.on(' ').join(additionalParameters);
         }
         return value;
