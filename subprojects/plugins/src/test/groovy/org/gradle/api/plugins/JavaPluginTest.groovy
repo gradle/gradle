@@ -184,9 +184,7 @@ class JavaPluginTest {
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.mainSpec.sourcePaths, equalTo([project.sourceSets.main.output] as Set))
         assertThat(task.manifest, notNullValue())
-        assertThat(task.manifest, not(sameInstance(project.manifest)))
-        assertThat(task.manifest.mergeSpecs.size(), equalTo(1))
-        assertThat(task.manifest.mergeSpecs[0].mergePaths[0], sameInstance(project.manifest))
+        assertThat(task.manifest.mergeSpecs.size(), equalTo(0))
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
         assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.JAR_TASK_NAME))

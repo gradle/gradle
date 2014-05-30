@@ -372,6 +372,9 @@ This behaviour has been deprecated since Gradle 1.?? and is now an error. Instea
 - `org.gradle.RefreshOptions` with no replacement.
 - `org.gradle.tooling.model.eclipse.EclipseTask` with no replacement.
 - `org.gradle.CacheUsage` with no replacement.
+- `org.gradle.api.tasks.ConventionValue` with no replacement.
+- `org.gradle.api.internal.plugins.ProcessResources` replaced by `org.gradle.language.jvm.tasks.ProcessResources`.
+- `org.gradle.api.tasks.testing.TestLogging` replaced by `org.gradle.api.tasks.testing.logging.TestLogging`.
 
 ### Removed deprecated methods
 
@@ -383,6 +386,7 @@ This behaviour has been deprecated since Gradle 1.?? and is now an error. Instea
 - `Project.createTask()` replaced with `task()` or `getTasks().create()`.
 - `Project.fileTree(Closure)` replaced with `fileTree(Object)`.
 - `Script.fileTree(Closure)` replaced with `fileTree(Object)`.
+- `SourceSetContainer.add()` replaces with `create()`.
 - `Test.isTestReport()` replaced with `getReports().getHtml().isEnabled()`.
 - `Test.disableTestReport()` replaced with `getReports().getHtml().setEnabled()`.
 - `Test.enableTestReport()` replaced with `getReports().getHtml().setEnabled()`.
@@ -421,8 +425,11 @@ This behaviour has been deprecated since Gradle 1.?? and is now an error. Instea
 
 ### Removed deprecated properties
 
+- `UnresolvedDependency.id` replaced with `selector`.
 - `AbstractCopyTask.defaultSource` replaced with `source`.
 - `SourceTask.defaultSource` replaced with `source`.
+- `JavaPluginConvention.metaInf` replaced with `Jar.metaInf`.
+- `JavaPluginConvention.manifest` replaced with `Jar.manifest`.
 - `Compression.extension` replaced with `defaultExtension`.
 - `CompileOptions.compiler` replaced with `CompileOptions.fork` and `CompileOptions.forkOptions.executable`
 - `CompileOptions.useAnt` with no replacement.
@@ -470,6 +477,7 @@ The `Project.tarTree()` and `zipTree()` methods no longer ignores missing files.
 
 - The `RepositoryHandler.mavenCentral()` method no longer handles the `urls` option. You should use the `artifactUrls` instead.
 - It is now an error to change the name of an `ArtifactRepository` after it has been added to a repository container.
+- The `RepositoryHandler.mavenLocal()` method no longer supports the `M2_HOME` system properties. You should use the `M2_HOME` environment variable instead.
 
 ### Removed incubating method
 
