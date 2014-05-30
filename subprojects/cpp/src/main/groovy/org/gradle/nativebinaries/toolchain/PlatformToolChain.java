@@ -20,9 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * A configurable tool chain.
+ * A platform specific configurable tool chain.
  * @param <T> the tool class
  */
 @Incubating
-public interface ConfigurableToolChain<T> extends NamedDomainObjectSet<T> {
+public interface PlatformToolChain<T> extends NamedDomainObjectSet<T> {
 }
