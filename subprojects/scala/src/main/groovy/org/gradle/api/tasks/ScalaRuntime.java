@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks
+package org.gradle.api.tasks;
 
-import org.gradle.api.*
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
-import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.api.*;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.api.plugins.scala.ScalaBasePlugin;
 
-import java.util.regex.Pattern
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Provides information related to the Scala runtime(s) used in a project. Added by the
@@ -46,14 +50,14 @@ import java.util.regex.Pattern
  * </pre>
  */
 @Incubating
-class ScalaRuntime {
-    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar")
+public class ScalaRuntime {
+    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar");
 
     // should be private but Groovy can't handle this
-    protected final Project project
+    protected final Project project;
 
     ScalaRuntime(Project project) {
-        this.project = project
+        this.project = project;
     }
 
     /**
@@ -70,44 +74,44 @@ class ScalaRuntime {
      * @param classpath a class path containing a 'scala-library' Jar
      * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
      */
-    FileCollection inferScalaClasspath(Iterable<File> classpath) {
+    public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.files(Runnable)
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {
             @Override
-            FileCollection createDelegate() {
-                if (project.repositories.empty) {
-                    throw new GradleException("Cannot infer Scala class path because no repository is declared in $project")
+            public FileCollection createDelegate() {
+                if (project.getRepositories().isEmpty()) {
+                    throw new GradleException(String.format("Cannot infer Scala class path because no repository is declared in %s", project));
                 }
 
-                def scalaLibraryJar = findScalaJar(classpath, "library")
+                File scalaLibraryJar = findScalaJar(classpath, "library");
                 if (scalaLibraryJar == null) {
-                    throw new GradleException("Cannot infer Scala class path because no Scala library Jar was found. "
-                            + "Does $project declare dependency to scala-library? Searched classpath: $classpath.")
+                    throw new GradleException(String.format("Cannot infer Scala class path because no Scala library Jar was found. "
+                            + "Does %s declare dependency to scala-library? Searched classpath: %s.", project, classpath));
                 }
 
-                def scalaVersion = getScalaVersion(scalaLibraryJar)
+                String scalaVersion = getScalaVersion(scalaLibraryJar);
                 if (scalaVersion == null) {
-                    throw new AssertionError("Unexpectedly failed to parse version of Scala Jar file: $scalaLibraryJar in $project")
+                    throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
                 }
 
-                return project.configurations.detachedConfiguration(
-                        new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion))
+                return project.getConfigurations().detachedConfiguration(
+                        new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
             @Override
-            TaskDependency getBuildDependencies() {
+            public TaskDependency getBuildDependencies() {
                 if (classpath instanceof Buildable) {
-                    return classpath.buildDependencies
+                    return ((Buildable) classpath).getBuildDependencies();
                 }
                 return new TaskDependency() {
-                    Set<? extends Task> getDependencies(Task task) {
-                        Collections.emptySet()
+                    public Set<? extends Task> getDependencies(Task task) {
+                        return Collections.emptySet();
                     }
-                }
+                };
             }
-        }
+        };
     }
 
     /**
@@ -120,14 +124,14 @@ class ScalaRuntime {
      * @return a Scala Jar file with the specified appendix
      */
     @Nullable
-    File findScalaJar(Iterable<File> classpath, String appendix) {
-        for (file in classpath) {
-            def matcher = SCALA_JAR_PATTERN.matcher(file.name)
+    public File findScalaJar(Iterable<File> classpath, String appendix) {
+        for (File file : classpath) {
+            Matcher matcher = SCALA_JAR_PATTERN.matcher(file.getName());
             if (matcher.matches() && matcher.group(1) == appendix) {
-                return file
+                return file;
             }
         }
-        return null
+        return null;
     }
 
     /**
@@ -142,8 +146,8 @@ class ScalaRuntime {
      * @return the version of the Scala Jar file
      */
     @Nullable
-    String getScalaVersion(File scalaJar) {
-        def matcher = SCALA_JAR_PATTERN.matcher(scalaJar.name)
-        matcher.matches() ? matcher.group(2) : null
+    public String getScalaVersion(File scalaJar) {
+        Matcher matcher = SCALA_JAR_PATTERN.matcher(scalaJar.getName());
+        return matcher.matches() ? matcher.group(2) : null;
     }
 }
