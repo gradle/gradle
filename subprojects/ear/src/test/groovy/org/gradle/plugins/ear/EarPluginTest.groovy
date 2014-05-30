@@ -134,9 +134,7 @@ class EarPluginTest {
         project.plugins.apply(EarPlugin)
         project.plugins.apply(JavaPlugin.class)
 
-        def task = project.task(type: Ear, 'customEar') {
-            earModel = new EarPluginConvention(null)
-        }
+        def task = project.task(type: Ear, 'customEar')
         assertThat(task.destinationDir, equalTo(project.libsDir))
 
         assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
