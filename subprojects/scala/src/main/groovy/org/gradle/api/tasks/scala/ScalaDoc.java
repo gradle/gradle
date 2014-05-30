@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.*;
 import org.gradle.util.GUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -29,11 +30,16 @@ public class ScalaDoc extends SourceTask {
 
     private File destinationDir;
 
-    private FileCollection classpath;
+    private Iterable<File> classpath;
     private FileCollection scalaClasspath;
-    private AntScalaDoc antScalaDoc = new AntScalaDoc(getServices().get(IsolatedAntBuilder.class));
+    private AntScalaDoc antScalaDoc;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
+
+    @Inject
+    public ScalaDoc(IsolatedAntBuilder antBuilder) {
+        antScalaDoc = new AntScalaDoc(antBuilder);
+    }
 
     public AntScalaDoc getAntScalaDoc() {
         return antScalaDoc;
@@ -65,7 +71,7 @@ public class ScalaDoc extends SourceTask {
         return classpath;
     }
 
-    public void setClasspath(FileCollection classpath) {
+    public void setClasspath(Iterable<File> classpath) {
         this.classpath = classpath;
     }
 

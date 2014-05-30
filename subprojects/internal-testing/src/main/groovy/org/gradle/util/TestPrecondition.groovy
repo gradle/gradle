@@ -94,6 +94,9 @@ enum TestPrecondition {
     JDK7_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_7
     }),
+    JDK8_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_1_8
+    }),
     JDK7_POSIX({
         JDK7_OR_LATER.fulfilled && NOT_WINDOWS.fulfilled
     }),
