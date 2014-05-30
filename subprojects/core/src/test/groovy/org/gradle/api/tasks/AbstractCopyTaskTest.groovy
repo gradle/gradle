@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.test.fixtures.file.WorkspaceTest
@@ -70,7 +69,6 @@ class AbstractCopyTaskTest extends WorkspaceTest {
 
     static class TestCopyTask extends AbstractCopyTask {
         CopyAction copyAction
-        FileCollection defaultSource
 
         protected CopyAction createCopyAction() {
             copyAction

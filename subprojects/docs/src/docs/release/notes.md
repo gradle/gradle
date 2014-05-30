@@ -418,6 +418,7 @@ This behaviour has been deprecated since Gradle 1.?? and is now an error. Instea
 
 ### Removed deprecated properties
 
+- `AbstractCopyTask.defaultSource` replaced with `source`.
 - `CompileOptions.compiler` replaced with `CompileOptions.fork` and `CompileOptions.forkOptions.executable`
 - `CompileOptions.useAnt` with no replacement.
 - `CompileOptions.optimize` with no replacement.
