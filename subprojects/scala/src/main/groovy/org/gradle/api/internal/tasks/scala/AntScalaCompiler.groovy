@@ -96,11 +96,16 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         if (target <= VersionNumber.parse("1.5")) { return "jvm-${target.major}.${target.minor}" }
 
         def scalaVersion = sniffScalaVersion(spec.scalaClasspath)
-        if (scalaVersion >= VersionNumber.parse("2.10.0-M5")) {
-            return "jvm-${target.major}.${target.minor}"
+        if (scalaVersion < VersionNumber.parse("2.10.0-M5")) {
+            // prior to Scala 2.10.0-M5, scalac Ant task only supported "jvm-1.5" and "msil" backends
+            return "jvm-1.5"
         }
 
-        // prior to Scala 2.10.0-M5, scalac Ant task only supported "jvm-1.5" and "msil" backends
-        return "jvm-1.5"
+        if (target <= VersionNumber.parse("1.7")) {
+            return "jvm-${target.major}.${target.minor}";
+        }
+
+        // as of Scala 2.11, scalac Ant task does not support a "jvm-1.8" backend
+        return "jvm-1.7";
     }
 }
