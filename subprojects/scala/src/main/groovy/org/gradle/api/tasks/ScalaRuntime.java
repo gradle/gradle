@@ -19,7 +19,6 @@ import org.gradle.api.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
-import org.gradle.api.plugins.scala.ScalaBasePlugin;
 
 import java.io.File;
 import java.util.Collections;
@@ -29,7 +28,7 @@ import java.util.regex.Pattern;
 
 /**
  * Provides information related to the Scala runtime(s) used in a project. Added by the
- * {@link ScalaBasePlugin} as a project extension named {@code scalaRuntime}.
+ * {@link org.gradle.api.plugins.scala.ScalaBasePlugin} as a project extension named {@code scalaRuntime}.
  *
  * <p>Example usage:
  *
