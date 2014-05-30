@@ -33,16 +33,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.UrlExternalResource;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -407,35 +406,20 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     }
 
     public static class Parser extends AbstractParser {
-        public static final class State {
-            public static final int NONE = 0;
-
-            public static final int INFO = 1;
-
-            public static final int CONF = 2;
-
-            public static final int PUB = 3;
-
-            public static final int DEP = 4;
-
-            public static final int DEP_ARTIFACT = 5;
-
-            public static final int ARTIFACT_INCLUDE = 6;
-
-            public static final int ARTIFACT_EXCLUDE = 7;
-
-            public static final int CONFLICT = 8;
-
-            public static final int EXCLUDE = 9;
-
-            public static final int DEPS = 10;
-
-            public static final int DESCRIPTION = 11;
-
-            public static final int EXTRA_INFO = 12;
-
-            private State() {
-            }
+        public enum State {
+            NONE,
+            INFO,
+            CONF,
+            PUB,
+            DEP,
+            DEP_ARTIFACT,
+            ARTIFACT_INCLUDE,
+            ARTIFACT_EXCLUDE,
+            CONFLICT,
+            EXCLUDE,
+            DEPS,
+            DESCRIPTION,
+            EXTRA_INFO
         }
 
         private static final List ALLOWED_VERSIONS = Arrays.asList("1.0", "1.1", "1.2", "1.3", "1.4", "2.0", "2.1", "2.2");
@@ -447,7 +431,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private boolean validate = true;
 
         /* Parsing state */
-        private int state = State.NONE;
+        private State state = State.NONE;
         private PatternMatcher defaultMatcher;
         private DefaultDependencyDescriptor dd;
         private ConfigurationAware confAware;
@@ -546,9 +530,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 } else if ("dependencies".equals(qName)) {
                     dependenciesStarted(attributes);
                 } else if ("conflicts".equals(qName)) {
-                    if (!descriptorVersion.startsWith("1.")) {
-                        DeprecationLogger.nagUserWith("Using conflicts section in ivy.xml is deprecated: please use hints section instead. Ivy file: " + getResource().getName());
-                    }
                     state = State.CONFLICT;
                     checkConfigurations();
                 } else if ("artifact".equals(qName)) {
@@ -800,7 +781,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private void confStarted(Attributes attributes) {
             String conf = substitute(attributes.getValue("name"));
             switch (state) {
-                case State.CONF:
+                case CONF:
                     Configuration.Visibility visibility = Configuration.Visibility.getVisibility(elvis(substitute(attributes.getValue("visibility")), "public"));
                     String description = substitute(attributes.getValue("description"));
                     String[] extend = substitute(attributes.getValue("extends")) == null ? null : substitute(attributes.getValue("extends")).split(",");
@@ -812,7 +793,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                             new String[]{"name", "visibility", "extends", "transitive", "description", "deprecated"});
                     getMd().addConfiguration(configuration);
                     break;
-                case State.PUB:
+                case PUB:
                     if ("*".equals(conf)) {
                         String[] confs = getMd().getConfigurationsNames();
                         for (String confName : confs) {
@@ -824,7 +805,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                         getMd().addArtifact(conf, artifact);
                     }
                     break;
-                case State.DEP:
+                case DEP:
                     this.conf = conf;
                     String mappeds = substitute(attributes.getValue("mapped"));
                     if (mappeds != null) {
@@ -834,9 +815,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                         }
                     }
                     break;
-                case State.DEP_ARTIFACT:
-                case State.ARTIFACT_INCLUDE:
-                case State.ARTIFACT_EXCLUDE:
+                case DEP_ARTIFACT:
+                case ARTIFACT_INCLUDE:
+                case ARTIFACT_EXCLUDE:
                     addConfiguration(conf);
                     break;
                 default:
