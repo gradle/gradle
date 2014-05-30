@@ -277,8 +277,7 @@ been removed. You will receive a warning when attempting to use file permissions
 Note that file permissions are supported on these platforms when you use Java 7 and later, and is supported for all Java
 versions on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
 
-If you wish to have support for file permissions on other platforms and architectures, please help us out with porting our
-native integration to these platforms.
+If you wish to have support for file permissions on other platforms and architectures, please help us port our native integration to these platforms.
 
 ### Support for terminal integration on certain platforms
 
@@ -287,13 +286,17 @@ platforms, Gradle will fall back to using plain text output.
 
 Note that terminal integration is supported on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
 
-If you wish to have terminal integration on other platforms and architectures, please help us out with porting our
-native integration to these platforms.
+If you wish to have terminal integration on other platforms and architectures, please help us port our native integration to these platforms.
 
-### Build scripts must be encoded using UTF-8
+### Build script changes
 
 Gradle now assumes that all Gradle scripts are encoded using UTF-8. Previously, Gradle assumed the system encoding. This change
 affects all build scripts, settings scripts and init scripts.
+
+It is now an error to include a label on a statement in a Gradle script:
+
+    someLabel:
+    group = 'my.group'
 
 ### Native binaries model changes
 
@@ -419,6 +422,8 @@ This behaviour has been deprecated since Gradle 1.?? and is now an error. Instea
 ### Removed deprecated properties
 
 - `AbstractCopyTask.defaultSource` replaced with `source`.
+- `SourceTask.defaultSource` replaced with `source`.
+- `Compression.extension` replaced with `defaultExtension`.
 - `CompileOptions.compiler` replaced with `CompileOptions.fork` and `CompileOptions.forkOptions.executable`
 - `CompileOptions.useAnt` with no replacement.
 - `CompileOptions.optimize` with no replacement.
