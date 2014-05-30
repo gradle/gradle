@@ -56,7 +56,7 @@ public class AsmBackedEmptyScriptGenerator implements EmptyScriptGenerator {
         // super()
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
         methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>",
-                constructorDescriptor);
+                constructorDescriptor, false);
 
         methodVisitor.visitInsn(Opcodes.RETURN);
         methodVisitor.visitMaxs(0, 0);
