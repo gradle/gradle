@@ -27,10 +27,9 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.util.DeprecationLogger;
-import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,10 +62,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public void visit(FileVisitor visitor) {
         if (!zipFile.exists()) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(
-                    String.format("The specified zip file %s does not exist and will be silently ignored", getDisplayName())
-            );
-            return;
+            throw new InvalidUserDataException(String.format("Cannot expand %s as it does not exist.", getDisplayName()));
         }
         if (!zipFile.isFile()) {
             throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));

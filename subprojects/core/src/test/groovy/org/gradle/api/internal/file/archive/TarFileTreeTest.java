@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
+import org.gradle.api.resources.MissingResourceException;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.Resources;
@@ -28,13 +29,11 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Collections.EMPTY_LIST;
 import static org.gradle.api.file.FileVisitorUtil.*;
 import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -99,9 +98,14 @@ public class TarFileTreeTest {
     }
 
     @Test
-    public void isEmptyWhenTarFileDoesNotExist() {
-        assertVisits(tree, EMPTY_LIST, EMPTY_LIST);
-        assertSetContainsForAllTypes(tree, EMPTY_LIST);
+    public void failsWhenTarFileDoesNotExist() {
+        try {
+            tree.visit(null);
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), containsString("Cannot expand TAR '" + tarFile + "'."));
+            assertThat(e.getCause(), instanceOf(MissingResourceException.class));
+        }
     }
 
     @Test
