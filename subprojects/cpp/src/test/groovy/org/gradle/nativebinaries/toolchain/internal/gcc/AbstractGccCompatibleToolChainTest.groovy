@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration
+import org.gradle.nativebinaries.toolchain.TargetedPlatformToolChain
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 import org.gradle.nativebinaries.platform.Platform
@@ -123,8 +124,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolSearchPath.locate(_, _) >> tool
 
         int platformActionApplied = 0
-        toolChain.target([platform1.getName(), platform2.getName()], new Action<org.gradle.nativebinaries.toolchain.PlatformToolChain>() {
-            void execute(org.gradle.nativebinaries.toolchain.PlatformToolChain configurableToolChain) {
+        toolChain.target([platform1.getName(), platform2.getName()], new Action<TargetedPlatformToolChain>() {
+            void execute(TargetedPlatformToolChain configurableToolChain) {
                 platformActionApplied++;
             }
         });
@@ -173,7 +174,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
-        org.gradle.nativebinaries.toolchain.PlatformToolChain configurableToolChain = newConfigurableToolChain()
+        TargetedPlatformToolChain configurableToolChain = newConfigurableToolChain()
         then:
 
         with(toolChain.getPlatformConfiguration(platform).apply(configurableToolChain)) {
@@ -291,8 +292,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
-        toolChain.target(platform, new Action<org.gradle.nativebinaries.toolchain.PlatformToolChain>() {
-            void execute(org.gradle.nativebinaries.toolchain.PlatformToolChain configurableToolChain) {
+        toolChain.target(platform, new Action<TargetedPlatformToolChain>() {
+            void execute(TargetedPlatformToolChain configurableToolChain) {
                 configurationApplied = true;
             }
         })
@@ -326,7 +327,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
 
-    org.gradle.nativebinaries.toolchain.PlatformToolChain newConfigurableToolChain() {
+    TargetedPlatformToolChain newConfigurableToolChain() {
         def tools = [:]
         tools.put("assembler", new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, ""))
         tools.put("cCompiler", new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, ""))
@@ -336,7 +337,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         tools.put("linker", new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, ""))
         tools.put("staticLibArchiver", new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, ""))
 
-        org.gradle.nativebinaries.toolchain.PlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(CommandLineToolConfiguration.class,
+        TargetedPlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(CommandLineToolConfiguration.class,
                 tools,
                 instantiator,
                 "PlatformTestToolChain",

@@ -30,7 +30,7 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a target platform with additional configuration action.
      */
-    public void target(Platform platform, Action<? super PlatformToolChain> action);
+    public void target(Platform platform, Action<? super TargetedPlatformToolChain> action);
 
     /**
      * Add support for target platform.
@@ -60,16 +60,16 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a set of target platforms with additional configuration action.
      */
-    public void target(Iterable<? extends Platform> platform, Action<? super PlatformToolChain> action);
+    public void target(Iterable<? extends Platform> platform, Action<? super TargetedPlatformToolChain> action);
 
     /**
      * Add configuration for a target platform specified by name with additional configuration action.
      */
-    public void target(String platformName, Action<? super PlatformToolChain> action);
+    public void target(String platformName, Action<? super TargetedPlatformToolChain> action);
 
     /**
      * Add configuration for multiple target platforms specified by name with additional configuration action.
      */
-    public void target(List<String> platformNames, Action<? super PlatformToolChain> action);
+    public void target(List<String> platformNames, Action<? super TargetedPlatformToolChain> action);
 
 }

@@ -18,14 +18,14 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.toolchain.PlatformToolChain;
+import org.gradle.nativebinaries.toolchain.TargetedPlatformToolChain;
 import org.gradle.nativebinaries.toolchain.GccCommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.tools.*;
 
 import java.util.List;
 import java.util.Map;
 
-public class DefaultGccPlatformToolChain<T extends GccCommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements PlatformToolChain<T> {
+public class DefaultGccPlatformToolChain<T extends GccCommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements TargetedPlatformToolChain<T> {
     private final String name;
     private final String displayName;
 
