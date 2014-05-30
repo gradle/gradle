@@ -70,9 +70,9 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
  
     def "trying to read non existent file produces reasonable error message"() {
         when:
-        setProperty("signing.keyId", "aaaaaaaa")
-        setProperty("signing.secretKeyRingFile", "i/dont/exist")
-        setProperty("signing.password", "anything")
+        project.ext["signing.keyId"] = "aaaaaaaa"
+        project.ext["signing.secretKeyRingFile"] = "i/dont/exist"
+        project.ext["signing.password"] = "anything"
         
         and:
         signing.signatory

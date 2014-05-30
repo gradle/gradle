@@ -100,7 +100,6 @@ class CodeNarcPluginTest extends Specification {
         }
 
         project.codenarc {
-            checkTasks = ["codenarcMain"]
             configFile = project.file("codenarc-config")
             maxPriority1Violations = 10
             maxPriority2Violations = 50

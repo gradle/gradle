@@ -126,7 +126,7 @@ class CheckstylePluginTest extends Specification {
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
-            displayViolations = true
+            showViolations = true
         }
         
         expect:

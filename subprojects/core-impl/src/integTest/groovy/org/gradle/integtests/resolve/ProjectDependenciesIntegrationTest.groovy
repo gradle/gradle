@@ -58,26 +58,23 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         buildFile << """
             allprojects { configurations.create('conf') }
             task extraKey << {
-                def dep = dependencies.project(path: ":impl", configuration: ":conf", foo: "bar")
-                assert dep.foo == "bar"
+                dependencies.project(path: ":impl", configuration: ":conf", foo: "bar")
             }
             task missingPath << {
                 dependencies.project(paths: ":impl", configuration: ":conf")
             }
             task missingConfiguration << {
-                dependencies.project(path: ":impl", configurations: ":conf")
+                dependencies.project(path: ":impl")
             }
         """
 
         when:
-        executer.withDeprecationChecksDisabled()
-        run("extraKey")
+        runAndFail("extraKey")
 
         then:
-        noExceptionThrown()
+        failureHasCause("No such property: foo for class: ")
 
         when:
-        executer.withDeprecationChecksDisabled()
         run("missingConfiguration")
 
         then:
