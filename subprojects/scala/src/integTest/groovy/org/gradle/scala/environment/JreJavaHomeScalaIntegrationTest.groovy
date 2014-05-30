@@ -18,12 +18,13 @@ package org.gradle.scala.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
+@TargetVersions(["2.10.4", "2.11.1"])
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
@@ -49,7 +50,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.9.2'
+                        compile 'org.scala-lang:scala-library:2.11.1'
                     }
 
                     compileScala {
@@ -83,7 +84,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.9.2'
+                        compile 'org.scala-lang:scala-library:2.11.1'
                     }
                     """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }

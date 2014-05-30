@@ -17,11 +17,8 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@TargetVersions(["2.8.2", "2.9.2", "2.10.4", "2.11.1"])
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
+@TargetVersions(["2.10.4", "2.11.1"])
 class AntForkingScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()

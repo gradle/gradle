@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@TargetVersions(["2.10.4", "2.11.1"])
-class AntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+@TargetVersions(["2.8.2", "2.9.2"])
+@Requires(TestPrecondition.JDK7_OR_EARLIER)
+class AntForkingOlderScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()
     }
@@ -30,6 +31,7 @@ class AntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegra
         '''
 compileScala.scalaCompileOptions.with {
     useAnt = true
+    fork = true
 }
 '''
     }

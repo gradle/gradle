@@ -1,5 +1,3 @@
-import java.util.List;
-
 public class House {
     private final Person owner;
 
