@@ -3,5 +3,5 @@ apply plugin: 'java'
 version = 'SNAPSHOT'
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.2.2'
+    compile 'org.codehaus.groovy:groovy-all:2.3.2'
 }
