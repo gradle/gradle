@@ -372,7 +372,6 @@ This behaviour has been deprecated since Gradle 1.?? and is now an error. Instea
 - `org.gradle.RefreshOptions` with no replacement.
 - `org.gradle.tooling.model.eclipse.EclipseTask` with no replacement.
 - `org.gradle.CacheUsage` with no replacement.
-- `org.gradle.api.tasks.ConventionValue` with no replacement.
 - `org.gradle.api.internal.plugins.ProcessResources` replaced by `org.gradle.language.jvm.tasks.ProcessResources`.
 - `org.gradle.api.tasks.testing.TestLogging` replaced by `org.gradle.api.tasks.testing.logging.TestLogging`.
 
