@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.assembler.plugins
-import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.plugins.AssemblerLangPlugin
-import org.gradle.model.ModelRule
-import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.DefaultTool
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
-import org.gradle.nativebinaries.toolchain.Clang
-import org.gradle.nativebinaries.toolchain.Gcc
-import org.gradle.nativebinaries.toolchain.VisualCpp
-import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
-import org.gradle.nativebinaries.toolchain.internal.ToolType
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
-
-import javax.inject.Inject
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.
  *
@@ -47,40 +35,9 @@ import javax.inject.Inject
 @Incubating
 class AssemblerPlugin implements Plugin<ProjectInternal> {
 
-    private ModelRules modelRules
-
-    @Inject
-    public AssemblerPlugin(ModelRules modelRules){
-        this.modelRules = modelRules
-    }
-
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(AssemblerLangPlugin)
-
-        modelRules.rule(new ModelRule() {
-            void addAssembler(ToolChainRegistryInternal toolChainRegistry) {
-                toolChainRegistry.withType(Clang).all(new Action<Clang>(){
-                    void execute(Clang toolchain) {
-                        toolchain.add(new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
-                    }
-                })
-
-                toolChainRegistry.withType(Gcc).all(new Action<Gcc>(){
-                    void execute(Gcc toolchain) {
-                        toolchain.add(new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
-                    }
-                })
-
-                toolChainRegistry.withType(VisualCpp).all(new Action<VisualCpp>(){
-                    void execute(VisualCpp toolchain) {
-                        toolchain.add(new DefaultCommandLineToolConfiguration("assembler"));
-
-                    }
-                })
-            }
-        });
-
         project.nativeComponents.all { ProjectNativeComponent component ->
             component.binaries.all { binary ->
                 binary.extensions.create("assembler", DefaultTool)

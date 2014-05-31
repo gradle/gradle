@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -88,7 +84,7 @@ test {
 }
 """
         when:
-        executer.withDeprecationChecksDisabled().withTasks('test').run()
+        executer.withTasks('test').run()
 
         then:
         new JUnitXmlTestExecutionResult(file(".")).hasJUnitXmlResults()
@@ -101,8 +97,8 @@ test {
         where:
         preConfig                                | postConfig                                                                           | path
         ""                                       | ""                                                                                   | TestNGExecutionResult.DEFAULT_TESTNG_REPORT
-        "testReportDir = file('xyz')"            | "reports.html.destination = file('abc')"                                             | "abc"
-        ""                                       | "testReportDir = file('xyz');reports.html.destination = file('abc')"                 | "abc"
+        "reports.html.destination = file('xyz')" | "reports.html.destination = file('abc')"                                             | "abc"
+        ""                                       | "reports.html.destination = file('abc')"                                             | "abc"
         "reports.html.destination = file('abc')" | "options.outputDirectory = file('xyz')"                                              | "xyz"
         ""                                       | "options.outputDirectory = file('xyz');reports.html.destination = file('ignore me')" | "xyz"
     }

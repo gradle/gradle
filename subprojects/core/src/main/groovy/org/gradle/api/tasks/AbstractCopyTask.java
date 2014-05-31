@@ -23,10 +23,8 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.FilterReader;
@@ -77,8 +75,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     @TaskAction
     protected void copy() {
-        configureRootSpec();
-
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
@@ -88,42 +84,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         setDidWork(didWork.getDidWork());
     }
 
-    protected void configureRootSpec() {
-        if (!rootSpec.hasSource()) {
-            Object srcDirs = getDefaultSource();
-            if (srcDirs != null) {
-                from(srcDirs);
-            }
-        }
-    }
-
-    /**
-     * Returns the default source for this task.
-     * @deprecated Use getSource() instead.
-     */
-    @Deprecated
-    public FileCollection getDefaultSource() {
-        DeprecationLogger.nagUserOfReplacedMethod("AbstractCopyTask.getDefaultSource()", "getSource()");
-        return null;
-    }
-
     /**
      * Returns the source files for this task.
      * @return The source files. Never returns null.
      */
     @InputFiles @SkipWhenEmpty @Optional
     public FileCollection getSource() {
-        if (rootSpec.hasSource()){
-            return rootSpec.buildRootResolver().getAllSource();
-        }else{
-            return DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
-                public FileCollection create() {
-                    return getDefaultSource();
-                }
-            });
-        }
+        return rootSpec.buildRootResolver().getAllSource();
     }
-
 
     public CopySpecInternal getRootSpec() {
         return rootSpec;

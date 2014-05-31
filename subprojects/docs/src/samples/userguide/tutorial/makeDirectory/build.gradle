@@ -1,4 +1,5 @@
-classesDir = new File('build/classes')
+def classesDir = new File('build/classes')
+
 task resources << {
     classesDir.mkdirs()
     // do something

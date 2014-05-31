@@ -98,15 +98,9 @@ public class JavaPlugin implements Plugin<Project> {
 
     private void configureArchivesAndComponent(final Project project, final JavaPluginConvention pluginConvention) {
         Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class);
-        jar.getManifest().from(pluginConvention.getManifest());
         jar.setDescription("Assembles a jar archive containing the main classes.");
         jar.setGroup(BasePlugin.BUILD_GROUP);
         jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
-        jar.getMetaInf().from(new Callable() {
-            public Object call() throws Exception {
-                return pluginConvention.getMetaInf();
-            }
-        });
 
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);

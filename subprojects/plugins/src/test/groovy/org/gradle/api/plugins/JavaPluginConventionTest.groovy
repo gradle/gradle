@@ -50,7 +50,6 @@ class JavaPluginConventionTest {
 
     @Test public void defaultValues() {
         assertThat(convention.sourceSets, instanceOf(DefaultSourceSetContainer))
-        assertThat(convention.manifest, notNullValue())
         assertEquals('dependency-cache', convention.dependencyCacheDirName)
         assertEquals('docs', convention.docsDirName)
         assertEquals('test-results', convention.testResultsDirName)

@@ -31,10 +31,13 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
 
     public ClangToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
         super(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), instantiator);
-        add(new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, "clang++"));
-        add(new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
-        add(new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "clang"));
-        add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "clang++"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "linker", ToolType.LINKER, "clang++"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "cCompiler", ToolType.C_COMPILER, "clang"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "cppCompiler", ToolType.CPP_COMPILER, "clang++"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "objcCompiler", ToolType.OBJECTIVEC_COMPILER, "clang"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "clang++"));
+        add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "assembler", ToolType.ASSEMBLER, "as"));
     }
 
     @Override

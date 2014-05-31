@@ -163,8 +163,6 @@ public class ExtensibleDynamicObjectTest {
         assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "value"));
         bean.setProperty("groovyProperty", "value");
         assertThat(bean.getProperty("groovyProperty"), equalTo((Object) "value"));
-        bean.setProperty("additional", "value");
-        assertThat(bean.getProperty("additional"), equalTo((Object) "value"));
     }
 
     @Test
@@ -204,7 +202,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void hasPropertyDefinedByParent() {
         Bean parent = new Bean();
-        parent.setProperty("parentProperty", "value");
+        parent.defineProperty("parentProperty", "value");
 
         Bean bean = new Bean();
         assertFalse(bean.hasProperty("parentProperty"));
@@ -216,7 +214,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canGetPropertyDefinedByParent() {
         Bean parent = new Bean();
-        parent.setProperty("parentProperty", "value");
+        parent.defineProperty("parentProperty", "value");
 
         Bean bean = new Bean();
         bean.setParent(parent.getAsDynamicObject());
@@ -225,12 +223,12 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void cannotSetPropertyDefinedByParent() {
+    public void extraPropertyIsNotVisibleToParent() {
         Bean parent = new Bean();
 
         Bean bean = new Bean();
         bean.setParent(parent.getAsDynamicObject());
-        bean.setProperty("parentProperty", "value");
+        bean.defineProperty("parentProperty", "value");
 
         assertFalse(parent.hasProperty("parentProperty"));
     }
@@ -241,7 +239,7 @@ public class ExtensibleDynamicObjectTest {
 
         assertFalse(bean.hasProperty("additional"));
 
-        bean.setProperty("additional", "value");
+        bean.defineProperty("additional", "value");
         assertTrue(bean.hasProperty("additional"));
 
         bean.setProperty("additional", null);
@@ -249,17 +247,20 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void canGetAndSetAdditionalProperty() {
+    public void canGetAndSetExtraProperty() {
         Bean bean = new Bean();
 
-        bean.setProperty("additional", "value");
-        assertThat(bean.getProperty("additional"), equalTo((Object) "value"));
+        bean.defineProperty("additional", "value 1");
+        assertThat(bean.getProperty("additional"), equalTo((Object) "value 1"));
+
+        bean.setProperty("additional", "value 2");
+        assertThat(bean.getProperty("additional"), equalTo((Object) "value 2"));
     }
 
     @Test
     public void canGetAndSetPropertyDefinedByAdditionalObject() {
         Bean otherObject = new Bean();
-        otherObject.setProperty("otherObject", "value");
+        otherObject.defineProperty("otherObject", "value");
 
         Bean bean = new Bean();
         bean.extensibleDynamicObject.addObject(otherObject.getAsDynamicObject(), ExtensibleDynamicObject.Location.BeforeConvention);
@@ -287,9 +288,9 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void additionalPropertyTakesPrecedenceOverConventionProperty() {
+    public void extraPropertyTakesPrecedenceOverConventionProperty() {
         Bean bean = new Bean();
-        bean.setProperty("conventionProperty", "value");
+        bean.defineProperty("conventionProperty", "value");
 
         Convention convention = bean.extensibleDynamicObject.getConvention();
         ConventionBean conventionBean = new ConventionBean();
@@ -307,7 +308,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void conventionPropertyTakesPrecedenceOverParentProperty() {
         Bean parent = new Bean();
-        parent.setProperty("conventionProperty", "parent");
+        parent.defineProperty("conventionProperty", "parent");
 
         Bean bean = new Bean();
         bean.setParent(parent.getAsDynamicObject());
@@ -323,14 +324,14 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canGetAllProperties() {
         Bean parent = new Bean();
-        parent.setProperty("parentProperty", "parentProperty");
+        parent.defineProperty("parentProperty", "parentProperty");
         parent.setReadWriteProperty("ignore me");
         parent.doSetReadOnlyProperty("ignore me");
         Convention parentConvention = parent.extensibleDynamicObject.getConvention();
         parentConvention.getPlugins().put("parent", new ConventionBean());
 
         GroovyBean bean = new GroovyBean();
-        bean.setProperty("additional", "additional");
+        bean.defineProperty("additional", "additional");
         bean.setReadWriteProperty("readWriteProperty");
         bean.doSetReadOnlyProperty("readOnlyProperty");
         bean.setGroovyProperty("groovyProperty");
@@ -385,9 +386,9 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void additionalPropertyWithNullValueIsNotTreatedAsUnknown() {
+    public void extraPropertyWithNullValueIsNotTreatedAsUnknown() {
         Bean bean = new Bean();
-        bean.setProperty("additional", null);
+        bean.defineProperty("additional", null);
         assertThat(bean.getProperty("additional"), nullValue());
     }
 
@@ -484,7 +485,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canInvokeClosurePropertyAsAMethod() {
         Bean bean = new Bean();
-        bean.setProperty("someMethod", TestUtil.toClosure("{ param -> param.toLowerCase() }"));
+        bean.defineProperty("someMethod", TestUtil.toClosure("{ param -> param.toLowerCase() }"));
         assertThat(bean.invokeMethod("someMethod", "Param"), equalTo((Object) "param"));
     }
 
@@ -551,9 +552,9 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void additionalPropertiesAreInherited() {
+    public void extraPropertiesAreInherited() {
         Bean bean = new Bean();
-        bean.setProperty("additional", "value");
+        bean.defineProperty("additional", "value");
 
         DynamicObject inherited = bean.getInheritable();
         assertTrue(inherited.hasProperty("additional"));
@@ -568,7 +569,7 @@ public class ExtensibleDynamicObjectTest {
         DynamicObject inherited = bean.getInheritable();
         assertFalse(inherited.hasProperty("additional"));
 
-        bean.setProperty("additional", "value");
+        bean.defineProperty("additional", "value");
         assertTrue(inherited.hasProperty("additional"));
         assertThat(inherited.getProperty("additional"), equalTo((Object) "value"));
     }
@@ -576,7 +577,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void additionalObjectPropertiesAreInherited() {
         Bean other = new Bean();
-        other.setProperty("other", "value");
+        other.defineProperty("other", "value");
         Bean bean = new Bean();
         bean.extensibleDynamicObject.addObject(other.getAsDynamicObject(), ExtensibleDynamicObject.Location.BeforeConvention);
 
@@ -589,7 +590,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void inheritedAdditionalObjectPropertiesTrackChanges() {
         Bean other = new Bean();
-        other.setProperty("other", "value");
+        other.defineProperty("other", "value");
         Bean bean = new Bean();
 
         DynamicObject inherited = bean.getInheritable();
@@ -634,7 +635,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void parentPropertiesAreInherited() {
         Bean parent = new Bean();
-        parent.setProperty("parentProperty", "value");
+        parent.defineProperty("parentProperty", "value");
         Bean bean = new Bean();
         bean.setParent(parent.getAsDynamicObject());
 
@@ -657,7 +658,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void cannotSetInheritedProperties() {
         Bean bean = new Bean();
-        bean.setProperty("additional", "value");
+        bean.defineProperty("additional", "value");
 
         DynamicObject inherited = bean.getInheritable();
         try {
@@ -847,6 +848,10 @@ public class ExtensibleDynamicObjectTest {
 
         public DynamicObject getInheritable() {
             return extensibleDynamicObject.getInheritable();
+        }
+
+        public void defineProperty(String name, Object value) {
+            extensibleDynamicObject.getConvention().getExtraProperties().set(name, value);
         }
     }
 

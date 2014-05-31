@@ -72,6 +72,8 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
         add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cppCompiler"));
         add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "linker"));
         add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "staticLibArchiver"));
+        add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "assembler"));
+        add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "rcCompiler"));
 
         this.name = name;
         this.operatingSystem = operatingSystem;

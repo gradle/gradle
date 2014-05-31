@@ -15,25 +15,17 @@
  */
 package org.gradle.nativebinaries.language.rc.plugins
 
-import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
-import org.gradle.model.ModelRule
-import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.StaticLibraryBinaryInternal
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
-import org.gradle.nativebinaries.toolchain.VisualCpp
-import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration
-
-import javax.inject.Inject
 
 /**
  * A plugin for projects wishing to build native binary components from Windows Resource sources.
@@ -46,13 +38,6 @@ import javax.inject.Inject
 @Incubating
 class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
 
-    private ModelRules modelRules
-
-    @Inject
-    public WindowsResourcesPlugin(ModelRules modelRules){
-        this.modelRules = modelRules
-    }
-
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(WindowsResourceScriptPlugin)
@@ -64,16 +49,6 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
                 }
             }
         }
-
-        modelRules.rule(new ModelRule() {
-            void addWindowsResourcesTool(ToolChainRegistryInternal toolChainRegistry) {
-                toolChainRegistry.withType(VisualCpp).all(new Action<VisualCpp>(){
-                    void execute(VisualCpp toolchain) {
-                        toolchain.add(new DefaultCommandLineToolConfiguration("rcCompiler"));
-                    }
-                })
-            }
-        });
 
         project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             if (shouldProcessResources(binary)) {

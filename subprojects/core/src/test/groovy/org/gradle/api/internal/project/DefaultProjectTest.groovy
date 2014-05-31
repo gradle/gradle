@@ -518,7 +518,7 @@ class DefaultProjectTest {
     void testGetProjectWithClosure() {
         String newPropValue = 'someValue'
         assert child1.is(project.project("child1") {
-            newProp = newPropValue
+            ext.newProp = newPropValue
         })
         assertEquals(child1.newProp, newPropValue)
     }
@@ -551,7 +551,7 @@ def scriptMethod(Closure closure) {
         String propertyName = 'propName'
         String expectedValue = 'somevalue'
 
-        project."$propertyName" = expectedValue
+        project.ext."$propertyName" = expectedValue
         assertEquals(expectedValue, project."$propertyName")
         assertEquals(expectedValue, child1."$propertyName")
     }
@@ -582,7 +582,7 @@ def scriptMethod(Closure closure) {
         String propertyName = 'archivesBaseName'
         String expectedValue = 'somename'
 
-        project.archivesBaseName = expectedValue
+        project.ext.archivesBaseName = expectedValue
         project.convention.plugins.test = new TestConvention()
         project.convention.archivesBaseName = 'someothername'
         project."$propertyName" = expectedValue
@@ -592,7 +592,7 @@ def scriptMethod(Closure closure) {
 
     @Test
     void testPropertyMissingWithNullProperty() {
-        project.nullProp = null
+        project.ext.nullProp = null
         assertNull(project.nullProp)
         assert project.hasProperty('nullProp')
     }
@@ -623,7 +623,7 @@ def scriptMethod(Closure closure) {
             ignoring(taskContainerMock)
             allowing(serviceRegistryMock).get(ServiceRegistryFactory); will(returnValue({} as ServiceRegistryFactory))
         }
-        project.additional = 'additional'
+        project.ext.additional = 'additional'
 
         Map properties = project.properties
         assertEquals(properties.name, 'root')
@@ -632,8 +632,8 @@ def scriptMethod(Closure closure) {
     }
 
     @Test
-    void testAdditionalPropertiesAreInheritable() {
-        project.somename = 'somevalue'
+    void testExtraPropertiesAreInheritable() {
+        project.ext.somename = 'somevalue'
         assertTrue(project.inheritedScope.hasProperty('somename'))
         assertEquals(project.inheritedScope.getProperty('somename'), 'somevalue')
     }
@@ -648,7 +648,7 @@ def scriptMethod(Closure closure) {
 
     @Test
     void testInheritedPropertiesAreInheritable() {
-        project.somename = 'somevalue'
+        project.ext.somename = 'somevalue'
         assertTrue(child1.inheritedScope.hasProperty('somename'))
         assertEquals(child1.inheritedScope.getProperty('somename'), 'somevalue')
     }
@@ -753,12 +753,12 @@ def scriptMethod(Closure closure) {
         if (configureMethod == 'configure') {
             project."$configureMethod" projectsToCheck as java.util.List,
                     {
-                        testSubProp = propValue
+                        ext.testSubProp = propValue
                     }
         } else {
             project."$configureMethod"(
                     {
-                        testSubProp = propValue
+                        ext.testSubProp = propValue
                     })
         }
 

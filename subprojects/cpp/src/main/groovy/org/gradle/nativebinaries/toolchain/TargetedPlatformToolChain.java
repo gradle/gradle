@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.plugins;
+
+package org.gradle.nativebinaries.toolchain;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * Copies resources from their source to their target directory, potentially processing them.
- * Makes sure no stale resources remain in the target directory.
- *
- * @deprecated use {@link org.gradle.language.jvm.tasks.ProcessResources} instead
+ * A platform specific configurable tool chain.
+ * @param <T> the tool class
  */
-@Deprecated
-public class ProcessResources extends org.gradle.language.jvm.tasks.ProcessResources {}
+@Incubating
+public interface TargetedPlatformToolChain<T> extends NamedDomainObjectSet<T> {
+}

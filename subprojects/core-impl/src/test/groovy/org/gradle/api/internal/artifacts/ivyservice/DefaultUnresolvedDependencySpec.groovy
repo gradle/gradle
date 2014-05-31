@@ -29,7 +29,6 @@ class DefaultUnresolvedDependencySpec extends Specification {
         dep.selector.group == 'org.foo'
         dep.selector.name == 'foo'
         dep.selector.version == '1.0'
-        dep.id == 'org.foo#foo;1.0'
         dep.toString() == 'org.foo:foo:1.0'
     }
 }

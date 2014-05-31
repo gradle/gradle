@@ -18,18 +18,18 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
+import org.gradle.nativebinaries.toolchain.TargetedPlatformToolChain;
 import org.gradle.nativebinaries.toolchain.GccCommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.tools.*;
 
 import java.util.List;
 import java.util.Map;
 
-public class DefaultGccConfigurableToolChain<T extends GccCommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements ConfigurableToolChain<T> {
+public class DefaultGccPlatformToolChain<T extends GccCommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements TargetedPlatformToolChain<T> {
     private final String name;
     private final String displayName;
 
-    public DefaultGccConfigurableToolChain(Class<? extends T> type, Map<String, T> asMap, Instantiator instantiator, String name, String displayName) {
+    public DefaultGccPlatformToolChain(Class<? extends T> type, Map<String, T> asMap, Instantiator instantiator, String name, String displayName) {
         super(type, instantiator);
         this.name = name;
         this.displayName = displayName;

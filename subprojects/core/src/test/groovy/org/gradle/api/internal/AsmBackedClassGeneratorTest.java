@@ -634,9 +634,6 @@ public class AsmBackedClassGeneratorTest {
         bean.getAsDynamicObject().setProperty("prop", "value2");
         assertThat(call("{ it.prop }", bean), equalTo((Object) "value2"));
 
-        bean.getAsDynamicObject().setProperty("dynamicProp", "value");
-        assertThat(call("{ it.dynamicProp }", bean), equalTo((Object) "value"));
-
         call("{ it.ext.anotherProp = 12 }", bean);
         assertThat(bean.getAsDynamicObject().getProperty("anotherProp"), equalTo((Object) 12));
         assertThat(call("{ it.anotherProp }", bean), equalTo((Object) 12));

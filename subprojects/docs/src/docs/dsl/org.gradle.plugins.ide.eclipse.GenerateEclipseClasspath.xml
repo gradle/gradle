@@ -5,40 +5,12 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins</td>
+                    <td>Default with <literal>eclipse</literal> plugins</td>
                 </tr>
             </thead>
             <tr>
-                <td>sourceSets</td>
-                <td><literal>project.sourceSets</literal></td>
-            </tr>
-            <tr>
-                <td>plusConfigurations</td>
-                <td><literal>project.configurations.testRuntime</literal></td>
-            </tr>
-            <tr>
-                <td>minusConfigurations</td>
-                <td><literal>[]</literal></td>
-            </tr>
-            <tr>
-                <td>variables</td>
-                <td><literal>[:]</literal></td>
-            </tr>
-            <tr>
-                <td>containers</td>
-                <td>[JRE container]</td>
-            </tr>
-            <tr>
-                <td>defaultOutputDir</td>
-                <td><filename><replaceable>${project.projectDir}</replaceable>/bin</filename></td>
-            </tr>
-            <tr>
-                <td>downloadSources</td>
-                <td><literal>true</literal></td>
-            </tr>
-            <tr>
-                <td>downloadJavadoc</td>
-                <td><literal>false</literal></td>
+                <td>classpath</td>
+                <td><literal>project.eclipse.classpath</literal></td>
             </tr>
             <tr>
                 <td>outputFile</td>
@@ -54,12 +26,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>containers</td>
-            </tr>
-            <tr>
-                <td>variables</td>
-            </tr>
         </table>
     </section>
 </section>

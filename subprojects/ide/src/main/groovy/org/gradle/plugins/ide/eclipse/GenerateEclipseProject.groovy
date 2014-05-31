@@ -28,7 +28,7 @@ import org.gradle.plugins.ide.eclipse.model.Project
 class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     /**
-     * model for eclipse project (.project) generation
+     * The Eclipse project model that contains the details required to generate the project file.
      */
     EclipseProject projectModel
 

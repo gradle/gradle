@@ -118,36 +118,35 @@ import java.util.Set;
  * <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
  * of the corresponding getter or setter method.</li>
  *
- * <li>The <em>additional</em> properties of the project.  Each project maintains a map of additional properties, which
- * can contain any arbitrary name -> value pair.  The properties of this scope are readable and writable.</li>
+ * <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
+ * can contain any arbitrary name -> value pair.  Once defined, the properties of this scope are readable and writable.
+ * See <a href="#extraproperties">extra properties</a> for more details.</li>
  *
- * <li>The <em>convention</em> properties added to the project by each {@link Plugin} applied to the project. A {@link
- * Plugin} can add properties and methods to a project through the project's {@link Convention} object.  The properties
- * of this scope may be readable or writable, depending on the convention objects.</li>
+ * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
+ *
+ * <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
+ * to a project through the project's {@link Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
  *
  * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
  * property.</li>
  *
- * <li>The additional properties and convention properties of the project's parent project, recursively up to the root
+ * <li>The extra properties and convention properties inherited from the project's parent, recursively up to the root
  * project. The properties of this scope are read-only.</li>
  *
  * </ul>
  *
  * <p>When reading a property, the project searches the above scopes in order, and returns the value from the first
- * scope it finds the property in.  See {@link #property(String)} for more details.</p>
+ * scope it finds the property in. If not found, an exception is thrown. See {@link #property(String)} for more details.</p>
  *
  * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
- * it finds the property in. If not found, the project adds the property to its map of additional properties.  For the
- * next few releases a deprecation warning will be issued when trying to set a property that does not exist. Dynamic
- * properties will eventually be removed entirely, meaning that this will be a fatal error in future versions of Gradle.
- * See Extra Properties to learn how to add properties dynamically. </p>
+ * it finds the property in. If not found, an exception is thrown. See {@link #setProperty(String, Object)} for more details.</p>
  *
  * <a name="extraproperties"/> <h4>Extra Properties</h4>
  *
- * All extra properties must be created through the &quot;ext&quot; namespace. Once extra properties have been created,
- * they are available on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
- * be read and changed. It's only the initial declaration that needs to be done via the namespace.
+ * All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
+ * it is available directly on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
+ * be read and updated. Only the initial declaration that needs to be done via the namespace.
  *
  * <pre>
  * project.ext.prop1 = "foo"
@@ -176,15 +175,18 @@ import java.util.Set;
  *
  * <li>The build file. The project searches for a matching method declared in the build file.</li>
  *
- * <li>The <em>convention</em> methods added to the project by each {@link Plugin} applied to the project. A {@link
- * Plugin} can add properties and method to a project through the project's {@link Convention} object.</li>
+ * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
+ * a closure or {@link org.gradle.api.Action} as a parameter.</li>
+ *
+ * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and method to
+ * a project through the project's {@link Convention} object.</li>
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
- * taking a single closure parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
+ * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
  * associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
  * method is added with the following signature: <code>void compile(Closure configureClosure)</code>.</li>
  *
- * <li>The parent project, recursively up to the root project.</li>
+ * <li>The methods of the parent project, recursively up to the root project.</li>
  *
  * </ul>
  */
@@ -350,17 +352,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>The project's {@link Convention} object.  For example, the <code>srcRootName</code> java plugin
      * property.</li>
      *
-     * <li>The project's additional properties.</li>
+     * <li>The project's extra properties.</li>
      *
      * </ol>
      *
-     * <p>If the property is not found in any of these locations, it is added to the project's additional
-     * properties.</p>
+     * If the property is not found, a {@link groovy.lang.MissingPropertyException} is thrown.
      *
      * @param name The name of the property
      * @param value The value of the property
      */
-    void setProperty(String name, Object value);
+    void setProperty(String name, Object value) throws MissingPropertyException;
 
     /**
      * <p>Returns this project. This method is useful in build files to explicitly access project properties and
@@ -1099,17 +1100,19 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>If this project object has a property with the given name, return the value of the property.</li>
      *
+     * <li>If this project has an extension with the given name, return the extension.</li>
+     *
      * <li>If this project's convention object has a property with the given name, return the value of the
      * property.</li>
      *
-     * <li>If this project has an additional property with the given name, return the value of the property.</li>
+     * <li>If this project has an extra property with the given name, return the value of the property.</li>
      *
      * <li>If this project has a task with the given name, return the task.</li>
      *
      * <li>Search up through this project's ancestor projects for a convention property or additional property with the
      * given name.</li>
      *
-     * <li>If not found, throw {@link MissingPropertyException}</li>
+     * <li>If not found, a {@link MissingPropertyException} is thrown.</li>
      *
      * </ol>
      *

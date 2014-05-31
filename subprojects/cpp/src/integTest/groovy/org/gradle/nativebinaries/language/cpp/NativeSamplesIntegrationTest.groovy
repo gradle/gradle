@@ -317,6 +317,24 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     def "target platforms"() {
         given:
         sample targetPlatforms
+        and:
+        targetPlatforms.dir.file("build.gradle") << """
+model {
+    toolChains {
+        all{
+            target("arm"){
+                cppCompiler.withArguments { args ->
+                    args << "-m32"
+                }
+                linker.withArguments { args ->
+                    args << "-m32"
+                }
+            }
+            target("sparc")
+        }
+    }
+}
+"""
 
         when:
         run "installArmMainExecutable", "installSparcMainExecutable"

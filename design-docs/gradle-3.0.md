@@ -14,6 +14,8 @@ The following stories are candidates to be included in a major release of Gradle
 * Cross version tests no longer test against anything earlier than 1.0
 * Local artifact reuse no longer considers candidates from the artifact caches for Gradle versions earlier than 1.0
 * Wrapper does not support downloading versions earlier than 1.0
+* Remove old unused types that are baked into the bytecode of tasks compiled against older versions (eg `ConventionValue`). Fail with a reasonable
+error message for these task types.
 
 ## Remove the Gradle Open API stubs
 
@@ -146,10 +148,15 @@ Extension objects have been available for over 2 years and are now an establishe
 * Remove `org.gradle.util` from default imports.
 * Remove `AbstractOptions`.
 * Remove or rename `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`.
+* Remove unused `EclipseDomainModel`.
 
 ## Remove `sonar` plugin
 
 Promote the `sonar-runner` plugin and remove the `sonar` plugin.
+
+## Signing plugin tidy-ups
+
+- `SignatoryProvider` and sub-types should use container DSL instead of custom DSL.
 
 ## Decorate classes at load time instead of subclassing
 

@@ -29,8 +29,7 @@
         </sample>
         <para>You can pass any object to the <literal>file()</literal> method, and it will attempt to convert the value
             to an absolute <classname>File</classname> object. Usually, you would pass it a
-            <classname>String</classname> or <classname>File</classname> instance. The supplied object's
-            <literal>toString()</literal> value is used as the file path. If this path is an absolute path, it is used
+            <classname>String</classname> or <classname>File</classname> instance. If this path is an absolute path, it is used
             to construct a <classname>File</classname> instance. Otherwise, a <classname>File</classname> instance is
             constructed by prepending the project directory path to the supplied path. The <literal>file()</literal>
             method also understands URLs, such as <literal>file:/some/path.xml</literal>.

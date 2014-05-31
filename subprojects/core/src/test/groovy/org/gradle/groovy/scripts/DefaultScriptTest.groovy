@@ -55,12 +55,12 @@ class DefaultScriptTest {
 
         DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
         DefaultProject testProject = TestUtil.createRootProject()
-        testProject.custom = 'true'
+        testProject.ext.custom = 'true'
         script.setScriptSource(new StringScriptSource('script', '//'))
         script.init(testProject, serviceRegistryMock)
         script.run();
         assertEquals("scriptMethod", script.scriptMethod())
-        assertEquals(testProject.path + "mySuffix", script.scriptProperty)
+        assertEquals("a", script.newProperty)
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration() {
@@ -76,10 +76,9 @@ getName() // call a project method
 assert hasProperty('custom')
 repositories { } 
 def scriptMethod() { 'scriptMethod' }
-scriptProperty = project.path + 'mySuffix'
 String internalProp = 'a'
 assert internalProp == 'a'
-newProperty = 'a'
+ext.newProperty = 'a'
 assert newProperty == 'a'
 assert newProperty == project.newProperty
 '''

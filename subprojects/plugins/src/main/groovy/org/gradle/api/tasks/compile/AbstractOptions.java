@@ -18,9 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -42,24 +40,20 @@ public abstract class AbstractOptions implements Serializable {
 
     public Map<String, Object> optionMap() {
         final Class<?> thisClass = getClass();
-        return DeprecationLogger.whileDisabled(new Factory<Map<String, Object>>() {
-            public Map<String, Object> create() {
-                Map<String, Object> map = Maps.newHashMap();
-                Class<?> currClass = thisClass;
-                if (currClass.getName().endsWith("_Decorated")) {
-                    currClass = currClass.getSuperclass();
+        Map<String, Object> map = Maps.newHashMap();
+        Class<?> currClass = thisClass;
+        if (currClass.getName().endsWith("_Decorated")) {
+            currClass = currClass.getSuperclass();
+        }
+        while (currClass != AbstractOptions.class) {
+            for (Field field : currClass.getDeclaredFields()) {
+                if (isOptionField(field)) {
+                    addValueToMapIfNotNull(map, field);
                 }
-                while (currClass != AbstractOptions.class) {
-                    for (Field field : currClass.getDeclaredFields()) {
-                        if (isOptionField(field)) {
-                            addValueToMapIfNotNull(map, field);
-                        }
-                    }
-                    currClass = currClass.getSuperclass();
-                }
-                return map;
             }
-        });
+            currClass = currClass.getSuperclass();
+        }
+        return map;
     }
 
     protected boolean excludeFromAntProperties(String fieldName) {

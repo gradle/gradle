@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.util.TestUtil
@@ -28,27 +26,6 @@ class AbstractCopyTaskTest extends WorkspaceTest {
 
     def setup() {
         task = TestUtil.createTask(TestCopyTask)
-    }
-
-    void usesDefaultSourceWhenNoSourceHasBeenSpecified() {
-        given:
-        def defaultSource = Mock(FileTree)
-
-        when:
-        task.defaultSource = defaultSource
-
-        then:
-        task.source.is(defaultSource)
-    }
-
-    public void doesNotUseDefaultSourceWhenSourceHasBeenSpecifiedOnSpec() {
-        when:
-        FileTree source = Mock(FileTree)
-        task.defaultSource = source
-        task.from "foo"
-
-        then:
-        !task.source.is(source)
     }
 
     @Test
@@ -70,7 +47,6 @@ class AbstractCopyTaskTest extends WorkspaceTest {
 
     static class TestCopyTask extends AbstractCopyTask {
         CopyAction copyAction
-        FileCollection defaultSource
 
         protected CopyAction createCopyAction() {
             copyAction

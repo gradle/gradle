@@ -189,10 +189,6 @@ class DefaultSettingsTest {
         return settings.createProjectDescriptor(settings.getRootProject(), testName, testDir)
     }
 
-    private Map createTestRepoArgs() {
-        return [name: 'someName']
-    }
-
     @Test
     public void testCreateClassLoader() {
         StartParameter expectedStartParameter = settings.startParameter.newInstance()
@@ -203,7 +199,7 @@ class DefaultSettingsTest {
 
     @Test
     public void testCanGetAndSetDynamicProperties() {
-        settings.dynamicProp = 'value'
+        settings.ext.dynamicProp = 'value'
         assertEquals('value', settings.dynamicProp)
     }
 

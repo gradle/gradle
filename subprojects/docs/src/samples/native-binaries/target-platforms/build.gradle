@@ -41,21 +41,6 @@ model {
     }
 }
 // END SNIPPET targetplatforms
-model {
-    toolChains {
-        all{
-            target("arm"){
-                cppCompiler.withArguments { args ->
-                    args << "-m32"
-                }
-                linker.withArguments { args ->
-                    args << "-m32"
-                }
-            }
-            target("sparc")
-        }
-    }
-}
 
 executables {
     main {}

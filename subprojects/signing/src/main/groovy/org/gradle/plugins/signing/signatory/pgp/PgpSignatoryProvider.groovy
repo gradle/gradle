@@ -23,7 +23,7 @@ import org.gradle.api.Project
 
 import org.gradle.plugins.signing.SigningExtension
 
-class PgpSignatoryProvider implements SignatoryProvider/*<PgpSignatory>*/ { // Groovy can't deal with this - 1.7.10
+class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
     
     private final factory = new PgpSignatoryFactory()
     private final Map<String, PgpSignatory> signatories = [:]

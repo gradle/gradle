@@ -75,8 +75,20 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         loader.load(projectDescriptor, gradle, classLoaderScope)
 
         then:
+        1 * rootProject.setProperty('prop', 'value')
+        1 * childProject.setProperty('prop', 'value')
+    }
+
+    def "defines extra property for unknown property"() {
+        given:
+        2 * propertiesLoader.mergeProperties([:]) >> [prop: 'value']
+
+        when:
+        loader.load(projectDescriptor, gradle, classLoaderScope)
+
+        then:
+        1 * rootProject.setProperty('prop', 'value') >> { throw new MissingPropertyException('prop', rootProject.class) }
         1 * rootProperties.set('prop', 'value')
-        1 * childProperties.set('prop', 'value')
     }
 
     def "loads project properties from gradle.properties file in project dir"() {
@@ -90,7 +102,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         then:
         1 * propertiesLoader.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']
         1 * propertiesLoader.mergeProperties([prop: 'childValue']) >> [prop: 'childValue']
-        1 * rootProperties.set('prop', 'rootValue')
-        1 * childProperties.set('prop', 'childValue')
+        1 * rootProject.setProperty('prop', 'rootValue')
+        1 * childProject.setProperty('prop', 'childValue')
     }
 }

@@ -9,8 +9,8 @@
                 </tr>
             </thead>
             <tr>
-                <td>inputFile</td>
-                <td/>
+                <td>facet</td>
+                <td><literal>project.eclipse.wtp.facet</literal></td>
             </tr>
             <tr>
                 <td>outputFile</td>
