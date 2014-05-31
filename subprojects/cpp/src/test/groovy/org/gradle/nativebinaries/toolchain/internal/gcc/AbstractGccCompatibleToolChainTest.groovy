@@ -21,18 +21,16 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
-import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration
-import org.gradle.nativebinaries.toolchain.TargetedPlatformToolChain
-import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
 import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
 import org.gradle.nativebinaries.platform.internal.DefaultOperatingSystem
-
+import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration
+import org.gradle.nativebinaries.toolchain.TargetedPlatformToolChain
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.nativebinaries.toolchain.internal.ToolType
-
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 import org.gradle.nativebinaries.toolchain.internal.tools.ToolSearchPath
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
@@ -40,7 +38,7 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
-import static ArchitectureInternal.InstructionSet.X86
+import static org.gradle.nativebinaries.platform.internal.ArchitectureInternal.InstructionSet.X86
 
 class AbstractGccCompatibleToolChainTest extends Specification {
     def fileResolver = Mock(FileResolver)
@@ -53,15 +51,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def instantiator = new DirectInstantiator()
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolSearchPath, instantiator)
     def platform = Stub(Platform)
-
-    def setup() {
-        instantiator.newInstance(DefaultGccConfigurableToolChain.class, _) >> { args ->
-            new DefaultGccConfigurableToolChain(args[1][0], args[1][1], args[1][2], args[1][3], args[1][4])
-        }
-        instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, _) >> { args ->
-            new DefaultGccCommandLineToolConfiguration(args[1][0], args[1][1], args[1][2])
-        }
-    }
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
