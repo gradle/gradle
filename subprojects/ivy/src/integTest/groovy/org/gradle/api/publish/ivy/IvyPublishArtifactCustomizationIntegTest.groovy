@@ -289,6 +289,24 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         failure.assertHasCause("Invalid publication 'ivy': artifact file is a directory")
     }
 
+    def "cannot publish when artifact does not exist"() {
+        given:
+        createBuildScripts("""
+            publications {
+                ivy(IvyPublication) {
+                    artifact source: "no-exist", type: "jar"
+                }
+            }
+""")
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+        failure.assertHasCause("Invalid publication 'ivy': artifact file does not exist: '${file('no-exist')}'")
+    }
+
     def "reports failure to convert artifact notation"() {
         given:
         file("a-directory.dir").createDir()
