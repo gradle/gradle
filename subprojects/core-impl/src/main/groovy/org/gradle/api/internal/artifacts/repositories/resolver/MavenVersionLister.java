@@ -23,6 +23,7 @@ import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,8 +34,8 @@ public class MavenVersionLister implements VersionLister {
         this.mavenMetadataLoader = new MavenMetadataLoader(repository);
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module, final ResourceAwareResolveResult result) {
-        return new DefaultVersionList() {
+    public VersionList getVersionList(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
+        return new VersionList() {
             final Set<URI> searched = new HashSet<URI>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
@@ -45,7 +46,7 @@ public class MavenVersionLister implements VersionLister {
                 result.attempted(metadataLocation.toString());
                 MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
                 for (String version : mavenMetaData.versions) {
-                    add(version);
+                    dest.add(version);
                 }
             }
         };

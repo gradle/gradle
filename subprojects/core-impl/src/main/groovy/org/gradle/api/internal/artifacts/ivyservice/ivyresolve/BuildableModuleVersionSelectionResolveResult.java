@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
+import java.util.Collection;
+
 /**
  * The result of attempting to resolve a dependency descriptor to a list of candidate versions that might match that descriptor.
  */
@@ -52,6 +54,11 @@ public interface BuildableModuleVersionSelectionResolveResult extends ResourceAw
      * Marks the module as having been listed to have the specified versions available.
      */
     void listed(ModuleVersionListing versions);
+
+    /**
+     * Marks the module as having been listed to have the specified versions available.
+     */
+    void listed(Collection<String> versions);
 
     /**
      * Marks the module as probably having no versions available.

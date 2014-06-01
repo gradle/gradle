@@ -23,7 +23,6 @@ import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableM
 
 class DefaultBuildableModuleVersionSelectionResolveResultTest extends Specification {
     def descriptor = new DefaultBuildableModuleVersionSelectionResolveResult()
-    def moduleSource = Stub(ModuleSource)
     def listing = Mock(ModuleVersionListing)
 
     def "has unknown state by default"() {
@@ -40,6 +39,15 @@ class DefaultBuildableModuleVersionSelectionResolveResultTest extends Specificat
         descriptor.state == Listed
         descriptor.failure == null
         descriptor.hasResult()
+    }
+
+    def "can mark as listed using version strings"() {
+        when:
+        descriptor.listed(['1.2', '1.3'])
+
+        then:
+        descriptor.state == Listed
+        descriptor.versions.versions*.version as Set == ['1.2', '1.3'] as Set
     }
 
     def "can mark as probably listed"() {

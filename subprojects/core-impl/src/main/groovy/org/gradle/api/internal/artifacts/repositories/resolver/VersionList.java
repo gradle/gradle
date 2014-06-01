@@ -19,8 +19,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.resource.ResourceException;
 
-import java.util.Set;
-
 public interface VersionList {
     /**
      * <p>Adds those versions available for the given pattern.</p>
@@ -30,8 +28,4 @@ public interface VersionList {
      * @throws ResourceException If information for versions cannot be loaded.
      */
     void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException;
-
-    Set<String> getVersions();
-
-    boolean isEmpty();
 }

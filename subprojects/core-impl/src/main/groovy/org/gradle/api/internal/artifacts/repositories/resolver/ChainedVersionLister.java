@@ -32,16 +32,16 @@ public class ChainedVersionLister implements VersionLister {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
     private final List<VersionLister> versionListers;
 
-    public ChainedVersionLister(VersionLister... versionlisters) {
-        this.versionListers = Arrays.asList(versionlisters);
+    public ChainedVersionLister(VersionLister... delegates) {
+        this.versionListers = Arrays.asList(delegates);
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module, final ResourceAwareResolveResult result)  {
+    public VersionList getVersionList(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result)  {
         final List<VersionList> versionLists = new ArrayList<VersionList>();
         for (VersionLister lister : versionListers) {
-            versionLists.add(lister.getVersionList(module, result));
+            versionLists.add(lister.getVersionList(module, dest, result));
         }
-        return new AbstractVersionList() {
+        return new VersionList() {
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
                 final Iterator<VersionList> versionListIterator = versionLists.iterator();
                 while (versionListIterator.hasNext()) {
@@ -66,14 +66,6 @@ public class ChainedVersionLister implements VersionLister {
                         }
                     }
                 }
-            }
-
-            public Set<String> getVersions() {
-                Set<String> allVersions = new LinkedHashSet<String>();
-                for (VersionList versionList : versionLists) {
-                    allVersions.addAll(versionList.getVersions());
-                }
-                return allVersions;
             }
         };
     }

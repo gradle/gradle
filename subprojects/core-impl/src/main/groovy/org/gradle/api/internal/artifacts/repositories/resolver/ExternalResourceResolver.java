@@ -48,10 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
@@ -119,7 +116,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private void doListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
         ModuleIdentifier module  = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
-        VersionList versionList = versionLister.getVersionList(module, result);
+        Set<String> versions = new LinkedHashSet<String>();
+        VersionList versionList = versionLister.getVersionList(module, versions, result);
 
         // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
         IvyArtifactName metaDataArtifact = getMetaDataArtifactName(dependency.getRequested().getName());
@@ -129,11 +127,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         for (IvyArtifactName otherArtifact : getDependencyArtifactNames(dependency)) {
             listVersionsForAllPatterns(artifactPatterns, otherArtifact, versionList);
         }
-        DefaultModuleVersionListing moduleVersions = new DefaultModuleVersionListing();
-        for (String listedVersion : versionList.getVersions()) {
-            moduleVersions.add(listedVersion);
-        }
-        result.listed(moduleVersions);
+        result.listed(versions);
     }
 
     private void listVersionsForAllPatterns(List<ResourcePattern> patternList, IvyArtifactName ivyArtifactName, VersionList versionList) {
