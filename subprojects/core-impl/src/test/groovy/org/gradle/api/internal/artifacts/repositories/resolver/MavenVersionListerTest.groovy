@@ -48,7 +48,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, result)
         versionList.visit(pattern, artifact)
 
         then:
@@ -81,7 +81,7 @@ class MavenVersionListerTest extends Specification {
         def location2 = new URI('prefix2/org/acme/testproject/maven-metadata.xml')
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, result)
         versionList.visit(pattern1, artifact)
         versionList.visit(pattern2, artifact)
 
@@ -118,7 +118,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, result)
         versionList.visit(pattern, artifact)
         versionList.visit(pattern, artifact)
 
@@ -145,7 +145,7 @@ class MavenVersionListerTest extends Specification {
 
     def "visit throws ResourceNotFoundException when maven-metadata not available"() {
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, result)
         versionList.visit(pattern, artifact)
 
         then:
@@ -164,7 +164,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, result)
         versionList.visit(pattern, artifact)
 
         then:
@@ -187,7 +187,7 @@ class MavenVersionListerTest extends Specification {
         def failure = new IOException()
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, result)
         versionList.visit(pattern, artifact)
 
         then:

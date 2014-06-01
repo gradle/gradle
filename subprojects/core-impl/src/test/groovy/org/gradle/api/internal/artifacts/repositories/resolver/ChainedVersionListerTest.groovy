@@ -29,8 +29,8 @@ class ChainedVersionListerTest extends Specification {
     VersionLister lister1 = Mock()
     VersionLister lister2 = Mock()
 
-    VersionList versionList1 = Mock()
-    VersionList versionList2 = Mock()
+    VersionPatternVisitor versionList1 = Mock()
+    VersionPatternVisitor versionList2 = Mock()
 
     ResourcePattern pattern = Mock()
     ModuleIdentifier module = Mock()
@@ -41,11 +41,11 @@ class ChainedVersionListerTest extends Specification {
 
     def "visit stops listing after first success"() {
         when:
-        VersionList versionList = chainedVersionLister.getVersionList(module, result)
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, result)
 
         then:
-        1 * lister1.getVersionList(module, result) >> versionList1
-        1 * lister2.getVersionList(module, result) >> versionList2
+        1 * lister1.newVisitor(module, result) >> versionList1
+        1 * lister2.newVisitor(module, result) >> versionList2
 
         when:
         versionList.visit(pattern, artifact)
@@ -68,10 +68,10 @@ class ChainedVersionListerTest extends Specification {
     @Unroll
     def "visit ignores #exception.class.simpleName of failed VersionLister"() {
         given:
-        lister1.getVersionList(module, result) >> versionList1
-        lister2.getVersionList(module, result) >> versionList2
+        lister1.newVisitor(module, result) >> versionList1
+        lister2.newVisitor(module, result) >> versionList2
 
-        VersionList versionList = chainedVersionLister.getVersionList(module, result)
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, result)
 
         when:
         versionList.visit(pattern, artifact)
@@ -87,10 +87,10 @@ class ChainedVersionListerTest extends Specification {
     def "visit rethrows ResourceNotFoundException of failed last VersionLister"() {
         given:
         def exception = new ResourceNotFoundException("not found")
-        lister1.getVersionList(module, result) >> versionList1
-        lister2.getVersionList(module, result) >> versionList2
+        lister1.newVisitor(module, result) >> versionList1
+        lister2.newVisitor(module, result) >> versionList2
 
-        VersionList versionList = chainedVersionLister.getVersionList(module, result)
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, result)
 
         when:
         versionList.visit(pattern, artifact)
@@ -107,10 +107,10 @@ class ChainedVersionListerTest extends Specification {
     def "visit wraps failed last VersionLister"() {
         given:
         def exception = new RuntimeException("broken")
-        lister1.getVersionList(module, result) >> versionList1
-        lister2.getVersionList(module, result) >> versionList2
+        lister1.newVisitor(module, result) >> versionList1
+        lister2.newVisitor(module, result) >> versionList2
 
-        VersionList versionList = chainedVersionLister.getVersionList(module, result)
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, result)
 
         when:
         versionList.visit(pattern, artifact)

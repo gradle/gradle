@@ -34,8 +34,8 @@ public class MavenVersionLister implements VersionLister {
         this.mavenMetadataLoader = new MavenMetadataLoader(repository);
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
-        return new VersionList() {
+    public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
+        return new VersionPatternVisitor() {
             final Set<URI> searched = new HashSet<URI>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {

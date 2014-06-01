@@ -36,16 +36,16 @@ public class ChainedVersionLister implements VersionLister {
         this.versionListers = Arrays.asList(delegates);
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result)  {
-        final List<VersionList> versionLists = new ArrayList<VersionList>();
+    public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result)  {
+        final List<VersionPatternVisitor> visitors = new ArrayList<VersionPatternVisitor>();
         for (VersionLister lister : versionListers) {
-            versionLists.add(lister.getVersionList(module, dest, result));
+            visitors.add(lister.newVisitor(module, dest, result));
         }
-        return new VersionList() {
+        return new VersionPatternVisitor() {
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
-                final Iterator<VersionList> versionListIterator = versionLists.iterator();
+                final Iterator<VersionPatternVisitor> versionListIterator = visitors.iterator();
                 while (versionListIterator.hasNext()) {
-                    VersionList list = versionListIterator.next();
+                    VersionPatternVisitor list = versionListIterator.next();
                     try {
                         list.visit(pattern, artifact);
                         return;

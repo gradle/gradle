@@ -117,22 +117,22 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private void doListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
         ModuleIdentifier module  = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
         Set<String> versions = new LinkedHashSet<String>();
-        VersionList versionList = versionLister.getVersionList(module, versions, result);
+        VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 
         // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
         IvyArtifactName metaDataArtifact = getMetaDataArtifactName(dependency.getRequested().getName());
-        listVersionsForAllPatterns(ivyPatterns, metaDataArtifact, versionList);
+        listVersionsForAllPatterns(ivyPatterns, metaDataArtifact, visitor);
 
         // List modules with missing metadata files
         for (IvyArtifactName otherArtifact : getDependencyArtifactNames(dependency)) {
-            listVersionsForAllPatterns(artifactPatterns, otherArtifact, versionList);
+            listVersionsForAllPatterns(artifactPatterns, otherArtifact, visitor);
         }
         result.listed(versions);
     }
 
-    private void listVersionsForAllPatterns(List<ResourcePattern> patternList, IvyArtifactName ivyArtifactName, VersionList versionList) {
+    private void listVersionsForAllPatterns(List<ResourcePattern> patternList, IvyArtifactName ivyArtifactName, VersionPatternVisitor visitor) {
         for (ResourcePattern resourcePattern : patternList) {
-            versionList.visit(resourcePattern, ivyArtifactName);
+            visitor.visit(resourcePattern, ivyArtifactName);
         }
     }
 

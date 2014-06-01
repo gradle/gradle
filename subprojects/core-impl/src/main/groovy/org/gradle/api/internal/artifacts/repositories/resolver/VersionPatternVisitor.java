@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.resource.ResourceException;
 
-public interface VersionList {
+public interface VersionPatternVisitor {
     /**
      * <p>Adds those versions available for the given pattern.</p>
      *
