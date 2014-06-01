@@ -29,10 +29,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
+    private static final Pattern FAILURE_PATTERN = Pattern.compile("(?m)FAILURE: .+$");
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
-    private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+)^\\* Try:$");
+    private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
-    private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+)^\\* Exception is:$");
+    private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private final String description;
     private final String lineNumber;
     private final String fileName;
@@ -42,7 +43,14 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     public OutputScrapingExecutionFailure(String output, String error) {
         super(output, error);
 
-        java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(error);
+        java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(error);
+        if (matcher.find()) {
+            if (matcher.find()) {
+                throw new AssertionError("Found multiple failure sections in build error output.");
+            }
+        }
+
+        matcher = LOCATION_PATTERN.matcher(error);
         if (matcher.find()) {
             fileName = matcher.group(1).trim();
             lineNumber = matcher.group(3);
