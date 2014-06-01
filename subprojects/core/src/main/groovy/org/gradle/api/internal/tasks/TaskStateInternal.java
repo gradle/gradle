@@ -55,6 +55,7 @@ public class TaskStateInternal implements TaskState {
     public boolean isConfigurable(){
         return !executed && !executing;
     }
+
     /**
      * Marks this task as executed with the given failure. This method can be called at most once.
      */

@@ -44,14 +44,20 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return upToDateSpec;
     }
 
-    public void upToDateWhen(Closure upToDateClosure) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.upToDateWhen(Closure)");
-        upToDateSpec = upToDateSpec.and(upToDateClosure);
+    public void upToDateWhen(final Closure upToDateClosure) {
+        taskStatusNagger.mutate("TaskOutputs.upToDateWhen(Closure)", new Runnable() {
+            public void run() {
+                upToDateSpec = upToDateSpec.and(upToDateClosure);
+            }
+        });
     }
 
-    public void upToDateWhen(Spec<? super Task> upToDateSpec) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.upToDateWhen(Spec)");
-        this.upToDateSpec = this.upToDateSpec.and(upToDateSpec);
+    public void upToDateWhen(final Spec<? super Task> spec) {
+        taskStatusNagger.mutate("TaskOutputs.upToDateWhen(Spec)", new Runnable() {
+            public void run() {
+                upToDateSpec = upToDateSpec.and(spec);
+            }
+        });
     }
 
     public boolean getHasOutput() {
@@ -62,21 +68,30 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return outputFiles;
     }
 
-    public TaskOutputs files(Object... paths) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.files(Object...)");
-        outputFiles.from(paths);
+    public TaskOutputs files(final Object... paths) {
+        taskStatusNagger.mutate("TaskOutputs.files(Object...)", new Runnable() {
+            public void run() {
+                outputFiles.from(paths);
+            }
+        });
         return this;
     }
 
-    public TaskOutputs file(Object path) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.file(Object)");
-        files(path);
+    public TaskOutputs file(final Object path) {
+        taskStatusNagger.mutate("TaskOutputs.file(Object)", new Runnable() {
+            public void run() {
+                outputFiles.from(path);
+            }
+        });
         return this;
     }
 
     public TaskOutputs dir(final Object path) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.dir(Object)");
-        outputFiles.from(path);
+        taskStatusNagger.mutate("TaskOutputs.dir(Object)", new Runnable() {
+            public void run() {
+                outputFiles.from(path);
+            }
+        });
         return this;
     }
 

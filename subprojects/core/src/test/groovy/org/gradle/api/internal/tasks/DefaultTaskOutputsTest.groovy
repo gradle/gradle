@@ -23,7 +23,9 @@ import spock.lang.Specification
 
 class DefaultTaskOutputsTest extends Specification {
 
-    private TaskStatusNagger taskStatusNagger = Mock()
+    private TaskStatusNagger taskStatusNagger = Stub() {
+        mutate(_, _) >> { String method, Runnable action -> action.run() }
+    }
     private final TaskInternal task = [toString: {'task'}] as TaskInternal
     private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
 
@@ -99,28 +101,6 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         f == outputFiles
         1 * history.outputFiles >> outputFiles
-    }
-
-    public void callsTaskStatusNaggerWhenFileMethodCalled() {
-        when:
-        outputs.file("aFile")
-        then:
-        1 * taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.file(Object)")
-    }
-
-    public void callsTaskStatusNaggerWhenFilesMethodCalled() {
-        when:
-        outputs.files("aFile", "bFile")
-        then:
-        1 * taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.files(Object...)")
-    }
-
-    public void callsTaskStatusNaggerWhenDirMethodCalled() {
-        when:
-        outputs.dir("aFile")
-        then:
-        1 * taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.dir(Object)")
-        0 * taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.files(Object...)");
     }
 
     public void getPreviousFilesFailsWhenNoTaskHistoryAvailable() {

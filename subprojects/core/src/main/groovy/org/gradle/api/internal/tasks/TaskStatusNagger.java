@@ -19,53 +19,53 @@ package org.gradle.api.internal.tasks;
 import groovy.util.ObservableList;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.util.DeprecationLogger;
 
 import java.beans.PropertyChangeEvent;
 
 public class TaskStatusNagger {
-    private static final String DEPRECATION_MESSAGE = "Calling %s after task execution has started";
-    private static final String EXPLANAITION = "Check the configuration of %s";
-    private static final String EXPLANAITION_WITH_HINT = EXPLANAITION + ". You may have misused '<<' at task declaration";
-
-    private final TaskInternal taskInternal;
-    private boolean nagUser = true;
+    private final TaskInternal task;
     private boolean executingleftShiftAction;
 
-    public TaskStatusNagger(TaskInternal taskInternal) {
-        this.taskInternal = taskInternal;
+    public TaskStatusNagger(TaskInternal task) {
+        this.task = task;
     }
 
-    public void nagIfTaskNotInConfigurableState(String method) {
-        if (!taskInternal.getStateInternal().isConfigurable() && nagUser) {
-            warn(method);
+    public void mutate(String method, Runnable action) {
+        if (!task.getState().isConfigurable()) {
+            throw new IllegalStateException(format(method));
         }
+        action.run();
     }
 
-    public void nagAboutMutatingListIfTaskNotInConfigurableState(String listname, PropertyChangeEvent evt) {
-        if (!taskInternal.getStateInternal().isConfigurable() && nagUser) {
-            if (evt instanceof ObservableList.ElementEvent) {
-                switch (((ObservableList.ElementEvent) evt).getChangeType()) {
-                    case ADDED:
-                        warn(String.format("%s.%s", listname, "add()"));
-                        break;
-                    case UPDATED:
-                        warn(String.format("%s.%s", listname, "set(int, Object)"));
-                        break;
-                    case REMOVED:
-                        warn(String.format("%s.%s", listname, "remove()"));
-                        break;
-                    case CLEARED:
-                        warn(String.format("%s.%s", listname, "clear()"));
-                        break;
-                    case MULTI_ADD:
-                        warn(String.format("%s.%s", listname, "addAll()"));
-                        break;
-                    case MULTI_REMOVE:
-                        warn(String.format("%s.%s", listname, "removeAll()"));
-                        break;
-                }
+    public void assertMutable(String listname, PropertyChangeEvent evt) {
+        String method = null;
+        if (evt instanceof ObservableList.ElementEvent) {
+            switch (((ObservableList.ElementEvent) evt).getChangeType()) {
+                case ADDED:
+                    method = String.format("%s.%s", listname, "add()");
+                    break;
+                case UPDATED:
+                    method = String.format("%s.%s", listname, "set(int, Object)");
+                    break;
+                case REMOVED:
+                    method = String.format("%s.%s", listname, "remove()");
+                    break;
+                case CLEARED:
+                    method = String.format("%s.%s", listname, "clear()");
+                    break;
+                case MULTI_ADD:
+                    method = String.format("%s.%s", listname, "addAll()");
+                    break;
+                case MULTI_REMOVE:
+                    method = String.format("%s.%s", listname, "removeAll()");
+                    break;
             }
+        }
+        if (method == null) {
+            return;
+        }
+        if (!task.getState().isConfigurable()) {
+            throw new IllegalStateException(format(method));
         }
     }
 
@@ -86,20 +86,10 @@ public class TaskStatusNagger {
         };
     }
 
-    private void warn(String method) {
+    private String format(String method) {
         if (executingleftShiftAction) {
-            DeprecationLogger.nagUserOfDeprecated(String.format(DEPRECATION_MESSAGE, method), String.format(EXPLANAITION_WITH_HINT, taskInternal));
-        } else {
-            DeprecationLogger.nagUserOfDeprecated(String.format(DEPRECATION_MESSAGE, method), String.format(EXPLANAITION, taskInternal));
+            return String.format("Cannot call %s on %s after task has started execution. Check the configuration of %s as you may have misused '<<' at task declaration.", method, task, task);
         }
-    }
-
-    public void whileDisabled(Runnable runnable) {
-        nagUser = false;
-        try {
-            runnable.run();
-        } finally {
-            nagUser = true;
-        }
+        return String.format("Cannot call %s on %s after task has started execution.", method, task);
     }
 }
