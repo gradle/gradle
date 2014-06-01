@@ -16,10 +16,8 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.api.Action;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.launcher.bootstrap.ExecutionListener;
 
 public interface CommandLineAction {
     /**
@@ -31,5 +29,5 @@ public interface CommandLineAction {
      * Creates an executable action from the given command-line args. Returns null if this action was not selected by the given
      * command-line args.
      */
-    Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine);
+    Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine);
 }
