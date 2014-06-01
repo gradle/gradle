@@ -104,10 +104,8 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public void stopOnIdleTimeout(int timeout, TimeUnit timeoutUnits) throws DaemonStoppedException {
-        if (awaitStop(timeoutUnits.toMillis(timeout))) {
-            throw new DaemonStoppedException(currentCommandExecution);
-        }
+    public void stopOnIdleTimeout(int timeout, TimeUnit timeoutUnits) {
+        awaitStop(timeoutUnits.toMillis(timeout));
     }
 
     public void requestStop() {

@@ -169,10 +169,10 @@ public class Daemon implements Stoppable {
 
     /**
      * Waits for the daemon to be idle for the specified number of milliseconds, then requests that the daemon stop.
-     * 
-     * @throws DaemonStoppedException if the daemon is explicitly stopped instead of idling out.
+     *
+     * <p>May return earlier if the daemon is stopped before the idle timeout is reached.</p>
      */
-    public void requestStopOnIdleTimeout(int idleTimeout, TimeUnit idleTimeoutUnits) throws DaemonStoppedException {
+    public void requestStopOnIdleTimeout(int idleTimeout, TimeUnit idleTimeoutUnits) {
         LOGGER.debug("requestStopOnIdleTimeout({} {}) called on daemon", idleTimeout, idleTimeoutUnits);
         DaemonStateCoordinator stateCoordinator;
         lifecyleLock.lock();
