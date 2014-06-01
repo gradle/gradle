@@ -16,16 +16,13 @@
 
 package org.gradle.integtests.tooling
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AutoTestedSamplesUtil
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.model.Element
-import org.gradle.internal.classloader.ClasspathUtil
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-@IgnoreIf({!JavaVersion.current().java6Compatible})
 public class AutoTestedSamplesToolingApiTest extends Specification {
 
     @Rule public final TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
