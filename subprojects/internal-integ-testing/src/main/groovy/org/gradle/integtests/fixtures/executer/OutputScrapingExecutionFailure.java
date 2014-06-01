@@ -60,14 +60,32 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         }
 
         matcher = DESCRIPTION_PATTERN.matcher(error);
-        String problem;
         if (matcher.find()) {
-            problem = matcher.group(1);
+            String problemStr = matcher.group(1);
+            Problem problem = extract(problemStr);
+            description = problem.description;
+            causes.addAll(problem.causes);
+            while (matcher.find()) {
+                problemStr = matcher.group(1);
+                problem = extract(problemStr);
+                causes.addAll(problem.causes);
+            }
         } else {
-            problem = "";
+            description = "";
         }
 
-        matcher = CAUSE_PATTERN.matcher(problem);
+        matcher = RESOLUTION_PATTERN.matcher(error);
+        if (!matcher.find()) {
+            resolution = "";
+        } else {
+            resolution = matcher.group(1).trim();
+        }
+    }
+
+    private Problem extract(String problem) {
+        java.util.regex.Matcher matcher = CAUSE_PATTERN.matcher(problem);
+        String description;
+        List<String> causes = new ArrayList<String>();
         if (!matcher.find()) {
             description = TextUtil.normaliseLineSeparators(problem.trim());
         } else {
@@ -86,13 +104,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
                 }
             }
         }
-
-        matcher = RESOLUTION_PATTERN.matcher(error);
-        if (!matcher.find()) {
-            resolution = "";
-        } else {
-            resolution = matcher.group(1).trim();
-        }
+        return new Problem(description, causes);
     }
 
     private String toPrefixPattern(int prefix) {
@@ -155,5 +167,15 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     public DependencyResolutionFailure assertResolutionFailure(String configuration) {
         return new DependencyResolutionFailure(this, configuration);
+    }
+
+    private static class Problem {
+        final String description;
+        final List<String> causes;
+
+        private Problem(String description, List<String> causes) {
+            this.description = description;
+            this.causes = causes;
+        }
     }
 }
