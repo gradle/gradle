@@ -65,7 +65,8 @@ public class CommandLineActionFactory {
 
         return new ExceptionReportingAction(
                 new WithLogging(loggingServices, args, loggingConfiguration,
-                        new ParseAndBuildAction(loggingServices, args)),
+                        new JavaRuntimeValidationAction(
+                            new ParseAndBuildAction(loggingServices, args))),
                 new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
