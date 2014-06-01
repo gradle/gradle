@@ -15,38 +15,11 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 
 public class InProcessJavaCompilerFactory implements JavaCompilerFactory {
-    private static final boolean SUN_COMPILER_AVAILABLE = JavaReflectionUtil.isClassAvailable("com.sun.tools.javac.Main");
-
     public Compiler<JavaCompileSpec> create(CompileOptions options) {
-        if (JavaVersion.current().isJava6Compatible()) {
-            return createJdk6Compiler();
-        }
-        if (SUN_COMPILER_AVAILABLE) {
-            return new SunCompilerFactory().create();
-        }
-        throw new RuntimeException("Cannot find a Java compiler API. Please let us know which JDK/platform you are using.");
-    }
-
-    private Compiler<JavaCompileSpec> createJdk6Compiler() {
-        try {
-            // excluded when Gradle is compiled against JDK5, hence we can't reference it statically
-            Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler");
-            return (Compiler<JavaCompileSpec>) clazz.newInstance();
-        } catch (Exception e) {
-            throw new GradleException("Internal error: couldn't load or instantiate class Jdk6JavaCompiler", e);
-        }
-    }
-
-    // nested class to enforce lazy class loading
-    private static class SunCompilerFactory {
-        Compiler<JavaCompileSpec> create() {
-            return new SunJavaCompiler();
-        }
+        return new Jdk6JavaCompiler();
     }
 }

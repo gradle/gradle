@@ -19,7 +19,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -44,10 +43,6 @@ public class CompilerDaemonStarter {
         builder.setLogLevel(startParameter.getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(forkOptions.getClasspath());
         builder.sharedPackages(forkOptions.getSharedPackages());
-        File toolsJar = Jvm.current().getToolsJar();
-        if (toolsJar != null) {
-            builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
-        }
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
