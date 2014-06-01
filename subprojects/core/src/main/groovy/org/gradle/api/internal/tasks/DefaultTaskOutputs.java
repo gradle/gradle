@@ -32,10 +32,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final DefaultConfigurableFileCollection outputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
     private TaskExecutionHistory history;
-    private final TaskStatusNagger taskStatusNagger;
+    private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(FileResolver resolver, TaskInternal task, TaskStatusNagger taskStatusNagger) {
-        this.taskStatusNagger = taskStatusNagger;
+    public DefaultTaskOutputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
+        this.taskMutator = taskMutator;
         outputFiles = new DefaultConfigurableFileCollection(String.format("%s output files", task), resolver, null);
         outputFiles.builtBy(task);
     }
@@ -45,7 +45,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public void upToDateWhen(final Closure upToDateClosure) {
-        taskStatusNagger.mutate("TaskOutputs.upToDateWhen(Closure)", new Runnable() {
+        taskMutator.mutate("TaskOutputs.upToDateWhen(Closure)", new Runnable() {
             public void run() {
                 upToDateSpec = upToDateSpec.and(upToDateClosure);
             }
@@ -53,7 +53,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public void upToDateWhen(final Spec<? super Task> spec) {
-        taskStatusNagger.mutate("TaskOutputs.upToDateWhen(Spec)", new Runnable() {
+        taskMutator.mutate("TaskOutputs.upToDateWhen(Spec)", new Runnable() {
             public void run() {
                 upToDateSpec = upToDateSpec.and(spec);
             }
@@ -69,7 +69,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public TaskOutputs files(final Object... paths) {
-        taskStatusNagger.mutate("TaskOutputs.files(Object...)", new Runnable() {
+        taskMutator.mutate("TaskOutputs.files(Object...)", new Runnable() {
             public void run() {
                 outputFiles.from(paths);
             }
@@ -78,7 +78,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public TaskOutputs file(final Object path) {
-        taskStatusNagger.mutate("TaskOutputs.file(Object)", new Runnable() {
+        taskMutator.mutate("TaskOutputs.file(Object)", new Runnable() {
             public void run() {
                 outputFiles.from(path);
             }
@@ -87,7 +87,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public TaskOutputs dir(final Object path) {
-        taskStatusNagger.mutate("TaskOutputs.dir(Object)", new Runnable() {
+        taskMutator.mutate("TaskOutputs.dir(Object)", new Runnable() {
             public void run() {
                 outputFiles.from(path);
             }

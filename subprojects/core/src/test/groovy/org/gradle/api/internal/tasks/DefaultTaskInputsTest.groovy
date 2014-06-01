@@ -31,7 +31,7 @@ class DefaultTaskInputsTest extends Specification {
             resolveFilesAsTree: {tree}
     ] as FileResolver
 
-    private TaskStatusNagger taskStatusNagger = Stub() {
+    private TaskMutator taskStatusNagger = Stub() {
         mutate(_, _) >> { String method, Runnable action -> action.run() }
     }
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, {} as TaskInternal, taskStatusNagger)

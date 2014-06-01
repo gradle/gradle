@@ -92,7 +92,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private List<TaskValidator> validators = new ArrayList<TaskValidator>();
 
-    private final TaskStatusNagger taskStatusNagger;
+    private final TaskMutator taskMutator;
     private ObservableList observableActionList;
 
     protected AbstractTask() {
@@ -120,12 +120,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         shouldRunAfter = new DefaultTaskDependency(project.getTasks());
         services = project.getServiceRegistryFactory().createFor(this);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
-        taskStatusNagger = services.get(TaskStatusNagger.class);
+        taskMutator = services.get(TaskMutator.class);
 
         observableActionList = new ObservableActionWrapperList(actions);
         observableActionList.addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
-                taskStatusNagger.assertMutable("Task.getActions()", evt);
+                taskMutator.assertMutable("Task.getActions()", evt);
             }
         });
     }
@@ -178,7 +178,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setActions(final List<Action<? super Task>> actions) {
-        taskStatusNagger.mutate("Task.setActions(List<Action>)", new Runnable() {
+        taskMutator.mutate("Task.setActions(List<Action>)", new Runnable() {
             public void run() {
                 actions.clear();
                 for (Action<? super Task> action : actions) {
@@ -197,7 +197,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setDependsOn(final Iterable<?> dependsOn) {
-        taskStatusNagger.mutate("Task.setDependsOn(Iterable)", new Runnable() {
+        taskMutator.mutate("Task.setDependsOn(Iterable)", new Runnable() {
             public void run() {
                 dependencies.setValues(dependsOn);
             }
@@ -205,7 +205,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void onlyIf(final Closure onlyIfClosure) {
-        taskStatusNagger.mutate("Task.onlyIf(Closure)", new Runnable() {
+        taskMutator.mutate("Task.onlyIf(Closure)", new Runnable() {
             public void run() {
                 onlyIfSpec = onlyIfSpec.and(onlyIfClosure);
             }
@@ -213,7 +213,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void onlyIf(final Spec<? super Task> spec) {
-        taskStatusNagger.mutate("Task.onlyIf(Spec)", new Runnable() {
+        taskMutator.mutate("Task.onlyIf(Spec)", new Runnable() {
             public void run() {
                 onlyIfSpec = onlyIfSpec.and(spec);
             }
@@ -221,7 +221,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setOnlyIf(final Spec<? super Task> spec) {
-        taskStatusNagger.mutate("Task.setOnlyIf(Spec)", new Runnable() {
+        taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(spec);
             }
@@ -229,7 +229,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setOnlyIf(final Closure onlyIfClosure) {
-        taskStatusNagger.mutate("Task.setOnlyIf(Closure)", new Runnable() {
+        taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure);
             }
@@ -265,7 +265,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setEnabled(final boolean enabled) {
-        taskStatusNagger.mutate("Task.setEnabled(boolean)", new Runnable() {
+        taskMutator.mutate("Task.setEnabled(boolean)", new Runnable() {
             public void run() {
                 AbstractTask.this.enabled = enabled;
             }
@@ -277,7 +277,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task deleteAllActions() {
-        taskStatusNagger.mutate("Task.deleteAllActions()",
+        taskMutator.mutate("Task.deleteAllActions()",
                 new Runnable() {
                     public void run() {
                         actions.clear();
@@ -308,7 +308,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task dependsOn(final Object... paths) {
-        taskStatusNagger.mutate("Task.dependsOn(Object...)", new Runnable() {
+        taskMutator.mutate("Task.dependsOn(Object...)", new Runnable() {
             public void run() {
                 dependencies.add(paths);
             }
@@ -320,7 +320,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        taskStatusNagger.mutate("Task.doFirst(Action)", new Runnable() {
+        taskMutator.mutate("Task.doFirst(Action)", new Runnable() {
             public void run() {
                 actions.add(0, wrap(action));
             }
@@ -332,7 +332,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        taskStatusNagger.mutate("Task.doLast(Action)", new Runnable() {
+        taskMutator.mutate("Task.doLast(Action)", new Runnable() {
             public void run() {
                 actions.add(wrap(action));
             }
@@ -437,7 +437,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        taskStatusNagger.mutate("Task.doFirst(Closure)", new Runnable() {
+        taskMutator.mutate("Task.doFirst(Closure)", new Runnable() {
             public void run() {
                 actions.add(0, convertClosureToAction(action));
             }
@@ -449,7 +449,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        taskStatusNagger.mutate("Task.doLast(Closure)", new Runnable() {
+        taskMutator.mutate("Task.doLast(Closure)", new Runnable() {
             public void run() {
                 actions.add(convertClosureToAction(action));
             }
@@ -461,9 +461,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        taskStatusNagger.mutate("Task.leftShit(Closure)", new Runnable() {
+        taskMutator.mutate("Task.leftShit(Closure)", new Runnable() {
             public void run() {
-                actions.add(taskStatusNagger.leftShift(convertClosureToAction(action)));
+                actions.add(taskMutator.leftShift(convertClosureToAction(action)));
             }
         });
         return this;
@@ -598,7 +598,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setMustRunAfter(final Iterable<?> mustRunAfterTasks) {
-        taskStatusNagger.mutate("Task.setMustRunAfter(Iterable)", new Runnable() {
+        taskMutator.mutate("Task.setMustRunAfter(Iterable)", new Runnable() {
             public void run() {
                 mustRunAfter.setValues(mustRunAfterTasks);
             }
@@ -606,7 +606,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task mustRunAfter(final Object... paths) {
-        taskStatusNagger.mutate("Task.mustRunAfter(Object...)", new Runnable() {
+        taskMutator.mutate("Task.mustRunAfter(Object...)", new Runnable() {
             public void run() {
                 mustRunAfter.add(paths);
             }
@@ -619,7 +619,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setFinalizedBy(final Iterable<?> finalizedByTasks) {
-        taskStatusNagger.mutate("Task.setFinalizedBy(Iterable)", new Runnable() {
+        taskMutator.mutate("Task.setFinalizedBy(Iterable)", new Runnable() {
             public void run() {
                 finalizedBy.setValues(finalizedByTasks);
             }
@@ -627,7 +627,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task finalizedBy(final Object... paths) {
-        taskStatusNagger.mutate("Task.finalizedBy(Object...)", new Runnable() {
+        taskMutator.mutate("Task.finalizedBy(Object...)", new Runnable() {
             public void run() {
                 finalizedBy.add(paths);
             }
@@ -640,7 +640,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public TaskDependency shouldRunAfter(final Object... paths) {
-        taskStatusNagger.mutate("Task.shouldRunAfter(Object...)", new Runnable() {
+        taskMutator.mutate("Task.shouldRunAfter(Object...)", new Runnable() {
             public void run() {
                 shouldRunAfter.add(paths);
             }
@@ -649,7 +649,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setShouldRunAfter(final Iterable<?> shouldRunAfterTasks) {
-        taskStatusNagger.mutate("Task.setShouldRunAfter(Iterable)", new Runnable() {
+        taskMutator.mutate("Task.setShouldRunAfter(Iterable)", new Runnable() {
             public void run() {
                 shouldRunAfter.setValues(shouldRunAfterTasks);
             }

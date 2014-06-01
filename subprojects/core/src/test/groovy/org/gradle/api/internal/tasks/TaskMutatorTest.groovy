@@ -19,13 +19,13 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.internal.TaskInternal
 import spock.lang.Specification
 
-class TaskStatusNaggerTest extends Specification {
+class TaskMutatorTest extends Specification {
     def state = Stub(TaskStateInternal)
     def task = Stub(TaskInternal) {
         getState() >> state
         toString() >> "<task>"
     }
-    def nagger = new TaskStatusNagger(task)
+    def nagger = new TaskMutator(task)
 
     def "executes mutation action when in configurable state"() {
         def action = Mock(Runnable)

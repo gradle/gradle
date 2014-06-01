@@ -33,12 +33,12 @@ public class DefaultTaskInputs implements TaskInputs {
     private final DefaultConfigurableFileCollection inputFiles;
     private final DefaultConfigurableFileCollection sourceFiles;
     private final FileResolver resolver;
-    private final TaskStatusNagger taskStatusNagger;
+    private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
-    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskStatusNagger taskStatusNagger) {
+    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
-        this.taskStatusNagger = taskStatusNagger;
+        this.taskMutator = taskMutator;
         inputFiles = new DefaultConfigurableFileCollection(String.format("%s input files", task), resolver, null);
         sourceFiles = new DefaultConfigurableFileCollection(String.format("%s source files", task), resolver, null);
     }
@@ -52,7 +52,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs files(final Object... paths) {
-        taskStatusNagger.mutate("TaskInputs.files(Object...)", new Runnable() {
+        taskMutator.mutate("TaskInputs.files(Object...)", new Runnable() {
             public void run() {
                 inputFiles.from(paths);
             }
@@ -61,7 +61,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs file(final Object path) {
-        taskStatusNagger.mutate("TaskInputs.file(Object)", new Runnable() {
+        taskMutator.mutate("TaskInputs.file(Object)", new Runnable() {
             public void run() {
                 inputFiles.from(path);
             }
@@ -70,7 +70,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs dir(final Object dirPath) {
-        taskStatusNagger.mutate("TaskInputs.dir(Object)", new Runnable() {
+        taskMutator.mutate("TaskInputs.dir(Object)", new Runnable() {
             public void run() {
                 inputFiles.from(resolver.resolveFilesAsTree(dirPath));
             }
@@ -87,7 +87,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs source(final Object... paths) {
-        taskStatusNagger.mutate("TaskInputs.source(Object...)", new Runnable() {
+        taskMutator.mutate("TaskInputs.source(Object...)", new Runnable() {
             public void run() {
                 sourceFiles.from(paths);
             }
@@ -96,7 +96,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs source(final Object path) {
-        taskStatusNagger.mutate("TaskInputs.source(Object)", new Runnable() {
+        taskMutator.mutate("TaskInputs.source(Object)", new Runnable() {
             public void run() {
                 sourceFiles.from(path);
             }
@@ -105,7 +105,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs sourceDir(final Object path) {
-        taskStatusNagger.mutate("TaskInputs.sourceDir(Object)", new Runnable() {
+        taskMutator.mutate("TaskInputs.sourceDir(Object)", new Runnable() {
             public void run() {
                 sourceFiles.from(resolver.resolveFilesAsTree(path));
             }
@@ -148,7 +148,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs property(final String name, final Object value) {
-        taskStatusNagger.mutate("TaskInputs.property(String, Object)", new Runnable() {
+        taskMutator.mutate("TaskInputs.property(String, Object)", new Runnable() {
             public void run() {
                 properties.put(name, value);
             }
@@ -157,7 +157,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs properties(final Map<String, ?> newProps) {
-        taskStatusNagger.mutate("TaskInputs.properties(Map)", new Runnable() {
+        taskMutator.mutate("TaskInputs.properties(Map)", new Runnable() {
             public void run() {
                 properties.putAll(newProps);
             }

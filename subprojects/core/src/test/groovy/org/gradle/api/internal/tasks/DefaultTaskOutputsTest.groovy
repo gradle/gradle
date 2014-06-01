@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class DefaultTaskOutputsTest extends Specification {
 
-    private TaskStatusNagger taskStatusNagger = Stub() {
+    private TaskMutator taskStatusNagger = Stub() {
         mutate(_, _) >> { String method, Runnable action -> action.run() }
     }
     private final TaskInternal task = [toString: {'task'}] as TaskInternal

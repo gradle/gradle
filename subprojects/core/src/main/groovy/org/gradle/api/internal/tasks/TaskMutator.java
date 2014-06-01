@@ -22,11 +22,11 @@ import org.gradle.api.internal.TaskInternal;
 
 import java.beans.PropertyChangeEvent;
 
-public class TaskStatusNagger {
+public class TaskMutator {
     private final TaskInternal task;
     private boolean executingleftShiftAction;
 
-    public TaskStatusNagger(TaskInternal task) {
+    public TaskMutator(TaskInternal task) {
         this.task = task;
     }
 
