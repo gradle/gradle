@@ -2,9 +2,9 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Groovy 2.2.2
+### Updated to Groovy 2.3.2
 
-Gradle now uses Groovy 2.2.2 to compile and running build scripts and plugins.
+Gradle now uses Groovy 2.3.2 to compile and run build scripts and plugins.
 
 ### New API for resolving source and javadoc artifacts (i)
 
@@ -258,10 +258,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Upgraded to Groovy 2.2.2
+### Upgraded to Groovy 2.3.2
 
-Gradle now uses Groovy 2.2.2 to compile and run scripts and plugins. Generally, this should be backwards compatible. However, this change may require
+Gradle now uses Groovy 2.3.2 to compile and run scripts and plugins. Generally, this should be backwards compatible. However, this change may require
 that you recompile some plugins and may also require some source changes.
+
+### Can no longer run Gradle using Java 5
+
+Due to the upgrade to Groovy 2.3.2, Gradle can no longer be run using Java 5. It is still possible to build Java projects for Java 5.
 
 ### Custom TestNG listeners are applied before Gradle's listeners
 
@@ -269,9 +273,9 @@ This way the custom listeners are more robust because they can affect the test s
 There should be no impact of this change because majority of users do not employ custom listeners
 and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
-### Support for reading or changing file permissions on certain platforms with Java 5 or 6
+### Support for reading or changing file permissions on certain platforms with Java 6
 
-Gradle previously supported file permissions on Solaris and on Linux ia-64 using Java 5 and Java 6. This support has
+Gradle previously supported file permissions on Solaris and on Linux ia-64 using Java 6. This support has
 been removed. You will receive a warning when attempting to use file permissions on these platforms.
 
 Note that file permissions are supported on these platforms when you use Java 7 and later, and is supported for all Java
@@ -477,6 +481,16 @@ The `Project.tarTree()` and `zipTree()` methods no longer ignores missing files.
 - The `RepositoryHandler.mavenCentral()` method no longer handles the `urls` option. You should use the `artifactUrls` instead.
 - It is now an error to change the name of an `ArtifactRepository` after it has been added to a repository container.
 - The `RepositoryHandler.mavenLocal()` method no longer supports the `M2_HOME` system properties. You should use the `M2_HOME` environment variable instead.
+
+### Tasks cannot be changed after task has started execution
+
+Certain operations on a task are no longer possible once the task has started execution:
+
+- Changing the actions of the task, such as calling `doLast { // some action }`
+- Changing the dependencies of the task, such as calling `dependsOn 'someTask'`
+- Changing the inputs and outputs of the task, such as calling `inputs.file('build/some-file.txt')`
+
+This behaviour was deprecated and now fails with an exception.
 
 ### Removed incubating method
 
