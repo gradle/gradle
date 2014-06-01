@@ -27,3 +27,42 @@ UNIX file permissions with JVMs earlier than Java 7 will not be supported on the
 
 * Remove unused `IllegalOperationAtExecutionTimeException`.
 * Remove unused `AntJavadoc`.
+
+## Remove Ivy types from the Gradle repository API (DONE)
+
+These types expose the implementation details of dependency management and force a certain implementation on Gradle. Removing these types from the API
+allows us to implement new features and remove some internal complexity.
+
+* Remove methods from `ArtifactRepositoryContainer` and `RepositoryHandler` that accept an Ivy `DependencyResolver` as parameter.
+* Remove methods from `ArtifactRepositoryContainer` that return `DependencyResolver`.
+* Remove `RepositoryHandler.mavenRepo()`.
+* Change the `AbstractMavenResolver` so that it no longer extends `DependencyResolver`.
+* Change the `FlatDirRepository` implementation so that it no longer uses a `DependencyResolver` implementation.
+* Remove Ivy packages from the Gradle API filter.
+* Remove Ivy as a dependency of core.
+* Remove Ivy version from the output of `gradle -v`.
+* Remove loopback resolver, ModuleVersionRepository -> Ivy adapter.
+* Remove properties from `ExternalResourceResolver` and subclasses.
+* Remove `ModuleComponentRepository.canListModuleVersions()`.
+* Fix `ExternalResourceResolver.getMetaDataArtifactName()` so that it is not nullable.
+
+## Remove tooling API support for Gradle 1.1 clients and earlier (DONE)
+
+Gradle 1.2 was released on 12th sept 2012. This change means that tooling more than roughly 18 months old as of the Gradle 2.0 release
+will not be able to invoke Gradle 2.0 or later.
+
+* Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
+* The model implementations no longer need to implement `ProjectVersion3` of the protocol interfaces.
+* Change test suite to default to tooling API versions >= 1.2.
+* Add integration test coverage that tooling API versions <1.2 fail with a reasonable error message, when running build or fetching model.
+
+## Remove tooling API support for Gradle providers 1.0-milestone-7 and earlier (DONE)
+
+Gradle 1.0-milestone-8 was release on 14th feb 2012. This change means that tooling will not be able to run builds using Gradle versions more than
+approximately 2 years old as of the Gradle 2.0 release.
+
+* Consumer fails with a decent error message instead of falling back to the methods on `ConnectionVersion4`.
+* Add support for fetching partial `BuildEnvironment` model for unsupported versions.
+* Change the test suite to default to target Gradle version >= 1.0-milestone-8
+* Add integration test coverage that running build with Gradle version < 1.0-milestone-8 fails with a reasonable error message, when running build or fetching model.
+* Add integration test coverage that can fetch a partial `BuildEnvironment` model for Gradle version < 1.0-milestone-8.

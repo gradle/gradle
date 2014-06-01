@@ -26,45 +26,6 @@ In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gr
 
 * Convert deprecated behaviours with errors.
 
-## Remove Ivy types from the Gradle repository API (DONE)
-
-These types expose the implementation details of dependency management and force a certain implementation on Gradle. Removing these types from the API
-allows us to implement new features and remove some internal complexity.
-
-* Remove methods from `ArtifactRepositoryContainer` and `RepositoryHandler` that accept an Ivy `DependencyResolver` as parameter.
-* Remove methods from `ArtifactRepositoryContainer` that return `DependencyResolver`.
-* Remove `RepositoryHandler.mavenRepo()`.
-* Change the `AbstractMavenResolver` so that it no longer extends `DependencyResolver`.
-* Change the `FlatDirRepository` implementation so that it no longer uses a `DependencyResolver` implementation.
-* Remove Ivy packages from the Gradle API filter.
-* Remove Ivy as a dependency of core.
-* Remove Ivy version from the output of `gradle -v`.
-* Remove loopback resolver, ModuleVersionRepository -> Ivy adapter.
-* Remove properties from `ExternalResourceResolver` and subclasses.
-* Remove `ModuleComponentRepository.canListModuleVersions()`.
-* Fix `ExternalResourceResolver.getMetaDataArtifactName()` so that it is not nullable.
-
-## Remove tooling API support for Gradle 1.1 clients and earlier (DONE)
-
-Gradle 1.2 was released on 12th sept 2012. This change means that tooling more than roughly 18 months old as of the Gradle 2.0 release
-will not be able to invoke Gradle 2.0 or later.
-
-* Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
-* The model implementations no longer need to implement `ProjectVersion3` of the protocol interfaces.
-* Change test suite to default to tooling API versions >= 1.2.
-* Add integration test coverage that tooling API versions <1.2 fail with a reasonable error message, when running build or fetching model.
-
-## Remove tooling API support for Gradle providers 1.0-milestone-7 and earlier (DONE)
-
-Gradle 1.0-milestone-8 was release on 14th feb 2012. This change means that tooling will not be able to run builds using Gradle versions more than
-approximately 2 years old as of the Gradle 2.0 release.
-
-* Consumer fails with a decent error message instead of falling back to the methods on `ConnectionVersion4`.
-* Add support for fetching partial `BuildEnvironment` model for unsupported versions.
-* Change the test suite to default to target Gradle version >= 1.0-milestone-8
-* Add integration test coverage that running build with Gradle version < 1.0-milestone-8 fails with a reasonable error message, when running build or fetching model.
-* Add integration test coverage that can fetch a partial `BuildEnvironment` model for Gradle version < 1.0-milestone-8.
-
 ## Reset deprecation warnings
 
 * Remove most calls to `DeprecationLogger.whileDisabled()`
@@ -78,30 +39,32 @@ approximately 2 years old as of the Gradle 2.0 release.
 ## Upgrade to most recent Groovy 2.2.x
 
 * Change the version of Groovy exposed via the Gradle API to most recent Groovy 2.2.x version.
-* Change to use `groovy` instead of `groovy-all`.
-    * Change Groovy runtime detector to deal with this change.
-* Add int test coverage for building and groovydoc for permutations of Groovy versions and (`groovy` or `groovy-all`)
+* Add int test coverage for compilation and groovydoc for various permutations of Groovy versions and (`groovy` or `groovy-all`)
 
 ## Remove support for running Gradle on Java 5
 
-In order to add support for Java 8, we will need to upgrade to Groovy 2.3, which does not support Java 5.
+In order to add support for Java 8, we will need to upgrade to Groovy 2.3.x, which does not support Java 5.
 Would still be able to build for Java 5.
 
 * Add cross-compilation int tests for Java 5 - 8.
-* Document how to build for Java 5.
-* Compile wrapper, launcher and tooling API connection entry points separately for Java 5.
+    * Java project.
+    * Compile and run tests using JUnit and TestNG.
+* Document the JVM requirements in the user guide.
+* Document how to build for Java 5 and include sample.
 * Update CI builds to use newer Java versions.
-* Entry points complain when executed using Java 5.
-* Drop support for running with Java 5.
-* Clean up `DefaultClassLoaderFactory`.
+* Entry points fail with reasonable error message when executed using Java 5.
+    * Command-line.
+    * Daemon, including single user daemon.
+    * Wrapper.
+    * Tooling API client.
+    * Tooling API connection.
+* Update CI builds to assert Java 5 is available.
 
 ## Add support for Java 8
 
 * Change the version of Groovy exposed via the Gradle API to most recent Groovy 2.3.x version.
 * Remove source exclusions for jdk6.
-* Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
 * Remove the special case logging from `LogbackLoggingConfigurer`.
-* Replace usages of `guava-jdk5`.
 * Clean up usages of `TestPrecondition.JDK5` and related preconditions.
 * Add warning when using Java version > 8 to inform the user that the Java version may not be supported.
 

@@ -9,13 +9,21 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
-## Drop support for Gradle versions earlier than 1.0
+## Drop support for Gradle versions older than 1.0
 
 * Cross version tests no longer test against anything earlier than 1.0
 * Local artifact reuse no longer considers candidates from the artifact caches for Gradle versions earlier than 1.0
 * Wrapper does not support downloading versions earlier than 1.0
 * Remove old unused types that are baked into the bytecode of tasks compiled against older versions (eg `ConventionValue`). Fail with a reasonable
 error message for these task types.
+
+## Remove support for building against Java 5
+
+Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
+
+* Clean up `DefaultClassLoaderFactory`.
+* Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
+* Replace usages of `guava-jdk5`.
 
 ## Remove the Gradle Open API stubs
 
@@ -84,8 +92,9 @@ types and to offer a more consistent DSL.
 * Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
   package cycle from the API.
 
-## Clean up `DefaultTask` hierarchy
+## Clean up `Task` DSL and hierarchy
 
+* Remove the `<<` operator.
 * Inline `ConventionTask` and `AbstractTask` into `DefaultTask`.
 * Remove `Task.dependsOnTaskDidWork()`.
 * Mix `TaskInternal` in during decoration and remove references to internal types.
@@ -149,6 +158,7 @@ Extension objects have been available for over 2 years and are now an establishe
 * Remove `AbstractOptions`.
 * Remove or rename `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`.
 * Remove unused `EclipseDomainModel`.
+* Replace `ShowStacktrace.INTERNAL_EXCEPTIONS` with `NONE`.
 
 ## Remove `sonar` plugin
 
