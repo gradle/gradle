@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.junit
 
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.logging.StandardOutputRedirector
 import org.gradle.messaging.actor.TestActorFactory
@@ -35,7 +34,7 @@ class JUnitTestClassProcessorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def processor = Mock(TestResultProcessor)
-    def spec = new JUnitSpec(new JUnitOptions(), [] as Set)
+    def spec = new JUnitSpec([] as Set, [] as Set, [] as Set)
     
     @Subject classProcessor = withSpec(spec)
 
@@ -222,7 +221,7 @@ class JUnitTestClassProcessorTest extends Specification {
     }
 
     def "executes specific method"() {
-        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), [ATestClassWithSeveralMethods.name + ".pass"] as Set))
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, [ATestClassWithSeveralMethods.name + ".pass"] as Set))
 
         when: process(ATestClassWithSeveralMethods)
 
@@ -234,7 +233,7 @@ class JUnitTestClassProcessorTest extends Specification {
     }
 
     def "executes multiple specific methods"() {
-        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), [ATestClassWithSeveralMethods.name + ".pass",
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, [ATestClassWithSeveralMethods.name + ".pass",
                 ATestClassWithSeveralMethods.name + ".pass2"] as Set))
 
         when: process(ATestClassWithSeveralMethods)
@@ -247,7 +246,7 @@ class JUnitTestClassProcessorTest extends Specification {
     }
 
     def "executes methods from multiple classes by pattern"() {
-        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), ["*Methods.*Slowly*"] as Set))
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*Methods.*Slowly*"] as Set))
 
         when: process(ATestClassWithSeveralMethods, ATestClassWithSlowMethods, ATestClass)
 
@@ -262,7 +261,7 @@ class JUnitTestClassProcessorTest extends Specification {
     }
 
     def "executes no methods when method name does not match"() {
-        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), ["does not exist"] as Set))
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["does not exist"] as Set))
 
         when: process(ATestClassWithSeveralMethods)
 

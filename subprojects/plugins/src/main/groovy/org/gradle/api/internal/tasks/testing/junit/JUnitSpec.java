@@ -15,20 +15,17 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.tasks.testing.junit.JUnitOptions;
-
 import java.io.Serializable;
 import java.util.Set;
 
 public class JUnitSpec implements Serializable {
-
     private final Set<String> includeCategories;
     private final Set<String> excludeCategories;
     private final Set<String> includedTests;
 
-    public JUnitSpec(final JUnitOptions options, Set<String> includedTests) {
-        this.includeCategories = options.getIncludeCategories();
-        this.excludeCategories = options.getExcludeCategories();
+    public JUnitSpec(Set<String> includeCategories, Set<String> excludeCategories, Set<String> includedTests) {
+        this.includeCategories = includeCategories;
+        this.excludeCategories = excludeCategories;
         this.includedTests = includedTests;
     }
 
