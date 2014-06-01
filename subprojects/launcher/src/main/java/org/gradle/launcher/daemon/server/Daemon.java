@@ -130,6 +130,8 @@ public class Daemon implements Stoppable {
         } finally {
             lifecyleLock.unlock();
         }
+
+        LOGGER.lifecycle(DaemonMessages.PROCESS_STARTED);
     }
 
     /**
