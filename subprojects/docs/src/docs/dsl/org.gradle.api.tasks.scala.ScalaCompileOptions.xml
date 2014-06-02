@@ -61,10 +61,6 @@
                 <td><literal>never</literal></td>
             </tr>
             <tr>
-                <td>targetCompatibility</td>
-                <td><literal>1.5</literal></td>
-            </tr>
-            <tr>
                 <td>additionalParameters</td>
                 <td><literal>null</literal></td>
             </tr>

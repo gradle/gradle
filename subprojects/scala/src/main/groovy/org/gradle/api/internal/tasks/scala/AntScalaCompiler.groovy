@@ -17,12 +17,12 @@ package org.gradle.api.internal.tasks.scala
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.util.GUtil
+import org.gradle.util.VersionNumber
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.util.VersionNumber
-import org.gradle.util.GUtil
 
 class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntScalaCompiler)
@@ -92,11 +92,6 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     }
 
     private String chooseBackend(ScalaCompileSpec spec) {
-        // deprecated, but must still be honored
-        if (spec.scalaCompileOptions.targetCompatibility) {
-            return VersionNumber.parse(spec.scalaCompileOptions.targetCompatibility)
-        }
-
         def target = VersionNumber.parse(spec.targetCompatibility)
         if (target <= VersionNumber.parse("1.5")) { return "jvm-${target.major}.${target.minor}" }
 
