@@ -476,11 +476,15 @@ its parameter, if the parameter type was not recognized. This is now an error.
 
 The `Project.tarTree()` and `zipTree()` methods no longer ignores missing files. This is now an error.
 
-### Changes to repository DSL
+### Changes to dependency management DSL
+
+The repository DSL has changed:
 
 - The `RepositoryHandler.mavenCentral()` method no longer handles the `urls` option. You should use the `artifactUrls` instead.
 - It is now an error to change the name of an `ArtifactRepository` after it has been added to a repository container.
 - The `RepositoryHandler.mavenLocal()` method no longer supports the `M2_HOME` system properties. You should use the `M2_HOME` environment variable instead.
+
+The `Upload` task now fails when an artifact does not exist. Previously, this task would ignore the missing artifact.
 
 ### Tasks cannot be changed after task has started execution
 
