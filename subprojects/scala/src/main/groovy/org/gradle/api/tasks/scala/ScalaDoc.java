@@ -30,7 +30,7 @@ public class ScalaDoc extends SourceTask {
 
     private File destinationDir;
 
-    private Iterable<File> classpath;
+    private FileCollection classpath;
     private FileCollection scalaClasspath;
     private AntScalaDoc antScalaDoc;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
@@ -71,7 +71,7 @@ public class ScalaDoc extends SourceTask {
         return classpath;
     }
 
-    public void setClasspath(Iterable<File> classpath) {
+    public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
 
