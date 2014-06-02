@@ -129,6 +129,7 @@ This story exposes different kinds of consumers for a dependency graph. The cons
     - This implementation should use the configuration's display name for the component display name.
 - When there is a project dependency in the graph that refers to the root, the selected component for the dependency should be the same instance
   as `root`.
+- The 'required by' message in the resolve exception should use the root's display name, rather than the module version.
 - Some internal refactoring to push components down further:
     - Rename internal class `ModuleVersionSelection` and its methods.
     - Change `ResolutionResultBuilder` and its implementations to use component id rather than module version id as the key for the graph node.
