@@ -378,6 +378,8 @@ This behaviour has been deprecated since Gradle 1.?? and is now an error. Instea
 - `org.gradle.CacheUsage` with no replacement.
 - `org.gradle.api.internal.plugins.ProcessResources` replaced by `org.gradle.language.jvm.tasks.ProcessResources`.
 - `org.gradle.api.tasks.testing.TestLogging` replaced by `org.gradle.api.tasks.testing.logging.TestLogging`.
+- `org.gradle.api.plugins.ReportingBasePluginConvention` replaced by `org.gradle.api.reporting.ReportingExtension`.
+- `org.gradle.plugins.signing.SigningPluginConvention` replaced by `org.gradle.plugins.signing.SigningExtension`.
 
 ### Removed deprecated methods
 
@@ -463,6 +465,19 @@ This behaviour has been deprecated since Gradle 1.?? and is now an error. Instea
 - `GenerateEclipseWtpComponent.resources` replaced with `eclipse.wtp.component.resources`.
 - `GenerateEclipseWtpComponent.properties` replaced with `eclipse.wtp.component.properties`.
 - `GenerateEclipseWtpComponent.variables` replaced with `eclipse.pathVariables`.
+- `Module.javaVersion` replaced with `jdkName`.
+- `ScalaCompileOptions.targetCompatibility` replaced with `ScalaCompile.targetCompatibility`.
+
+Convention properties on `Project` added by the reporting base plugin:
+
+- `reportsDirName` replaced by `reporting.baseDir`.
+- `reportsDir` replaced by `reporting.baseDir`.
+- `apiDocTitle` replaced by `reporting.apiDocTitle`.
+
+Convention methods on `Project` added by the signing plugin:
+
+- `sign()` replaced by `signing.sign()`.
+- `signPom()` replaced by `signing.signPom()`.
 
 ### Changes to file DSL
 
