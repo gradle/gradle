@@ -91,10 +91,10 @@ class JavaPluginConventionTest {
     @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {
         assertEquals(new File(project.buildDir, 'reports/tests'), convention.testReportDir)
 
-        project.reportsDirName = 'other-reports-dir'
+        project.reporting.baseDir = 'other-reports-dir'
         convention.testReportDirName = 'other-test-dir'
 
-        assertEquals(new File(project.buildDir, 'other-reports-dir/other-test-dir'), convention.testReportDir)
+        assertEquals(new File(project.projectDir, 'other-reports-dir/other-test-dir'), convention.testReportDir)
     }
 
     @Test public void testTargetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {
