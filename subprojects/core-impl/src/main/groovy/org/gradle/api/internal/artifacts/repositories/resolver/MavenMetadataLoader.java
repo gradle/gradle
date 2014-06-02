@@ -41,7 +41,7 @@ class MavenMetadataLoader {
         this.repository = repository;
     }
 
-    public MavenMetadata load(URI metadataLocation) throws ResourceNotFoundException, ResourceException {
+    public MavenMetadata load(URI metadataLocation) throws ResourceException {
         MavenMetadata metadata = new MavenMetadata();
         try {
             parseMavenMetadataInfo(metadataLocation, metadata);
