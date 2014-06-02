@@ -190,6 +190,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     TestFile getPomFile() {
+        return getArtifactFile(type: 'pom')
+    }
+
+    TestFile getPomFileForPublish() {
         return moduleDir.file("$artifactId-${publishArtifactVersion}.pom")
     }
 
@@ -238,7 +242,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             }
         }
 
-        publish(pomFile) { Writer writer ->
+        publish(pomFileForPublish) { Writer writer ->
             def pomPackaging = packaging ?: type;
             new MarkupBuilder(writer).project {
                 mkp.comment(artifactContent)

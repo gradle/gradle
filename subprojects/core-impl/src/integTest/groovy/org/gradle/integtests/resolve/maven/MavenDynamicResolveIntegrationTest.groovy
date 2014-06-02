@@ -150,7 +150,7 @@ task retrieve(type: Sync) {
 
         when:
         mavenHttpRepo.getModuleMetaData("org.test", "projectA").expectGetMissing()
-        mavenHttpRepo.expectDirectoryListGet("org.test", "projectA")
+        mavenHttpRepo.directory("org.test", "projectA").expectGet()
         projectA.pom.expectGet()
         projectA.getArtifact().expectGet()
 
@@ -168,6 +168,67 @@ task retrieve(type: Sync) {
 
         then:
         file('libs/projectA-1.5.jar').assertHasNotChangedSince(snapshot)
+    }
+
+    def "reports and recovers from broken maven-metadata.xml and directory listing"() {
+        given:
+        mavenHttpRepo.module('org.test', 'projectA', '1.0').publish()
+        def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.5').publish()
+
+        buildFile << """
+    repositories {
+        maven { url '${mavenHttpRepo.uri}' }
+    }
+    configurations { compile }
+    dependencies {
+        compile 'org.test:projectA:1.+'
+    }
+
+    task retrieve(type: Sync) {
+        into 'libs'
+        from configurations.compile
+    }
+    """
+
+        when:
+        def metaData = mavenHttpRepo.getModuleMetaData("org.test", "projectA")
+        metaData.expectGetBroken()
+
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause('Could not resolve org.test:projectA:1.+.')
+        failure.assertHasCause('Failed to list versions for org.test:projectA.')
+        failure.assertHasCause("Unable to load Maven meta-data from ${metaData.uri}.")
+        failure.assertHasCause("Could not GET '${metaData.uri}'. Received status code 500 from server")
+
+        when:
+        metaData.expectGetMissing()
+
+        def moduleDir = mavenHttpRepo.directory("org.test", "projectA")
+        moduleDir.expectGetBroken()
+
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause('Could not resolve org.test:projectA:1.+.')
+        failure.assertHasCause('Failed to list versions for org.test:projectA.')
+        failure.assertHasCause("Could not list versions using M2 pattern '${mavenHttpRepo.uri}")
+        failure.assertHasCause("Could not GET '${moduleDir.uri}'. Received status code 500 from server")
+
+        when:
+        server.resetExpectations()
+        metaData.expectGet()
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+
+        then:
+        succeeds 'retrieve'
+
+        and:
+        file('libs').assertHasDescendants('projectA-1.5.jar')
     }
 
     def "does not cache broken module information"() {
@@ -198,7 +259,7 @@ task retrieve(type: Sync) {
         projectA1.pom.expectGet()
         projectA1.getArtifact().expectGet()
 
-        repo2.getModuleMetaData("group", "projectA")expectGet()
+        repo2.getModuleMetaData("group", "projectA").expectGet()
         projectA2.pom.expectGetBroken()
 
         and:

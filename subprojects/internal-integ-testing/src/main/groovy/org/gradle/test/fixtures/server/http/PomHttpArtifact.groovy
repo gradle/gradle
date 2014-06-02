@@ -28,11 +28,6 @@ class PomHttpArtifact extends HttpArtifact {
     }
 
     @Override
-    void expectGetMissing() {
-        server.expectGetMissing(getPath() - getFile().name + getMissingPomName());
-    }
-
-    @Override
     TestFile getSha1File() {
         backingModule.getSha1File(file)
     }
@@ -45,13 +40,5 @@ class PomHttpArtifact extends HttpArtifact {
     @Override
     TestFile getFile() {
         return backingModule.pomFile
-    }
-
-    private String getMissingPomName() {
-        if (backingModule.version.endsWith("-SNAPSHOT")) {
-            return "${backingModule.artifactId}-${backingModule.version}.pom"
-        } else {
-            return getFile().name
-        }
     }
 }

@@ -277,7 +277,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    def "recovers from broken modules in subsequent resolution"() {
+    def "recovers from broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
 
@@ -747,7 +747,7 @@ Searched in the following locations:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
-    def "reports and recovers from no versions available for dynamic version"() {
+    def "reports and recovers from missing directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """
@@ -767,6 +767,37 @@ dependencies {
 Searched in the following locations:
     ${directoryList.uri}
 """)
+
+        when:
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
+
+        and:
+        server.resetExpectations()
+        expectGetDynamicRevision(projectA2)
+
+        then:
+        checkResolve "group:projectA:2.+": "group:projectA:2.2"
+    }
+
+    def "reports and recovers from broken directory available for dynamic version"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "2.+"
+}
+"""
+
+        when: "no version > 2"
+        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        directoryList.expectGetBroken()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("Could not resolve group:projectA:2.+")
+        failure.assertHasCause("Could not list versions using Ivy pattern '${ivyHttpRepo.ivyPattern}'.")
+        failure.assertHasCause("Could not GET '${directoryList.uri}'. Received status code 500 from server")
 
         when:
         def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
