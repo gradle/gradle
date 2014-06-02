@@ -28,11 +28,6 @@ public class ReportingBasePluginTest extends Specification {
         project.plugins.apply(ReportingBasePlugin)
     }
 
-    def addsTasksAndConventionToProject() {
-        expect:
-        project.convention.plugins.get("reportingBase") instanceof ReportingBasePluginConvention
-    }
-
     def "adds reporting extension"() {
         expect:
         project.reporting instanceof ReportingExtension
