@@ -276,7 +276,7 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 matcher.describeTo(description);
-                description.appendText(" (ignore line separators)");
+                description.appendText(" (normalize line separators)");
             }
         };
     }

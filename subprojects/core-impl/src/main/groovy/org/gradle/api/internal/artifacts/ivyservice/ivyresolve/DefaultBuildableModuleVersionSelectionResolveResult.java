@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
+import java.util.Collection;
+
 public class DefaultBuildableModuleVersionSelectionResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionSelectionResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
@@ -50,6 +52,14 @@ public class DefaultBuildableModuleVersionSelectionResolveResult extends Default
     public void listed(ModuleVersionListing versions) {
         reset(State.Listed);
         this.versions = versions;
+    }
+
+    public void listed(Collection<String> versions) {
+        DefaultModuleVersionListing listing = new DefaultModuleVersionListing();
+        for (String version : versions) {
+            listing.add(version);
+        }
+        listed(listing);
     }
 
     public void probablyListed(ModuleVersionListing versions) {

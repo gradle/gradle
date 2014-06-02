@@ -18,12 +18,9 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.test.fixtures.server.sftp.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 @Unroll
 class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 

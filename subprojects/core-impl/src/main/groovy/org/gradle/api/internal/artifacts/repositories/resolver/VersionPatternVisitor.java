@@ -16,9 +16,16 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-abstract class AbstractVersionList implements VersionList {
-    public boolean isEmpty() {
-        return getVersions().isEmpty();
-    }
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.internal.resource.ResourceException;
 
+public interface VersionPatternVisitor {
+    /**
+     * <p>Adds those versions available for the given pattern.</p>
+     *
+     * If no versions are listed with the given pattern, then no versions are added.
+     * 
+     * @throws ResourceException If information for versions cannot be loaded.
+     */
+    void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException;
 }

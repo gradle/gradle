@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveR
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -33,7 +34,6 @@ import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.util.DeprecationLogger;
 
 import java.net.URI;
 import java.util.*;
@@ -66,7 +66,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
     protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         if (isSnapshotVersion(moduleComponentIdentifier)) {
-            final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier);
+            final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
             if (uniqueSnapshotVersion != null) {
                 resolveUniqueSnapshotDependency(dependency, moduleComponentIdentifier, result, uniqueSnapshotVersion);
                 return;
@@ -135,8 +135,9 @@ public class MavenResolver extends ExternalResourceResolver {
         return new DefaultIvyArtifactName(moduleName, "pom", "pom");
     }
 
-    private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
+    private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module, ResourceAwareResolveResult result) {
         URI metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml").getUri();
+        result.attempted(metadataLocation.toString());
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {
@@ -213,7 +214,6 @@ public class MavenResolver extends ExternalResourceResolver {
                 ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
 
                 if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
-                    DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
                     result.resolved(ImmutableSet.of(artifactMetaData));
                 } else {
                     ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);

@@ -18,11 +18,8 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class IvySftpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule

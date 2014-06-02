@@ -223,7 +223,7 @@ if (project.hasProperty('skipCache')) {
     }
 
     @Issue('GRADLE-2188')
-    def "where 'module.custom' exists, will use it as main artifact for pom with packaging 'custom' and emit deprecation warning"() {
+    def "where 'module.custom' exists, will use it as main artifact for pom with packaging 'custom'"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
         projectARepo1.hasPackaging("custom").hasType("custom").publish()
@@ -233,18 +233,12 @@ if (project.hasProperty('skipCache')) {
         projectARepo1.artifact.expectHead()
         projectARepo1.artifact.expectGet()
 
-        and:
-        executer.withDeprecationChecksDisabled()
-
         then:
         succeeds 'retrieve'
 
         and:
         file('libs').assertHasDescendants('projectA-1.0.custom')
         file('libs/projectA-1.0.custom').assertIsCopyOf(projectARepo1.artifactFile)
-
-        and:
-        result.output.contains("Relying on packaging to define the extension of the main artifact has been deprecated")
 
         // Check caching
         when:

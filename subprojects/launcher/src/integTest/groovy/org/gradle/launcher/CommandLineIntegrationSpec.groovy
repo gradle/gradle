@@ -14,36 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.compile
+package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 
-class ZincScalaCompilerIntegrationTest extends AbstractIntegrationSpec {
-    @Requires(TestPrecondition.JDK5)
-    def "gives sensible error when run with Java 5"() {
-        buildFile <<
-"""
-apply plugin: "scala"
+class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
+    @IgnoreIf({ AvailableJavaHomes.java5 == null })
+    def "provides reasonable failure message when attempting to run under java 5"() {
+        def jdk = AvailableJavaHomes.java5
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile "org.scala-lang:scala-library:2.9.2"
-}
-
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.useAnt = false
-}
-"""
-
-        file("src/main/scala/Person.scala") << "class Person"
+        given:
+        executer.withJavaHome(jdk.javaHome)
 
         expect:
-        fails("compileScala")
-        failure.assertHasCause("To use the Zinc Scala compiler, Java 6 or higher is required.")
+        fails("help")
+        failure.assertHasDescription("${GradleVersion.current()} requires Java 6 or later to run. You are currently using Java 5.")
     }
 }

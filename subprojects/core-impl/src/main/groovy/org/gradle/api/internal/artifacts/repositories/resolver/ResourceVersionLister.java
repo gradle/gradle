@@ -44,8 +44,8 @@ public class ResourceVersionLister implements VersionLister {
         this.repository = repository;
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module, final ResourceAwareResolveResult result) {
-        return new DefaultVersionList() {
+    public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
+        return new VersionPatternVisitor() {
             final Set<URI> directories = new HashSet<URI>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
@@ -54,7 +54,7 @@ public class ResourceVersionLister implements VersionLister {
                 try {
                     List<String> versionStrings = listRevisionToken(versionListPattern);
                     for (String versionString : versionStrings) {
-                        add(versionString);
+                        dest.add(versionString);
                     }
                 } catch (ResourceException e) {
                     throw e;

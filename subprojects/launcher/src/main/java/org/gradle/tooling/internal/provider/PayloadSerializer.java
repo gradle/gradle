@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.jvm.Jvm;
+import org.gradle.tooling.internal.provider.jdk6.Jdk6ClassLookup;
 
 import java.io.*;
 import java.lang.reflect.Proxy;
@@ -42,20 +42,7 @@ public class PayloadSerializer {
 
     public PayloadSerializer(PayloadClassLoaderRegistry registry) {
         classLoaderRegistry = registry;
-
-        // On Java 6, there is a public method to lookup a class descriptor given a class. On Java 5, we have to use reflection
-        // TODO:ADAM - move this into the service registry
-        if (Jvm.current().getJavaVersion().isJava6Compatible()) {
-            // Use the public method
-            try {
-                classLookup = (Transformer<ObjectStreamClass, Class<?>>) getClass().getClassLoader().loadClass("org.gradle.tooling.internal.provider.jdk6.Jdk6ClassLookup").newInstance();
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        } else {
-            // Use Java 5 fallback which uses reflection
-            classLookup = new ReflectionClassLookup();
-        }
+        classLookup = new Jdk6ClassLookup();
     }
 
     public SerializedPayload serialize(Object payload) {

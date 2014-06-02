@@ -19,9 +19,14 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 
+import java.util.Collection;
+
 public interface VersionLister {
     /**
-     * Creates an empty version list for the given module. Call {@link VersionList#visit(ResourcePattern, org.gradle.api.internal.artifacts.metadata.IvyArtifactName)} to search for versions.
+     * Creates a visitor for the given module. Call {@link VersionPatternVisitor#visit(ResourcePattern, org.gradle.api.internal.artifacts.metadata.IvyArtifactName)} to search for versions.
+     *
+     * @param dest collection to add versions to
+     * @param result used to add candidate locations.
      */
-    VersionList getVersionList(ModuleIdentifier module, ResourceAwareResolveResult result);
+    VersionPatternVisitor newVisitor(ModuleIdentifier module, Collection<String> dest, ResourceAwareResolveResult result);
 }

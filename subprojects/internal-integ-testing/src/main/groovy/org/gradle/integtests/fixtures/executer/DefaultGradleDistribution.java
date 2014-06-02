@@ -65,8 +65,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
         if (isVersion("0.9-rc-1")) {
             return jvm.getJavaVersion().isJava6Compatible();
         }
-
-        return jvm.getJavaVersion().isJava5Compatible();
+        if (isSameOrOlder("1.12")) {
+            return jvm.getJavaVersion().isJava5Compatible();
+        }
+        return jvm.getJavaVersion().isJava6Compatible();
     }
 
     public boolean worksWith(OperatingSystem os) {

@@ -21,59 +21,41 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareReso
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.ResourceNotFoundException;
-import org.gradle.util.DeprecationLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class ChainedVersionLister implements VersionLister {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
     private final List<VersionLister> versionListers;
 
-    public ChainedVersionLister(VersionLister... versionlisters) {
-        this.versionListers = Arrays.asList(versionlisters);
+    public ChainedVersionLister(VersionLister... delegates) {
+        this.versionListers = Arrays.asList(delegates);
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module, final ResourceAwareResolveResult result)  {
-        final List<VersionList> versionLists = new ArrayList<VersionList>();
+    public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result)  {
+        final List<VersionPatternVisitor> visitors = new ArrayList<VersionPatternVisitor>();
         for (VersionLister lister : versionListers) {
-            versionLists.add(lister.getVersionList(module, result));
+            visitors.add(lister.newVisitor(module, dest, result));
         }
-        return new AbstractVersionList() {
+        return new VersionPatternVisitor() {
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
-                final Iterator<VersionList> versionListIterator = versionLists.iterator();
-                while (versionListIterator.hasNext()) {
-                    VersionList list = versionListIterator.next();
+                ResourceNotFoundException failure = null;
+                for (VersionPatternVisitor list : visitors) {
                     try {
                         list.visit(pattern, artifact);
                         return;
                     } catch (ResourceNotFoundException e) {
-                        if (!versionListIterator.hasNext()) {
-                            throw e;
+                        // Try next
+                        if (failure == null) {
+                            failure = e;
                         }
                     } catch (Exception e) {
-                        if (versionListIterator.hasNext()) {
-                            String deprecationMessage = String.format(
-                                    "Error listing versions of %s using %s. Will attempt an alternate way to list versions",
-                                    module, list.getClass()
-                            );
-                            DeprecationLogger.nagUserOfDeprecatedBehaviour(deprecationMessage);
-                            LOGGER.debug(deprecationMessage, e);
-                        } else {
-                            throw new ResourceException(String.format("Failed to list versions for %s.", module), e);
-                        }
+                        throw new ResourceException(String.format("Failed to list versions for %s.", module), e);
                     }
                 }
-            }
-
-            public Set<String> getVersions() {
-                Set<String> allVersions = new LinkedHashSet<String>();
-                for (VersionList versionList : versionLists) {
-                    allVersions.addAll(versionList.getVersions());
-                }
-                return allVersions;
+                throw failure;
             }
         };
     }

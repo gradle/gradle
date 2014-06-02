@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.metadata.*;
-import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,10 +57,8 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         if (artifactFile.exists()) {
             return true;
         }
-        // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
         if (!isSigningArtifact(artifact.getArtifactName())) {
-            String message = String.format("Attempted to publish an artifact '%s' that does not exist '%s'", artifact.getId(), artifactFile);
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(message);
+            throw new PublishException(String.format("Cannot publish artifact '%s' (%s) as it does not exist.", artifact.getId(), artifactFile));
         }
         return false;
     }

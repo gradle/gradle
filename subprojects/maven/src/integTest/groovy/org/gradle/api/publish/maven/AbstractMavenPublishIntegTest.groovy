@@ -79,7 +79,6 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
 """
 
-        executer.withDeprecationChecksDisabled()
         run "resolveArtifacts"
         def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
         return artifactsList.sort()

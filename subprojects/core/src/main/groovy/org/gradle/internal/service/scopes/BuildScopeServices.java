@@ -62,8 +62,10 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
+import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.remote.MessagingServer;
@@ -238,8 +240,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ExceptionAnalyser createExceptionAnalyser() {
-        return new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(get(ListenerManager.class)));
+    protected ExceptionAnalyser createExceptionAnalyser(ListenerManager listenerManager, LoggingConfiguration loggingConfiguration) {
+        ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(listenerManager));
+        if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
+            exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
+        }
+        return exceptionAnalyser;
     }
 
     protected ScriptHandlerFactory createScriptHandlerFactory() {

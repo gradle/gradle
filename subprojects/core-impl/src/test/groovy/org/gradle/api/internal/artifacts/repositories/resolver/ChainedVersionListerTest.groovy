@@ -22,15 +22,14 @@ import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
 import org.gradle.internal.resource.ResourceException
 import org.gradle.internal.resource.ResourceNotFoundException
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ChainedVersionListerTest extends Specification {
 
     VersionLister lister1 = Mock()
     VersionLister lister2 = Mock()
 
-    VersionList versionList1 = Mock()
-    VersionList versionList2 = Mock()
+    VersionPatternVisitor versionList1 = Mock()
+    VersionPatternVisitor versionList2 = Mock()
 
     ResourcePattern pattern = Mock()
     ModuleIdentifier module = Mock()
@@ -40,12 +39,14 @@ class ChainedVersionListerTest extends Specification {
     def chainedVersionLister = new ChainedVersionLister(lister1, lister2)
 
     def "visit stops listing after first success"() {
+        def versions = []
+
         when:
-        VersionList versionList = chainedVersionLister.getVersionList(module, result)
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, versions, result)
 
         then:
-        1 * lister1.getVersionList(module, result) >> versionList1
-        1 * lister2.getVersionList(module, result) >> versionList2
+        1 * lister1.newVisitor(module, versions, result) >> versionList1
+        1 * lister2.newVisitor(module, versions, result) >> versionList2
 
         when:
         versionList.visit(pattern, artifact)
@@ -53,44 +54,56 @@ class ChainedVersionListerTest extends Specification {
         then:
         1 * versionList1.visit(pattern, artifact)
         0 * _._
-
-        when:
-        def result = versionList.versions
-
-        then:
-        result == ["1.0", "1.2"] as Set
-
-        and:
-        versionList1.versions >> ["1.0", "1.2"]
-        versionList2.versions >> []
     }
 
-    @Unroll
-    def "visit ignores #exception.class.simpleName of failed VersionLister"() {
-        given:
-        lister1.getVersionList(module, result) >> versionList1
-        lister2.getVersionList(module, result) >> versionList2
+    def "visit ignores ResourceNotFoundException when another VersionLister provides a result"() {
+        def versions = []
 
-        VersionList versionList = chainedVersionLister.getVersionList(module, result)
+        given:
+        lister1.newVisitor(module, versions, result) >> versionList1
+        lister2.newVisitor(module, versions, result) >> versionList2
+
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, versions, result)
 
         when:
         versionList.visit(pattern, artifact)
 
         then:
-        1 * versionList1.visit(pattern, artifact) >> { throw exception }
+        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException("ignore me") }
         1 * versionList2.visit(pattern, artifact)
-
-        where:
-        exception << [new ResourceNotFoundException("test resource not found exception"), new ResourceException("test resource exception"), new RuntimeException("broken")]
     }
 
-    def "visit rethrows ResourceNotFoundException of failed last VersionLister"() {
+    def "visit fails when VersionLister throws exception"() {
+        def versions = []
+        def exception = new ResourceException("test resource exception")
+
+        given:
+        lister1.newVisitor(module, versions, result) >> versionList1
+        lister2.newVisitor(module, versions, result) >> versionList2
+
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, versions, result)
+
+        when:
+        versionList.visit(pattern, artifact)
+
+        then:
+        def e = thrown(ResourceException)
+        e.message == "Failed to list versions for ${module}."
+        e.cause == exception
+
+        and:
+        1 * versionList1.visit(pattern, artifact) >> { throw exception }
+        0 * versionList2._
+    }
+
+    def "visit rethrows ResourceNotFoundException of failed first VersionLister"() {
         given:
         def exception = new ResourceNotFoundException("not found")
-        lister1.getVersionList(module, result) >> versionList1
-        lister2.getVersionList(module, result) >> versionList2
+        def versions = []
+        lister1.newVisitor(module, versions, result) >> versionList1
+        lister2.newVisitor(module, versions, result) >> versionList2
 
-        VersionList versionList = chainedVersionLister.getVersionList(module, result)
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, versions, result)
 
         when:
         versionList.visit(pattern, artifact)
@@ -100,17 +113,18 @@ class ChainedVersionListerTest extends Specification {
         e == exception
 
         and:
-        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException("ignore me") }
-        1 * versionList2.visit(pattern, artifact) >> { throw exception }
+        1 * versionList1.visit(pattern, artifact) >> { throw exception }
+        1 * versionList2.visit(pattern, artifact) >> { throw new ResourceNotFoundException("ignore me") }
     }
 
     def "visit wraps failed last VersionLister"() {
         given:
+        def versions = []
         def exception = new RuntimeException("broken")
-        lister1.getVersionList(module, result) >> versionList1
-        lister2.getVersionList(module, result) >> versionList2
+        lister1.newVisitor(module, versions, result) >> versionList1
+        lister2.newVisitor(module, versions, result) >> versionList2
 
-        VersionList versionList = chainedVersionLister.getVersionList(module, result)
+        VersionPatternVisitor versionList = chainedVersionLister.newVisitor(module, versions, result)
 
         when:
         versionList.visit(pattern, artifact)

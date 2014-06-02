@@ -70,7 +70,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         when:
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
-        executer.withEnvironmentVars(envVars).withDeprecationChecksDisabled().withTasks("compileGroovy").run()
+        executer.withEnvironmentVars(envVars).withTasks("compileGroovy").run()
 
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()

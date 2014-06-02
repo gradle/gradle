@@ -30,15 +30,16 @@ class JavaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
         return AvailableJavaHomes.getJdk(JavaVersion.toVersion(version))
     }
 
-    def "can compile source and run tests using target java version"() {
+    def setup() {
         Assume.assumeTrue(target != null)
         def java = TextUtil.escapeString(target.getJavaExecutable())
         def javac = TextUtil.escapeString(target.getExecutable("javac"))
 
         buildFile << """
 apply plugin: 'java'
+sourceCompatibility = ${version}
+targetCompatibility = ${version}
 repositories { mavenCentral() }
-dependencies { testCompile 'junit:junit:4.11' }
 tasks.withType(JavaCompile) {
     options.with {
         fork = true
@@ -53,6 +54,14 @@ tasks.withType(Test) {
         file("src/main/java/Thing.java") << """
 class Thing { }
 """
+    }
+
+    def "can compile source and run JUnit tests using target Java version"() {
+        given:
+        buildFile << """
+dependencies { testCompile 'junit:junit:4.11' }
+"""
+
         file("src/test/java/ThingTest.java") << """
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -61,6 +70,27 @@ public class ThingTest {
     @Test
     public void verify() {
         assertTrue(System.getProperty("java.version").startsWith("${version}."));
+    }
+}
+"""
+
+        expect:
+        succeeds 'test'
+    }
+
+    def "can compile source and run TestNG tests using target Java version"() {
+        given:
+        buildFile << """
+dependencies { testCompile 'org.testng:testng:6.8.8' }
+"""
+
+        file("src/test/java/ThingTest.java") << """
+import org.testng.annotations.Test;
+
+public class ThingTest {
+    @Test
+    public void verify() {
+        assert System.getProperty("java.version").startsWith("${version}.");
     }
 }
 """

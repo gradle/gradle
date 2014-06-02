@@ -65,7 +65,8 @@ public class CommandLineActionFactory {
 
         return new ExceptionReportingAction(
                 new WithLogging(loggingServices, args, loggingConfiguration,
-                        new ParseAndBuildAction(loggingServices, args)),
+                        new JavaRuntimeValidationAction(
+                            new ParseAndBuildAction(loggingServices, args))),
                 new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
@@ -98,12 +99,12 @@ public class CommandLineActionFactory {
             parser.option(VERSION, "version").hasDescription("Print version info.");
         }
 
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+        public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(HELP)) {
-                return Actions.toAction(new ShowUsageAction(parser));
+                return new ShowUsageAction(parser);
             }
             if (commandLine.hasOption(VERSION)) {
-                return Actions.toAction(new ShowVersionAction());
+                return new ShowVersionAction();
             }
             return null;
         }
@@ -238,9 +239,9 @@ public class CommandLineActionFactory {
 
         private Action<? super ExecutionListener> createAction(Iterable<CommandLineAction> factories, CommandLineParser parser, ParsedCommandLine commandLine) {
             for (CommandLineAction factory : factories) {
-                Action<? super ExecutionListener> action = factory.createAction(parser, commandLine);
+                Runnable action = factory.createAction(parser, commandLine);
                 if (action != null) {
-                    return action;
+                    return Actions.toAction(action);
                 }
             }
             throw new UnsupportedOperationException("No action factory for specified command-line arguments.");

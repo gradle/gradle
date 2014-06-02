@@ -196,7 +196,7 @@ task listJars << {
 
         and:
         server.authenticationScheme = authScheme
-        server.allowGetOrHead('/repo/group/projectA/1.2/projectA-1.2.pom', 'username', 'password', module.pomFile)
+        module.pom.allowGetOrHead('username', 'password')
 
         then:
         fails 'listJars'

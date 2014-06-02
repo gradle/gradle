@@ -19,8 +19,6 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -251,7 +249,6 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         result.assertTestClassesExecuted("TestCaseExtendsAbstractClass")
     }
 
-    @Requires(TestPrecondition.JDK6_OR_LATER) // Guava 15 requires JDK 6
     @Issue("http://issues.gradle.org/browse/GRADLE-2962")
     def "incompatible user versions of classes that we also use don't affect test execution"() {
 

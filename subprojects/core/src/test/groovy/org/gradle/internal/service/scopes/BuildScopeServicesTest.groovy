@@ -206,8 +206,9 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         expectListenerManagerCreated()
         expect:
-        assertThat(registry.get(ExceptionAnalyser), instanceOf(MultipleBuildFailuresExceptionAnalyser))
-        assertThat(registry.get(ExceptionAnalyser).delegate, instanceOf(DefaultExceptionAnalyser))
+        assertThat(registry.get(ExceptionAnalyser), instanceOf(StackTraceSanitizingExceptionAnalyser))
+        assertThat(registry.get(ExceptionAnalyser).analyser, instanceOf(MultipleBuildFailuresExceptionAnalyser))
+        assertThat(registry.get(ExceptionAnalyser).analyser.delegate, instanceOf(DefaultExceptionAnalyser))
         assertThat(registry.get(ExceptionAnalyser), sameInstance(registry.get(ExceptionAnalyser)))
     }
 

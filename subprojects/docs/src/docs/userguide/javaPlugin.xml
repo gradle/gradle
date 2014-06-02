@@ -694,8 +694,7 @@
 
         <para>
             These properties are provided by convention objects of type <apilink class="org.gradle.api.plugins.JavaPluginConvention"/>,
-            <apilink class="org.gradle.api.plugins.BasePluginConvention"/> and
-            <apilink class="org.gradle.api.plugins.ReportingBasePluginConvention"/>.
+            and <apilink class="org.gradle.api.plugins.BasePluginConvention"/>.
         </para>
     </section>
 

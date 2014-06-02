@@ -19,8 +19,6 @@ package org.gradle.testing.cucumberjvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -30,7 +28,6 @@ class CucumberJVMReportIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2739")
-    @Requires(TestPrecondition.JDK6_OR_LATER)
     def testReportingSupportsCucumberStepsWithSlashes() {
         when:
         run "test"

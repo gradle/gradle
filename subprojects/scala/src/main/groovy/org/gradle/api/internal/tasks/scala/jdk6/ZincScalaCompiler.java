@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks.scala.jdk6;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.typesafe.zinc.*;
-import org.gradle.api.GradleException;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -42,9 +40,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
 
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        if (!JavaVersion.current().isJava6Compatible()) {
-            throw new GradleException("To use the Zinc Scala compiler, Java 6 or higher is required.");
-        }
         return Compiler.execute(spec);
     }
 

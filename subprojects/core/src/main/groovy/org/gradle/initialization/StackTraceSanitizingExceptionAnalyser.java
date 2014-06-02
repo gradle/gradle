@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.resolver;
+package org.gradle.initialization;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import org.codehaus.groovy.runtime.StackTraceUtils;
+import org.gradle.api.internal.ExceptionAnalyser;
 
-public abstract class DefaultVersionList extends AbstractVersionList {
-    private final Set<String> versions = new LinkedHashSet<String>();
+public class StackTraceSanitizingExceptionAnalyser implements ExceptionAnalyser {
+    private final ExceptionAnalyser analyser;
 
-    protected void add(String newVersion) {
-        versions.add(newVersion);
+    public StackTraceSanitizingExceptionAnalyser(ExceptionAnalyser analyser) {
+        this.analyser = analyser;
     }
 
-    public Set<String> getVersions() {
-        return versions;
+    public Throwable transform(Throwable exception) {
+        return StackTraceUtils.deepSanitize(analyser.transform(exception));
     }
 }

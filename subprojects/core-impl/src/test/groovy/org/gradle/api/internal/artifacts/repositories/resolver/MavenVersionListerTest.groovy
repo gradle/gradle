@@ -48,11 +48,12 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         versionList.visit(pattern, artifact)
 
         then:
-        versionList.versions == ['1.2', '1.1'] as Set
+        versions == ['1.1', '1.2']
         result.attempted == [metaDataResource.toString()]
 
         and:
@@ -81,12 +82,13 @@ class MavenVersionListerTest extends Specification {
         def location2 = new URI('prefix2/org/acme/testproject/maven-metadata.xml')
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         versionList.visit(pattern1, artifact)
         versionList.visit(pattern2, artifact)
 
         then:
-        versionList.versions == ['1.3', '1.2', '1.1'] as Set
+        versions == ['1.1', '1.2', '1.2', '1.3']
         result.attempted == [location1.toString(), location2.toString()]
 
         and:
@@ -118,12 +120,13 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         versionList.visit(pattern, artifact)
         versionList.visit(pattern, artifact)
 
         then:
-        versionList.versions == ['1.2', '1.1'] as Set
+        versions == ['1.1', '1.2']
         result.attempted == [metaDataResource.toString()]
 
         and:
@@ -145,7 +148,7 @@ class MavenVersionListerTest extends Specification {
 
     def "visit throws ResourceNotFoundException when maven-metadata not available"() {
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, [], result)
         versionList.visit(pattern, artifact)
 
         then:
@@ -164,7 +167,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, [], result)
         versionList.visit(pattern, artifact)
 
         then:
@@ -187,7 +190,7 @@ class MavenVersionListerTest extends Specification {
         def failure = new IOException()
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, [], result)
         versionList.visit(pattern, artifact)
 
         then:

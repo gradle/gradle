@@ -27,4 +27,8 @@ public class PublishException extends GradleException {
     public PublishException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public PublishException(String message) {
+        super(message);
+    }
 }

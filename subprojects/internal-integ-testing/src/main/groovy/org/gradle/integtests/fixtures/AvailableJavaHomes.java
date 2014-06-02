@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
@@ -31,12 +32,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 abstract public class AvailableJavaHomes {
     private static List<JvmInstallation> jvms;
+
+    @Nullable
+    public static JavaInfo getJava5() {
+        return getJdk(JavaVersion.VERSION_1_5);
+    }
 
     /**
      * Locates a JDK installation for the given version.
@@ -97,6 +105,7 @@ abstract public class AvailableJavaHomes {
             jvms = new ArrayList<JvmInstallation>();
             jvms.addAll(new DevInfrastructureJvmLocator().findJvms());
             jvms.addAll(new InstalledJvmLocator().findJvms());
+            jvms.addAll(new HomeDirJvmLocator().findJvms());
             // Order from most recent to least recent
             Collections.sort(jvms, new Comparator<JvmInstallation>() {
                 public int compare(JvmInstallation o1, JvmInstallation o2) {
@@ -122,6 +131,22 @@ abstract public class AvailableJavaHomes {
                     return element.getJavaHome().isDirectory();
                 }
             });
+        }
+    }
+
+    private static class HomeDirJvmLocator {
+        private static final Pattern JDK_DIR = Pattern.compile("jdk(\\d+\\.\\d+\\.\\d+(_\\d+)?)");
+
+        public List<JvmInstallation> findJvms() {
+            List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
+            for (File file : new File(SystemProperties.getUserHome()).listFiles()) {
+                Matcher matcher = JDK_DIR.matcher(file.getName());
+                if (matcher.matches() && new File(file, "bin/javac").isFile()) {
+                    String version = matcher.group(1);
+                    jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, file, true, JvmInstallation.Arch.Unknown));
+                }
+            }
+            return jvms;
         }
     }
 }

@@ -15,13 +15,12 @@
  */
 package org.gradle;
 
-import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.Action;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.StyledTextOutput;
@@ -41,7 +40,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  */
 public class BuildExceptionReporter extends BuildAdapter implements Action<Throwable> {
     private enum ExceptionStyle {
-        NONE, SANITIZED, FULL
+        NONE, FULL
     }
 
     private final StyledTextOutputFactory textOutputFactory;
@@ -115,10 +114,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void reportBuildFailure(String granularity, Throwable failure, FailureDetails details) {
-        if (loggingConfiguration.getShowStacktrace() == ShowStacktrace.ALWAYS || loggingConfiguration.getLogLevel() == LogLevel.DEBUG) {
-            details.exceptionStyle = ExceptionStyle.SANITIZED;
-        }
-        if (loggingConfiguration.getShowStacktrace() == ShowStacktrace.ALWAYS_FULL) {
+        if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS) {
             details.exceptionStyle = ExceptionStyle.FULL;
         }
 
@@ -229,9 +225,6 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         Throwable exception = null;
         switch (details.exceptionStyle) {
             case NONE:
-                break;
-            case SANITIZED:
-                exception = StackTraceUtils.deepSanitize(details.failure);
                 break;
             case FULL:
                 exception = details.failure;

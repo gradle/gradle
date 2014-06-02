@@ -32,9 +32,9 @@ class CUnitTestResults {
         parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
         this.resultsNode = parser.parse(testResultsFile)
 
-        suiteNames.each { String name ->
-            Node suiteNode = resultsNode.getAt('CUNIT_RESULT_LISTING').CUNIT_RUN_SUITE.CUNIT_RUN_SUITE_SUCCESS.find({it.SUITE_NAME.text() == name}) as Node
-            suites.put(name, new Suite(suiteNode))
+        resultsNode.CUNIT_RESULT_LISTING.CUNIT_RUN_SUITE.CUNIT_RUN_SUITE_SUCCESS.each { Node suiteNode ->
+            def suite = new Suite(suiteNode)
+            suites.put(suite.name, suite)
         }
 
         summaryRecords['Suites'] = new SummaryRecord(resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({it.TYPE.text() == 'Suites'}) as Node)
@@ -43,7 +43,7 @@ class CUnitTestResults {
     }
 
     List<String> getSuiteNames() {
-        resultsNode.getAt('CUNIT_RESULT_LISTING').CUNIT_RUN_SUITE.CUNIT_RUN_SUITE_SUCCESS.SUITE_NAME*.text()
+        suites.keySet() as List
     }
 
     def checkTestCases(int total, int succeeded, int failed) {
@@ -55,7 +55,7 @@ class CUnitTestResults {
     }
 
     private def checkSummaryRecord(String name, int total, int succeeded, int failed) {
-        def recordNode = resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({it.TYPE.text() == name}) as Node
+        def recordNode = resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({it.TYPE.text().trim() == name}) as Node
         assert recordNode.RUN.text() as int == total
         assert recordNode.SUCCEEDED.text() as int == succeeded
         assert recordNode.FAILED.text() as int == failed
@@ -70,15 +70,15 @@ class CUnitTestResults {
         }
 
         String getName() {
-            return suiteNode.SUITE_NAME.text()
+            return suiteNode.SUITE_NAME.text().trim()
         }
 
         List<String> getPassingTests() {
-            suiteNode.CUNIT_RUN_TEST_RECORD.CUNIT_RUN_TEST_SUCCESS.TEST_NAME*.text()
+            suiteNode.CUNIT_RUN_TEST_RECORD.CUNIT_RUN_TEST_SUCCESS.TEST_NAME*.text()*.trim()
         }
 
         List<String> getFailingTests() {
-            suiteNode.CUNIT_RUN_TEST_RECORD.CUNIT_RUN_TEST_FAILURE.TEST_NAME*.text().unique()
+            suiteNode.CUNIT_RUN_TEST_RECORD.CUNIT_RUN_TEST_FAILURE.TEST_NAME*.text()*.trim().unique()
         }
     }
 

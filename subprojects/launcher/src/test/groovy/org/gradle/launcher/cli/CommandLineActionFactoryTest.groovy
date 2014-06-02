@@ -76,7 +76,7 @@ class CommandLineActionFactoryTest extends Specification {
     }
 
     def "delegates to each action factory to configure the command-line parser and create the action"() {
-        Action<ExecutionListener> rawAction = Mock()
+        def rawAction = Mock(Runnable)
 
         when:
         def action = factory.convert(["--some-option"])
@@ -91,7 +91,7 @@ class CommandLineActionFactoryTest extends Specification {
         1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option("some-option") }
         1 * actionFactory2.configureCommandLineParser(!null)
         1 * actionFactory1.createAction(!null, !null) >> rawAction
-        1 * rawAction.execute(executionListener)
+        1 * rawAction.run()
     }
 
     def "configures logging before parsing command-line"() {

@@ -20,10 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/scala/Library.scala"

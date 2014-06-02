@@ -48,7 +48,7 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> { throw failure }
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versionList = lister.newVisitor(module, [], result)
         versionList.visit(testPattern, artifact)
 
         then:
@@ -62,11 +62,12 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> null
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         versionList.visit(pattern(testPattern), artifact)
 
         then:
-        versionList.empty
+        versions.empty
 
         where:
         testPattern << ["/some/[revision]", "/some/version-[revision]"]
@@ -77,21 +78,23 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> []
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         versionList.visit(pattern("/some/[revision]"), artifact)
 
         then:
-        versionList.empty
+        versions.empty
     }
 
     @Unroll
     def "visit resolves versions from pattern with '#testPattern'"() {
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         versionList.visit(pattern(testPattern), artifact)
 
         then:
-        versionList.versions == ["1", "2.1", "a-version"] as Set
+        versions == ["1", "2.1", "a-version"]
 
         and:
         1 * repo.list(URI.create(repoListingPath)) >> repoResult
@@ -120,14 +123,15 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit builds union of versions"() {
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         def pattern1 = pattern("/[revision]/[artifact]-[revision].[ext]")
         def pattern2 = pattern("/[organisation]/[revision]/[artifact]-[revision].[ext]")
         versionList.visit(pattern1, artifact)
         versionList.visit(pattern2, artifact)
 
         then:
-        versionList.versions == ["1.2", "1.3", "1.4"] as Set
+        versions == ["1.2", "1.3", "1.3", "1.4"]
 
         and:
         1 * repo.list(URI.create("/")) >> ["1.2", "1.3"]
@@ -137,13 +141,14 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit ignores duplicate patterns"() {
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         final patternA = pattern("/a/[revision]/[artifact]-[revision].[ext]")
         versionList.visit(patternA, artifact)
         versionList.visit(pattern("/a/[revision]/[artifact]-[revision]"), artifact)
 
         then:
-        versionList.versions == ["1.2", "1.3"] as Set
+        versions == ["1.2", "1.3"]
 
         and:
         1 * repo.list(URI.create("/a/")) >> ["1.2", "1.3"]
@@ -152,7 +157,8 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit substitutes non revision placeholders from pattern before hitting repository"() {
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         versionList.visit(pattern(inputPattern), artifact)
 
         then:
@@ -174,11 +180,12 @@ class ResourceVersionListerTest extends Specification {
         repo.list(_) >> repoResult
 
         when:
-        def versionList = lister.getVersionList(module, result)
+        def versions = []
+        def versionList = lister.newVisitor(module, versions, result)
         versionList.visit(pattern(testPattern), artifact)
 
         then:
-        versionList.empty
+        versions.empty
 
         where:
         testPattern                      | repoResult

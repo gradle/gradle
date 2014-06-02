@@ -169,8 +169,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run { failed builds[num] }
     }
 
-    void foregroundDaemonFailed(int num = 0) {
-        run { failed foregroundDaemons[num] }
+    void foregroundDaemonCompleted(int num = 0) {
+        run { foregroundDaemons[num].waitForFinish() }
     }
 
     void failed(GradleHandle handle) {
@@ -328,7 +328,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         buildFailedWithDaemonDisappearedMessage()
 
         and:
-        foregroundDaemonFailed()
+        foregroundDaemonCompleted()
     }
 
     @IgnoreIf({OperatingSystem.current().windows})
@@ -377,7 +377,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped() // just means the daemon has disappeared from the registry
 
         and:
-        foregroundDaemonFailed()
+        foregroundDaemonCompleted()
     }
 
     def "tearing down daemon process produces nice error message for client"() {
