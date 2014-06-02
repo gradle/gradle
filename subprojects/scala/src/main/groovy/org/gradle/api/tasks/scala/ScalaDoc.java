@@ -61,7 +61,7 @@ public class ScalaDoc extends SourceTask {
      * @return The classpath.
      */
     @InputFiles
-    public Iterable<File> getClasspath() {
+    public FileCollection getClasspath() {
         return classpath;
     }
 
