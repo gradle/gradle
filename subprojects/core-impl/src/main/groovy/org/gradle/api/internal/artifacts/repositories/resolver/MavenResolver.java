@@ -34,7 +34,6 @@ import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.util.DeprecationLogger;
 
 import java.net.URI;
 import java.util.*;
@@ -215,7 +214,6 @@ public class MavenResolver extends ExternalResourceResolver {
                 ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
 
                 if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
-                    DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
                     result.resolved(ImmutableSet.of(artifactMetaData));
                 } else {
                     ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
