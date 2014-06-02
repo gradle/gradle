@@ -625,6 +625,100 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
+    def "reports and recovers from missing snapshot"() {
+        given:
+        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT")
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile 'group:projectA:1.0-SNAPSHOT'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        def metaData = projectA.metaData
+        metaData.expectGetMissing()
+        projectA.pom.expectGetMissing()
+        projectA.artifact.expectHeadMissing()
+
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause("""Could not find group:projectA:1.0-SNAPSHOT.
+Searched in the following locations:
+    ${metaData.uri}
+    ${projectA.pom.uri}
+    ${projectA.artifact.uri}
+""")
+
+        when:
+        server.resetExpectations()
+        projectA.publish()
+        metaData.expectGet()
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+
+        then:
+        succeeds 'retrieve'
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
+    }
+
+    def "reports and recovers from broken maven-metadata.xml"() {
+        given:
+        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile 'group:projectA:1.0-SNAPSHOT'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        def metaData = projectA.metaData
+        metaData.expectGetBroken()
+
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause('Could not resolve group:projectA:1.0-SNAPSHOT.')
+        failure.assertHasCause("Unable to load Maven meta-data from ${metaData.uri}.")
+        failure.assertHasCause("Could not GET '${metaData.uri}'. Received status code 500 from server")
+
+        when:
+        server.resetExpectations()
+        metaData.expectGet()
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+
+        then:
+        succeeds 'retrieve'
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
+    }
+
     private expectModuleServed(MavenHttpModule module) {
         module.metaData.expectGet()
         module.pom.expectGet()
