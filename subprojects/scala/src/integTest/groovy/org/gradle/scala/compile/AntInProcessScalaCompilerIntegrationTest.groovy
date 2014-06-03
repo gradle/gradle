@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@TargetVersions(["2.8.2", "2.9.2", "2.10.4"])
+@TargetVersions(["2.8.2", "2.9.2", "2.10.4", "2.11.1"])
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class AntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
