@@ -22,24 +22,4 @@ import org.gradle.util.TestPrecondition
 
 @TargetVersions(["2.8.2", "2.9.2"])
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-class AntInProcessOlderScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
-    def setup() {
-        executer.requireIsolatedDaemons()
-    }
-
-    String compilerConfiguration() {
-        '''
-compileScala.scalaCompileOptions.with {
-    useAnt = true
-}
-'''
-    }
-
-    String logStatement() {
-        "Compiling with Ant scalac task"
-    }
-
-    String getErrorOutput() {
-        return result.output
-    }
-}
+class AntInProcessOlderScalaCompilerIntegrationTest extends AbstractAntInProcessScalaCompilerIntegrationTest {}
