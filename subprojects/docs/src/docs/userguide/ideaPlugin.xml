@@ -214,7 +214,7 @@
                     the default behavior, add <code>tasks.idea.dependsOn(cleanIdea)</code> to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
-                <para>Complete overwrite works equally well for individual files, for example by executing <userinput> gradle cleanIdeaModule ideaModule</userinput>.</para>
+                <para>Complete overwrite works equally well for individual files, for example by executing <userinput>gradle cleanIdeaModule ideaModule</userinput>.</para>
             </section>
         </section>
         <section>

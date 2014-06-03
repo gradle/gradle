@@ -73,8 +73,8 @@
 
     <section id='reusing_daemons'>
         <title>Reusing and expiration of daemons</title>
-        <para>The basic idea is that the gradle command forks a daemon process, which performs the actual build.
-            Subsequent invocations of the gradle command will reuse the daemon, avoiding the startup costs.
+        <para>The basic idea is that the Gradle command forks a daemon process, which performs the actual build.
+            Subsequent invocations of the Gradle command will reuse the daemon, avoiding the startup costs.
             Sometimes we cannot use an existing daemon because it is busy or its java version or jvm arguments are different.
             For exact details on when exactly new daemon process is forked read the dedicated section below.
             The daemon process automatically expire after 3 hours of idle time.
