@@ -64,18 +64,21 @@ For an example usage of the new API, see <a href="dsl/org.gradle.api.artifacts.q
 
 ### Accessing Ivy extra info from component metadata rules
 
-It's now possible to access Ivy extra info from component metadata rules. 
+It's now possible to access Ivy extra info from [component metadata rules](dsl/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html). 
 Roughly speaking, Ivy extra info is a set of user-defined key-value pairs published in the Ivy module descriptor. 
-Rules wishing to access the extra info need to specify a parameter of type `IvyModuleMetadata`. 
+Rules wishing to access the extra info need to specify a parameter of type [`IvyModuleMetadata`](javadoc/org/gradle/api/artifacts/IvyModuleMetadata.html). 
 
 Here is an example:
 
     dependencies {
-        components {
-            eachComponent { component, IvyModuleMetadata ivyMetadata ->
-                println ivyMetadata.extraInfo["expired"] // TODO: what's a real-world use case?
-            }
+      components {
+        eachComponent { component, IvyModuleMetadata ivyMetadata ->
+          def deprecated = ivyMetadata.extraInfo["deprecated"]?.asBoolean()
+          if (deprecated) {
+            throw new GradleException("Component $component is deprecated. This project can not use deprecated components")
+          }
         }
+      }
     }
 
 ### Cleaner build scripts with `plugins.withId`
