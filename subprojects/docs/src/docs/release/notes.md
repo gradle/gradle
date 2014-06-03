@@ -81,23 +81,25 @@ Here is an example:
       }
     }
 
-### Cleaner build scripts with `plugins.withId`
+### Collaborate with plugins via `plugins.withId()` (i)
 
-New <a href="javadoc/org/gradle/api/plugins/PluginContainer.html#withId(java.lang.String, org.gradle.api.Action)">plugins.withId()</a>
-enables referring to plugins more conveniently.
-In previous releases, some times it was necessary for the client of a custom plugin to know the fully qualified type of the plugin:
+It is common to the need to perform some configuration only if a particular plugin has been applied.
+The standard approach for doing this to date has been to use the [`plugins.withType(Class)`](javadoc/org/gradle/api/plugins/PluginCollection.html#withType\(java.lang.Class\)) method, which requires the class object of the implementing plugin…
 
     import com.my.custom.InterestingPlugin
-    plugins.withType(InterestingPlugin) { ...
+    
+    plugins.withType(InterestingPlugin) { 
+      // perform some configuration after the “interesting” plugin has been applied if it ever is
+    }
 
-    //now possible, given InterestingPlugin uses "interesting-plugin" id:
-    plugins.withId("interesting-plugin") { ...
+The new [`plugins.withId(String)`](javadoc/org/gradle/api/plugins/PluginContainer.html#withId\(java.lang.String,%20org.gradle.api.Action\)) 
+makes this more convenient by allowing the ID of the plugin to be used instead of the implementing class…
 
-Benefits of the new API for the users:
+    plugins.withId("interesting") {
+      // perform some configuration after the “interesting” plugin has been applied if it ever is
+    }
 
-* less pressure to know the exact java class of the plugin
-* build scripts are more likely to be decoupled from the plugin types (e.g. it's easier for plugin author to refactor/change the type)
-* some build scripts are cleaner and more consistent because plugins are applied by 'id' and are also filtered by 'id'
+The `withId()` method is now the preferred mechanism for configuring due to the presence of a plugin.
 
 ### Support for Ivy and Maven repositories with SFTP scheme
 
