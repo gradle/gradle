@@ -255,23 +255,24 @@ When declaring a toolchain, the targeted platforms can be configured directly in
 
 The [User Guide](userguide/nativeBinaries.html#native_binaries:tool_chain) contains more details on how to configure Gcc compatible toolchains for cross compilation.
 
-### New 'ivy' layout support for Ivy repositories
+### New 'ivy' layout support for Ivy repositories (i)
 
-When defining an 'ivy' repository, you can provide a named layout to describe how artifacts are organised within that repository.
+When consuming from or publishing to an Ivy repository, a layout must be specified that describes how artifacts are organized within that repository.
 
-In addition to the 'gradle' (default) and 'maven' layouts, you can now specify the 'ivy' layout which tells Gradle that your repository
-is configured with the default ivy artifact and metadata patterns.
+In addition to the 'gradle' (default) and 'maven' layouts, you can now specify the 'ivy' layout, which is the default ivy artifact and metadata patterns.
 
     repositories {
-        ivy {
-            url 'http://my.server/repo'
-            layout 'ivy'
+      ivy {
+        url 'http://my.server/repo'
+          layout 'ivy'
         }
+      }
     }
 
-See the [User Guide](/dependency_management.html#N150B8) and the
-<a href="dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String, groovy.lang.Closure)">
-DSL Reference</a> for more detail on how to use named layouts.
+
+See the [User Guide](userguide/dependency_management.html#N150B8) and the
+[DSL Reference](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout\(java.lang.String,%20groovy.lang.Closure\)) 
+for more detail on how to use named layouts.
 
 ### Default code quality tool versions updated
 

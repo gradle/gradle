@@ -93,31 +93,42 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     void layout(String layoutName);
 
     /**
-     * Specifies the layout to use with this repository, based on the root url. The returned layout is configured with the supplied closure.
-     * Available layouts are outlined below.
+     * Specifies how the items of the repository are organized.
+     * <p>
+     * The layout is configured with the supplied closure.
+     * <p>
+     * Recognised values are as follows:
+     * </p>
      * <h4>'gradle'</h4>
+     * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
      *     <li>Artifacts: <code>$baseUri/{@value #GRADLE_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value #GRADLE_IVY_PATTERN}</code></li>
      * </ul>
-     *
+     * </p>
      * <h4>'maven'</h4>
+     * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
      *     <li>Artifacts: <code>$baseUri/{@value #MAVEN_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value #MAVEN_IVY_PATTERN}</code></li>
      * </ul>
+     * </p>
+     * <p>
      * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
-     *
+     * </p>
      * <h4>'ivy'</h4>
+     * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
      *     <li>Artifacts: <code>$baseUri/{@value #IVY_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value #IVY_ARTIFACT_PATTERN}</code></li>
      * </ul>
-     *
+     * </p>
+     * <p><b>Note:</b> this pattern is currently {@link org.gradle.api.Incubating incubating}.</p>
      * <h4>'pattern'</h4>
+     * <p>
      * A repository layout that allows custom patterns to be defined. eg:
      * <pre autoTested="">
      * repositories {
@@ -129,6 +140,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *     }
      * }
      * </pre>
+     * </p>
      *
      * @param layoutName The name of the layout to use.
      * @param config The closure used to configure the layout.
