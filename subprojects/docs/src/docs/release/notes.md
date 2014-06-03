@@ -1,3 +1,18 @@
+Gradle 2.0 is an important milestone in the evolution of Gradle. 
+As explained in the [Gradle 2.0 announcement](http://forums.gradle.org/gradle/topics/after_1_12_comes_2_0), the change in major version number signals a new backwards compatibility baseline.
+Many deprecated features and API have been removed in this release, allowing the development team to simplify the codebase and implement new functionality. The “Potential Breaking Changes” section of these release notes list all of the breaking changes that have been made and all Gradle users are strongly encouraged to read the list.
+
+In addition to the breaking changes, it's business as usual with the steady evolution of Gradle via new and refined API and features.
+
+The move to Groovy 2.3.2 from Groovy 1.8 brings with it all of the new features added to Groovy in this time.
+There is now a public API for resolving “source” and “javadoc” JARs for JVM library components.
+The exposing of Ivy “Extra Info” attributes enables a new class of advanced dependency management use cases.
+It is now possible to use the SFTP protocol for dependency consumption and artifact publication.
+Maven POM profile support has also been improved through support for profile activation through absence of a system property.
+There are also other refinements and improvements detailed below, including improvements to Gradle's support for building native projects.
+
+We hope you enjoy Gradle 2.0 and the coming releases in the 2.x stream.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -5,6 +20,10 @@ Here are the new features introduced in this Gradle release.
 ### Updated to Groovy 2.3.2
 
 Gradle now uses Groovy 2.3.2 to compile and run build scripts and plugins.
+Gradle 1.12 (the last release in the Gradle 1.x stream) used Groovy 1.8.6.
+This means that build scripts, and plugins/tasks implemented in Groovy can now use the latest Groovy features.
+
+For information on what's new in Groovy, please check the [Groovy project site](http://groovy.codehaus.org).
 
 ### Support for Java 8
 
