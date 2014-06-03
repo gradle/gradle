@@ -286,8 +286,9 @@ project(':c') {
         rootProject.parent == null
 
         rootProject.children.size() == 2
+        def children = rootProject.children.sort { it.name }
 
-        EclipseProject child1 = rootProject.children[0]
+        EclipseProject child1 = children[0]
         child1.name == 'child1'
         child1.parent == rootProject
         child1.children.size() == 1
@@ -297,7 +298,7 @@ project(':c') {
         child1Child1.parent == child1
         child1Child1.children.size() == 0
 
-        EclipseProject child2 = rootProject.children[1]
+        EclipseProject child2 = children[1]
         child2.name == 'child2'
         child2.parent == rootProject
         child2.children.size() == 0

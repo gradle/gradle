@@ -43,9 +43,10 @@ project(':impl') {
         EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        EclipseProject api = eclipseProject.children[1]
+        def children = eclipseProject.children.sort { it.name }
+        EclipseProject api = children[0]
         assert api.name == 'gradle-api'
-        EclipseProject impl = eclipseProject.children[0]
+        EclipseProject impl = children[1]
         assert impl.name == 'gradle-impl'
     }
 
