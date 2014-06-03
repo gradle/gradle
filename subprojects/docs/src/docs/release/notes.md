@@ -220,40 +220,40 @@ after Gradle has populated the argument list based on the build model.
 
 This allows for greater flexibility and use of edge tool features.
 
-### Support for adding target platform specific configurations in native binary projects (GCC based toolchains)
+### Support for adding target platform specific configurations in native binary projects (GCC based toolchains) (i)
 
-It's now a lot easier to define a target platform and how to build for it. Instead of implementing an interface you can describe a target platform
-and it's configuration in the Gradle DSL.
+It's now a lot easier to define a target platform and how to build for it. 
+Instead of implementing an interface you can describe a target platform and its configuration in the Gradle DSL.
 
-When declaring a toolchain, the targeted platforms can be configured directly in the toolChain model. Furthermore target platform specific configurations
-can be declared:
+When declaring a toolchain, the targeted platforms can be configured directly in the `toolChain` model. 
 
-	model {
-	    toolChains {
-	        gcc(Gcc) {
-	            target("arm"){
-	                cppCompiler.executable = "custom-gcc"
-	                cppCompiler.withArguments { args ->
-	                    args << "-m32"
-	                }
-	                linker.withArguments { args ->
-	                    args << "-m32"
-	                }
-	            }
-	            target("sparc")
-	        }
-	    }
-		platforms {
-			arm {
-		    	architecture "arm"
-			}
-			sparc {
-		    	architecture "sparc"
-			}
-		}
+    model {
+      toolChains {
+        gcc(Gcc) {
+          target("arm") {
+            cppCompiler.executable = "custom-gcc"
+            cppCompiler.withArguments { args ->
+              args << "-m32"
+            }
+            linker.withArguments { args ->
+              args << "-m32"
+            }
+          }
+          target("sparc") {
+          }
+        }
+        platforms {
+          arm {
+            architecture "arm"
+          }
+          sparc {
+            architecture "sparc"
+          }
+        }
+      }
+    }    
 
-Have a look at the [User Guide](userguide/nativeBinaries.html#native_binaries:tool_chain) for more details on how to configure Gcc compatbile
-toolchains for cross compilation.
+The [User Guide](userguide/nativeBinaries.html#native_binaries:tool_chain) contains more details on how to configure Gcc compatible toolchains for cross compilation.
 
 ### New 'ivy' layout support for Ivy repositories
 
