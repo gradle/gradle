@@ -62,7 +62,7 @@ For example, to get the source artifacts for all 'compile' dependencies:
 
 For an example usage of the new API, see <a href="dsl/org.gradle.api.artifacts.query.ArtifactResolutionQuery.html">the DSL Reference</a>.
 
-### Accessing Ivy extra info from component metadata rules
+### Accessing Ivy extra info from component metadata rules (i)
 
 It's now possible to access Ivy extra info from [component metadata rules](dsl/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html). 
 Roughly speaking, Ivy extra info is a set of user-defined key-value pairs published in the Ivy module descriptor. 
