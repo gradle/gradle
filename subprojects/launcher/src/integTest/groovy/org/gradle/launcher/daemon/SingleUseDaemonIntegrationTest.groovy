@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.util.TextUtil
+import org.gradle.util.GradleVersion
 import org.spockframework.runtime.SpockAssertionError
 import org.spockframework.runtime.SpockTimeoutError
 import spock.lang.IgnoreIf
@@ -83,14 +83,14 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "does not fork build if java home from gradle properties matches current process"() {
-        def alternateJavaHome = AvailableJavaHomes.bestAlternative
+        def javaHome = AvailableJavaHomes.bestAlternative
 
-        file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
+        file('gradle.properties').writeProperties("org.gradle.java.home": javaHome.canonicalPath)
 
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
-        executer.withJavaHome(alternateJavaHome)
+        executer.withJavaHome(javaHome)
         succeeds()
 
         then:
@@ -128,6 +128,19 @@ assert System.getProperty('some-prop') == 'some-value'
 
         and:
         !wasForked()
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.java5 == null })
+    def "fails when using Java 5 as the target JVM"() {
+        def java5 = AvailableJavaHomes.java5
+
+        file('gradle.properties').writeProperties("org.gradle.java.home": java5.javaHome.absolutePath)
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasDescription("${GradleVersion.current()} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
     }
 
     private def requireJvmArg(String jvmArg) {
