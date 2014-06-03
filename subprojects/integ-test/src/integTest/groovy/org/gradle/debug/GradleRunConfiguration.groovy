@@ -24,6 +24,6 @@ import org.gradle.launcher.Main
  */
 class GradleRunConfiguration {
     public static void main(String[] args) {
-        Main.main(args)
+        new Main().run(args)
     }
 }
