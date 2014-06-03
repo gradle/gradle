@@ -7,7 +7,7 @@ In addition to the breaking changes, it's business as usual with the steady evol
 The move to Groovy 2.3.2 from Groovy 1.8 brings with it all of the new features added to Groovy in this time.
 There is now a public API for resolving “source” and “javadoc” JARs for JVM library components.
 The exposing of Ivy “Extra Info” attributes enables a new class of advanced dependency management use cases.
-It is now possible to use the SFTP protocol for dependency consumption and artifact publication.
+It is now possible to use the SFTP protocol for dependency consumption.
 Maven POM profile support has also been improved through support for profile activation through absence of a system property.
 There are also other refinements and improvements detailed below, including improvements to Gradle's support for building native projects.
 
@@ -103,10 +103,10 @@ The `withId()` method is now the preferred mechanism for configuring due to the 
 
 ### Support for Ivy and Maven repositories with SFTP scheme
 
-In addition to `file`, `http` and `https`, Ivy and Maven repositories now also support the `sftp` transport scheme. Currently, authentication with the SFTP server only works based on
-providing username and password credentials.
+In addition to `file`, `http` and `https`, Ivy and Maven repositories now also support the `sftp` transport scheme. 
+Currently, authentication with the SFTP server only works based on providing username and password credentials.
 
-Here is an example usage of resolving dependencies from a SFTP server with Ivy:
+Ivy dependencies can be consumed via SFTP by specifying it as the repo protocol…
 
     apply plugin: 'java'
 
@@ -125,25 +125,7 @@ Here is an example usage of resolving dependencies from a SFTP server with Ivy:
         compile 'org.apache.commons:commons-lang3:3.3.1'
     }
 
-Resolving dependencies from a SFTP server with Maven works accordingly. Publishing is not supported yet. The following example demonstrates the use case:
-
-    apply plugin: 'java'
-
-    repositories {
-        maven {
-            url 'sftp://127.0.0.1:22/repo'
-            credentials {
-                username 'sftp'
-                password 'sftp'
-            }
-        }
-    }
-
-    dependencies {
-        compile 'org.apache.commons:commons-lang3:3.3.1'
-    }
-
-Here is an example usage of publishing an artifact to an Ivy repository hosted on a SFTP server:
+SFTP can also be used when publishing as an Ivy module…
 
     apply plugin: 'java'
     apply plugin: 'ivy-publish'
@@ -168,12 +150,33 @@ Here is an example usage of publishing an artifact to an Ivy repository hosted o
             }
         }
     }
+    
+Resolving dependencies from a SFTP server with Maven works in a similar fashion… 
 
+    apply plugin: 'java'
 
+    repositories {
+        maven {
+            url 'sftp://127.0.0.1:22/repo'
+            credentials {
+                username 'sftp'
+                password 'sftp'
+            }
+        }
+    }
+
+    dependencies {
+        compile 'org.apache.commons:commons-lang3:3.3.1'
+    }
+
+Publishing via SFTP as a Maven module is not supported at this time.
+
+This feature was contributed by [Marcin Erdmann](https://github.com/erdi).
+ 
 ### Consumed Apache Maven POM profile activation through absence of system property
 
-On top of the support for POM profiles that [are active by default](http://books.sonatype.com/mvnref-book/reference/profiles-sect-activation.html), a profile also becomes active if the
-corresponding system property is _not_ set. The following POM file demonstrates such a use case:
+Gradle 1.12 improved Maven interoperability by [supporting POM profiles that are active by default](http://www.gradle.org/docs/1.12/release-notes#support-for-consuming-apache-maven-poms-with-active-profiles). 
+In Gradle 2.0, POM profiles that are activated by absence of a system property are now respected.
 
     <project>
         ...
