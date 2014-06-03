@@ -37,8 +37,9 @@ Support for running Gradle using Java 5 has been removed, as part of this.
 
 ### New API for resolving source and javadoc artifacts (i)
 
-Gradle 2.0 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
-components and artifacts. The entry point to the new 'artifact query' API is `dependencies.createArtifactResolutionQuery()`.
+Gradle 2.0 introduces a new, incubating, API for resolving component artifacts. 
+With this addition, Gradle now offers separate dedicated APIs for resolving components and artifacts. 
+The entry point to the new 'artifact query' API is `dependencies.createArtifactResolutionQuery()`.
 
 Presently, this feature is limited to the resolution of `SourcesArtifact` and `JavadocArtifact` artifacts for a `JvmLibrary` components.
 Over time this will be expanded to permit querying of other component and artifact types.
