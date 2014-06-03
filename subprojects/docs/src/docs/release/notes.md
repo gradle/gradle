@@ -190,34 +190,35 @@ In Gradle 2.0, POM profiles that are activated by absence of a system property a
         </profiles>
     </project>
 
-### Allow control of the exact set of arguments passed to a toolchain executable
+### Fine grained control of arguments passed to native toolchain executable (i)
 
-Gradle now provides a 'hook' allowing the build author to control the exact set of arguments passed a toolchain executable.
-This will allow a build author to work around any limitations in Gradle, or incorrect assumptions that Gradle makes.
+The new `withArguments()` method available on the command line tools of a toolchain allows complete control over the arguments passed to the tool,
+after Gradle has populated the argument list based on the build model.
 
     apply plugin:'cpp'
 
     model {
         toolChains {
             visualCpp(VisualCpp) {
-                cppCompiler.withArguments { args ->
+                cppCompiler.withArguments { List<String> args ->
                     args << "-DFRENCH"
                 }
             }
             clang(Clang){
-                cCompiler.withArguments { args ->
+                cCompiler.withArguments { List<String> args ->
                     Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
                 }
-                linker.withArguments { args ->
+                linker.withArguments { List<String> args ->
                     args.remove "CUSTOM"
                 }
-                staticLibArchiver.withArguments { args ->
+                staticLibArchiver.withArguments { List<String> args ->
                     args.remove "CUSTOM"
                 }
             }
-
         }
     }
+
+This allows for greater flexibility and use of edge tool features.
 
 ### Support for adding target platform specific configurations in native binary projects (GCC based toolchains)
 
