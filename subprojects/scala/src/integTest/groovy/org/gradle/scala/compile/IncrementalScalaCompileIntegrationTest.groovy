@@ -17,13 +17,10 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
 class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
@@ -64,7 +61,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                compile 'org.scala-lang:scala-library:2.9.2'
+                compile 'org.scala-lang:scala-library:2.11.1'
             }
         """
 
