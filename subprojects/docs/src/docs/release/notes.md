@@ -1,6 +1,7 @@
 Gradle 2.0 is an important milestone in the evolution of Gradle. 
 As explained in the [Gradle 2.0 announcement](http://forums.gradle.org/gradle/topics/after_1_12_comes_2_0), the change in major version number signals a new backwards compatibility baseline.
-Many deprecated features and API have been removed in this release, allowing the development team to simplify the codebase and implement new functionality. The “Potential Breaking Changes” section of these release notes list all of the breaking changes that have been made and all Gradle users are strongly encouraged to read the list.
+Many deprecated features and API have been removed in this release, allowing the development team to simplify the codebase and implement new functionality. 
+The “Potential Breaking Changes” section of these release notes list all of the breaking changes that have been made and all Gradle users are strongly encouraged to read the list.
 
 In addition to the breaking changes, it's business as usual with the steady evolution of Gradle via new and refined API and features.
 
@@ -84,7 +85,8 @@ Here is an example:
 ### Collaborate with plugins via `plugins.withId()` (i)
 
 It is common to the need to perform some configuration only if a particular plugin has been applied.
-The standard approach for doing this to date has been to use the [`plugins.withType(Class)`](javadoc/org/gradle/api/plugins/PluginCollection.html#withType\(java.lang.Class\)) method, which requires the class object of the implementing plugin…
+The standard approach for doing this to date has been to use the [`plugins.withType(Class)`](javadoc/org/gradle/api/plugins/PluginCollection.html#withType\(java.lang.Class\)) method, 
+which requires the class object of the implementing plugin…
 
     import com.my.custom.InterestingPlugin
     
