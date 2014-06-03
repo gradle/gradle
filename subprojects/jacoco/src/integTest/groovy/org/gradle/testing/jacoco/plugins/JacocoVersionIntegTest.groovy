@@ -17,12 +17,15 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import org.junit.Test
 import static org.junit.Assert.*
 
+@Requires(TestPrecondition.JDK7_OR_EARLIER)
 @TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002'])
 class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
 
