@@ -294,17 +294,6 @@ To revert back to the old version, or to use any different version, you can use 
 
 ## Fixed issues
 
-## Deprecations
-
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
-
-<!--
-### Example deprecation
--->
-
 ## Potential breaking changes
 
 ### Upgraded to Groovy 2.3.2
