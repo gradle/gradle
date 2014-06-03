@@ -103,7 +103,7 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
         String javaPath = useAlternativeJavaPath()
 
         expect:
-        buildSucceeds "assert System.getProperty('java.home').startsWith('$javaPath')"
+        buildSucceeds "assert System.getProperty('java.home').startsWith('${TextUtil.escapeString(javaPath)}')"
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || System.getProperty('java.runtime.version') == null})
