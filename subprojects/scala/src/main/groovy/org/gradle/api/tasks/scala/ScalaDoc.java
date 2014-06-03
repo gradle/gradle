@@ -30,23 +30,14 @@ public class ScalaDoc extends SourceTask {
 
     private File destinationDir;
 
-    private Iterable<File> classpath;
+    private FileCollection classpath;
     private FileCollection scalaClasspath;
-    private AntScalaDoc antScalaDoc;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
 
     @Inject
-    public ScalaDoc(IsolatedAntBuilder antBuilder) {
-        antScalaDoc = new AntScalaDoc(antBuilder);
-    }
-
-    public AntScalaDoc getAntScalaDoc() {
-        return antScalaDoc;
-    }
-
-    public void setAntScalaDoc(AntScalaDoc antScalaDoc) {
-        this.antScalaDoc = antScalaDoc;
+    protected IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -71,7 +62,7 @@ public class ScalaDoc extends SourceTask {
         return classpath;
     }
 
-    public void setClasspath(Iterable<File> classpath) {
+    public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
 
@@ -117,7 +108,8 @@ public class ScalaDoc extends SourceTask {
         if (!GUtil.isTrue(options.getDocTitle())) {
             options.setDocTitle(getTitle());
         }
-        getAntScalaDoc().execute(getSource(), getDestinationDir(), getClasspath(), getScalaClasspath(), options);
+        AntScalaDoc antScalaDoc = new AntScalaDoc(getAntBuilder());
+        antScalaDoc.execute(getSource(), getDestinationDir(), getClasspath(), getScalaClasspath(), options);
     }
 
 }
