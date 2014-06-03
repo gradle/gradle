@@ -64,9 +64,11 @@ For an example usage of the new API, see <a href="dsl/org.gradle.api.artifacts.q
 
 ### Accessing Ivy extra info from component metadata rules
 
-It's now possible to access Ivy extra info from component metadata rules. Roughly speaking, Ivy extra info is a set of user-defined
-key-value pairs published in the Ivy module descriptor. Rules wishing to access the extra info need to specify a parameter of type
-`IvyModuleMetadata`. Here is an example:
+It's now possible to access Ivy extra info from component metadata rules. 
+Roughly speaking, Ivy extra info is a set of user-defined key-value pairs published in the Ivy module descriptor. 
+Rules wishing to access the extra info need to specify a parameter of type `IvyModuleMetadata`. 
+
+Here is an example:
 
     dependencies {
         components {
