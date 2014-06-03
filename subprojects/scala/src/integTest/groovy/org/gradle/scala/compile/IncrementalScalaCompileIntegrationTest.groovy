@@ -24,10 +24,6 @@ import spock.lang.Issue
 
 @TargetVersions(["2.10.4", "2.11.1"])
 class IncrementalScalaCompileIntegrationTest extends MultiVersionIntegrationSpec {
-    def setup() {
-
-    }
-
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def recompilesSourceWhenPropertiesChange() {
