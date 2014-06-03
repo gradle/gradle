@@ -6,6 +6,16 @@ Here are the new features introduced in this Gradle release.
 
 Gradle now uses Groovy 2.3.2 to compile and run build scripts and plugins.
 
+### Support for Java 8
+
+TBD
+
+Note:
+- Delay on shutdown on OS X and Linux.
+- Not all tools fully support Java 8. eg Scala support is experimental.
+
+Support for running Gradle using Java 5 has been removed, as part of this.
+
 ### New API for resolving source and javadoc artifacts (i)
 
 Gradle 2.0 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
