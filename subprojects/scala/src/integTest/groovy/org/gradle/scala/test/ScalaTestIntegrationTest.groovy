@@ -18,11 +18,8 @@ package org.gradle.scala.test
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
 class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     
@@ -35,8 +32,8 @@ repositories {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:2.9.2"
-    testCompile "org.scalatest:scalatest_2.9.2:1.8"
+    compile "org.scala-lang:scala-library:2.11.1"
+    testCompile "org.scalatest:scalatest_2.11:2.1.5"
     testCompile "junit:junit:4.11"
 }
         """

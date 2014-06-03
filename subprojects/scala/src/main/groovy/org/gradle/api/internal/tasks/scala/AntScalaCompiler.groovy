@@ -92,15 +92,20 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     }
 
     private String chooseBackend(ScalaCompileSpec spec) {
-        def target = VersionNumber.parse(spec.targetCompatibility)
-        if (target <= VersionNumber.parse("1.5")) { return "jvm-${target.major}.${target.minor}" }
-
+        def maxSupported
         def scalaVersion = sniffScalaVersion(spec.scalaClasspath)
         if (scalaVersion >= VersionNumber.parse("2.10.0-M5")) {
-            return "jvm-${target.major}.${target.minor}"
+            maxSupported = VersionNumber.parse("1.7")
+        } else {
+            // prior to Scala 2.10.0-M5, scalac Ant task only supported "jvm-1.5" and "msil" backends
+            maxSupported = VersionNumber.parse("1.5")
         }
 
-        // prior to Scala 2.10.0-M5, scalac Ant task only supported "jvm-1.5" and "msil" backends
-        return "jvm-1.5"
+        def target = VersionNumber.parse(spec.targetCompatibility)
+        if (target > maxSupported) {
+            target = maxSupported
+        }
+
+        return "jvm-${target.major}.${target.minor}"
     }
 }

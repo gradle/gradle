@@ -23,7 +23,6 @@ import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
@@ -49,7 +48,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.9.2'
+                        compile 'org.scala-lang:scala-library:2.11.1'
                     }
 
                     compileScala {
@@ -83,7 +82,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.9.2'
+                        compile 'org.scala-lang:scala-library:2.11.1'
                     }
                     """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
