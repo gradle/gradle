@@ -274,20 +274,24 @@ See the [User Guide](userguide/dependency_management.html#N150B8) and the
 [DSL Reference](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout\(java.lang.String,%20groovy.lang.Closure\)) 
 for more detail on how to use named layouts.
 
-### Default code quality tool versions updated
+### Default versions of code quality tools updated
 
-- Checkstyle 5.7
-- CodeNarc 0.21
-- PMD 5.1.1
-- Findbugs 2.0.3
-- JaCoCo 0.7.1.201405082137
+The code quality plugins now use the latest version of the corresponding tool as of the Gradle 2.0 release.
 
-You can use the appropriate `toolVersion` property to specify a different version. For example:
+The new versions are:
+
+- Checkstyle: 5.7
+- CodeNarc: 0.21
+- PMD: 5.1.1
+- Findbugs: 2.0.3
+- JaCoCo: 0.7.1.201405082137
+
+To revert back to the old version, or to use any different version, you can use the appropriate `toolVersion` property.
 
     pmd {
-        toolVersion = '4.3'
+      toolVersion = '4.3'
     }
-    
+
 ## Fixed issues
 
 ## Deprecations
