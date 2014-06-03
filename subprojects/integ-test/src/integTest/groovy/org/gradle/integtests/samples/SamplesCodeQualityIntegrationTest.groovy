@@ -18,11 +18,16 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.PreconditionVerifier
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.Test
 
+// FindBugs does not support Java 8 yet
+@Requires(TestPrecondition.JDK7_OR_EARLIER)
 class SamplesCodeQualityIntegrationTest extends AbstractIntegrationTest {
-
+    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'codeQuality')
 
     @Test
