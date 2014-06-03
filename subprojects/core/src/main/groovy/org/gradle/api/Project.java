@@ -1109,7 +1109,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>If this project has a task with the given name, return the task.</li>
      *
-     * <li>Search up through this project's ancestor projects for a convention property or additional property with the
+     * <li>Search up through this project's ancestor projects for a convention property or extra property with the
      * given name.</li>
      *
      * <li>If not found, a {@link MissingPropertyException} is thrown.</li>
