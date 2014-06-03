@@ -242,6 +242,20 @@ See the [User Guide](/dependency_management.html#N150B8) and the
 <a href="dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String, groovy.lang.Closure)">
 DSL Reference</a> for more detail on how to use named layouts.
 
+### Default code quality tool versions updated
+
+- Checkstyle 5.7
+- CodeNarc 0.21
+- PMD 5.1.1
+- Findbugs 2.0.3
+- JaCoCo 0.7.1.201405082137
+
+You can use the appropriate `toolVersion` property to specify a different version. For example:
+
+    pmd {
+        toolVersion = '4.3'
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -276,6 +290,10 @@ that you recompile some plugins and may also require some source changes.
 ### Can no longer run Gradle using Java 5
 
 Due to the upgrade to Groovy 2.3.2, Gradle can no longer be run using Java 5. It is still possible to build Java projects for Java 5.
+
+### Upgraded default PMD version to PMD 5.1.1
+
+Was 4.3. You can use the `pmd.toolVersion` to specify a different version.
 
 ### Custom TestNG listeners are applied before Gradle's listeners
 
