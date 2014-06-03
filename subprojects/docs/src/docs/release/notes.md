@@ -296,29 +296,35 @@ To revert back to the old version, or to use any different version, you can use 
 
 ## Potential breaking changes
 
+The Gradle 2.0 release contains many breaking changes, as it is a major version number change and the setting of a new compatibility baseline.
+
 ### Upgraded to Groovy 2.3.2
 
-Gradle now uses Groovy 2.3.2 to compile and run scripts and plugins. Generally, this should be backwards compatible. However, this change may require
-that you recompile some plugins and may also require some source changes.
+Gradle now uses Groovy 2.3.2 to compile and run scripts and plugins. 
+
+Generally, Groovy is backwards compatible. 
+However, this change may require that you recompile some plugins and may also require some source changes.
+It is not guaranteed that Groovy based plugins built with Gradle 1.x will work with Gradle 2.x, but most will.
 
 ### Can no longer run Gradle using Java 5
 
-Due to the upgrade to Groovy 2.3.2, Gradle can no longer be run using Java 5. It is still possible to build Java projects for Java 5.
+Due to the upgrade to Groovy 2.3.2, Gradle can no longer be run using Java 5. 
+It is still possible to build Java projects for Java 5 by running with Java 6 or higher, but configuring compilation and test execution to use a different JDK.
 
-### Upgraded default PMD version to PMD 5.1.1
+### Upgrades to code quality tool default versions
 
-Was 4.3. You can use the `pmd.toolVersion` to specify a different version.
+As mentioned in “New and Noteworthy”, the default versions of all code quality tools have been updated.
+Generally, these tools are backwards compatible.
 
 ### Custom TestNG listeners are applied before Gradle's listeners
 
-This way the custom listeners are more robust because they can affect the test status.
-There should be no impact of this change because majority of users do not employ custom listeners
-and even if they do healthy listeners will work correctly regardless of the listeners' order.
+This change is unlikely to affect any custom listeners, but is mentioned for completeness.
 
 ### Support for reading or changing file permissions on certain platforms with Java 6
 
-Gradle previously supported file permissions on Solaris and on Linux ia-64 using Java 6. This support has
-been removed. You will receive a warning when attempting to use file permissions on these platforms.
+Gradle previously supported file permissions on Solaris and on Linux ia-64 using Java 6. 
+This support has been removed. 
+You will receive a warning when attempting to use file permissions on these platforms.
 
 Note that file permissions are supported on these platforms when you use Java 7 and later, and is supported for all Java
 versions on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
@@ -327,8 +333,9 @@ If you wish to have support for file permissions on other platforms and architec
 
 ### Support for terminal integration on certain platforms
 
-Gradle previously supported terminal integration on Solaris and Linux ia-64. This support has been removed. When you use Gradle on these
-platforms, Gradle will fall back to using plain text output.
+Gradle previously supported terminal integration on Solaris and Linux ia-64. 
+This support has been removed. 
+When you use Gradle on these platforms, Gradle will fall back to using plain text output.
 
 Note that terminal integration is supported on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
 
@@ -381,7 +388,8 @@ Previously, Gradle would create a property on a domain object when assigning a v
     project.myProperty = 'some value'
     assert myProperty == 'some value'
 
-This behaviour has been deprecated since Gradle 1.?? and is now an error. Instead, you should either use the `ext` namespace or use a local variable:
+This behavior has been deprecated for 2 years of Gradle releases and is now an error. 
+Instead, you should either use the `ext` namespace or use a local variable:
 
     def myProperty = 'some value'
     assert myProperty == 'some value'
@@ -551,7 +559,7 @@ Certain operations on a task are no longer possible once the task has started ex
 - Changing the dependencies of the task, such as calling `dependsOn 'someTask'`
 - Changing the inputs and outputs of the task, such as calling `inputs.file('build/some-file.txt')`
 
-This behaviour was deprecated and now fails with an exception.
+This behavior was deprecated and now fails with an exception.
 
 ### Removed incubating method
 
