@@ -274,6 +274,8 @@ See the [User Guide](userguide/dependency_management.html#N150B8) and the
 [DSL Reference](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout\(java.lang.String,%20groovy.lang.Closure\)) 
 for more detail on how to use named layouts.
 
+This feature was contributed by [Ben McCann](https://github.com/benmccann).
+
 ### Default versions of code quality tools updated
 
 The code quality plugins now use the latest version of the corresponding tool as of the Gradle 2.0 release.
