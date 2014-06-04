@@ -19,7 +19,6 @@ The following stories are to be included in Gradle 2.0.
 ## Upgrade to most recent Groovy 2.2.x
 
 * Change the version of Groovy exposed via the Gradle API to most recent Groovy 2.2.x version.
-* Add int test coverage for compilation and groovydoc for various permutations of Groovy versions, jvm and (`groovy` or `groovy-all`)
 
 ## Remove support for running Gradle on Java 5
 
@@ -32,7 +31,7 @@ Would still be able to build for Java 5.
 * Document the JVM requirements in the user guide.
 * Update CI builds to use newer Java versions.
     * Increment the daemon and cross version builds to use newer JVM.
-    * Disable the JAva 5 build.
+    * Disable the Java 5 build.
     * Change Java 8 builds to perform quickTest.
     * Add Java 8 builds as dependencies of stage 3.
 * Entry points fail with reasonable error message when executed using Java 5.
@@ -51,6 +50,13 @@ Would still be able to build for Java 5.
 * Remove the special case logging from `LogbackLoggingConfigurer`.
 * Clean up usages of `TestPrecondition.JDK5` and related preconditions.
 * Add warning when using Java version > 8 to inform the user that the Java version may not be supported.
+* Add int test coverage for Groovy compilation and groovydoc for various permutations of Groovy version, Java version and (`groovy` or `groovy-all`)
+* Add int test coverage for Scala compilation and scaladoc for various permutations of Scala version, Java version and (`scala-library` or `scala-library-all`)
+* Add int test coverage for PMD for various permutations of PMD and Java version.
+* Add int test coverage for JaCoCo for various permutations of JaCoCo and Java version.
+* Run Sonar int tests on Java 8.
+* Run FindBugs int tests on Java 8.
+* Remove the `JDK7_OR_EARLIER` precondition from various tests.
 
 ## Test output directories
 

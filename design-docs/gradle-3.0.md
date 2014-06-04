@@ -42,6 +42,7 @@ Alternatively, default the group to `null` and status to `integration`.
 ## Remove the Ant-task based Scala compiler
 
 * Change the default for `useAnt` to `false` and deprecate the `useAnt` property.
+* Do a better job of matching up the target jvm version with the scala compiler backend.
 
 ## Don't inject tools.jar into the system ClassLoader
 
