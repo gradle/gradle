@@ -17,10 +17,9 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.util.GradleVersion;
 
 public class JavaRuntimeValidationAction implements Action<ExecutionListener> {
     private final Action<? super ExecutionListener> action;
@@ -30,9 +29,8 @@ public class JavaRuntimeValidationAction implements Action<ExecutionListener> {
     }
 
     public void execute(ExecutionListener executionListener) {
-        JavaVersion javaVersion = JavaVersion.current();
-        if (!javaVersion.isJava6Compatible()) {
-            throw new GradleException(String.format("%s requires Java 6 or later to run. You are currently using Java %s.", GradleVersion.current(), javaVersion.getMajorVersion()));
+        if (!JavaVersion.current().isJava6Compatible()) {
+            throw UnsupportedJavaRuntimeException.usingUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6);
         }
         action.execute(executionListener);
     }

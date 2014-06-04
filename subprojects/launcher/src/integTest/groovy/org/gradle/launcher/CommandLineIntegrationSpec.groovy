@@ -31,6 +31,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failure.assertHasDescription("${GradleVersion.current()} requires Java 6 or later to run. You are currently using Java 5.")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. You are currently using Java 5.")
     }
 }

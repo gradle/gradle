@@ -124,6 +124,6 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
 
         expect:
         fails()
-        failure.assertHasDescription("${GradleVersion.current()} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
     }
 }

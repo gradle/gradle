@@ -16,12 +16,11 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.util.GradleVersion;
 
 import java.io.*;
 import java.util.regex.Matcher;
@@ -44,7 +43,7 @@ public class JvmVersionValidator {
 
         JavaVersion javaVersion = parse(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
         if (!javaVersion.isJava6Compatible()) {
-            throw new GradleException(String.format("%s requires Java 6 or later to run. Your build is currently configured to use Java %s.", GradleVersion.current(), javaVersion.getMajorVersion()));
+            throw UnsupportedJavaRuntimeException.configuredWithUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6, javaVersion);
         }
     }
 
