@@ -9,6 +9,10 @@ This support will be based on a Gradle core plugin that plugin authors can apply
 
 ## As a plugin author, I want to develop and run automated tests for my plugin functionality
 
+## As a plugin author, I want to manually test my plugin before releasing
+
+Possibly by testing locally before publishing, or perhaps by staging remotely and then promoting after verification.
+
 ## As a plugin author, I want to provide documentation for my plugin in a standard format 
 
 Where the format is “standard” for Gradle plugins (and may be specially understood by the plugin portal).
@@ -107,6 +111,8 @@ As we are likely to eventually support more publishing destinations than Bintray
     - Same question for other metadata such as tags, website etc.
 - Should the plugin perform any version number management (i.e. increment on releases, de -SNAPSHOT)?
 - Should the ability to publish to maven local for local testing be included?
+- What failures do we handle and how? eg failure applying the metadata after uploading the artifacts
+- What validation do we apply?
 
 ## Story: Plugin development plugin is made public
 
@@ -114,3 +120,9 @@ As we are likely to eventually support more publishing destinations than Bintray
 - Include the plugin DSL in the DSL guide.
 - Update the 'writing plugins' chapter to include a description and sample of using the dev plugin.
 - Include in the release notes.
+
+# Later features
+
+- Build init plugin generates a template Gradle plugin project.
+- Plugin author writes and run functional tests for plugin.
+- Plugin author generates and uploads documentation for plugin.
