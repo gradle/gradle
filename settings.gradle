@@ -57,6 +57,7 @@ include 'buildInit'
 include 'languageBase'
 include 'languageJvm'
 include 'pluginUse'
+include 'plugin-development'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
