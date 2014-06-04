@@ -92,8 +92,7 @@ public class TestClient {
         def out = runScript()
 
         then:
-        out.contains("Could not execute build using Gradle installation")
-        out.contains("Gradle ${targetDist.version.version} requires Java 6 or later to run. You are currently using Java 5.")
+        out.contains("Gradle Tooling API ${targetDist.version.version} requires Java 6 or later to run. You are currently using Java 5.")
     }
 
     def runScript() {
