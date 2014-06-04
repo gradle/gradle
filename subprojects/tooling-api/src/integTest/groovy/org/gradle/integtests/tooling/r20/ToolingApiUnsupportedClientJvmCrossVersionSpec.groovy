@@ -75,7 +75,7 @@ public class TestClient {
     }
 
     @TargetGradleVersion("current")
-    @ToolingApiVersion("<=1.12")
+    @ToolingApiVersion(">=1.2 <=1.12")
     def "cannot use old tooling API client to run build using Java 5"() {
         when:
         def out = runScript()

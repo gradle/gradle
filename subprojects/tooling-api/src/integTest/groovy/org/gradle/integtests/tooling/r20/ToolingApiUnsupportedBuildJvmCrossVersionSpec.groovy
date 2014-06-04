@@ -20,6 +20,7 @@ package org.gradle.integtests.tooling.r20
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
@@ -57,6 +58,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 6 or later to run. Your build is currently configured to use Java 5."
     }
 
+    @ToolingApiVersion(">=1.8")
     def "cannot run action when build is configured to use Java 5"() {
         when:
         toolingApi.withConnection { ProjectConnection connection ->
