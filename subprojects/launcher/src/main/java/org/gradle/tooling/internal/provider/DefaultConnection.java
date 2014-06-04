@@ -15,9 +15,11 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -114,7 +116,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
-        logTargetVersion();
+        validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(buildParameters);
         String modelName = new ModelMapping().getModelNameFromProtocolType(type);
         T result = (T) connection.run(modelName, providerParameters);
@@ -125,7 +127,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 1.6-rc-1 and later
      */
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        logTargetVersion();
+        validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         Object result = connection.run(modelIdentifier.getName(), providerParameters);
         return new ProviderBuildResult<Object>(result);
@@ -135,14 +137,17 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 1.8-rc-1 and later.
      */
     public <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        logTargetVersion();
+        validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         Object results = connection.run(action, providerParameters);
         return new ProviderBuildResult<T>((T) results);
     }
 
-    private void logTargetVersion() {
+    private void validateCanRun() {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
+        if (!JavaVersion.current().isJava6Compatible()) {
+            throw UnsupportedJavaRuntimeException.usingUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6);
+        }
     }
 
     private UnsupportedVersionException unsupportedConnectionException() {
