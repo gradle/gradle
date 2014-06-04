@@ -17,14 +17,11 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
 import org.jmock.integration.junit4.JMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
 
 import static org.gradle.api.tasks.compile.AbstractCompileTest.*;
 import static org.junit.Assert.assertEquals;
@@ -33,8 +30,6 @@ import static org.junit.Assert.assertSame;
 @RunWith(JMock.class)
 public class ScalaDocTest extends AbstractTaskTest {
     private ScalaDoc scalaDoc;
-    private File destDir;
-    private File srcDir;
 
     @Override
     public AbstractTask getTask() {
@@ -43,9 +38,6 @@ public class ScalaDocTest extends AbstractTaskTest {
 
     @Before
     public void setUp() {
-        destDir = getProject().file("destDir");
-        srcDir = getProject().file("src");
-        GFileUtils.touch(new File(srcDir, "file.scala"));
         scalaDoc = createTask(ScalaDoc.class);
     }
 
