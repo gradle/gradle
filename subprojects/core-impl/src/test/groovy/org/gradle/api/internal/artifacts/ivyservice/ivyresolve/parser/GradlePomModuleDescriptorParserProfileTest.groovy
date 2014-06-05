@@ -18,9 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
+import spock.lang.Issue
 
-import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
+import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
 class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModuleDescriptorParserTest {
     def "pom with project coordinates defined by active profile properties"() {
@@ -1645,5 +1646,90 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
+    }
+
+    @Issue("GRADLE-3074")
+    def "pom with packaging defined in active profile"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>\${package.type}</packaging>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <package.type>war</package.type>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        when:
+        def metaData = parseMetaData()
+        def descriptor = metaData.descriptor
+
+        then:
+        descriptor.allArtifacts.length == 0
+        metaData.packaging == 'war'
+    }
+
+    @Issue("GRADLE-3074")
+    def "pom with packaging defined by custom property in active profile of parent pom"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <package.type>war</package.type>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>\${package.type}</packaging>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def metaData = parseMetaData()
+        def descriptor = metaData.descriptor
+
+        then:
+        descriptor.allArtifacts.length == 0
+        metaData.packaging == 'war'
     }
 }

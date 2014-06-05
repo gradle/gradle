@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.gradle.api.internal.artifacts.metadata.MavenModuleVersionMetaData
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
 
-import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
+import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
 class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescriptorParserTest {
     def "parses simple pom"() {
@@ -1268,6 +1269,74 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         then:
         descriptor.allArtifacts.length == 0
         metaData.packaging == 'pom'
+    }
+
+    @Issue("GRADLE-3074")
+    def "pom with packaging defined by custom property"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>\${package.type}</packaging>
+    <properties>
+        <package.type>war</package.type>
+    </properties>
+</project>
+"""
+
+        when:
+        def metaData = parseMetaData()
+        def descriptor = metaData.descriptor
+
+        then:
+        descriptor.allArtifacts.length == 0
+        metaData.packaging == 'war'
+    }
+
+    @Issue("GRADLE-3074")
+    def "pom with packaging defined by custom property in parent pom"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <properties>
+        <package.type>war</package.type>
+    </properties>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>\${package.type}</packaging>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def metaData = parseMetaData()
+        def descriptor = metaData.descriptor
+
+        then:
+        descriptor.allArtifacts.length == 0
+        metaData.packaging == 'war'
     }
 
     def "pom with project coordinates defined by custom properties"() {

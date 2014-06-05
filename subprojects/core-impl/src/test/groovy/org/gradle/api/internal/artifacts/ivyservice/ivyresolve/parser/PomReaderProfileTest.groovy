@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile
 import org.gradle.internal.id.UUIDGenerator
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class PomReaderProfileTest extends AbstractPomReaderTest {
     def "parse POM without active profile"() {
@@ -2316,5 +2318,47 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
         pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
         !pomReader.findDependencyDefaults(keyGroupThree)
+    }
+
+    @Issue("GRADLE-3074")
+    @Unroll
+    def "can define #packaging packaging in active profile"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>\${package.type}</packaging>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <package.type>$packaging</package.type>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.groupId == 'group-one'
+        pomReader.artifactId == 'artifact-one'
+        pomReader.version == 'version-one'
+        pomReader.packaging == packaging
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 1
+        activePomProfiles[0].properties.size() == 1
+        activePomProfiles[0].properties.containsKey('package.type')
+        activePomProfiles[0].properties['package.type'] == packaging
+
+        where:
+        packaging << ['pom', 'jar', 'ejb', 'war', 'ear', 'rar', 'par']
     }
 }

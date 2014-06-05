@@ -271,7 +271,7 @@ public class PomReader implements PomParent {
         if (val == null) {
             val = "jar";
         }
-        return val;
+        return replaceProps(val);
     }
 
     public String getHomePage() {
