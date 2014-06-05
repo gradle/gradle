@@ -33,13 +33,16 @@ For information on what's new in Groovy, please check the [Groovy project site](
 
 ### Support for Java 8
 
-TBD
+Running Gradle with Java 8 is now tested for and supported.
+Java 8 is a substantial update with many substantial changes, as such some tools used by your builds may not be fully compatible yet.
+For example, Scala's support for Java 8 is still experimental.
 
-Note:
-- Delay on shutdown on OS X and Linux.
-- Not all tools fully support Java 8. eg Scala support is experimental.
+A regression within the Java 8 JRE has been identified that causes Gradle to appear to hang for a short amount of time at the end of a non-daemon build on Mac OS X and Linux.
+Windows users, and users using the [Gradle Daemon](http://www.gradle.org/docs/current/userguide/gradle_daemon.html) are unaffected.
+The Java 8 team are aware of this issue and it will be addressed a future release of Java 8.
 
-Support for running Gradle using Java 5 has been removed, as part of this.
+In order to support executing Gradle with Java 8, support for Java 1.5 had to be removed.
+For more on the detail of why this was necessary, please see [this forum post](http://forums.gradle.org/gradle/topics/gradle_2_0_will_drop_support_for_java_5_and_will_fully_support_java_8).
 
 ### New API for resolving source and javadoc artifacts (i)
 
@@ -319,6 +322,8 @@ It is not guaranteed that Groovy based plugins built with Gradle 1.x will work w
 
 Due to the upgrade to Groovy 2.3.2, Gradle can no longer be run using Java 5. 
 It is still possible to build Java projects for Java 5 by running with Java 6 or higher, but configuring compilation and test execution to use a different JDK.
+
+For more on the detail of why this was necessary, please see [this forum post](http://forums.gradle.org/gradle/topics/gradle_2_0_will_drop_support_for_java_5_and_will_fully_support_java_8).
 
 ### Upgrades to code quality tool default versions
 
