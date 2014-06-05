@@ -8,7 +8,7 @@ In addition to the breaking changes, it's business as usual with the steady evol
 The move to Groovy 2.3.2 from Groovy 1.8 brings with it all of the new features added to Groovy in this time.
 There is now a public API for resolving “source” and “javadoc” JARs for JVM library components.
 The exposing of Ivy “Extra Info” attributes enables a new class of advanced dependency management use cases.
-It is now possible to use the SFTP protocol for dependency consumption.
+It is now possible to use the SFTP protocol for dependency consumption without using custom Ivy resolvers.
 Maven POM profile support has also been improved through support for profile activation through absence of a system property.
 There are also other refinements and improvements detailed below, including improvements to Gradle's support for building native projects.
 
