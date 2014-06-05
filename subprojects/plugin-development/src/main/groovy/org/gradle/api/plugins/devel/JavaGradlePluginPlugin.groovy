@@ -66,7 +66,7 @@ class JavaGradlePluginPlugin implements Plugin<Project> {
         }
     }
 
-    def class FindPluginDescriptorAction implements Action<FileCopyDetails> {
+    static class FindPluginDescriptorAction implements Action<FileCopyDetails> {
         boolean foundDescriptor = false
         String pluginImplementation
         String descriptorLocation
@@ -83,8 +83,16 @@ class JavaGradlePluginPlugin implements Plugin<Project> {
         }
     }
 
-    def class ClassManifestCollectorAction implements Action<FileCopyDetails> {
-        List<String> classList = []
+    static class ClassManifestCollectorAction implements Action<FileCopyDetails> {
+        HashSet<String> classList
+
+        ClassManifestCollectorAction() {
+            classList = new HashSet<String>()
+        }
+
+        ClassManifestCollectorAction(Collection<String> c) {
+            classList = new HashSet<String>(c)
+        }
 
         @Override
         void execute(FileCopyDetails fileCopyDetails) {

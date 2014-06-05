@@ -29,7 +29,7 @@ import spock.lang.Specification
 class JavaGradlePluginPluginTest extends Specification {
     def project = TestUtil.builder().withName("plugin").build()
 
-    def "FindPluginDescriptor correctly identifies plugin descriptor file" (String contents, boolean expectedValue) {
+    def "FindPluginDescriptor correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedFoundValue) {
         setup:
         Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.FindPluginDescriptorAction()
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
@@ -38,13 +38,14 @@ class JavaGradlePluginPluginTest extends Specification {
 
         expect:
         findPluginDescriptor.execute(stubDetails)
-        findPluginDescriptor.foundDescriptor == expectedValue
+        findPluginDescriptor.foundDescriptor == expectedFoundValue
+        findPluginDescriptor.pluginImplementation == expectedPluginImpl
 
         where:
-        contents                             | expectedValue
-        'implementation-class=xxx.SomeClass' | true
-        'implementation-class='              | false
-        ''                                   | false
+        contents                             | expectedPluginImpl | expectedFoundValue
+        'implementation-class=xxx.SomeClass' | 'xxx.SomeClass'    | true
+        'implementation-class='              | null               | false
+        ''                                   | null               | false
     }
 
     def "ClassManifestCollector captures class name" () {
@@ -61,10 +62,9 @@ class JavaGradlePluginPluginTest extends Specification {
         classManifestCollector.classList.contains('com/xxx/TestPlugin.class')
     }
 
-    def "ClassMainfestCollector finds fully qualified class" (List classList, String fqClass, boolean expectedValue) {
+    def "ClassManifestCollector finds fully qualified class" (List classList, String fqClass, boolean expectedValue) {
         setup:
-        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction()
-        classManifestCollector.classList = classList
+        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction(classList as Collection<String>)
 
         expect:
         classManifestCollector.hasFullyQualifiedClass(fqClass) == expectedValue

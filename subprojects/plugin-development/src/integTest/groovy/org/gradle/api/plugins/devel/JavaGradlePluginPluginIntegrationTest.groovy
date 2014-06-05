@@ -100,7 +100,7 @@ jar {
     @Ignore
     def goodPluginDescriptor() {
         file('src/main/resources/META-INF/gradle-plugins/test-plugin.properties') << """
-implementation-class=com/xxx/TestPlugin
+implementation-class=com.xxx.TestPlugin
 """
     }
 
