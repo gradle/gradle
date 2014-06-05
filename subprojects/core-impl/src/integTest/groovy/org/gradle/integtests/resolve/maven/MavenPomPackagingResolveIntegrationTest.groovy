@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import spock.lang.FailsWith
 import spock.lang.Issue
 
 class MavenPomPackagingResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -327,8 +326,7 @@ compile 'group:mavenProject:1.0'
         succeeds 'retrieve'
     }
 
-    @FailsWith(value = AssertionError, reason = "Pending better fix for GRADLE-2188")
-    def "does not emit deprecation warning if dependency type is used to locate artifact, even if custom packaging matches file extension"() {
+    def "will use dependency type to locate artifact, even when custom packaging matches artifact type"() {
         when:
         buildWithDependencies("""
 compile('group:projectA:1.0') {
@@ -342,8 +340,6 @@ compile('group:projectA:1.0') {
 
         and:
         projectARepo1.pom.expectGet()
-        // TODO - should not need this head request
-        projectARepo1.artifact.expectHead()
         projectARepo1.artifact.expectGet()
 
         then:
@@ -352,9 +348,6 @@ compile('group:projectA:1.0') {
         and:
         file('libs').assertHasDescendants('projectA-1.0.zip')
         file('libs/projectA-1.0.zip').assertIsCopyOf(projectARepo1.artifactFile)
-
-        and: "Stop the http server here to allow failure to be declared (otherwise occurs in tearDown) - remove this when the test is fixed"
-        server.stop()
 
         // Check caching
         when:
