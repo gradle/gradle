@@ -3,6 +3,11 @@ As explained in the [Gradle 2.0 announcement](http://forums.gradle.org/gradle/to
 Many deprecated features and API have been removed in this release, allowing the development team to simplify the codebase and implement new functionality. 
 The “Potential Breaking Changes” section of these release notes list all of the breaking changes that have been made and all Gradle users are strongly encouraged to read the list.
 
+Gradle has matured considerably in the evolution from 1.0 to 2.0.
+It is more performant and is more memory efficient, particularly for large builds.
+Performance optimization is a persistent area of investment and work, with further optimizations to come during the 2.x stream.
+Performance, in all aspects, is critically important to a build system. 
+
 In addition to the breaking changes, it's business as usual with the steady evolution of Gradle via new and refined API and features.
 
 The move to Groovy 2.3.2 from Groovy 1.8 brings with it all of the new features added to Groovy in this time.
