@@ -82,7 +82,9 @@ public class TypeMetaData implements Serializable, TypeContainer {
         }
         TypeMetaData rawType = new TypeMetaData(name);
         rawType.arrayDimensions = arrayDimensions;
-        rawType.varargs = varargs;
+        if (varargs) {
+            rawType.arrayDimensions++;
+        }
         return rawType;
     }
 
