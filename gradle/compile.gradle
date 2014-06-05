@@ -1,4 +1,4 @@
-tasks.withType(Compile) {
+tasks.withType(JavaCompile) {
     options.encoding = 'utf-8'
     options.compilerArgs = ['-Xlint:-options']
 }

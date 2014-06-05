@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class ExtractDslMetaDataTaskTest extends Specification {
     final Project project = new ProjectBuilder().build()
-    final ExtractDslMetaDataTask task = project.tasks.add('dsl', ExtractDslMetaDataTask.class)
+    final ExtractDslMetaDataTask task = project.tasks.create('dsl', ExtractDslMetaDataTask.class)
     final SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>()
 
     def setup() {
