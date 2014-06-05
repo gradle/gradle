@@ -50,8 +50,8 @@ Gradle 2.0 introduces a new, incubating, API for resolving component artifacts.
 With this addition, Gradle now offers separate dedicated APIs for resolving components and artifacts. 
 The entry point to the new 'artifact query' API is `dependencies.createArtifactResolutionQuery()`.
 
-Presently, this feature is limited to the resolution of `SourcesArtifact` and `JavadocArtifact` artifacts for a `JvmLibrary` components.
-Over time this will be expanded to permit querying of other component and artifact types.
+Presently, this feature is limited to the resolution of `SourcesArtifact` and `JavadocArtifact` artifacts for `JvmLibrary` components.
+Over time this will be expanded to allow querying of other component and artifact types.
 
 For example, to get the source artifacts for all 'compile' dependencies:
 
@@ -71,7 +71,7 @@ For example, to get the source artifacts for all 'compile' dependencies:
 
 For an example usage of the new API, see <a href="dsl/org.gradle.api.artifacts.query.ArtifactResolutionQuery.html">the DSL Reference</a>.
 
-### Accessing Ivy extra info from component metadata rules (i)
+### Access Ivy extra info from component metadata rules (i)
 
 It's now possible to access Ivy extra info from [component metadata rules](dsl/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html). 
 Roughly speaking, Ivy extra info is a set of user-defined key-value pairs published in the Ivy module descriptor. 
@@ -103,18 +103,18 @@ which requires the class object of the implementing plugin…
     }
 
 The new [`plugins.withId(String)`](javadoc/org/gradle/api/plugins/PluginContainer.html#withId\(java.lang.String,%20org.gradle.api.Action\)) 
-makes this more convenient by allowing the ID of the plugin to be used instead of the implementing class…
+method makes this more convenient by allowing the ID of the plugin to be used instead of the implementing class…
 
     plugins.withId("interesting") {
       // perform some configuration after the “interesting” plugin has been applied if it ever is
     }
 
-The `withId()` method is now the preferred mechanism for configuring due to the presence of a plugin.
+The `withId()` method is now the preferred mechanism for configuration conditional on the presence of a plugin.
 
 ### Support for Ivy and Maven repositories with SFTP scheme
 
 In addition to `file`, `http` and `https`, Ivy and Maven repositories now also support the `sftp` transport scheme. 
-Currently, authentication with the SFTP server only works based on providing username and password credentials.
+Currently, authentication with the SFTP server supports only username and password credentials.
 
 Ivy dependencies can be consumed via SFTP by specifying it as the repo protocol…
 
@@ -127,7 +127,6 @@ Ivy dependencies can be consumed via SFTP by specifying it as the repo protocol�
                 username 'sftp'
                 password 'sftp'
             }
-            layout 'maven'
         }
     }
 
@@ -151,7 +150,6 @@ SFTP can also be used when publishing as an Ivy module…
                     username 'sftp'
                     password 'sftp'
                 }
-                layout 'maven'
             }
         }
         publications {
@@ -183,7 +181,7 @@ Publishing via SFTP as a Maven module is not supported at this time.
 
 This feature was contributed by [Marcin Erdmann](https://github.com/erdi).
  
-### Consumed Apache Maven POM profile activation through absence of system property
+### Apache Maven POM profile activation based on absence of system property
 
 Gradle 1.12 improved Maven interoperability by [supporting POM profiles that are active by default](http://www.gradle.org/docs/1.12/release-notes#support-for-consuming-apache-maven-poms-with-active-profiles). 
 In Gradle 2.0, POM profiles that are activated by absence of a system property are now respected.
@@ -200,7 +198,7 @@ In Gradle 2.0, POM profiles that are activated by absence of a system property a
         </profiles>
     </project>
 
-### Fine grained control of arguments passed to native toolchain executable (i)
+### Fine grained control of arguments passed to native tools (i)
 
 The new `withArguments()` method available on the command line tools of a toolchain allows complete control over the arguments passed to the tool,
 after Gradle has populated the argument list based on the build model.
@@ -230,9 +228,9 @@ after Gradle has populated the argument list based on the build model.
 
 This allows for greater flexibility and use of edge tool features.
 
-### Support for adding target platform specific configurations in native binary projects (GCC based toolchains) (i)
+### Simplified support for native cross compilation and custom platforms (GCC based toolchains) (i)
 
-It's now a lot easier to define a target platform and how to build for it. 
+It's now a lot easier to define a target native platform and how to use GCC to build for it.
 Instead of implementing an interface you can describe a target platform and its configuration in the Gradle DSL.
 
 When declaring a toolchain, the targeted platforms can be configured directly in the `toolChain` model. 
@@ -280,7 +278,7 @@ In addition to the 'gradle' (default) and 'maven' layouts, you can now specify t
     }
 
 
-See the [User Guide](userguide/dependency_management.html#N150B8) and the
+See the [User Guide](userguide/dependency_management.html#sec:ivy_repositories) and the
 [DSL Reference](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout\(java.lang.String,%20groovy.lang.Closure\)) 
 for more detail on how to use named layouts.
 
