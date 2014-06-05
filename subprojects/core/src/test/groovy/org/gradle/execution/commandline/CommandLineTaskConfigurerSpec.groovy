@@ -231,6 +231,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
         }
     }
 
+    @SuppressWarnings('FieldName')
     enum TestEnum {
         value1, value2
     }
