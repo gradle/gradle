@@ -105,7 +105,7 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
             waitFor { page.knownIssuesParagraph.text() == "There are no known issues of Gradle ${version} at this time." }
             return
         } else {
-            waitFor { page.knownIssuesParagraph.text() == "There are ${knownIssues.size()} known issues of Gradle $version." }
+            waitFor { page.knownIssuesParagraph.text() == "${knownIssues.size()} issues are known to affect Gradle $version." }
         }
 
         page.knownIssuesListItems.size() == knownIssues.size()
