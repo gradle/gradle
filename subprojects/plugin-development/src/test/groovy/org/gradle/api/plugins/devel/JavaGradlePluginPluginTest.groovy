@@ -29,23 +29,26 @@ import spock.lang.Specification
 class JavaGradlePluginPluginTest extends Specification {
     def project = TestUtil.builder().withName("plugin").build()
 
-    def "FindPluginDescriptor correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedFoundValue) {
+    def "FindPluginDescriptor correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedEmpty) {
         setup:
         Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.FindPluginDescriptorAction()
+        File descriptorFile = project.file('test-plugin.properties')
+        descriptorFile << contents
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
-            open() >> new ByteArrayInputStream(contents.bytes)
+            getFile() >> descriptorFile
         }
 
         expect:
         findPluginDescriptor.execute(stubDetails)
-        findPluginDescriptor.foundDescriptor == expectedFoundValue
-        findPluginDescriptor.pluginImplementation == expectedPluginImpl
+        findPluginDescriptor.descriptors.isEmpty() == expectedEmpty
+        findPluginDescriptor.descriptors.isEmpty() ||
+                findPluginDescriptor.descriptors.get(0).implementationClassName == expectedPluginImpl
 
         where:
-        contents                             | expectedPluginImpl | expectedFoundValue
-        'implementation-class=xxx.SomeClass' | 'xxx.SomeClass'    | true
-        'implementation-class='              | null               | false
-        ''                                   | null               | false
+        contents                             | expectedPluginImpl | expectedEmpty
+        'implementation-class=xxx.SomeClass' | 'xxx.SomeClass'    | false
+        'implementation-class='              | ''                 | false
+        ''                                   | null               | true
     }
 
     def "ClassManifestCollector captures class name" () {

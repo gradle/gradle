@@ -22,8 +22,8 @@ import spock.lang.Ignore
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
-    final static String BAD_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
-
+    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
+    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
 
     @Override
     String getPluginId() {
@@ -46,16 +46,18 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     def "jar produces usable plugin jar"() {
         given:
         buildFile()
-        goodPluginDescriptor()
+        def descriptorFile = goodPluginDescriptor()
         goodPlugin()
 
         expect:
         succeeds "jar"
         def jar = new JarTestFixture(file('build/libs/test.jar'))
-        jar.assertContainsFile('META-INF/gradle-plugins/test-plugin.properties')
+        jar.assertContainsFile('META-INF/gradle-plugins/test-plugin.properties') &&
+            jar.assertFileContent('META-INF/gradle-plugins/test-plugin.properties', descriptorFile.text)
         jar.assertContainsFile('com/xxx/TestPlugin.class')
         ! output.contains(NO_DESCRIPTOR_WARNING)
-        ! output.contains(BAD_DESCRIPTOR_WARNING_PREFIX)
+        ! output.contains(BAD_IMPL_CLASS_WARNING_PREFIX)
+        ! output.contains(INVALID_DESCRIPTOR_WARNING_PREFIX)
     }
 
     def "jar issues warning if built jar does not contain any plugin descriptors" () {
@@ -82,8 +84,56 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         where:
         descriptorContents                              | warningMessage
         ''                                              | NO_DESCRIPTOR_WARNING
-        'implementation-class='                         | NO_DESCRIPTOR_WARNING
-        'implementation-class=com.xxx.WrongPluginClass' | BAD_DESCRIPTOR_WARNING_PREFIX
+        'implementation-class='                         | INVALID_DESCRIPTOR_WARNING_PREFIX
+        'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX
+    }
+
+    def "jar issues warning if built jar contains one bad descriptor out of multiple descriptors" (String descriptorContents, String warningMessage) {
+        given:
+        buildFile()
+        goodPluginDescriptor()
+        badPluginDescriptor('bad-plugin', descriptorContents)
+        goodPlugin()
+
+        expect:
+        succeeds "jar"
+        output.count(warningMessage) == 1
+
+        where:
+        descriptorContents                              | warningMessage
+        'implementation-class='                         | INVALID_DESCRIPTOR_WARNING_PREFIX
+        'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX
+    }
+
+    def "jar issues correct warnings if built jar contains multiple bad descriptors" (String descriptorContents, String warningMessage, int messageCount) {
+        given:
+        buildFile()
+        badPluginDescriptor('bad-plugin1', descriptorContents)
+        badPluginDescriptor('bad-plugin2', descriptorContents)
+        goodPlugin()
+
+        expect:
+        succeeds "jar"
+        output.count(warningMessage) == messageCount
+
+        where:
+        descriptorContents                              | warningMessage                    | messageCount
+        ''                                              | NO_DESCRIPTOR_WARNING             | 1
+        'implementation-class='                         | INVALID_DESCRIPTOR_WARNING_PREFIX | 2
+        'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX     | 2
+    }
+
+    def "jar issues correct warnings if built jar contains mixed descriptor problems" () {
+        given:
+        buildFile()
+        badPluginDescriptor('bad-plugin1', 'implementation-class=')
+        badPluginDescriptor('bad-plugin2', 'implementation-class=com.xxx.WrongPluginClass')
+        goodPlugin()
+
+        expect:
+        succeeds "jar"
+        output.count(BAD_IMPL_CLASS_WARNING_PREFIX) == 1
+        output.count(INVALID_DESCRIPTOR_WARNING_PREFIX) == 1
     }
 
     @Ignore
@@ -117,7 +167,12 @@ public class TestPlugin implements Plugin<Project> {
     }
 
     @Ignore
+    def badPluginDescriptor(String descriptorId, String descriptorContents) {
+        file("src/main/resources/META-INF/gradle-plugins/${descriptorId}.properties") << descriptorContents
+    }
+
+    @Ignore
     def badPluginDescriptor(String descriptorContents) {
-        file('src/main/resources/META-INF/gradle-plugins/test-plugin.properties') << descriptorContents
+        badPluginDescriptor('test-plugin', descriptorContents)
     }
 }

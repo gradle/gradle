@@ -22,6 +22,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.internal.plugins.PluginDescriptor
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.JavaPlugin
@@ -33,11 +34,11 @@ class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String COMPILE_CONFIGURATION = 'compile'
     static final String JAR_TASK = 'jar'
     static final String GRADLE_PLUGINS = 'gradle-plugins'
-    static final String IMPLEMENTATION_CLASS = 'implementation-class'
     static final String PLUGIN_DESCRIPTOR_PATTERN = "META-INF/${GRADLE_PLUGINS}/*.properties"
     static final String CLASSES_PATTERN = "**/*.class"
-    static final String BAD_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found at %s but the implementation class %s was not found in the jar."
-    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No plugin descriptor was found in META-INF/${GRADLE_PLUGINS}."
+    static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar."
+    static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid."
+    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/${GRADLE_PLUGINS}."
 
     @Override
     void apply(Project project) {
@@ -58,27 +59,31 @@ class JavaGradlePluginPlugin implements Plugin<Project> {
         jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorFinder)
         jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector)
         jarTask.doLast {
-            if (! pluginDescriptorFinder.foundDescriptor) {
+            if (pluginDescriptorFinder.descriptors.isEmpty()) {
                 LOGGER.warn(NO_DESCRIPTOR_WARNING_MESSAGE)
-            } else if (! classManifestCollector.hasFullyQualifiedClass(pluginDescriptorFinder.pluginImplementation)) {
-                LOGGER.warn(String.format(BAD_DESCRIPTOR_WARNING_MESSAGE, pluginDescriptorFinder.descriptorLocation, pluginDescriptorFinder.pluginImplementation))
+            } else {
+                pluginDescriptorFinder.descriptors.each { PluginDescriptor descriptor ->
+                    URI descriptorURI = new URL(descriptor.toString()).toURI()
+                    String pluginName = new File(descriptorURI).getName()
+                    String pluginImplementation = descriptor.implementationClassName
+                    if (pluginImplementation.length() == 0) {
+                        LOGGER.warn(String.format(INVALID_DESCRIPTOR_WARNING_MESSAGE, pluginName))
+                    } else if (! classManifestCollector.hasFullyQualifiedClass(pluginImplementation)) {
+                        LOGGER.warn(String.format(BAD_IMPL_CLASS_WARNING_MESSAGE, pluginName, pluginImplementation))
+                    }
+                }
             }
         }
     }
 
     static class FindPluginDescriptorAction implements Action<FileCopyDetails> {
-        boolean foundDescriptor = false
-        String pluginImplementation
-        String descriptorLocation
+        List<PluginDescriptor> descriptors = []
 
         @Override
         void execute(FileCopyDetails fileCopyDetails) {
-            Properties properties = new Properties()
-            properties.load(fileCopyDetails.open())
-            if (properties.getProperty(IMPLEMENTATION_CLASS, '').length() > 0) {
-                foundDescriptor = true
-                pluginImplementation = properties.getProperty(IMPLEMENTATION_CLASS)
-                descriptorLocation = fileCopyDetails.relativePath.toString()
+            PluginDescriptor descriptor = new PluginDescriptor(fileCopyDetails.file.toURI().toURL())
+            if (descriptor.implementationClassName != null) {
+                descriptors.add(descriptor)
             }
         }
     }
