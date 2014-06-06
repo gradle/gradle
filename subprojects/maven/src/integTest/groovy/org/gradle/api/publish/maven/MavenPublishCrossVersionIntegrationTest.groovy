@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.util.GradleVersion
 
 @TargetVersions('0.9+')
 class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -80,12 +81,15 @@ publishing {
     def consumePublicationWithPreviousVersion() {
         settingsFile.text = "rootProject.name = 'consumer'"
 
+        def mavenRepo = previous.version.compareTo(GradleVersion.version('2.0-rc-1')) >= 0 ?
+            "maven { url \"${repo.uri}\" }" :
+            "mavenRepo(urls: [\'${repo.uri}\'])"
         buildFile.text = """
 configurations {
     lib
 }
 repositories {
-    mavenRepo(urls: ['${repo.uri}'])
+    ${mavenRepo}
 }
 dependencies {
     lib 'org.gradle.crossversion:published:1.9'
