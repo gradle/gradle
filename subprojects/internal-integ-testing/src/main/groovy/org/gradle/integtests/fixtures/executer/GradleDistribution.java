@@ -85,7 +85,6 @@ public interface GradleDistribution {
 
     /**
      * Returns true if the wrapper from this distribution can execute a build using the specified version.
-     * @param version
      */
     boolean wrapperCanExecute(GradleVersion version);
 
