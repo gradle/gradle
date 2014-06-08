@@ -405,6 +405,14 @@
                     <para>Specifies the Gradle user home directory.</para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>JAVA_HOME</literal>
+                </term>
+                <listitem>
+                    <para>Specifies the JDK installation directory to use.</para>
+                </listitem>
+            </varlistentry>
         </variablelist>
     </section>
 </appendix>

@@ -19,7 +19,7 @@ import spock.lang.Specification
 
 class BasicJavadocLexerTest extends Specification {
     final BasicJavadocLexer lexer = new BasicJavadocLexer(new JavadocScanner(""))
-    final JavadocLexer.TokenVisitor visitor = Mock()
+    final visitor = Mock(JavadocLexer.TokenVisitor)
 
     def parsesHtmlElements() {
         when:
@@ -160,6 +160,17 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onStartJavadocTag('link')
         1 * visitor.onText('Something')
         1 * visitor.onEndJavadocTag('link')
+        1 * visitor.onEnd()
+        0 * visitor._
+    }
+
+    def ignoresBadlyFormedHtmlElement() {
+        when:
+        lexer.pushText("a << b")
+        lexer.visit(visitor)
+
+        then:
+        1 * visitor.onText('a << b')
         1 * visitor.onEnd()
         0 * visitor._
     }

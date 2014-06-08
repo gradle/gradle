@@ -25,7 +25,7 @@ import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
-import org.gradle.launcher.daemon.bootstrap.DaemonMain
+import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
@@ -100,7 +100,7 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--foreground')
 
         then:
-        action instanceof DaemonMain
+        action instanceof ForegroundDaemonAction
     }
 
     def "executes with single use daemon if java home is not current"() {

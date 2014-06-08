@@ -34,10 +34,17 @@ class TypeMetaDataTest extends Specification {
     }
 
     def rawTypeForVarargsType() {
+        when:
         type.setVarargs()
 
-        expect:
-        type.rawType.signature == 'org.gradle.SomeType...'
+        then:
+        type.rawType.signature == 'org.gradle.SomeType[]'
+
+        when:
+        type.addArrayDimension()
+
+        then:
+        type.rawType.signature == 'org.gradle.SomeType[][]'
     }
 
     def rawTypeForParameterizedArrayType() {

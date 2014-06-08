@@ -184,7 +184,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
 
                 <description>Custom rule set</description>
 
-                <rule ref="rulesets/braces.xml"/>
+                <rule ref="rulesets/java/braces.xml"/>
             </ruleset>
         """
     }

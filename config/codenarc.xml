@@ -25,6 +25,7 @@
     <ruleset-ref path='rulesets/imports.xml'>
         <exclude name="ImportFromSunPackages"/>
         <exclude name="MisorderedStaticImports"/>
+        <exclude name="NoWildcardImports"/>
     </ruleset-ref>
     <ruleset-ref path='rulesets/naming.xml'>
         <rule-config name='ClassName'>

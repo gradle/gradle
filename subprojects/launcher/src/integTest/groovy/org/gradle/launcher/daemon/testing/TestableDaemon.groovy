@@ -76,6 +76,7 @@ class TestableDaemon {
         }
     }
 
+    @SuppressWarnings("FieldName")
     enum State {
         busy, idle
     }

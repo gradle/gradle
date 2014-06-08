@@ -9,6 +9,11 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Archive tasks + base plugin
+
+* Move defaults for output directory and other attributes from the base plugin to an implicitly applied plugin, so that they are applied to all instances.
+* Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for any other archive task.
+
 ## Drop support for Gradle versions older than 1.0
 
 * Cross version tests no longer test against anything earlier than 1.0
@@ -37,6 +42,7 @@ Alternatively, default the group to `null` and status to `integration`.
 ## Remove the Ant-task based Scala compiler
 
 * Change the default for `useAnt` to `false` and deprecate the `useAnt` property.
+* Do a better job of matching up the target jvm version with the scala compiler backend.
 
 ## Don't inject tools.jar into the system ClassLoader
 

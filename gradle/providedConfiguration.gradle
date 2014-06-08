@@ -16,5 +16,5 @@ sourceSets.main {
 }
 
 plugins.withType(IdeaPlugin) {
-    idea.module.scopes.PROVIDED.plus += configurations.provided
+    idea.module.scopes.PROVIDED.plus = [ configurations.provided ]
 }

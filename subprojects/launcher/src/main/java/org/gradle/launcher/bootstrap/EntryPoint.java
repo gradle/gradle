@@ -34,15 +34,15 @@ import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
  * by subclasses as they define our entry point behaviour, but they are protected to enable
  * testing as it's difficult to test something that will call System.exit().
  */
-abstract public class EntryPoint implements Runnable {
+abstract public class EntryPoint {
 
     /**
      * Unless the createCompleter() method is overridden, the JVM will exit before returning from this method.
      */
-    public void run() {
+    public void run(String[] args) {
         RecordingExecutionListener listener = new RecordingExecutionListener();
         try {
-            doAction(listener);
+            doAction(args, listener);
         } catch (Throwable e) {
             createErrorHandler().execute(e);
             listener.onFailure(e);
@@ -65,7 +65,7 @@ abstract public class EntryPoint implements Runnable {
         return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new LoggingConfiguration(), new GradleLauncherMetaData());
     }
 
-    protected abstract void doAction(ExecutionListener listener);
+    protected abstract void doAction(String[] args, ExecutionListener listener);
 
     private static class RecordingExecutionListener implements ExecutionListener {
         private Throwable failure;

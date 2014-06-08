@@ -44,7 +44,7 @@ class MainTest extends Specification {
         
     final String[] args = ['arg']
     
-    final Main main = new Main(args) {
+    final Main main = new Main() {
         protected ExecutionCompleter createCompleter() {
             [complete: { completedSuccessfully = true }, completeWithFailure: { completedWithFailure = true; failure = it }] as ExecutionCompleter
         }

@@ -19,7 +19,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.internal.Factory
 
 import spock.lang.Specification
 

@@ -28,6 +28,7 @@ class MethodMetaDataTest extends Specification {
 
         expect:
         method.signature == 'ReturnType method(ParamType param1, ParamType2 param2)'
+        method.overrideSignature == 'method(ParamType, ParamType2)'
     }
 
     def formatsOverrideSignatureUsingRawParameterTypes() {
@@ -36,7 +37,18 @@ class MethodMetaDataTest extends Specification {
         method.addParameter('param2', new TypeMetaData('ParamType2'))
 
         expect:
+        method.signature == 'ReturnType method(ParamType<Type1> param, ParamType2 param2)'
         method.overrideSignature == 'method(ParamType, ParamType2)'
+    }
+
+    def formatsOverrideSignatureForVarargsParameter() {
+        method.returnType = new TypeMetaData('ReturnType')
+        method.addParameter('param', new TypeMetaData('ParamType'))
+        method.addParameter('param2', new TypeMetaData('ParamType2').setVarargs())
+
+        expect:
+        method.signature == 'ReturnType method(ParamType param, ParamType2... param2)'
+        method.overrideSignature == 'method(ParamType, ParamType2[])'
     }
 
     def locatesOverriddenMethodInSuperClass() {

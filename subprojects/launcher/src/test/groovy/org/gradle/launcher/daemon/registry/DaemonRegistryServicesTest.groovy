@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.registry
 
 import org.gradle.cache.internal.DefaultFileLockManager
-import org.gradle.cache.internal.FileLock
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.ProcessMetaDataProvider
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler

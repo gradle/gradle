@@ -20,7 +20,7 @@
 <section>
     <title>Prerequisites</title>
 
-    <para>Gradle requires a Java JDK to be installed. Gradle requires a JDK 1.5 or higher. Gradle ships with its own
+    <para>Gradle requires a Java JDK or JRE to be installed. Gradle requires a Java version 6 or higher. Gradle ships with its own
         Groovy library, therefore no Groovy needs to be installed. Any existing Groovy installation is ignored by Gradle.
     </para>
 
@@ -70,8 +70,8 @@
 <title>Running and testing your installation</title>
 
 <para>You run Gradle via the <command>gradle</command> command. To check if Gradle is properly installed just type
-<command>gradle -v</command>. The output shows Gradle version and also local environment configuration (groovy and jvm version, etc.).
-    The displayed gradle version should match the distribution you have downloaded.
+<command>gradle -v</command>. The output shows Gradle version and also local environment configuration (groovy and JVM version, etc.).
+    The displayed Gradle version should match the distribution you have downloaded.
 </para>
 
 </section>

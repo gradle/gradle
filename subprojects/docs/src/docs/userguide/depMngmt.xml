@@ -1017,7 +1017,7 @@ someroot/[artifact]-[revision].[ext]
             <section id='sec:custom_versioning_scheme'>
                 <title>Implement a custom versioning scheme</title>
                 <para>
-                    In some corporate environments, the list of module versions that can be declared in gradle builds is maintained and audited externally.
+                    In some corporate environments, the list of module versions that can be declared in Gradle builds is maintained and audited externally.
                     Dependency resolve rules provide a neat implementation of this pattern:
                     <itemizedlist>
                         <listitem>In the build script, the developer declares dependencies with the module group and name, but uses a placeholder version, for example: '<literal>default</literal>'.</listitem>

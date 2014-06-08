@@ -18,17 +18,17 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
-@IgnoreIf( { GradleContextualExecuter.embedded })
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.requireGradleHome()
         executer.requireIsolatedDaemons()
     }
 
@@ -93,10 +93,8 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
 
     def String useAlternativeJavaPath() {
         File javaHome = AvailableJavaHomes.bestAlternative
-        String javaPath = TextUtil.escapeString(javaHome.canonicalPath)
-        file("gradle.properties") << "org.gradle.java.home=$javaPath"
-
-        return javaPath
+        file("gradle.properties").writeProperties("org.gradle.java.home": javaHome.canonicalPath)
+        return javaHome.canonicalPath
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
@@ -105,7 +103,7 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
         String javaPath = useAlternativeJavaPath()
 
         expect:
-        buildSucceeds "assert System.getProperty('java.home').startsWith('$javaPath')"
+        buildSucceeds "assert System.getProperty('java.home').startsWith('${TextUtil.escapeString(javaPath)}')"
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || System.getProperty('java.runtime.version') == null})
@@ -117,5 +115,15 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
 
         expect:
         buildSucceeds "assert System.getProperty('java.runtime.version') != '${javaRuntimeVersion}'"
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.java5 == null })
+    def "fails when configured to use Java 5"() {
+        given:
+        file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.canonicalPath)
+
+        expect:
+        fails()
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
     }
 }

@@ -15,16 +15,12 @@
  */
 package org.gradle.scala.test
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore("java.lang.InternalError: Could not create SecurityManager: jarjar.org.gradle.process.internal.child.BootstrapSecurityManager")
-@TargetVersions(["2.10.4"]) // TODO: add 2.11.1 once tests are working again
-class ScalaTestIntegrationTest extends MultiVersionIntegrationSpec {
+class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     
     def executesTestsWithMultiLineDescriptions() {
@@ -36,8 +32,8 @@ repositories {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:2.10.4"
-    testCompile "org.scalatest:scalatest_2.10:2.1.5"
+    compile "org.scala-lang:scala-library:2.11.1"
+    testCompile "org.scalatest:scalatest_2.11:2.1.5"
     testCompile "junit:junit:4.11"
 }
         """

@@ -15,20 +15,18 @@
  */
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@TargetVersions(["2.10.4", "2.11.1"])
-class IncrementalScalaCompileIntegrationTest extends MultiVersionIntegrationSpec {
+class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
+
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def recompilesSourceWhenPropertiesChange() {
         expect:
-        args("-i", "-PscalaVersion=$version")
         run('compileScala').assertTasksSkipped(':compileJava')
 
         when:
@@ -36,23 +34,19 @@ class IncrementalScalaCompileIntegrationTest extends MultiVersionIntegrationSpec
             compileScala.options.debug = false
 '''
         then:
-        args("-i", "-PscalaVersion=$version")
         run('compileScala').assertTasksSkipped(':compileJava')
 
-        args("-i", "-PscalaVersion=$version")
         run('compileScala').assertTasksSkipped(':compileJava', ':compileScala')
     }
 
     def recompilesDependentClasses() {
         given:
-        args("-i", "-PscalaVersion=$version")
         run("classes")
 
         when: // Update interface, compile should fail
         file('src/main/scala/IPerson.scala').assertIsFile().copyFrom(file('NewIPerson.scala'))
 
         then:
-        args("-i", "-PscalaVersion=$version")
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 
@@ -67,7 +61,7 @@ class IncrementalScalaCompileIntegrationTest extends MultiVersionIntegrationSpec
             }
 
             dependencies {
-                compile 'org.scala-lang:scala-library:$version'
+                compile 'org.scala-lang:scala-library:2.11.1'
             }
         """
 
@@ -77,14 +71,12 @@ class IncrementalScalaCompileIntegrationTest extends MultiVersionIntegrationSpec
     def getName(): String = name
 }"""
         when:
-        args("-i", "-PscalaVersion=$version")
         run('classes') //makes everything up-to-date
 
         //change the java interface
         file("src/main/java/Person.java").text = "public interface Person { String fooBar(); }"
 
         then:
-        args("-i", "-PscalaVersion=$version")
         //the build should fail because the interface the scala class needs has changed
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }

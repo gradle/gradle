@@ -66,3 +66,23 @@ approximately 2 years old as of the Gradle 2.0 release.
 * Change the test suite to default to target Gradle version >= 1.0-milestone-8
 * Add integration test coverage that running build with Gradle version < 1.0-milestone-8 fails with a reasonable error message, when running build or fetching model.
 * Add integration test coverage that can fetch a partial `BuildEnvironment` model for Gradle version < 1.0-milestone-8.
+
+## Un-deprecate using the packaging declared in a Maven POM to probe for the module artifacts (DONE)
+
+Leave this behaviour in until the mechanisms to better infer the artifacts for a module have been implemented.
+
+## Remove all features deprecated as at Gradle 1.12 (DONE)
+
+In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gradle 1.12 or earlier:
+
+* Search for usages of `DeprecationLogger`, `@Deprecated`, `@deprecated` and remove the associated feature.
+* Review usages of `DeprecationLogger.whileDisabled()`.
+* Remove `JavaPluginGoodBehaviourTest#changing debug flag does not produce deprecation warning`
+
+## Replace deprecation warnings with errors (DONE)
+
+* Convert deprecated behaviours with errors.
+
+## Reset deprecation warnings (DONE)
+
+* Remove most calls to `DeprecationLogger.whileDisabled()`

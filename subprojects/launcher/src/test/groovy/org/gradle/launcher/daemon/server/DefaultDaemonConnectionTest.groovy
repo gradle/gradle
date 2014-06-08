@@ -23,7 +23,6 @@ import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.CountDownLatch
-import org.gradle.launcher.daemon.protocol.Stop
 import java.util.concurrent.TimeUnit
 
 class DefaultDaemonConnectionTest extends ConcurrentSpecification {

@@ -66,6 +66,8 @@ public class DefaultDaemonStarter implements DaemonStarter {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
 
+        new JvmVersionValidator().validate(daemonParameters);
+
         List<String> daemonArgs = new ArrayList<String>();
         daemonArgs.add(daemonParameters.getEffectiveJavaExecutable());
 

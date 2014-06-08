@@ -34,7 +34,7 @@ import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
-import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
+import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.client.SingleUseDaemonClientServices;
@@ -123,7 +123,7 @@ class BuildActionsFactory implements CommandLineAction {
         if (commandLine.hasOption(FOREGROUND)) {
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
                     daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
-            return new ForegroundDaemonMain(conf);
+            return new ForegroundDaemonAction(loggingServices, conf);
         }
         if (daemonParameters.isEnabled()) {
             return runBuildWithDaemon(startParameter, daemonParameters, loggingServices);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.debug
+package org.gradle.integtests.tooling.r20;
 
-import org.gradle.launcher.Main
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
 
-/**
- * Used by IDEA run configuration created as part of 'gradle idea' run.
- * Required because dependency on 'launcher' project has scope 'test'.
- */
-class GradleRunConfiguration {
-    public static void main(String[] args) {
-        new Main().run(args)
+public class BrokenAction implements BuildAction {
+    public Object execute(BuildController controller) {
+        throw new UnsupportedOperationException();
     }
 }

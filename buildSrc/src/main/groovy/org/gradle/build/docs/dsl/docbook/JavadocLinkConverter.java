@@ -33,7 +33,9 @@ import java.util.regex.Pattern;
  * Converts a javadoc link into docbook.
  */
 public class JavadocLinkConverter {
-    private final Pattern linkPattern = Pattern.compile("(?s)\\s*([\\w\\.]*)(#(\\w+)(\\((.*)\\))?)?.*");
+    private static final Pattern LINK_PATTERN = Pattern.compile("(?s)\\s*([\\w\\.]*)(#(\\w+)(\\((.*)\\))?)?.*");
+    private static final Pattern TYPE_PATTERN = Pattern.compile("(\\w+)\\s*(.*?)\\s*");
+    private static final Pattern PARAM_DELIMITER = Pattern.compile(",\\s*");
     private final Document document;
     private final TypeNameResolver typeNameResolver;
     private final LinkRenderer linkRenderer;
@@ -63,7 +65,7 @@ public class JavadocLinkConverter {
     }
 
     private Node doResolve(String link, ClassMetaData classMetaData, GenerationListener listener) {
-        Matcher matcher = linkPattern.matcher(link);
+        Matcher matcher = LINK_PATTERN.matcher(link);
         if (!matcher.matches()) {
             return null;
         }
@@ -95,10 +97,10 @@ public class JavadocLinkConverter {
             signature.append(methodSignature);
             signature.append("(");
             if (matcher.group(5).length() > 0) {
-                String[] types = matcher.group(5).split(",\\s*");
+                String[] types = PARAM_DELIMITER.split(matcher.group(5));
                 for (int i = 0; i < types.length; i++) {
                     String type = types[i];
-                    Matcher typeMatcher = Pattern.compile("(\\w+)(.*)").matcher(type);
+                    Matcher typeMatcher = TYPE_PATTERN.matcher(type);
                     if (!typeMatcher.matches()) {
                         return null;
                     }
@@ -106,7 +108,11 @@ public class JavadocLinkConverter {
                         signature.append(", ");
                     }
                     signature.append(typeNameResolver.resolve(typeMatcher.group(1), classMetaData));
-                    signature.append(typeMatcher.group(2));
+                    String suffix = typeMatcher.group(2);
+                    if (suffix.equals("...")) {
+                        suffix = "[]";
+                    }
+                    signature.append(suffix);
                 }
             }
             signature.append(")");
@@ -152,7 +158,7 @@ public class JavadocLinkConverter {
             String targetClassName = typeNameResolver.resolve(parts[0], classMetaData);
             targetClass = repository.find(targetClassName);
             if (targetClass == null) {
-                listener.warning(String.format("Could not local target class '%s' for field value link '%s'", targetClass, fieldName));
+                listener.warning(String.format("Could not locate target class '%s' for field value link '%s'", targetClass, fieldName));
                 Element element = document.createElement("UNHANDLED-VALUE");
                 element.appendChild(document.createTextNode(targetClassName + ":" + parts[1]));
                 return element;
