@@ -19,7 +19,7 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.TargetVersions
 
 @TargetVersions(["2.10.4", "2.11.1"])
-class AbstractAntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+abstract class AbstractAntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()
     }
