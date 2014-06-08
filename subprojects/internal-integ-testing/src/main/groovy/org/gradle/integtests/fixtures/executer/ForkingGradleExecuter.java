@@ -174,10 +174,14 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
             //       as CommandLineIntegrationTest, try PATH first, and
             //       then revert to default of Path if null
             Object path = builder.getEnvironment().get("PATH");
-            if (path == null) {
+            if (path != null) {
+                builder.environment("PATH", String.format("%s\\bin;%s", gradleHome, path));
+            } else {
                 path = builder.getEnvironment().get("Path");
+                if (path != null) {
+                    builder.environment("Path", String.format("%s\\bin;%s", gradleHome, path));
+                }
             }
-            builder.environment("Path", String.format("%s\\bin;%s", gradleHome, path));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
         }
     }
