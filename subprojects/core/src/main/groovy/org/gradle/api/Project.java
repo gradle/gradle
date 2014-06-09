@@ -1294,6 +1294,18 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given closure is used
      * to configure the {@link CopySpec} before it is returned by this method.
      *
+     * <pre autoTested=''>
+     * def baseSpec = copySpec {
+     *    from "source"
+     *    include "**&#47;*.java"
+     * }
+     *
+     * task copy(type: Copy) {
+     *    into "target"
+     *    with baseSpec
+     * }
+     * </pre>
+     *
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
      */
