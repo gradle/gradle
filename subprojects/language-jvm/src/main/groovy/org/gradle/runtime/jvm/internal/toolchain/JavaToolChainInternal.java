@@ -16,8 +16,8 @@
 
 package org.gradle.runtime.jvm.internal.toolchain;
 
-import org.gradle.runtime.base.internal.toolchain.ToolChainInternal;
+import org.gradle.runtime.base.internal.toolchain.ToolProvider;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
-public interface JavaToolChainInternal extends JavaToolChain, ToolChainInternal {
+public interface JavaToolChainInternal extends JavaToolChain, ToolProvider {
 }
