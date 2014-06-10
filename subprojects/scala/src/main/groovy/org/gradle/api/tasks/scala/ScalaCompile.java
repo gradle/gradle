@@ -37,7 +37,6 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,10 +54,6 @@ public class ScalaCompile extends AbstractCompile {
     private Compiler<ScalaJavaJointCompileSpec> compiler;
     private final CompileOptions compileOptions = new CompileOptions();
     private final ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
-
-    @Inject
-    public ScalaCompile() {
-    }
 
     /**
      * Returns the classpath to use to load the Scala compiler.
@@ -108,14 +103,14 @@ public class ScalaCompile extends AbstractCompile {
         this.compiler = compiler;
     }
 
-    private Compiler<ScalaJavaJointCompileSpec> getCompiler() {
+    private Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, javaCompilerFactory, compilerDaemonFactory);
-            Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = new DelegatingScalaCompiler(scalaCompilerFactory);
+            Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = scalaCompilerFactory.newCompiler(spec);
             compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs());
         }
         return compiler;
@@ -140,7 +135,7 @@ public class ScalaCompile extends AbstractCompile {
             configureIncrementalCompilation(spec);
         }
 
-        getCompiler().execute(spec);
+        getCompiler(spec).execute(spec);
     }
 
     private void checkScalaClasspathIsNonEmpty() {
