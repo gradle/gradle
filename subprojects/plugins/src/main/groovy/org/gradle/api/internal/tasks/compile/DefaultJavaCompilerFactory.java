@@ -26,31 +26,22 @@ import java.io.File;
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final File daemonWorkingDir;
     private final CompilerDaemonFactory compilerDaemonFactory;
-    private boolean jointCompilation;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, CompilerDaemonFactory compilerDaemonFactory){
+    public DefaultJavaCompilerFactory(File daemonWorkingDir, CompilerDaemonFactory compilerDaemonFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.compilerDaemonFactory = compilerDaemonFactory;
     }
 
-    /**
-     * If true, the Java compiler to be created is used for joint compilation
-     * together with another language's compiler in the compiler daemon.
-     * In that case, the other language's normalizing and daemon compilers should be used.
-     */
-    public void setJointCompilation(boolean flag) {
-        jointCompilation = flag;
+    public Compiler<JavaCompileSpec> createForJointCompilation(CompileOptions options) {
+        return createTargetCompiler(options, true);
     }
 
     public Compiler<JavaCompileSpec> create(CompileOptions options) {
-        Compiler<JavaCompileSpec> result = createTargetCompiler(options);
-        if (!jointCompilation) {
-            result = new NormalizingJavaCompiler(result);
-        }
-        return result;
+        Compiler<JavaCompileSpec> result = createTargetCompiler(options, false);
+        return new NormalizingJavaCompiler(result);
     }
 
-    private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
+    private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options, boolean jointCompilation) {
         if (options.isFork() && options.getForkOptions().getExecutable() != null) {
             return new CommandLineJavaCompiler();
         }

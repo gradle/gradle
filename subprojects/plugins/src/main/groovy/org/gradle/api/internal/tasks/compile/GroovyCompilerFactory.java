@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -28,23 +29,22 @@ import org.gradle.language.base.internal.compile.CompilerFactory;
 
 public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCompileSpec> {
     private final ProjectInternal project;
-    private final DefaultJavaCompilerFactory javaCompilerFactory;
-    private final CompilerDaemonFactory compilerDaemonFactory;
+    private final JavaCompilerFactory javaCompilerFactory;
+    private final CompilerDaemonManager compilerDaemonFactory;
     private final InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory;
 
-    public GroovyCompilerFactory(ProjectInternal project, DefaultJavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory,
+    public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, CompilerDaemonManager compilerDaemonManager,
                                  InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory) {
         this.project = project;
         this.javaCompilerFactory = javaCompilerFactory;
-        this.compilerDaemonFactory = compilerDaemonFactory;
+        this.compilerDaemonFactory = compilerDaemonManager;
         this.inProcessCompilerDaemonFactory = inProcessCompilerDaemonFactory;
     }
 
     public Compiler<GroovyJavaJointCompileSpec> newCompiler(GroovyJavaJointCompileSpec spec) {
         CompileOptions javaOptions = spec.getCompileOptions();
         GroovyCompileOptions groovyOptions = spec.getGroovyCompileOptions();
-        javaCompilerFactory.setJointCompilation(true);
-        Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.create(javaOptions);
+        Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(javaOptions);
         Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
         CompilerDaemonFactory daemonFactory;
         if (groovyOptions.isFork()) {

@@ -25,7 +25,7 @@ class DefaultJavaCompilerFactoryTest extends Specification {
     def factory = new DefaultJavaCompilerFactory(new File("daemon-work-dir"), Mock(CompilerDaemonFactory))
     def options = new CompileOptions()
     
-    def "creates in-process compiler when fork=false"() {
+    def "creates in-process compiler when not forking"() {
         options.fork = false
 
         expect:
@@ -34,7 +34,15 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         compiler.delegate instanceof Jdk6JavaCompiler
     }
 
-    def "creates command line compiler when fork=true and forkOptions.executable is set"() {
+    def "creates in-process compiler when not forking and joint compilation"() {
+        options.fork = false
+
+        expect:
+        def compiler = factory.createForJointCompilation(options)
+        compiler instanceof Jdk6JavaCompiler
+    }
+
+    def "creates command line compiler when forking and forkOptions.executable is set"() {
         options.fork = true
         options.forkOptions.executable = "/path/to/javac"
 
@@ -44,7 +52,16 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         compiler.delegate instanceof CommandLineJavaCompiler
     }
 
-    def "creates daemon compiler when fork=true"() {
+    def "creates command line compiler when forking and forkOptions.executable is set and joint compilation"() {
+        options.fork = true
+        options.forkOptions.executable = "/path/to/javac"
+
+        expect:
+        def compiler = factory.createForJointCompilation(options)
+        compiler instanceof CommandLineJavaCompiler
+    }
+
+    def "creates daemon compiler when forking"() {
         options.fork = true
 
         expect:
@@ -52,5 +69,13 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         compiler instanceof NormalizingJavaCompiler
         compiler.delegate instanceof DaemonJavaCompiler
         compiler.delegate.delegate instanceof Jdk6JavaCompiler
+    }
+
+    def "creates in-process compiler when forking and joint compilation"() {
+        options.fork = true
+
+        expect:
+        def compiler = factory.createForJointCompilation(options)
+        compiler instanceof Jdk6JavaCompiler
     }
 }

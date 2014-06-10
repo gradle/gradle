@@ -23,4 +23,6 @@ import org.gradle.language.base.internal.compile.Compiler;
  */
 public interface JavaCompilerFactory {
     Compiler<JavaCompileSpec> create(CompileOptions options);
+
+    Compiler<JavaCompileSpec> createForJointCompilation(CompileOptions options);
 }
