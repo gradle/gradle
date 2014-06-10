@@ -15,26 +15,27 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 
+import java.io.File;
+
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
-    private final ProjectInternal project;
     private final Compiler<T> delegate;
     private final CompilerDaemonFactory compilerDaemonFactory;
+    private final File daemonWorkingDir;
 
-    public AbstractDaemonCompiler(ProjectInternal project, Compiler<T> delegate, CompilerDaemonFactory compilerDaemonFactory) {
-        this.project = project;
+    public AbstractDaemonCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory compilerDaemonFactory) {
+        this.daemonWorkingDir = daemonWorkingDir;
         this.delegate = delegate;
         this.compilerDaemonFactory = compilerDaemonFactory;
     }
 
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
-        CompilerDaemon daemon = compilerDaemonFactory.getDaemon(project.getRootProject().getProjectDir(), daemonForkOptions);
+        CompilerDaemon daemon = compilerDaemonFactory.getDaemon(daemonWorkingDir, daemonForkOptions);
         CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
             return result;

@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -29,14 +28,14 @@ import org.gradle.language.base.internal.compile.Compiler;
 public class GroovyCompilerFactory {
     private final ProjectInternal project;
     private final DefaultJavaCompilerFactory javaCompilerFactory;
-    private final CompilerDaemonManager compilerDaemonManager;
+    private final CompilerDaemonFactory compilerDaemonFactory;
     private final InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory;
 
-    public GroovyCompilerFactory(ProjectInternal project, DefaultJavaCompilerFactory javaCompilerFactory, CompilerDaemonManager compilerDaemonManager,
+    public GroovyCompilerFactory(ProjectInternal project, DefaultJavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory,
                                  InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory) {
         this.project = project;
         this.javaCompilerFactory = javaCompilerFactory;
-        this.compilerDaemonManager = compilerDaemonManager;
+        this.compilerDaemonFactory = compilerDaemonFactory;
         this.inProcessCompilerDaemonFactory = inProcessCompilerDaemonFactory;
     }
 
@@ -46,11 +45,11 @@ public class GroovyCompilerFactory {
         Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
         CompilerDaemonFactory daemonFactory;
         if (groovyOptions.isFork()) {
-            daemonFactory = compilerDaemonManager;
+            daemonFactory = compilerDaemonFactory;
         } else {
             daemonFactory = inProcessCompilerDaemonFactory;
         }
-        groovyCompiler = new DaemonGroovyCompiler(project, groovyCompiler, project.getServices().get(ClassPathRegistry.class), daemonFactory);
+        groovyCompiler = new DaemonGroovyCompiler(project.getRootProject().getProjectDir(), groovyCompiler, project.getServices().get(ClassPathRegistry.class), daemonFactory);
         return new NormalizingGroovyCompiler(groovyCompiler);
     }
 }

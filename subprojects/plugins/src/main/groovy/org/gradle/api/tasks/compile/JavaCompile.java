@@ -20,6 +20,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalJavaCompilerFactory;
 import org.gradle.api.tasks.Nested;
@@ -97,8 +98,8 @@ public class JavaCompile extends AbstractCompile {
     private CleaningJavaCompiler createCompiler() {
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         ProjectInternal projectInternal = (ProjectInternal) getProject();
-        CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
-        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, inProcessCompilerFactory, compilerDaemonManager);
+        CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
+        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal.getRootProject().getProjectDir(), inProcessCompilerFactory, compilerDaemonFactory);
         DelegatingJavaCompiler javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }

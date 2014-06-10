@@ -32,7 +32,6 @@ package org.gradle.api.internal.tasks.scala;
  * limitations under the License.
  */
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
@@ -40,12 +39,13 @@ import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
 public class DaemonScalaCompiler extends AbstractDaemonCompiler<ScalaJavaJointCompileSpec> {
-    public DaemonScalaCompiler(ProjectInternal project, Compiler<ScalaJavaJointCompileSpec> delegate, CompilerDaemonFactory daemonFactory) {
-        super(project, delegate, daemonFactory);
+    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<ScalaJavaJointCompileSpec> delegate, CompilerDaemonFactory daemonFactory) {
+        super(daemonWorkingDir, delegate, daemonFactory);
     }
 
     @Override

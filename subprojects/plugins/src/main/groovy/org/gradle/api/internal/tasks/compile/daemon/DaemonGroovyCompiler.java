@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
@@ -32,8 +31,8 @@ import java.util.List;
 public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJointCompileSpec> {
     private final ClassPathRegistry classPathRegistry;
 
-    public DaemonGroovyCompiler(ProjectInternal project, Compiler<GroovyJavaJointCompileSpec> delegate, ClassPathRegistry classPathRegistry, CompilerDaemonFactory daemonFactory) {
-        super(project, delegate, daemonFactory);
+    public DaemonGroovyCompiler(File daemonWorkingDir, Compiler<GroovyJavaJointCompileSpec> delegate, ClassPathRegistry classPathRegistry, CompilerDaemonFactory daemonFactory) {
+        super(daemonWorkingDir, delegate, daemonFactory);
         this.classPathRegistry = classPathRegistry;
     }
 

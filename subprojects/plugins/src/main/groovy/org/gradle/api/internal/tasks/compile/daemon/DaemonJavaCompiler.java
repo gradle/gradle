@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -24,8 +23,8 @@ import java.io.File;
 import java.util.Collections;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
-    public DaemonJavaCompiler(ProjectInternal project, Compiler<JavaCompileSpec> delegate, CompilerDaemonFactory compilerDaemonFactory) {
-        super(project, delegate, compilerDaemonFactory);
+    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, CompilerDaemonFactory compilerDaemonFactory) {
+        super(daemonWorkingDir, delegate, compilerDaemonFactory);
     }
 
     @Override

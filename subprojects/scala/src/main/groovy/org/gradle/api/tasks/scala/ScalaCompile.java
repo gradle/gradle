@@ -24,7 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.scala.*;
 import org.gradle.api.logging.Logger;
@@ -36,6 +36,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -113,8 +114,8 @@ public class ScalaCompile extends AbstractCompile {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
-            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory, compilerDaemonManager);
+            CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
+            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory, compilerDaemonFactory);
             Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = new DelegatingScalaCompiler(scalaCompilerFactory);
             compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs());
         }
