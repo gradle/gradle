@@ -16,28 +16,26 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
-import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final IsolatedAntBuilder antBuilder;
-    private final Factory<AntBuilder> antBuilderFactory;
+    private final JavaCompilerFactory javaCompilerFactory;
     private final CompilerDaemonFactory compilerDaemonFactory;
 
-    public ScalaCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, Factory<AntBuilder> antBuilderFactory, CompilerDaemonFactory compilerDaemonFactory) {
+    public ScalaCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory) {
         this.project = project;
         this.antBuilder = antBuilder;
-        this.antBuilderFactory = antBuilderFactory;
+        this.javaCompilerFactory = javaCompilerFactory;
         this.compilerDaemonFactory = compilerDaemonFactory;
     }
 
@@ -45,7 +43,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         ScalaCompileOptions scalaOptions = spec.getScalaCompileOptions();
         if (scalaOptions.isUseAnt()) {
             Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(antBuilder);
-            Compiler<JavaCompileSpec> javaCompiler = new AntJavaCompiler(antBuilderFactory);
+            Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getCompileOptions());
             return new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler);
         }
 

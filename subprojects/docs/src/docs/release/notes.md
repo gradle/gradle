@@ -32,6 +32,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Changed Java compiler integration for Java - Scala joint compilation
+
+The `ScalaCompile` task type now uses the same Java compiler integration as used by `JavaCompile` and `GroovyCompile` task types, when performing Java - Scala joint
+compilation. This change should be backwards compatible for all users.
+
 ### Incubating native language plugins no longer apply the base plugin
 
 The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle.language.base.plugins.LifecycleBasePlugin) instead of the `BasePlugin`. This means
