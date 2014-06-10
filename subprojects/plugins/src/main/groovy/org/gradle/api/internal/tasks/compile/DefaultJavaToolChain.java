@@ -16,19 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 
 public class DefaultJavaToolChain implements JavaToolChainInternal {
-    private final GradleInternal gradle;
-    private final CompilerDaemonFactory compilerDaemonFactory;
+    private final JavaCompilerFactory compilerFactory;
 
-    public DefaultJavaToolChain(GradleInternal gradle, CompilerDaemonFactory compilerDaemonFactory) {
-        this.gradle = gradle;
-        this.compilerDaemonFactory = compilerDaemonFactory;
+    public DefaultJavaToolChain(JavaCompilerFactory compilerFactory) {
+        this.compilerFactory = compilerFactory;
     }
 
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> specType) {
@@ -36,7 +32,6 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", specType.getSimpleName()));
         }
 
-        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonFactory);
-        return (Compiler) new DelegatingJavaCompiler(defaultCompilerFactory);
+        return (Compiler) new DelegatingJavaCompiler(compilerFactory);
     }
 }

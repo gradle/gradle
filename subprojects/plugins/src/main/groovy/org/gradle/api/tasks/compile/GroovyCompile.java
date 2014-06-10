@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.InputFiles;
@@ -116,9 +115,9 @@ public class GroovyCompile extends AbstractCompile {
     public Compiler<GroovyJavaJointCompileSpec> getCompiler() {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
-            CompilerDaemonFactory compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
             InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-            DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal.getRootProject().getProjectDir(), compilerDaemonManager);
+            JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
             Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
             compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
