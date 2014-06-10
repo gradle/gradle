@@ -33,41 +33,23 @@ package org.gradle.api.internal.tasks.scala;
  */
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.api.internal.tasks.compile.daemon.CompileResult;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemon;
+import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
-import org.gradle.internal.UncheckedException;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class DaemonScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
-    private final ProjectInternal project;
-    private final Compiler<ScalaJavaJointCompileSpec> delegate;
-    private final CompilerDaemonFactory daemonFactory;
-
+public class DaemonScalaCompiler extends AbstractDaemonCompiler<ScalaJavaJointCompileSpec> {
     public DaemonScalaCompiler(ProjectInternal project, Compiler<ScalaJavaJointCompileSpec> delegate, CompilerDaemonFactory daemonFactory) {
-        this.project = project;
-        this.delegate = delegate;
-        this.daemonFactory = daemonFactory;
+        super(project, delegate, daemonFactory);
     }
 
-    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        DaemonForkOptions daemonForkOptions = createDaemonForkOptions(spec);
-        CompilerDaemon daemon = daemonFactory.getDaemon(project.getRootProject().getProjectDir(), daemonForkOptions);
-        CompileResult result = daemon.execute(delegate, spec);
-        if (result.isSuccess()) {
-            return result;
-        }
-        throw UncheckedException.throwAsUncheckedException(result.getException());
-    }
-
-    private DaemonForkOptions createDaemonForkOptions(ScalaJavaJointCompileSpec spec) {
+    @Override
+    protected DaemonForkOptions toDaemonOptions(ScalaJavaJointCompileSpec spec) {
         return createJavaForkOptions(spec).mergeWith(createScalaForkOptions(spec));
     }
 

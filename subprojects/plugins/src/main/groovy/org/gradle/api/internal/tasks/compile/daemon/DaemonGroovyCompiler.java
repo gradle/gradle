@@ -19,40 +19,26 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
-import org.gradle.internal.UncheckedException;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
-    private final ProjectInternal project;
-    private final Compiler<GroovyJavaJointCompileSpec> delegate;
-    private final CompilerDaemonFactory daemonFactory;
+public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJointCompileSpec> {
+    private final ClassPathRegistry classPathRegistry;
 
-    public DaemonGroovyCompiler(ProjectInternal project, Compiler<GroovyJavaJointCompileSpec> delegate, CompilerDaemonFactory daemonFactory) {
-        this.project = project;
-        this.delegate = delegate;
-        this.daemonFactory = daemonFactory;
+    public DaemonGroovyCompiler(ProjectInternal project, Compiler<GroovyJavaJointCompileSpec> delegate, ClassPathRegistry classPathRegistry, CompilerDaemonFactory daemonFactory) {
+        super(project, delegate, daemonFactory);
+        this.classPathRegistry = classPathRegistry;
     }
 
-    public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-        DaemonForkOptions daemonForkOptions = createDaemonForkOptions(spec);
-        CompilerDaemon daemon = daemonFactory.getDaemon(project.getRootProject().getProjectDir(), daemonForkOptions);
-        CompileResult result = daemon.execute(delegate, spec);
-        if (result.isSuccess()) {
-            return result;
-        }
-        throw UncheckedException.throwAsUncheckedException(result.getException());
-    }
-
-    private DaemonForkOptions createDaemonForkOptions(GroovyJavaJointCompileSpec spec) {
+    @Override
+    protected DaemonForkOptions toDaemonOptions(GroovyJavaJointCompileSpec spec) {
         return createJavaForkOptions(spec).mergeWith(createGroovyForkOptions(spec));
     }
     
@@ -66,7 +52,7 @@ public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec
         // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.
-        Collection<File> antFiles = project.getServices().get(ClassPathRegistry.class).getClassPath("ANT").getAsFiles();
+        Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
         Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
         List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),

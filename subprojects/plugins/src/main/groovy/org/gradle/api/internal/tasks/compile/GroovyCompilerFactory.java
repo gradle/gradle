@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
@@ -39,7 +40,7 @@ public class GroovyCompilerFactory {
         this.inProcessCompilerDaemonFactory = inProcessCompilerDaemonFactory;
     }
 
-    org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> create(final GroovyCompileOptions groovyOptions, final CompileOptions javaOptions) {
+    Compiler<GroovyJavaJointCompileSpec> create(final GroovyCompileOptions groovyOptions, final CompileOptions javaOptions) {
         javaCompilerFactory.setJointCompilation(true);
         Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.create(javaOptions);
         Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
@@ -49,7 +50,7 @@ public class GroovyCompilerFactory {
         } else {
             daemonFactory = inProcessCompilerDaemonFactory;
         }
-        groovyCompiler = new DaemonGroovyCompiler(project, groovyCompiler, daemonFactory);
+        groovyCompiler = new DaemonGroovyCompiler(project, groovyCompiler, project.getServices().get(ClassPathRegistry.class), daemonFactory);
         return new NormalizingGroovyCompiler(groovyCompiler);
     }
 }

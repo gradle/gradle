@@ -16,36 +16,23 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.internal.UncheckedException;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.Collections;
 
-public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
-    private final ProjectInternal project;
-    private final Compiler<JavaCompileSpec> delegate;
-    private final CompilerDaemonManager compilerDaemonManager;
-
-    public DaemonJavaCompiler(ProjectInternal project, Compiler<JavaCompileSpec> delegate, CompilerDaemonManager compilerDaemonManager) {
-        this.project = project;
-        this.delegate = delegate;
-        this.compilerDaemonManager = compilerDaemonManager;
+public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
+    public DaemonJavaCompiler(ProjectInternal project, Compiler<JavaCompileSpec> delegate, CompilerDaemonFactory compilerDaemonFactory) {
+        super(project, delegate, compilerDaemonFactory);
     }
 
-    public WorkResult execute(JavaCompileSpec spec) {
+    @Override
+    protected DaemonForkOptions toDaemonOptions(JavaCompileSpec spec) {
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
-        DaemonForkOptions daemonForkOptions = new DaemonForkOptions(
+        return new DaemonForkOptions(
                 forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(),
                 Collections.<File>emptyList(), Collections.singleton("com.sun.tools.javac"));
-        CompilerDaemon daemon = compilerDaemonManager.getDaemon(project.getRootProject().getProjectDir(), daemonForkOptions);
-        CompileResult result = daemon.execute(delegate, spec);
-        if (result.isSuccess()) {
-            return result;
-        }
-        throw UncheckedException.throwAsUncheckedException(result.getException());
     }
 }
