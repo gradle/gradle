@@ -209,6 +209,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
         project.getTasks().withType(Javadoc.class, new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
+                javadoc.setToolChain(toolChain);
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
                     public Object call() throws Exception {
                         return new File(convention.getDocsDir(), "javadoc");

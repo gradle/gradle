@@ -18,6 +18,7 @@ package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
@@ -26,6 +27,7 @@ import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -84,6 +86,8 @@ public class Javadoc extends SourceTask {
     private FileCollection classpath = getProject().files();
 
     private String executable;
+
+    private JavaToolChain toolChain;
 
     @TaskAction
     protected void generate() {
@@ -151,6 +155,16 @@ public class Javadoc extends SourceTask {
             throw new IllegalArgumentException("javadocExecHandleBuilder == null!");
         }
         this.javadocExecHandleBuilder = javadocExecHandleBuilder;
+    }
+
+    @Incubating
+    public JavaToolChain getToolChain() {
+        return toolChain;
+    }
+
+    @Incubating
+    public void setToolChain(JavaToolChain toolChain) {
+        this.toolChain = toolChain;
     }
 
     /**

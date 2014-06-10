@@ -20,7 +20,15 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A set of tools for building from Java source.
+ * A set of tools for building from Java source. A {@code JavaToolChain} is able to:
+ *
+ * <ul>
+ *
+ * <li>Compile Java source to bytecode.</li>
+ *
+ * <li>Generate Javadoc from Java source.</li>
+ *
+ * </ul>
  */
 @Incubating
 @HasInternalProtocol

@@ -162,6 +162,7 @@ class JavaBasePluginTest extends Specification {
         test.reports.html.enabled
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
+        javadoc.toolChain != null
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
