@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.tasks.compile.DefaultJavaToolChain;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
@@ -26,6 +27,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 
 public class CompileServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -42,6 +44,10 @@ public class CompileServices implements PluginServiceRegistry {
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery
             initializer.initializeJdkTools();
+        }
+
+        JavaToolChainInternal createJavaToolChain() {
+            return new DefaultJavaToolChain();
         }
 
         CompilerDaemonManager createCompilerDaemonManager(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {

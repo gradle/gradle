@@ -17,9 +17,9 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalJavaCompilerFactory;
 import org.gradle.api.tasks.Nested;
@@ -28,6 +28,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
@@ -46,6 +48,27 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
+    private JavaToolChain toolChain;
+
+    /**
+     * Returns the tool chain that will be used to compile the Java source.
+     *
+     * @return The tool chain.
+     */
+    @Incubating
+    public JavaToolChain getToolChain() {
+        return toolChain;
+    }
+
+    /**
+     * Sets the tool chain that should be used to compile the Java source.
+     *
+     * @param toolChain The tool chain.
+     */
+    @Incubating
+    public void setToolChain(JavaToolChain toolChain) {
+        this.toolChain = toolChain;
+    }
 
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
