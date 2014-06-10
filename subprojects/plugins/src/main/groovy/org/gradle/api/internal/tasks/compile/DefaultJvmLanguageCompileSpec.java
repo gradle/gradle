@@ -22,10 +22,19 @@ import java.io.File;
 import java.io.Serializable;
 
 public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
+    private File workingDir;
     private Iterable<File> classpath;
     private File destinationDir;
     private FileCollection source;
     private String targetCompatibility;
+
+    public File getWorkingDir() {
+        return workingDir;
+    }
+
+    public void setWorkingDir(File workingDir) {
+        this.workingDir = workingDir;
+    }
 
     public File getDestinationDir() {
         return destinationDir;

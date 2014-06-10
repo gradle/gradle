@@ -58,7 +58,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
     private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
         if (options.isFork() && options.getForkOptions().getExecutable() != null) {
-            return new CommandLineJavaCompiler(createSerializableTempFileProvider(), project.getProjectDir());
+            return new CommandLineJavaCompiler(createSerializableTempFileProvider());
         }
 
         Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);

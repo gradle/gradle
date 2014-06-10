@@ -22,6 +22,10 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import java.io.File;
 
 public interface JvmLanguageCompileSpec extends CompileSpec {
+    File getWorkingDir();
+
+    void setWorkingDir(File workingDir);
+
     File getDestinationDir();
 
     void setDestinationDir(File destinationDir);

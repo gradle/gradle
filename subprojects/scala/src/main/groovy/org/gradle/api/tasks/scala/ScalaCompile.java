@@ -127,6 +127,7 @@ public class ScalaCompile extends AbstractCompile {
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
+        spec.setWorkingDir(getProject().getProjectDir());
         spec.setClasspath(getClasspath());
         spec.setScalaClasspath(getScalaClasspath());
         spec.setZincClasspath(getZincClasspath());

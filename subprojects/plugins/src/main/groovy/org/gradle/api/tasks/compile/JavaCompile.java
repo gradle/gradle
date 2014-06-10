@@ -102,6 +102,7 @@ public class JavaCompile extends AbstractCompile {
         DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
+        spec.setWorkingDir(getProject().getProjectDir());
         spec.setClasspath(getClasspath());
         spec.setDependencyCacheDir(getDependencyCacheDir());
         spec.setSourceCompatibility(getSourceCompatibility());

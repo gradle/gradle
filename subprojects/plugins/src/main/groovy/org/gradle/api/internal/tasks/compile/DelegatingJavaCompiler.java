@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
-public class DelegatingJavaCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
+public class DelegatingJavaCompiler implements Compiler<JavaCompileSpec> {
     private final JavaCompilerFactory compilerFactory;
     
     public DelegatingJavaCompiler(JavaCompilerFactory compilerFactory) {

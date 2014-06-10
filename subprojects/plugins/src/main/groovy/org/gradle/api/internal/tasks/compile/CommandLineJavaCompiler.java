@@ -25,7 +25,6 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -35,11 +34,9 @@ public class CommandLineJavaCompiler implements org.gradle.language.base.interna
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
     private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator;
-    private final File workingDir;
 
-    public CommandLineJavaCompiler(TemporaryFileProvider tempFileProvider, File workingDir) {
+    public CommandLineJavaCompiler(TemporaryFileProvider tempFileProvider) {
         argumentsGenerator = new CommandLineJavaCompilerArgumentsGenerator(tempFileProvider);
-        this.workingDir = workingDir;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
@@ -54,7 +51,7 @@ public class CommandLineJavaCompiler implements org.gradle.language.base.interna
 
     private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {
         ExecHandleBuilder builder = new ExecHandleBuilder();
-        builder.setWorkingDir(workingDir);
+        builder.setWorkingDir(spec.getWorkingDir());
         builder.setExecutable(executable);
         argumentsGenerator.collectArguments(spec, new ExecSpecBackedArgCollector(builder));
         builder.setIgnoreExitValue(true);

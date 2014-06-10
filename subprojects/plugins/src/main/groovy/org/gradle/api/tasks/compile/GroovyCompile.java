@@ -47,6 +47,7 @@ public class GroovyCompile extends AbstractCompile {
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
+        spec.setWorkingDir(getProject().getProjectDir());
         spec.setClasspath(getClasspath());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
