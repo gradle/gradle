@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.toolchain.internal.*;

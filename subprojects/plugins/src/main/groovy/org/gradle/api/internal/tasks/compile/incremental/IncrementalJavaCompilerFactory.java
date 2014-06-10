@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;

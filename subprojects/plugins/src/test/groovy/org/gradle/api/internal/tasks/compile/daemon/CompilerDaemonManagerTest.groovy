@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.daemon
 
-import org.gradle.api.internal.tasks.compile.CompileSpec
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.language.base.internal.compile.CompileSpec
+import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification
 import spock.lang.Subject
 

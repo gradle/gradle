@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
+import org.gradle.language.base.internal.compile.Compiler;
 
 public class GroovyCompilerFactory {
     private final ProjectInternal project;
@@ -38,7 +39,7 @@ public class GroovyCompilerFactory {
         this.inProcessCompilerDaemonFactory = inProcessCompilerDaemonFactory;
     }
 
-    Compiler<GroovyJavaJointCompileSpec> create(final GroovyCompileOptions groovyOptions, final CompileOptions javaOptions) {
+    org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> create(final GroovyCompileOptions groovyOptions, final CompileOptions javaOptions) {
         javaCompilerFactory.setJointCompilation(true);
         Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.create(javaOptions);
         Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);

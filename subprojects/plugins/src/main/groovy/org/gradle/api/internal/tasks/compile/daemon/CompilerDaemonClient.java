@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.internal.tasks.compile.CompileSpec;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.WorkerProcess;

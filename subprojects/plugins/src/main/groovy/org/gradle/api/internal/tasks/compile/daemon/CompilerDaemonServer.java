@@ -16,8 +16,8 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.compile.CompileSpec;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;

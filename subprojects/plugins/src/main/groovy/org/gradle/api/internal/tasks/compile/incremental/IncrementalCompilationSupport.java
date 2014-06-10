@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;

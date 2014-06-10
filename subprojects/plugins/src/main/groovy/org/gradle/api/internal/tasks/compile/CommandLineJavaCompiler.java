@@ -31,7 +31,7 @@ import java.io.Serializable;
 /**
  * Executes the Java command line compiler specified in {@code JavaCompileSpec.forkOptions.getExecutable()}.
  */
-public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
+public class CommandLineJavaCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
     private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator;

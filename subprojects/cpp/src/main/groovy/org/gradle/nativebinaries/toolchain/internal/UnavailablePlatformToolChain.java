@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;

@@ -20,7 +20,7 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.language.base.internal.compile.Compiler
 
 import groovy.transform.InheritConstructors
 

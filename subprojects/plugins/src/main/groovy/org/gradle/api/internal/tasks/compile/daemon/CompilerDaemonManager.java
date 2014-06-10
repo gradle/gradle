@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
 
@@ -34,7 +34,7 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
 
     public CompilerDaemon getDaemon(final File workingDir, final DaemonForkOptions forkOptions) {
         return new CompilerDaemon() {
-            public <T extends CompileSpec> CompileResult execute(org.gradle.api.internal.tasks.compile.Compiler<T> compiler, T spec) {
+            public <T extends CompileSpec> CompileResult execute(org.gradle.language.base.internal.compile.Compiler<T> compiler, T spec) {
                 CompilerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
                     client = clientsManager.reserveNewClient(workingDir, forkOptions);

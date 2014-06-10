@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.scala
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.util.GUtil
 import org.gradle.util.VersionNumber

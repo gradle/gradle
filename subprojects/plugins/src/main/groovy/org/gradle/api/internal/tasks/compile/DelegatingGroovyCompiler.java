@@ -16,8 +16,9 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 
-public class DelegatingGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
+public class DelegatingGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> {
     private final GroovyCompilerFactory compilerFactory;
 
     public DelegatingGroovyCompiler(GroovyCompilerFactory compilerFactory) {

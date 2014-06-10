@@ -33,7 +33,7 @@ package org.gradle.api.internal.tasks.scala;
  */
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompileResult;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemon;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
@@ -46,7 +46,7 @@ import org.gradle.internal.UncheckedException;
 import java.util.Arrays;
 import java.util.List;
 
-public class DaemonScalaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<ScalaJavaJointCompileSpec> {
+public class DaemonScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final Compiler<ScalaJavaJointCompileSpec> delegate;
     private final CompilerDaemonFactory daemonFactory;

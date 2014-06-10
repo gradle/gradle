@@ -19,7 +19,7 @@ import spock.lang.Specification
 
 class DelegatingJavaCompilerTest extends Specification {
     def "configures and executes the chosen compiler"() {
-        Compiler<JavaCompileSpec> chosen = Mock()
+        org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> chosen = Mock()
         JavaCompileSpec spec = Mock()
 
         def switchable = new DelegatingJavaCompiler({ chosen } as JavaCompilerFactory)

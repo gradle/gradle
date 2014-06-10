@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;

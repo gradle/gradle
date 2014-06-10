@@ -23,7 +23,7 @@ import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
 class NormalizingJavaCompilerTest extends Specification {
-    Compiler<JavaCompileSpec> target = Mock()
+    org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> target = Mock()
     DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec()
     NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 

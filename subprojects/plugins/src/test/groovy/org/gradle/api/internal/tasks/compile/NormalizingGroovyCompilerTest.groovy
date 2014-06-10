@@ -23,7 +23,7 @@ import org.gradle.api.tasks.compile.GroovyCompileOptions
 import spock.lang.Specification
 
 class NormalizingGroovyCompilerTest extends Specification { 
-    Compiler<GroovyJavaJointCompileSpec> target = Mock()
+    org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> target = Mock()
     DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
     NormalizingGroovyCompiler compiler = new NormalizingGroovyCompiler(target)
     

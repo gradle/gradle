@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.typesafe.zinc.*;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerArgumentsGenerator;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;

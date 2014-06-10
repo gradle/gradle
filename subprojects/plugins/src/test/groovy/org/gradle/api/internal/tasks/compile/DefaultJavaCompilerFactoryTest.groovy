@@ -23,7 +23,7 @@ import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
 class DefaultJavaCompilerFactoryTest extends Specification {
-    def inProcessCompiler = Mock(Compiler)
+    def inProcessCompiler = Mock(org.gradle.language.base.internal.compile.Compiler)
     def inProcessCompilerFactory = Mock(JavaCompilerFactory)
     def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), inProcessCompilerFactory, Mock(CompilerDaemonManager))
     def options = new CompileOptions()

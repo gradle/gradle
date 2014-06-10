@@ -24,15 +24,16 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
 
 /**
- * A Java {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
+ * A Java {@link org.gradle.language.base.internal.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
+public class NormalizingJavaCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = Logging.getLogger(NormalizingJavaCompiler.class);
     private final Compiler<JavaCompileSpec> delegate;
 

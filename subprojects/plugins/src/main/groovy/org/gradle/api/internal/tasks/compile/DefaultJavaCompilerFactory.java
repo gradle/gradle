@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.io.Serializable;
@@ -47,7 +48,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         jointCompilation = flag;
     }
 
-    public Compiler<JavaCompileSpec> create(CompileOptions options) {
+    public org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> create(CompileOptions options) {
         Compiler<JavaCompileSpec> result = createTargetCompiler(options);
         if (!jointCompilation) {
             result = new NormalizingJavaCompiler(result);

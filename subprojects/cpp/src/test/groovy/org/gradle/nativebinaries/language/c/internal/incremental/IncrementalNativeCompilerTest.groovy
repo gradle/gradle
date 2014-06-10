@@ -31,7 +31,7 @@ import spock.lang.Unroll
 class IncrementalNativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    def delegateCompiler = Mock(org.gradle.api.internal.tasks.compile.Compiler)
+    def delegateCompiler = Mock(org.gradle.language.base.internal.compile.Compiler)
     def toolChain = Mock(ToolChain)
     def task = Mock(TaskInternal)
     def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain)

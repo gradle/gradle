@@ -19,7 +19,7 @@ import org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 public class InProcessJavaCompilerFactory implements JavaCompilerFactory {
-    public Compiler<JavaCompileSpec> create(CompileOptions options) {
+    public org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> create(CompileOptions options) {
         return new Jdk6JavaCompiler();
     }
 }

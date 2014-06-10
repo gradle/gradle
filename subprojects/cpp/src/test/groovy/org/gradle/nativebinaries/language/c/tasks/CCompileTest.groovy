@@ -15,7 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.c.tasks
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativebinaries.platform.internal.PlatformInternal
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain

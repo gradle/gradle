@@ -21,12 +21,12 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.api.file.FileCollection
 
 class CleaningJavaCompilerTest extends Specification {
-    private final Compiler<JavaCompileSpec> target = Mock()
+    private final org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> target = Mock()
     private final JavaCompileSpec spec = Mock()
     private final StaleClassCleaner cleaner = Mock()
     private final CleaningJavaCompilerSupport<JavaCompileSpec> compiler = new CleaningJavaCompilerSupport<JavaCompileSpec>() {
         @Override
-        protected Compiler<JavaCompileSpec> getCompiler() {
+        protected org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> getCompiler() {
             return target
         }
 

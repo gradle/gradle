@@ -24,7 +24,7 @@ import org.gradle.internal.jvm.Jvm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class AntJavaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> {
+class AntJavaCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntJavaCompiler)
     private static final String CLASSPATH_ID = 'compile.classpath'
 

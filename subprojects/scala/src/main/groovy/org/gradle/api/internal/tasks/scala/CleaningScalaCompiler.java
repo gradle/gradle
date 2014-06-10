@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.compile.*;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
 

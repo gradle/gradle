@@ -16,11 +16,12 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
 
 public class CleaningGroovyCompiler extends CleaningJavaCompilerSupport<GroovyJavaJointCompileSpec> {
-    private final Compiler<GroovyJavaJointCompileSpec> compiler;
+    private final org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> compiler;
     private final TaskOutputsInternal taskOutputs;
 
     public CleaningGroovyCompiler(Compiler<GroovyJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {

@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalJavaCompilerFactory;
 import org.gradle.api.tasks.Nested;

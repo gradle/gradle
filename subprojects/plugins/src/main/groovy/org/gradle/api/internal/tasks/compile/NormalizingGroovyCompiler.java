@@ -24,15 +24,16 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
 
 /**
- * A Groovy {@link org.gradle.api.internal.tasks.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
+ * A Groovy {@link org.gradle.language.base.internal.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
+public class NormalizingGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> {
     private static final Logger LOGGER = Logging.getLogger(NormalizingGroovyCompiler.class);
     private final Compiler<GroovyJavaJointCompileSpec> delegate;
 

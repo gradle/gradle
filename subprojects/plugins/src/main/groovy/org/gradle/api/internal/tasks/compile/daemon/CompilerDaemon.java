@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.internal.tasks.compile.CompileSpec;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.Compiler;
 
 /**
  * A service that executes compilers in a (potentially) long-lived process.

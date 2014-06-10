@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 
-public class DelegatingScalaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<ScalaJavaJointCompileSpec> {
+public class DelegatingScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final ScalaCompilerFactory compilerFactory;
 
     public DelegatingScalaCompiler(ScalaCompilerFactory compilerFactory) {

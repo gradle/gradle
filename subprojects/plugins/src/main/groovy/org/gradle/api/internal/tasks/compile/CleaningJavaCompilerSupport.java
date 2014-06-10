@@ -16,12 +16,13 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
 
 /**
  * Deletes stale classes before invoking the actual compiler
  */
-public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> implements Compiler<T> {
+public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<T> {
     public WorkResult execute(T spec) {
         StaleClassCleaner cleaner = createCleaner(spec);
 

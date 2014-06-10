@@ -19,7 +19,7 @@ import spock.lang.Specification
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 
 class DefaultScalaJavaJointCompilerTest extends Specification {

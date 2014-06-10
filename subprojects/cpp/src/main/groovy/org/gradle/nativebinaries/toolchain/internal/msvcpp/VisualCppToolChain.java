@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;

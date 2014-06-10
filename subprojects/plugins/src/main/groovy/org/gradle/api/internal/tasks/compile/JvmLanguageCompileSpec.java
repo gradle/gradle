@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
 

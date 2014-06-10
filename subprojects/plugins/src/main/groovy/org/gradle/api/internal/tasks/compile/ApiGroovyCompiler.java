@@ -28,6 +28,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.io.Serializable;
@@ -37,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
+public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
     private final Compiler<JavaCompileSpec> javaCompiler;
 
     public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler) {
