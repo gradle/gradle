@@ -58,8 +58,8 @@ public class CompileServices implements PluginServiceRegistry {
     }
 
     private static class ProjectScopeCompileServices {
-        JavaToolChainInternal createJavaToolChain(GradleInternal gradle) {
-            return new DefaultJavaToolChain();
+        JavaToolChainInternal createJavaToolChain(GradleInternal gradle, CompilerDaemonManager compilerDaemonManager) {
+            return new DefaultJavaToolChain(gradle, compilerDaemonManager);
         }
     }
 }

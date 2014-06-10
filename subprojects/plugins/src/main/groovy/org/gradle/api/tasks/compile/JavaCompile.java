@@ -18,10 +18,9 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.*;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalJavaCompilerFactory;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
@@ -30,6 +29,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 import org.gradle.util.SingleMessageLogger;
 
@@ -96,11 +96,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private CleaningJavaCompiler createCompiler() {
-        JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
-        ProjectInternal projectInternal = (ProjectInternal) getProject();
-        CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
-        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal.getRootProject().getProjectDir(), inProcessCompilerFactory, compilerDaemonFactory);
-        DelegatingJavaCompiler javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
+        Compiler<JavaCompileSpec> javaCompiler = ((JavaToolChainInternal) getToolChain()).newCompiler(JavaCompileSpec.class);
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
