@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 
 public class DelegatingScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final ScalaCompilerFactory compilerFactory;
@@ -27,7 +27,7 @@ public class DelegatingScalaCompiler implements Compiler<ScalaJavaJointCompileSp
     }
 
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        Compiler<ScalaJavaJointCompileSpec> delegate = compilerFactory.create(spec.getScalaCompileOptions(), spec.getCompileOptions());
+        Compiler<ScalaJavaJointCompileSpec> delegate = compilerFactory.newCompiler(spec);
         return delegate.execute(spec);
     }
 }

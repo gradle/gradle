@@ -23,12 +23,12 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompilerFactory;
 
-public class ScalaCompilerFactory {
+public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final IsolatedAntBuilder antBuilder;
     private final Factory<AntBuilder> antBuilderFactory;
@@ -41,7 +41,8 @@ public class ScalaCompilerFactory {
         this.compilerDaemonFactory = compilerDaemonFactory;
     }
 
-    public Compiler<ScalaJavaJointCompileSpec> create(ScalaCompileOptions scalaOptions, CompileOptions javaOptions) {
+    public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
+        ScalaCompileOptions scalaOptions = spec.getScalaCompileOptions();
         if (scalaOptions.isUseAnt()) {
             Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(antBuilder);
             Compiler<JavaCompileSpec> javaCompiler = new AntJavaCompiler(antBuilderFactory);

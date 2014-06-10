@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
-public class DelegatingGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> {
+public class DelegatingGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
     private final GroovyCompilerFactory compilerFactory;
 
     public DelegatingGroovyCompiler(GroovyCompilerFactory compilerFactory) {
@@ -26,7 +26,7 @@ public class DelegatingGroovyCompiler implements org.gradle.language.base.intern
     }
 
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-        Compiler<GroovyJavaJointCompileSpec> delegate = compilerFactory.create(spec.getGroovyCompileOptions(), spec.getCompileOptions());
+        Compiler<GroovyJavaJointCompileSpec> delegate = compilerFactory.newCompiler(spec);
         return delegate.execute(spec);
     }
 }
