@@ -32,6 +32,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -88,14 +89,18 @@ public class JavaCompile extends AbstractCompile {
         performCompilation(createCompiler());
     }
 
+    @Inject
+    protected Factory<AntBuilder> getAntBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     private CleaningJavaCompiler createCompiler() {
-        Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         ProjectInternal projectInternal = (ProjectInternal) getProject();
         CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
         JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, inProcessCompilerFactory, compilerDaemonManager);
         DelegatingJavaCompiler javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
-        return new CleaningJavaCompiler(javaCompiler, antBuilderFactory, getOutputs());
+        return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
     private void performCompilation(Compiler<JavaCompileSpec> compiler) {
@@ -103,6 +108,7 @@ public class JavaCompile extends AbstractCompile {
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
+        spec.setTempDir(getTemporaryDir());
         spec.setClasspath(getClasspath());
         spec.setDependencyCacheDir(getDependencyCacheDir());
         spec.setSourceCompatibility(getSourceCompatibility());

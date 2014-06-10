@@ -15,28 +15,22 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
-
-import java.io.File;
-import java.io.Serializable;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final ProjectInternal project;
     private final JavaCompilerFactory inProcessCompilerFactory;
-    private final CompilerDaemonManager compilerDaemonManager;
+    private final CompilerDaemonFactory compilerDaemonFactory;
     private boolean jointCompilation;
 
-    public DefaultJavaCompilerFactory(ProjectInternal project, JavaCompilerFactory inProcessCompilerFactory, CompilerDaemonManager compilerDaemonManager){
+    public DefaultJavaCompilerFactory(ProjectInternal project, JavaCompilerFactory inProcessCompilerFactory, CompilerDaemonFactory compilerDaemonFactory){
         this.project = project;
         this.inProcessCompilerFactory = inProcessCompilerFactory;
-        this.compilerDaemonManager = compilerDaemonManager;
+        this.compilerDaemonFactory = compilerDaemonFactory;
     }
 
     /**
@@ -58,30 +52,14 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
     private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
         if (options.isFork() && options.getForkOptions().getExecutable() != null) {
-            return new CommandLineJavaCompiler(createSerializableTempFileProvider());
+            return new CommandLineJavaCompiler();
         }
 
         Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
         if (options.isFork() && !jointCompilation) {
-            return new DaemonJavaCompiler(project, compiler, compilerDaemonManager);
+            return new DaemonJavaCompiler(project, compiler, compilerDaemonFactory);
         }
 
         return compiler;
-    }
-
-    private TemporaryFileProvider createSerializableTempFileProvider() {
-        return new DefaultTemporaryFileProvider(new FileFactory(project.getBuildDir()));
-    }
-
-    private static class FileFactory implements Factory<File>, Serializable {
-        private final File file;
-
-        private FileFactory(File file) {
-            this.file = file;
-        }
-
-        public File create() {
-            return file;
-        }
     }
 }

@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
     private File workingDir;
+    private File tempDir;
     private Iterable<File> classpath;
     private File destinationDir;
     private FileCollection source;
@@ -34,6 +35,14 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
 
     public void setWorkingDir(File workingDir) {
         this.workingDir = workingDir;
+    }
+
+    public File getTempDir() {
+        return tempDir;
+    }
+
+    public void setTempDir(File tempDir) {
+        this.tempDir = tempDir;
     }
 
     public File getDestinationDir() {

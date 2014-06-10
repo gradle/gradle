@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -30,14 +30,10 @@ import java.io.Serializable;
 /**
  * Executes the Java command line compiler specified in {@code JavaCompileSpec.forkOptions.getExecutable()}.
  */
-public class CommandLineJavaCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec>, Serializable {
+public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
-    private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator;
-
-    public CommandLineJavaCompiler(TemporaryFileProvider tempFileProvider) {
-        argumentsGenerator = new CommandLineJavaCompilerArgumentsGenerator(tempFileProvider);
-    }
+    private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator = new CommandLineJavaCompilerArgumentsGenerator();
 
     public WorkResult execute(JavaCompileSpec spec) {
         String executable = spec.getCompileOptions().getForkOptions().getExecutable();

@@ -18,19 +18,12 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
 
 public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToArguments<JavaCompileSpec>, Serializable {
-    private final TemporaryFileProvider tempFileProvider;
-
-    public CommandLineJavaCompilerArgumentsGenerator(TemporaryFileProvider tempFileProvider) {
-        this.tempFileProvider = tempFileProvider;
-    }
-
     public void collectArguments(JavaCompileSpec spec, ArgCollector collector) {
         for (String arg : generate(spec)) {
             collector.args(arg);
@@ -42,7 +35,7 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
         List<String> remainingArgs = new JavaCompilerArgumentsBuilder(spec).includeSourceFiles(true).build();
         Iterable<String> allArgs = Iterables.concat(launcherOptions, remainingArgs);
         if (exceedsWindowsCommandLineLengthLimit(allArgs)) {
-            return Iterables.concat(launcherOptions, shortenArgs(remainingArgs));
+            return Iterables.concat(launcherOptions, shortenArgs(spec.getTempDir(), remainingArgs));
         }
         return allArgs;
     }
@@ -59,8 +52,8 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
         return false;
     }
 
-    private Iterable<String> shortenArgs(List<String> args) {
-        File file = tempFileProvider.createTemporaryFile("compile-args", null, "java-compiler");
+    private Iterable<String> shortenArgs(File tempDir, List<String> args) {
+        File file = new File(tempDir, "java-compiler-args.txt");
         // for command file format, see http://docs.oracle.com/javase/6/docs/technotes/tools/windows/javac.html#commandlineargfile
         // use platform character and line encoding
         try {

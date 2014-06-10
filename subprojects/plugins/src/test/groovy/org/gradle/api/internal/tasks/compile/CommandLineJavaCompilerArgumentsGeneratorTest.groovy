@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile
 
 import com.google.common.collect.Lists
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -26,8 +25,7 @@ import spock.lang.Specification
 
 class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tempDir
-    TemporaryFileProvider tempFileProvider = Mock()
-    CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator(tempFileProvider)
+    CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator()
 
     def "inlines arguments if they are short enough"() {
         def spec = createCompileSpec(25)
@@ -36,14 +34,12 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def args = argsGenerator.generate(spec)
 
         then:
-        0 * tempFileProvider._
         Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-classpath", spec.classpath.asPath, *spec.source*.path]
     }
 
     def "creates arguments file if arguments get too long"() {
         def spec = createCompileSpec(100)
-        def argsFile = tempDir.createFile("compile-args")
-        tempFileProvider.createTemporaryFile(*_) >> argsFile
+        def argsFile = tempDir.createFile("java-compiler-args.txt")
 
         when:
         def args = argsGenerator.generate(spec)
@@ -63,6 +59,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
         spec.source = new SimpleFileCollection(sources)
         spec.classpath = new SimpleFileCollection(classpath)
+        spec.tempDir = tempDir.testDirectory
         spec
     }
 

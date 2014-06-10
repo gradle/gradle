@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.compile.DefaultJavaToolChain;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
@@ -38,6 +39,7 @@ public class CompileServices implements PluginServiceRegistry {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeCompileServices());
     }
 
     private static class BuildScopeCompileServices {
@@ -46,16 +48,18 @@ public class CompileServices implements PluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        JavaToolChainInternal createJavaToolChain() {
-            return new DefaultJavaToolChain();
-        }
-
         CompilerDaemonManager createCompilerDaemonManager(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
             return new CompilerDaemonManager(new CompilerClientsManager(new CompilerDaemonStarter(workerFactory, startParameter)));
         }
 
         InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory() {
             return new InProcessCompilerDaemonFactory();
+        }
+    }
+
+    private static class ProjectScopeCompileServices {
+        JavaToolChainInternal createJavaToolChain(GradleInternal gradle) {
+            return new DefaultJavaToolChain();
         }
     }
 }
