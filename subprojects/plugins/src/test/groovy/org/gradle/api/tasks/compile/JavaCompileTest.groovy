@@ -17,10 +17,9 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.TaskExecutionHistory
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.tasks.WorkResult
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -42,7 +41,7 @@ class JavaCompileTest extends Specification {
         task.compile()
 
         then:
-        1 * toolChain.newCompiler(JavaCompileSpec) >> compiler
-        1 * compiler.execute(_) >> Stub(WorkResult)
+        1 * toolChain.newCompiler(!null) >> compiler
+        1 * compiler.execute(!null) >> Stub(WorkResult)
     }
 }

@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
 import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
+import org.gradle.language.base.internal.compile.Compiler
 
 class DefaultJavaToolChainTest extends Specification {
     def javaCompilerFactory = Stub(JavaCompilerFactory)
@@ -27,12 +29,21 @@ class DefaultJavaToolChainTest extends Specification {
     def toolChain = new DefaultJavaToolChain(javaCompilerFactory, execActionFactory)
 
     def "creates compiler for JavaCompileSpec"() {
+        def options = Stub(CompileOptions)
+        def spec = Stub(JavaCompileSpec) {
+            getCompileOptions() >> options
+        }
+        def compiler = Stub(Compiler)
+
+        given:
+        javaCompilerFactory.create(options) >> compiler
+
         expect:
-        toolChain.newCompiler(JavaCompileSpec) instanceof DelegatingJavaCompiler
+        toolChain.newCompiler(spec) == compiler
     }
 
     def "creates compiler for JavadocSpec"() {
         expect:
-        toolChain.newCompiler(JavadocSpec) instanceof JavadocGenerator
+        toolChain.newCompiler(Stub(JavadocSpec)) instanceof JavadocGenerator
     }
 }

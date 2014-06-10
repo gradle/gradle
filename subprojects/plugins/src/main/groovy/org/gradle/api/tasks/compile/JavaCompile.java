@@ -81,13 +81,15 @@ public class JavaCompile extends AbstractCompile {
 
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
-        IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(getProject(), getPath(), createCompiler(), source);
+        DefaultJavaCompileSpec spec = createSpec();
+        IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(getProject(), getPath(), createCompiler(spec), source);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler(inputs);
-        performCompilation(compiler);
+        performCompilation(spec, compiler);
     }
 
     protected void compile() {
-        performCompilation(createCompiler());
+        DefaultJavaCompileSpec spec = createSpec();
+        performCompilation(spec, createCompiler(spec));
     }
 
     @Inject
@@ -95,12 +97,17 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    private CleaningJavaCompiler createCompiler() {
-        Compiler<JavaCompileSpec> javaCompiler = ((JavaToolChainInternal) getToolChain()).newCompiler(JavaCompileSpec.class);
+    private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
+        Compiler<JavaCompileSpec> javaCompiler = ((JavaToolChainInternal) getToolChain()).newCompiler(spec);
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
-    private void performCompilation(Compiler<JavaCompileSpec> compiler) {
+    private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
+        WorkResult result = compiler.execute(spec);
+        setDidWork(result.getDidWork());
+    }
+
+    private DefaultJavaCompileSpec createSpec() {
         DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
@@ -111,8 +118,7 @@ public class JavaCompile extends AbstractCompile {
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(compileOptions);
-        WorkResult result = compiler.execute(spec);
-        setDidWork(result.getDidWork());
+        return spec;
     }
 
     @OutputDirectory

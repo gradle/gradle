@@ -69,7 +69,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
 
     private void expectCompilerCreated() {
         context.checking(new Expectations(){{
-            one(toolChain).newCompiler(JavadocSpec.class);
+            one(toolChain).newCompiler(with(notNullValue(JavadocSpec.class)));
             will(returnValue(generator));
         }});
     }
