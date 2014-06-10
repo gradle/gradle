@@ -18,8 +18,8 @@ package org.gradle.nativebinaries.plugins
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
-import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.platform.Platform
@@ -196,17 +196,17 @@ class NativeComponentModelPluginTest extends Specification {
         NativeExecutableBinary executableBinary = project.binaries.exeExecutable as NativeExecutableBinary
         with (oneTask(executableBinary.buildDependencies)) {
             name == executableBinary.name
-            group == BasePlugin.BUILD_GROUP
+            group == LifecycleBasePlugin.BUILD_GROUP
         }
         SharedLibraryBinary sharedLibraryBinary = project.binaries.libSharedLibrary as SharedLibraryBinary
         with (oneTask(sharedLibraryBinary.buildDependencies)) {
             name == sharedLibraryBinary.name
-            group == BasePlugin.BUILD_GROUP
+            group == LifecycleBasePlugin.BUILD_GROUP
         }
         StaticLibraryBinary staticLibraryBinary = project.binaries.libStaticLibrary as StaticLibraryBinary
         with (oneTask(staticLibraryBinary.buildDependencies)) {
             name == staticLibraryBinary.name
-            group == BasePlugin.BUILD_GROUP
+            group == LifecycleBasePlugin.BUILD_GROUP
         }
     }
 

@@ -20,12 +20,12 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.BasePlugin;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.*;
@@ -67,7 +67,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(BasePlugin.class);
+        project.getPlugins().apply(LifecycleBasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
 
         modelRules.register("toolChains", ToolChainRegistryInternal.class, factory(DefaultToolChainRegistry.class));

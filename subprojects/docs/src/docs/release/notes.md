@@ -32,9 +32,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Incubating native language plugins no longer apply the base plugin
+
+The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle.language.base.plugins.LifecycleBasePlugin) instead of the `BasePlugin`. This means
+that the default values defined by the `BasePlugin` are not available.
+
+TBD - make this more explicit re. what is actually not longer available.
 
 ## External contributions
 

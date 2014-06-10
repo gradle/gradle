@@ -17,7 +17,6 @@
 dependencies {
     compile libraries.groovy
     compile project(':core')
-    compile project(":plugins")
     compile project(":ide")
     compile libraries.commons_io
     integTestRuntime project(":maven")

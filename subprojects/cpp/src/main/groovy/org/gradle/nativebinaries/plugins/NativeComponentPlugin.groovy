@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.BasePlugin
 import org.gradle.language.base.ProjectSourceSet
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
@@ -126,7 +127,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         def binary = executable as ProjectNativeBinaryInternal
         InstallExecutable installTask = project.task(binary.namingScheme.getTaskName("install"), type: InstallExecutable) {
             description = "Installs a development image of $executable"
-            group = BasePlugin.BUILD_GROUP
+            group = LifecycleBasePlugin.BUILD_GROUP
         }
 
         installTask.toolChain = binary.toolChain
