@@ -34,8 +34,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Changed Java compiler integration for Java - Scala joint compilation
 
-The `ScalaCompile` task type now uses the same Java compiler integration as used by `JavaCompile` and `GroovyCompile` task types, when performing Java - Scala joint
-compilation. This change should be backwards compatible for all users.
+The `ScalaCompile` task type now uses the same Java compiler integration as the `JavaCompile` and `GroovyCompile` task types, when performing Java - Scala joint
+compilation. Previously it would use the old Ant-based Java compiler integration, which is no longer supported in the Gradle 2.x stream.
+
+This change should be backwards compatible for all users.
 
 ### Incubating native language plugins no longer apply the base plugin
 
@@ -43,6 +45,10 @@ The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle
 that the default values defined by the `BasePlugin` are not available.
 
 TBD - make this more explicit re. what is actually not longer available.
+
+### Internal methods removed
+
+- The internal method `Javadoc.setJavadocExecHandleBuilder()` has been removed. You should use `setToolChain()` instead.
 
 ## External contributions
 
