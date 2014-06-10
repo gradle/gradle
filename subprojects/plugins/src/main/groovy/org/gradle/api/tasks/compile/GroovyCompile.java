@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
@@ -44,6 +43,25 @@ public class GroovyCompile extends AbstractCompile {
     @TaskAction
     protected void compile() {
         checkGroovyClasspathIsNonEmpty();
+        DefaultGroovyJavaJointCompileSpec spec = createSpec();
+        WorkResult result = getCompiler(spec).execute(spec);
+        setDidWork(result.getDidWork());
+    }
+
+    private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec) {
+        if (compiler == null) {
+            ProjectInternal projectInternal = (ProjectInternal) getProject();
+            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+            InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
+            JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
+            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
+            Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
+            compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
+        }
+        return compiler;
+    }
+
+    private DefaultGroovyJavaJointCompileSpec createSpec() {
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
@@ -56,13 +74,11 @@ public class GroovyCompile extends AbstractCompile {
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
-            TemporaryFileProvider tempFileProvider = getServices().get(TemporaryFileProvider.class);
-            File dir = tempFileProvider.newTemporaryFile("groovy-java-stubs");
+            File dir = new File(getTemporaryDir(), "groovy-java-stubs");
             GFileUtils.mkdirs(dir);
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
-        WorkResult result = getCompiler().execute(spec);
-        setDidWork(result.getDidWork());
+        return spec;
     }
 
     private void checkGroovyClasspathIsNonEmpty() {
@@ -113,16 +129,7 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     public Compiler<GroovyJavaJointCompileSpec> getCompiler() {
-        if (compiler == null) {
-            ProjectInternal projectInternal = (ProjectInternal) getProject();
-            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
-            InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-            JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
-            Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
-            compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
-        }
-        return compiler;
+        return getCompiler(createSpec());
     }
 
     public void setCompiler(Compiler<GroovyJavaJointCompileSpec> compiler) {
