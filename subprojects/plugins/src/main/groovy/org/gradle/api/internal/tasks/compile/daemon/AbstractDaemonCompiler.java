@@ -33,6 +33,10 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         this.compilerDaemonFactory = compilerDaemonFactory;
     }
 
+    public Compiler<T> getDelegate() {
+        return delegate;
+    }
+
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
         CompilerDaemon daemon = compilerDaemonFactory.getDaemon(daemonWorkingDir, daemonForkOptions);

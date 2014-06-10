@@ -17,26 +17,21 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler
+import org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
 class DefaultJavaCompilerFactoryTest extends Specification {
-    def inProcessCompiler = Mock(org.gradle.language.base.internal.compile.Compiler)
-    def inProcessCompilerFactory = Mock(JavaCompilerFactory)
-    def factory = new DefaultJavaCompilerFactory(new File("daemon-work-dir"), inProcessCompilerFactory, Mock(CompilerDaemonFactory))
+    def factory = new DefaultJavaCompilerFactory(new File("daemon-work-dir"), Mock(CompilerDaemonFactory))
     def options = new CompileOptions()
     
-    def setup() {
-        inProcessCompilerFactory.create(_) >> inProcessCompiler
-    }
-
     def "creates in-process compiler when fork=false"() {
         options.fork = false
 
         expect:
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
-        compiler.delegate.is(inProcessCompiler)
+        compiler.delegate instanceof Jdk6JavaCompiler
     }
 
     def "creates command line compiler when fork=true and forkOptions.executable is set"() {
@@ -56,5 +51,6 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
         compiler.delegate instanceof DaemonJavaCompiler
+        compiler.delegate.delegate instanceof Jdk6JavaCompiler
     }
 }

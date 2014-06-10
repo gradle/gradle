@@ -36,8 +36,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", specType.getSimpleName()));
         }
 
-        JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
-        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), inProcessCompilerFactory, compilerDaemonFactory);
+        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonFactory);
         return (Compiler) new DelegatingJavaCompiler(defaultCompilerFactory);
     }
 }

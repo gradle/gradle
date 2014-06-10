@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
+import org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -24,13 +25,11 @@ import java.io.File;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final File daemonWorkingDir;
-    private final JavaCompilerFactory inProcessCompilerFactory;
     private final CompilerDaemonFactory compilerDaemonFactory;
     private boolean jointCompilation;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, JavaCompilerFactory inProcessCompilerFactory, CompilerDaemonFactory compilerDaemonFactory){
+    public DefaultJavaCompilerFactory(File daemonWorkingDir, CompilerDaemonFactory compilerDaemonFactory){
         this.daemonWorkingDir = daemonWorkingDir;
-        this.inProcessCompilerFactory = inProcessCompilerFactory;
         this.compilerDaemonFactory = compilerDaemonFactory;
     }
 
@@ -43,7 +42,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         jointCompilation = flag;
     }
 
-    public org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> create(CompileOptions options) {
+    public Compiler<JavaCompileSpec> create(CompileOptions options) {
         Compiler<JavaCompileSpec> result = createTargetCompiler(options);
         if (!jointCompilation) {
             result = new NormalizingJavaCompiler(result);
@@ -56,7 +55,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
             return new CommandLineJavaCompiler();
         }
 
-        Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
+        Compiler<JavaCompileSpec> compiler = new Jdk6JavaCompiler();
         if (options.isFork() && !jointCompilation) {
             return new DaemonJavaCompiler(daemonWorkingDir, compiler, compilerDaemonFactory);
         }
