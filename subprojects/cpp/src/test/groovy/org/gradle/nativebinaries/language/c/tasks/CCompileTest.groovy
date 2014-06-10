@@ -50,7 +50,7 @@ class CCompileTest extends Specification {
         _ * toolChain.outputType >> "c"
         _ * platform.compatibilityString >> "p"
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.createCCompiler() >> cCompiler
+        1 * platformToolChain.newCompiler({it instanceof CCompileSpec}) >> cCompiler
         1 * cCompiler.execute({ CCompileSpec spec ->
             assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']

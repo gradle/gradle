@@ -16,11 +16,10 @@
 
 package org.gradle.nativebinaries.language.objectivec.tasks
 import org.gradle.api.Incubating
-import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
 import org.gradle.nativebinaries.language.objectivec.internal.DefaultObjectiveCCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
-import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
+
 /**
  * Compiles Objective-C source files into object files.
  */
@@ -29,10 +28,5 @@ class ObjectiveCCompile extends AbstractNativeCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {
         new DefaultObjectiveCCompileSpec()
-    }
-
-    @Override
-    protected Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
-        return toolChain.createObjectiveCCompiler()
     }
 }

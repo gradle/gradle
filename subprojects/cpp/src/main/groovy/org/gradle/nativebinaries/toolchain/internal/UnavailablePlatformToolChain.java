@@ -17,15 +17,11 @@
 package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.internal.text.TreeFormatter;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
-import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
-import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
-import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
-import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.util.TreeVisitor;
 
@@ -50,19 +46,7 @@ public class UnavailablePlatformToolChain implements PlatformToolChain {
         return new GradleException(formatter.toString());
     }
 
-    public Compiler<CppCompileSpec> createCppCompiler() {
-        throw failure();
-    }
-
-    public Compiler<CCompileSpec> createCCompiler() {
-        throw failure();
-    }
-
-    public Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
-        throw failure();
-    }
-
-    public Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
+    public <T extends NativeCompileSpec> Compiler<T> newCompiler(T spec) {
         throw failure();
     }
 

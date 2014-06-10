@@ -20,20 +20,10 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
-import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
-import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
-import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
-import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 
 public interface PlatformToolChain extends ToolSearchResult {
-    Compiler<CppCompileSpec> createCppCompiler();
-
-    Compiler<CCompileSpec> createCCompiler();
-
-    Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler();
-
-    Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler();
+    <T extends NativeCompileSpec> Compiler<T> newCompiler(T spec);
 
     Compiler<AssembleSpec> createAssembler();
 

@@ -15,10 +15,10 @@
  */
 
 package org.gradle.nativebinaries.language.c.tasks
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
-import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -113,15 +113,13 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.incrementalCompile = inputs.incremental
 
         PlatformToolChain platformToolChain = toolChain.select(targetPlatform)
-        final compiler = createCompiler(platformToolChain)
+        final compiler = platformToolChain.newCompiler(spec)
 
         def result = incrementalCompilerBuilder.createIncrementalCompiler(this, compiler, toolChain).execute(spec)
         didWork = result.didWork
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
-
-    protected abstract Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain)
 
     /**
      * Add directories where the compiler should search for header files.

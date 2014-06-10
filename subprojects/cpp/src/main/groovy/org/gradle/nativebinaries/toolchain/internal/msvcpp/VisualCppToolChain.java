@@ -18,10 +18,10 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
@@ -197,6 +197,22 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
         public void explain(TreeVisitor<? super String> visitor) {
         }
 
+        public <T extends NativeCompileSpec> Compiler<T> newCompiler(T spec) {
+            if (spec instanceof CppCompileSpec) {
+                return (Compiler) createCppCompiler();
+            }
+            if (spec instanceof CCompileSpec) {
+                return (Compiler) createCCompiler();
+            }
+            if (spec instanceof ObjectiveCppCompileSpec) {
+                throw new RuntimeException("Objective-C++ is not available on the Visual C++ toolchain");
+            }
+            if (spec instanceof ObjectiveCCompileSpec) {
+                throw new RuntimeException("Objective-C is not available on the Visual C++ toolchain");
+            }
+            throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
+        }
+
         public Compiler<CppCompileSpec> createCppCompiler() {
             CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
             CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cppCompiler")), addIncludePathAndDefinitions(CppCompileSpec.class));
@@ -207,14 +223,6 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
             CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
             CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cCompiler")), addIncludePathAndDefinitions(CCompileSpec.class));
             return new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
-        }
-
-        public Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
-            throw new RuntimeException("Objective-C++ is not available on the Visual C++ toolchain");
-        }
-
-        public Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
-            throw new RuntimeException("Objective-C is not available on the Visual C++ toolchain");
         }
 
         public Compiler<AssembleSpec> createAssembler() {

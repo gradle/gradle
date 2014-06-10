@@ -37,9 +37,9 @@ class UnavailablePlatformToolChainTest extends Specification {
         1 * visitor.node("broken")
     }
 
-    def "throws failure when attempting to create C compiler"() {
+    def "throws failure when attempting to create a compiler"() {
         when:
-        toolChain.createCCompiler()
+        toolChain.newCompiler(Stub(NativeCompileSpec))
 
         then:
         GradleException e = thrown()

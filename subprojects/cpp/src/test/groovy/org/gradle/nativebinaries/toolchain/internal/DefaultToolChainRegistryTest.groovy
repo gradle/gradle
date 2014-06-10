@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.nativebinaries.language.c.internal.CCompileSpec
 import org.gradle.nativebinaries.platform.internal.DefaultPlatform
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -68,7 +69,7 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.asList() == [configuredToolChain, defaultToolChain]
     }
 
-    def "provides unavailable tool chain when no tool chain available for requested  platform"() {
+    def "provides unavailable tool chain when no tool chain available for requested platform"() {
         unavailableToolChain("test", "nope")
         unavailableToolChain("test2", "not me")
         unavailableToolChain("test3", "not me either")
@@ -84,7 +85,7 @@ class DefaultToolChainRegistryTest extends Specification {
         def result = tc.select(platform)
 
         when:
-        result.createCCompiler()
+        result.newCompiler(Stub(CCompileSpec))
 
         then:
         GradleException e = thrown()

@@ -16,11 +16,10 @@
 
 package org.gradle.nativebinaries.language.cpp.tasks
 import org.gradle.api.Incubating
-import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
 import org.gradle.nativebinaries.language.cpp.internal.DefaultCppCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
-import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
+
 /**
  * Compiles C++ source files into object files.
  */
@@ -31,8 +30,4 @@ class CppCompile extends AbstractNativeCompileTask {
         new DefaultCppCompileSpec()
     }
 
-    @Override
-    protected Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
-        return toolChain.createCppCompiler()
-    }
 }

@@ -53,6 +53,22 @@ class GccPlatformToolChain implements PlatformToolChain {
     public void explain(TreeVisitor<? super String> visitor) {
     }
 
+    public <T extends NativeCompileSpec> Compiler<T> newCompiler(T spec) {
+        if (spec instanceof CppCompileSpec) {
+            return (Compiler) createCppCompiler();
+        }
+        if (spec instanceof CCompileSpec) {
+            return (Compiler) createCCompiler();
+        }
+        if (spec instanceof ObjectiveCppCompileSpec) {
+            return (Compiler) createObjectiveCppCompiler();
+        }
+        if (spec instanceof ObjectiveCCompileSpec) {
+            return (Compiler) createObjectiveCCompiler();
+        }
+        throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
+    }
+
     public Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
         CppCompiler cppCompiler = new CppCompiler(commandLineTool(cppCompilerTool), commandLineToolInvocation(cppCompilerTool), outputFileSuffix, useCommandFile);
