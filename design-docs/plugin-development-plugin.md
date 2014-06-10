@@ -126,3 +126,4 @@ As we are likely to eventually support more publishing destinations than Bintray
 - Build init plugin generates a template Gradle plugin project.
 - Plugin author writes and run functional tests for plugin.
 - Plugin author generates and uploads documentation for plugin.
+- Plugin author is able to view Gradle API source and Javadoc in IDE while developing plugin
