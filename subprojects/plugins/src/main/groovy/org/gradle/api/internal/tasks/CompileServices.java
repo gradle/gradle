@@ -29,6 +29,7 @@ import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 
@@ -64,8 +65,8 @@ public class CompileServices implements PluginServiceRegistry {
             return new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonManager);
         }
 
-        JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory) {
-            return new DefaultJavaToolChain(compilerFactory);
+        JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
+            return new DefaultJavaToolChain(compilerFactory, execActionFactory);
         }
     }
 }

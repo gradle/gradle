@@ -16,22 +16,30 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
+import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 
 public class DefaultJavaToolChain implements JavaToolChainInternal {
     private final JavaCompilerFactory compilerFactory;
+    private final ExecActionFactory execActionFactory;
 
-    public DefaultJavaToolChain(JavaCompilerFactory compilerFactory) {
+    public DefaultJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
         this.compilerFactory = compilerFactory;
+        this.execActionFactory = execActionFactory;
     }
 
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> specType) {
-        if (!specType.equals(JavaCompileSpec.class)) {
-            throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", specType.getSimpleName()));
+        if (specType.equals(JavaCompileSpec.class)) {
+            return (Compiler) new DelegatingJavaCompiler(compilerFactory);
+        }
+        if (specType.equals(JavadocSpec.class)) {
+            return (Compiler) new JavadocGenerator(execActionFactory);
         }
 
-        return (Compiler) new DelegatingJavaCompiler(compilerFactory);
+        throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", specType.getSimpleName()));
     }
 }

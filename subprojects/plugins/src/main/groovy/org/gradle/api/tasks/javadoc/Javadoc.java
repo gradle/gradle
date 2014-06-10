@@ -17,16 +17,14 @@
 package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
-import org.gradle.process.internal.ExecAction;
-import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.process.internal.ExecException;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 import org.gradle.util.GUtil;
 
@@ -71,8 +69,6 @@ import java.util.List;
  * </pre>
  */
 public class Javadoc extends SourceTask {
-    private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder(getServices().get(ExecActionFactory.class));
-
     private File destinationDir;
 
     private boolean failOnError = true;
@@ -134,34 +130,28 @@ public class Javadoc extends SourceTask {
     }
 
     private void executeExternalJavadoc() {
-        javadocExecHandleBuilder.setExecutable(executable);
-        javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(
-                getOptionsFile());
+        JavadocSpec spec = new JavadocSpec();
+        spec.setExecutable(executable);
+        spec.setOptions(options);
+        spec.setIgnoreFailures(!failOnError);
+        spec.setWorkingDir(getProject().getProjectDir());
+        spec.setOptionsFile(getOptionsFile());
 
-        ExecAction execAction = javadocExecHandleBuilder.getExecHandle();
-        if (!failOnError) {
-            execAction.setIgnoreExitValue(true);
-        }
-
-        try {
-            execAction.execute();
-        } catch (ExecException e) {
-            throw new GradleException("Javadoc generation failed.", e);
-        }
+        Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).newCompiler(JavadocSpec.class);
+        generator.execute(spec);
     }
 
-    void setJavadocExecHandleBuilder(JavadocExecHandleBuilder javadocExecHandleBuilder) {
-        if (javadocExecHandleBuilder == null) {
-            throw new IllegalArgumentException("javadocExecHandleBuilder == null!");
-        }
-        this.javadocExecHandleBuilder = javadocExecHandleBuilder;
-    }
-
+    /**
+     * Returns the tool chain that will be used to generate the Javadoc.
+     */
     @Incubating
     public JavaToolChain getToolChain() {
         return toolChain;
     }
 
+    /**
+     * Sets the tool chain to use to generate the Javadoc.
+     */
     @Incubating
     public void setToolChain(JavaToolChain toolChain) {
         this.toolChain = toolChain;
