@@ -69,7 +69,6 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
                 extensionDirs.each {dir ->
                     extdirs(location: dir)
                 }
-                classpath(location: destinationDir)
                 compileClasspath.each {file ->
                     classpath(location: file)
                 }

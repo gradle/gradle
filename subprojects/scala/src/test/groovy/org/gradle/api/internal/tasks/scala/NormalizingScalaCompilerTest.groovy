@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.tasks.scala
 
+import groovy.transform.InheritConstructors
+import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.scala.ScalaCompileOptions
-import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.language.base.internal.compile.Compiler
-
-import groovy.transform.InheritConstructors
-
 import spock.lang.Specification
 
 class NormalizingScalaCompilerTest extends Specification {
@@ -32,8 +30,9 @@ class NormalizingScalaCompilerTest extends Specification {
     NormalizingScalaCompiler compiler = new NormalizingScalaCompiler(target)
 
     def setup() {
+        spec.destinationDir = new File("dest")
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
-        spec.classpath = files("Dep1.jar", "Dep2.jar", "Dep3.jar")
+        spec.classpath = files("Dep1.jar", "Dep2.jar")
         spec.scalaClasspath = files("scala-compiler.jar", "scala-library.jar")
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
         spec.compileOptions = new CompileOptions()
@@ -48,16 +47,12 @@ class NormalizingScalaCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.getClass() == SimpleFileCollection
             assert spec.source as List == old(spec.source as List)
 
-            assert spec.classpath.getClass() == SimpleFileCollection
-            assert spec.classpath as List == old(spec.classpath as List)
+            assert spec.classpath as List == files("Dep1.jar", "Dep2.jar", "dest") as List
 
-            assert spec.scalaClasspath.getClass() == SimpleFileCollection
             assert spec.scalaClasspath as List == old(spec.scalaClasspath as List)
 
-            assert spec.zincClasspath.getClass() == SimpleFileCollection
             assert spec.zincClasspath as List == old(spec.zincClasspath as List)
 
             workResult

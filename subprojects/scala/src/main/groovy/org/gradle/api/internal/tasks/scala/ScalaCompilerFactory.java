@@ -44,7 +44,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         if (scalaOptions.isUseAnt()) {
             Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(antBuilder);
             Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getCompileOptions());
-            return new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler);
+            return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler));
         }
 
         if (!scalaOptions.isFork()) {

@@ -28,12 +28,13 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Groovy {@link org.gradle.language.base.internal.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
+ * A Groovy {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> {
+public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
     private static final Logger LOGGER = Logging.getLogger(NormalizingGroovyCompiler.class);
     private final Compiler<GroovyJavaJointCompileSpec> delegate;
 
@@ -66,8 +67,16 @@ public class NormalizingGroovyCompiler implements org.gradle.language.base.inter
     }
 
     private void resolveClasspath(GroovyJavaJointCompileSpec spec) {
-        spec.setClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getClasspath())));
-        spec.setGroovyClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getGroovyClasspath())));
+        // Necessary for Groovy compilation to pick up output of regular and joint Java compilation,
+        // and for joint Java compilation to pick up the output of regular Java compilation.
+        // Assumes that output of regular Java compilation (which is not under this task's control) also goes
+        // into spec.getDestinationDir(). We could configure this on source set level, but then spec.getDestinationDir()
+        // would end up on the compile class path of every compile task for that source set, which may not be desirable.
+        ArrayList<File> classPath = Lists.newArrayList(spec.getClasspath());
+        classPath.add(spec.getDestinationDir());
+        spec.setClasspath(classPath);
+
+        spec.setGroovyClasspath(Lists.newArrayList(spec.getGroovyClasspath()));
     }
 
     private void resolveNonStringsInCompilerArgs(GroovyJavaJointCompileSpec spec) {

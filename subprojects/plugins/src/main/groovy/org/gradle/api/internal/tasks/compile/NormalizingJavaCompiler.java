@@ -31,9 +31,9 @@ import java.io.File;
 import java.util.List;
 
 /**
- * A Java {@link org.gradle.language.base.internal.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
+ * A Java {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingJavaCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
+public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = Logging.getLogger(NormalizingJavaCompiler.class);
     private final Compiler<JavaCompileSpec> delegate;
 

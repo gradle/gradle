@@ -21,14 +21,15 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,9 +57,13 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
     }
 
     private void resolveClasspath(ScalaJavaJointCompileSpec spec) {
-        spec.setClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getClasspath())));
-        spec.setScalaClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getScalaClasspath())));
-        spec.setZincClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getZincClasspath())));
+        ArrayList<File> classPath = Lists.newArrayList(spec.getClasspath());
+        classPath.add(spec.getDestinationDir());
+        spec.setClasspath(classPath);
+        spec.setClasspath(classPath);
+
+        spec.setScalaClasspath(Lists.newArrayList(spec.getScalaClasspath()));
+        spec.setZincClasspath(Lists.newArrayList(spec.getZincClasspath()));
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Class path: {}", spec.getClasspath());
