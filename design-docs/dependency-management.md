@@ -479,6 +479,9 @@ Handle the following reasons why a given artifact cannot be found:
 - Include this information in the HTML dependency reports.
 - Does not report locations when cannot connect to server and is missing from other repositories.
 - Report file locations as file paths.
+- Move offline handling, so that only a single 'no cached version for offline model' exception is collected, instead of one per repository.
+    - should handle case where there is a mix of local and remote repositories.
+- Warn (once per build) when using an expired cached thing in offline mode.
 
 ## Story: New dependency graph uses less heap
 
