@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
@@ -53,7 +54,7 @@ class GccPlatformToolChain implements PlatformToolChain {
     public void explain(TreeVisitor<? super String> visitor) {
     }
 
-    public <T extends NativeCompileSpec> Compiler<T> newCompiler(T spec) {
+    public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
         if (spec instanceof CppCompileSpec) {
             return (Compiler) createCppCompiler();
         }
@@ -65,6 +66,18 @@ class GccPlatformToolChain implements PlatformToolChain {
         }
         if (spec instanceof ObjectiveCCompileSpec) {
             return (Compiler) createObjectiveCCompiler();
+        }
+        if (spec instanceof WindowsResourceCompileSpec) {
+            throw new RuntimeException("Windows resource compiler is not available");
+        }
+        if (spec instanceof AssembleSpec) {
+            return (Compiler) createAssembler();
+        }
+        if (spec instanceof LinkerSpec) {
+            return (Compiler) createLinker();
+        }
+        if (spec instanceof StaticLibraryArchiverSpec) {
+            return (Compiler) createStaticLibraryArchiver();
         }
         throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
     }

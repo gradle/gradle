@@ -19,6 +19,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.SimpleWorkResult
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.ToolChain
@@ -31,7 +32,7 @@ import spock.lang.Unroll
 class IncrementalNativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    def delegateCompiler = Mock(org.gradle.language.base.internal.compile.Compiler)
+    def delegateCompiler = Mock(Compiler)
     def toolChain = Mock(ToolChain)
     def task = Mock(TaskInternal)
     def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain)

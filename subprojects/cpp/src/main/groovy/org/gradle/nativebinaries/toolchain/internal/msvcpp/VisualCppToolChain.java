@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
@@ -197,7 +198,7 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
         public void explain(TreeVisitor<? super String> visitor) {
         }
 
-        public <T extends NativeCompileSpec> Compiler<T> newCompiler(T spec) {
+        public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
             if (spec instanceof CppCompileSpec) {
                 return (Compiler) createCppCompiler();
             }
@@ -209,6 +210,18 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
             }
             if (spec instanceof ObjectiveCCompileSpec) {
                 throw new RuntimeException("Objective-C is not available on the Visual C++ toolchain");
+            }
+            if (spec instanceof WindowsResourceCompileSpec) {
+                return (Compiler) createWindowsResourceCompiler();
+            }
+            if (spec instanceof AssembleSpec) {
+                return (Compiler) createAssembler();
+            }
+            if (spec instanceof LinkerSpec) {
+                return (Compiler) createLinker();
+            }
+            if (spec instanceof StaticLibraryArchiverSpec) {
+                return (Compiler) createStaticLibraryArchiver();
             }
             throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
         }
