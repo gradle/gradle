@@ -410,6 +410,11 @@ Instead, you should either use the `ext` namespace or use a local variable:
     ext.myProperty == 'some value'
     assert myProperty == 'some value'
 
+### Customization to IDE configuration mappings
+
+Changes to a configuration mapping to IDEA scopes or to Eclipse classpath using `+=` operator cannot use configuration instance as a right-hand side value.
+Using a single item list like `[ configurations.myConfig ]` works.
+
 ### Removed deprecated plugins
 
 - `code-quality` plugin replaced by `checkstyle` and `codenarc`.
