@@ -302,6 +302,11 @@ To revert back to the old version, or to use any different version, you can use 
       toolVersion = '4.3'
     }
 
+### Tooling API improvements
+
+The Gradle tooling API allows you to inspect a Gradle build and extract useful information about that build. The `GradleProject` tooling API model now has a
+`buildDirectory` property to provide access to the project's build output directory.
+
 ## Fixed issues
 
 ## Potential breaking changes
