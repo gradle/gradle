@@ -107,6 +107,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             attachStdInContent(workerFactory, javaCommand);
             workerFactory.prepareJavaCommand(javaCommand);
             javaCommand.setDisplayName(displayName);
+            javaCommand.args("'" + displayName + "'");
             ExecHandle execHandle = javaCommand.build();
 
             workerProcess.setExecHandle(execHandle);
