@@ -2,9 +2,14 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### Child processes started by Gradle are better described
+
+At the [Gradle Summit 2014 Conference](http://www.gradlesummit.com/conference/santa_clara/2014/06/home) we ran a [Contributing To Gradle Workshop](http://www.gradlesummit.com/conference/santa_clara/2014/06/session?id=31169).
+During the session, [Rob Spieldenner](https://github.com/rspieldenner) has contributed a very nice feature that gives much better insight into the child processes started by Gradle.
+The example output of 'jps -m' command now also contains the function of the worker process:
+
+    28649 GradleWorkerMain 'Gradle Test Executor 17'
+    28630 GradleWorkerMain 'Gradle Compiler Daemon 1'
 
 ## Promoted features
 
@@ -54,9 +59,7 @@ TBD - make this more explicit re. what is actually not longer available.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+* [Rob Spieldenner](https://github.com/rspieldenner) - Made the worker processes better described in the process list.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
