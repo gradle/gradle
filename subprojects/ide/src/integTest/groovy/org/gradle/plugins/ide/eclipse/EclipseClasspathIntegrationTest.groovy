@@ -202,6 +202,49 @@ eclipse {
         assert classpath.classpath.message[0].text() == 'be cool'
     }
 
+    @Issue("GRADLE-3101")
+    @Test
+    void canCustomizeTheClasspathModelUsingPlusEqual() {
+        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        module.publish()
+        def baseJar = module.artifactFile
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+sourceSets.main.java.srcDirs.each { it.mkdirs() }
+sourceSets.main.resources.srcDirs.each { it.mkdirs() }
+
+configurations {
+  someConfig
+}
+
+eclipse {
+
+  classpath {
+    sourceSets = []
+
+    plusConfigurations += [ configurations.someConfig ]
+  }
+}
+
+dependencies {
+    someConfig 'coolGroup:niceArtifact:1.0'
+}
+"""
+
+        //then
+        def libraries = classpath.libs
+        assert libraries.size() == 1
+        libraries[0].assertHasJar(baseJar)
+    }
+
     @Test
     @Issue("GRADLE-1487")
     void handlesPlusMinusConfigurationsForSelfResolvingDeps() {

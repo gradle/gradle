@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.gradle.GradleScript;
 
+import java.io.File;
+
 /**
  * Represents a Gradle project.
  *
@@ -65,4 +67,13 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      */
     @Incubating
     GradleScript getBuildScript();
+
+    /**
+     * Returns the build directory for this project.
+     *
+     * @return The build directory.
+     * @since 2.0
+     */
+    @Incubating
+    File getBuildDirectory();
 }
