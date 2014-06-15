@@ -49,9 +49,9 @@ assert System.getProperty('some-prop') == 'some-value'
         env.java.jvmArguments.contains('-Xmx16m')
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "tooling api honours java home specified in gradle.properties"() {
-        File javaHome = AvailableJavaHomes.bestAlternative
+        File javaHome = AvailableJavaHomes.differentJdk.javaHome
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
 
         file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"

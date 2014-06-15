@@ -81,9 +81,9 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         noDaemonsRunning()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "does not fork build if java home from gradle properties matches current process"() {
-        def javaHome = AvailableJavaHomes.bestAlternative
+        def javaHome = AvailableJavaHomes.differentJdk.javaHome
 
         file('gradle.properties').writeProperties("org.gradle.java.home": javaHome.canonicalPath)
 

@@ -127,9 +127,9 @@ assert classesDir.directory
         noExceptionThrown()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
     def "java home from environment should be used to run build"() {
-        def alternateJavaHome = AvailableJavaHomes.bestAlternative
+        def alternateJavaHome = AvailableJavaHomes.differentJdk.javaHome
 
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath"
 
@@ -146,9 +146,9 @@ assert classesDir.directory
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
     def "java home from gradle properties should be used to run build"() {
-        def alternateJavaHome = AvailableJavaHomes.bestAlternative
+        def alternateJavaHome = AvailableJavaHomes.differentJdk.javaHome
 
         file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
 

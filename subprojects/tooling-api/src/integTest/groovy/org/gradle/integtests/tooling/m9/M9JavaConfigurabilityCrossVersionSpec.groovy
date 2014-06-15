@@ -84,13 +84,13 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         env.java.jvmArguments == env3.java.jvmArguments
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "customized java home is reflected in the java.home and the build model"() {
         given:
         file('build.gradle') << "project.description = new File(System.getProperty('java.home')).canonicalPath"
 
         when:
-        File javaHome = AvailableJavaHomes.bestAlternative
+        File javaHome = AvailableJavaHomes.differentJdk.javaHome
         BuildEnvironment env
         GradleProject project
         withConnection {
@@ -102,9 +102,9 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         project.description.startsWith(env.java.javaHome.canonicalPath)
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "tooling api provided java home takes precedence over gradle.properties"() {
-        File javaHome = AvailableJavaHomes.bestAlternative
+        File javaHome = AvailableJavaHomes.differentJdk.javaHome
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
         File otherJava = new File(System.getProperty("java.home"))
         String otherJavaPath = TextUtil.escapeString(otherJava.canonicalPath)
