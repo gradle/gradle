@@ -47,6 +47,6 @@ public class JarSnapshotsMaker {
             newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar));
         }
         jarSnapshotCache.putSnapshots(newSnapshots);
-        LOG.lifecycle("Created and written jar snapshots in {}.", clock.getTime());
+        LOG.lifecycle("Created and written jar snapshots in {}.", clock.getTime()); //TODO SF fix this lifecycle message and others, too
     }
 }

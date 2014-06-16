@@ -20,7 +20,9 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
+import org.gradle.api.invocation.Gradle;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,15 +31,27 @@ public class JarSnapshotter {
 
     private final Hasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
+    private IncrementalCompilationCache incrementalCompilationCache;
+    private Gradle gradle;
 
-    public JarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer) {
+    public JarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer,
+                          IncrementalCompilationCache incrementalCompilationCache, Gradle gradle) {
         this.hasher = hasher;
         this.analyzer = analyzer;
+        this.incrementalCompilationCache = incrementalCompilationCache;
+        this.gradle = gradle;
     }
 
     public JarSnapshot createSnapshot(JarArchive jarArchive) {
         FileTree classes = jarArchive.contents;
-        return createSnapshot(classes, new ClassDependencyInfoExtractor(analyzer));
+        byte[] jarHash = hasher.hash(jarArchive.file);
+        JarSnapshot cached = incrementalCompilationCache.loadSnapshot(jarHash, gradle);
+        if (cached != null) {
+            return cached;
+        }
+        JarSnapshot snapshot = createSnapshot(classes, new ClassDependencyInfoExtractor(analyzer));
+        incrementalCompilationCache.storeSnapshot(jarHash, snapshot);
+        return snapshot;
     }
 
     JarSnapshot createSnapshot(FileTree classes, final ClassDependencyInfoExtractor extractor) {

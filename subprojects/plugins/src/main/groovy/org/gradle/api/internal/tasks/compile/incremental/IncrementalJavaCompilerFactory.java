@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.hash.DefaultHasher;
+import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
@@ -38,10 +40,12 @@ public class IncrementalJavaCompilerFactory {
 
     private final IncrementalCompilationSupport incrementalSupport;
 
-    public IncrementalJavaCompilerFactory(Project project, String compileTaskPath, CleaningJavaCompiler cleaningJavaCompiler, List<Object> source) {
+    public IncrementalJavaCompilerFactory(Project project, String compileTaskPath, CleaningJavaCompiler cleaningJavaCompiler,
+                                          List<Object> source, IncrementalCompilationCache incrementalCompilationCache) {
         //bunch of services that enable incremental java compilation.
         ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO SF needs cross-project caching
-        JarSnapshotter jarSnapshotter = new JarSnapshotter(new DefaultHasher(), analyzer); //TODO SF needs cross-project caching
+        Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
+        JarSnapshotter jarSnapshotter = new JarSnapshotter(hasher, analyzer, incrementalCompilationCache, project.getGradle());
 
         String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. task can be renamed in place of a task that was deleted.
         LocalJarSnapshotCache jarSnapshotCache = new LocalJarSnapshotCache(new File(project.getBuildDir(), cacheFileBaseName + "-jar-snapshot-cache.bin"));
