@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
-import org.gradle.api.invocation.Gradle;
 
 public interface IncrementalCompilationCache {
     JarSnapshot loadSnapshot(byte[] hash);

@@ -22,7 +22,6 @@ import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
-import org.gradle.api.invocation.Gradle;
 
 import java.util.HashMap;
 import java.util.Map;
