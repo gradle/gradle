@@ -321,4 +321,25 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, testng-6.8.7.jar, objenesis-1.0.jar, bsh-2.0b4.jar, jcommander-1.27.jar, snakeyaml-1.12.jar"
     }
+
+    def "handles duplicate class found in jar"() {
+        java api: ["class A extends B {}", "class B {}"], impl: ["class A extends C {}", "class C {}"]
+
+        impl.snapshot { run("impl:compileJava") }
+
+        when:
+        //change to source dependency duplicate triggers recompilation
+        java impl: ["class C { String change; }"]
+        run("impl:compileJava")
+
+        then: impl.recompiledClasses("A", "C")
+
+        when:
+        //change to jar dependency duplicate is ignored because source duplicate wins
+        impl.snapshot()
+        java api: ["class B { String change; } "]
+        run("impl:compileJava")
+
+        then: impl.noneRecompiled()
+    }
 }
