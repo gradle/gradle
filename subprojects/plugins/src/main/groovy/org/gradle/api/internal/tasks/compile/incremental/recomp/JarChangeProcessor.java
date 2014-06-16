@@ -18,19 +18,19 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarArchive;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeDependentsFinder;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 class JarChangeProcessor {
 
     private final FileOperations fileOperations;
-    private final DefaultJarSnapshotter jarSnapshotter;
+    private final JarSnapshotter jarSnapshotter;
     private final PreviousCompilation previousCompilation;
 
-    public JarChangeProcessor(FileOperations fileOperations, DefaultJarSnapshotter jarSnapshotter, PreviousCompilation previousCompilation) {
+    public JarChangeProcessor(FileOperations fileOperations, JarSnapshotter jarSnapshotter, PreviousCompilation previousCompilation) {
         this.fileOperations = fileOperations;
         this.jarSnapshotter = jarSnapshotter;
         this.previousCompilation = previousCompilation;

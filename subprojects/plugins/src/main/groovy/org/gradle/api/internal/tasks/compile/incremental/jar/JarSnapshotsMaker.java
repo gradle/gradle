@@ -29,10 +29,10 @@ public class JarSnapshotsMaker {
     private static final Logger LOG = Logging.getLogger(JarSnapshotsMaker.class);
 
     private final LocalJarSnapshotCache jarSnapshotCache;
-    private final DefaultJarSnapshotter jarSnapshotter;
+    private final JarSnapshotter jarSnapshotter;
     private ClasspathJarFinder classpathJarFinder;
 
-    public JarSnapshotsMaker(LocalJarSnapshotCache jarSnapshotCache, DefaultJarSnapshotter jarSnapshotter, ClasspathJarFinder classpathJarFinder) {
+    public JarSnapshotsMaker(LocalJarSnapshotCache jarSnapshotCache, JarSnapshotter jarSnapshotter, ClasspathJarFinder classpathJarFinder) {
         this.jarSnapshotCache = jarSnapshotCache;
         this.jarSnapshotter = jarSnapshotter;
         this.classpathJarFinder = classpathJarFinder;
