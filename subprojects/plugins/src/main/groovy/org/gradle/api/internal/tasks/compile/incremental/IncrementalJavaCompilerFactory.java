@@ -45,7 +45,7 @@ public class IncrementalJavaCompilerFactory {
         //bunch of services that enable incremental java compilation.
         ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO SF needs cross-project caching
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
-        JarSnapshotter jarSnapshotter = new JarSnapshotter(hasher, analyzer, incrementalCompilationCache, project.getGradle());
+        JarSnapshotter jarSnapshotter = new JarSnapshotter(hasher, analyzer, incrementalCompilationCache);
 
         String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. task can be renamed in place of a task that was deleted.
         LocalJarSnapshotCache jarSnapshotCache = new LocalJarSnapshotCache(new File(project.getBuildDir(), cacheFileBaseName + "-jar-snapshot-cache.bin"));

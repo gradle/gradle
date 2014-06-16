@@ -36,7 +36,7 @@ class JarSnapshotterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def hasher = Mock(Hasher)
 
-    @Subject snapshotter = new JarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer), incrementalCompilationCache, project.getGradle())
+    @Subject snapshotter = new JarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer), incrementalCompilationCache)
 
     def "creates snapshot for an empty jar"() {
         expect:

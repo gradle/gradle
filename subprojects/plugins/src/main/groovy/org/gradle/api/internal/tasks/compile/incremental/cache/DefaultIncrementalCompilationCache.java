@@ -38,7 +38,7 @@ public class DefaultIncrementalCompilationCache implements IncrementalCompilatio
         this.cacheRepository = cacheRepository;
     }
 
-    public JarSnapshot loadSnapshot(final byte[] hash, Gradle gradle) {
+    public JarSnapshot loadSnapshot(final byte[] hash) {
         synchronized (lock) {
             if (cache == null) {
                 cache = cacheRepository

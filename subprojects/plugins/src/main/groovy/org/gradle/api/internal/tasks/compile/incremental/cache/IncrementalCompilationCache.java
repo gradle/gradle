@@ -20,6 +20,6 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
 import org.gradle.api.invocation.Gradle;
 
 public interface IncrementalCompilationCache {
-    JarSnapshot loadSnapshot(byte[] hash, Gradle gradle); //TODO SF don't pass gradle here
+    JarSnapshot loadSnapshot(byte[] hash);
     void storeSnapshot(byte[] jarHash, JarSnapshot snapshot);
 }

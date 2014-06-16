@@ -32,20 +32,18 @@ public class JarSnapshotter {
     private final Hasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
     private IncrementalCompilationCache incrementalCompilationCache;
-    private Gradle gradle;
 
     public JarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer,
-                          IncrementalCompilationCache incrementalCompilationCache, Gradle gradle) {
+                          IncrementalCompilationCache incrementalCompilationCache) {
         this.hasher = hasher;
         this.analyzer = analyzer;
         this.incrementalCompilationCache = incrementalCompilationCache;
-        this.gradle = gradle;
     }
 
     public JarSnapshot createSnapshot(JarArchive jarArchive) {
         FileTree classes = jarArchive.contents;
         byte[] jarHash = hasher.hash(jarArchive.file);
-        JarSnapshot cached = incrementalCompilationCache.loadSnapshot(jarHash, gradle);
+        JarSnapshot cached = incrementalCompilationCache.loadSnapshot(jarHash);
         if (cached != null) {
             return cached;
         }
