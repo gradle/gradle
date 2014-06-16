@@ -23,10 +23,10 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class JarChangeDependentsFinder {
 
-    private JarSnapshotter jarSnapshotter;
+    private DefaultJarSnapshotter jarSnapshotter;
     private PreviousCompilation previousCompilation;
 
-    public JarChangeDependentsFinder(JarSnapshotter jarSnapshotter, PreviousCompilation previousCompilation) {
+    public JarChangeDependentsFinder(DefaultJarSnapshotter jarSnapshotter, PreviousCompilation previousCompilation) {
         this.jarSnapshotter = jarSnapshotter;
         this.previousCompilation = previousCompilation;
     }

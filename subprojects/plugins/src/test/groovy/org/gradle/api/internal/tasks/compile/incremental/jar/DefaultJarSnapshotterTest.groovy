@@ -31,12 +31,12 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 @Ignore //TODO SF fixme
-class JarSnapshotterTest extends Specification {
+class DefaultJarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def hasher = Mock(Hasher)
 
-    @Subject snapshotter = new JarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer), incrementalCompilationCache)
+    @Subject snapshotter = new DefaultJarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer), incrementalCompilationCache)
 
     def "creates snapshot for an empty jar"() {
         expect:

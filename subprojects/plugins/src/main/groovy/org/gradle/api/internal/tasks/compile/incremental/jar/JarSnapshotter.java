@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,59 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.hash.Hasher;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
-import org.gradle.api.invocation.Gradle;
-
-import java.util.HashMap;
-import java.util.Map;
-
-public class JarSnapshotter {
-
-    private final Hasher hasher;
-    private final ClassDependenciesAnalyzer analyzer;
-    private IncrementalCompilationCache incrementalCompilationCache;
-
-    public JarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer,
-                          IncrementalCompilationCache incrementalCompilationCache) {
-        this.hasher = hasher;
-        this.analyzer = analyzer;
-        this.incrementalCompilationCache = incrementalCompilationCache;
-    }
-
-    public JarSnapshot createSnapshot(JarArchive jarArchive) {
-        FileTree classes = jarArchive.contents;
-        byte[] jarHash = hasher.hash(jarArchive.file);
-        JarSnapshot cached = incrementalCompilationCache.loadSnapshot(jarHash);
-        if (cached != null) {
-            return cached;
-        }
-        JarSnapshot snapshot = createSnapshot(classes, new ClassDependencyInfoExtractor(analyzer));
-        incrementalCompilationCache.storeSnapshot(jarHash, snapshot);
-        return snapshot;
-    }
-
-    JarSnapshot createSnapshot(FileTree classes, final ClassDependencyInfoExtractor extractor) {
-        final Map<String, byte[]> hashes = new HashMap<String, byte[]>();
-        classes.visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
-
-            public void visitFile(FileVisitDetails fileDetails) {
-                extractor.visitFile(fileDetails);
-                String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
-                byte[] classHash = hasher.hash(fileDetails.getFile());
-                hashes.put(className, classHash);
-            }
-        });
-
-        return new JarSnapshot(hashes, extractor.getDependencyInfo());
-    }
+public interface JarSnapshotter {
+    JarSnapshot createSnapshot(JarArchive jarArchive);
 }

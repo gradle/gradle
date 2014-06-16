@@ -27,7 +27,7 @@ class JarSnapshotsMakerTest extends Specification {
 
     def cache = Mock(LocalJarSnapshotCache)
     def info = Mock(ClassDependencyInfo)
-    def snapshotter = Mock(JarSnapshotter)
+    def snapshotter = Mock(DefaultJarSnapshotter)
     def finder = Mock(ClasspathJarFinder)
 
     @Subject maker = new JarSnapshotsMaker(cache, snapshotter, finder)
