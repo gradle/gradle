@@ -161,4 +161,4 @@ function splitJvmOpts() {
 eval splitJvmOpts \$DEFAULT_JVM_OPTS \$JAVA_OPTS \$${optsEnvironmentVar}
 <% if ( appNameSystemProperty ) { %>JVM_OPTS[\${#JVM_OPTS[*]}]="-D${appNameSystemProperty}=\$APP_BASE_NAME"<% } %>
 
-exec "\$JAVACMD" "\${JVM_OPTS[@]}" -classpath "\$CLASSPATH" ${mainClassName} "\$@"
+exec -a ${APP_NAME} "\$JAVACMD" "\${JVM_OPTS[@]}" -classpath "\$CLASSPATH" ${mainClassName} "\$@"
