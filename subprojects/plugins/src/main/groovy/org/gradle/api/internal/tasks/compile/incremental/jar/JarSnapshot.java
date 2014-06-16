@@ -47,7 +47,6 @@ public class JarSnapshot implements Serializable {
         final Set<String> result = new HashSet<String>();
         for (Map.Entry<String, byte[]> cls : hashes.entrySet()) {
             String className = cls.getKey();
-            //TODO SF change to info.isDependencyToAll(className);
             DependentsSet dependents = info.getRelevantDependents(className);
             if (dependents.isDependencyToAll()) {
                 return dependents;
