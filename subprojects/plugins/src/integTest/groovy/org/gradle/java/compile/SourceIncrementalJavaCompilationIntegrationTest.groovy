@@ -295,11 +295,48 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         outputs.recompiledClasses("X", "Y")
     }
 
-    def "detects changes in classes that live in directories on the classpath"() {
-        //TODO SF
+    def "recompiles classes from extra source directories"() {
+        buildFile << "sourceSets.main.java.srcDir 'java'"
+
+        java("class B {}")
+        file("java/A.java") << "class A extends B {}"
+        file("java/C.java") << "class C {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        java("class B { String change; } ")
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("B", "A")
     }
 
-    def "class in source dir wins over a duplicate found in classpath directory"() {
-        //TODO SF
+    def "detects changes to source in extra source directories"() {
+        buildFile << "sourceSets.main.java.srcDir 'java'"
+
+        java("class A extends B {}")
+        file("java/B.java") << "class B {}"
+        file("java/C.java") << "class C {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("java/B.java").text = "class B { String change; }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("B", "A")
+    }
+
+    def "handles duplicate class across source directories"() {
+        //compiler does not allow this scenario, documenting it here
+        buildFile << "sourceSets.main.java.srcDir 'java'"
+
+        java("class A {}")
+        file("java/A.java") << "class A {}"
+
+        when: fails "compileJava"
+        then: failure.assertHasCause("Compilation failed")
     }
 }
