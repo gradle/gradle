@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import java.io.Serializable;
 import java.util.*;
 
-public class ClassDependencyInfo implements Serializable {
+public class ClassDependencyInfo implements Serializable { //TODO SF use hand-crafted serialisation
 
     private final Map<String, ? extends DependentsSet> dependents;
 
