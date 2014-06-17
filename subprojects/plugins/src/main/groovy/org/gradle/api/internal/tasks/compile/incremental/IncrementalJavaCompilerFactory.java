@@ -22,6 +22,7 @@ import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
@@ -41,8 +42,8 @@ public class IncrementalJavaCompilerFactory {
     public IncrementalJavaCompilerFactory(Project project, String compileTaskPath, CleaningJavaCompiler cleaningJavaCompiler,
                                           List<Object> source, JarSnapshotCache cache) {
         //bunch of services that enable incremental java compilation.
-        ClassDependenciesAnalyzer analyzer = new DefaultClassDependenciesAnalyzer();
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
+        ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher); //TODO SF use proper caching
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(new DefaultJarSnapshotter(hasher, analyzer), hasher, cache);
 
         String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. task can be renamed in place of a task that was deleted.
