@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class LocalJarSnapshotCache {
 
-    //TODO SF use standard caching mechanisms
+    //TODO SF this cache should no longer be needed
 
     private File storage;
     private Map<File, JarSnapshot> snapshots;
