@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalJavaCompilerFactory;
-import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache;
+import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -83,8 +83,8 @@ public class JavaCompile extends AbstractCompile {
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
         DefaultJavaCompileSpec spec = createSpec();
-        IncrementalCompilationCache incrementalCompilationCache = getServices().get(IncrementalCompilationCache.class); //TODO SF inject
-        IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(getProject(), getPath(), createCompiler(spec), source, incrementalCompilationCache);
+        JarSnapshotCache jarSnapshotCache = getServices().get(JarSnapshotCache.class); //TODO SF inject
+        IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(getProject(), getPath(), createCompiler(spec), source, jarSnapshotCache);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler(inputs);
         performCompilation(spec, compiler);
     }

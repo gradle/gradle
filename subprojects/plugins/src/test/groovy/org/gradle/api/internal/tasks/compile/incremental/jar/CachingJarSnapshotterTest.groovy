@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.hash.Hasher
-import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache
+import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -26,7 +26,7 @@ class CachingJarSnapshotterTest extends Specification {
 
     def delegate = Mock(JarSnapshotter)
     def hasher = Mock(Hasher)
-    def cache = Mock(IncrementalCompilationCache)
+    def cache = Mock(JarSnapshotCache)
 
     @Subject snapshotter = new CachingJarSnapshotter(delegate, hasher, cache)
 

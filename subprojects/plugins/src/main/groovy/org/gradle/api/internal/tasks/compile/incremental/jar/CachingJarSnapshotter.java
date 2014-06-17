@@ -17,15 +17,15 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.hash.Hasher;
-import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache;
+import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
 
 public class CachingJarSnapshotter implements JarSnapshotter {
 
     private final JarSnapshotter snapshotter;
     private final Hasher hasher;
-    private final IncrementalCompilationCache cache;
+    private final JarSnapshotCache cache;
 
-    public CachingJarSnapshotter(JarSnapshotter snapshotter, Hasher hasher, IncrementalCompilationCache cache) {
+    public CachingJarSnapshotter(JarSnapshotter snapshotter, Hasher hasher, JarSnapshotCache cache) {
         this.snapshotter = snapshotter;
         this.hasher = hasher;
         this.cache = cache;

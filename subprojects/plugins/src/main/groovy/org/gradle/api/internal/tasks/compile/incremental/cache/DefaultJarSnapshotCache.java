@@ -26,14 +26,14 @@ import org.gradle.internal.Factory;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultIncrementalCompilationCache implements IncrementalCompilationCache {
+public class DefaultJarSnapshotCache implements JarSnapshotCache {
 
     private final CacheRepository cacheRepository;
     private PersistentCache cache;
     private final Object lock = new Object();
     private PersistentIndexedCache<byte[], JarSnapshot> theCache;
 
-    public DefaultIncrementalCompilationCache(CacheRepository cacheRepository) {
+    public DefaultJarSnapshotCache(CacheRepository cacheRepository) {
         this.cacheRepository = cacheRepository;
     }
 

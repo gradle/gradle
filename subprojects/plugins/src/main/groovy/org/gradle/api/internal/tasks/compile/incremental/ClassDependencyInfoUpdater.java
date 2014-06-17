@@ -52,6 +52,7 @@ public class ClassDependencyInfoUpdater {
         Clock clock = new Clock();
         FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
         ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
+        //useCache?
         tree.visit(extractor);
         ClassDependencyInfo info = extractor.getDependencyInfo();
         writer.writeInfo(info);

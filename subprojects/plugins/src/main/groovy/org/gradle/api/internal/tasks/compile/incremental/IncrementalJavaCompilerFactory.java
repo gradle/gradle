@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache;
+import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.*;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -39,11 +39,11 @@ public class IncrementalJavaCompilerFactory {
     private final IncrementalCompilationSupport incrementalSupport;
 
     public IncrementalJavaCompilerFactory(Project project, String compileTaskPath, CleaningJavaCompiler cleaningJavaCompiler,
-                                          List<Object> source, IncrementalCompilationCache incrementalCompilationCache) {
+                                          List<Object> source, JarSnapshotCache cache) {
         //bunch of services that enable incremental java compilation.
         ClassDependenciesAnalyzer analyzer = new DefaultClassDependenciesAnalyzer();
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
-        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(new DefaultJarSnapshotter(hasher, analyzer), hasher, incrementalCompilationCache);
+        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(new DefaultJarSnapshotter(hasher, analyzer), hasher, cache);
 
         String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. task can be renamed in place of a task that was deleted.
         LocalJarSnapshotCache jarSnapshotCache = new LocalJarSnapshotCache(new File(project.getBuildDir(), cacheFileBaseName + "-jar-snapshot-cache.bin"));
