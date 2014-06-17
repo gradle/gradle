@@ -23,6 +23,7 @@ import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.IncrementalCompilationCache;
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.*;
@@ -40,7 +41,7 @@ public class IncrementalJavaCompilerFactory {
     public IncrementalJavaCompilerFactory(Project project, String compileTaskPath, CleaningJavaCompiler cleaningJavaCompiler,
                                           List<Object> source, IncrementalCompilationCache incrementalCompilationCache) {
         //bunch of services that enable incremental java compilation.
-        ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO SF needs cross-project caching
+        ClassDependenciesAnalyzer analyzer = new DefaultClassDependenciesAnalyzer();
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(new DefaultJarSnapshotter(hasher, analyzer), hasher, incrementalCompilationCache);
 

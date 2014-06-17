@@ -23,9 +23,9 @@ import org.gradle.api.internal.tasks.compile.incremental.test.*
 import spock.lang.Specification
 import spock.lang.Subject
 
-class ClassDependenciesAnalyzerTest extends Specification {
+class DefaultClassDependenciesAnalyzerTest extends Specification {
 
-    @Subject analyzer = new ClassDependenciesAnalyzer()
+    @Subject analyzer = new DefaultClassDependenciesAnalyzer()
 
     private ClassAnalysis analyze(Class foo) {
         analyzer.getClassAnalysis(foo.name, classStream(foo))
@@ -37,11 +37,11 @@ class ClassDependenciesAnalyzerTest extends Specification {
     }
 
     def "knows basic class dependencies of a groovy class"() {
-        def deps = analyze(ClassDependenciesAnalyzerTest).classDependencies
+        def deps = analyze(DefaultClassDependenciesAnalyzerTest).classDependencies
 
         expect:
         deps.contains(Specification.class.name)
-        //deps.contains(ClassDependenciesAnalyzer.class.name) // why this does not work (is it because of groovy)?
+        //deps.contains(DefaultClassDependenciesAnalyzer.class.name) // why this does not work (is it because of groovy)?
     }
 
     def "knows if a class have non-private constants"() {
