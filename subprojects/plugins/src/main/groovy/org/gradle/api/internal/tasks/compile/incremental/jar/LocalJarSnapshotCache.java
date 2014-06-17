@@ -24,7 +24,8 @@ import java.util.Map;
 
 public class LocalJarSnapshotCache {
 
-    //TODO SF this cache should no longer be needed
+    //TODO SF this cache should use File -> hash map and retrieve the snapshot from the global cache.
+    //TODO SF use task-scoped standard caching
 
     private File storage;
     private Map<File, JarSnapshot> snapshots;
