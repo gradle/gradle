@@ -26,17 +26,15 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInf
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Ignore //TODO SF fixme
 class DefaultJarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def hasher = Mock(Hasher)
 
-    @Subject snapshotter = new DefaultJarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer), incrementalCompilationCache)
+    @Subject snapshotter = new DefaultJarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer))
 
     def "creates snapshot for an empty jar"() {
         expect:
