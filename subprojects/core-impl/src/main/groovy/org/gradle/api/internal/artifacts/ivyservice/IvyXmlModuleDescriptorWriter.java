@@ -271,7 +271,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("name", artifacts[i].getName());
             writer.attribute("type", artifacts[i].getType());
             writer.attribute("ext", artifacts[i].getExt());
-            writer.attribute("conf", getConfs(md, artifacts[i]));
+            writer.attribute("conf", getConfs(artifacts[i]));
             printExtraAttributes(artifacts[i], writer);
             writer.endElement();
         }
@@ -389,17 +389,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private static String getConfs(ModuleDescriptor md, Artifact artifact) {
-        StringBuffer ret = new StringBuffer();
-        String[] confs = md.getConfigurationsNames();
-        for (int i = 0; i < confs.length; i++) {
-            if (Arrays.asList(md.getArtifacts(confs[i])).contains(artifact)) {
-                ret.append(confs[i]).append(",");
-            }
-        }
-        if (ret.length() > 0) {
-            ret.setLength(ret.length() - 1);
-        }
-        return ret.toString();
+    private static String getConfs(Artifact artifact) {
+        return Joiner.on(", ").join(artifact.getConfigurations());
     }
 }

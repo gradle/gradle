@@ -60,6 +60,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         assert ivyModule.info.@buildNr == "815"
         assert ivyModule.configurations.conf.collect {it.@name } == ["archives", "compile", "runtime"]
         assert ivyModule.publications.artifact.collect {it.@name } == ["testartifact"]
+        assert ivyModule.publications.artifact.collect {it.@conf } == ["archives, runtime"]
         assert ivyModule.dependencies.dependency.collect { "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:Dep1:1.0", "org.test:Dep2:1.0"]
     }
 
@@ -78,7 +79,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * moduleRevisionId.organisation >> "org.test"
         1 * moduleRevisionId.name >> "projectA"
         1 * md.configurations >> [mockConfiguration("archives"), mockConfiguration("compile"), mockConfiguration("runtime", ["compile"])]
-        1 * md.configurationsNames >> ["archives", "runtime", "compile"]
         1 * md.allExcludeRules >> []
         1 * md.allArtifacts >> [mockArtifact()]
         0 * md.allDependencyDescriptorMediators
@@ -131,9 +131,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * artifact.name >> "testartifact"
         1 * artifact.ext >> "jar"
         1 * artifact.type >> "jar"
-        1 * md.getArtifacts("archives") >> [artifact]
-        1 * md.getArtifacts("compile") >> []
-        1 * md.getArtifacts("runtime") >> []
+        1 * artifact.configurations >> ["archives", "runtime"]
         artifact
     }
 
