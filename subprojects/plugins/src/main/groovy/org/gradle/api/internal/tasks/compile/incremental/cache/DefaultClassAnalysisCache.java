@@ -22,7 +22,6 @@ import org.gradle.cache.CacheRepository;
 
 public class DefaultClassAnalysisCache extends MinimalPersistentCache<byte[], ClassAnalysis> implements ClassAnalysisCache {
 
-    //TODO SF document the caches, make them consistent, and create a facade for them
     public DefaultClassAnalysisCache(CacheRepository cacheRepository) {
         super(cacheRepository, "class analysis", byte[].class, ClassAnalysis.class);
     }

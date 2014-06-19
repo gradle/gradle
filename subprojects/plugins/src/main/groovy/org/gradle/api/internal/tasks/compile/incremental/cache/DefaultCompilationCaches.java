@@ -16,7 +16,23 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-import org.gradle.api.internal.cache.Cache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
+import org.gradle.cache.CacheRepository;
 
-public interface JarSnapshotCache extends Cache<byte[], JarSnapshot> {}
+public class DefaultCompilationCaches implements CompilationCaches {
+
+    private final DefaultClassAnalysisCache classAnalysisCache;
+    private final DefaultJarSnapshotCache jarSnapshotCache;
+
+    public DefaultCompilationCaches(CacheRepository cacheRepository) {
+        classAnalysisCache = new DefaultClassAnalysisCache(cacheRepository);
+        jarSnapshotCache = new DefaultJarSnapshotCache(cacheRepository);
+    }
+
+    public ClassAnalysisCache getClassAnalysisCache() {
+        return classAnalysisCache;
+    }
+
+    public JarSnapshotCache getJarSnapshotCache() {
+        return jarSnapshotCache;
+    }
+}
