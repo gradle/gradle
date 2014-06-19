@@ -415,10 +415,30 @@ Instead, you should either use the `ext` namespace or use a local variable:
     ext.myProperty == 'some value'
     assert myProperty == 'some value'
 
-### Customization to IDE configuration mappings
+### += operator changes that typically affect configuration of eclipse and idea plugin
 
-Changes to a configuration mapping to IDEA scopes or to Eclipse classpath using `+=` operator cannot use configuration instance as a right-hand side value.
-Using a single item list like `[ configurations.myConfig ]` works.
+Due to the Groovy upgrade, assigning configurations to collections via += works differently.
+
+    //Gradle 1.12, the assignments have the same effect, both append configuration instance:
+    list += configurations.compile
+    list += [configurations.compile]
+
+    //Gradle 2.0:
+    list += configurations.compile //appends the files of the configuration (triggering dependency resolution!)
+    list += [configurations.compile] //appends the configuration instance
+
+Typically, this change may affect the classpath customization for eclipse and idea.
+It may cause dependency resolution before any dependencies are added to the configuration.
+In this case, the user can see an exception like: "You can't change configuration 'someConfig' because it is already resolved!".
+See below how to resolve this problem:
+
+    //Instead:
+    eclipse.classpath.plusConfigurations += configurations.someConfig
+    idea.module.scopes.COMPILE.plus += configurations.someConfig
+
+    //Prefer below (works with Gradle 1.* and 2.0):
+    eclipse.classpath.plusConfigurations += [configurations.someConfig]
+    idea.module.scopes.COMPILE.plus += [configurations.someConfig]
 
 ### Removed deprecated plugins
 
