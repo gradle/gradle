@@ -17,8 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import java.io.File;
-import java.io.IOException;
 
 public interface ClassDependenciesAnalyzer {
-    ClassAnalysis getClassAnalysis(String className, File classFile) throws IOException;
+    ClassAnalysis getClassAnalysis(String className, File classFile);
 }

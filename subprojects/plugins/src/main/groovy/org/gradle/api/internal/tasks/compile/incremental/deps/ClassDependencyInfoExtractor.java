@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 
 import java.io.File;
-import java.io.IOException;
 
 public class ClassDependencyInfoExtractor implements FileVisitor {
 
@@ -52,12 +51,8 @@ public class ClassDependencyInfoExtractor implements FileVisitor {
             return;
         }
 
-        try {
-            ClassAnalysis analysis = analyzer.getClassAnalysis(className, file);
-            accumulator.addClass(className, analysis.isDependencyToAll(), analysis.getClassDependencies());
-        } catch (IOException e) {
-            throw new RuntimeException("Problems extracting class dependency from " + file, e);
-        }
+        ClassAnalysis analysis = analyzer.getClassAnalysis(className, file);
+        accumulator.addClass(className, analysis.isDependencyToAll(), analysis.getClassDependencies());
     }
 
     public ClassDependencyInfo getDependencyInfo() {

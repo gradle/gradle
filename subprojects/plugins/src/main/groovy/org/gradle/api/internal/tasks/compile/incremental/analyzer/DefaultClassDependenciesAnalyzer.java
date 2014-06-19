@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 
@@ -63,12 +64,14 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
         return out;
     }
 
-    public ClassAnalysis getClassAnalysis(String className, File classFile) throws IOException {
-        FileInputStream input = new FileInputStream(classFile);
+    public ClassAnalysis getClassAnalysis(String className, File classFile) {
+        FileInputStream input = GFileUtils.openInputStream(classFile);
         try {
             return getClassAnalysis(className, input);
+        } catch (IOException e) {
+            throw new RuntimeException("Problems loading class analysis for '" + className + "' from file: " + classFile);
         } finally {
-            input.close();
+            GFileUtils.closeInputStream(input);
         }
     }
 }
