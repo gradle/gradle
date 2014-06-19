@@ -25,6 +25,8 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
+import org.gradle.api.internal.tasks.compile.incremental.cache.ClassAnalysisCache;
+import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
 import org.gradle.cache.CacheRepository;
@@ -64,6 +66,9 @@ public class CompileServices implements PluginServiceRegistry {
 
         JarSnapshotCache createIncrementalCompilationCache(CacheRepository cacheRepository) {
             return new DefaultJarSnapshotCache(cacheRepository);
+        }
+        ClassAnalysisCache createClassAnalysisCache(CacheRepository cacheRepository) {
+            return new DefaultClassAnalysisCache(cacheRepository);
         }
     }
 

@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.tasks.compile.incremental.cache.ClassAnalysisCache;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,15 +26,25 @@ import java.io.IOException;
 public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
 
     private final ClassDependenciesAnalyzer analyzer;
-    private Hasher hasher;
+    private final Hasher hasher;
+    private final ClassAnalysisCache cache;
 
-    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, Hasher hasher) {
+    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, Hasher hasher, ClassAnalysisCache cache) {
         this.analyzer = analyzer;
         this.hasher = hasher;
+        this.cache = cache;
     }
 
-    public ClassAnalysis getClassAnalysis(String className, File classFile) throws IOException {
-        //TODO SF use proper caching
-        return analyzer.getClassAnalysis(className, classFile);
+    public ClassAnalysis getClassAnalysis(final String className, final File classFile) throws IOException {
+        byte[] hash = hasher.hash(classFile);
+        return cache.get(hash, new Factory<ClassAnalysis>() {
+            public ClassAnalysis create() {
+                try {
+                    return analyzer.getClassAnalysis(className, classFile);
+                } catch (IOException e) {
+                    throw new RuntimeException(e); //TODO SF handle it earlier
+                }
+            }
+        });
     }
 }

@@ -43,7 +43,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
                 cache = cacheRepository
                         .cache("jarSnapshots")
                         .withDisplayName("jar snapshots cache")
-                        .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+                        .withLockOptions(mode(FileLockManager.LockMode.None))
                         .open();
             }
             PersistentIndexedCacheParameters<byte[], JarSnapshot> params =
@@ -59,7 +59,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
     }
 
     public void storeSnapshot(final byte[] jarHash, final JarSnapshot snapshot) {
-        cache.useCache("Loading jar snapshot", new Runnable() {
+        cache.useCache("Storing jar snapshot", new Runnable() {
             public void run() {
                 theCache.put(jarHash, snapshot);
             }
