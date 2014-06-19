@@ -292,7 +292,7 @@ The new versions are:
 
 - Checkstyle: 5.7
 - CodeNarc: 0.21
-- PMD: 5.1.1
+- PMD: 5.1.1 (note that some rulesets were renamed in PMD 5, e.g. `basic` -> `java-basic`)
 - Findbugs: 2.0.3
 - JaCoCo: 0.7.1.201405082137
 
