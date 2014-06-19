@@ -19,54 +19,19 @@ package org.gradle.messaging.remote.internal.inet
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.AvailablePortFinder
+import org.junit.internal.AssumptionViolatedException
 import spock.lang.Timeout
 
 @Timeout(30)
 class MulticastConnectionTest extends ConcurrentSpec {
+    def addressFactory = new InetAddressFactory()
+
     def "can send multicast messages between peers"() {
         def address = new SocketInetAddress(InetAddress.getByName("233.253.17.122"), AvailablePortFinder.createPrivate().nextAvailable)
         def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
-        def addressFactory = new InetAddressFactory()
 
-        // Some sanity checking
-        // TODO - remove this
-        when:
-        def socket1 = new MulticastSocket(address.getPort());
-        addressFactory.findMulticastInterfaces().each { networkInterface ->
-            try {
-                println "Joining group ${address.address}:${address.port} on ${networkInterface}"
-                socket1.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
-            } catch (SocketException e) {
-                e.printStackTrace(System.out)
-            }
-        }
-        def socket2 = new MulticastSocket(address.getPort());
-        addressFactory.findMulticastInterfaces().each { networkInterface ->
-            try {
-                println "Joining group ${address.address}:${address.port} on ${networkInterface}"
-                socket2.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
-            } catch (SocketException e) {
-                e.printStackTrace(System.out)
-            }
-        }
-
-        def message = "hi".getBytes()
-        socket1.send(new DatagramPacket(message, message.length, address.address, address.port))
-
-        socket2.setSoTimeout(10000);
-
-        def packet = new DatagramPacket(new byte[1024], 1024)
-        try {
-            socket2.receive(packet)
-        } catch (SocketTimeoutException e) {
-            throw new RuntimeException("""Timeout waiting to receive message.
-network interfaces: ${NetworkInterface.networkInterfaces.collect { it.displayName }.join(', ')}
-selected: ${addressFactory.findMulticastInterfaces().collect { it.displayName }.join(', ')}
-""", e)
-        }
-
-        then:
-        new String(packet.data, packet.offset, packet.length) == "hi"
+        given:
+        multicastAvailable(address)
 
         when:
         def connection1 = new MulticastConnection<String>(address, serializer, addressFactory)
@@ -79,5 +44,35 @@ selected: ${addressFactory.findMulticastInterfaces().collect { it.displayName }.
         cleanup:
         connection1?.stop()
         connection2?.stop()
+    }
+
+    void multicastAvailable(SocketInetAddress address) {
+        def socket1 = new MulticastSocket(address.getPort());
+        addressFactory.findMulticastInterfaces().each { networkInterface ->
+            socket1.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
+        }
+        def socket2 = new MulticastSocket(address.getPort());
+        addressFactory.findMulticastInterfaces().each { networkInterface ->
+            socket2.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
+        }
+
+        def message = "hi".getBytes()
+        socket1.send(new DatagramPacket(message, message.length, address.address, address.port))
+
+        socket2.setSoTimeout(10000);
+
+        def packet = new DatagramPacket(new byte[1024], 1024)
+        try {
+            socket2.receive(packet)
+        } catch (SocketTimeoutException e) {
+            throw new AssumptionViolatedException("""Timeout waiting to receive message.
+network interfaces: ${NetworkInterface.networkInterfaces.collect { it.displayName }.join(', ')}
+selected: ${addressFactory.findMulticastInterfaces().collect { it.displayName }.join(', ')}
+""", e)
+        }
+
+        socket1.close()
+        socket2.close()
+        assert new String(packet.data, packet.offset, packet.length) == "hi"
     }
 }
