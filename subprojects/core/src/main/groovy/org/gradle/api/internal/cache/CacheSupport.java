@@ -19,7 +19,7 @@ import org.gradle.internal.Factory;
 
 abstract public class CacheSupport<K, V> implements Cache<K, V> {
     
-    public <T extends K> V get(T key, Factory<? extends V> factory) {
+    public V get(K key, Factory<V> factory) {
         V value = doGet(key);
         if (value == null) {
             value = factory.create();
