@@ -48,7 +48,7 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
                 .open();
 
         PersistentIndexedCacheParameters<K, V> params =
-                new PersistentIndexedCacheParameters<K, V>("classAnalysisCache", keyClass, valueClass);
+                new PersistentIndexedCacheParameters<K, V>(identifier, keyClass, valueClass);
         cache = cacheAccess.createCache(params);
     }
 
