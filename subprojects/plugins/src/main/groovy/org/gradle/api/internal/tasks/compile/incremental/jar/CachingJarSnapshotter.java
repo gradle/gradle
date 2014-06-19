@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
+import org.gradle.internal.Factory;
 
 public class CachingJarSnapshotter implements JarSnapshotter {
 
@@ -31,14 +32,12 @@ public class CachingJarSnapshotter implements JarSnapshotter {
         this.cache = cache;
     }
 
-    public JarSnapshot createSnapshot(JarArchive jarArchive) {
+    public JarSnapshot createSnapshot(final JarArchive jarArchive) {
         byte[] hash = hasher.hash(jarArchive.file);
-        JarSnapshot cached = cache.loadSnapshot(hash);
-        if (cached != null) {
-            return cached;
-        }
-        JarSnapshot snapshot = snapshotter.createSnapshot(jarArchive);
-        cache.storeSnapshot(hash, snapshot);
-        return snapshot;
+        return cache.get(hash, new Factory<JarSnapshot>() {
+            public JarSnapshot create() {
+                return snapshotter.createSnapshot(jarArchive);
+            }
+        });
     }
 }
