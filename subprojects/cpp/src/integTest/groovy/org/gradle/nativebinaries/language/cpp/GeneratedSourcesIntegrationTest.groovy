@@ -171,6 +171,39 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         executableBuilt(app)
     }
 
+    def "can depend on header-only library composed of generated sources"() {
+        given:
+        // Write sources to src/main, headers to src/hello
+        def app = new CHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.sourceFiles*.writeToDir(file("src/main"))
+        app.library.headerFiles*.writeToDir(file("src/input"))
+        degenerateInputSources()
+
+        when:
+        buildFile << """
+    apply plugin: 'c'
+
+    executables {
+        main {}
+    }
+    libraries {
+        hello {}
+    }
+    sources {
+        hello {
+            c {
+                generatedBy tasks.generateCSources
+            }
+        }
+    }
+    sources.main.c.lib library: 'hello', linkage: 'api'
+"""
+
+        then:
+        executableBuilt(app)
+    }
+
     def "generator task produces cpp sources"() {
         given:
         def app = new CppHelloWorldApp()
