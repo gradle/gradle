@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.java.compile;
+package org.gradle.java.compile.incremental;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture;
