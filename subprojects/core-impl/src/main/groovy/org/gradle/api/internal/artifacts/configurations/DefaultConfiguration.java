@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
@@ -383,7 +385,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void throwExceptionIfNotInUnresolvedState() {
         if (getState() != State.UNRESOLVED) {
-            throw new InvalidUserDataException("You can't change a configuration which is not in unresolved state!");
+            throw new InvalidUserDataException("You can't change configuration '" + getName() + "' because it is already resolved!");
         }
     }
 
