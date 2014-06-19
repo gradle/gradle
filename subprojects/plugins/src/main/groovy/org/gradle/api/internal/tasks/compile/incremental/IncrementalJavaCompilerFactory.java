@@ -47,7 +47,7 @@ public class IncrementalJavaCompilerFactory {
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, analysisCache);
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(new DefaultJarSnapshotter(hasher, analyzer), hasher, jarSnapshotCache);
 
-        String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. task can be renamed in place of a task that was deleted.
+        String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. Instead of this, local caches should use standard caching mechanism with scope of task
         LocalJarSnapshotCache localJarSnapshotCache = new LocalJarSnapshotCache(new File(project.getBuildDir(), cacheFileBaseName + "-jar-snapshot-cache.bin"));
         LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(new File(project.getBuildDir(), cacheFileBaseName + "-class-info.bin"));
 
