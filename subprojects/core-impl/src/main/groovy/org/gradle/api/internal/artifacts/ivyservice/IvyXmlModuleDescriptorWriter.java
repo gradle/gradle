@@ -267,12 +267,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.startElement("publications");
         Artifact[] artifacts = md.getAllArtifacts();
         for (int i = 0; i < artifacts.length; i++) {
+            Artifact artifact = artifacts[i];
             writer.startElement("artifact");
-            writer.attribute("name", artifacts[i].getName());
-            writer.attribute("type", artifacts[i].getType());
-            writer.attribute("ext", artifacts[i].getExt());
-            writer.attribute("conf", getConfs(artifacts[i]));
-            printExtraAttributes(artifacts[i], writer);
+            writer.attribute("name", artifact.getName());
+            writer.attribute("type", artifact.getType());
+            writer.attribute("ext", artifact.getExt());
+            writer.attribute("conf", getConfs(artifact));
+            printExtraAttributes(artifact, writer);
             writer.endElement();
         }
         writer.endElement();
@@ -390,6 +391,6 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static String getConfs(Artifact artifact) {
-        return Joiner.on(", ").join(artifact.getConfigurations());
+        return Joiner.on(",").join(artifact.getConfigurations());
     }
 }

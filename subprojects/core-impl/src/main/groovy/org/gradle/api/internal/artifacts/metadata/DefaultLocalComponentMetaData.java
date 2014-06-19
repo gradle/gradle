@@ -20,6 +20,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -31,7 +32,7 @@ import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData>();
-    private final Map<ArtifactRevisionId, DefaultLocalArtifactMetaData> artifactsByIvy = new LinkedHashMap<ArtifactRevisionId, DefaultLocalArtifactMetaData>();
+    private final Map<ArtifactRevisionId, DefaultLocalArtifactMetaData> artifactsByIvyId = new LinkedHashMap<ArtifactRevisionId, DefaultLocalArtifactMetaData>();
     private final Multimap<String, DefaultLocalArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
@@ -51,16 +52,23 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return moduleDescriptor;
     }
 
-    public void addArtifact(String configuration, Artifact artifact, File file) {
-        moduleDescriptor.addArtifact(configuration, artifact);
-        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), artifact, file);
-        artifactsById.put(artifactMetaData.id, artifactMetaData);
+    public void addArtifact(String configuration, IvyArtifactName artifact, File file) {
+        Artifact ivyArtifact = new MDArtifact(moduleDescriptor, artifact.getName(), artifact.getType(), artifact.getExtension(), null, artifact.getAttributes());
+
+        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifact, file);
+        if (artifactsById.containsKey(artifactMetaData.getId())) {
+            artifactMetaData = artifactsById.get(artifactMetaData.getId());
+        } else {
+            artifactsById.put(artifactMetaData.id, artifactMetaData);
+            artifactsByIvyId.put(ivyArtifact.getId(), artifactMetaData);
+        }
+        moduleDescriptor.addArtifact(configuration, ivyArtifact);
         artifactsByConfig.put(configuration, artifactMetaData);
-        artifactsByIvy.put(artifact.getId(), artifactMetaData);
+        ((MDArtifact) artifactMetaData.artifact).addConfiguration(configuration);
     }
 
     public Collection<? extends LocalArtifactMetaData> getArtifacts() {
-        return artifactsByConfig.values();
+        return artifactsById.values();
     }
 
     public LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier) {
@@ -132,7 +140,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public ComponentArtifactMetaData artifact(Artifact artifact) {
-            DefaultLocalArtifactMetaData candidate = artifactsByIvy.get(artifact.getId());
+            DefaultLocalArtifactMetaData candidate = artifactsByIvyId.get(artifact.getId());
             return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), artifact, null);
         }
 

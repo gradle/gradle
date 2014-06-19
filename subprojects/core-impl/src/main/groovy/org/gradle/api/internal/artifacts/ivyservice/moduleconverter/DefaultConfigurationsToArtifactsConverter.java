@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 import org.gradle.util.GUtil;
 
@@ -34,13 +34,13 @@ public class DefaultConfigurationsToArtifactsConverter implements Configurations
         DefaultModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor();
         for (Configuration configuration : configurations) {
             for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
-                Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleDescriptor.getModuleRevisionId());
+                IvyArtifactName ivyArtifact = createIvyArtifact(publishArtifact, moduleDescriptor.getModuleRevisionId());
                 metaData.addArtifact(configuration.getName(), ivyArtifact, publishArtifact.getFile());
             }
         }
     }
 
-    public Artifact createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
+    public IvyArtifactName createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
         Map<String, String> extraAttributes = new HashMap<String, String>();
         if (GUtil.isTrue(publishArtifact.getClassifier())) {
             extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
@@ -49,12 +49,6 @@ public class DefaultConfigurationsToArtifactsConverter implements Configurations
         if (!GUtil.isTrue(name)) {
             name = moduleRevisionId.getName();
         }
-        return new DefaultArtifact(
-                moduleRevisionId,
-                publishArtifact.getDate(),
-                name,
-                publishArtifact.getType(),
-                publishArtifact.getExtension(),
-                extraAttributes);
+        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), extraAttributes);
     }
 }

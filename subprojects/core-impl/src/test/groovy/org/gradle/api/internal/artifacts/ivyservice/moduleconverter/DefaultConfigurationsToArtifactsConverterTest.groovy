@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
 import spock.lang.Specification
 
@@ -58,17 +59,17 @@ class DefaultConfigurationsToArtifactsConverterTest extends Specification {
         converter.addArtifacts(metaData, [config1, config2])
 
         then:
-        1 * metaData.addArtifact("config1", _, file1) >> { name, Artifact artifact, file ->
+        1 * metaData.addArtifact("config1", _, file1) >> { name, IvyArtifactName artifact, file ->
             assert artifact.name == 'art1'
             assert artifact.type == 'type1'
-            assert artifact.ext == 'ext1'
-            assert artifact.qualifiedExtraAttributes == [:]
+            assert artifact.extension == 'ext1'
+            assert artifact.attributes == [:]
         }
-        1 * metaData.addArtifact("config2", _, file2) >> { name, Artifact artifact, file ->
+        1 * metaData.addArtifact("config2", _, file2) >> { name, IvyArtifactName artifact, file ->
             assert artifact.name == 'art2'
             assert artifact.type == 'type2'
-            assert artifact.ext == 'ext2'
-            assert artifact.qualifiedExtraAttributes == [(Dependency.CLASSIFIER): 'classifier']
+            assert artifact.extension == 'ext2'
+            assert artifact.attributes == [(Dependency.CLASSIFIER): 'classifier']
         }
         _ * metaData.moduleDescriptor >> Stub(DefaultModuleDescriptor)
         0 * metaData._
@@ -92,7 +93,7 @@ class DefaultConfigurationsToArtifactsConverterTest extends Specification {
         converter.addArtifacts(metaData, [config])
 
         then:
-        1 * metaData.addArtifact("config1", _, file) >> { name, Artifact ivyArtifact, f ->
+        1 * metaData.addArtifact("config1", _, file) >> { name, IvyArtifactName ivyArtifact, f ->
             assert ivyArtifact.name == 'module'
         }
         _ * metaData.moduleDescriptor >> Stub(DefaultModuleDescriptor) {

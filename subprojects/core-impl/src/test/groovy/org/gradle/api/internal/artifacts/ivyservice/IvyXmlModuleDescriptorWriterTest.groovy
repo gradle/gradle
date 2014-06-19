@@ -60,7 +60,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         assert ivyModule.info.@buildNr == "815"
         assert ivyModule.configurations.conf.collect {it.@name } == ["archives", "compile", "runtime"]
         assert ivyModule.publications.artifact.collect {it.@name } == ["testartifact"]
-        assert ivyModule.publications.artifact.collect {it.@conf } == ["archives, runtime"]
+        assert ivyModule.publications.artifact.collect {it.@conf } == ["archives,runtime"]
         assert ivyModule.dependencies.dependency.collect { "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:Dep1:1.0", "org.test:Dep2:1.0"]
     }
 
