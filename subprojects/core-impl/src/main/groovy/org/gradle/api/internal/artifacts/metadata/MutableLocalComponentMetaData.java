@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 
 import java.io.File;
@@ -24,5 +23,5 @@ import java.io.File;
 public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
     DefaultModuleDescriptor getModuleDescriptor();
 
-    void addArtifact(String configuration, Artifact artifact, File file);
+    void addArtifact(String configuration, IvyArtifactName artifact, File file);
 }

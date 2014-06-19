@@ -28,8 +28,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     def componentIdentifier = Mock(ComponentIdentifier)
     def metaData = new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier)
 
-    def "can add artifacts"() {
-        def artifact = artifact()
+    def "can lookup artifact in various ways after it has been added"() {
+        def artifact = artifactName()
         def file = new File("artifact.zip")
 
         given:
@@ -42,6 +42,9 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.artifacts.size() == 1
         def publishArtifact = (metaData.artifacts as List).first()
         publishArtifact.id
+        publishArtifact.name.name == artifact.name
+        publishArtifact.name.type == artifact.type
+        publishArtifact.name.extension == artifact.extension
         publishArtifact.file == file
 
         and:
@@ -51,14 +54,50 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def resolveMetaData = metaData.toResolveMetaData()
         resolveMetaData.artifacts.size() == 1
         def resolveArtifact = (resolveMetaData.artifacts as List).first()
+        resolveArtifact.id
         resolveArtifact.componentId == resolveMetaData.componentId
+        resolveArtifact.name.name == artifact.name
+        resolveArtifact.name.type == artifact.type
+        resolveArtifact.name.extension == artifact.extension
 
         and:
-        moduleDescriptor.getArtifacts("conf") == [artifact]
+        moduleDescriptor.getArtifacts("conf").size() == 1
+        def ivyArtifact = (moduleDescriptor.getArtifacts("conf") as List).first()
+        ivyArtifact.name == artifact.name
+        ivyArtifact.type == artifact.type
+        ivyArtifact.ext == artifact.extension
+        ivyArtifact.configurations == ["conf"]
+    }
+
+    def "can add artifact to several configurations"() {
+        def artifact = artifactName()
+        def file = new File("artifact.zip")
+
+        given:
+        moduleDescriptor.addConfiguration(new Configuration("conf1"))
+        moduleDescriptor.addConfiguration(new Configuration("conf2"))
+        moduleDescriptor.addConfiguration(new Configuration("conf3"))
+
+        when:
+        metaData.addArtifact("conf1", artifact, file)
+        metaData.addArtifact("conf2", artifact, file)
+
+        then:
+        metaData.artifacts.size() == 1
+
+        and:
+        def resolveMetaData = metaData.toResolveMetaData()
+        resolveMetaData.artifacts.size() == 1
+
+        and:
+        moduleDescriptor.getArtifacts("conf1").size() == 1
+        moduleDescriptor.getArtifacts("conf2").size() == 1
+        def ivyArtifact = (moduleDescriptor.getArtifacts("conf1") as List).first()
+        ivyArtifact.configurations == ["conf1", "conf2"]
     }
 
     def "can lookup an artifact given an Ivy artifact"() {
-        def artifact = artifact()
+        def artifact = artifactName()
         def file = new File("artifact.zip")
 
         given:
@@ -67,8 +106,11 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         and:
         metaData.addArtifact("conf", artifact, file)
 
+        and:
+        def ivyArtifact = metaData.toResolveMetaData().descriptor.allArtifacts.find { it.name == artifact.name }
+
         expect:
-        def resolveArtifact = metaData.toResolveMetaData().artifact(artifact)
+        def resolveArtifact = metaData.toResolveMetaData().artifact(ivyArtifact)
         resolveArtifact.file == file
         resolveArtifact == metaData.getArtifact(resolveArtifact.id)
     }
@@ -83,9 +125,9 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.getArtifact(resolveArtifact.id) == null
     }
 
-    def "handles artifacts with duplicate attributes and different files"() {
-        def artifact1 = artifact()
-        def artifact2 = artifact()
+    def "treats as distinct two artifacts with duplicate attributes and different files"() {
+        def artifact1 = artifactName()
+        def artifact2 = artifactName()
         def file1 = new File("artifact-1.zip")
         def file2 = new File("artifact-2.zip")
 
@@ -119,7 +161,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     }
 
     def "can convert to publish meta-data"() {
-        def artifact = artifact()
+        def artifact = artifactName()
         def file = new File("artifact.zip")
 
         given:
@@ -136,11 +178,17 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         publishMetaData.artifacts.size() == 1
         def artifacts = publishMetaData.artifacts as List
         def publishArtifact = artifacts[0]
-        publishArtifact.artifact == artifact
+        publishArtifact.artifact.name == artifact.name
+        publishArtifact.artifact.type == artifact.type
+        publishArtifact.artifact.ext == artifact.extension
         publishArtifact.file == file
     }
 
     def artifact() {
         return new DefaultArtifact(moduleDescriptor.getModuleRevisionId(), null, "artifact", "type", "ext")
+    }
+
+    def artifactName() {
+        return new DefaultIvyArtifactName("artifact", "type", "ext")
     }
 }
