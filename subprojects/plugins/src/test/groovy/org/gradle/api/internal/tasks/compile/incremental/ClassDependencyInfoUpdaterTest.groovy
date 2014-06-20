@@ -21,8 +21,6 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary
-import org.gradle.api.tasks.WorkResult
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -34,16 +32,8 @@ class ClassDependencyInfoUpdaterTest extends Specification {
 
     @Subject updater = new ClassDependencyInfoUpdater(writer, operations, analyzer)
 
-    def "does not update info when recompilation was not necessary"() {
-        def result = Stub(RecompilationNotNecessary)
-
-        when: updater.updateInfo(Mock(JavaCompileSpec), result)
-
-        then: 0 * _
-    }
-
     def "updates info"() {
-        when: updater.updateInfo(Stub(JavaCompileSpec), Mock(WorkResult))
+        when: updater.updateInfo(Stub(JavaCompileSpec))
 
         then:
         1 * operations.fileTree(_) >> Mock(ConfigurableFileTree)

@@ -23,10 +23,8 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenc
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.Clock;
 
 public class ClassDependencyInfoUpdater {
@@ -43,16 +41,10 @@ public class ClassDependencyInfoUpdater {
         this.analyzer = analyzer;
     }
 
-    public void updateInfo(JavaCompileSpec spec, WorkResult compilationResult) {
-        if (compilationResult instanceof RecompilationNotNecessary) {
-            //performance tweak, update not necessary
-            return;
-        }
-
+    public void updateInfo(JavaCompileSpec spec) {
         Clock clock = new Clock();
         FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
         ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
-        //useCache?
         tree.visit(extractor);
         ClassDependencyInfo info = extractor.getDependencyInfo();
         writer.writeInfo(info);

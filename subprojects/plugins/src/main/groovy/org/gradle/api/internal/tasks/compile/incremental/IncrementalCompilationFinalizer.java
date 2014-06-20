@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -37,8 +38,12 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
 
-        //TODO SF do not update any caches if the compilation did not any work
-        dependencyInfoUpdater.updateInfo(spec, out);
+        if (!(out instanceof RecompilationNotNecessary)) {
+            //if recompilation was skipped
+            //there's no point in updating the info because we have exactly the same output classes)
+            dependencyInfoUpdater.updateInfo(spec);
+        }
+
         jarSnapshotsMaker.storeJarSnapshots(spec.getClasspath());
 
         return out;
