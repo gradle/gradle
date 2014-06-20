@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 
 class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
 
@@ -37,6 +37,7 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
 
+        //TODO SF do not update any caches if the compilation did not any work
         dependencyInfoUpdater.updateInfo(spec, out);
         jarSnapshotsMaker.storeJarSnapshots(spec.getClasspath());
 
