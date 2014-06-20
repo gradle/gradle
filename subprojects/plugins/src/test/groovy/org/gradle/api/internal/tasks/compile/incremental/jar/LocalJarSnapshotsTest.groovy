@@ -26,10 +26,10 @@ import spock.lang.Subject
 
 import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
 
-class LocalJarSnapshotCacheTest extends Specification {
+class LocalJarSnapshotsTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject cache = new LocalJarSnapshotCache(temp.file("cache.bin"))
+    @Subject cache = new LocalJarSnapshots(temp.file("cache.bin"))
 
     def "empty cache"() {
         expect:
@@ -41,7 +41,7 @@ class LocalJarSnapshotCacheTest extends Specification {
         cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": "f".bytes], info)])
 
         when:
-        def cache2 = new LocalJarSnapshotCache(temp.file("cache.bin"))
+        def cache2 = new LocalJarSnapshots(temp.file("cache.bin"))
         def sn = cache2.getSnapshot(new File("foo.jar"))
 
         then:

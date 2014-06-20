@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LocalJarSnapshotCache {
+public class LocalJarSnapshots {
 
     //TODO SF this cache should use File -> hash map and retrieve the snapshot from the global cache.
     //TODO SF use task-scoped standard caching
@@ -30,7 +30,7 @@ public class LocalJarSnapshotCache {
     private File storage;
     private Map<File, JarSnapshot> snapshots;
 
-    public LocalJarSnapshotCache(File storage) {
+    public LocalJarSnapshots(File storage) {
         this.storage = storage;
     }
 
