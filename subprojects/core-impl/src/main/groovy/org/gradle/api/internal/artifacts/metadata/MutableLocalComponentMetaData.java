@@ -16,16 +16,19 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 import java.io.File;
 
 public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
-    DefaultModuleDescriptor getModuleDescriptor();
+    ModuleDescriptor getModuleDescriptor();
 
     void addArtifact(String configuration, IvyArtifactName artifact, File file);
 
     void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive);
 
     void addDependency(DependencyMetaData dependency);
+
+    void addExcludeRule(ExcludeRule excludeRule);
 }

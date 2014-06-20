@@ -43,7 +43,6 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
         converter.addDependencyDescriptors(metaData, [configuration])
 
         then:
-        1 * metaData.moduleDescriptor >> descriptor
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency)
         1 * configuration.excludeRules >> ([] as Set)
@@ -76,14 +75,13 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
         converter.addDependencyDescriptors(metaData, [configuration])
 
         then:
-        1 * metaData.moduleDescriptor >> descriptor
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency)
 
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         1 * configuration.getName() >> "config"
         1 * excludeRuleConverter.createExcludeRule("config", excludeRule) >> ivyExcludeRule
-        1 * descriptor.addExcludeRule(ivyExcludeRule)
+        1 * metaData.addExcludeRule(ivyExcludeRule)
         0 * _
     }
 }

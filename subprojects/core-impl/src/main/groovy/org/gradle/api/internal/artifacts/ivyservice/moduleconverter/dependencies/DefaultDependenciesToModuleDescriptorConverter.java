@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -37,7 +36,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     public void addDependencyDescriptors(MutableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         assert !configurations.isEmpty();
         addDependencies(metaData, configurations);
-        addExcludeRules(metaData.getModuleDescriptor(), configurations);
+        addExcludeRules(metaData, configurations);
     }
 
     private void addDependencies(MutableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
@@ -48,12 +47,12 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         }
     }
 
-    private void addExcludeRules(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
+    private void addExcludeRules(MutableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
                 org.apache.ivy.core.module.descriptor.ExcludeRule rule = excludeRuleConverter.createExcludeRule(
                         configuration.getName(), excludeRule);
-                moduleDescriptor.addExcludeRule(rule);
+                metaData.addExcludeRule(rule);
             }
         }
     }
