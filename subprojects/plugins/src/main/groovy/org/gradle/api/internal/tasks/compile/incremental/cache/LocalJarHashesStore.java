@@ -23,7 +23,9 @@ import org.gradle.cache.CacheRepository;
 import java.io.File;
 import java.util.Map;
 
+//Keeps the jar hashes of given compile task
 public class LocalJarHashesStore {
+
     private final CacheRepository cacheRepository;
     private final JavaCompile javaCompile;
 

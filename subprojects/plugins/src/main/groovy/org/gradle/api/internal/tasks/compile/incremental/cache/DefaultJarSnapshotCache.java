@@ -49,4 +49,8 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
     public JarSnapshot get(byte[] key, Factory<JarSnapshot> factory) {
         return cache.get(key, factory);
     }
+
+    public void stop() {
+        cache.stop();
+    }
 }

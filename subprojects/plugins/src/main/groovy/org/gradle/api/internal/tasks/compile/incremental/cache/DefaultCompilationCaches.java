@@ -21,14 +21,14 @@ import org.gradle.cache.CacheRepository;
 
 public class DefaultCompilationCaches implements CompilationCaches {
 
-    private final DefaultClassAnalysisCache classAnalysisCache;
-    private final DefaultJarSnapshotCache jarSnapshotCache;
+    private final ClassAnalysisCache classAnalysisCache;
+    private final JarSnapshotCache jarSnapshotCache;
     private final CacheRepository cacheRepository;
 
-    public DefaultCompilationCaches(CacheRepository cacheRepository) {
+    public DefaultCompilationCaches(CacheRepository cacheRepository, ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
         this.cacheRepository = cacheRepository;
-        classAnalysisCache = new DefaultClassAnalysisCache(cacheRepository);
-        jarSnapshotCache = new DefaultJarSnapshotCache(cacheRepository);
+        this.classAnalysisCache = classAnalysisCache;
+        this.jarSnapshotCache = jarSnapshotCache;
     }
 
     public ClassAnalysisCache getClassAnalysisCache() {

@@ -19,6 +19,7 @@ package org.gradle.api.internal.cache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
 
 import static org.apache.commons.lang.WordUtils.uncapitalize;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -30,7 +31,7 @@ import static org.gradle.util.GUtil.toCamelCase;
  * Locking is extremely fine-grained, every load operation is synchronized, every store operation is synchronized.
  * Useful as a starting point, before profiler shows that locking needs to be more coarse grained.
  */
-public class MinimalPersistentCache<K, V> implements Cache<K, V> {
+public class MinimalPersistentCache<K, V> implements Cache<K, V>, Stoppable {
 
     private final PersistentCache cacheAccess;
     private final PersistentIndexedCache<K, V> cache;
@@ -78,5 +79,9 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
 
     public PersistentIndexedCache<K, V> getCache() {
         return cache;
+    }
+
+    public void stop() {
+        cacheAccess.close();
     }
 }
