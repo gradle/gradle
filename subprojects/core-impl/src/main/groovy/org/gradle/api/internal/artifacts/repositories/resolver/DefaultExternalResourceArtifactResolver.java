@@ -68,7 +68,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
             ExternalResourceName location = resourcePattern.getLocation(artifact);
-            result.attempted(location.toString());
+            result.attempted(location);
             LOGGER.debug("Loading {}", location);
             try {
                 if (repository.getResourceMetaData(location.getUri()) != null) {
@@ -84,7 +84,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     private LocallyAvailableExternalResource downloadStaticResource(List<ResourcePattern> patternList, final ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
             ExternalResourceName location = resourcePattern.getLocation(artifact);
-            result.attempted(location.toString());
+            result.attempted(location);
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
             try {

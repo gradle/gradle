@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.local.FileStore;
@@ -136,9 +137,9 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module, ResourceAwareResolveResult result) {
-        URI metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml").getUri();
-        result.attempted(metadataLocation.toString());
-        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
+        ExternalResourceName metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml");
+        result.attempted(metadataLocation);
+        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation.getUri());
 
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version

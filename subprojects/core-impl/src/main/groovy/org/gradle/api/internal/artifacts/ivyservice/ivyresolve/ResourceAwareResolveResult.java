@@ -16,9 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.internal.resource.ExternalResourceName;
+
 public interface ResourceAwareResolveResult {
     /**
-     * Adds a location that was used to build the result. This is used for diagnostic messages and logging.
+     * Adds a location that was used to build this result. This is used for diagnostic messages and logging.
      */
     void attempted(String locationDescription);
+
+    /**
+     * Adds a location that was used to build this result. This is used for diagnostic messages and logging.
+     */
+    void attempted(ExternalResourceName location);
 }

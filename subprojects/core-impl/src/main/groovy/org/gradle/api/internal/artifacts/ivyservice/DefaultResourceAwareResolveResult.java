@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
+import org.gradle.internal.resource.ExternalResourceName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,10 @@ public class DefaultResourceAwareResolveResult implements ResourceAwareResolveRe
 
     public void attempted(String locationDescription) {
         attempted.add(locationDescription);
+    }
+
+    public void attempted(ExternalResourceName location) {
+        attempted(location.getDisplayName());
     }
 
     public void applyTo(ResourceAwareResolveResult target) {

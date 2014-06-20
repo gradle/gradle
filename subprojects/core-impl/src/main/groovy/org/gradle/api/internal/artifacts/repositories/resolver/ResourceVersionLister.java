@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +45,7 @@ public class ResourceVersionLister implements VersionLister {
 
     public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
         return new VersionPatternVisitor() {
-            final Set<URI> directories = new HashSet<URI>();
+            final Set<ExternalResourceName> directories = new HashSet<ExternalResourceName>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
                 ExternalResourceName versionListPattern = pattern.toVersionListPattern(module, artifact);
@@ -73,16 +72,16 @@ public class ResourceVersionLister implements VersionLister {
                 String prefix = pattern.substring(0, pattern.indexOf(REVISION_TOKEN));
                 if (revisionMatchesDirectoryName(pattern)) {
                     ExternalResourceName parent = versionListPattern.getRoot().resolve(prefix);
-                    return listAll(parent.getUri());
+                    return listAll(parent);
                 } else {
                     int parentFolderSlashIndex = prefix.lastIndexOf(fileSeparator);
                     String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex + 1);
                     ExternalResourceName parent = versionListPattern.getRoot().resolve(revisionParentFolder);
                     LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
-                    if (!directories.add(parent.getUri())) {
+                    if (!directories.add(parent)) {
                         return Collections.emptyList();
                     }
-                    result.attempted(parent.getUri().toString());
+                    result.attempted(parent);
                     List<String> all = repository.list(parent.getUri());
                     if (all == null) {
                         return Collections.emptyList();
@@ -135,13 +134,13 @@ public class ResourceVersionLister implements VersionLister {
                 return true;
             }
 
-            private List<String> listAll(URI parent) throws IOException {
+            private List<String> listAll(ExternalResourceName parent) throws IOException {
                 if (!directories.add(parent)) {
                     return Collections.emptyList();
                 }
                 LOGGER.debug("using {} to list all in {}", repository, parent);
                 result.attempted(parent.toString());
-                List<String> paths = repository.list(parent);
+                List<String> paths = repository.list(parent.getUri());
                 if (paths == null) {
                     return Collections.emptyList();
                 }
