@@ -17,8 +17,8 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedDescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedIvyXmlModuleDescriptorParser;
@@ -62,15 +62,15 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .notEmpty()
                 .validInFileName();
 
-        ModuleRevisionId moduleId = parseIvyFile(publication);
-        organisation.matches(moduleId.getOrganisation());
+        ModuleVersionIdentifier moduleId = parseIvyFile(publication);
+        organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
-        revision.matches(moduleId.getRevision());
+        revision.matches(moduleId.getVersion());
     }
 
-    private ModuleRevisionId parseIvyFile(IvyNormalizedPublication publication) {
+    private ModuleVersionIdentifier parseIvyFile(IvyNormalizedPublication publication) {
         try {
-            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getDescriptorFile()).getDescriptor().getModuleRevisionId();
+            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getDescriptorFile()).getId();
         } catch (MetaDataParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         }

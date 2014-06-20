@@ -15,7 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
@@ -71,28 +71,24 @@ class NewestVersionComponentChooserTest extends Specification {
     }
 
     def "chooses non-generated descriptor over generated"() {
-        def descriptorOne = Mock(ModuleDescriptor)
-        def one = Stub(ComponentMetaData) {
+        def one = Mock(ComponentMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
-            getDescriptor() >> descriptorOne
         }
-        def descriptorTwo = Mock(ModuleDescriptor)
-        def two = Stub(ComponentMetaData) {
+        def two = Mock(ComponentMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
-            getDescriptor() >> descriptorTwo
         }
 
         when:
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 0
-        1 * descriptorOne.default >> true
-        1 * descriptorTwo.default >> false
+        1 * one.generated >> true
+        1 * two.generated >> false
 
         then:
         chooser.choose(one, two) == two
 
         when:
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 0
-        1 * descriptorOne.default >> false
+        1 * one.generated >> false
 
         then:
         chooser.choose(one, two) == one
