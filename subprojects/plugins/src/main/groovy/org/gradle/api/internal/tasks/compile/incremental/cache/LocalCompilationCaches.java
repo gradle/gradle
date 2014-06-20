@@ -16,21 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-public class DefaultCompilationCaches implements CompilationCaches {
-
-    private final ClassAnalysisCache classAnalysisCache;
-    private final JarSnapshotCache jarSnapshotCache;
-
-    public DefaultCompilationCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
-        this.classAnalysisCache = classAnalysisCache;
-        this.jarSnapshotCache = jarSnapshotCache;
-    }
-
-    public ClassAnalysisCache getClassAnalysisCache() {
-        return classAnalysisCache;
-    }
-
-    public JarSnapshotCache getJarSnapshotCache() {
-        return jarSnapshotCache;
-    }
+public interface LocalCompilationCaches {
+    LocalJarHashesStore getLocalJarHashesStore();
+    LocalClassDependencyInfoStore getLocalClassDependencyInfoStore();
 }

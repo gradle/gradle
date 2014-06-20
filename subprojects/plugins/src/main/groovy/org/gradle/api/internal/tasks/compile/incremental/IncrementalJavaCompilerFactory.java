@@ -26,10 +26,10 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDe
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompilationCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalCompilationCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.*;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
-import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -39,15 +39,15 @@ public class IncrementalJavaCompilerFactory {
 
     private final IncrementalCompilationSupport incrementalSupport;
 
-    public IncrementalJavaCompilerFactory(Project project, String compileTaskPath, CleaningJavaCompiler cleaningJavaCompiler,
-                                          List<Object> source, CompilationCaches compilationCaches, JavaCompile javaCompile) {
+    public IncrementalJavaCompilerFactory(Project project, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
+                                          List<Object> source, CompilationCaches compilationCaches, LocalCompilationCaches localCaches) {
         //bunch of services that enable incremental java compilation.
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compilationCaches.getClassAnalysisCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compilationCaches.getJarSnapshotCache());
 
-        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(compilationCaches.getLocalJarHashesStore(javaCompile), compilationCaches.getJarSnapshotCache());
-        LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(compilationCaches.getLocalClassDependencyInfoStore(javaCompile));
+        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(localCaches.getLocalJarHashesStore(), compilationCaches.getJarSnapshotCache());
+        LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(localCaches.getLocalClassDependencyInfoStore());
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
@@ -55,7 +55,7 @@ public class IncrementalJavaCompilerFactory {
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, localClassDependencyInfo, (FileOperations) project, jarSnapshotter, localJarSnapshots);
         ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(localClassDependencyInfo, (FileOperations) project, analyzer);
         incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, localClassDependencyInfo, (FileOperations) project,
-                cleaningJavaCompiler, compileTaskPath, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
+                cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
     }
 
     public Compiler<JavaCompileSpec> createCompiler(IncrementalTaskInputs inputs) {

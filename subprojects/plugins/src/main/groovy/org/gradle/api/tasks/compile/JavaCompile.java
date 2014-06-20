@@ -23,11 +23,14 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompilationCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultLocalCompilationCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalCompilationCaches;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
@@ -84,8 +87,9 @@ public class JavaCompile extends AbstractCompile {
 
         DefaultJavaCompileSpec spec = createSpec();
         CompilationCaches caches = getServices().get(CompilationCaches.class); //TODO SF inject lazily
+        LocalCompilationCaches localCaches = new DefaultLocalCompilationCaches(getServices().get(CacheRepository.class), this); //TODO SF inject lazily
         IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(
-                getProject(), getPath(), createCompiler(spec), source, caches, this); //TODO SF don't pass the task
+                getProject(), getPath(), createCompiler(spec), source, caches, localCaches);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler(inputs);
         performCompilation(spec, compiler);
     }

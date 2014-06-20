@@ -61,8 +61,8 @@ public class CompileServices implements PluginServiceRegistry {
             return new InProcessCompilerDaemonFactory();
         }
 
-        CompilationCaches createCompileCaches(CacheRepository cacheRepository, ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
-            return new DefaultCompilationCaches(cacheRepository, classAnalysisCache, jarSnapshotCache);
+        CompilationCaches createCompilationCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
+            return new DefaultCompilationCaches(classAnalysisCache, jarSnapshotCache);
         }
 
         ClassAnalysisCache createClassAnalysisCache(CacheRepository cacheRepository) {
