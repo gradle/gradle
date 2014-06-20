@@ -50,7 +50,7 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier);
         configurationsToModuleDescriptorConverter.addConfigurations(metaData, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, configurations);
         return metaData;
     }
 }

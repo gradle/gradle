@@ -72,6 +72,10 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         moduleDescriptor.addConfiguration(new Configuration(name, visible ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE, description, superConfigs, transitive, null));
     }
 
+    public void addDependency(DependencyMetaData dependency) {
+        moduleDescriptor.addDependency(dependency.getDescriptor());
+    }
+
     public Collection<? extends LocalArtifactMetaData> getArtifacts() {
         return artifactsById.values();
     }

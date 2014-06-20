@@ -26,4 +26,6 @@ public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
     void addArtifact(String configuration, IvyArtifactName artifact, File file);
 
     void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive);
+
+    void addDependency(DependencyMetaData dependency);
 }

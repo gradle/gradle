@@ -17,13 +17,14 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
 import spock.lang.Specification
 
 public class DefaultDependencyDescriptorFactoryTest extends Specification {
     def configurationName = "conf"
-    def moduleDescriptor = Mock(DefaultModuleDescriptor)
-    def projectDependency = Mock(ProjectDependency)
-    def dependencyDescriptor = Mock(EnhancedDependencyDescriptor)
+    def moduleDescriptor = Stub(DefaultModuleDescriptor)
+    def projectDependency = Stub(ProjectDependency)
+    def dependencyDescriptor = Stub(EnhancedDependencyDescriptor)
 
     def "delegates to internal factory"() {
         given:
@@ -38,7 +39,8 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         def created = dependencyDescriptorFactory.createDependencyDescriptor(configurationName, moduleDescriptor, projectDependency)
 
         then:
-        created == dependencyDescriptor
+        created instanceof DefaultDependencyMetaData
+        created.descriptor == dependencyDescriptor
 
         and:
         1 * ivyDependencyDescriptorFactory1.canConvert(projectDependency) >> false
