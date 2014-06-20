@@ -34,6 +34,8 @@ public class JarChangeDependentsFinder {
     //TODO SF coverage
     public DependentsSet getActualDependents(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
         if (jarChangeDetails.isAdded()) {
+            //TODO SF consider the case where newly added jar contains a duplicate class and the new jar ends up higher on the classpath
+            //we should probably fix the tests and rebuild everything in case a jar is added.
             return new DefaultDependentsSet();
         }
         JarSnapshot existing = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
