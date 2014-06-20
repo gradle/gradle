@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.hash.Hasher;
@@ -38,7 +37,7 @@ public class IncrementalJavaCompilerFactory {
 
     private final IncrementalCompilationSupport incrementalSupport;
 
-    public IncrementalJavaCompilerFactory(Project project, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
+    public IncrementalJavaCompilerFactory(FileOperations fileOperations, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
                                           List<Object> source, CompileCaches compileCaches) {
         //bunch of services that enable incremental java compilation.
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
@@ -48,12 +47,12 @@ public class IncrementalJavaCompilerFactory {
         LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(compileCaches.getLocalJarHashesStore(), compileCaches.getJarSnapshotCache());
         LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(compileCaches.getLocalClassDependencyInfoStore());
 
-        JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));
+        JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
-        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, localClassDependencyInfo, (FileOperations) project, jarSnapshotter, localJarSnapshots);
-        ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(localClassDependencyInfo, (FileOperations) project, analyzer);
-        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, localClassDependencyInfo, (FileOperations) project,
+        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, localClassDependencyInfo, fileOperations, jarSnapshotter, localJarSnapshots);
+        ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(localClassDependencyInfo, fileOperations, analyzer);
+        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, localClassDependencyInfo, fileOperations,
                 cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
     }
 

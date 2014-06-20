@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -89,7 +90,7 @@ public class JavaCompile extends AbstractCompile {
         GeneralCompileCaches caches = getServices().get(GeneralCompileCaches.class); //TODO SF inject lazily
         CompileCaches compileCaches = new DefaultCompileCaches(getServices().get(CacheRepository.class), this, caches); //TODO SF inject lazily
         IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(
-                getProject(), getPath(), createCompiler(spec), source, compileCaches);
+                (FileOperations) getProject(), getPath(), createCompiler(spec), source, compileCaches);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler(inputs);
         performCompilation(spec, compiler);
     }
