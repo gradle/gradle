@@ -87,12 +87,18 @@ public class JavaCompile extends AbstractCompile {
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
         DefaultJavaCompileSpec spec = createSpec();
-        GeneralCompileCaches caches = getServices().get(GeneralCompileCaches.class); //TODO SF inject lazily
-        CompileCaches compileCaches = new DefaultCompileCaches(getServices().get(CacheRepository.class), this, caches); //TODO SF inject lazily
+        CompileCaches compileCaches = new DefaultCompileCaches(getCacheRepository(), this, getGeneralCompileCaches());
         IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(
                 (FileOperations) getProject(), getPath(), createCompiler(spec), source, compileCaches);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler(inputs);
         performCompilation(spec, compiler);
+    }
+
+    @Inject protected GeneralCompileCaches getGeneralCompileCaches() {
+        throw new UnsupportedOperationException();
+    }
+    @Inject protected CacheRepository getCacheRepository() {
+        throw new UnsupportedOperationException();
     }
 
     protected void compile() {
