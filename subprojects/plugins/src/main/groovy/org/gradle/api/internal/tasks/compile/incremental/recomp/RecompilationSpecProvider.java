@@ -44,9 +44,7 @@ public class RecompilationSpecProvider {
         this.localJarSnapshots = localJarSnapshots;
     }
 
-    public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs) {
-        //load the dependency info
-        ClassDependencyInfo dependencyInfo = dependencyInfoProvider.provideInfo();
+    public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs, ClassDependencyInfo dependencyInfo) {
         PreviousCompilation previousCompilation = new PreviousCompilation(dependencyInfo, localJarSnapshots);
 
         //creating an action that will be executed against all changes

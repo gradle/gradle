@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -30,21 +31,23 @@ import org.gradle.util.Clock;
 class SelectiveCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOG = Logging.getLogger(SelectiveCompiler.class);
     private final IncrementalTaskInputs inputs;
+    private final ClassDependencyInfo classDependencyInfo;
     private final CleaningJavaCompiler cleaningCompiler;
     private final RecompilationSpecProvider recompilationSpecProvider;
     private final IncrementalCompilationInitializer incrementalCompilationInitilizer;
 
-    public SelectiveCompiler(IncrementalTaskInputs inputs, CleaningJavaCompiler cleaningCompiler,
+    public SelectiveCompiler(IncrementalTaskInputs inputs, ClassDependencyInfo classDependencyInfo, CleaningJavaCompiler cleaningCompiler,
                              RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer) {
         this.inputs = inputs;
+        this.classDependencyInfo = classDependencyInfo;
         this.cleaningCompiler = cleaningCompiler;
         this.recompilationSpecProvider = recompilationSpecProvider;
-        incrementalCompilationInitilizer = compilationInitializer;
+        this.incrementalCompilationInitilizer = compilationInitializer;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
         Clock clock = new Clock();
-        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs);
+        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, classDependencyInfo);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
             LOG.lifecycle("Detection of classes for compilation took {}. Full rebuild is needed due to a change to: {}.", clock.getTime(), recompilationSpec.getFullRebuildCause());

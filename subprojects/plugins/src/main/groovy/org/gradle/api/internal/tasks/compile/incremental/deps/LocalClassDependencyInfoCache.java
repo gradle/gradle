@@ -32,9 +32,4 @@ public class LocalClassDependencyInfoCache implements ClassDependencyInfoProvide
     public ClassDependencyInfo provideInfo() {
         return dependencyInfoStore.get();
     }
-
-    public boolean isInfoAvailable() {
-        //TODO SF get rid of this and then use the LocalClassDependencyInfoStore directly.
-        return dependencyInfoStore.get() != null;
-    }
 }

@@ -18,14 +18,15 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.language.base.internal.compile.Compiler;
 
 public class IncrementalCompilationSupport {
 
@@ -67,10 +68,11 @@ public class IncrementalCompilationSupport {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
-        if (!dependencyInfoProvider.isInfoAvailable()) {
+        ClassDependencyInfo classDependencyInfo = dependencyInfoProvider.provideInfo();
+        if (classDependencyInfo == null) {
             LOG.lifecycle("{} - is not incremental. No class dependency data available from previous build.", displayName);
             return cleaningCompiler;
         }
-        return new SelectiveCompiler(inputs, cleaningCompiler, staleClassDetecter, new IncrementalCompilationInitializer(fileOperations));
+        return new SelectiveCompiler(inputs, classDependencyInfo, cleaningCompiler, staleClassDetecter, new IncrementalCompilationInitializer(fileOperations));
     }
 }
