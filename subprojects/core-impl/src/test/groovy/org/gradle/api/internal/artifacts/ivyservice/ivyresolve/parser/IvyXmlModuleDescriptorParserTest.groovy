@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
@@ -76,6 +77,24 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.getArtifacts("default")[0].type == "jar"
         md.dependencies.length == 0
         md.inheritedDescriptors.length == 0
+    }
+
+    public void "fails when ivy.xml uses unknown version of descriptor format"() throws IOException {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="unknown">
+    <info organisation="myorg"
+          module="mymodule"
+    />
+</ivy-module>
+"""
+
+        when:
+        parser.parseMetaData(parseContext, file, true)
+
+        then:
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.cause.message == "invalid version unknown"
     }
 
     public void "fails when configuration extends an unknown configuration"() throws IOException {

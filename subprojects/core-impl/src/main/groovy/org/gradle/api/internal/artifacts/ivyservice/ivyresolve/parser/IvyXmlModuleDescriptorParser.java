@@ -94,7 +94,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
         postProcess(moduleDescriptor);
 
-        return new DefaultIvyModuleVersionMetaData(moduleDescriptor);
+        return parser.getMetaData();
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
@@ -139,6 +139,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private final List<String> errors = new ArrayList<String>();
 
         private final DefaultModuleDescriptor md;
+        protected DefaultIvyModuleVersionMetaData metaData;
 
         protected AbstractParser(ExternalResource resource) {
             this.res = resource; // used for log and date only
@@ -391,6 +392,10 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         public DefaultModuleDescriptor getModuleDescriptor() throws ParseException {
             checkErrors();
             return md;
+        }
+
+        public DefaultIvyModuleVersionMetaData getMetaData() {
+            return metaData;
         }
 
         private void replaceConfigurationWildcards(ModuleDescriptor md) {
@@ -1124,6 +1129,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if ("dependencies".equals(qName) && state == State.DEPS) {
                 state = State.NONE;
             } else if (state == State.INFO && "info".equals(qName)) {
+                metaData = new DefaultIvyModuleVersionMetaData(getMd());
                 state = State.NONE;
             } else if (state == State.DESCRIPTION && "description".equals(qName)) {
                 getMd().setDescription(buffer == null ? "" : buffer.toString().trim());
