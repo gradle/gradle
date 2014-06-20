@@ -25,6 +25,10 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Cross-process, global cache of jar snapshots. Required to make incremental java compilation fast.
+ * Jar snapshots are cached globally, so if one project caches the groovy jar, it can be used by some other project.
+ */
 public class DefaultJarSnapshotCache implements JarSnapshotCache {
 
     private final MinimalPersistentCache<byte[], JarSnapshot> cache;

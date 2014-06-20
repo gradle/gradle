@@ -22,6 +22,11 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarHashesSto
 import java.io.File;
 import java.util.Map;
 
+/**
+ * Contains information about the jars used for compilation.
+ * It provides jar snapshots of the previous build so that incremental compilation can compare them with current jar snapshots.
+ * This is required for correct handling of jar changes by the incremental java compilation.
+ */
 public class LocalJarSnapshots {
     private final LocalJarHashesStore localJarHashesStore;
     private final JarSnapshotCache jarSnapshotCache;
