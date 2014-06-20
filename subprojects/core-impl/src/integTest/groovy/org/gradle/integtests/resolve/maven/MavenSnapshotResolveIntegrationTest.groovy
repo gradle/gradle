@@ -647,8 +647,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        def metaData = projectA.metaData
-        metaData.expectGetMissing()
+        projectA.metaData.expectGetMissing()
         projectA.pom.expectGetMissing()
         projectA.artifact.expectHeadMissing()
 
@@ -658,7 +657,7 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasCause("""Could not find group:projectA:1.0-SNAPSHOT.
 Searched in the following locations:
-    ${metaData.uri}
+    ${projectA.metaData.uri}
     ${projectA.pom.uri}
     ${projectA.artifact.uri}
 """)
@@ -666,13 +665,57 @@ Searched in the following locations:
         when:
         server.resetExpectations()
         projectA.publish()
-        metaData.expectGet()
+        projectA.metaData.expectGet()
         projectA.pom.expectGet()
         projectA.artifact.expectGet()
 
         then:
         succeeds 'retrieve'
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
+    }
+
+    def "reports missing snapshot artifact"() {
+        given:
+        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile 'group:projectA:1.0-SNAPSHOT'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        projectA.metaData.expectGet()
+        projectA.pom.expectGet()
+        projectA.artifact.expectGetMissing()
+
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause("""Artifact 'group:projectA:1.0-SNAPSHOT:projectA.jar' not found.
+Searched in the following locations:
+    ${projectA.artifact.uri}""")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause("Artifact 'group:projectA:1.0-SNAPSHOT:projectA.jar' not found.")
     }
 
     def "reports and recovers from broken maven-metadata.xml"() {

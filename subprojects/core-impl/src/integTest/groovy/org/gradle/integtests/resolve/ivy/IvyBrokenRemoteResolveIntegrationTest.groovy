@@ -171,13 +171,16 @@ task retrieve(type: Sync) {
         then:
         fails "retrieve"
 
-        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2:projectA.jar' not found"))
+        failure.assertHasCause("""Artifact 'group:projectA:1.2:projectA.jar' not found.
+Searched in the following locations:
+    ${module.jar.uri}""")
 
         when:
         server.resetExpectations()
 
         then:
         fails "retrieve"
+        // TODO - report on the locations when cached
         failure.assertThatCause(containsString("Artifact 'group:projectA:1.2:projectA.jar' not found"))
     }
 

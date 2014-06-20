@@ -85,7 +85,7 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture expectSourceArtifactNotFound(String artifactClassifier) {
-        expectedSourceFailure = new ArtifactNotFoundException(new DefaultModuleVersionArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]))
+        expectedSourceFailure = new ArtifactNotFoundException(new DefaultModuleVersionArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]), [])
         this
     }
 
@@ -100,7 +100,7 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture expectJavadocArtifactNotFound(String artifactClassifier) {
-        expectedJavadocFailure = new ArtifactNotFoundException(new DefaultModuleVersionArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]))
+        expectedJavadocFailure = new ArtifactNotFoundException(new DefaultModuleVersionArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]), [])
         this
     }
 
@@ -177,7 +177,7 @@ task $taskName << {
         }
         String check = """
     assert ${reference} instanceof ${expected.class.name}
-    assert ${reference}.message == '${TextUtil.toPlatformLineSeparators(expected.message.replace("\'", "\\\'").replace("\r", "\\r").replace("\n", "\\n"))}'
+    assert ${reference}.message.startsWith('${TextUtil.toPlatformLineSeparators(expected.message.replace("\'", "\\\'").replace("\r", "\\r").replace("\n", "\\n"))}')
 """
         if (expected.cause != null) {
             check += """

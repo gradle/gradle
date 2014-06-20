@@ -35,7 +35,7 @@ public class DefaultBuildableArtifactResolveResult extends DefaultResourceAwareR
     }
 
     public void notFound(ComponentArtifactIdentifier artifact) {
-        failed(new ArtifactNotFoundException(artifact));
+        failed(new ArtifactNotFoundException(artifact, getAttempted()));
     }
 
     public ArtifactResolveException getFailure() {

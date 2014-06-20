@@ -33,7 +33,7 @@ public interface ModuleComponentRepositoryAccess {
     void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
 
     /**
-     * Gets the metadata for a module component.
+     * Resolves the metadata for a module component.
      */
     void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 

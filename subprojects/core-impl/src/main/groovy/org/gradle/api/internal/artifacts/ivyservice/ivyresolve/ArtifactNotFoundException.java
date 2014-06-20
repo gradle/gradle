@@ -17,8 +17,22 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
 
+import java.util.List;
+
 public class ArtifactNotFoundException extends ArtifactResolveException {
-    public ArtifactNotFoundException(ComponentArtifactIdentifier artifact) {
-        super(String.format("Artifact '%s' not found.", artifact.getDisplayName()));
+    public ArtifactNotFoundException(ComponentArtifactIdentifier artifact, List<String> attemptedLocations) {
+        super(format(artifact, attemptedLocations));
+    }
+
+    private static String format(ComponentArtifactIdentifier artifact, List<String> locations) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("Artifact '%s' not found.", artifact.getDisplayName()));
+        if (!locations.isEmpty()) {
+            builder.append(String.format("%nSearched in the following locations:"));
+            for (String location : locations) {
+                builder.append(String.format("%n    %s", location.replace("%", "%%")));
+            }
+        }
+        return builder.toString();
     }
 }
