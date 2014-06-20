@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.cache.CompilationCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.LocalCompilationCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.*;
@@ -40,13 +40,13 @@ public class IncrementalJavaCompilerFactory {
     private final IncrementalCompilationSupport incrementalSupport;
 
     public IncrementalJavaCompilerFactory(Project project, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
-                                          List<Object> source, CompilationCaches compilationCaches, LocalCompilationCaches localCaches) {
+                                          List<Object> source, GeneralCompileCaches generalCompileCaches, LocalCompilationCaches localCaches) {
         //bunch of services that enable incremental java compilation.
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
-        ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compilationCaches.getClassAnalysisCache());
-        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compilationCaches.getJarSnapshotCache());
+        ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, generalCompileCaches.getClassAnalysisCache());
+        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, generalCompileCaches.getJarSnapshotCache());
 
-        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(localCaches.getLocalJarHashesStore(), compilationCaches.getJarSnapshotCache());
+        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(localCaches.getLocalJarHashesStore(), generalCompileCaches.getJarSnapshotCache());
         LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(localCaches.getLocalClassDependencyInfoStore());
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));
