@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.plugins.PluginDescriptor
@@ -56,9 +57,23 @@ class JavaGradlePluginPlugin implements Plugin<Project> {
         def Jar jarTask = project.getTasks().findByName(JAR_TASK)
         def pluginDescriptorFinder = new FindPluginDescriptorAction()
         def classManifestCollector = new ClassManifestCollectorAction()
+        def pluginValidationAction = new PluginValidationAction(pluginDescriptorFinder, classManifestCollector)
         jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorFinder)
         jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector)
-        jarTask.doLast {
+        jarTask.doLast(pluginValidationAction)
+    }
+
+    static class PluginValidationAction implements Action<Task>  {
+        FindPluginDescriptorAction pluginDescriptorFinder
+        ClassManifestCollectorAction classManifestCollector
+
+        PluginValidationAction(FindPluginDescriptorAction pluginDescriptorFinder, ClassManifestCollectorAction classManifestCollector) {
+            this.pluginDescriptorFinder = pluginDescriptorFinder
+            this.classManifestCollector = classManifestCollector
+        }
+
+        @Override
+        void execute(Task task) {
             if (pluginDescriptorFinder.descriptors.isEmpty()) {
                 LOGGER.warn(NO_DESCRIPTOR_WARNING_MESSAGE)
             } else {

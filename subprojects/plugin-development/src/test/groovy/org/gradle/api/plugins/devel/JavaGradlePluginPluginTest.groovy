@@ -16,17 +16,30 @@
 
 package org.gradle.api.plugins.devel
 
+import ch.qos.logback.classic.spi.LoggingEvent
+import ch.qos.logback.core.AppenderBase
 import org.gradle.api.Action
+import org.gradle.api.Task
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.ConventionMapping
+import org.gradle.api.internal.plugins.PluginDescriptor
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.logging.ConfigureLogging
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
 
 class JavaGradlePluginPluginTest extends Specification {
+    final ResettableAppender appender = new ResettableAppender()
+    @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
+
+    final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
+    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
+    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
+
     def project = TestUtil.builder().withName("plugin").build()
 
     def "FindPluginDescriptor correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedEmpty) {
@@ -80,6 +93,39 @@ class JavaGradlePluginPluginTest extends Specification {
         [ 'com/xxx/yyy/TestPlugin.class']   | 'com.xxx.TestPlugin' | false
     }
 
+   def "PluginValidationAction logs correct warning messages" (String impl, boolean shouldFindClass, String expectedMessage) {
+        setup:
+        Task stubTask = Stub(Task)
+        Action<FileCopyDetails> stubFindPluginDescriptor = Stub(JavaGradlePluginPlugin.FindPluginDescriptorAction) {
+            _ * getDescriptors() >> {
+                 List<PluginDescriptor> descriptors = []
+                if (impl != null) {
+                    descriptors.add(Stub(PluginDescriptor) {
+                        _ * toString() >> { "file:///test-plugin-${impl}.properties" }
+                        _ * getImplementationClassName() >> { impl }
+                    })
+                }
+                return descriptors
+            }
+        }
+        Action<FileCopyDetails> stubClassManifestCollector = Stub(JavaGradlePluginPlugin.ClassManifestCollectorAction) {
+            _ * hasFullyQualifiedClass(_) >> { shouldFindClass }
+        }
+        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(stubFindPluginDescriptor, stubClassManifestCollector)
+        appender.reset()
+
+        expect:
+        pluginValidationAction.execute(stubTask)
+        expectedMessage == null || appender.toString().contains(expectedMessage)
+
+        where:
+        impl    | shouldFindClass | expectedMessage
+        null    | false           | NO_DESCRIPTOR_WARNING
+        ''      | false           | INVALID_DESCRIPTOR_WARNING_PREFIX
+        'x.y.z' | false           | BAD_IMPL_CLASS_WARNING_PREFIX
+        'x.y.z' | true            | null
+    }
+
     def "apply adds java plugin" () {
         when:
         project.plugins.apply(JavaGradlePluginPlugin)
@@ -122,7 +168,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.plugins.apply(JavaGradlePluginPlugin)
 
         then:
-        1 * mockJarTask.doLast(_)
+        1 * mockJarTask.doLast({ it instanceof JavaGradlePluginPlugin.PluginValidationAction})
     }
 
     @Ignore
@@ -134,5 +180,27 @@ class JavaGradlePluginPluginTest extends Specification {
         project.tasks.remove(project.tasks.getByName(JavaGradlePluginPlugin.JAR_TASK))
         project.tasks.add(mockJar)
         return mockJar
+    }
+
+    static class ResettableAppender extends AppenderBase<LoggingEvent> {
+        final StringBuffer buffer = new StringBuffer()
+
+        synchronized void doAppend(LoggingEvent e) {
+            append(e)
+        }
+
+        @Override
+        protected void append(LoggingEvent eventObject) {
+            buffer.append(eventObject.formattedMessage)
+        }
+
+        void reset() {
+            buffer.delete(0,buffer.size())
+        }
+
+        @Override
+        String toString() {
+            return buffer.toString()
+        }
     }
 }
