@@ -28,12 +28,12 @@ public class JarSnapshotsMaker {
 
     private static final Logger LOG = Logging.getLogger(JarSnapshotsMaker.class);
 
-    private final LocalJarSnapshots localCache;
+    private final LocalJarSnapshots localJarSnapshots;
     private final JarSnapshotter jarSnapshotter;
     private ClasspathJarFinder classpathJarFinder;
 
-    public JarSnapshotsMaker(LocalJarSnapshots localCache, JarSnapshotter jarSnapshotter, ClasspathJarFinder classpathJarFinder) {
-        this.localCache = localCache;
+    public JarSnapshotsMaker(LocalJarSnapshots localJarSnapshots, JarSnapshotter jarSnapshotter, ClasspathJarFinder classpathJarFinder) {
+        this.localJarSnapshots = localJarSnapshots;
         this.jarSnapshotter = jarSnapshotter;
         this.classpathJarFinder = classpathJarFinder;
     }
@@ -47,7 +47,7 @@ public class JarSnapshotsMaker {
             newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar));
         }
         String creationTime = clock.getTime();
-        localCache.putSnapshots(newSnapshots);
+        localJarSnapshots.putSnapshots(newSnapshots);
         LOG.lifecycle("Created and written jar snapshots in {} (creation took {}).", clock.getTime(), creationTime); //TODO SF fix this lifecycle message and others, too
     }
 }
