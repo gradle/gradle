@@ -127,7 +127,7 @@ class DefaultDependencyMetaDataTest extends Specification {
         metaData.getArtifacts(fromConfiguration, toConfiguration).empty
     }
 
-    def "uses artifacts defined by dependency descriptor"() {
+    def "uses artifacts defined by dependency descriptor for specified source and target configurations "() {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
         def metaData = new DefaultDependencyMetaData(descriptor)
         def fromConfiguration = Stub(ConfigurationMetaData)
@@ -147,6 +147,23 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         expect:
         metaData.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact2] as Set
+    }
+
+    def "uses artifacts defined by dependency descriptor"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        given:
+        descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
+        descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
+        descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
+
+        expect:
+        metaData.artifacts.size() == 3
+        def artifacts = metaData.artifacts as List
+        artifacts[0].name == 'art1'
+        artifacts[1].name == 'art2'
+        artifacts[2].name == 'art3'
     }
 
     def "returns a build component selector if descriptor indicates a project dependency"() {

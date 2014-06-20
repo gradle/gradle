@@ -55,6 +55,8 @@ public interface ComponentMetaData {
     /**
      * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
      * and will be removed.
+     *
+     * <p>You should avoid using this method.
      */
     ModuleDescriptor getDescriptor();
 
