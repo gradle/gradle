@@ -25,8 +25,8 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.cache.LocalCompilationCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.*;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -40,7 +40,7 @@ public class IncrementalJavaCompilerFactory {
     private final IncrementalCompilationSupport incrementalSupport;
 
     public IncrementalJavaCompilerFactory(Project project, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
-                                          List<Object> source, GeneralCompileCaches generalCompileCaches, LocalCompilationCaches localCaches) {
+                                          List<Object> source, GeneralCompileCaches generalCompileCaches, CompileCaches localCaches) {
         //bunch of services that enable incremental java compilation.
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, generalCompileCaches.getClassAnalysisCache());

@@ -19,12 +19,12 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
-public class DefaultLocalCompilationCaches implements LocalCompilationCaches {
+public class DefaultCompileCaches implements CompileCaches {
 
     private final CacheRepository repository;
     private final JavaCompile javaCompile;
 
-    public DefaultLocalCompilationCaches(CacheRepository repository, JavaCompile javaCompile) {
+    public DefaultCompileCaches(CacheRepository repository, JavaCompile javaCompile) {
         this.repository = repository;
         this.javaCompile = javaCompile;
     }
