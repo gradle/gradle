@@ -16,21 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.api.internal.cache.SingleOperationPersistentStore;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class LocalJarSnapshots {
     private final CacheRepository cacheRepository;
@@ -59,44 +53,27 @@ public class LocalJarSnapshots {
     }
 
     public void putSnapshots(Map<File, JarSnapshot> newSnapshots) {
-        PersistentCache cacheAccess = cacheRepository.store(task, "localJarHashes")
-                .withDisplayName("local jar hashes")
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
-                .open();
-
-        try {
-            //TODO SF avoid hashing again, pass list of hashes only
-            final Map<File, byte[]> newHashes = new HashMap<File, byte[]>();
-            for (File file : newSnapshots.keySet()) {
-                newHashes.put(file, hasher.hash(file));
-            }
-
-            final PersistentIndexedCache<Long, Map> cache = cacheAccess.createCache(new PersistentIndexedCacheParameters<Long, Map>("localJarHashes", Long.class, Map.class));
-            cacheAccess.useCache("loading local jar hashes", new Runnable() {
-                public void run() {
-                    cache.put(0L, newHashes);
-                }
-            });
-        } finally {
-            cacheAccess.close();
+        //TODO SF avoid hashing again, pass list of hashes only
+        final Map<File, byte[]> newHashes = new HashMap<File, byte[]>();
+        for (File file : newSnapshots.keySet()) {
+            newHashes.put(file, hasher.hash(file));
         }
+
+        //We're writing all hashes regardless of how many jars have changed.
+        //This simplifies stuff and does not seem to introduce a performance hit.
+        //Single operation store that we throw away after the operation makes the implementation simpler.
+        SingleOperationPersistentStore<Map> store = new SingleOperationPersistentStore(cacheRepository, task, "local jar hashes", Map.class);
+        store.putAndClose(newHashes);
     }
 
     private void loadSnapshots() {
-        PersistentCache cacheAccess = cacheRepository.store(task, "localJarHashes")
-                .withDisplayName("local jar hashes")
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
-                .open();
-        try {
-            final PersistentIndexedCache<Long, Map> cache = cacheAccess.createCache(new PersistentIndexedCacheParameters<Long, Map>("localJarHashes", Long.class, Map.class));
-            Map<File, byte[]> jarHashes = cacheAccess.useCache("loading local jar hashes", new Factory<Map>() {
-                public Map create() {
-                    return cache.get(0L);
-                }
-            });
-            snapshots = jarSnapshotCache.getJarSnapshots(jarHashes);
-        } finally {
-            cacheAccess.close();
-        }
+        //We're loading all hashes regardless of how much of that is actually consumed.
+        //This simplifies stuff and does not seem to introduce a performance hit.
+        //Single operation store that we throw away after the operation makes the implementation simpler.
+
+        SingleOperationPersistentStore<Map> store = new SingleOperationPersistentStore(cacheRepository, task, "local jar hashes", Map.class);
+        Map<File, byte[]> jarHashes = store.getAndClose();
+
+        snapshots = jarSnapshotCache.getJarSnapshots(jarHashes);
     }
 }
