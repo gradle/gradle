@@ -16,31 +16,24 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.cache.SingleOperationPersistentStore;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
-import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.cache.CacheRepository;
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarHashesStore;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 public class LocalJarSnapshots {
-    private final CacheRepository cacheRepository;
-    private final JavaCompile task;
+    private final LocalJarHashesStore localJarHashesStore;
     private final JarSnapshotCache jarSnapshotCache;
     private final Hasher hasher;
 
-    //TODO SF this cache should use File -> hash map and retrieve the snapshot from the global cache.
-    //TODO SF use task-scoped standard caching
-
     private Map<File, JarSnapshot> snapshots;
 
-    public LocalJarSnapshots(CacheRepository cacheRepository, JavaCompile task,
+    public LocalJarSnapshots(LocalJarHashesStore localJarHashesStore,
                              JarSnapshotCache jarSnapshotCache, Hasher hasher) {
-        this.cacheRepository = cacheRepository;
-        this.task = task;
+        this.localJarHashesStore = localJarHashesStore;
         this.jarSnapshotCache = jarSnapshotCache;
         this.hasher = hasher;
     }
@@ -61,18 +54,13 @@ public class LocalJarSnapshots {
 
         //We're writing all hashes regardless of how many jars have changed.
         //This simplifies stuff and does not seem to introduce a performance hit.
-        //Single operation store that we throw away after the operation makes the implementation simpler.
-        SingleOperationPersistentStore<Map> store = new SingleOperationPersistentStore(cacheRepository, task, "local jar hashes", Map.class);
-        store.putAndClose(newHashes);
+        localJarHashesStore.put(newHashes);
     }
 
     private void loadSnapshots() {
         //We're loading all hashes regardless of how much of that is actually consumed.
         //This simplifies stuff and does not seem to introduce a performance hit.
-        //Single operation store that we throw away after the operation makes the implementation simpler.
-
-        SingleOperationPersistentStore<Map> store = new SingleOperationPersistentStore(cacheRepository, task, "local jar hashes", Map.class);
-        Map<File, byte[]> jarHashes = store.getAndClose();
+        Map<File, byte[]> jarHashes = localJarHashesStore.get();
 
         snapshots = jarSnapshotCache.getJarSnapshots(jarHashes);
     }

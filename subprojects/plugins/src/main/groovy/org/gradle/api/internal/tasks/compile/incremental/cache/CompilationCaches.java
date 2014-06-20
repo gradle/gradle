@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-import org.gradle.cache.CacheRepository;
+import org.gradle.api.tasks.compile.JavaCompile;
 
 public interface CompilationCaches {
     ClassAnalysisCache getClassAnalysisCache();
     JarSnapshotCache getJarSnapshotCache();
-    CacheRepository getCacheRepository();
+    LocalJarHashesStore getLocalJarHashesStore(JavaCompile javaCompile);
 }

@@ -28,14 +28,13 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.util.GUtil.toCamelCase;
 
 public class SingleOperationPersistentStore<V> {
-    //TODO SF there's more generic abstraction here
 
     private final PersistentIndexedCache<Long, V> cache;
     private final PersistentCache cacheAccess;
     private final String cacheName;
 
     //The cache only keeps single value, so we're always use the same index.
-    //We could improve our cross-process caching infrastructure so that we support Stores (e.g. not-indexed caches).
+    //We probably should improve our cross-process caching infrastructure so that we support Stores (e.g. not-indexed caches).
     private final static long CACHE_KEY = 0;
 
     public SingleOperationPersistentStore(CacheRepository cacheRepository, Object scope, String cacheName, Class<V> valueClass) {

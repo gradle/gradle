@@ -16,30 +16,29 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import org.gradle.api.internal.cache.SingleOperationPersistentStore;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
-public class DefaultCompilationCaches implements CompilationCaches {
+import java.io.File;
+import java.util.Map;
 
-    private final DefaultClassAnalysisCache classAnalysisCache;
-    private final DefaultJarSnapshotCache jarSnapshotCache;
+public class LocalJarHashesStore {
     private final CacheRepository cacheRepository;
+    private final JavaCompile javaCompile;
 
-    public DefaultCompilationCaches(CacheRepository cacheRepository) {
+    public LocalJarHashesStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
         this.cacheRepository = cacheRepository;
-        classAnalysisCache = new DefaultClassAnalysisCache(cacheRepository);
-        jarSnapshotCache = new DefaultJarSnapshotCache(cacheRepository);
+        this.javaCompile = javaCompile;
     }
 
-    public ClassAnalysisCache getClassAnalysisCache() {
-        return classAnalysisCache;
+    public void put(Map<File, byte[]> newHashes) {
+        //Single operation store that we throw away after the operation makes the implementation simpler.
+        new SingleOperationPersistentStore(cacheRepository, javaCompile, "local jar hashes", Map.class).putAndClose(newHashes);
     }
 
-    public JarSnapshotCache getJarSnapshotCache() {
-        return jarSnapshotCache;
-    }
-
-    public LocalJarHashesStore getLocalJarHashesStore(JavaCompile javaCompile) {
-        return new LocalJarHashesStore(cacheRepository, javaCompile);
+    public Map<File, byte[]> get() {
+        //Single operation store that we throw away after the operation makes the implementation simpler.
+        return (Map) new SingleOperationPersistentStore(cacheRepository, javaCompile, "local jar hashes", Map.class).getAndClose();
     }
 }
