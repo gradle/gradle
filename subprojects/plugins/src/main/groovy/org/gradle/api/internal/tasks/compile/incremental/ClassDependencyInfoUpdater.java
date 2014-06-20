@@ -47,7 +47,7 @@ public class ClassDependencyInfoUpdater {
         ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
         tree.visit(extractor);
         ClassDependencyInfo info = extractor.getDependencyInfo();
-        writer.writeInfo(info);
+        writer.put(info);
         LOG.lifecycle("Performed class dependency analysis in {}.", clock.getTime());
     }
 }

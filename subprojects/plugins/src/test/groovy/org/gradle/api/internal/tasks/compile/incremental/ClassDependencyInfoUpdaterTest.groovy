@@ -37,6 +37,6 @@ class ClassDependencyInfoUpdaterTest extends Specification {
 
         then:
         1 * operations.fileTree(_) >> Mock(ConfigurableFileTree)
-        1 * writer.writeInfo(_)
+        1 * writer.put(_)
     }
 }

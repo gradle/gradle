@@ -68,7 +68,7 @@ public class IncrementalCompilationSupport {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
-        ClassDependencyInfo classDependencyInfo = dependencyInfoProvider.provideInfo();
+        ClassDependencyInfo classDependencyInfo = dependencyInfoProvider.get();
         if (classDependencyInfo == null) {
             LOG.lifecycle("{} - is not incremental. No class dependency data available from previous build.", displayName);
             return cleaningCompiler;

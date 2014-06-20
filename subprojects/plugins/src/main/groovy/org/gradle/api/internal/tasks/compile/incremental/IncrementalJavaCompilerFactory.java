@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDe
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.*;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -45,14 +44,13 @@ public class IncrementalJavaCompilerFactory {
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compileCaches.getJarSnapshotCache());
 
         LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(compileCaches.getLocalJarHashesStore(), compileCaches.getJarSnapshotCache());
-        LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(compileCaches.getLocalClassDependencyInfoStore());
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
-        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, localClassDependencyInfo, fileOperations, jarSnapshotter, localJarSnapshots);
-        ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(localClassDependencyInfo, fileOperations, analyzer);
-        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, localClassDependencyInfo, fileOperations,
+        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations, jarSnapshotter, localJarSnapshots);
+        ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(compileCaches.getLocalClassDependencyInfoStore(), fileOperations, analyzer);
+        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, compileCaches.getLocalClassDependencyInfoStore(), fileOperations,
                 cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
     }
 

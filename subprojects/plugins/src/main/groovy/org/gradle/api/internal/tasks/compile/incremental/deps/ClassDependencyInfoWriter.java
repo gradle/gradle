@@ -17,5 +17,5 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 public interface ClassDependencyInfoWriter {
-    void writeInfo(ClassDependencyInfo info);
+    void put(ClassDependencyInfo info);
 }

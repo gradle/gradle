@@ -18,11 +18,13 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.SingleOperationPersistentStore;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
 //Keeps the class dependency info of the given JavaCompile task
-public class LocalClassDependencyInfoStore {
+public class LocalClassDependencyInfoStore implements ClassDependencyInfoProvider, ClassDependencyInfoWriter {
 
     private final CacheRepository cacheRepository;
     private final JavaCompile javaCompile;
