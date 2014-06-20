@@ -38,7 +38,7 @@ class DefaultJarSnapshotterTest extends Specification {
 
     def "creates snapshot for an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing")))))
+        def snapshot = snapshotter.createSnapshot(new byte[0], new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing")))))
         snapshot.hashes.isEmpty()
         snapshot.info
     }
@@ -50,7 +50,7 @@ class DefaultJarSnapshotterTest extends Specification {
         def info = Stub(ClassDependencyInfo)
 
         when:
-        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), extractor)
+        def snapshot = snapshotter.createSnapshot(new byte[0], new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), extractor)
 
         then:
         2 * extractor.visitFile(_)

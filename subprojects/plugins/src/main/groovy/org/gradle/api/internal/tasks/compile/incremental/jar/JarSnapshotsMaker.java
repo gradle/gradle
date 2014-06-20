@@ -42,12 +42,15 @@ public class JarSnapshotsMaker {
         Clock clock = new Clock();
         Iterable<JarArchive> jarArchives = classpathJarFinder.findJarArchives(classpath);
 
-        Map<File, JarSnapshot> newSnapshots = new HashMap<File, JarSnapshot>();
+        Map<File, byte[]> jarHashes = new HashMap<File, byte[]>();
         for (JarArchive jar : jarArchives) {
-            newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar));
+            //it's important that we create a snapshot for every jar in the classpath.
+            // The implementation of the snapshotter deals with caching of the jar snapshots globally
+            JarSnapshot snapshot = jarSnapshotter.createSnapshot(jar);
+            jarHashes.put(jar.file, snapshot.getHash());
         }
         String creationTime = clock.getTime();
-        localJarSnapshots.putSnapshots(newSnapshots);
+        localJarSnapshots.putHashes(jarHashes);
         LOG.lifecycle("Created and written jar snapshots in {} (creation took {}).", clock.getTime(), creationTime); //TODO SF fix this lifecycle message and others, too
     }
 }

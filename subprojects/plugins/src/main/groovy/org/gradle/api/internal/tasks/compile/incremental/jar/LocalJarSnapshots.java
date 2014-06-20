@@ -16,26 +16,22 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarHashesStore;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
 public class LocalJarSnapshots {
     private final LocalJarHashesStore localJarHashesStore;
     private final JarSnapshotCache jarSnapshotCache;
-    private final Hasher hasher;
 
     private Map<File, JarSnapshot> snapshots;
 
     public LocalJarSnapshots(LocalJarHashesStore localJarHashesStore,
-                             JarSnapshotCache jarSnapshotCache, Hasher hasher) {
+                             JarSnapshotCache jarSnapshotCache) {
         this.localJarHashesStore = localJarHashesStore;
         this.jarSnapshotCache = jarSnapshotCache;
-        this.hasher = hasher;
     }
 
     public JarSnapshot getSnapshot(File jar) {
@@ -45,13 +41,7 @@ public class LocalJarSnapshots {
         return snapshots.get(jar);
     }
 
-    public void putSnapshots(Map<File, JarSnapshot> newSnapshots) {
-        //TODO SF avoid hashing again, pass list of hashes only
-        final Map<File, byte[]> newHashes = new HashMap<File, byte[]>();
-        for (File file : newSnapshots.keySet()) {
-            newHashes.put(file, hasher.hash(file));
-        }
-
+    public void putHashes(Map<File, byte[]> newHashes) {
         //We're writing all hashes regardless of how many jars have changed.
         //This simplifies stuff and does not seem to introduce a performance hit.
         localJarHashesStore.put(newHashes);
@@ -61,7 +51,6 @@ public class LocalJarSnapshots {
         //We're loading all hashes regardless of how much of that is actually consumed.
         //This simplifies stuff and does not seem to introduce a performance hit.
         Map<File, byte[]> jarHashes = localJarHashesStore.get();
-
         snapshots = jarSnapshotCache.getJarSnapshots(jarHashes);
     }
 }

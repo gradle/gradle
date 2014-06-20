@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInf
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultJarSnapshotter implements JarSnapshotter {
+class DefaultJarSnapshotter {
 
     private final Hasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
@@ -35,11 +35,11 @@ public class DefaultJarSnapshotter implements JarSnapshotter {
         this.analyzer = analyzer;
     }
 
-    public JarSnapshot createSnapshot(JarArchive jarArchive) {
-        return createSnapshot(jarArchive.contents, new ClassDependencyInfoExtractor(analyzer));
+    public JarSnapshot createSnapshot(byte[] hash, JarArchive jarArchive) {
+        return createSnapshot(hash, jarArchive.contents, new ClassDependencyInfoExtractor(analyzer));
     }
 
-    JarSnapshot createSnapshot(FileTree classes, final ClassDependencyInfoExtractor extractor) {
+    JarSnapshot createSnapshot(byte[] hash, FileTree classes, final ClassDependencyInfoExtractor extractor) {
         final Map<String, byte[]> hashes = new HashMap<String, byte[]>();
         classes.visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {
@@ -53,6 +53,6 @@ public class DefaultJarSnapshotter implements JarSnapshotter {
             }
         });
 
-        return new JarSnapshot(hashes, extractor.getDependencyInfo());
+        return new JarSnapshot(hash, hashes, extractor.getDependencyInfo());
     }
 }

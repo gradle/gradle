@@ -31,14 +31,19 @@ public class JarSnapshot implements Serializable {
     final Map<String, byte[]> hashes;
     final ClassDependencyInfo info;
 
+    private final byte[] hash;
+
     /**
+     * @param hash of this jar
      * @param hashes hashes of all classes from the jar
      * @param info dependency info of classes in this jar
      */
-    public JarSnapshot(Map<String, byte[]> hashes, ClassDependencyInfo info) {
+    public JarSnapshot(byte[] hash, Map<String, byte[]> hashes, ClassDependencyInfo info) {
+        assert hash != null;
         assert hashes != null;
         assert info != null;
 
+        this.hash = hash;
         this.hashes = hashes;
         this.info = info;
     }
@@ -74,5 +79,9 @@ public class JarSnapshot implements Serializable {
             //we ignore added since
         }
         return new DefaultDependentsSet(affected);
+    }
+
+    public byte[] getHash() {
+        return hash;
     }
 }

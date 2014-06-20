@@ -27,13 +27,13 @@ class JarSnapshotsMakerTest extends Specification {
 
     def cache = Mock(LocalJarSnapshots)
     def info = Mock(ClassDependencyInfo)
-    def snapshotter = Mock(DefaultJarSnapshotter)
+    def snapshotter = Mock(JarSnapshotter)
     def finder = Mock(ClasspathJarFinder)
 
     @Subject maker = new JarSnapshotsMaker(cache, snapshotter, finder)
 
     def "stores jar snapshots"() {
-        def sn1 = Mock(JarSnapshot); def sn2 = Mock(JarSnapshot)
+        def hash1 = new byte[0]; def hash2 = new byte[1]
         def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree)); def jar2 = new JarArchive(new File("jar2.jar"), Mock(FileTree))
 
         def classpath = [new File("foo.zip"), new File("someDir"), new File("some.jar")]
@@ -43,9 +43,9 @@ class JarSnapshotsMakerTest extends Specification {
 
         then:
         1 * finder.findJarArchives(classpath) >> [jar1, jar2]
-        1 * snapshotter.createSnapshot(jar1) >> sn1
-        1 * snapshotter.createSnapshot(jar2) >> sn2
-        1 * cache.putSnapshots([(jar1.file): sn1, (jar2.file): sn2])
+        1 * snapshotter.createSnapshot(jar1) >> Mock(JarSnapshot) { getHash() >> hash1 }
+        1 * snapshotter.createSnapshot(jar2) >> Mock(JarSnapshot) { getHash() >> hash2 }
+        1 * cache.putHashes([(jar1.file): hash1, (jar2.file): hash2])
         0 * _
     }
 }

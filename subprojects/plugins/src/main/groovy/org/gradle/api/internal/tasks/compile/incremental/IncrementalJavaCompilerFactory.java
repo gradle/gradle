@@ -45,10 +45,10 @@ public class IncrementalJavaCompilerFactory {
         //bunch of services that enable incremental java compilation.
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compilationCaches.getClassAnalysisCache());
-        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(new DefaultJarSnapshotter(hasher, analyzer), hasher, compilationCaches.getJarSnapshotCache());
+        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compilationCaches.getJarSnapshotCache());
 
         String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. Instead of this, local caches should use standard caching mechanism with scope of task
-        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(compilationCaches.getLocalJarHashesStore(javaCompile), compilationCaches.getJarSnapshotCache(), hasher);
+        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(compilationCaches.getLocalJarHashesStore(javaCompile), compilationCaches.getJarSnapshotCache());
         LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(new File(project.getBuildDir(), cacheFileBaseName + "-class-info.bin"));
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));

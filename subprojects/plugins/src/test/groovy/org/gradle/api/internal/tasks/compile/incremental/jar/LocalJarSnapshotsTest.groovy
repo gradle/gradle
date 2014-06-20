@@ -38,7 +38,7 @@ class LocalJarSnapshotsTest extends Specification {
 
     def "caches snapshots"() {
         def info = new ClassDependencyInfo(["Foo": dependents("Bar"), "Bar": dependents()])
-        cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": "f".bytes], info)])
+        cache.putHashes([(new File("foo.jar")): new JarSnapshot(new byte[0], ["Foo": "f".bytes], info)])
 
         when:
         def cache2 = new LocalJarSnapshots(temp.file("cache.bin"))
