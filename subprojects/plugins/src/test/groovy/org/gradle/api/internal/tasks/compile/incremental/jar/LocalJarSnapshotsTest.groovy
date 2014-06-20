@@ -18,35 +18,43 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
+import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarHashesStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
-
 class LocalJarSnapshotsTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject cache = new LocalJarSnapshots(temp.file("cache.bin"))
+
+    def hashesStore = Mock(LocalJarHashesStore)
+    def snapshotCache = Mock(JarSnapshotCache)
+
+    @Subject cache = new LocalJarSnapshots(hashesStore, snapshotCache)
 
     def "empty cache"() {
-        expect:
-        !cache.getSnapshot(new File("foo.jar"))
-    }
-
-    def "caches snapshots"() {
-        def info = new ClassDependencyInfo(["Foo": dependents("Bar"), "Bar": dependents()])
-        cache.putHashes([(new File("foo.jar")): new JarSnapshot(new byte[0], ["Foo": "f".bytes], info)])
-
         when:
-        def cache2 = new LocalJarSnapshots(temp.file("cache.bin"))
-        def sn = cache2.getSnapshot(new File("foo.jar"))
+        def out = cache.getSnapshot(new File("f"))
 
         then:
-        sn == cache2.getSnapshot(new File("foo.jar"))
-        sn.hashes == ["Foo": "f".bytes]
-        sn.info.getRelevantDependents("Foo").dependentClasses == ["Bar"] as Set
+        out == null
+        hashesStore.get() >> [:]
+        snapshotCache.getJarSnapshots([:]) >> [:]
+    }
+
+    def "loads snapshots once"() {
+        def snapshot = Mock(JarSnapshot)
+
+        when:
+        cache.getSnapshot(new File("f"))
+        def out = cache.getSnapshot(new File("f"))
+
+        then:
+        out == snapshot
+        1 * hashesStore.get() >> [(new File("f")): new byte[0]]
+        1 * snapshotCache.getJarSnapshots([(new File("f")): new byte[0]]) >> [(new File("f")): snapshot]
+        0 * _
     }
 }
