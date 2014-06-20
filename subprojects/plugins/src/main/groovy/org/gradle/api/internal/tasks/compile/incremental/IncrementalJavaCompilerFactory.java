@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.CompilationCaches
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.*;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -40,14 +41,14 @@ public class IncrementalJavaCompilerFactory {
     private final IncrementalCompilationSupport incrementalSupport;
 
     public IncrementalJavaCompilerFactory(Project project, String compileTaskPath, CleaningJavaCompiler cleaningJavaCompiler,
-                                          List<Object> source, CompilationCaches compilationCaches) {
+                                          List<Object> source, CompilationCaches compilationCaches, JavaCompile javaCompile) {
         //bunch of services that enable incremental java compilation.
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compilationCaches.getClassAnalysisCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(new DefaultJarSnapshotter(hasher, analyzer), hasher, compilationCaches.getJarSnapshotCache());
 
         String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. Instead of this, local caches should use standard caching mechanism with scope of task
-        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(new File(project.getBuildDir(), cacheFileBaseName + "-jar-snapshot-cache.bin"));
+        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(compilationCaches.getCacheRepository(), javaCompile, compilationCaches.getJarSnapshotCache(), hasher);
         LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(new File(project.getBuildDir(), cacheFileBaseName + "-class-info.bin"));
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));

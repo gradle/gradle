@@ -19,4 +19,9 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 import org.gradle.api.internal.cache.Cache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
 
-public interface JarSnapshotCache extends Cache<byte[], JarSnapshot> {}
+import java.io.File;
+import java.util.Map;
+
+public interface JarSnapshotCache extends Cache<byte[], JarSnapshot> {
+    Map<File, JarSnapshot> getJarSnapshots(Map<File, byte[]> jarHashes);
+}

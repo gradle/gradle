@@ -22,8 +22,10 @@ public class DefaultCompilationCaches implements CompilationCaches {
 
     private final DefaultClassAnalysisCache classAnalysisCache;
     private final DefaultJarSnapshotCache jarSnapshotCache;
+    private final CacheRepository cacheRepository;
 
     public DefaultCompilationCaches(CacheRepository cacheRepository) {
+        this.cacheRepository = cacheRepository;
         classAnalysisCache = new DefaultClassAnalysisCache(cacheRepository);
         jarSnapshotCache = new DefaultJarSnapshotCache(cacheRepository);
     }
@@ -34,5 +36,9 @@ public class DefaultCompilationCaches implements CompilationCaches {
 
     public JarSnapshotCache getJarSnapshotCache() {
         return jarSnapshotCache;
+    }
+
+    public CacheRepository getCacheRepository() {
+        return cacheRepository; //TODO SF don't expose
     }
 }

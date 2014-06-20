@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.cache;
 
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.*;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 
@@ -29,6 +26,7 @@ import static org.gradle.util.GUtil.toCamelCase;
 
 /**
  * Very simple cache implementation that uses Gradle's standard persistence cache mechanism.
+ * Provides synchronisation when get() method is used.
  * Locking is extremely fine-grained, every load operation is synchronized, every store operation is synchronized.
  * Useful as a starting point, before profiler shows that locking needs to be more coarse grained.
  */
@@ -72,5 +70,13 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
             }
         });
         return value;
+    }
+
+    public CacheAccess getCacheAccess() {
+        return cacheAccess;
+    }
+
+    public PersistentIndexedCache<K, V> getCache() {
+        return cache;
     }
 }
