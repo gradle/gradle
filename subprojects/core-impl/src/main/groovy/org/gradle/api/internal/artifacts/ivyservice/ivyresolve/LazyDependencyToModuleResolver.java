@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -87,14 +85,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         }
 
         protected void checkDescriptor(ComponentMetaData metaData) {
-            ModuleDescriptor moduleDescriptor = metaData.getDescriptor();
-            for (Configuration configuration : moduleDescriptor.getConfigurations()) {
-                for (String parent : configuration.getExtends()) {
-                    if (moduleDescriptor.getConfiguration(parent) == null) {
-                        throw new ModuleVersionResolveException(metaData.getId(), String.format("Configuration '%s' extends unknown configuration '%s' in module descriptor for %%s.", configuration.getName(), parent));
-                    }
-                }
-            }
         }
     }
 
