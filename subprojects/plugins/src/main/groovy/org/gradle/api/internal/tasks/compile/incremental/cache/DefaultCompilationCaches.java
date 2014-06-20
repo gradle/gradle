@@ -42,4 +42,8 @@ public class DefaultCompilationCaches implements CompilationCaches {
     public LocalJarHashesStore getLocalJarHashesStore(JavaCompile javaCompile) {
         return new LocalJarHashesStore(cacheRepository, javaCompile);
     }
+
+    public LocalClassDependencyInfoStore getLocalClassDependencyInfoStore(JavaCompile javaCompile) {
+        return new LocalClassDependencyInfoStore(cacheRepository, javaCompile);
+    }
 }

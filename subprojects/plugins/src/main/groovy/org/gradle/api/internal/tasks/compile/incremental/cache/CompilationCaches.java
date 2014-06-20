@@ -22,4 +22,5 @@ public interface CompilationCaches {
     ClassAnalysisCache getClassAnalysisCache();
     JarSnapshotCache getJarSnapshotCache();
     LocalJarHashesStore getLocalJarHashesStore(JavaCompile javaCompile);
+    LocalClassDependencyInfoStore getLocalClassDependencyInfoStore(JavaCompile javaCompile);
 }

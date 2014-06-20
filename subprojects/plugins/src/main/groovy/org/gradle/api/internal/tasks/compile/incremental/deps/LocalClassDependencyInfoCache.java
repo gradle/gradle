@@ -16,33 +16,25 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import org.gradle.api.internal.tasks.compile.incremental.DummySerializer;
-
-import java.io.File;
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalClassDependencyInfoStore;
 
 public class LocalClassDependencyInfoCache implements ClassDependencyInfoProvider, ClassDependencyInfoWriter {
-    private File storage;
+    private final LocalClassDependencyInfoStore dependencyInfoStore;
 
-    //TODO SF use standard caching
-
-    public LocalClassDependencyInfoCache(File storage) {
-        this.storage = storage;
+    public LocalClassDependencyInfoCache(LocalClassDependencyInfoStore dependencyInfoStore) {
+        this.dependencyInfoStore = dependencyInfoStore;
     }
 
     public void writeInfo(ClassDependencyInfo info) {
-        DummySerializer.writeTargetTo(storage, info);
+        dependencyInfoStore.put(info);
     }
 
     public ClassDependencyInfo provideInfo() {
-        return (ClassDependencyInfo) DummySerializer.readFrom(storage);
+        return dependencyInfoStore.get();
     }
 
     public boolean isInfoAvailable() {
-        return storage.isFile();
-    }
-
-    @Override
-    public String toString() {
-        return storage.toString();
+        //TODO SF get rid of this and then use the LocalClassDependencyInfoStore directly.
+        return dependencyInfoStore.get() != null;
     }
 }

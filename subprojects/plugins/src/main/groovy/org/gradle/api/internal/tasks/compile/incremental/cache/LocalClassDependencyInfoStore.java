@@ -17,30 +17,28 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.SingleOperationPersistentStore;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
-import java.io.File;
-import java.util.Map;
-
-//Keeps the jar hashes of given compile task
-public class LocalJarHashesStore {
+//Keeps the class dependency info of the given JavaCompile task
+public class LocalClassDependencyInfoStore {
 
     private final CacheRepository cacheRepository;
     private final JavaCompile javaCompile;
 
-    public LocalJarHashesStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
+    public LocalClassDependencyInfoStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
         this.cacheRepository = cacheRepository;
         this.javaCompile = javaCompile;
     }
 
-    public void put(Map<File, byte[]> newHashes) {
+    public void put(ClassDependencyInfo dependencyInfo) {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        new SingleOperationPersistentStore<Map>(cacheRepository, javaCompile, "local jar hashes", Map.class).putAndClose(newHashes);
+        new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info", ClassDependencyInfo.class).putAndClose(dependencyInfo);
     }
 
-    public Map<File, byte[]> get() {
+    public ClassDependencyInfo get() {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        return new SingleOperationPersistentStore<Map>(cacheRepository, javaCompile, "local jar hashes", Map.class).getAndClose();
+        return new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info", ClassDependencyInfo.class).getAndClose();
     }
 }

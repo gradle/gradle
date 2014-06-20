@@ -33,7 +33,6 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 
-import java.io.File;
 import java.util.List;
 
 public class IncrementalJavaCompilerFactory {
@@ -47,9 +46,8 @@ public class IncrementalJavaCompilerFactory {
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compilationCaches.getClassAnalysisCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compilationCaches.getJarSnapshotCache());
 
-        String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. Instead of this, local caches should use standard caching mechanism with scope of task
         LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(compilationCaches.getLocalJarHashesStore(javaCompile), compilationCaches.getJarSnapshotCache());
-        LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(new File(project.getBuildDir(), cacheFileBaseName + "-class-info.bin"));
+        LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(compilationCaches.getLocalClassDependencyInfoStore(javaCompile));
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
