@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.DefaultDomainObjectSet
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
 import spock.lang.Specification
@@ -70,7 +69,7 @@ class DefaultConfigurationsToArtifactsConverterTest extends Specification {
             assert artifact.extension == 'ext2'
             assert artifact.attributes == [(Dependency.CLASSIFIER): 'classifier']
         }
-        _ * metaData.moduleDescriptor >> Stub(DefaultModuleDescriptor)
+        _ * metaData.id
         0 * metaData._
     }
 
@@ -95,9 +94,7 @@ class DefaultConfigurationsToArtifactsConverterTest extends Specification {
         1 * metaData.addArtifact("config1", _, file) >> { name, IvyArtifactName ivyArtifact, f ->
             assert ivyArtifact.name == 'module'
         }
-        _ * metaData.moduleDescriptor >> Stub(DefaultModuleDescriptor) {
-            getModuleRevisionId() >> IvyUtil.createModuleRevisionId("group", "module", "version")
-        }
+        _ * metaData.id >> DefaultModuleVersionIdentifier.newId("group", "module", "version")
         0 * metaData._
     }
 }

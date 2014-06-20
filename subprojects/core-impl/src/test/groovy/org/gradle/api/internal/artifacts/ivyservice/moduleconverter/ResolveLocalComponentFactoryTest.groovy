@@ -35,12 +35,14 @@ public class ResolveLocalComponentFactoryTest extends Specification {
     def configurationsConverter = Mock(ConfigurationsToModuleDescriptorConverter)
     def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
+    def configurationsToArtifactsConverter = Mock(ConfigurationsToArtifactsConverter)
 
     ResolveLocalComponentFactory resolveModuleDescriptorConverter = new ResolveLocalComponentFactory(
             moduleDescriptorFactory,
             configurationsConverter,
             dependenciesConverter,
-            componentIdentifierFactory);
+            componentIdentifierFactory,
+            configurationsToArtifactsConverter)
 
     def "converts for provided default module"() {
         given:
