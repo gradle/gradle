@@ -20,7 +20,7 @@ import java.io.*;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
-public class DummySerializer {
+public class DummySerializer {  //TODO SF remove
     public static void writeTargetTo(File outputFile, Object target) {
         try {
             FileOutputStream out = new FileOutputStream(outputFile);
