@@ -33,10 +33,10 @@ public class JarChangeDependentsFinder {
 
     //TODO SF coverage
     public DependentsSet getActualDependents(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
-        JarSnapshot existing = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
         if (jarChangeDetails.isAdded()) {
             return new DefaultDependentsSet();
         }
+        JarSnapshot existing = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
 
         if (existing == null) {
             //we don't know what classes were dependents of the jar in the previous build
