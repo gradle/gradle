@@ -7,8 +7,8 @@ Here are the new features introduced in this Gradle release.
 At the [Gradle Summit 2014 Conference](http://www.gradlesummit.com/conference/santa_clara/2014/06/home)
 we ran a [Contributing To Gradle Workshop](http://www.gradlesummit.com/conference/santa_clara/2014/06/session?id=31169).
 During the session, [Rob Spieldenner](https://github.com/rspieldenner)
-has contributed a very nice feature that gives much better insight into the child processes started by Gradle.
-The example output of 'jps -m' command now also contains the function of the worker process:
+contributed a very nice feature that gives much better insight into the child processes started by Gradle.
+The example output of `jps -m` command now also contains the function of the worker process:
 
     28649 GradleWorkerMain 'Gradle Test Executor 17'
     28630 GradleWorkerMain 'Gradle Compiler Daemon 1'
@@ -39,12 +39,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Changed Java compiler integration for Java - Scala joint compilation
+### Changed Java compiler integration for joint Java - Scala compilation
 
-The `ScalaCompile` task type now uses the same Java compiler integration as the `JavaCompile` and `GroovyCompile` task types, when performing Java - Scala joint
+The `ScalaCompile` task type now uses the same Java compiler integration as the `JavaCompile` and `GroovyCompile` task types for performing joint Java - Scala
 compilation. Previously it would use the old Ant-based Java compiler integration, which is no longer supported in the Gradle 2.x stream.
 
-This change should be backwards compatible for all users.
+This change should be backwards compatible for all users, and should improve compilation time when compiling Java and Scala together.
 
 ### Incubating native language plugins no longer apply the base plugin
 
