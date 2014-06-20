@@ -50,7 +50,7 @@ public class RecompilationSpecProvider {
         PreviousCompilation previousCompilation = new PreviousCompilation(dependencyInfo, localJarSnapshots);
 
         //creating an action that will be executed against all changes
-        DefaultRecompilationSpec spec = new DefaultRecompilationSpec(dependencyInfo);
+        DefaultRecompilationSpec spec = new DefaultRecompilationSpec();
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(dependencyInfo, sourceToNameConverter);
         JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarSnapshotter, previousCompilation);
         InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, jarChangeProcessor);

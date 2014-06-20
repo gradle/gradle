@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -25,12 +23,7 @@ import java.util.LinkedHashSet;
 class DefaultRecompilationSpec implements RecompilationSpec {
 
     final Collection<String> classesToCompile = new LinkedHashSet<String>();
-    private final ClassDependencyInfo initialDependencyInfo;
     File fullRebuildCause;
-
-    public DefaultRecompilationSpec(ClassDependencyInfo initialDependencyInfo) {
-        this.initialDependencyInfo = initialDependencyInfo;
-    }
 
     public Collection<String> getClassNames() {
         return classesToCompile;
@@ -42,9 +35,5 @@ class DefaultRecompilationSpec implements RecompilationSpec {
 
     public File getFullRebuildCause() {
         return fullRebuildCause;
-    }
-
-    public ClassDependencyInfo getInitialDependencyInfo() {
-        return initialDependencyInfo;
     }
 }
