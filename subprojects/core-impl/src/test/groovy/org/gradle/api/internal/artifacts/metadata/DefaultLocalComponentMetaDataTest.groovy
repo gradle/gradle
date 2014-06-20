@@ -24,9 +24,18 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
 
 class DefaultLocalComponentMetaDataTest extends Specification {
-    def moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(IvyUtil.createModuleRevisionId("group", "module", "version"))
+    def moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId("group", "module", "version"), "status", null)
     def componentIdentifier = Mock(ComponentIdentifier)
     def metaData = new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier)
+
+    def "can lookup configuration after it has been added"() {
+        when:
+        metaData.addConfiguration("conf", true, "description", ["super"] as String[], true)
+
+        then:
+        metaData.moduleDescriptor.configurations.length == 1
+        metaData.moduleDescriptor.getConfiguration("conf") != null
+    }
 
     def "can lookup artifact in various ways after it has been added"() {
         def artifact = artifactName()

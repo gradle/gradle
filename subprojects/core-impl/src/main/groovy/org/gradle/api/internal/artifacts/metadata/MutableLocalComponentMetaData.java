@@ -24,4 +24,6 @@ public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
     DefaultModuleDescriptor getModuleDescriptor();
 
     void addArtifact(String configuration, IvyArtifactName artifact, File file);
+
+    void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive);
 }

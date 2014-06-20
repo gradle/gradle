@@ -47,9 +47,10 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
     public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, ModuleInternal module) {
         assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
-        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        return new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier);
+        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier);
+        configurationsToModuleDescriptorConverter.addConfigurations(metaData, configurations);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations);
+        return metaData;
     }
 }

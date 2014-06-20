@@ -55,7 +55,7 @@ public class ResolveLocalComponentFactoryTest extends Specification {
 
         then:
         1 * moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
-        1 * configurationsConverter.addConfigurations(moduleDescriptor, configurations)
+        1 * configurationsConverter.addConfigurations(!null, configurations)
         1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations)
         1 * componentIdentifierFactory.createComponentIdentifier(module) >> new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
 
@@ -79,7 +79,7 @@ public class ResolveLocalComponentFactoryTest extends Specification {
 
         then:
         1 * moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
-        1 * configurationsConverter.addConfigurations(moduleDescriptor, configurations)
+        1 * configurationsConverter.addConfigurations(!null, configurations)
         1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations)
         1 * componentIdentifierFactory.createComponentIdentifier(module) >> new DefaultProjectComponentIdentifier(':myPath')
 

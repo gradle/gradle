@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.metadata;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
@@ -65,6 +66,10 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         moduleDescriptor.addArtifact(configuration, ivyArtifact);
         artifactsByConfig.put(configuration, artifactMetaData);
         ((MDArtifact) artifactMetaData.artifact).addConfiguration(configuration);
+    }
+
+    public void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive) {
+        moduleDescriptor.addConfiguration(new Configuration(name, visible ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE, description, superConfigs, transitive, null));
     }
 
     public Collection<? extends LocalArtifactMetaData> getArtifacts() {

@@ -55,25 +55,20 @@ class DependencyManagementGlobalScopeServices {
                 descriptorFactory);
     }
 
-    ResolveLocalComponentFactory createResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
+    PublishLocalComponentFactory createPublishLocalComponentFactory(ModuleDescriptorFactory moduleDescriptorFactory,
                                                                             ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                                                             DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                             ExcludeRuleConverter excludeRuleConverter,
                                                                             ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ResolveLocalComponentFactory(
-                moduleDescriptorFactory,
-                configurationsToModuleDescriptorConverter,
-                new DefaultDependenciesToModuleDescriptorConverter(
-                        dependencyDescriptorFactory,
-                        excludeRuleConverter),
-                componentIdentifierFactory);
-
-    }
-
-    PublishLocalComponentFactory createPublishModuleDescriptorConverter(ResolveLocalComponentFactory moduleDescriptorConverter) {
         return new PublishLocalComponentFactory(
-                moduleDescriptorConverter,
+                new ResolveLocalComponentFactory(
+                        moduleDescriptorFactory,
+                        configurationsToModuleDescriptorConverter,
+                        new DefaultDependenciesToModuleDescriptorConverter(
+                                dependencyDescriptorFactory,
+                                excludeRuleConverter),
+                        componentIdentifierFactory),
                 new DefaultConfigurationsToArtifactsConverter());
-    }
 
+    }
 }
