@@ -23,10 +23,20 @@ public class DefaultCompileCaches implements CompileCaches {
 
     private final CacheRepository repository;
     private final JavaCompile javaCompile;
+    private final GeneralCompileCaches generalCaches;
 
-    public DefaultCompileCaches(CacheRepository repository, JavaCompile javaCompile) {
+    public DefaultCompileCaches(CacheRepository repository, JavaCompile javaCompile, GeneralCompileCaches generalCaches) {
         this.repository = repository;
         this.javaCompile = javaCompile;
+        this.generalCaches = generalCaches;
+    }
+
+    public ClassAnalysisCache getClassAnalysisCache() {
+        return generalCaches.getClassAnalysisCache();
+    }
+
+    public JarSnapshotCache getJarSnapshotCache() {
+        return generalCaches.getJarSnapshotCache();
     }
 
     public LocalJarHashesStore getLocalJarHashesStore() {

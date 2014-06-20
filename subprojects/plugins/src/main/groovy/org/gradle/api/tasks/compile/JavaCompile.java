@@ -87,9 +87,9 @@ public class JavaCompile extends AbstractCompile {
 
         DefaultJavaCompileSpec spec = createSpec();
         GeneralCompileCaches caches = getServices().get(GeneralCompileCaches.class); //TODO SF inject lazily
-        CompileCaches localCaches = new DefaultCompileCaches(getServices().get(CacheRepository.class), this); //TODO SF inject lazily
+        CompileCaches compileCaches = new DefaultCompileCaches(getServices().get(CacheRepository.class), this, caches); //TODO SF inject lazily
         IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(
-                getProject(), getPath(), createCompiler(spec), source, caches, localCaches);
+                getProject(), getPath(), createCompiler(spec), source, compileCaches);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler(inputs);
         performCompilation(spec, compiler);
     }
