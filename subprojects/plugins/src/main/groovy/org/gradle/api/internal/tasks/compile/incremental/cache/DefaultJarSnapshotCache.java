@@ -25,22 +25,28 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultJarSnapshotCache extends MinimalPersistentCache<byte[], JarSnapshot> implements JarSnapshotCache {
+public class DefaultJarSnapshotCache implements JarSnapshotCache {
+
+    private final MinimalPersistentCache<byte[], JarSnapshot> cache;
+
     public DefaultJarSnapshotCache(CacheRepository cacheRepository) {
-        super(cacheRepository, "jar snapshots", byte[].class, JarSnapshot.class);
+        cache = new MinimalPersistentCache<byte[], JarSnapshot>(cacheRepository, "jar snapshots", byte[].class, JarSnapshot.class);
     }
 
     public Map<File, JarSnapshot> getJarSnapshots(final Map<File, byte[]> jarHashes) {
-        //TODO SF avoid reaching out to the parent class, compose
-        return getCacheAccess().useCache("loading jar snapshots", new Factory<Map<File, JarSnapshot>>() {
+        return cache.getCacheAccess().useCache("loading jar snapshots", new Factory<Map<File, JarSnapshot>>() {
             public Map<File, JarSnapshot> create() {
                 final Map<File, JarSnapshot> out = new HashMap<File, JarSnapshot>();
                 for (Map.Entry<File, byte[]> entry : jarHashes.entrySet()) {
-                    JarSnapshot snapshot = getCache().get(entry.getValue());
+                    JarSnapshot snapshot = cache.getCache().get(entry.getValue());
                     out.put(entry.getKey(), snapshot);
                 }
                 return out;
             }
         });
+    }
+
+    public JarSnapshot get(byte[] key, Factory<JarSnapshot> factory) {
+        return cache.get(key, factory);
     }
 }
