@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 
 import java.io.File;
 import java.util.List;
@@ -52,6 +53,8 @@ public class GroovyCompileOptions extends AbstractOptions {
     private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
 
     private File stubDir;
+
+    private File configurationScript;
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -122,6 +125,23 @@ public class GroovyCompileOptions extends AbstractOptions {
      */
     public void setFork(boolean fork) {
         this.fork = fork;
+    }
+
+
+    /**
+     * Gets the path to an optional groovy configuration file passed to the compiler. Defaults to {@code null}
+     */
+    @InputFile
+    public File getConfigurationScript() {
+        return configurationScript;
+    }
+
+    /**
+     * Sets the path to the groovy configuration file. Defaults to {@code null}.
+     * @param configurationFile
+     */
+    public void setConfigurationScript(File configurationFile) {
+        this.configurationScript = configurationFile;
     }
 
     /**

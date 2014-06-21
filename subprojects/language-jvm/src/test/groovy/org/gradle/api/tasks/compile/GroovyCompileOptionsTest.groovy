@@ -39,6 +39,7 @@ class GroovyCompileOptionsTest {
         assertEquals(['java', 'groovy'], compileOptions.fileExtensions)
         assertEquals('UTF-8', compileOptions.encoding)
         assertNotNull(compileOptions.forkOptions)
+        assertNull(compileOptions.configurationScript)
     }
 
     @Test public void testOptionMapForForkOptions() {
