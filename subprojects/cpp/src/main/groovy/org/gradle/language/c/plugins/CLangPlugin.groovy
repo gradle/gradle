@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.language.c.plugins
-import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.LanguageRegistry
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.internal.DefaultCSourceSet
@@ -47,17 +46,6 @@ class CLangPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
-
-        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        projectSourceSet.all(new Action<FunctionalSourceSet>() {
-            public void execute(final FunctionalSourceSet functionalSourceSet) {
-                functionalSourceSet.registerFactory(CSourceSet) { name ->
-                    instantiator.newInstance(DefaultCSourceSet, name, functionalSourceSet, project)
-                }
-
-                // Create a single C source set
-                functionalSourceSet.create "c", CSourceSet
-            }
-        });
+        project.getExtensions().getByType(LanguageRegistry).registerLanguage("c", CSourceSet, DefaultCSourceSet)
     }
 }

@@ -38,6 +38,7 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
     private static class ComponentRegistrationAction {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
+            // TODO:DAZ Dependency Management should be able to extract this from the plugin, without explicit registration
             componentTypeRegistry.registerComponentType(JvmLibrary.class)
                     .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES)
                     .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);

@@ -19,8 +19,13 @@ import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.language.base.internal.LanguageRegistration;
+import org.gradle.language.base.internal.LanguageRegistryInternal;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.BinaryContainer;
@@ -57,6 +62,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
+        LanguageRegistryInternal domainRegistry = target.getExtensions().create("languages", DefaultLanguageRegistry.class);
+
         // TODO:DAZ Rename to 'components' and merge with Project.components
         ProjectComponentContainer components = target.getExtensions().create("softwareComponents", DefaultProjectComponentContainer.class, instantiator);
         ProjectSourceSet sources = target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
@@ -78,6 +85,30 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         });
         createProjectSourceSetForEachComponent(sources, components);
+        createLanguageSourceSets(target, domainRegistry, sources);
+    }
+
+    private void createLanguageSourceSets(final Project project, final LanguageRegistryInternal domainRegistry, final ProjectSourceSet sources) {
+        DomainObjectSet<LanguageRegistration> languages = domainRegistry.getLanguages();
+        languages.all(new Action<LanguageRegistration>() {
+            public void execute(final LanguageRegistration languageRegistration) {
+                sources.all(new Action<FunctionalSourceSet>() {
+                    public void execute(final FunctionalSourceSet functionalSourceSet) {
+                        NamedDomainObjectFactory<? extends LanguageSourceSet> namedDomainObjectFactory = new NamedDomainObjectFactory<LanguageSourceSet>() {
+                            public LanguageSourceSet create(String name) {
+                                Class<? extends LanguageSourceSet> sourceSetImplementation = languageRegistration.getSourceSetImplementation();
+                                return instantiator.newInstance(sourceSetImplementation, name, functionalSourceSet, project);
+                            }
+                        };
+                        Class<? extends LanguageSourceSet> sourceSetType = languageRegistration.getSourceSetType();
+                        functionalSourceSet.registerFactory((Class<LanguageSourceSet>) sourceSetType, namedDomainObjectFactory);
+
+                        // Create a default language source set
+                        functionalSourceSet.maybeCreate(languageRegistration.getName(), sourceSetType);
+                    }
+                });
+            }
+        });
     }
 
     private void createProjectSourceSetForEachComponent(final ProjectSourceSet sources, ProjectComponentContainer components) {
