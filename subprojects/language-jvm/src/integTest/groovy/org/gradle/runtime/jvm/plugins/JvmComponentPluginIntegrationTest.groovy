@@ -34,7 +34,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         !file("build").exists()
     }
 
-    def "creates jvm library and binary model objects and lifecycle task"() {
+    def "defines jvm library and binary model objects and lifecycle task"() {
         when:
         buildFile << """
     apply plugin: 'jvm-component'
@@ -64,16 +64,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLibJar.buildTask == binaryTask
 
         def jarTask = tasks['createMyLibJar']
-        assert jarTask instanceof Zip
+        assert jarTask instanceof org.gradle.runtime.jvm.tasks.Jar
         assert jarTask.group == null
         assert jarTask.description == "Creates the binary file for jar 'myLib:jar'."
     }
 """
         then:
         succeeds "check"
-
-        and:
-        !file("build").exists()
     }
 
     def "skips creating binary when binary has no sources"() {
@@ -94,7 +91,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         executed ":createMyJvmLibJar", ":myJvmLibJar"
 
         and:
-        !file("build").exists()
+        // Only has tmp file, no jar created. Fix this when we are able to create jar for sources.
+        file("build").assertHasDescendants("tmp/createMyJvmLibJar/MANIFEST.MF")
     }
 
     def "can specify additional builder tasks for binary"() {

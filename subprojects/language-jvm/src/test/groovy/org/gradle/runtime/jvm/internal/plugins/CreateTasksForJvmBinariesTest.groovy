@@ -16,11 +16,11 @@
 
 package org.gradle.runtime.jvm.internal.plugins
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.jvm.JvmLibraryBinary
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal
+import org.gradle.runtime.jvm.tasks.Jar
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -33,7 +33,7 @@ class CreateTasksForJvmBinariesTest extends Specification {
     def "creates a 'jar' tasks for each jvm library binary"() {
         def jvmLibraryBinary = Mock(JvmLibraryBinaryInternal)
         def namingScheme = Mock(BinaryNamingScheme)
-        def jarTask = Mock(Zip)
+        def jarTask = Mock(Jar)
 
         when:
         1 * binaries.withType(JvmLibraryBinaryInternal) >> toNamedDomainObjectSet(JvmLibraryBinary, jvmLibraryBinary)
@@ -46,7 +46,7 @@ class CreateTasksForJvmBinariesTest extends Specification {
         _ * jvmLibraryBinary.displayName >> "binaryDisplayName"
         1 * jvmLibraryBinary.namingScheme >> namingScheme
         1 * namingScheme.getTaskName("create") >> "theTaskName"
-        1 * tasks.create("theTaskName", Zip) >> jarTask
+        1 * tasks.create("theTaskName", Jar) >> jarTask
         1 * jarTask.setDescription("Creates the binary file for binaryDisplayName.")
         1 * jvmLibraryBinary.builtBy(jarTask)
         0 * _

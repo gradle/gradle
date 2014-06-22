@@ -18,10 +18,10 @@ package org.gradle.runtime.jvm.internal.plugins;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.model.ModelRule;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
-import org.gradle.model.ModelRule;
+import org.gradle.runtime.jvm.tasks.Jar;
 
 public class CreateTasksForJvmBinaries extends ModelRule {
     void createTasks(TaskContainer tasks, BinaryContainer binaries) {
@@ -32,8 +32,7 @@ public class CreateTasksForJvmBinaries extends ModelRule {
     }
 
     private Task createJarTask(TaskContainer tasks, JvmLibraryBinaryInternal binary) {
-        // TODO:DAZ This should be a Jar task: need to move 'jar' and related infrastructure out of 'plugins' project
-        Zip jarTask = tasks.create(binary.getNamingScheme().getTaskName("create"), Zip.class);
+        Jar jarTask = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
         jarTask.setDescription(String.format("Creates the binary file for %s.", binary.getDisplayName()));
         return jarTask;
     }
