@@ -44,10 +44,57 @@ class StartScriptGeneratorTest extends Specification {
         generator.scriptRelPath = "bin"
         when:
         String unixScriptContent = generator.generateUnixScriptContent()
+        String windowsScriptContent = generator.generateWindowsScriptContent()
         then:
-        unixScriptContent.split('\n')*.trim().contains('CLASSPATH=$APP_HOME/lib/foo.jar:$APP_HOME/lib/classes:$APP_HOME/lib/classes-dup:$APP_HOME/lib/dup.jar:$APP_HOME/lib/bar.jar:$APP_HOME/lib/baz.jar')
+        -1 < Collections.indexOfSubList(unixScriptContent.split(TextUtil.unixLineSeparator)*.trim(),
+                ['CLASSPATH=$APP_HOME/lib/foo.jar',
+                 'CLASSPATH=$CLASSPATH:$APP_HOME/lib/classes',
+                 'CLASSPATH=$CLASSPATH:$APP_HOME/lib/classes-dup',
+                 'CLASSPATH=$CLASSPATH:$APP_HOME/lib/dup.jar',
+                 'CLASSPATH=$CLASSPATH:$APP_HOME/lib/bar.jar',
+                 'CLASSPATH=$CLASSPATH:$APP_HOME/lib/baz.jar'
+                ]
+        )
+        -1 < Collections.indexOfSubList(windowsScriptContent.split(TextUtil.windowsLineSeparator)*.trim(),
+                ['set CLASSPATH=%APP_HOME%\\lib\\foo.jar',
+                 'set CLASSPATH=%CLASSPATH%;%APP_HOME%\\lib\\classes',
+                 'set CLASSPATH=%CLASSPATH%;%APP_HOME%\\lib\\classes-dup',
+                 'set CLASSPATH=%CLASSPATH%;%APP_HOME%\\lib\\dup.jar',
+                 'set CLASSPATH=%CLASSPATH%;%APP_HOME%\\lib\\bar.jar',
+                 'set CLASSPATH=%CLASSPATH%;%APP_HOME%\\lib\\baz.jar'
+                ]
+        )
     }
 
+    def "when classpathStyle=EXPLICIT, the command-line contains the classpath param"() {
+        given:
+        generator.applicationName = "TestApp"
+        generator.scriptRelPath = "bin"
+        generator.classpathStyle = ClasspathStyle.EXPLICIT
+        when:
+        def unixJavaCommands = generator.generateUnixScriptContent().split(TextUtil.unixLineSeparator)*.trim().grep(~'exec "\\$JAVACMD" .*')
+        def windowsJavaCommands = generator.generateWindowsScriptContent().split(TextUtil.windowsLineSeparator)*.trim().grep(~'"%JAVA_EXE%" .*')
+        then:
+        unixJavaCommands.size()==1
+        windowsJavaCommands.size()==1
+        unixJavaCommands[0] =~ ~/\s(?:-classpath|-cp)\s/
+        windowsJavaCommands[0] =~ ~/\s(?:-classpath|-cp)\s/
+    }
+
+    def "when classpathStyle=ENVIRONMENT, the command-line does not contain the classpath param"() {
+        given:
+        generator.applicationName = "TestApp"
+        generator.scriptRelPath = "bin"
+        generator.classpathStyle = ClasspathStyle.ENVIRONMENT
+        when:
+        def unixJavaCommands = generator.generateUnixScriptContent().split(TextUtil.unixLineSeparator)*.trim().grep(~'exec "\\$JAVACMD" .*')
+        def windowsJavaCommands = generator.generateWindowsScriptContent().split(TextUtil.windowsLineSeparator)*.trim().grep(~'"%JAVA_EXE%" .*')
+        then:
+        unixJavaCommands.size()==1
+        windowsJavaCommands.size()==1
+        !(unixJavaCommands[0] =~ ~/\s(?:-classpath|-cp)\s/)
+        !(windowsJavaCommands[0] =~ ~/\s(?:-classpath|-cp)\s/)
+    }
 
     def "unix script uses unix line separator"() {
         given:
@@ -57,7 +104,7 @@ class StartScriptGeneratorTest extends Specification {
         String unixScriptContent = generator.generateUnixScriptContent()
         then:
         unixScriptContent.split(TextUtil.windowsLineSeparator).length == 1
-        unixScriptContent.split(TextUtil.unixLineSeparator).length == 164
+        unixScriptContent.split(TextUtil.unixLineSeparator).length == 165
     }
 
     def "classpath for windows script uses backslash as path separator and windows line separator"() {
@@ -69,7 +116,7 @@ class StartScriptGeneratorTest extends Specification {
         String windowsScriptContent = generator.generateWindowsScriptContent()
         then:
         windowsScriptContent.contains("set CLASSPATH=%APP_HOME%\\path\\to\\Jar.jar")
-        windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 90
+        windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 91
     }
 
     def "windows script uses windows line separator"() {
@@ -79,7 +126,7 @@ class StartScriptGeneratorTest extends Specification {
         when:
         String windowsScriptContent = generator.generateWindowsScriptContent()
         then:
-        windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 90
+        windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 91
     }
 
     def "defaultJvmOpts is expanded properly in windows script"() {

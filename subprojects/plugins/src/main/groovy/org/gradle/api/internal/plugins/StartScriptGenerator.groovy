@@ -46,6 +46,8 @@ class StartScriptGenerator {
      */
     Iterable<String> classpath
 
+    ClasspathStyle classpathStyle = ClasspathStyle.EXPLICIT
+
     /**
      * The path of the script, relative to the application home directory.
      */
@@ -65,7 +67,8 @@ class StartScriptGenerator {
     }
 
     String generateUnixScriptContent() {
-        def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.unique().join(":")
+        def classpathComponents = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.unique()
+        def unixClassPath = classpathComponents.collect { it==classpathComponents.first() ? it : "CLASSPATH=\$CLASSPATH:$it" }.join('\n')
         def quotedDefaultJvmOpts = defaultJvmOpts.collect{
             //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them
             it = it.replace('\\', '\\\\')
@@ -78,13 +81,28 @@ class StartScriptGenerator {
         //put the whole arguments string in single quotes, unless defaultJvmOpts was empty,
         // in which case we output "" to stay compatible with existing builds that scan the script for it
         def defaultJvmOptsString = (quotedDefaultJvmOpts ? /'${quotedDefaultJvmOpts.join(' ')}'/ : '""')
+
+        def classpathParam
+        switch (classpathStyle) {
+            case ClasspathStyle.EXPLICIT:
+                classpathParam = '-classpath "$CLASSPATH"'
+                break
+            case ClasspathStyle.ENVIRONMENT:
+                classpathParam = ''
+                break
+            default:
+                throw IllegalArgumentException("Invalid classpath style: $classpathStyle" as String)
+        }
+
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 mainClassName: mainClassName,
                 defaultJvmOpts: defaultJvmOptsString,
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHomeRelativePath,
-                classpath: unixClassPath]
+                classpath: unixClassPath,
+                classpathParam: classpathParam
+        ]
         return generateNativeOutput('unixStartScript.txt', binding, TextUtil.unixLineSeparator)
     }
 
@@ -94,7 +112,8 @@ class StartScriptGenerator {
     }
 
     String generateWindowsScriptContent() {
-        def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.unique().join(";")
+        def classpathComponents = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.unique()
+        def windowsClassPath = classpathComponents.collect { it==classpathComponents.first() ? it : "set CLASSPATH=%CLASSPATH%;$it"}.join("\n")
         def appHome = appHomeRelativePath.replace('/', '\\')
         //argument quoting:
         // - " must be encoded as \"
@@ -116,7 +135,21 @@ class StartScriptGenerator {
             }
             (/"${it.join()}"/)
         }
+
         def defaultJvmOptsString = quotedDefaultJvmOpts.join(' ')
+
+        def classpathParam
+        switch (classpathStyle) {
+            case ClasspathStyle.EXPLICIT:
+                classpathParam = '-classpath "%CLASSPATH%"'
+                break
+            case ClasspathStyle.ENVIRONMENT:
+                classpathParam = ''
+                break
+            default:
+                throw IllegalArgumentException("Invalid classpath style: $classpathStyle" as String)
+        }
+
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 exitEnvironmentVar: exitEnvironmentVar,
@@ -124,7 +157,9 @@ class StartScriptGenerator {
                 defaultJvmOpts: defaultJvmOptsString,
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHome,
-                classpath: windowsClassPath]
+                classpath: windowsClassPath,
+                classpathParam: classpathParam
+        ]
         return generateNativeOutput('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator)
 
     }
