@@ -37,6 +37,17 @@ class StartScriptGeneratorTest extends Specification {
         unixScriptContent.contains("CLASSPATH=\$APP_HOME/path/to/Jar.jar")
     }
 
+    def "classpath eliminates duplicate components, retaining only the first mention"() {
+        given:
+        generator.applicationName = "TestApp"
+        generator.setClasspath(WrapUtil.toList("lib\\foo.jar", "lib\\classes", "lib\\classes-dup", "lib\\dup.jar", "lib\\bar.jar", "lib\\dup.jar", "lib\\classes-dup", 'lib\\baz.jar'))
+        generator.scriptRelPath = "bin"
+        when:
+        String unixScriptContent = generator.generateUnixScriptContent()
+        then:
+        unixScriptContent.split('\n')*.trim().contains('CLASSPATH=$APP_HOME/lib/foo.jar:$APP_HOME/lib/classes:$APP_HOME/lib/classes-dup:$APP_HOME/lib/dup.jar:$APP_HOME/lib/bar.jar:$APP_HOME/lib/baz.jar')
+    }
+
 
     def "unix script uses unix line separator"() {
         given:

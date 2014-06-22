@@ -65,7 +65,7 @@ class StartScriptGenerator {
     }
 
     String generateUnixScriptContent() {
-        def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.join(":")
+        def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.unique().join(":")
         def quotedDefaultJvmOpts = defaultJvmOpts.collect{
             //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them
             it = it.replace('\\', '\\\\')
@@ -94,7 +94,7 @@ class StartScriptGenerator {
     }
 
     String generateWindowsScriptContent() {
-        def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.join(";")
+        def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.unique().join(";")
         def appHome = appHomeRelativePath.replace('/', '\\')
         //argument quoting:
         // - " must be encoded as \"
