@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can combine java, cpp-exe and cpp-lib plugins in a single project"() {
+    def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: "java"
