@@ -16,9 +16,6 @@
 
 package org.gradle.runtime.jvm.internal
 
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import spock.lang.Specification
 
 class DefaultJvmLibraryTest extends Specification {
@@ -28,43 +25,5 @@ class DefaultJvmLibraryTest extends Specification {
 
         then:
         library.name == "jvm-lib"
-    }
-
-    def "converts FunctionalSourceSet to LanguageSourceSets"() {
-        given:
-        def functionalSourceSet = new DefaultFunctionalSourceSet("fss", new DirectInstantiator())
-        def languageSourceSet1 = languageSourceSet("lss1")
-        def languageSourceSet2 = languageSourceSet("lss2")
-        functionalSourceSet.add(languageSourceSet1)
-        functionalSourceSet.add(languageSourceSet2)
-
-        when:
-        def library = new DefaultJvmLibrary("jvm-lib")
-        library.source functionalSourceSet
-
-        then:
-        library.source as List == [languageSourceSet1, languageSourceSet2]
-    }
-
-    def "flattens Collections of LanguageSourceSets"() {
-        given:
-        def languageSourceSet1 = languageSourceSet("lss1")
-        def languageSourceSet2 = languageSourceSet("lss2")
-        def languageSourceSet3 = languageSourceSet("lss1")
-        def languageSourceSet4 = languageSourceSet("lss2")
-
-        when:
-        def library = new DefaultJvmLibrary("jvm-lib")
-        library.source([languageSourceSet1, languageSourceSet2])
-        library.source([languageSourceSet3, languageSourceSet4])
-
-        then:
-        library.source as List == [languageSourceSet1, languageSourceSet2, languageSourceSet3, languageSourceSet4]
-    }
-
-    private LanguageSourceSet languageSourceSet(def name) {
-        Mock(LanguageSourceSet) {
-            getName() >> name
-        }
     }
 }

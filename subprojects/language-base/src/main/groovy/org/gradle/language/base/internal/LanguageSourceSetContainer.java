@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm.internal;
+package org.gradle.language.base.internal;
 
-
-import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.runtime.jvm.JvmLibrary;
 
-public class DefaultJvmLibrary implements JvmLibrary {
-    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
-    private final String name;
+import java.util.Set;
 
-    public DefaultJvmLibrary(String name) {
-        this.name = name;
-    }
+public class LanguageSourceSetContainer extends DefaultDomainObjectSet<LanguageSourceSet> {
+    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
 
-    public String getName() {
-        return name;
-    }
-
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
+    public LanguageSourceSetContainer() {
+        super(LanguageSourceSet.class);
     }
 
     public void source(Object sources) {
-        sourceSets.source(sources);
+        addAll(sourcesNotationParser.parseNotation(sources));
     }
 }

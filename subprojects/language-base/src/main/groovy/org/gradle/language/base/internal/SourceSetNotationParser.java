@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class SourceSetNotationParser {
+class SourceSetNotationParser {
     public static NotationParser<Object, Set<LanguageSourceSet>> parser() {
         return NotationParserBuilder
                 .toType(new TypeInfo<Set<LanguageSourceSet>>(Set.class))

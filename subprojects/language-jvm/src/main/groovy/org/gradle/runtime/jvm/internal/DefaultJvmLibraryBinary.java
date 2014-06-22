@@ -17,20 +17,15 @@
 package org.gradle.runtime.jvm.internal;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.SourceSetNotationParser;
+import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.jvm.JvmLibrary;
 
-import java.util.Set;
-
 public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements ProjectBinary, JvmLibraryBinaryInternal {
-    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
-    private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final JvmLibrary library;
     private final BinaryNamingScheme namingScheme;
 
@@ -65,10 +60,10 @@ public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement imple
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return source;
+        return sourceSets;
     }
 
     public void source(Object sources) {
-        source.addAll(sourcesNotationParser.parseNotation(sources));
+        sourceSets.source(sources);
     }
 }

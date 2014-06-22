@@ -17,25 +17,20 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.SourceSetNotationParser;
+import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.util.GUtil;
 
-import java.util.Set;
-
 public abstract class AbstractProjectNativeComponent implements ProjectNativeComponentInternal {
-    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
+    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ProjectNativeComponentIdentifier id;
-    private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
 
     private String baseName;
 
     public AbstractProjectNativeComponent(ProjectNativeComponentIdentifier id) {
         this.id = id;
-        this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
     }
 
@@ -57,7 +52,7 @@ public abstract class AbstractProjectNativeComponent implements ProjectNativeCom
     }
 
     public void source(Object sources) {
-        sourceSets.addAll(sourcesNotationParser.parseNotation(sources));
+        sourceSets.source(sources);
     }
 
     public DomainObjectSet<NativeBinary> getBinaries() {
