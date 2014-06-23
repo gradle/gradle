@@ -34,6 +34,10 @@ public class PluginDescriptor {
         return properties.getProperty("implementation-class");
     }
 
+    public URL getPropertiesFileUrl() {
+        return propertiesFileUrl;
+    }
+
     @Override
     public String toString() {
         return propertiesFileUrl.toString();

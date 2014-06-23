@@ -42,9 +42,10 @@ class JavaGradlePluginPluginTest extends Specification {
 
     def project = TestUtil.builder().withName("plugin").build()
 
-    def "FindPluginDescriptor correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedEmpty) {
+    def "PluginDescriptorCollectorAction correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedEmpty) {
         setup:
-        Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.FindPluginDescriptorAction()
+        List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>()
+        Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.PluginDescriptorCollectorAction(descriptors)
         File descriptorFile = project.file('test-plugin.properties')
         descriptorFile << contents
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
@@ -53,9 +54,8 @@ class JavaGradlePluginPluginTest extends Specification {
 
         expect:
         findPluginDescriptor.execute(stubDetails)
-        findPluginDescriptor.descriptors.isEmpty() == expectedEmpty
-        findPluginDescriptor.descriptors.isEmpty() ||
-                findPluginDescriptor.descriptors.get(0).implementationClassName == expectedPluginImpl
+        descriptors.isEmpty() == expectedEmpty
+        descriptors.isEmpty() || descriptors.get(0).implementationClassName == expectedPluginImpl
 
         where:
         contents                             | expectedPluginImpl | expectedEmpty
@@ -66,7 +66,8 @@ class JavaGradlePluginPluginTest extends Specification {
 
     def "ClassManifestCollector captures class name" () {
         setup:
-        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction()
+        Set<String> classList = new HashSet<String>()
+        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction(classList)
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
             getRelativePath() >> { new RelativePath(true, 'com', 'xxx', 'TestPlugin.class')}
         }
@@ -75,15 +76,15 @@ class JavaGradlePluginPluginTest extends Specification {
         classManifestCollector.execute(stubDetails)
 
         then:
-        classManifestCollector.classList.contains('com/xxx/TestPlugin.class')
+        classList.contains('com/xxx/TestPlugin.class')
     }
 
-    def "ClassManifestCollector finds fully qualified class" (List classList, String fqClass, boolean expectedValue) {
+    def "PluginValidationAction finds fully qualified class" (List classList, String fqClass, boolean expectedValue) {
         setup:
-        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction(classList as Collection<String>)
+        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction([], classList as Set<String>)
 
         expect:
-        classManifestCollector.hasFullyQualifiedClass(fqClass) == expectedValue
+        pluginValidationAction.hasFullyQualifiedClass(fqClass) == expectedValue
 
         where:
         classList                           | fqClass              | expectedValue
@@ -93,25 +94,21 @@ class JavaGradlePluginPluginTest extends Specification {
         [ 'com/xxx/yyy/TestPlugin.class']   | 'com.xxx.TestPlugin' | false
     }
 
-   def "PluginValidationAction logs correct warning messages" (String impl, boolean shouldFindClass, String expectedMessage) {
+   def "PluginValidationAction logs correct warning messages" (String impl, String implFile, String expectedMessage) {
         setup:
         Task stubTask = Stub(Task)
-        Action<FileCopyDetails> stubFindPluginDescriptor = Stub(JavaGradlePluginPlugin.FindPluginDescriptorAction) {
-            _ * getDescriptors() >> {
-                 List<PluginDescriptor> descriptors = []
-                if (impl != null) {
-                    descriptors.add(Stub(PluginDescriptor) {
-                        _ * toString() >> { "file:///test-plugin-${impl}.properties" }
-                        _ * getImplementationClassName() >> { impl }
-                    })
-                }
-                return descriptors
-            }
+        List<PluginDescriptor> descriptors = []
+        if (impl != null) {
+            descriptors.add(Stub(PluginDescriptor) {
+                _ * getPropertiesFileUrl() >> { new URL("file:///test-plugin-${impl}.properties") }
+                _ * getImplementationClassName() >> { impl }
+            })
         }
-        Action<FileCopyDetails> stubClassManifestCollector = Stub(JavaGradlePluginPlugin.ClassManifestCollectorAction) {
-            _ * hasFullyQualifiedClass(_) >> { shouldFindClass }
+        Set<String> classes = new HashSet<String>()
+        if (implFile) {
+            classes.add(implFile)
         }
-        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(stubFindPluginDescriptor, stubClassManifestCollector)
+        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(descriptors, classes)
         appender.reset()
 
         expect:
@@ -119,11 +116,12 @@ class JavaGradlePluginPluginTest extends Specification {
         expectedMessage == null || appender.toString().contains(expectedMessage)
 
         where:
-        impl    | shouldFindClass | expectedMessage
-        null    | false           | NO_DESCRIPTOR_WARNING
-        ''      | false           | INVALID_DESCRIPTOR_WARNING_PREFIX
-        'x.y.z' | false           | BAD_IMPL_CLASS_WARNING_PREFIX
-        'x.y.z' | true            | null
+        impl    | implFile       | expectedMessage
+        null    | null           | NO_DESCRIPTOR_WARNING
+        ''      | null           | INVALID_DESCRIPTOR_WARNING_PREFIX
+        'x.y.z' | null           | BAD_IMPL_CLASS_WARNING_PREFIX
+        'x.y.z' | 'z.class'      | BAD_IMPL_CLASS_WARNING_PREFIX
+        'x.y.z' | 'x/y/z.class'  | null
     }
 
     def "apply adds java plugin" () {
@@ -142,7 +140,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.configurations
                 .getByName(JavaGradlePluginPlugin.COMPILE_CONFIGURATION)
                 .dependencies.find {
-                    project.dependencies.gradleApi().source.files.containsAll(it.source.files)
+                    it.source.files == project.dependencies.gradleApi().source.files
                 }
     }
 
@@ -155,7 +153,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.plugins.apply(JavaGradlePluginPlugin)
 
         then:
-        1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.PLUGIN_DESCRIPTOR_PATTERN, { it instanceof JavaGradlePluginPlugin.FindPluginDescriptorAction })
+        1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.PLUGIN_DESCRIPTOR_PATTERN, { it instanceof JavaGradlePluginPlugin.PluginDescriptorCollectorAction })
         1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.CLASSES_PATTERN, { it instanceof JavaGradlePluginPlugin.ClassManifestCollectorAction })
     }
 
