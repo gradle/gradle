@@ -51,6 +51,6 @@ public class JarSnapshotsMaker {
         }
         String creationTime = clock.getTime();
         localJarSnapshots.putHashes(jarHashes);
-        LOG.lifecycle("Created and written jar snapshots in {} (creation took {}).", clock.getTime(), creationTime); //TODO SF fix this lifecycle message and others, too
+        LOG.info("Created and written jar snapshots for incremental compilation in {} (creation took {}).", clock.getTime(), creationTime);
     }
 }
