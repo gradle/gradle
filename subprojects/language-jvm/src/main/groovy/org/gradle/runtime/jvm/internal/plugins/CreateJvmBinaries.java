@@ -38,7 +38,9 @@ public class CreateJvmBinaries extends ModelRule {
                     .withComponentName(jvmLibrary.getName())
                     .withTypeString("jar")
                     .build();
-            binaries.add(new DefaultJvmLibraryBinary(jvmLibrary, namingScheme));
+            DefaultJvmLibraryBinary jvmLibraryBinary = new DefaultJvmLibraryBinary(jvmLibrary, namingScheme);
+            jvmLibraryBinary.source(jvmLibrary.getSource());
+            binaries.add(jvmLibraryBinary);
         }
     }
 }

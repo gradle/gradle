@@ -15,14 +15,14 @@
  */
 
 package org.gradle.runtime.jvm.internal.plugins
-
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.runtime.base.Binary
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.runtime.jvm.JvmLibrary
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrary
-import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal
+import org.gradle.runtime.jvm.internal.DefaultJvmLibraryBinary
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -43,9 +43,31 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * binaries.add({ JvmLibraryBinaryInternal binary ->
+        1 * binaries.add({ DefaultJvmLibraryBinary binary ->
             binary.namingScheme == namingScheme
             binary.library == library
+        } as Binary)
+        0 * _
+    }
+
+    def "created binary has sources from jvm library"() {
+        def library = new DefaultJvmLibrary("jvmLibOne")
+        def namingScheme = Mock(BinaryNamingScheme)
+        def source1 = Mock(LanguageSourceSet)
+        def source2 = Mock(LanguageSourceSet)
+
+        when:
+        library.source([source1, source2])
+        rule.createBinaries(binaries, toNamedDomainObjectSet(JvmLibrary, library))
+
+        then:
+        1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.build() >> namingScheme
+        1 * binaries.add({ DefaultJvmLibraryBinary binary ->
+            binary.namingScheme == namingScheme
+            binary.library == library
+            binary.source == library.source
         } as Binary)
         0 * _
     }

@@ -41,6 +41,10 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         def myLib = jvm.libraries.myLib
         assert myLib instanceof JvmLibrary
         assert myLib.source as Set == [sources.myLib.java, sources.myLib.resources] as Set
+
+        binaries.withType(JvmLibraryBinary) { jvmBinary ->
+            assert jvmBinary.source == myLib.source
+        }
     }
 """
         then:
@@ -81,6 +85,10 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         def myLib = jvm.libraries.myLib
         assert myLib instanceof JvmLibrary
         assert myLib.source as Set == [sources.myLib.java, sources.myLib.extraJava, sources.myLib.resources, sources.myLib.extraResources] as Set
+
+        binaries.withType(JvmLibraryBinary) { jvmBinary ->
+            assert jvmBinary.source == myLib.source
+        }
     }
 """
         then:
@@ -121,6 +129,10 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         def myLib = jvm.libraries.myLib
         assert myLib instanceof JvmLibrary
         assert myLib.source as Set == [sources.myLib.java, sources.myExtraSources.java, sources.myLib.resources, sources.myExtraSources.resources] as Set
+
+        binaries.withType(JvmLibraryBinary) { jvmBinary ->
+            assert jvmBinary.source == myLib.source
+        }
     }
 """
         then:
