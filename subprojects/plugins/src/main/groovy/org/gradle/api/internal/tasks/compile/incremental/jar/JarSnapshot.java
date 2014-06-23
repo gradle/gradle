@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.Serializable;
@@ -52,9 +53,8 @@ public class JarSnapshot implements Serializable {
         final Set<String> result = new HashSet<String>();
         for (Map.Entry<String, byte[]> cls : hashes.entrySet()) {
             String className = cls.getKey();
-            DependentsSet dependents = info.getRelevantDependents(className);
-            if (dependents.isDependencyToAll()) {
-                return dependents;
+            if (info.isDependencyToAll(className)) {
+                return new DependencyToAll();
             }
             result.add(className);
         }

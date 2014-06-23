@@ -53,6 +53,11 @@ public class ClassDependencyInfo implements Serializable { //TODO SF use hand-cr
         return new DefaultDependentsSet(result);
     }
 
+    public boolean isDependencyToAll(String className) {
+        DependentsSet deps = dependents.get(className);
+        return deps != null && deps.isDependencyToAll();
+    }
+
     private void recurseDependents(Set<String> visited, Set<String> result, Set<String> dependentClasses) {
         for (String d : dependentClasses) {
             if (!visited.add(d)) {

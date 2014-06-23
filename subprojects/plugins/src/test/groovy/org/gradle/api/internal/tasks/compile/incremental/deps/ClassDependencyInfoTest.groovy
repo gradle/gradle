@@ -161,4 +161,15 @@ class ClassDependencyInfoTest extends Specification {
         expect:
         deps.dependencyToAll
     }
+
+    def "knows when input class is a dependency to all"() {
+        def info = new ClassDependencyInfo([
+                "A": dependents("B"), "B": dependents(),
+                "C": new DefaultDependentsSet(true, []),
+        ])
+        expect:
+        !info.isDependencyToAll("A")
+        info.isDependencyToAll("C")
+        !info.isDependencyToAll("Unknown")
+    }
 }
