@@ -36,11 +36,11 @@ public class LocalJarHashesStore {
 
     public void put(Map<File, byte[]> newHashes) {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        new SingleOperationPersistentStore<Map>(cacheRepository, javaCompile, "local jar hashes", Map.class).putAndClose(newHashes);
+        new SingleOperationPersistentStore<Map>(cacheRepository, javaCompile, "local jar hashes write", Map.class).putAndClose(newHashes);
     }
 
     public Map<File, byte[]> get() {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        return new SingleOperationPersistentStore<Map>(cacheRepository, javaCompile, "local jar hashes", Map.class).getAndClose();
+        return new SingleOperationPersistentStore<Map<File, byte[]>>(cacheRepository, javaCompile, "local jar hashes read", (Class) Map.class).getAndClose();
     }
 }

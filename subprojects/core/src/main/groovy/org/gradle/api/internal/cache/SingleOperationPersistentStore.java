@@ -21,7 +21,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.Factory;
 
 import static org.apache.commons.lang.WordUtils.uncapitalize;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -49,13 +48,8 @@ public class SingleOperationPersistentStore<V> {
     }
 
     public void putAndClose(final V value) {
-        //TODO SF if the cacheAccess is opened with exclusive lock, do I still have to use 'useCache'? Applies to the getAndClose() method, too
         try {
-            cacheAccess.useCache("storing " + cacheName, new Runnable() {
-                public void run() {
-                    cache.put(CACHE_KEY, value);
-                }
-            });
+            cache.put(CACHE_KEY, value);
         } finally {
             cacheAccess.close();
         }
@@ -63,11 +57,7 @@ public class SingleOperationPersistentStore<V> {
 
     public V getAndClose() {
         try {
-            return cacheAccess.useCache("storing " + cacheName, new Factory<V>() {
-                public V create() {
-                    return cache.get(CACHE_KEY);
-                }
-            });
+            return cache.get(CACHE_KEY);
         } finally {
             cacheAccess.close();
         }

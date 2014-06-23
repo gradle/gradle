@@ -36,11 +36,11 @@ public class LocalClassDependencyInfoStore implements ClassDependencyInfoProvide
 
     public void put(ClassDependencyInfo dependencyInfo) {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info", ClassDependencyInfo.class).putAndClose(dependencyInfo);
+        new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info write", ClassDependencyInfo.class).putAndClose(dependencyInfo);
     }
 
     public ClassDependencyInfo get() {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        return new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info", ClassDependencyInfo.class).getAndClose();
+        return new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info read", ClassDependencyInfo.class).getAndClose();
     }
 }
