@@ -38,7 +38,11 @@ class JarSnapshotTest extends Specification {
         JarSnapshot s2 = new JarSnapshot(new byte[0], ["A": "A".bytes, "B": "B".bytes], info)
 
         expect:
-        s1.getAffectedClassesSince(s2).dependentClasses.isEmpty()
+        altered(s1, s2).dependentClasses.isEmpty()
+    }
+
+    private DependentsSet altered(JarSnapshot s1, JarSnapshot s2) {
+        s1.getAffectedClassesSince(s2).altered
     }
 
     def "knows when there are extra/missing classes since some other snapshot"() {
@@ -46,8 +50,8 @@ class JarSnapshotTest extends Specification {
         JarSnapshot s2 = new JarSnapshot(new byte[0], ["A": "A".bytes], info)
 
         expect:
-        s1.getAffectedClassesSince(s2).dependentClasses.isEmpty() //ignore class additions
-        s2.getAffectedClassesSince(s1).dependentClasses == ["B", "C"] as Set
+        altered(s1, s2).dependentClasses.isEmpty() //ignore class additions
+        altered(s2, s1).dependentClasses == ["B", "C"] as Set
     }
 
     def "knows when there are changed classes since other snapshot"() {
@@ -55,8 +59,8 @@ class JarSnapshotTest extends Specification {
         JarSnapshot s2 = new JarSnapshot(new byte[0], ["A": "A".bytes, "B": "BB".bytes], info)
 
         expect:
-        s1.getAffectedClassesSince(s2).dependentClasses == ["B"] as Set
-        s2.getAffectedClassesSince(s1).dependentClasses == ["B", "C"] as Set
+        altered(s1, s2).dependentClasses == ["B"] as Set
+        altered(s2, s1).dependentClasses == ["B", "C"] as Set
     }
 
     def "knows when transitive class is affected transitively via class change"() {
@@ -67,8 +71,8 @@ class JarSnapshotTest extends Specification {
         info.getRelevantDependents("C") >> dependents("B")
 
         expect:
-        s1.getAffectedClassesSince(s2).dependentClasses == ["B", "C"] as Set
-        s2.getAffectedClassesSince(s1).dependentClasses == ["B", "C"] as Set
+        altered(s1, s2).dependentClasses == ["B", "C"] as Set
+        altered(s2, s1).dependentClasses == ["B", "C"] as Set
     }
 
     def "knows when transitive class is affected transitively via class removal"() {
@@ -79,8 +83,8 @@ class JarSnapshotTest extends Specification {
         info.getRelevantDependents("C") >> dependents("B")
 
         expect:
-        s1.getAffectedClassesSince(s2).dependentClasses.isEmpty()
-        s2.getAffectedClassesSince(s1).dependentClasses == ["B", "C"] as Set
+        altered(s1, s2).dependentClasses.isEmpty()
+        altered(s2, s1).dependentClasses == ["B", "C"] as Set
     }
 
     def "knows when class is dependency to all"() {
@@ -91,7 +95,7 @@ class JarSnapshotTest extends Specification {
         info.getRelevantDependents("B") >> new DependencyToAll()
 
         expect:
-        s1.getAffectedClassesSince(s2).isDependencyToAll()
-        s2.getAffectedClassesSince(s1).isDependencyToAll()
+        altered(s1, s2).isDependencyToAll()
+        altered(s2, s1).isDependencyToAll()
     }
 }

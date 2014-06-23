@@ -61,13 +61,19 @@ public class JarChangeDependentsFinder {
 
         if (jarChangeDetails.isModified()) {
             JarSnapshot newSnapshot = jarSnapshotter.createSnapshot(jarArchive);
-            DependentsSet affectedClasses = newSnapshot.getAffectedClassesSince(existing);
-            if (affectedClasses.isDependencyToAll()) {
+            AffectedClasses affected = newSnapshot.getAffectedClassesSince(existing);
+            if (affected.getAltered().isDependencyToAll()) {
                 //at least one of the classes changed in the jar is a 'dependency-to-all'
-                return affectedClasses;
+                return affected.getAltered();
             }
+
+            //TODO
+//            if (currentCompilation.isAnyDuplicatedOnClasspath(affected.getAdded())) {
+//                return new DependencyToAll();
+//            }
+
             //recompile all dependents of the classes changed in the jar
-            return previousCompilation.getDependents(affectedClasses.getDependentClasses());
+            return previousCompilation.getDependents(affected.getAltered().getDependentClasses());
         }
 
         throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);

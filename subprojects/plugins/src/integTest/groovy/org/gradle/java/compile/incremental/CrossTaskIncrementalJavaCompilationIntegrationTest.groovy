@@ -384,4 +384,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         //TODO SF, this should already working but let's add coverage
     }
 
+    def "new duplicate class is a dependency to all"() {
+        //TODO SF
+    }
 }

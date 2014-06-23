@@ -61,7 +61,7 @@ public class JarSnapshot implements Serializable {
         return new DefaultDependentsSet(result);
     }
 
-    public DependentsSet getAffectedClassesSince(JarSnapshot other) {
+    public AffectedClasses getAffectedClassesSince(JarSnapshot other) {
         final Set<String> affected = new HashSet<String>();
         for (Map.Entry<String, byte[]> otherClass : other.hashes.entrySet()) {
             String otherClassName = otherClass.getKey();
@@ -72,13 +72,13 @@ public class JarSnapshot implements Serializable {
                 affected.add(otherClassName);
                 DependentsSet dependents = other.info.getRelevantDependents(otherClassName);
                 if (dependents.isDependencyToAll()) {
-                    return dependents;
+                    return new AffectedClasses(dependents);
                 }
                 affected.addAll(dependents.getDependentClasses());
             }
             //we ignore added since
         }
-        return new DefaultDependentsSet(affected);
+        return new AffectedClasses(new DefaultDependentsSet(affected));
     }
 
     public byte[] getHash() {
