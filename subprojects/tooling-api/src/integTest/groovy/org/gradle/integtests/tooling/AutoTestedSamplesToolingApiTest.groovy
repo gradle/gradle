@@ -57,7 +57,6 @@ public class Sample {
      * @param source
      */
     void tryCompile(String source) {
-        //TODO SF generalize and move the test out of integ tests, add unit tests
         source = normalize(source)
         def sourceFile = temp.testDirectory.file("Sample.java")
         sourceFile.text = source
