@@ -28,38 +28,59 @@ import static org.gradle.util.GUtil.toCamelCase;
 
 public class SingleOperationPersistentStore<V> {
 
-    private final PersistentIndexedCache<Long, V> cache;
-    private final PersistentCache cacheAccess;
-    private final String cacheName;
-
     //The cache only keeps single value, so we're always use the same index.
     //We probably should improve our cross-process caching infrastructure so that we support Stores (e.g. not-indexed caches).
     private final static long CACHE_KEY = 0;
 
-    public SingleOperationPersistentStore(CacheRepository cacheRepository, Object scope, String cacheName, Class<V> valueClass) {
-        this.cacheName = cacheName;
-        String identifier = uncapitalize(toCamelCase(cacheName));
-        cacheAccess = cacheRepository.store(scope, identifier)
-                .withDisplayName(cacheName + " cache")
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
-                .open();
+    private final CacheRepository cacheRepository;
 
-        cache = cacheAccess.createCache(new PersistentIndexedCacheParameters<Long, V>("localJarHashes", Long.class, valueClass));
+    private final Object scope;
+    private final String cacheName;
+    private final Class<V> valueClass;
+
+    private PersistentIndexedCache<Long, V> cache;
+    private PersistentCache cacheAccess;
+
+    public SingleOperationPersistentStore(CacheRepository cacheRepository, Object scope, String cacheName, Class<V> valueClass) {
+        this.cacheRepository = cacheRepository;
+        this.scope = scope;
+        this.cacheName = cacheName;
+        this.valueClass = valueClass;
     }
 
+    //Opens and closes the cache for operation
     public void putAndClose(final V value) {
+        initCaches("write");
         try {
             cache.put(CACHE_KEY, value);
         } finally {
-            cacheAccess.close();
+            closeCaches();
         }
     }
 
+    //Opens and closes the cache for operation
     public V getAndClose() {
+        initCaches("read");
         try {
             return cache.get(CACHE_KEY);
         } finally {
             cacheAccess.close();
         }
+    }
+
+    private void initCaches(String operation) {
+        String identifier = uncapitalize(toCamelCase(cacheName));
+        cacheAccess = cacheRepository.store(scope, identifier)
+                .withDisplayName(cacheName + " " + operation + " cache")
+                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                .open();
+
+        cache = cacheAccess.createCache(new PersistentIndexedCacheParameters<Long, V>(identifier, Long.class, valueClass));
+    }
+
+    private void closeCaches() {
+        cacheAccess.close();
+        cache = null;
+        cacheAccess = null;
     }
 }

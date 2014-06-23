@@ -26,21 +26,18 @@ import org.gradle.cache.CacheRepository;
 //Keeps the class dependency info of the given JavaCompile task
 public class LocalClassDependencyInfoStore implements ClassDependencyInfoProvider, ClassDependencyInfoWriter {
 
-    private final CacheRepository cacheRepository;
-    private final JavaCompile javaCompile;
+    private SingleOperationPersistentStore<ClassDependencyInfo> store;
 
     public LocalClassDependencyInfoStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
-        this.cacheRepository = cacheRepository;
-        this.javaCompile = javaCompile;
+        //Single operation store that we throw away after the operation makes the implementation simpler.
+        this.store = new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info", ClassDependencyInfo.class);
     }
 
     public void put(ClassDependencyInfo dependencyInfo) {
-        //Single operation store that we throw away after the operation makes the implementation simpler.
-        new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info write", ClassDependencyInfo.class).putAndClose(dependencyInfo);
+        store.putAndClose(dependencyInfo);
     }
 
     public ClassDependencyInfo get() {
-        //Single operation store that we throw away after the operation makes the implementation simpler.
-        return new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info read", ClassDependencyInfo.class).getAndClose();
+        return this.store.getAndClose();
     }
 }

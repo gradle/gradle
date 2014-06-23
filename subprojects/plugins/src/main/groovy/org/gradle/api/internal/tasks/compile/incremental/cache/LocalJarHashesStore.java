@@ -26,21 +26,18 @@ import java.util.Map;
 //Keeps the jar hashes of given compile task
 public class LocalJarHashesStore {
 
-    private final CacheRepository cacheRepository;
-    private final JavaCompile javaCompile;
+    private final SingleOperationPersistentStore<Map<File, byte[]>> store;
 
     public LocalJarHashesStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
-        this.cacheRepository = cacheRepository;
-        this.javaCompile = javaCompile;
+        //Single operation store that we throw away after the operation makes the implementation simpler.
+        store = new SingleOperationPersistentStore<Map<File, byte[]>>(cacheRepository, javaCompile, "local jar hashes", (Class) Map.class);
     }
 
     public void put(Map<File, byte[]> newHashes) {
-        //Single operation store that we throw away after the operation makes the implementation simpler.
-        new SingleOperationPersistentStore<Map>(cacheRepository, javaCompile, "local jar hashes write", Map.class).putAndClose(newHashes);
+        store.putAndClose(newHashes);
     }
 
     public Map<File, byte[]> get() {
-        //Single operation store that we throw away after the operation makes the implementation simpler.
-        return new SingleOperationPersistentStore<Map<File, byte[]>>(cacheRepository, javaCompile, "local jar hashes read", (Class) Map.class).getAndClose();
+        return store.getAndClose();
     }
 }
