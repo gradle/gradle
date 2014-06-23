@@ -53,6 +53,15 @@ that the default values defined by the `BasePlugin` are not available.
 
 TBD - make this more explicit re. what is actually not longer available.
 
+### Changes to incubating Java language plugins
+
+To better support the production of multiple binary outputs for a single set of sources, a new set of Java
+language plugins was been introduced in Gradle 1.x. This development continues in this release, with the removal of the
+`jvm-lang` plugin, and the replacement of the `java-lang` plugin with a completely new implementation.
+
+The existing `java` plugin is unchanged: only users who explicitly applied the `jvm-lang` or `java-lang` plugins
+will be affected by this change.
+
 ### Internal methods removed
 
 - The internal method `Javadoc.setJavadocExecHandleBuilder()` has been removed. You should use `setToolChain()` instead.
