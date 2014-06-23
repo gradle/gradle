@@ -159,7 +159,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - Adds a single `ResourceSet` for `src/${component}/resources`
     - Adds a single `JavaSourceSet` for `src/${component}/java`
 - Each created `JvmLibraryBinary` has the source sets of its `JvmLibrary`
-- Create a `ProcessResources` task for each `ResourceSet for a `JvmLibraryBinary`
+- Create a `ProcessResources` task for each `ResourceSet` for a `JvmLibraryBinary`
     - copy resources to `build/classes/${binaryName}`
 - Create a `CompileJava` task for each `JavaSourceSet` for a `JvmLibraryBinary`
     - compile classes to `build/classes/${binaryName}`
