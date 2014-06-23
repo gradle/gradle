@@ -61,16 +61,16 @@ public class IncrementalCompilationSupport {
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         if (!inputs.isIncremental()) {
-            LOG.info("{} - is not incremental (e.g. outputs have changed, no previous execution, etc)", displayName);
+            LOG.lifecycle("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
             return cleaningCompiler;
         }
         if (!sourceDirs.areSourceDirsKnown()) {
-            LOG.info("{} - is not incremental. Unable to infer the source directories.", displayName);
+            LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
         ClassDependencyInfo classDependencyInfo = dependencyInfoProvider.get();
         if (classDependencyInfo == null) {
-            LOG.info("{} - is not incremental. No class dependency data available from previous build.", displayName);
+            LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
         return new SelectiveCompiler(inputs, classDependencyInfo, cleaningCompiler, staleClassDetecter, new IncrementalCompilationInitializer(fileOperations));
