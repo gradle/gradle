@@ -38,6 +38,7 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireGradleHome() // need accurate classloading
+        executer.requireOwnGradleUserHomeDir()
         resolutionService.start()
     }
 

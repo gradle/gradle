@@ -29,6 +29,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
     PluginResolutionServiceTestServer portal = new PluginResolutionServiceTestServer(executer, mavenRepo)
 
     def setup() {
+        executer.requireOwnGradleUserHomeDir()
         portal.start()
     }
 

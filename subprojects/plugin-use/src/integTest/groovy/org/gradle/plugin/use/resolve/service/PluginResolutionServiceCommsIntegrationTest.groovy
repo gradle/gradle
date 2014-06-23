@@ -38,6 +38,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     PluginResolutionServiceTestServer portal = new PluginResolutionServiceTestServer(executer, mavenRepo)
 
     def setup() {
+        executer.requireOwnGradleUserHomeDir()
         portal.start()
     }
 
