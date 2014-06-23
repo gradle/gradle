@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base;
-
-import org.gradle.api.Buildable;
-import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.api.Task;
+package org.gradle.api;
 
 /**
  * A model element that is directly buildable.

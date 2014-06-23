@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.api.internal;
 
+import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.runtime.base.BuildableModelElement;
 
 import java.util.Collections;
 import java.util.Set;

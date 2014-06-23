@@ -20,7 +20,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.jvm.JvmLibrary;
 
