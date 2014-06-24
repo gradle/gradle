@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.IncrementalJavaCompilerFactory;
+import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
@@ -88,7 +88,7 @@ public class JavaCompile extends AbstractCompile {
 
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = new DefaultCompileCaches(getCacheRepository(), this, getGeneralCompileCaches());
-        IncrementalJavaCompilerFactory factory = new IncrementalJavaCompilerFactory(
+        IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
                 (FileOperations) getProject(), getPath(), createCompiler(spec), source, compileCaches);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler(inputs);
         performCompilation(spec, compiler);

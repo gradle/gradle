@@ -32,12 +32,12 @@ import org.gradle.language.base.internal.compile.Compiler;
 
 import java.util.List;
 
-public class IncrementalJavaCompilerFactory {
+public class IncrementalCompilerFactory {
 
     private final IncrementalCompilerDecorator incrementalSupport;
 
-    public IncrementalJavaCompilerFactory(FileOperations fileOperations, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
-                                          List<Object> source, CompileCaches compileCaches) {
+    public IncrementalCompilerFactory(FileOperations fileOperations, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
+                                      List<Object> source, CompileCaches compileCaches) {
         //bunch of services that enable incremental java compilation.
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compileCaches.getClassAnalysisCache());
