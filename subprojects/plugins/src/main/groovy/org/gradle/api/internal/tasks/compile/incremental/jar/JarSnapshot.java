@@ -98,4 +98,8 @@ public class JarSnapshot implements Serializable {
     public byte[] getHash() {
         return hash;
     }
+
+    public Set<String> getClasses() {
+        return hashes.keySet();
+    }
 }

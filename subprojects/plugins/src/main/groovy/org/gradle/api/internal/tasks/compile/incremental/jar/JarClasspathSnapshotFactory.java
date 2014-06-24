@@ -41,8 +41,8 @@ public class JarClasspathSnapshotFactory {
             JarSnapshot snapshot = jarSnapshotter.createSnapshot(jar);
             jarSnapshots.put(jar.file, snapshot);
             jarHashes.put(jar.file, snapshot.getHash());
-            duplicateClasses.addAll(CollectionUtils.intersection(allClasses, snapshot.hashes.keySet()));
-            allClasses.addAll(snapshot.hashes.keySet());
+            duplicateClasses.addAll(CollectionUtils.intersection(allClasses, snapshot.getClasses()));
+            allClasses.addAll(snapshot.getClasses());
         }
         JarClasspathSnapshotData jarClasspathSnapshotData = new JarClasspathSnapshotData(jarHashes, duplicateClasses);
         return new JarClasspathSnapshot(jarSnapshots, jarClasspathSnapshotData);
