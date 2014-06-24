@@ -23,7 +23,7 @@ import org.gradle.util.Clock;
 
 import java.io.File;
 
-public class JarSnapshotsMaker {
+public class JarSnapshotsMaker implements JarClasspathSnapshotProvider, JarClasspathSnapshotWriter {
 
     private static final Logger LOG = Logging.getLogger(JarSnapshotsMaker.class);
 
@@ -39,7 +39,6 @@ public class JarSnapshotsMaker {
         this.classpathJarFinder = classpathJarFinder;
     }
 
-    //TODO SF extract an interface
     public void storeJarSnapshots(Iterable<File> classpath) {
         maybeInitialize(classpath); //clients may or may not have already created jar classpath snapshot
         Clock clock = new Clock();

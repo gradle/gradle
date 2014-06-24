@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotWriter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -25,13 +25,13 @@ import org.gradle.language.base.internal.compile.Compiler;
 class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
 
     private final Compiler<JavaCompileSpec> delegate;
-    private final JarSnapshotsMaker jarSnapshotsMaker;
+    private final JarClasspathSnapshotWriter writer;
     private final ClassDependencyInfoUpdater dependencyInfoUpdater;
 
-    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, JarSnapshotsMaker jarSnapshotsMaker,
+    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer,
                                            ClassDependencyInfoUpdater dependencyInfoUpdater) {
         this.delegate = delegate;
-        this.jarSnapshotsMaker = jarSnapshotsMaker;
+        this.writer = writer;
         this.dependencyInfoUpdater = dependencyInfoUpdater;
     }
 
@@ -44,7 +44,7 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
             dependencyInfoUpdater.updateInfo(spec);
         }
 
-        jarSnapshotsMaker.storeJarSnapshots(spec.getClasspath());
+        writer.storeJarSnapshots(spec.getClasspath());
 
         return out;
     }

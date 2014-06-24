@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotWriter
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -27,11 +27,11 @@ import spock.lang.Subject
 class IncrementalCompilationFinalizerTest extends Specification {
 
     def compiler = Mock(Compiler)
-    def snapshotsMaker = Mock(JarSnapshotsMaker)
+    def writer = Mock(JarClasspathSnapshotWriter)
     def infoUpdater = Mock(ClassDependencyInfoUpdater)
     def compileSpec = Stub(JavaCompileSpec)
 
-    @Subject finalizer = new IncrementalCompilationFinalizer(compiler, snapshotsMaker, infoUpdater)
+    @Subject finalizer = new IncrementalCompilationFinalizer(compiler, writer, infoUpdater)
 
     def "performs finalization"() {
         when:
@@ -40,7 +40,7 @@ class IncrementalCompilationFinalizerTest extends Specification {
         then:
         1 * compiler.execute(compileSpec) >> Mock(WorkResult)
         1 * infoUpdater.updateInfo(compileSpec)
-        1 * snapshotsMaker.storeJarSnapshots(_)
+        1 * writer.storeJarSnapshots(_)
         0 * _
     }
 
@@ -50,7 +50,7 @@ class IncrementalCompilationFinalizerTest extends Specification {
 
         then:
         1 * compiler.execute(compileSpec) >> Mock(RecompilationNotNecessary)
-        1 * snapshotsMaker.storeJarSnapshots(_)
+        1 * writer.storeJarSnapshots(_)
         0 * _
     }
 }

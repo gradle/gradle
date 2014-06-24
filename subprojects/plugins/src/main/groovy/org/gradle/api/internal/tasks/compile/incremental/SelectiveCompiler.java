@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotProvider;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
@@ -37,21 +37,21 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
     private final CleaningJavaCompiler cleaningCompiler;
     private final RecompilationSpecProvider recompilationSpecProvider;
     private final IncrementalCompilationInitializer incrementalCompilationInitilizer;
-    private final JarSnapshotsMaker jarSnapshotsMaker;
+    private final JarClasspathSnapshotProvider jarClasspathSnapshotProvider;
 
     public SelectiveCompiler(IncrementalTaskInputs inputs, PreviousCompilation previousCompilation, CleaningJavaCompiler cleaningCompiler,
-                             RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer, JarSnapshotsMaker jarSnapshotsMaker) {
+                             RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer, JarClasspathSnapshotProvider jarClasspathSnapshotProvider) {
         this.inputs = inputs;
         this.previousCompilation = previousCompilation;
         this.cleaningCompiler = cleaningCompiler;
         this.recompilationSpecProvider = recompilationSpecProvider;
         this.incrementalCompilationInitilizer = compilationInitializer;
-        this.jarSnapshotsMaker = jarSnapshotsMaker;
+        this.jarClasspathSnapshotProvider = jarClasspathSnapshotProvider;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
         Clock clock = new Clock();
-        JarClasspathSnapshot jarClasspathSnapshot = jarSnapshotsMaker.getJarClasspathSnapshot(spec.getClasspath());
+        JarClasspathSnapshot jarClasspathSnapshot = jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getClasspath());
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, previousCompilation, jarClasspathSnapshot);
 
         if (recompilationSpec.isFullRebuildNeeded()) {

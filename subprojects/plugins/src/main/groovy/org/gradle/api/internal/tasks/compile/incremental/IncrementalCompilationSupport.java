@@ -28,7 +28,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 
-public class IncrementalCompilationSupport {
+public class IncrementalCompilationSupport {   //TODO SF rename
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationSupport.class);
     private final JarSnapshotsMaker jarSnapshotsMaker;
