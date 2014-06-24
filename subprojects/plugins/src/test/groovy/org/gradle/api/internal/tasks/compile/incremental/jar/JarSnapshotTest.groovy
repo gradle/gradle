@@ -98,4 +98,15 @@ class JarSnapshotTest extends Specification {
         altered(s1, s2).isDependencyToAll()
         altered(s2, s1).isDependencyToAll()
     }
+
+    def "knows added classes"() {
+        JarSnapshot s1 = new JarSnapshot(new byte[0], ["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], info)
+        JarSnapshot s2 = new JarSnapshot(new byte[0], ["A": "A".bytes], info)
+        JarSnapshot s3 = new JarSnapshot(new byte[0], [:], info)
+
+        expect:
+        s1.getAffectedClassesSince(s2).added == ["B", "C"] as Set
+        s2.getAffectedClassesSince(s1).added == [] as Set
+        s1.getAffectedClassesSince(s3).added == ["A", "B", "C"] as Set
+    }
 }
