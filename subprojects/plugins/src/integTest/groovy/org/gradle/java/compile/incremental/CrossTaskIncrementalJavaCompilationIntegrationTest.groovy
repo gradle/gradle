@@ -387,8 +387,22 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         then: impl.recompiledClasses("A")
     }
 
-    def "deletion of a jar with duplicate class"() {
-        //TODO SF, this should already working but let's add coverage
+    def "deletion of a jar with duplicate class causes recompilation"() {
+        file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
+        java impl: ["class A extends org.junit.Assert {}"]
+
+        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.11' }"
+
+        impl.snapshot { run("impl:compileJava") }
+
+        when:
+        file("impl/build.gradle").text = """
+            configurations.compile.dependencies.clear()  //kill project dependency
+            dependencies { compile 'junit:junit:4.11' }  //leave only junit
+        """
+        run("impl:compileJava")
+
+        then: impl.recompiledClasses("A")
     }
 
     def "new duplicate class is a dependency to all"() {
