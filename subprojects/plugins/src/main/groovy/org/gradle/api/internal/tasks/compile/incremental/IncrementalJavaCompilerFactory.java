@@ -34,7 +34,7 @@ import java.util.List;
 
 public class IncrementalJavaCompilerFactory {
 
-    private final IncrementalCompilationSupport incrementalSupport;
+    private final IncrementalCompilerDecorator incrementalSupport;
 
     public IncrementalJavaCompilerFactory(FileOperations fileOperations, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
                                           List<Object> source, CompileCaches compileCaches) {
@@ -49,7 +49,7 @@ public class IncrementalJavaCompilerFactory {
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
         ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(compileCaches.getLocalClassDependencyInfoStore(), fileOperations, analyzer);
         IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations);
-        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, compileCaches, compilationInitializer,
+        incrementalSupport = new IncrementalCompilerDecorator(jarSnapshotsMaker, compileCaches, compilationInitializer,
                 cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
     }
 

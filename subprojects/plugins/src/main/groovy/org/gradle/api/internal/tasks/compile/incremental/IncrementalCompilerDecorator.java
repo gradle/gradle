@@ -28,9 +28,9 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 
-public class IncrementalCompilationSupport {   //TODO SF rename
+public class IncrementalCompilerDecorator {
 
-    private static final Logger LOG = Logging.getLogger(IncrementalCompilationSupport.class);
+    private static final Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
     private final JarSnapshotsMaker jarSnapshotsMaker;
     private final CompileCaches compileCaches;
     private final CleaningJavaCompiler cleaningCompiler;
@@ -40,10 +40,10 @@ public class IncrementalCompilationSupport {   //TODO SF rename
     private final CompilationSourceDirs sourceDirs;
     private final IncrementalCompilationInitializer compilationInitializer;
 
-    public IncrementalCompilationSupport(JarSnapshotsMaker jarSnapshotsMaker, CompileCaches compileCaches,
-                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
-                                         RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater,
-                                         CompilationSourceDirs sourceDirs) {
+    public IncrementalCompilerDecorator(JarSnapshotsMaker jarSnapshotsMaker, CompileCaches compileCaches,
+                                        IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
+                                        RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater,
+                                        CompilationSourceDirs sourceDirs) {
         this.jarSnapshotsMaker = jarSnapshotsMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
