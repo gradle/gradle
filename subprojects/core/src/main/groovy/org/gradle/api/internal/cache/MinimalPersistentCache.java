@@ -20,6 +20,7 @@ import org.gradle.cache.*;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.messaging.serialize.Serializer;
 
 import static org.apache.commons.lang.WordUtils.uncapitalize;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -37,7 +38,7 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V>, Stoppable {
     private final PersistentIndexedCache<K, V> cache;
     private final String cacheName;
 
-    public MinimalPersistentCache(CacheRepository cacheRepository, String cacheName, Class<K> keyClass, Class<V> valueClass) {
+    public MinimalPersistentCache(CacheRepository cacheRepository, String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this.cacheName = cacheName;
         String identifier = uncapitalize(toCamelCase(cacheName));
         cacheAccess = cacheRepository
@@ -47,7 +48,7 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V>, Stoppable {
                 .open();
 
         PersistentIndexedCacheParameters<K, V> params =
-                new PersistentIndexedCacheParameters<K, V>(identifier, keyClass, valueClass);
+                new PersistentIndexedCacheParameters<K, V>(identifier, keySerializer, valueSerializer);
         cache = cacheAccess.createCache(params);
     }
 
