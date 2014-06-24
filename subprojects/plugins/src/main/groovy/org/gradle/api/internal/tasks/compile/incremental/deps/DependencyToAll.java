@@ -19,11 +19,26 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import java.util.Set;
 
 public class DependencyToAll implements DependentsSet {
+
+    private final String reason;
+
+    public DependencyToAll(String reason) {
+        this.reason = reason;
+    }
+
+    public DependencyToAll() {
+        this(null);
+    }
+
     public Set<String> getDependentClasses() {
         throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
     }
 
     public boolean isDependencyToAll() {
         return true;
+    }
+
+    public String getDescription() {
+        return reason;
     }
 }

@@ -270,7 +270,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         when: //when api class is changed
         java api: ["class A { String change; }"]
-        run "compileIntegTestJava", "compileJava", "-i"
+        run "compileIntegTestJava", "compileJava"
 
         then: //only impl class is recompiled
         impl.recompiledClasses("ImplA")
@@ -278,7 +278,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         when: //when other class is changed
         impl.snapshot()
         java other: ["class Other { String change; }"]
-        run "compileIntegTestJava", "compileJava", "-i"
+        run "compileIntegTestJava", "compileJava"
 
         then: //only integTest class is recompiled
         impl.recompiledClasses("SomeIntegTest")

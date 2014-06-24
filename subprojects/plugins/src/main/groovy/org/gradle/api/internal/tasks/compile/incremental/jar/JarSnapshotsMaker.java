@@ -59,6 +59,6 @@ public class JarSnapshotsMaker implements JarClasspathSnapshotProvider, JarClass
         Iterable<JarArchive> jarArchives = classpathJarFinder.findJarArchives(classpath);
 
         jarClasspathSnapshot = classpathSnapshotFactory.createSnapshot(jarArchives);
-        LOG.info("Created jar snapshots for incremental compilation in {}.", clock.getTime());
+        LOG.info("Created jar classpath snapshot for incremental compilation in {}.", clock.getTime());
     }
 }

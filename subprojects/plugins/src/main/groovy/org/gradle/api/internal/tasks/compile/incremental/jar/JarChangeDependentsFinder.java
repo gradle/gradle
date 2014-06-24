@@ -38,7 +38,7 @@ public class JarChangeDependentsFinder {
             if (jarClasspathSnapshot.isAnyClassDuplicated(jarArchive)) {
                 //at least one of the classes from the new jar is already present in jar classpath
                 //to avoid calculation which class gets on the classpath first, rebuild all
-                return new DependencyToAll();
+                return new DependencyToAll("at least one of the classes of '" + jarArchive.file.getName() + "' is already present in classpath");
             } else {
                 //none of the new classes in the jar are duplicated on classpath, don't rebuild
                 return new DefaultDependentsSet();
@@ -49,14 +49,13 @@ public class JarChangeDependentsFinder {
         if (previous == null) {
             //we don't know what classes were dependents of the jar in the previous build
             //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
-            return new DependencyToAll();
+            return new DependencyToAll("missing jar snapshot of '" + jarArchive.file.getName()  + "' from previous build");
         }
 
         if (jarChangeDetails.isRemoved()) {
             DependentsSet allClasses = previous.getAllClasses();
             if (allClasses.isDependencyToAll()) {
-                //at least one of the classes in jar is a 'dependency-to-all'.
-                return allClasses;
+                return new DependencyToAll("at least one of the classes of removed jar '" + jarArchive.file.getName() + "' requires it");
             }
             //recompile all dependents of all the classes from jar
             return previousCompilation.getDependents(allClasses.getDependentClasses());
@@ -73,7 +72,8 @@ public class JarChangeDependentsFinder {
             if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
                 //A new duplicate class on classpath. As we don't fancy-handle classpath order right now, we don't know which class is on classpath first.
                 //For safe measure rebuild everything
-                return new DependencyToAll();
+                return new DependencyToAll("at least one of the classes of modified jar '" + jarArchive.file.getName() + "' is already present in the classpath");
+                //TODO SF debug/info log duplicate classes.
             }
 
             //recompile all dependents of the classes changed in the jar

@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
 class DefaultRecompilationSpec implements RecompilationSpec {
 
     final Collection<String> classesToCompile = new LinkedHashSet<String>();
-    File fullRebuildCause;
+    String fullRebuildCause;
 
     public Collection<String> getClassNames() {
         return classesToCompile;
@@ -34,6 +33,6 @@ class DefaultRecompilationSpec implements RecompilationSpec {
     }
 
     public String getFullRebuildCause() {
-        return "change to " + fullRebuildCause.getName();
+        return fullRebuildCause;
     }
 }

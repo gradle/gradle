@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import org.gradle.api.Nullable;
+
 import java.util.Set;
 
 public interface DependentsSet {
     Set<String> getDependentClasses();
     boolean isDependencyToAll();
+    @Nullable String getDescription();
 }

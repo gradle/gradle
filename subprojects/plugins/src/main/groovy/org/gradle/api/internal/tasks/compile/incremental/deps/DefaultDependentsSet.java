@@ -52,6 +52,10 @@ public class DefaultDependentsSet implements Serializable, DependentsSet {
         return dependencyToAll;
     }
 
+    public String getDescription() {
+        return null;
+    }
+
     public DefaultDependentsSet addDependent(String className) {
         dependentClasses.add(className);
         return this;
