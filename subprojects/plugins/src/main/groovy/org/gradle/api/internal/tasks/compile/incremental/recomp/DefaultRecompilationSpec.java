@@ -33,7 +33,7 @@ class DefaultRecompilationSpec implements RecompilationSpec {
         return fullRebuildCause != null;
     }
 
-    public File getFullRebuildCause() {
-        return fullRebuildCause;
+    public String getFullRebuildCause() {
+        return "change to " + fullRebuildCause.getName();
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import java.io.File;
 import java.util.Collection;
 
 public interface RecompilationSpec {
     Collection<String> getClassNames();
     boolean isFullRebuildNeeded();
-    File getFullRebuildCause();
+    String getFullRebuildCause();
 }

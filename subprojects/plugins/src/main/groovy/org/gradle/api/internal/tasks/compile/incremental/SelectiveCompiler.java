@@ -55,7 +55,7 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, previousCompilation, jarClasspathSnapshot);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
-            LOG.lifecycle("Incremental java compilation not possible - full rebuild is needed due to a change to: {}. Analysis took {}.", recompilationSpec.getFullRebuildCause().getName(), clock.getTime());
+            LOG.lifecycle("Full rebuild is required due to: '{}'. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getTime());
             return cleaningCompiler.execute(spec);
         }
 
