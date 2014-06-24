@@ -16,22 +16,28 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.model;
 
+import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshot;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
 public class PreviousCompilation {
 
     private ClassDependencyInfo dependencyInfo;
-    private LocalJarClasspathSnapshot localJarClasspathSnapshot;
+    private LocalJarClasspathSnapshotStore classpathSnapshotStore;
+    private final JarSnapshotCache jarSnapshotCache;
+    private Map<File, JarSnapshot> jarSnapshots;
 
-    public PreviousCompilation(ClassDependencyInfo dependencyInfo, LocalJarClasspathSnapshot localJarClasspathSnapshot) {
+    public PreviousCompilation(ClassDependencyInfo dependencyInfo, LocalJarClasspathSnapshotStore classpathSnapshotStore, JarSnapshotCache jarSnapshotCache) {
         this.dependencyInfo = dependencyInfo;
-        this.localJarClasspathSnapshot = localJarClasspathSnapshot;
+        this.classpathSnapshotStore = classpathSnapshotStore;
+        this.jarSnapshotCache = jarSnapshotCache;
     }
 
     public DependentsSet getDependents(Set<String> allClasses) {
@@ -39,6 +45,14 @@ public class PreviousCompilation {
     }
 
     public JarSnapshot getJarSnapshot(File file) {
-        return localJarClasspathSnapshot.getSnapshot(file);
+        if (jarSnapshots == null) {
+            JarClasspathSnapshotData data = classpathSnapshotStore.get();
+            jarSnapshots = jarSnapshotCache.getJarSnapshots(data.getJarHashes());
+        }
+        return jarSnapshots.get(file);
+    }
+
+    public DependentsSet getDependents(String className) {
+        return dependencyInfo.getRelevantDependents(className);
     }
 }

@@ -19,9 +19,10 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
+import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -32,7 +33,7 @@ public class IncrementalCompilationSupport {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationSupport.class);
     private final JarSnapshotsMaker jarSnapshotsMaker;
-    private final ClassDependencyInfoProvider dependencyInfoProvider;
+    private final CompileCaches compileCaches;
     private final FileOperations fileOperations;
     private final CleaningJavaCompiler cleaningCompiler;
     private final String displayName;
@@ -40,12 +41,12 @@ public class IncrementalCompilationSupport {
     private final ClassDependencyInfoUpdater classDependencyInfoUpdater;
     private final CompilationSourceDirs sourceDirs;
 
-    public IncrementalCompilationSupport(JarSnapshotsMaker jarSnapshotsMaker, ClassDependencyInfoProvider dependencyInfoProvider,
+    public IncrementalCompilationSupport(JarSnapshotsMaker jarSnapshotsMaker, CompileCaches compileCaches,
                                          FileOperations fileOperations, CleaningJavaCompiler cleaningCompiler, String displayName,
                                          RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater,
                                          CompilationSourceDirs sourceDirs) {
         this.jarSnapshotsMaker = jarSnapshotsMaker;
-        this.dependencyInfoProvider = dependencyInfoProvider;
+        this.compileCaches = compileCaches;
         this.fileOperations = fileOperations;
         this.cleaningCompiler = cleaningCompiler;
         this.displayName = displayName;
@@ -68,12 +69,13 @@ public class IncrementalCompilationSupport {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
-        ClassDependencyInfo classDependencyInfo = dependencyInfoProvider.get();
+        ClassDependencyInfo classDependencyInfo = compileCaches.getLocalClassDependencyInfoStore().get();
         if (classDependencyInfo == null) {
             LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
-        IncrementalCompilationInitializer initializer = new IncrementalCompilationInitializer(fileOperations);
-        return new SelectiveCompiler(inputs, classDependencyInfo, cleaningCompiler, staleClassDetecter, initializer, jarSnapshotsMaker);
+        IncrementalCompilationInitializer initializer = new IncrementalCompilationInitializer(fileOperations); //TODO SF move out
+        PreviousCompilation previousCompilation = new PreviousCompilation(classDependencyInfo, compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
+        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, initializer, jarSnapshotsMaker);
     }
 }

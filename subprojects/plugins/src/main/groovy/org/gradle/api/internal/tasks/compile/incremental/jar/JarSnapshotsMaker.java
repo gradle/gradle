@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
@@ -26,22 +27,23 @@ public class JarSnapshotsMaker {
 
     private static final Logger LOG = Logging.getLogger(JarSnapshotsMaker.class);
 
-    private final LocalJarClasspathSnapshot localJarClasspathSnapshot;
+    private final LocalJarClasspathSnapshotStore classpathSnapshotStore;
     private final ClasspathJarFinder classpathJarFinder;
     private final JarClasspathSnapshotFactory classpathSnapshotFactory;
 
     private JarClasspathSnapshot jarClasspathSnapshot;
 
-    public JarSnapshotsMaker(LocalJarClasspathSnapshot localJarClasspathSnapshot, JarClasspathSnapshotFactory classpathSnapshotFactory, ClasspathJarFinder classpathJarFinder) {
-        this.localJarClasspathSnapshot = localJarClasspathSnapshot;
+    public JarSnapshotsMaker(LocalJarClasspathSnapshotStore classpathSnapshotStore, JarClasspathSnapshotFactory classpathSnapshotFactory, ClasspathJarFinder classpathJarFinder) {
+        this.classpathSnapshotStore = classpathSnapshotStore;
         this.classpathSnapshotFactory = classpathSnapshotFactory;
         this.classpathJarFinder = classpathJarFinder;
     }
 
+    //TODO SF extract an interface
     public void storeJarSnapshots(Iterable<File> classpath) {
         maybeInitialize(classpath); //clients may or may not have already created jar classpath snapshot
         Clock clock = new Clock();
-        localJarClasspathSnapshot.putClasspathSnapshot(jarClasspathSnapshot.getData());
+        classpathSnapshotStore.put(jarClasspathSnapshot.getData());
         LOG.info("Written jar snapshots for incremental compilation in {}.", clock.getTime());
     }
 

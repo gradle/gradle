@@ -43,15 +43,12 @@ public class IncrementalJavaCompilerFactory {
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compileCaches.getClassAnalysisCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compileCaches.getJarSnapshotCache());
 
-        //TODO SF rework, it's a bit awkward that this snapshot is mutable, merge with LocalJarClasspathSnapshotStore
-        LocalJarClasspathSnapshot localJarClasspathSnapshot = new LocalJarClasspathSnapshot(compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
-
-        JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarClasspathSnapshot, new JarClasspathSnapshotFactory(jarSnapshotter), new ClasspathJarFinder(fileOperations));
+        JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(compileCaches.getLocalJarClasspathSnapshotStore(), new JarClasspathSnapshotFactory(jarSnapshotter), new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
-        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations, localJarClasspathSnapshot);
+        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
         ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(compileCaches.getLocalClassDependencyInfoStore(), fileOperations, analyzer);
-        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, compileCaches.getLocalClassDependencyInfoStore(), fileOperations,
+        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, compileCaches, fileOperations,
                 cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
     }
 

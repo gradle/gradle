@@ -19,9 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -30,21 +28,16 @@ public class RecompilationSpecProvider {
 
     private final SourceToNameConverter sourceToNameConverter;
     private final FileOperations fileOperations;
-    private final LocalJarClasspathSnapshot localJarClasspathSnapshot;
 
-    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, FileOperations fileOperations,
-                                     LocalJarClasspathSnapshot localJarClasspathSnapshot) {
+    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, FileOperations fileOperations) {
         this.sourceToNameConverter = sourceToNameConverter;
         this.fileOperations = fileOperations;
-        this.localJarClasspathSnapshot = localJarClasspathSnapshot;
     }
 
-    public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs, ClassDependencyInfo dependencyInfo, JarClasspathSnapshot jarClasspathSnapshot) {
-        PreviousCompilation previousCompilation = new PreviousCompilation(dependencyInfo, localJarClasspathSnapshot);
-
+    public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs, PreviousCompilation previousCompilation, JarClasspathSnapshot jarClasspathSnapshot) {
         //creating an action that will be executed against all changes
         DefaultRecompilationSpec spec = new DefaultRecompilationSpec();
-        JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(dependencyInfo, sourceToNameConverter);
+        JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(previousCompilation, sourceToNameConverter);
         JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarClasspathSnapshot, previousCompilation);
         InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, jarChangeProcessor);
 
