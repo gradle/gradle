@@ -36,7 +36,7 @@ class JavaChangeProcessor {
         spec.classesToCompile.add(className);
         DependentsSet actualDependents = previousCompilation.getDependents(className);
         if (actualDependents.isDependencyToAll()) {
-            spec.fullRebuildCause = "'" + input.getFile().getName() + "' was changed";
+            spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;
         }
         spec.classesToCompile.addAll(actualDependents.getDependentClasses());

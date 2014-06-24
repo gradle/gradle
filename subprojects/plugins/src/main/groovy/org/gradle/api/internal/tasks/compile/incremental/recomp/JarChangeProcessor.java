@@ -41,7 +41,7 @@ class JarChangeProcessor {
         JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarClasspathSnapshot, previousCompilation);
         DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
         if (actualDependents.isDependencyToAll()) {
-            spec.fullRebuildCause = (actualDependents.getDescription() != null)? actualDependents.getDescription() : "'" + input.getFile().getName() + "' was changed";
+            spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;
         }
         spec.classesToCompile.addAll(actualDependents.getDependentClasses());

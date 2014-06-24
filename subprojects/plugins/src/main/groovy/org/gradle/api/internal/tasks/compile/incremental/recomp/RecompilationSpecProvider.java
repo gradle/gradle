@@ -43,7 +43,7 @@ public class RecompilationSpecProvider {
 
         //go!
         inputs.outOfDate(action);
-        if (action.spec.fullRebuildCause != null) {
+        if (action.spec.getFullRebuildCause() != null) {
             //short circuit in case we already know that that full rebuild is needed
             return action.spec;
         }
@@ -63,7 +63,7 @@ public class RecompilationSpecProvider {
         }
 
         public void execute(InputFileDetails input) {
-            if (spec.fullRebuildCause != null) {
+            if (spec.getFullRebuildCause() != null) {
                 return;
             }
             if (input.getFile().getName().endsWith(".java")) {
