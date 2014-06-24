@@ -22,7 +22,7 @@ public class BaseSerializerFactory {
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     public static final Serializer LONG_SERIALIZER = new LongSerializer();
     public static final Serializer FILE_SERIALIZER = new FileSerializer();
-    public static final Serializer BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
+    public static final Serializer<byte[]> BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
@@ -37,7 +37,7 @@ public class BaseSerializerFactory {
             return FILE_SERIALIZER;
         }
         if (type.equals(byte[].class)) {
-            return BYTE_ARRAY_SERIALIZER;
+            return (Serializer) BYTE_ARRAY_SERIALIZER;
         }
         return new DefaultSerializer<T>(type.getClassLoader());
     }
