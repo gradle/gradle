@@ -73,6 +73,7 @@ public class IncrementalCompilationSupport {
             LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
-        return new SelectiveCompiler(inputs, classDependencyInfo, cleaningCompiler, staleClassDetecter, new IncrementalCompilationInitializer(fileOperations));
+        IncrementalCompilationInitializer initializer = new IncrementalCompilationInitializer(fileOperations);
+        return new SelectiveCompiler(inputs, classDependencyInfo, cleaningCompiler, staleClassDetecter, initializer, jarSnapshotsMaker);
     }
 }

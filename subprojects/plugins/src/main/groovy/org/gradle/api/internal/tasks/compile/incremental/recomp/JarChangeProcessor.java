@@ -20,25 +20,25 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarArchive;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeDependentsFinder;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 class JarChangeProcessor {
 
     private final FileOperations fileOperations;
-    private final JarSnapshotter jarSnapshotter;
+    private final JarClasspathSnapshot jarClasspathSnapshot;
     private final PreviousCompilation previousCompilation;
 
-    public JarChangeProcessor(FileOperations fileOperations, JarSnapshotter jarSnapshotter, PreviousCompilation previousCompilation) {
+    public JarChangeProcessor(FileOperations fileOperations, JarClasspathSnapshot jarClasspathSnapshot, PreviousCompilation previousCompilation) {
         this.fileOperations = fileOperations;
-        this.jarSnapshotter = jarSnapshotter;
+        this.jarClasspathSnapshot = jarClasspathSnapshot;
         this.previousCompilation = previousCompilation;
     }
 
     public void processChange(InputFileDetails input, DefaultRecompilationSpec spec) {
         JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
-        JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarSnapshotter, previousCompilation);
+        JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarClasspathSnapshot, previousCompilation);
         DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
         if (actualDependents.isDependencyToAll()) {
             spec.fullRebuildCause = input.getFile();

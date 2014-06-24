@@ -48,7 +48,7 @@ public class IncrementalJavaCompilerFactory {
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
-        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations, jarSnapshotter, localJarSnapshots);
+        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations, localJarSnapshots);
         ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(compileCaches.getLocalClassDependencyInfoStore(), fileOperations, analyzer);
         incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, compileCaches.getLocalClassDependencyInfoStore(), fileOperations,
                 cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);

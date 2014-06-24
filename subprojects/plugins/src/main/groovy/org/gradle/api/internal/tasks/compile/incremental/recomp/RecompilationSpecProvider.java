@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarSnapshots;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -30,24 +30,22 @@ public class RecompilationSpecProvider {
 
     private final SourceToNameConverter sourceToNameConverter;
     private final FileOperations fileOperations;
-    private final JarSnapshotter jarSnapshotter;
     private final LocalJarSnapshots localJarSnapshots;
 
     public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, FileOperations fileOperations,
-                                     JarSnapshotter jarSnapshotter, LocalJarSnapshots localJarSnapshots) {
+                                     LocalJarSnapshots localJarSnapshots) {
         this.sourceToNameConverter = sourceToNameConverter;
         this.fileOperations = fileOperations;
-        this.jarSnapshotter = jarSnapshotter;
         this.localJarSnapshots = localJarSnapshots;
     }
 
-    public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs, ClassDependencyInfo dependencyInfo) {
+    public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs, ClassDependencyInfo dependencyInfo, JarClasspathSnapshot jarClasspathSnapshot) {
         PreviousCompilation previousCompilation = new PreviousCompilation(dependencyInfo, localJarSnapshots);
 
         //creating an action that will be executed against all changes
         DefaultRecompilationSpec spec = new DefaultRecompilationSpec();
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(dependencyInfo, sourceToNameConverter);
-        JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarSnapshotter, previousCompilation);
+        JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarClasspathSnapshot, previousCompilation);
         InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, jarChangeProcessor);
 
         //go!

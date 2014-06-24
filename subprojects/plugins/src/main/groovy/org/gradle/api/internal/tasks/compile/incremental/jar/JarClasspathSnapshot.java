@@ -16,24 +16,22 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-
-import java.util.Collections;
+import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
-public class AffectedClasses {
+public class JarClasspathSnapshot {
+    private final Map<File, JarSnapshot> jarSnapshots;
 
-    private final DependentsSet altered;
-
-    public AffectedClasses(DependentsSet altered) {
-        this.altered = altered;
+    public JarClasspathSnapshot(Map<File, JarSnapshot> jarSnapshots) {
+        this.jarSnapshots = jarSnapshots;
     }
 
-    public DependentsSet getAltered() {
-        return altered;
+    public JarSnapshot getSnapshot(JarArchive jarArchive) {
+        return jarSnapshots.get(jarArchive.file);
     }
 
-    public Set<String> getAdded() {
-        return Collections.emptySet();
+    public boolean isAnyClassDuplicated(Set<String> classNames) {
+        return false;
     }
 }

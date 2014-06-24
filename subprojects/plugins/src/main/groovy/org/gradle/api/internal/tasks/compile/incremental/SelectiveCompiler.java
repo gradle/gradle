@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -35,19 +37,22 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
     private final CleaningJavaCompiler cleaningCompiler;
     private final RecompilationSpecProvider recompilationSpecProvider;
     private final IncrementalCompilationInitializer incrementalCompilationInitilizer;
+    private final JarSnapshotsMaker jarSnapshotsMaker;
 
     public SelectiveCompiler(IncrementalTaskInputs inputs, ClassDependencyInfo classDependencyInfo, CleaningJavaCompiler cleaningCompiler,
-                             RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer) {
+                             RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer, JarSnapshotsMaker jarSnapshotsMaker) {
         this.inputs = inputs;
         this.classDependencyInfo = classDependencyInfo;
         this.cleaningCompiler = cleaningCompiler;
         this.recompilationSpecProvider = recompilationSpecProvider;
         this.incrementalCompilationInitilizer = compilationInitializer;
+        this.jarSnapshotsMaker = jarSnapshotsMaker;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
         Clock clock = new Clock();
-        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, classDependencyInfo);
+        JarClasspathSnapshot jarClasspathSnapshot = jarSnapshotsMaker.createJarClasspathSnapshot(spec.getClasspath());
+        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, classDependencyInfo, jarClasspathSnapshot);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
             LOG.lifecycle("Incremental java compilation not possible - full rebuild is needed due to a change to: {}. Analysis took {}.", recompilationSpec.getFullRebuildCause().getName(), clock.getTime());

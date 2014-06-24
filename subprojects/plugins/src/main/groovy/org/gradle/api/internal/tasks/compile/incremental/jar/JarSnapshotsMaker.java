@@ -30,7 +30,9 @@ public class JarSnapshotsMaker {
 
     private final LocalJarSnapshots localJarSnapshots;
     private final JarSnapshotter jarSnapshotter;
-    private ClasspathJarFinder classpathJarFinder;
+    private final ClasspathJarFinder classpathJarFinder;
+
+    private Map<File, JarSnapshot> jarSnapshots;
 
     public JarSnapshotsMaker(LocalJarSnapshots localJarSnapshots, JarSnapshotter jarSnapshotter, ClasspathJarFinder classpathJarFinder) {
         this.localJarSnapshots = localJarSnapshots;
@@ -39,18 +41,34 @@ public class JarSnapshotsMaker {
     }
 
     public void storeJarSnapshots(Iterable<File> classpath) {
+        initSnapshots(classpath);
+        Clock clock = new Clock();
+        Map<File, byte[]> jarHashes = new HashMap<File, byte[]>();
+        for (Map.Entry<File, JarSnapshot> e : jarSnapshots.entrySet()) {
+            jarHashes.put(e.getKey(), e.getValue().getHash());
+        }
+        localJarSnapshots.putHashes(jarHashes);
+        LOG.info("Written jar snapshots for incremental compilation in {}.", clock.getTime());
+    }
+
+    public JarClasspathSnapshot createJarClasspathSnapshot(Iterable<File> classpath) {
+        initSnapshots(classpath);
+        return new JarClasspathSnapshot(jarSnapshots);
+    }
+
+    private void initSnapshots(Iterable<File> classpath) {
+        if (jarSnapshots != null) {
+            return;
+        }
         Clock clock = new Clock();
         Iterable<JarArchive> jarArchives = classpathJarFinder.findJarArchives(classpath);
 
-        Map<File, byte[]> jarHashes = new HashMap<File, byte[]>();
+        jarSnapshots = new HashMap<File, JarSnapshot>();
         for (JarArchive jar : jarArchives) {
-            //it's important that we create a snapshot for every jar in the classpath.
-            // The implementation of the snapshotter deals with caching of the jar snapshots globally
             JarSnapshot snapshot = jarSnapshotter.createSnapshot(jar);
-            jarHashes.put(jar.file, snapshot.getHash());
+            jarSnapshots.put(jar.file, snapshot);
         }
         String creationTime = clock.getTime();
-        localJarSnapshots.putHashes(jarHashes);
-        LOG.info("Created and written jar snapshots for incremental compilation in {} (creation took {}).", clock.getTime(), creationTime);
+        LOG.info("Created jar snapshots for incremental compilation in {}.", clock.getTime(), creationTime);
     }
 }

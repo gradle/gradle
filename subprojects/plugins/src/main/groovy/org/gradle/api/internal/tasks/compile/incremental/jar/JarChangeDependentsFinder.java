@@ -17,17 +17,18 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class JarChangeDependentsFinder {
 
-    private JarSnapshotter jarSnapshotter;
-    private PreviousCompilation previousCompilation;
+    private final JarClasspathSnapshot jarClasspathSnapshot;
+    private final PreviousCompilation previousCompilation;
 
-    public JarChangeDependentsFinder(JarSnapshotter jarSnapshotter, PreviousCompilation previousCompilation) {
-        this.jarSnapshotter = jarSnapshotter;
+    public JarChangeDependentsFinder(JarClasspathSnapshot jarClasspathSnapshot, PreviousCompilation previousCompilation) {
+        this.jarClasspathSnapshot = jarClasspathSnapshot;
         this.previousCompilation = previousCompilation;
     }
 
@@ -41,16 +42,16 @@ public class JarChangeDependentsFinder {
             //If later, we would not recompile, if earlier, we would recompile only classes that depend on duplicate classes
             return new DefaultDependentsSet(true);
         }
-        JarSnapshot existing = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
+        JarSnapshot previous = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
 
-        if (existing == null) {
+        if (previous == null) {
             //we don't know what classes were dependents of the jar in the previous build
             //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
             return new DefaultDependentsSet(true);
         }
 
         if (jarChangeDetails.isRemoved()) {
-            DependentsSet allClasses = existing.getAllClasses();
+            DependentsSet allClasses = previous.getAllClasses();
             if (allClasses.isDependencyToAll()) {
                 //at least one of the classes in jar is a 'dependency-to-all'.
                 return allClasses;
@@ -60,17 +61,16 @@ public class JarChangeDependentsFinder {
         }
 
         if (jarChangeDetails.isModified()) {
-            JarSnapshot newSnapshot = jarSnapshotter.createSnapshot(jarArchive);
-            AffectedClasses affected = newSnapshot.getAffectedClassesSince(existing);
+            JarSnapshot currentSnapshot = jarClasspathSnapshot.getSnapshot(jarArchive);
+            AffectedClasses affected = currentSnapshot.getAffectedClassesSince(previous);
             if (affected.getAltered().isDependencyToAll()) {
                 //at least one of the classes changed in the jar is a 'dependency-to-all'
                 return affected.getAltered();
             }
 
-            //TODO
-//            if (currentCompilation.isAnyDuplicatedOnClasspath(affected.getAdded())) {
-//                return new DependencyToAll();
-//            }
+            if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
+                return new DependencyToAll();
+            }
 
             //recompile all dependents of the classes changed in the jar
             return previousCompilation.getDependents(affected.getAltered().getDependentClasses());
