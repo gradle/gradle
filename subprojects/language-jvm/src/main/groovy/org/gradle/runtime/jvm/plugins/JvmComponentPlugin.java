@@ -58,7 +58,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         modelRules.register("jvm.libraries", jvmLibraries);
 
-        modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder()));
+        modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder(), project.getBuildDir()));
         modelRules.rule(new CreateTasksForJvmBinaries());
     }
 }

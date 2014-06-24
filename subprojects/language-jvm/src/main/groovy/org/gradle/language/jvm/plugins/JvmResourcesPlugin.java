@@ -18,18 +18,62 @@ package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.LanguageRegistry;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
+import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.model.ModelRule;
+import org.gradle.model.ModelRules;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
+
+import javax.inject.Inject;
+import java.io.File;
 
 /**
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  * Registers "resources" language support with the {@link org.gradle.language.jvm.ResourceSet}.
  */
 public class JvmResourcesPlugin implements Plugin<Project> {
-    public void apply(Project project) {
+    private final ModelRules modelRules;
+
+    @Inject
+    public JvmResourcesPlugin(ModelRules modelRules) {
+        this.modelRules = modelRules;
+    }
+
+    public void apply(final Project project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
         project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("resources", ResourceSet.class, DefaultResourceSet.class);
+
+        modelRules.rule(new CreateProcessResourcesTasks(project.getBuildDir()));
+
+    }
+
+    private static class CreateProcessResourcesTasks extends ModelRule {
+        private final File buildDir;
+
+        public CreateProcessResourcesTasks(File buildDir) {
+            this.buildDir = buildDir;
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
+            for (JvmLibraryBinaryInternal binary : binaries.withType(JvmLibraryBinaryInternal.class)) {
+                for (ResourceSet resourceSet : binary.getSource().withType(ResourceSet.class)) {
+
+                    String resourcesTaskName = binary.getNamingScheme().getTaskName("process", ((LanguageSourceSetInternal) resourceSet).getFullName());
+                    ProcessResources resourcesTask = tasks.create(resourcesTaskName, ProcessResources.class);
+                    resourcesTask.from(resourceSet.getSource());
+                    resourcesTask.setDestinationDir(binary.getClassesDir());
+
+                    binary.getTasks().add(resourcesTask);
+                    binary.getTasks().getJar().dependsOn(resourcesTask);
+                }
+            }
+        }
     }
 }

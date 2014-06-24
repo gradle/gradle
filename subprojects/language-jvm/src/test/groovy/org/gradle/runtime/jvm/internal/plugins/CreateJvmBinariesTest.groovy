@@ -28,8 +28,9 @@ import spock.lang.Specification
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
 
 class CreateJvmBinariesTest extends Specification {
+    def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
-    def rule = new CreateJvmBinaries(namingSchemeBuilder)
+    def rule = new CreateJvmBinaries(namingSchemeBuilder, buildDir)
     def binaries = Mock(BinaryContainer)
 
     def "adds a binary for each jvm library"() {
@@ -43,6 +44,7 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
+        1 * namingScheme.outputDirectoryBase >> "jvmJarOutput"
         1 * binaries.add({ DefaultJvmLibraryBinary binary ->
             binary.namingScheme == namingScheme
             binary.library == library
@@ -64,6 +66,7 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
+        1 * namingScheme.outputDirectoryBase >> "jvmJarOutput"
         1 * binaries.add({ DefaultJvmLibraryBinary binary ->
             binary.namingScheme == namingScheme
             binary.library == library

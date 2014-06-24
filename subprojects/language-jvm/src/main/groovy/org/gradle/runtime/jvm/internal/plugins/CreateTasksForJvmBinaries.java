@@ -28,12 +28,18 @@ public class CreateTasksForJvmBinaries extends ModelRule {
         for (JvmLibraryBinaryInternal binary : binaries.withType(JvmLibraryBinaryInternal.class)) {
             Task jarTask = createJarTask(tasks, binary);
             binary.builtBy(jarTask);
+            binary.getTasks().add(jarTask);
         }
     }
 
     private Task createJarTask(TaskContainer tasks, JvmLibraryBinaryInternal binary) {
-        Jar jarTask = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
-        jarTask.setDescription(String.format("Creates the binary file for %s.", binary.getDisplayName()));
-        return jarTask;
+        Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
+        jar.setDescription(String.format("Creates the binary file for %s.", binary.getDisplayName()));
+        jar.from(binary.getClassesDir());
+
+        jar.setDestinationDir(binary.getJarFile().getParentFile());
+        jar.setArchiveName(binary.getJarFile().getName());
+
+        return jar;
     }
 }

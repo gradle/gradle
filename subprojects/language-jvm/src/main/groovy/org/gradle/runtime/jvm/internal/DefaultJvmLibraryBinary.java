@@ -17,17 +17,22 @@
 package org.gradle.runtime.jvm.internal;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.jvm.JvmBinaryTasks;
 import org.gradle.runtime.jvm.JvmLibrary;
 
-public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements ProjectBinary, JvmLibraryBinaryInternal {
+import java.io.File;
+
+public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements JvmLibraryBinaryInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final JvmLibrary library;
     private final BinaryNamingScheme namingScheme;
+    private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
+    private File classesDir;
+    private File jarFile;
 
     public DefaultJvmLibraryBinary(JvmLibrary library, BinaryNamingScheme namingScheme) {
         this.library = library;
@@ -65,5 +70,25 @@ public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement imple
 
     public void source(Object sources) {
         sourceSets.source(sources);
+    }
+
+    public JvmBinaryTasks getTasks() {
+        return tasks;
+    }
+
+    public File getJarFile() {
+        return jarFile;
+    }
+
+    public void setJarFile(File jarFile) {
+        this.jarFile = jarFile;
+    }
+
+    public File getClassesDir() {
+        return classesDir;
+    }
+
+    public void setClassesDir(File classesDir) {
+        this.classesDir = classesDir;
     }
 }

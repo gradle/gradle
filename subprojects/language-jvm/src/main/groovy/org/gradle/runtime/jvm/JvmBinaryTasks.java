@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm.internal;
+package org.gradle.runtime.jvm;
 
-import org.gradle.runtime.base.internal.BinaryInternal;
-import org.gradle.runtime.jvm.JvmLibrary;
-import org.gradle.runtime.jvm.JvmLibraryBinary;
-import org.gradle.runtime.jvm.ProjectJvmBinary;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
+import org.gradle.api.Task;
+import org.gradle.runtime.jvm.tasks.Jar;
 
-public interface JvmLibraryBinaryInternal extends JvmLibraryBinary, ProjectJvmBinary, BinaryInternal {
-    JvmLibrary getLibrary();
+/**
+ * Provides access to key tasks used for building the binary.
+ */
+@Incubating
+public interface JvmBinaryTasks extends DomainObjectSet<Task> {
+    /**
+     * The 'lifecycle' task, that can be used to construct this binary.
+     */
+    Task getBuild();
+
+    /**
+     * The jar task used to create an archive for this binary.
+     */
+    Jar getJar();
 }

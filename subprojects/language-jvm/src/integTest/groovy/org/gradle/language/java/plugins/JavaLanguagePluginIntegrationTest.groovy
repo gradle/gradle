@@ -16,6 +16,7 @@
 
 package org.gradle.language.java.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -140,5 +141,53 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         !file("build").exists()
+    }
+
+    def "generated binary includes resources from all resource sets"() {
+        when:
+        file("src/myLib/resources/one.txt") << "Here is a resource"
+        file("src/myLib/extraResources/sub-dir/two.txt") << "Here is another resource"
+
+        // TODO:DAZ Need to configure the default source locations (move out of Native)
+        // Will currently have different behaviour if native-component plugin is applied!
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    sources {
+        myLib {
+            resources {
+                source.srcDir "src/myLib/resources"
+            }
+            extraResources(ResourceSet) {
+                source.srcDir "src/myLib/extraResources"
+            }
+        }
+    }
+
+    jvm {
+        libraries {
+            myLib
+        }
+    }
+"""
+        and:
+        succeeds "myLib"
+
+        then:
+        executed ":processMyLibJarMyLibResources", ":processMyLibJarMyLibExtraResources", ":createMyLibJar", ":myLibJar"
+
+        and:
+        file("build/classes/myLibJar").assertHasDescendants("one.txt", "sub-dir/two.txt")
+
+
+        and:
+        def jar = jarFile("build/binaries/myLibJar.jar")
+        jar.assertFileContent("one.txt", "Here is a resource")
+        jar.assertFileContent("sub-dir/two.txt", "Here is another resource")
+    }
+
+    private JarTestFixture jarFile(String s) {
+        new JarTestFixture(file(s))
     }
 }
