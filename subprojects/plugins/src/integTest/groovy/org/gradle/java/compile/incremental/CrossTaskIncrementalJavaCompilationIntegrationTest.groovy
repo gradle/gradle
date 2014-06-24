@@ -404,8 +404,4 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         then: impl.recompiledClasses("A")
     }
-
-    def "new duplicate class is a dependency to all"() {
-        //TODO SF
-    }
 }
