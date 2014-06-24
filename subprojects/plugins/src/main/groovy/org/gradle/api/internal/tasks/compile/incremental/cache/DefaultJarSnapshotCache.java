@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotData;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
 
@@ -31,10 +32,10 @@ import java.util.Map;
  */
 public class DefaultJarSnapshotCache implements JarSnapshotCache {
 
-    private final MinimalPersistentCache<byte[], JarSnapshot> cache;
+    private final MinimalPersistentCache<byte[], JarSnapshotData> cache;
 
     public DefaultJarSnapshotCache(CacheRepository cacheRepository) {
-        cache = new MinimalPersistentCache<byte[], JarSnapshot>(cacheRepository, "jar snapshots", byte[].class, JarSnapshot.class);
+        cache = new MinimalPersistentCache<byte[], JarSnapshotData>(cacheRepository, "jar snapshots", byte[].class, JarSnapshotData.class);
     }
 
     public Map<File, JarSnapshot> getJarSnapshots(final Map<File, byte[]> jarHashes) {
@@ -42,7 +43,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
             public Map<File, JarSnapshot> create() {
                 final Map<File, JarSnapshot> out = new HashMap<File, JarSnapshot>();
                 for (Map.Entry<File, byte[]> entry : jarHashes.entrySet()) {
-                    JarSnapshot snapshot = cache.getCache().get(entry.getValue());
+                    JarSnapshot snapshot = new JarSnapshot(cache.getCache().get(entry.getValue()));
                     out.put(entry.getKey(), snapshot);
                 }
                 return out;
@@ -50,8 +51,12 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
         });
     }
 
-    public JarSnapshot get(byte[] key, Factory<JarSnapshot> factory) {
-        return cache.get(key, factory);
+    public JarSnapshot get(byte[] key, final Factory<JarSnapshot> factory) {
+        return new JarSnapshot(cache.get(key, new Factory<JarSnapshotData>() {
+            public JarSnapshotData create() {
+                return factory.create().getData();
+            }
+        }));
     }
 
     public void stop() {

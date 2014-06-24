@@ -53,6 +53,6 @@ class DefaultJarSnapshotter {
             }
         });
 
-        return new JarSnapshot(hash, hashes, extractor.getDependencyInfo());
+        return new JarSnapshot(new JarSnapshotData(hash, hashes, extractor.getDependencyInfo()));
     }
 }

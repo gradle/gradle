@@ -21,42 +21,28 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsS
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class JarSnapshot implements Serializable {
+public class JarSnapshot {
 
-    //TODO SF refactor all persistent objects into data objects, otherwise any signature changes in the class leads to serializable problems
-    //down the road we'll have hand crafted serialization
+    private final JarSnapshotData data;
 
-    final Map<String, byte[]> hashes;
-    final ClassDependencyInfo info;
+    public JarSnapshot(JarSnapshotData data) {
+        this.data = data;
+    }
 
-    private final byte[] hash;
-
-    /**
-     * @param hash of this jar
-     * @param hashes hashes of all classes from the jar
-     * @param info dependency info of classes in this jar
-     */
     public JarSnapshot(byte[] hash, Map<String, byte[]> hashes, ClassDependencyInfo info) {
-        assert hash != null;
-        assert hashes != null;
-        assert info != null;
-
-        this.hash = hash;
-        this.hashes = hashes;
-        this.info = info;
+        this.data = new JarSnapshotData(hash, hashes, info);
     }
 
     public DependentsSet getAllClasses() {
         final Set<String> result = new HashSet<String>();
-        for (Map.Entry<String, byte[]> cls : hashes.entrySet()) {
+        for (Map.Entry<String, byte[]> cls : getHashes().entrySet()) {
             String className = cls.getKey();
-            if (info.isDependencyToAll(className)) {
+            if (getInfo().isDependencyToAll(className)) {
                 return new DependencyToAll();
             }
             result.add(className);
@@ -72,14 +58,14 @@ public class JarSnapshot implements Serializable {
 
     private DependentsSet affectedSince(JarSnapshot other) {
         final Set<String> affected = new HashSet<String>();
-        for (Map.Entry<String, byte[]> otherClass : other.hashes.entrySet()) {
+        for (Map.Entry<String, byte[]> otherClass : other.getHashes().entrySet()) {
             String otherClassName = otherClass.getKey();
             byte[] otherClassBytes = otherClass.getValue();
-            byte[] thisClsBytes = hashes.get(otherClassName);
+            byte[] thisClsBytes = getHashes().get(otherClassName);
             if (thisClsBytes == null || !Arrays.equals(thisClsBytes, otherClassBytes)) {
                 //removed since or changed since
                 affected.add(otherClassName);
-                DependentsSet dependents = other.info.getRelevantDependents(otherClassName);
+                DependentsSet dependents = other.getInfo().getRelevantDependents(otherClassName);
                 if (dependents.isDependencyToAll()) {
                     return dependents;
                 }
@@ -90,16 +76,28 @@ public class JarSnapshot implements Serializable {
     }
 
     private Set<String> addedSince(JarSnapshot other) {
-        Set<String> addedClasses = new HashSet<String>(hashes.keySet());
-        addedClasses.removeAll(other.hashes.keySet());
+        Set<String> addedClasses = new HashSet<String>(getClasses());
+        addedClasses.removeAll(other.getClasses());
         return addedClasses;
     }
 
     public byte[] getHash() {
-        return hash;
+        return data.hash;
+    }
+
+    public Map<String, byte[]> getHashes() {
+        return data.hashes;
+    }
+
+    public ClassDependencyInfo getInfo() {
+        return data.info;
     }
 
     public Set<String> getClasses() {
-        return hashes.keySet();
+        return data.hashes.keySet();
+    }
+
+    public JarSnapshotData getData() {
+        return data;
     }
 }
