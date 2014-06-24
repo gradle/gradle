@@ -19,18 +19,19 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
 import spock.lang.Specification
 import spock.lang.Subject
 
 class JarSnapshotsMakerTest extends Specification {
 
-    def cache = Mock(LocalJarClasspathSnapshot)
+    def store = Mock(LocalJarClasspathSnapshotStore)
     def info = Mock(ClassDependencyInfo)
     def factory = Mock(JarClasspathSnapshotFactory)
     def finder = Mock(ClasspathJarFinder)
 
-    @Subject maker = new JarSnapshotsMaker(cache, factory, finder)
+    @Subject maker = new JarSnapshotsMaker(store, factory, finder)
 
     def "stores jar snapshots"() {
         def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree));
@@ -50,7 +51,7 @@ class JarSnapshotsMakerTest extends Specification {
         and:
         1 * finder.findJarArchives(filesDummy) >> [jar1, jar2]
         1 * factory.createSnapshot([jar1, jar2]) >> classpathSnapshot
-        1 * cache.putClasspathSnapshot(snapshotData)
+        1 * store.put(snapshotData)
         0 * _
     }
 
