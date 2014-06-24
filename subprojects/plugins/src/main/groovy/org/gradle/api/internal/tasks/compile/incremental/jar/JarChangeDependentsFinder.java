@@ -32,7 +32,6 @@ public class JarChangeDependentsFinder {
         this.previousCompilation = previousCompilation;
     }
 
-    //TODO SF coverage, add reason for selection/unselection
     public DependentsSet getActualDependents(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
         if (jarChangeDetails.isAdded()) {
             if (jarClasspathSnapshot.isAnyClassDuplicated(jarArchive)) {
@@ -73,7 +72,6 @@ public class JarChangeDependentsFinder {
                 //A new duplicate class on classpath. As we don't fancy-handle classpath order right now, we don't know which class is on classpath first.
                 //For safe measure rebuild everything
                 return new DependencyToAll("at least one of the classes of modified jar '" + jarArchive.file.getName() + "' is already present in the classpath");
-                //TODO SF debug/info log duplicate classes.
             }
 
             //recompile all dependents of the classes changed in the jar

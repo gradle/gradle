@@ -24,14 +24,14 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInf
 import spock.lang.Specification
 import spock.lang.Subject
 
-class JarSnapshotsMakerTest extends Specification {
+class JarClasspathSnapshotMakerTest extends Specification {
 
     def store = Mock(LocalJarClasspathSnapshotStore)
     def info = Mock(ClassDependencyInfo)
     def factory = Mock(JarClasspathSnapshotFactory)
     def finder = Mock(ClasspathJarFinder)
 
-    @Subject maker = new JarSnapshotsMaker(store, factory, finder)
+    @Subject maker = new JarClasspathSnapshotMaker(store, factory, finder)
 
     def "stores jar snapshots"() {
         def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree));

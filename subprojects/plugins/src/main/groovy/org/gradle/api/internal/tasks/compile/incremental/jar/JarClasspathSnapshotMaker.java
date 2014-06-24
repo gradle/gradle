@@ -23,9 +23,9 @@ import org.gradle.util.Clock;
 
 import java.io.File;
 
-public class JarSnapshotsMaker implements JarClasspathSnapshotProvider, JarClasspathSnapshotWriter {
+public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, JarClasspathSnapshotWriter {
 
-    private static final Logger LOG = Logging.getLogger(JarSnapshotsMaker.class);
+    private static final Logger LOG = Logging.getLogger(JarClasspathSnapshotMaker.class);
 
     private final LocalJarClasspathSnapshotStore classpathSnapshotStore;
     private final ClasspathJarFinder classpathJarFinder;
@@ -33,7 +33,7 @@ public class JarSnapshotsMaker implements JarClasspathSnapshotProvider, JarClass
 
     private JarClasspathSnapshot jarClasspathSnapshot;
 
-    public JarSnapshotsMaker(LocalJarClasspathSnapshotStore classpathSnapshotStore, JarClasspathSnapshotFactory classpathSnapshotFactory, ClasspathJarFinder classpathJarFinder) {
+    public JarClasspathSnapshotMaker(LocalJarClasspathSnapshotStore classpathSnapshotStore, JarClasspathSnapshotFactory classpathSnapshotFactory, ClasspathJarFinder classpathJarFinder) {
         this.classpathSnapshotStore = classpathSnapshotStore;
         this.classpathSnapshotFactory = classpathSnapshotFactory;
         this.classpathJarFinder = classpathJarFinder;

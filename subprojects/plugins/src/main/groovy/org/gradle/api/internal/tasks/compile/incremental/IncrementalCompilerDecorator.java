@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.logging.Logger;
@@ -31,7 +31,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 public class IncrementalCompilerDecorator {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
-    private final JarSnapshotsMaker jarSnapshotsMaker;
+    private final JarClasspathSnapshotMaker jarClasspathSnapshotMaker;
     private final CompileCaches compileCaches;
     private final CleaningJavaCompiler cleaningCompiler;
     private final String displayName;
@@ -40,11 +40,11 @@ public class IncrementalCompilerDecorator {
     private final CompilationSourceDirs sourceDirs;
     private final IncrementalCompilationInitializer compilationInitializer;
 
-    public IncrementalCompilerDecorator(JarSnapshotsMaker jarSnapshotsMaker, CompileCaches compileCaches,
+    public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, CompileCaches compileCaches,
                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
                                         RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater,
                                         CompilationSourceDirs sourceDirs) {
-        this.jarSnapshotsMaker = jarSnapshotsMaker;
+        this.jarClasspathSnapshotMaker = jarClasspathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
         this.cleaningCompiler = cleaningCompiler;
@@ -56,7 +56,7 @@ public class IncrementalCompilerDecorator {
 
     public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs) {
         final Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalCompilationFinalizer(compiler, jarSnapshotsMaker, classDependencyInfoUpdater);
+        return new IncrementalCompilationFinalizer(compiler, jarClasspathSnapshotMaker, classDependencyInfoUpdater);
     }
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
@@ -74,6 +74,6 @@ public class IncrementalCompilerDecorator {
             return cleaningCompiler;
         }
         PreviousCompilation previousCompilation = new PreviousCompilation(classDependencyInfo, compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
-        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarSnapshotsMaker);
+        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
     }
 }
