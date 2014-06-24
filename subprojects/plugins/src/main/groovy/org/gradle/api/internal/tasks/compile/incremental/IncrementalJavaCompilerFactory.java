@@ -43,12 +43,13 @@ public class IncrementalJavaCompilerFactory {
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compileCaches.getClassAnalysisCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compileCaches.getJarSnapshotCache());
 
-        LocalJarSnapshots localJarSnapshots = new LocalJarSnapshots(compileCaches.getLocalJarHashesStore(), compileCaches.getJarSnapshotCache());
+        //TODO SF rework, it's a bit awkward that this snapshot is mutable, merge with LocalJarClasspathSnapshotStore
+        LocalJarClasspathSnapshot localJarClasspathSnapshot = new LocalJarClasspathSnapshot(compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
 
-        JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarSnapshots, jarSnapshotter, new ClasspathJarFinder(fileOperations));
+        JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(localJarClasspathSnapshot, jarSnapshotter, new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
-        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations, localJarSnapshots);
+        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations, localJarClasspathSnapshot);
         ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(compileCaches.getLocalClassDependencyInfoStore(), fileOperations, analyzer);
         incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, compileCaches.getLocalClassDependencyInfoStore(), fileOperations,
                 cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);

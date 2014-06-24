@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarHashesStore;
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore;
 
 import java.io.File;
 import java.util.Map;
@@ -27,35 +27,36 @@ import java.util.Map;
  * It provides jar snapshots of the previous build so that incremental compilation can compare them with current jar snapshots.
  * This is required for correct handling of jar changes by the incremental java compilation.
  */
-public class LocalJarSnapshots {
-    private final LocalJarHashesStore localJarHashesStore;
+public class LocalJarClasspathSnapshot {
+    private final LocalJarClasspathSnapshotStore localJarClasspathSnapshotStore;
     private final JarSnapshotCache jarSnapshotCache;
 
     private Map<File, JarSnapshot> snapshots;
 
-    public LocalJarSnapshots(LocalJarHashesStore localJarHashesStore,
-                             JarSnapshotCache jarSnapshotCache) {
-        this.localJarHashesStore = localJarHashesStore;
+    public LocalJarClasspathSnapshot(LocalJarClasspathSnapshotStore localJarClasspathSnapshotStore,
+                                     JarSnapshotCache jarSnapshotCache) {
+        this.localJarClasspathSnapshotStore = localJarClasspathSnapshotStore;
         this.jarSnapshotCache = jarSnapshotCache;
     }
 
     public JarSnapshot getSnapshot(File jar) {
         if (snapshots == null) {
+            //there may be not jar changes at all so we load the snapshots lazily
             loadSnapshots();
         }
         return snapshots.get(jar);
     }
 
-    public void putHashes(Map<File, byte[]> newHashes) {
-        //We're writing all hashes regardless of how many jars have changed.
+    public void putClasspathSnapshot(JarClasspathSnapshotData data) {
+        //We're writing all hashes regardless of how many jars have updated/changed.
         //This simplifies stuff and does not seem to introduce a performance hit.
-        localJarHashesStore.put(newHashes);
+        localJarClasspathSnapshotStore.put(data);
     }
 
     private void loadSnapshots() {
         //We're loading all hashes regardless of how much of that is actually consumed.
         //This simplifies stuff and does not seem to introduce a performance hit.
-        Map<File, byte[]> jarHashes = localJarHashesStore.get();
-        snapshots = jarSnapshotCache.getJarSnapshots(jarHashes);
+        JarClasspathSnapshotData data = localJarClasspathSnapshotStore.get();
+        snapshots = jarSnapshotCache.getJarSnapshots(data.getJarHashes());
     }
 }

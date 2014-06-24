@@ -17,27 +17,25 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.SingleOperationPersistentStore;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotData;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
-import java.io.File;
-import java.util.Map;
+//Keeps the jar classpath snapshot of given compile task
+public class LocalJarClasspathSnapshotStore {
 
-//Keeps the jar hashes of given compile task
-public class LocalJarHashesStore {
+    private final SingleOperationPersistentStore<JarClasspathSnapshotData> store;
 
-    private final SingleOperationPersistentStore<Map<File, byte[]>> store;
-
-    public LocalJarHashesStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
+    public LocalJarClasspathSnapshotStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        store = new SingleOperationPersistentStore<Map<File, byte[]>>(cacheRepository, javaCompile, "local jar hashes", (Class) Map.class);
+        store = new SingleOperationPersistentStore<JarClasspathSnapshotData>(cacheRepository, javaCompile, "local jar classpath snapshot", JarClasspathSnapshotData.class);
     }
 
-    public void put(Map<File, byte[]> newHashes) {
-        store.putAndClose(newHashes);
+    public void put(JarClasspathSnapshotData data) {
+        store.putAndClose(data);
     }
 
-    public Map<File, byte[]> get() {
+    public JarClasspathSnapshotData get() {
         return store.getAndClose();
     }
 }

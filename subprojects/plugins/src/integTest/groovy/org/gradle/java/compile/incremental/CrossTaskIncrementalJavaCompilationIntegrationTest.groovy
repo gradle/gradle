@@ -19,7 +19,6 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import spock.lang.Ignore
 
 public class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -354,16 +353,13 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         when:
         //add new jar with duplicate class that will be earlier on the classpath (project dependencies are earlier on classpath)
-        file("api/src/main/java/org/junit/Assert.java") << "public class Assert {}"
+        file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
         file("impl/build.gradle") << "dependencies { compile project(':api') }"
         run("impl:compileJava")
 
         then: impl.recompiledClasses("A")
     }
 
-    //TODO SF - this needs to be fixed. Currently we compare jar snapshots with each other but this is weak and does not support duplicate class in jar
-    //we should really compare entire classpath snapshots so that we can factor in duplicate classes
-    @Ignore
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {
         java impl: ["class A extends org.junit.Assert {}"]
         file("impl/build.gradle") << """
@@ -374,7 +370,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         when:
         //update existing jar with duplicate class that will be earlier on the classpath (project dependencies are earlier on classpath)
-        file("api/src/main/java/org/junit/Assert.java") << "public class Assert {}"
+        file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
         run("impl:compileJava")
 
         then: impl.recompiledClasses("A")

@@ -25,7 +25,7 @@ import spock.lang.Subject
 
 class JarSnapshotsMakerTest extends Specification {
 
-    def cache = Mock(LocalJarSnapshots)
+    def cache = Mock(LocalJarClasspathSnapshot)
     def info = Mock(ClassDependencyInfo)
     def snapshotter = Mock(JarSnapshotter)
     def finder = Mock(ClasspathJarFinder)
@@ -45,7 +45,7 @@ class JarSnapshotsMakerTest extends Specification {
         1 * finder.findJarArchives(classpath) >> [jar1, jar2]
         1 * snapshotter.createSnapshot(jar1) >> Mock(JarSnapshot) { getHash() >> hash1 }
         1 * snapshotter.createSnapshot(jar2) >> Mock(JarSnapshot) { getHash() >> hash2 }
-        1 * cache.putHashes([(jar1.file): hash1, (jar2.file): hash2])
+        1 * cache.putClasspathSnapshot([(jar1.file): hash1, (jar2.file): hash2])
         0 * _
     }
 }

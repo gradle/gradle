@@ -17,30 +17,25 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import java.io.File;
-import java.util.Collections;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-public class JarClasspathSnapshot {
+public class JarClasspathSnapshotData implements Serializable {
 
-    private final Map<File, JarSnapshot> jarSnapshots;
-    private final JarClasspathSnapshotData data;
+    private final Map<File, byte[]> jarHashes;
+    private final Set<String> duplicateClasses;
 
-    public JarClasspathSnapshot(Map<File, JarSnapshot> jarSnapshots, JarClasspathSnapshotData data) {
-        this.jarSnapshots = jarSnapshots;
-        this.data = data;
+    public JarClasspathSnapshotData(Map<File, byte[]> jarHashes, Set<String> duplicateClasses) {
+        this.jarHashes = jarHashes;
+        this.duplicateClasses = duplicateClasses;
     }
 
-    public JarSnapshot getSnapshot(JarArchive jarArchive) {
-        return jarSnapshots.get(jarArchive.file);
+    public Set<String> getDuplicateClasses() {
+        return duplicateClasses;
     }
 
-    public boolean isAnyClassDuplicated(Set<String> classNames) {
-        boolean noCommonElements = Collections.disjoint(data.getDuplicateClasses(), classNames);
-        return !noCommonElements;
-    }
-
-    public JarClasspathSnapshotData getData() {
-        return data;
+    public Map<File, byte[]> getJarHashes() {
+        return jarHashes;
     }
 }

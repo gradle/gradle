@@ -17,6 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 public interface CompileCaches extends GeneralCompileCaches {
-    LocalJarHashesStore getLocalJarHashesStore();
+    LocalJarClasspathSnapshotStore getLocalJarClasspathSnapshotStore();
     LocalClassDependencyInfoStore getLocalClassDependencyInfoStore();
 }

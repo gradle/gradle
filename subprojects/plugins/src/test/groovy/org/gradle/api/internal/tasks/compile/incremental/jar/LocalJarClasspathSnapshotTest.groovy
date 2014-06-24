@@ -19,20 +19,20 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache
-import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarHashesStore
+import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class LocalJarSnapshotsTest extends Specification {
+class LocalJarClasspathSnapshotTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
-    def hashesStore = Mock(LocalJarHashesStore)
+    def hashesStore = Mock(LocalJarClasspathSnapshotStore)
     def snapshotCache = Mock(JarSnapshotCache)
 
-    @Subject cache = new LocalJarSnapshots(hashesStore, snapshotCache)
+    @Subject cache = new LocalJarClasspathSnapshot(hashesStore, snapshotCache)
 
     def "empty cache"() {
         when:

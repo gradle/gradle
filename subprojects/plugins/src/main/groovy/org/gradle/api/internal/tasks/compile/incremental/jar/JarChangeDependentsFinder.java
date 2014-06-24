@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
@@ -32,7 +31,7 @@ public class JarChangeDependentsFinder {
         this.previousCompilation = previousCompilation;
     }
 
-    //TODO SF coverage
+    //TODO SF coverage, add reason for selection/unselection
     public DependentsSet getActualDependents(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
         if (jarChangeDetails.isAdded()) {
             //TODO - potentially
@@ -40,14 +39,14 @@ public class JarChangeDependentsFinder {
             //this can be improved - we can snapshot the jars on classpath beforehand and keep track of duplicate classes or model the classpath snapshot
             //this way we will know if the new jar with duplicate class is earlier or later on the classpath.
             //If later, we would not recompile, if earlier, we would recompile only classes that depend on duplicate classes
-            return new DefaultDependentsSet(true);
+            return new DependencyToAll();
         }
         JarSnapshot previous = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
 
         if (previous == null) {
             //we don't know what classes were dependents of the jar in the previous build
             //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
-            return new DefaultDependentsSet(true);
+            return new DependencyToAll();
         }
 
         if (jarChangeDetails.isRemoved()) {
@@ -69,6 +68,8 @@ public class JarChangeDependentsFinder {
             }
 
             if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
+                //TODO - potentially. Only mark as dependency to all if the newly added class duplicate is a dependency to all
+                //otherwise, just recompile the dependents of the duplicate class
                 return new DependencyToAll();
             }
 

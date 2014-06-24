@@ -16,59 +16,66 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class JarSnapshotsMaker {
 
     private static final Logger LOG = Logging.getLogger(JarSnapshotsMaker.class);
 
-    private final LocalJarSnapshots localJarSnapshots;
+    private final LocalJarClasspathSnapshot localJarClasspathSnapshot;
     private final JarSnapshotter jarSnapshotter;
     private final ClasspathJarFinder classpathJarFinder;
 
-    private Map<File, JarSnapshot> jarSnapshots;
+    private JarClasspathSnapshot jarClasspathSnapshot;
 
-    public JarSnapshotsMaker(LocalJarSnapshots localJarSnapshots, JarSnapshotter jarSnapshotter, ClasspathJarFinder classpathJarFinder) {
-        this.localJarSnapshots = localJarSnapshots;
+    public JarSnapshotsMaker(LocalJarClasspathSnapshot localJarClasspathSnapshot, JarSnapshotter jarSnapshotter, ClasspathJarFinder classpathJarFinder) {
+        this.localJarClasspathSnapshot = localJarClasspathSnapshot;
         this.jarSnapshotter = jarSnapshotter;
         this.classpathJarFinder = classpathJarFinder;
     }
 
     public void storeJarSnapshots(Iterable<File> classpath) {
-        initSnapshots(classpath);
+        init(classpath);
         Clock clock = new Clock();
-        Map<File, byte[]> jarHashes = new HashMap<File, byte[]>();
-        for (Map.Entry<File, JarSnapshot> e : jarSnapshots.entrySet()) {
-            jarHashes.put(e.getKey(), e.getValue().getHash());
-        }
-        localJarSnapshots.putHashes(jarHashes);
+        localJarClasspathSnapshot.putClasspathSnapshot(jarClasspathSnapshot.getData());
         LOG.info("Written jar snapshots for incremental compilation in {}.", clock.getTime());
     }
 
     public JarClasspathSnapshot createJarClasspathSnapshot(Iterable<File> classpath) {
-        initSnapshots(classpath);
-        return new JarClasspathSnapshot(jarSnapshots);
+        init(classpath);
+        return jarClasspathSnapshot;
     }
 
-    private void initSnapshots(Iterable<File> classpath) {
-        if (jarSnapshots != null) {
+    private void init(Iterable<File> classpath) {
+        if (jarClasspathSnapshot != null) {
             return;
         }
         Clock clock = new Clock();
         Iterable<JarArchive> jarArchives = classpathJarFinder.findJarArchives(classpath);
 
-        jarSnapshots = new HashMap<File, JarSnapshot>();
+        Map<File, JarSnapshot> jarSnapshots = new HashMap<File, JarSnapshot>();
+        Map<File, byte[]> jarHashes = new HashMap<File, byte[]>();
+        Set<String> allClasses = new HashSet<String>();
+        Set<String> duplicateClasses = new HashSet<String>();
         for (JarArchive jar : jarArchives) {
             JarSnapshot snapshot = jarSnapshotter.createSnapshot(jar);
             jarSnapshots.put(jar.file, snapshot);
+            jarHashes.put(jar.file, snapshot.getHash());
+            duplicateClasses.addAll(CollectionUtils.intersection(allClasses, snapshot.hashes.keySet()));
+            allClasses.addAll(snapshot.hashes.keySet());
         }
         String creationTime = clock.getTime();
+        JarClasspathSnapshotData jarClasspathSnapshotData = new JarClasspathSnapshotData(jarHashes, duplicateClasses);
+        jarClasspathSnapshot = new JarClasspathSnapshot(jarSnapshots, jarClasspathSnapshotData);
         LOG.info("Created jar snapshots for incremental compilation in {}.", clock.getTime(), creationTime);
     }
 }

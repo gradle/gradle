@@ -18,15 +18,16 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
-import java.util.Collections;
 import java.util.Set;
 
 public class AffectedClasses {
 
     private final DependentsSet altered;
+    private final Set<String> addedClasses;
 
-    public AffectedClasses(DependentsSet altered) {
+    public AffectedClasses(DependentsSet altered, Set<String> addedClasses) {
         this.altered = altered;
+        this.addedClasses = addedClasses;
     }
 
     public DependentsSet getAltered() {
@@ -34,6 +35,6 @@ public class AffectedClasses {
     }
 
     public Set<String> getAdded() {
-        return Collections.emptySet();
+        return addedClasses;
     }
 }

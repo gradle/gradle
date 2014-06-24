@@ -39,8 +39,8 @@ public class DefaultCompileCaches implements CompileCaches {
         return generalCaches.getJarSnapshotCache();
     }
 
-    public LocalJarHashesStore getLocalJarHashesStore() {
-        return new LocalJarHashesStore(repository, javaCompile);
+    public LocalJarClasspathSnapshotStore getLocalJarClasspathSnapshotStore() {
+        return new LocalJarClasspathSnapshotStore(repository, javaCompile);
     }
 
     public LocalClassDependencyInfoStore getLocalClassDependencyInfoStore() {

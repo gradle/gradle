@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarSnapshots;
+import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -30,17 +30,17 @@ public class RecompilationSpecProvider {
 
     private final SourceToNameConverter sourceToNameConverter;
     private final FileOperations fileOperations;
-    private final LocalJarSnapshots localJarSnapshots;
+    private final LocalJarClasspathSnapshot localJarClasspathSnapshot;
 
     public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, FileOperations fileOperations,
-                                     LocalJarSnapshots localJarSnapshots) {
+                                     LocalJarClasspathSnapshot localJarClasspathSnapshot) {
         this.sourceToNameConverter = sourceToNameConverter;
         this.fileOperations = fileOperations;
-        this.localJarSnapshots = localJarSnapshots;
+        this.localJarClasspathSnapshot = localJarClasspathSnapshot;
     }
 
     public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs, ClassDependencyInfo dependencyInfo, JarClasspathSnapshot jarClasspathSnapshot) {
-        PreviousCompilation previousCompilation = new PreviousCompilation(dependencyInfo, localJarSnapshots);
+        PreviousCompilation previousCompilation = new PreviousCompilation(dependencyInfo, localJarClasspathSnapshot);
 
         //creating an action that will be executed against all changes
         DefaultRecompilationSpec spec = new DefaultRecompilationSpec();
