@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
@@ -34,20 +33,20 @@ public class IncrementalCompilationSupport {
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationSupport.class);
     private final JarSnapshotsMaker jarSnapshotsMaker;
     private final CompileCaches compileCaches;
-    private final FileOperations fileOperations;
     private final CleaningJavaCompiler cleaningCompiler;
     private final String displayName;
     private final RecompilationSpecProvider staleClassDetecter;
     private final ClassDependencyInfoUpdater classDependencyInfoUpdater;
     private final CompilationSourceDirs sourceDirs;
+    private final IncrementalCompilationInitializer compilationInitializer;
 
     public IncrementalCompilationSupport(JarSnapshotsMaker jarSnapshotsMaker, CompileCaches compileCaches,
-                                         FileOperations fileOperations, CleaningJavaCompiler cleaningCompiler, String displayName,
+                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
                                          RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater,
                                          CompilationSourceDirs sourceDirs) {
         this.jarSnapshotsMaker = jarSnapshotsMaker;
         this.compileCaches = compileCaches;
-        this.fileOperations = fileOperations;
+        this.compilationInitializer = compilationInitializer;
         this.cleaningCompiler = cleaningCompiler;
         this.displayName = displayName;
         this.staleClassDetecter = staleClassDetecter;
@@ -74,8 +73,7 @@ public class IncrementalCompilationSupport {
             LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
-        IncrementalCompilationInitializer initializer = new IncrementalCompilationInitializer(fileOperations); //TODO SF move out
         PreviousCompilation previousCompilation = new PreviousCompilation(classDependencyInfo, compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
-        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, initializer, jarSnapshotsMaker);
+        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarSnapshotsMaker);
     }
 }

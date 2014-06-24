@@ -48,7 +48,8 @@ public class IncrementalJavaCompilerFactory {
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
         ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(compileCaches.getLocalClassDependencyInfoStore(), fileOperations, analyzer);
-        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, compileCaches, fileOperations,
+        IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations);
+        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, compileCaches, compilationInitializer,
                 cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
     }
 
