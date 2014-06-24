@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile
+package org.gradle.language.jvm.internal
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class SimpleStaleClassCleanerTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final TaskOutputsInternal outputs = Mock()
+    private final outputs = Mock(TaskOutputsInternal)
     private final SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs)
     
     def deletesAllPreviousOutputFiles() {
