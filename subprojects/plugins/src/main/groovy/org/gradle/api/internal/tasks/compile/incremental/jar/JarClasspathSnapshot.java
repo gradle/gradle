@@ -43,4 +43,9 @@ public class JarClasspathSnapshot {
     public JarClasspathSnapshotData getData() {
         return data;
     }
+
+    public boolean isAnyClassDuplicated(JarArchive jarArchive) {
+        JarSnapshot snapshot = getSnapshot(jarArchive);
+        return isAnyClassDuplicated(snapshot.getClasses());
+    }
 }

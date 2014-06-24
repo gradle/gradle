@@ -360,6 +360,17 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         then: impl.recompiledClasses("A")
     }
 
+    def "new jar without duplicate class does not trigger compilation"() {
+        java impl: ["class A {}"]
+        impl.snapshot { run("impl:compileJava") }
+
+        when:
+        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.11' }"
+        run("impl:compileJava")
+
+        then: impl.noneRecompiled()
+    }
+
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {
         java impl: ["class A extends org.junit.Assert {}"]
         file("impl/build.gradle") << """
