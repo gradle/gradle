@@ -109,7 +109,7 @@ Combining native and jvm libraries in single project
       For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
       Or, if I'm building for Android, fail if the SDK is not installed.
     - Build everything. Fail if a certain binary cannot be built.
-- Validation of library names
+- Validation of library names (e.g. don't include ':' and reserved filesystem characters).
 
 ### Story: Build author creates JVM library jar from Java sources
 
@@ -164,7 +164,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Create a `CompileJava` task for each `JavaSourceSet` for a `JvmLibraryBinary`
     - compile classes to `build/classes/${binaryName}`
 - Create a `Jar` task for each `JvmLibraryBinary`
-    - produce jar file at `build/binaries/${binaryName}/${componentName}.jar`
+    - produce jar file at `build/${binaryType}/${binaryName}/${componentName}.jar`
 - Rejig the native language plugins so that '*-lang' + 'native-components' is sufficient to apply language support
     - Existing 'cpp', 'c', etc plugins will simply apply '*-lang' and 'native-components'
 
@@ -183,6 +183,8 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 #### Open issues
 
+- Need to be able to navigate from a `JvmLibrary` to its binaries.
+- Need to be able to navigate from a `JvmLibraryBinary` to its tool chain.
 - Need `groovy-lang` and `scala-lang` plugins
 - Possibly deprecate the existing 'cpp', 'c', etc plugins.
 - All compiled classes are removed when all java source files are removed.
@@ -191,7 +193,8 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 - Rework the existing `SoftwareComponent` implementations so that they are `Component` implementations instead.
 - Expose all native and jvm components through `project.components`.
-- Don't need to support publishing yet.
+- Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
+
 
     apply plugin: 'java'
 
@@ -209,6 +212,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - JVM library with name `main` is defined with any combination of `java`, `groovy` and `scala` plugins applied
 - Web application with name `war` is defined when `war` plugin is applied.
 - Can build legacy jvm library jar using standard lifecycle task
+- Can mix legacy and new jvm libraries in the same project.
 
 #### Open issues
 
