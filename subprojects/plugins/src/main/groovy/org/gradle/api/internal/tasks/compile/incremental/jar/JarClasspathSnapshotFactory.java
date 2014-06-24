@@ -37,6 +37,10 @@ public class JarClasspathSnapshotFactory {
         Map<File, byte[]> jarHashes = new HashMap<File, byte[]>();
         Set<String> allClasses = new HashSet<String>();
         Set<String> duplicateClasses = new HashSet<String>();
+
+        //TODO SF we could simplify things. We could try loading all available snapshots (lock),
+        // then for all missed snapshots create snapshots (no lock), then store snapshots (lock).
+
         for (JarArchive jar : jarArchives) {
             JarSnapshot snapshot = jarSnapshotter.createSnapshot(jar);
             jarSnapshots.put(jar.file, snapshot);

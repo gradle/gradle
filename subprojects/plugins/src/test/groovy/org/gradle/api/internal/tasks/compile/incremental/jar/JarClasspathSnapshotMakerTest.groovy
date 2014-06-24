@@ -37,7 +37,7 @@ class JarClasspathSnapshotMakerTest extends Specification {
         def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree));
         def jar2 = new JarArchive(new File("jar2.jar"), Mock(FileTree))
 
-        def snapshotData = Mock(JarClasspathSnapshotData)
+        def snapshotData = Stub(JarClasspathSnapshotData)
         def classpathSnapshot = Stub(JarClasspathSnapshot) { getData() >> snapshotData }
         def filesDummy = [new File("f")]
 
@@ -58,7 +58,7 @@ class JarClasspathSnapshotMakerTest extends Specification {
     def "gets classpath snapshot"() {
         def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree));
 
-        def classpathSnapshot = Mock(JarClasspathSnapshot)
+        def classpathSnapshot = Stub(JarClasspathSnapshot)
         def filesDummy = [new File("f")]
 
         when:
