@@ -16,6 +16,7 @@
 
 package org.gradle.runtime.jvm.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "does not create library or binaries when not configured"() {
@@ -76,7 +77,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "check"
     }
 
-    def "skips creating binary when binary has no sources"() {
+    def "creates empty binary when binary has no sources"() {
         given:
         buildFile << """
     apply plugin: 'jvm-component'
@@ -94,8 +95,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         executed ":createMyJvmLibJar", ":myJvmLibJar"
 
         and:
-        // Only has tmp file, no jar created. Fix this when we are able to create jar for sources.
-        file("build").assertHasDescendants("tmp/createMyJvmLibJar/MANIFEST.MF")
+        def jar = new JarTestFixture(file("build/binaries/myJvmLibJar.jar"))
+        jar.hasDescendants()
     }
 
     def "can specify additional builder tasks for binary"() {
