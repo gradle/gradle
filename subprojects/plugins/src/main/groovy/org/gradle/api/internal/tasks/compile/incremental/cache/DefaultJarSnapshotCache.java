@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotDataSerializer;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.BaseSerializerFactory;
@@ -37,7 +38,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
 
     public DefaultJarSnapshotCache(CacheRepository cacheRepository) {
         BaseSerializerFactory f = new BaseSerializerFactory();
-        cache = new MinimalPersistentCache<byte[], JarSnapshotData>(cacheRepository, "jar snapshots", f.getSerializerFor(byte[].class), f.getSerializerFor(JarSnapshotData.class));
+        cache = new MinimalPersistentCache<byte[], JarSnapshotData>(cacheRepository, "jar snapshots", f.getSerializerFor(byte[].class), new JarSnapshotDataSerializer());
     }
 
     public Map<File, JarSnapshot> getJarSnapshots(final Map<File, byte[]> jarHashes) {
