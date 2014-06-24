@@ -21,8 +21,7 @@ import java.util.*;
 
 public class ClassDependencyInfo implements Serializable {
 
-    //TODO SF refactor all persistent objects into data objects, otherwise any signature changes in the class leads to serializable problems
-    //down the road we'll have hand crafted serialization
+    //TODO SF refactor all persistent objects into data objects because it's cleaner and easier to add hand crafted serialization
 
     private final Map<String, ? extends DependentsSet> dependents;
 
