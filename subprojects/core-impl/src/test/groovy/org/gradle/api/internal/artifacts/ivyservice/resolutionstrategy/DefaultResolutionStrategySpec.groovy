@@ -190,4 +190,12 @@ public class DefaultResolutionStrategySpec extends Specification {
         then:
         1 * cachePolicy.cacheDynamicVersionsFor(1 * 60 * 60 * 1000, TimeUnit.MILLISECONDS)
     }
+
+    def "configures missing version cache with jdk6+ units"() {
+        when:
+        strategy.cacheMissingModulesAndArtifactsFor(1, "hours")
+
+        then:
+        1 * cachePolicy.cacheMissingModulesAndArtifactsFor(1 * 60 * 60 * 1000, TimeUnit.MILLISECONDS)
+    }
 }

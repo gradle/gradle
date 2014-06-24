@@ -22,10 +22,10 @@ import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.internal.Actions;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.internal.Actions;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 
@@ -112,6 +112,15 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public void cacheChangingModulesFor(int value, TimeUnit units) {
         this.cachePolicy.cacheChangingModulesFor(value, units);
+    }
+
+    public void cacheMissingModulesAndArtifactsFor(int value, TimeUnit units) {
+        this.cachePolicy.cacheMissingModulesAndArtifactsFor(value, units);
+    }
+
+    public void cacheMissingModulesAndArtifactsFor(int value, String units) {
+        NormalizedTimeUnit timeUnit = new TimeUnitsParser().parseNotation(units, value);
+        this.cachePolicy.cacheMissingModulesAndArtifactsFor(timeUnit.getValue(), timeUnit.getTimeUnit());
     }
 
     public DefaultResolutionStrategy copy() {
