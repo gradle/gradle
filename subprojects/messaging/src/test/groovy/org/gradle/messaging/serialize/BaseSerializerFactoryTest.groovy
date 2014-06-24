@@ -64,6 +64,15 @@ class BaseSerializerFactoryTest extends Specification {
         1 * decoder.readLong() >> 456L
     }
 
+    def "uses efficient serialization for byte arrays"() {
+        def s = factory.getSerializerFor(byte[])
+        def os = new ByteArrayOutputStream()
+        s.write(new OutputStreamBackedEncoder(os), new byte[5])
+
+        expect:
+        s.read(new InputStreamBackedDecoder(new ByteArrayInputStream(os.toByteArray()))).length == 5
+    }
+
     def "uses Java serialization for unknown type"() {
         expect:
         factory.getSerializerFor(Thing) instanceof DefaultSerializer

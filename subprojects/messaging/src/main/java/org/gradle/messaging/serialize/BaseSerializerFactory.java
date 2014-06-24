@@ -22,6 +22,7 @@ public class BaseSerializerFactory {
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     public static final Serializer LONG_SERIALIZER = new LongSerializer();
     public static final Serializer FILE_SERIALIZER = new FileSerializer();
+    public static final Serializer BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
@@ -34,6 +35,9 @@ public class BaseSerializerFactory {
         }
         if (type.equals(File.class)) {
             return FILE_SERIALIZER;
+        }
+        if (type.equals(byte[].class)) {
+            return BYTE_ARRAY_SERIALIZER;
         }
         return new DefaultSerializer<T>(type.getClassLoader());
     }
@@ -65,6 +69,16 @@ public class BaseSerializerFactory {
 
         public void write(Encoder encoder, File value) throws Exception {
             encoder.writeString(value.getPath());
+        }
+    }
+
+    private static class ByteArraySerializer implements Serializer<byte[]> {
+        public byte[] read(Decoder decoder) throws Exception {
+            return decoder.readBinary();
+        }
+
+        public void write(Encoder encoder, byte[] value) throws Exception {
+            encoder.writeBinary(value);
         }
     }
 }
