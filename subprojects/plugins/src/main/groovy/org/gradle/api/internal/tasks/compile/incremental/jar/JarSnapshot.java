@@ -29,6 +29,9 @@ import java.util.Set;
 
 public class JarSnapshot implements Serializable {
 
+    //TODO SF refactor all persistent objects into data objects, otherwise any signature changes in the class leads to serializable problems
+    //down the road we'll have hand crafted serialization
+
     final Map<String, byte[]> hashes;
     final ClassDependencyInfo info;
 
