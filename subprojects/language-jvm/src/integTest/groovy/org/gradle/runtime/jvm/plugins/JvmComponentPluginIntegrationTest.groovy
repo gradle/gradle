@@ -68,7 +68,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLibJar.buildTask == binaryTask
 
         def jarTask = tasks['createMyLibJar']
-        assert jarTask instanceof org.gradle.runtime.jvm.tasks.Jar
+        assert jarTask instanceof Jar
         assert jarTask.group == null
         assert jarTask.description == "Creates the binary file for jar 'myLib:jar'."
     }
