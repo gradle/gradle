@@ -1099,6 +1099,32 @@
         </para>
     </section>
 
+    <section id='sec:incremental_compile'>
+        <title>Incremental java compilation</title>
+        <para>Starting with Gradle 2.1, it is possible to compile java incrementally. This feature is still incubating.
+            See the <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task for information how to enable it.</para>
+        <para>
+            Main goals for incremental compilations are:
+            <itemizedlist>
+                <listitem>Avoid wasting time compiling source classes that don't have to be compiled.
+                    This means faster builds, especially when a change to source class or a jar does not incur recompilation of many source classes that depend on the changed input.</listitem>
+                <listitem>Change as little output classes as possible. Classes that don't need to be recompiled remain unchanged in the output directory.
+                    An example scenario when this is really useful is using JRebel - the less output classes are changed the quicker the jvm can use refreshed classes.</listitem>
+            </itemizedlist>
+            The incremental compilation at a high level:
+            <itemizedlist>
+                <listitem>The detection of correct set of stale classes is reliable at some expense of speed.
+                    The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc.
+                    Example: When a class with a public constant changes, we eagerly compile everything to avoid problems with constants inlined by the compiler.
+                    Down the road we will tune the algorithm and caching so that incremental java compilation can be a default setting for every compile task.
+                </listitem>
+                <listitem>To make incremental compilation fast, we cache class analysis results and jar snapshots.
+                    The initial incremental compilation can be slower due to the cold caches.
+                </listitem>
+            </itemizedlist>
+        </para>
+    </section>
+
     <section id='sec:java_test'>
         <title>Test</title>
         <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.Test"/>.
