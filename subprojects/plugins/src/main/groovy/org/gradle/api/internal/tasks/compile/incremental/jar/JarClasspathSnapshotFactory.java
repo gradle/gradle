@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.apache.commons.collections.CollectionUtils;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,8 +40,11 @@ public class JarClasspathSnapshotFactory {
             JarSnapshot snapshot = jarSnapshotter.createSnapshot(jar);
             jarSnapshots.put(jar.file, snapshot);
             jarHashes.put(jar.file, snapshot.getHash());
-            duplicateClasses.addAll(CollectionUtils.intersection(allClasses, snapshot.getClasses()));
-            allClasses.addAll(snapshot.getClasses());
+            for (String c : snapshot.getClasses()) {
+                if (!allClasses.add(c)) {
+                    duplicateClasses.add(c);
+                }
+            }
         }
         JarClasspathSnapshotData jarClasspathSnapshotData = new JarClasspathSnapshotData(jarHashes, duplicateClasses);
         return new JarClasspathSnapshot(jarSnapshots, jarClasspathSnapshotData);
