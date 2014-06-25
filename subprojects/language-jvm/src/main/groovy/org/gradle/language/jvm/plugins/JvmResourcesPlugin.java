@@ -31,7 +31,6 @@ import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
@@ -49,17 +48,11 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         project.getPlugins().apply(LanguageBasePlugin.class);
         project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("resources", ResourceSet.class, DefaultResourceSet.class);
 
-        modelRules.rule(new CreateProcessResourcesTasks(project.getBuildDir()));
+        modelRules.rule(new CreateProcessResourcesTasks());
 
     }
 
     private static class CreateProcessResourcesTasks extends ModelRule {
-        private final File buildDir;
-
-        public CreateProcessResourcesTasks(File buildDir) {
-            this.buildDir = buildDir;
-        }
-
         @SuppressWarnings("UnusedDeclaration")
         void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
             for (JvmLibraryBinaryInternal binary : binaries.withType(JvmLibraryBinaryInternal.class)) {
