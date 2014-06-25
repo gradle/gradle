@@ -46,14 +46,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
         project.getPlugins().apply(LifecycleBasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
 
-        ProjectComponentContainer softwareComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
-        softwareComponents.registerFactory(JvmLibrary.class, new NamedDomainObjectFactory<JvmLibrary>() {
+        ProjectComponentContainer projectComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
+        projectComponents.registerFactory(JvmLibrary.class, new NamedDomainObjectFactory<JvmLibrary>() {
             public JvmLibrary create(String name) {
                 return new DefaultJvmLibrary(name);
             }
         });
 
-        NamedDomainObjectContainer<JvmLibrary> jvmLibraries = softwareComponents.containerWithType(JvmLibrary.class);
+        NamedDomainObjectContainer<JvmLibrary> jvmLibraries = projectComponents.containerWithType(JvmLibrary.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
 
         modelRules.register("jvm.libraries", jvmLibraries);

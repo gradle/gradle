@@ -79,12 +79,12 @@ Combining native and jvm libraries in single project
 - Extract a common supertype `Application` for `NativeExecutable`, and a common supertype `Component` for `Library` and `Application`
 - Introduce a 'filtered' view of the ExtensiblePolymorphicDomainObjectContainer, such that only elements of a particular type are returned
   and any element created is given that type.
-    - Add a backing `softwareComponents` container extension that contains all Library and Application elements
+    - Add a backing `projectComponents` container extension that contains all Library and Application elements
         - Will later be merged with `project.components`.
     - Add 'jvm' and 'nativeRuntime' extensions for namespacing different library containers
     - Add 'nativeRuntime.libraries' and 'jvm.libraries' as filtered containers on 'components', with appropriate library type
     - Add 'nativeRuntime.executables' as filtered view on 'components
-    - Use the 'softwareComponents' container in native code where currently must iterate separately over 'libraries' and 'executables'
+    - Use the 'projectComponents' container in native code where currently must iterate separately over 'libraries' and 'executables'
 
 #### Test cases
 
