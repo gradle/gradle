@@ -49,6 +49,9 @@ import java.io.File;
  *     compileJava {
  *         //enable compilation in a separate daemon process
  *         options.fork = true
+ *
+ *         //enable incremental compilation
+ *         options.incremental = true
  *     }
  * </pre>
  */
