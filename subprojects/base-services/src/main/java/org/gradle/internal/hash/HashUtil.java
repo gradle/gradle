@@ -32,6 +32,9 @@ public class HashUtil {
     public static HashValue createHash(File file, String algorithm) {
         try {
             return createHash(new FileInputStream(file), algorithm);
+        } catch (UncheckedIOException e) {
+            // Catch any unchecked io exceptions and add the file path for troubleshooting
+            throw new UncheckedIOException(String.format("Failed to hash file %s.", file.getAbsolutePath()), e.getCause());
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(e);
         }
