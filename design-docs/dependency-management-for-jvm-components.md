@@ -109,7 +109,7 @@ Combining native and jvm libraries in single project
       For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
       Or, if I'm building for Android, fail if the SDK is not installed.
     - Build everything. Fail if a certain binary cannot be built.
-- Validation of library names (e.g. don't include ':' and reserved filesystem characters).
+- Validation of component, binary and source set names (e.g. don't include ':' and reserved filesystem characters, or limit to valid Java identifiers).
 
 ### Story: Build author creates JVM library jar from Java sources
 
@@ -183,11 +183,14 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 #### Open issues
 
+- Don't build a jar when there is no source, mark the binary as not buildable.
+    - Should do a similar thing with native components.
 - Need to be able to navigate from a `JvmLibrary` to its binaries.
 - Need to be able to navigate from a `JvmLibraryBinary` to its tool chain.
 - Need `groovy-lang` and `scala-lang` plugins
 - Possibly deprecate the existing 'cpp', 'c', etc plugins.
 - All compiled classes are removed when all java source files are removed.
+- Clean up output files from components and binaries that have been removed or renamed.
 
 ### Story: Legacy JVM language plugins declare a jvm library
 
@@ -242,6 +245,10 @@ A custom library type:
 - Extends or implements some public base `Library` type.
 - Has no dependencies.
 - Produces no artifacts.
+
+#### Open issues
+
+- Interaction with the `model { }` block.
 
 ### Story: Custom library produces custom binaries
 
