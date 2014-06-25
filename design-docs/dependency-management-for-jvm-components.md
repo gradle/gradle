@@ -197,23 +197,55 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 ### Story: plugin declares its own library type
 
-Add a sample plugin that declares a custom library type:
+Define a sample plugin that declares a custom library type:
+    
+    interface SampleLibrary extends Library {}
+
+    class SampleExtension {
+        def numberOfSampleLibraries
+        def binariesPerSampleLibrary
+    }
+
+    class CreateSampleLibraries extends ModelRule {
+        def createLibraries(Set<SampleLibrary> components, SampleExtension sampleExtension) {
+            ... Create sample libraries and add to components
+        }
+    }
+
+    class MySample implements Plugin<Project> {
+        void apply(final Project project) {
+            project.plugins.apply LanguageBasePlugin // Core domain infrastructure
+            
+            // 'static' registration of sample domain and library type
+            DomainRegistry registry = project.extensions.getByType(DomainRegistry)
+            DomainRegistration mySampleDomain = registry.registerDomain("mySample", SampleExtension)
+            mySampleDomain.registerLibraryType(SampleLibrary, new CreateSampleLibraries())
+        }
+    }
+    
+
+Apply and use the sample plugin:
 
     apply plugin: 'my-sample'
 
     mySample {
-        // can use its own DSL
-        ...
+        // eg. Plugin will add 2 libraries of type SampleLibrary to 'mySample.libraries'
+        numberOfSampleLibraries = 2
     }
 
     // Library is also visible in libraries and components containers
-    assert libraries.withType(SampleLibrary).size() == 1
-    assert components.withType(SampleLibrary).size() == 1
+    assert mySample.libraries.size() == 2
+    assert mySample.components.size() == 2
+    assert projectComponents.withType(SampleLibrary).size() == 2
 
 A custom library type:
 - Extends or implements some public base `Library` type.
 - Has no dependencies.
 - Produces no artifacts.
+
+#### Implementation Plan
+
+#### Test Cases
 
 #### Open issues
 
@@ -221,19 +253,48 @@ A custom library type:
 
 ### Story: Custom library produces custom binaries
 
-Change the sample plugin so that it declares its own binary type for the libraries it defines:
+Add a binary type to the sample plugin:
+
+    interface SampleBinary extends LibraryBinary {}
+
+    class MySample implements Plugin<Project> {
+        void apply(final Project project) {
+            ...
+
+            // 'static' registration of sample binary type with sample domain
+            mySampleDomain.registerBinaryType(SampleLibrary, SampleBinary, new CreateSampleBinaries())
+            mySampleDomain.registerTasks(SampleBinary, new CreateTasksForSampleBinary())
+        }
+    }
+
+    class CreateBinariesForSampleLibrary extends ModelRule {
+        def createBinaries(Set<SampleBinary> binaries, SampleLibrary library, SampleExtension sampleExtension) {
+            ... Create sample binaries for this library, and add to the set
+            ... Binaries will automatically be added to the appropriate container(s)
+        }
+    }
+
+    class CreateTasksForSampleBinary extends ModelRule {
+        void createTasks(TaskContainer tasks, SampleBinary binary, SampleExtension sampleExtension) {
+            ... Create tasks that create this binary
+        }
+    }
+
+Binaries are now visible in the appropriate containers:
 
     apply plugin: 'my-sample'
 
     mySample {
         // can use its own DSL
-        ...
+        numberOfSampleLibraries = 2
+        binariesPerSampleLibrary = 3
     }
 
-    // Binaries are also visible in the binaries container
-    assert binaries.withType(SampleBinary).size() == 2
-
-Allow a plugin to declare the binaries for a custom library.
+    // Binaries are visible in the appropriate containers
+    assert binaries.withType(SampleBinary).size() == 6
+    mySample.libraries.each { sampleLibrary ->
+        assert sampleLibrary.binaries.size() == 3
+    }
 
 A custom binary:
 - Extends or implements some public base `LibraryBinary` type.
