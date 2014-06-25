@@ -192,6 +192,9 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Possibly deprecate the existing 'cpp', 'c', etc plugins.
 - All compiled classes are removed when all java source files are removed.
 - Clean up output files from components and binaries that have been removed or renamed.
+- Customise manifest for JvmLibrary and/or JvmLibraryBinary
+- Customise compiler options for JvmLibrary and/or JvmLibraryBinary
+- How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
 
 ## Feature: Custom plugin defines a custom library type
 
