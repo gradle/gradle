@@ -66,14 +66,14 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     }
 
     task check << {
-        assert softwareComponents.size() == 3
-        assert softwareComponents.nativeExe instanceof NativeExecutable
-        assert softwareComponents.nativeLib instanceof NativeLibrary
-        assert softwareComponents.jvmLib instanceof JvmLibrary
+        assert projectComponents.size() == 3
+        assert projectComponents.nativeExe instanceof NativeExecutable
+        assert projectComponents.nativeLib instanceof NativeLibrary
+        assert projectComponents.jvmLib instanceof JvmLibrary
 
-        assert nativeRuntime.executables as List == [softwareComponents.nativeExe]
-        assert nativeRuntime.libraries as List == [softwareComponents.nativeLib]
-        assert jvm.libraries as List == [softwareComponents.jvmLib]
+        assert nativeRuntime.executables as List == [projectComponents.nativeExe]
+        assert nativeRuntime.libraries as List == [projectComponents.nativeLib]
+        assert jvm.libraries as List == [projectComponents.jvmLib]
 
         assert binaries.size() == 4
         binaries.jvmLibJar instanceof JvmLibraryBinary
