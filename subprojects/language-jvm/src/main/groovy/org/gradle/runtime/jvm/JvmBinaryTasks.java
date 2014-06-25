@@ -19,7 +19,7 @@ package org.gradle.runtime.jvm;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.runtime.jvm.tasks.Jar;
+import org.gradle.api.tasks.bundling.Jar;
 
 /**
  * Provides access to key tasks used for building the binary.

@@ -20,9 +20,9 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.runtime.jvm.JvmBinaryTasks;
 import org.gradle.runtime.jvm.ProjectJvmBinary;
-import org.gradle.runtime.jvm.tasks.Jar;
 
 public class DefaultJvmBinaryTasks extends DefaultDomainObjectSet<Task> implements JvmBinaryTasks {
     private final ProjectJvmBinary binary;

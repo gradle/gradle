@@ -18,10 +18,10 @@ package org.gradle.runtime.jvm.internal.plugins;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.model.ModelRule;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
-import org.gradle.runtime.jvm.tasks.Jar;
 
 public class CreateTasksForJvmBinaries extends ModelRule {
     void createTasks(TaskContainer tasks, BinaryContainer binaries) {

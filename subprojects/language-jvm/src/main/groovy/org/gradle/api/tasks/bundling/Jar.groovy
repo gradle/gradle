@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm.tasks
+package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.util.ConfigureUtil
 
 /**

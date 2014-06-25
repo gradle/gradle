@@ -17,12 +17,12 @@
 package org.gradle.runtime.jvm.internal.plugins
 
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.jvm.JvmBinaryTasks
 import org.gradle.runtime.jvm.JvmLibraryBinary
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal
-import org.gradle.runtime.jvm.tasks.Jar
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
