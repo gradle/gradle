@@ -192,38 +192,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - All compiled classes are removed when all java source files are removed.
 - Clean up output files from components and binaries that have been removed or renamed.
 
-### Story: Legacy JVM language plugins declare a jvm library
-
-- Rework the existing `SoftwareComponent` implementations so that they are `Component` implementations instead.
-- Expose all native and jvm components through `project.components`.
-- Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
-
-
-    apply plugin: 'java'
-
-    // The library is visible
-    assert jvm.libraries.main instanceof LegacyJvmLibrary
-    assert libraries.size() == 1
-    assert components.size() == 1
-
-    // The binary is visible
-    assert binaries.withType(ClassDirectoryBinary).size() == 1
-    assert binaries.withType(JarBinary).size() == 1
-
-#### Test cases
-
-- JVM library with name `main` is defined with any combination of `java`, `groovy` and `scala` plugins applied
-- Web application with name `war` is defined when `war` plugin is applied.
-- Can build legacy jvm library jar using standard lifecycle task
-- Can mix legacy and new jvm libraries in the same project.
-
-#### Open issues
-
-- Expose through the DSL, or just through the APIs?
-- The `application` plugin should also declare a jvm application.
-- The `ear` plugin should also declare a j2ee application.
-- These plugins should also declare binaries.
-
 ## Feature: Custom plugin defines a custom library type
 
 ### Story: plugin declares its own library type
@@ -285,6 +253,40 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
+### Story: Legacy JVM language plugins declare a jvm library
+
+- Rework the existing `SoftwareComponent` implementations so that they are `Component` implementations instead.
+- Expose all native and jvm components through `project.components`.
+- Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
+
+
+    apply plugin: 'java'
+
+    // The library is visible
+    assert jvm.libraries.main instanceof LegacyJvmLibrary
+    assert libraries.size() == 1
+    assert components.size() == 1
+
+    // The binary is visible
+    assert binaries.withType(ClassDirectoryBinary).size() == 1
+    assert binaries.withType(JarBinary).size() == 1
+
+#### Test cases
+
+- JVM library with name `main` is defined with any combination of `java`, `groovy` and `scala` plugins applied
+- Web application with name `war` is defined when `war` plugin is applied.
+- Can build legacy jvm library jar using standard lifecycle task
+- Can mix legacy and new jvm libraries in the same project.
+
+#### Open issues
+
+- Expose through the DSL, or just through the APIs?
+- The `application` plugin should also declare a jvm application.
+- The `ear` plugin should also declare a j2ee application.
+- These plugins should also declare binaries.
+
+### Story: Build author declares a dependency on another Java library
+
 For example:
 
     apply plugin: 'jvm-component'
@@ -310,7 +312,7 @@ When the project attribute refers to a project without a component plugin applie
 
 - At compile and runtime, include the artifacts and dependencies from the `default` configuration.
 
-### Open issues
+#### Open issues
 
 - Should be able to depend on a library in the same project.
 - Need an API to query the various classpaths.
