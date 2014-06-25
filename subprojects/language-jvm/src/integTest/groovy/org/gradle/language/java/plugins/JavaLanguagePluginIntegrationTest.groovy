@@ -182,7 +182,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
 
 
         and:
-        def jar = jarFile("build/binaries/myLibJar.jar")
+        def jar = jarFile("build/jars/myLibJar/myLib.jar")
         jar.hasDescendants("one.txt", "sub-dir/two.txt")
         jar.assertFileContent("one.txt", "Here is a resource")
         jar.assertFileContent("sub-dir/two.txt", "Here is another resource")

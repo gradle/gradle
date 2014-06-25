@@ -35,7 +35,7 @@ public class CreateJvmBinaries extends ModelRule {
     // TODO:DAZ Add a ProjectLayout model that can be input to a rule
     public CreateJvmBinaries(BinaryNamingSchemeBuilder namingSchemeBuilder, File buildDir) {
         this.namingSchemeBuilder = namingSchemeBuilder;
-        this.binariesDir = new File(buildDir, "binaries");
+        this.binariesDir = new File(buildDir, "jars");
         this.classesDir = new File(buildDir, "classes");
     }
 
@@ -55,6 +55,6 @@ public class CreateJvmBinaries extends ModelRule {
     private void configureBinaryOutputLocations(DefaultJvmLibraryBinary jvmLibraryBinary) {
         String outputBaseName = jvmLibraryBinary.getNamingScheme().getOutputDirectoryBase();
         jvmLibraryBinary.setClassesDir(new File(classesDir, outputBaseName));
-        jvmLibraryBinary.setJarFile(new File(binariesDir, String.format("%s.jar", outputBaseName)));
+        jvmLibraryBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jvmLibraryBinary.getLibrary().getName())));
     }
 }

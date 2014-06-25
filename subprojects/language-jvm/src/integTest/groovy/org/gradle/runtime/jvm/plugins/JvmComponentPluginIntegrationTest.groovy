@@ -95,7 +95,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         executed ":createMyJvmLibJar", ":myJvmLibJar"
 
         and:
-        def jar = new JarTestFixture(file("build/binaries/myJvmLibJar.jar"))
+        def jar = new JarTestFixture(file("build/jars/myJvmLibJar/myJvmLib.jar"))
         jar.hasDescendants()
     }
 
