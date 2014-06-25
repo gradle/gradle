@@ -184,6 +184,8 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 #### Open issues
 
+- Don't attach Java source sets to native components
+- Don't attach native language source sets to jvm components.
 - Don't build a jar when there is no source, mark the binary as not buildable.
     - Should do a similar thing with native components.
 - Need to be able to navigate from a `JvmLibrary` to its binaries.
@@ -194,6 +196,12 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Clean up output files from components and binaries that have been removed or renamed.
 - Customise manifest for JvmLibrary and/or JvmLibraryBinary
 - Customise compiler options for JvmLibrary and/or JvmLibraryBinary
+- Customise output locations
+- Customise source directories
+    - Layout where source and resources are in the same directory - need to filter source files
+- More stuff about the source
+    - Java language version
+    - Source encoding
 - How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
 
 ## Feature: Custom plugin defines a custom library type
@@ -252,6 +260,13 @@ A custom library type:
 
 #### Open issues
 
+- `DomainRegistry` should be a service rather than a project extension.
+- Need some public way to easily 'implement' Library and commons subtypes such as `ProjectComponent`. For example, a public default implementation that can
+be extended (should have no-args constructor) or generate the implementation from the interface.
+- Statically declare the component type and associated meta-data, so it can be inferred from the plugin implementation class without applying the plugin.
+For example, use a method signature or annotation, or add some specific interface other than `Plugin` that is to be implemented.
+- Statically declare the rules to create the libraries given the extension. For example, use a method signature. For example, use a method signature or annotation.
+- Infer the dependency on the language base plugin.Added
 - Interaction with the `model { }` block.
 
 ### Story: Custom library produces custom binaries
@@ -307,6 +322,10 @@ Running `gradle assemble` will build each library binary.
 
 #### Open issues
 
+- Public mechanism to 'implement' Binary and common subtypes such as ProjectBinary.
+- Statically declare the binary type.
+- Statically declare the rules to create binaries given a library.
+- Statically declare the rules to create tasks given a binary.
 - Validation of binary names
 
 ### Story: Custom binary is built from Java sources
