@@ -276,7 +276,7 @@ This story adds support to build models that have a scope of a whole Gradle buil
   - And get result from `ToolingModelBuilder` for project scope if passing one of parameters describing project.
 - Client receives decent feedback when requests an unknown model.
 
-## Story: Tooling API client cancels a long running operation
+## Feature: Tooling API client cancels a long running operation
 
 Represent the execution of a long running operation using a `Future`. This `Future` can be used to cancel the operation.
 
@@ -311,47 +311,76 @@ Represent the execution of a long running operation using a `Future`. This `Futu
     BuildFuture<CustomModel> action = connection.action(new MyAction()).start();
     CustomModel m = action.get();
 
-### Implementation
+### Story: Client uses internal API to request cancellation of long running operation
 
-The overall plan is to start close to the client and gradually move the asynchronous execution and cancellation closer
-to the build:
+This story adds an API to allow a client to request the cancellation of a long running operation. For this story, the
+API will be internal. The API will be made public in a later story.
 
-Use futures to represent the existing asynchronous behaviour:
+#### Implementation plan
 
-1. Change internal class `BlockingResultHandler` to implement `BuildFuture` and reuse this type to implement the futures.
-2. Implementation should discard handlers once they have been notified, so they can be garbage collected.
+1. Add API to the client.
+2. Add new tooling API protocol interfaces to support cancellation.
+3. The provider implementation simply acknowledges the cancellation request, but does not actually cancel the operation. This is added in a
+subsequent story.
 
-Push asynchronous execution down to the provider:
+#### Test cases
 
-1. Change `AsyncConsumerActionExecutor.run()` to return a future (not necessarily a `Future`) instead of accepting a
-   result handler.
-2. Rework `DefaultAsyncConsumerActionExecutor` and `LazyConsumerActionExecutor` into a lazy `AsyncConsumerActionExecutor`
-   implementation that composes two asynchronous operations into a single operation, represented by a composite future. The
-   first operation creates the real `AsyncConsumerActionExecutor` (possibly downloading the distribution) and the second dispatches
-   the client action to this executor once it is available.
-3. Add a new asynchronous protocol interface similar to `AsyncConsumerActionExecutor` that allows actions to be queued up for
-   execution, returning a future representing the result.
-4. For provider connections that implement this protocol interface, delegate to the provider to execute the action. For
-   connections that do not, adapt the connection in the client.
+- Client can cancel operation for target Gradle version that supports cancellation:
+    - Building model
+    - Running tasks
+    - Running build action
+- Client receives reasonable error messages when attempting to cancel operation for target Gradle version that does not support cancellation.
+- Client can cancel operation after operation has completed:
+    - Successful operation
+    - Failed operation
 
-Forward cancellation requests to the daemon:
+### Story: Daemon exits when operation is cancelled
 
-1. When `Future.cancel()` is called by the client, close the daemon connection. The daemon will stop the build and exit.
+This story adds a basic cancellation implementation. The behaviour is similar to the case where the command-line client is killed, where the daemon
+process simply exits. This behaviour will be improved later.
 
-For target versions that do not support cancellation, `Future.cancel()` always returns false.
+#### Implementation plan
 
-### Test cases
+1. Provider implementation forwards the cancellation request to the daemon.
+2. The daemon uses `DaemonStateControl.requestForcefulStop()` to terminate the build.
+3. Forward a 'build cancelled' exception to the client.
 
-- Client blocks until results available when using `get()`
-- Client receives failure when using `get()` and operation fails
-- Client receives timeout exception when blocking with timeout
-- Client can cancel operation
-    - Stops the operation for all target versions that support cancellation. Does not block.
-    - Returns `false` for all older target versions.
-    - Client listener added to future is notified that operation failed due to cancellation.
-    - When a thread is blocked on `get()`, a call to `cancel()` will unblock the thread and the call to `get()` will fail with an exception.
-- Client listener added to future is notified when result is available.
-- Client listener added to future is notified when operation fails.
+#### Test cases
+
+- Client cancels a long build
+    - Some time after requesting, the client receives a 'build cancelled' exception and the daemon is no longer running.
+
+### Story: Daemon waits short period of time for cancelled operation to complete
+
+In this story, the daemon attempts to terminate a cancelled build more gracefully, by waiting for a short period of time for the build to complete.
+
+#### Implementation plan
+
+1. When `DaemonStateControl.requestForcefulStop()` is called, the daemon waits for 10 seconds (say) for the build to complete. If the build
+completes, then do not exit. If the build does not complete in this time, exit the process.
+
+#### Test cases
+
+- Client cancels a short build
+    - Some time after requesting, the client receives a 'build cancelled' exception and the daemon is still running.
+    - Should use fixture to probe the daemon logs to determine that it has seen the request and terminated the build cleanly.
+    - Client continues to get build output during this time.
+- Command-line client runs a short build and is killed.
+    - Some time after this the daemon finishes the build and continues to run.
+    - Should use fixture to probe the daemon logs to determine that it has seen the event and terminated the build cleanly.
+- Extend the existing daemon termination tests to use fixture to probe the daemon logs to determine that the daemon has decided to exit.
+
+### Story: Task graph execution is aborted when operation is cancelled
+
+### Story: Gradle distribution download is aborted when operation is cancelled
+
+### Story: Model configuration is aborted when operation is cancelled
+
+### Story: Build action receives exception when operation is cancelled
+
+### Story: Make cancellation API public
+
+## Feature: Expose more details about the project
 
 ## Story: Expose the IDE output directories
 
