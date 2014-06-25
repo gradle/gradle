@@ -42,6 +42,13 @@ The example output of `jps -m` command now also contains the function of the wor
     28649 GradleWorkerMain 'Gradle Test Executor 17'
     28630 GradleWorkerMain 'Gradle Compiler Daemon 1'
 
+### Java Gradle Plugin plugin
+
+This is a plugin to assist in developing gradle plugins.  It validates the plugin structure during the jar task and emits warnings
+if the plugin metadata is not valid.
+
+    apply plugin: 'java-gradle-plugin'
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
