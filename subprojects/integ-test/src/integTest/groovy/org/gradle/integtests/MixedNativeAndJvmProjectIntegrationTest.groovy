@@ -26,7 +26,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
             apply plugin: "java"
             apply plugin: "cpp"
 
-            nativeCode {
+            nativeRuntime {
                 executables {
                     mainExe
                 }
@@ -50,7 +50,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
-    nativeCode {
+    nativeRuntime {
         executables {
             nativeExe
         }
@@ -71,8 +71,8 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         assert softwareComponents.nativeLib instanceof NativeLibrary
         assert softwareComponents.jvmLib instanceof JvmLibrary
 
-        assert nativeCode.executables as List == [softwareComponents.nativeExe]
-        assert nativeCode.libraries as List == [softwareComponents.nativeLib]
+        assert nativeRuntime.executables as List == [softwareComponents.nativeExe]
+        assert nativeRuntime.libraries as List == [softwareComponents.nativeLib]
         assert jvm.libraries as List == [softwareComponents.jvmLib]
 
         assert binaries.size() == 4
@@ -92,7 +92,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
-    nativeCode {
+    nativeRuntime {
         executables {
             nativeApp
         }

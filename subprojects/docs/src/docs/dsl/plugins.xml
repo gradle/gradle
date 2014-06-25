@@ -82,7 +82,7 @@
         <extends targetClass="org.gradle.api.Project" id="jvm" extensionClass="org.gradle.runtime.jvm.JvmComponentExtension"/>
     </plugin>
     <plugin id="native-component" description="Native Component Model Plugin">
-        <extends targetClass="org.gradle.api.Project" id="nativeCode" extensionClass="org.gradle.nativebinaries.NativeComponentExtension"/>
+        <extends targetClass="org.gradle.api.Project" id="nativeRuntime" extensionClass="org.gradle.nativebinaries.NativeComponentExtension"/>
         <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.toolchain.ToolChainRegistry"/>
         <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativebinaries.BuildTypeContainer"/>
         <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativebinaries.platform.PlatformContainer"/>

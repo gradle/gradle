@@ -54,7 +54,7 @@ Combining native and jvm libraries in single project
             myJvmLib
         }
     }
-    nativeCode {
+    nativeRuntime {
         libraries {
             myNativeLib
         }
@@ -80,10 +80,10 @@ Combining native and jvm libraries in single project
 - Introduce a 'filtered' view of the ExtensiblePolymorphicDomainObjectContainer, such that only elements of a particular type are returned
   and any element created is given that type.
     - Add a backing 'components' container that contains all Library and Application elements
-    - Add 'jvm' and 'nativeCode' extensions for namespacing different library containers
-    - Add 'nativeCode.libraries' and 'jvm.libraries' as filtered containers on 'components', with appropriate library type
-    - Add 'nativeCode.executables' as filtered view on 'components
     - Use the 'components' container in native code where currently must iterate separately over 'libraries' and 'executables'
+    - Add 'jvm' and 'nativeRuntime' extensions for namespacing different library containers
+    - Add 'nativeRuntime.libraries' and 'jvm.libraries' as filtered containers on 'components', with appropriate library type
+    - Add 'nativeRuntime.executables' as filtered view on 'components
 
 #### Test cases
 
@@ -146,7 +146,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
             myJvmLib
         }
     }
-    nativeCode {
+    nativeRuntime {
         libraries {
             myNativeLib
         }
