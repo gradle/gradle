@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.api.internal.tasks;
 
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;

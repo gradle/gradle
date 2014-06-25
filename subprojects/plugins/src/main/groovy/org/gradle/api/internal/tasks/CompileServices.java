@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
-import org.gradle.api.internal.tasks.compile.DefaultJavaToolChain;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;

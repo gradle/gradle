@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile
+package org.gradle.api.internal.tasks
 
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
-import org.gradle.language.base.internal.compile.Compiler
 
 class DefaultJavaToolChainTest extends Specification {
     def javaCompilerFactory = Stub(JavaCompilerFactory)
