@@ -33,7 +33,7 @@ public class ClasspathJarFinder {
         List<JarArchive> out = new LinkedList<JarArchive>();
         for (File file : classpath) {
             if (file.getName().endsWith(".jar")) {
-                out.add(new JarArchive(file, fileOperations.zipTree(file)));
+                out.add(new JarArchive(file, fileOperations.zipTree(file))); //TODO SF only create zip tree when needed, limit usages of JarArchive
             }
         }
         return out;
