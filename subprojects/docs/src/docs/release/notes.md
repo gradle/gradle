@@ -2,6 +2,35 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Incremental java compilation
+
+Gradle 2.1 brings incubating support for compiling java code incrementally.
+When this feature is enabled, only classes that are considered stale are recompiled.
+This way not only the compiler does less work, but also fewer output class files are touched.
+The latter feature is extremely important for scenarios involving JRebel - the less output files are touched the quicker the jvm gets refreshed classes.
+
+We will improve the speed and capability of the incremental java compiler. Please give use feedback how does it work for your scenarios.
+For more detailss please see the user guide section on “[Incremental compilation](userguide/java_plugin.html#sec:incremental_compile)”.
+To enable the feature, configure the [JavaCompile](dsl/org.gradle.api.tasks.compile.JavaCompile.html) task accordingly:
+
+    //configuring a single task:
+    compileJava.options.incremental = true
+
+    //configuring all tasks from root project:
+    subprojects {
+        tasks.withType(JavaCompile) {
+            options.incremental = true
+        }
+    }
+
+We are very excited about the progress on the incremental java compilation.
+Class dependency analysis of compiled classes is really useful for many other scenarios that Gradle will handle in future:
+
+* detection of unused jars/classes
+* detection of duplicate classes on classpath
+* detection of tests to execute
+* and more
+
 ### Child processes started by Gradle are better described
 
 At the [Gradle Summit 2014 Conference](http://www.gradlesummit.com/conference/santa_clara/2014/06/home)
