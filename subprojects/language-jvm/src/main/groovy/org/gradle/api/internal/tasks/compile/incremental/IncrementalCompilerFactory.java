@@ -41,9 +41,9 @@ public class IncrementalCompilerFactory {
                                       List<Object> source, CompileCaches compileCaches, IncrementalTaskInputs inputs) {
         this.inputs = inputs;
         //bunch of services that enable incremental java compilation.
-        Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher, or better, make the hash of the changed input travel with the InputFileDetails
+        Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compileCaches.getClassAnalysisCache());
-        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compileCaches.getJarSnapshotCache());
+        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(hasher, analyzer, compileCaches.getJarSnapshotCache(), inputs.getInputFilesSnapshot());
 
         JarClasspathSnapshotMaker jarClasspathSnapshotMaker = new JarClasspathSnapshotMaker(compileCaches.getLocalJarClasspathSnapshotStore(), new JarClasspathSnapshotFactory(jarSnapshotter), new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);

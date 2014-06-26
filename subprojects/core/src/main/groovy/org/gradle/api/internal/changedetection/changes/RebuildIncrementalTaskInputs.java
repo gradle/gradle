@@ -29,9 +29,11 @@ public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs 
     private static final Logger LOGGER = LoggerFactory.getLogger(RebuildIncrementalTaskInputs.class);
 
     private final Task task;
+    private final Map<String, byte[]> inputFilesSnapshot;
 
-    public RebuildIncrementalTaskInputs(Task task) {
+    public RebuildIncrementalTaskInputs(Task task, Map<String, byte[]> inputFilesSnapshot) {
         LOGGER.info("All input files are considered out-of-date for incremental {}.", task);
+        this.inputFilesSnapshot = inputFilesSnapshot;
         this.task = task;
     }
 
@@ -40,7 +42,7 @@ public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs 
     }
 
     public Map<String, byte[]> getInputFilesSnapshot() {
-        return null;
+        return inputFilesSnapshot;
     }
 
     public void doOutOfDate(Action<? super InputFileDetails> outOfDateAction) {

@@ -123,8 +123,8 @@ public interface IncrementalTaskInputs {
     void removed(Action<? super InputFileDetails> removedAction);
 
     /**
-     * Provides the input files snapshot when the task inputs are incremental (see {@link #isIncremental()}).
-     * Returns null when the task inputs are not incremental.
+     * Provides the input files snapshot if such snapshot was created.
+     * Returns null when the task inputs snapshot was not created.
      */
     @Nullable Map<String, byte[]> getInputFilesSnapshot(); //TODO SF hide and model
 }
