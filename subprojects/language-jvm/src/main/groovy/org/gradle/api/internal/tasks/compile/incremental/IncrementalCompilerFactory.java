@@ -35,9 +35,11 @@ import java.util.List;
 public class IncrementalCompilerFactory {
 
     private final IncrementalCompilerDecorator incrementalSupport;
+    private final IncrementalTaskInputs inputs;
 
     public IncrementalCompilerFactory(FileOperations fileOperations, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
-                                      List<Object> source, CompileCaches compileCaches) {
+                                      List<Object> source, CompileCaches compileCaches, IncrementalTaskInputs inputs) {
+        this.inputs = inputs;
         //bunch of services that enable incremental java compilation.
         Hasher hasher = new DefaultHasher(); //TODO SF use caching hasher, or better, make the hash of the changed input travel with the InputFileDetails
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compileCaches.getClassAnalysisCache());
@@ -53,7 +55,7 @@ public class IncrementalCompilerFactory {
                 cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
     }
 
-    public Compiler<JavaCompileSpec> createCompiler(IncrementalTaskInputs inputs) {
+    public Compiler<JavaCompileSpec> createCompiler() {
         return incrementalSupport.prepareCompiler(inputs);
     }
 }

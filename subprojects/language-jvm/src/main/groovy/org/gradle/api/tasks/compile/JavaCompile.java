@@ -92,8 +92,8 @@ public class JavaCompile extends AbstractCompile {
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = new DefaultCompileCaches(getCacheRepository(), this, getGeneralCompileCaches());
         IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-                (FileOperations) getProject(), getPath(), createCompiler(spec), source, compileCaches);
-        Compiler<JavaCompileSpec> compiler = factory.createCompiler(inputs);
+                (FileOperations) getProject(), getPath(), createCompiler(spec), source, compileCaches, inputs);
+        Compiler<JavaCompileSpec> compiler = factory.createCompiler();
         performCompilation(spec, compiler);
     }
 
