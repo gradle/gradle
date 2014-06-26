@@ -1,6 +1,26 @@
 ## Feature: Tooling API client cancels a long running operation
 
-Represent the execution of a long running operation using a `Future`. This `Future` can be used to cancel the operation.
+Add possibility to cancell execution of a long running operation using a `CancallableToken`. 
+This `CancallableToken` is produced by `CancellableTokenSource` and can be used with several operations if needed.
+
+    interface CancellationToken {
+        boolean canBeCancelled();
+        boolean isCancellationRequested();
+    }
+
+    public class CancellationTokenSource {
+        public void cancel() ...
+        public CancellationToken token() ...
+    }
+
+    interface LongRunningOperation {
+        ...
+        @Incubating
+        LongRunningOperation withCancellationToken(CancellationToken cancellationToken);
+    }
+
+
+Note there there is an alternative proposal using a `Future` to perform cancellation differently:
 
     interface BuildFuture<T> extends Future<T> {
         void onSuccess(Action<? super T> action); // called immediately if the operation has completed successfully
