@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.tasks.compile
-
-import org.gradle.api.internal.file.collections.SimpleFileCollection
-
 import groovy.transform.InheritConstructors
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
-import spock.lang.Ignore
 import spock.lang.Specification
 
-// TODO:DAZ Un-ignore this
-@Ignore
-class NormalizingGroovyCompilerTest extends Specification { 
+class NormalizingGroovyCompilerTest extends Specification {
     org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> target = Mock()
     DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
     NormalizingGroovyCompiler compiler = new NormalizingGroovyCompiler(target)
@@ -34,6 +29,7 @@ class NormalizingGroovyCompilerTest extends Specification {
         spec.classpath = files('Dep1.jar', 'Dep2.jar', 'Dep3.jar')
         spec.groovyClasspath = spec.classpath
         spec.source = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
+        spec.destinationDir = new File("destinationDir")
         spec.compileOptions = new CompileOptions()
         spec.groovyCompileOptions = new GroovyCompileOptions()
     }
