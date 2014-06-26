@@ -17,12 +17,21 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputs {
+abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInternal {
+    private final FilesSnapshotSet inputFilesSnapshot;
     private boolean outOfDateProcessed;
     private boolean removedProcessed;
+
+    protected StatefulIncrementalTaskInputs(FilesSnapshotSet inputFilesSnapshot) {
+        this.inputFilesSnapshot = inputFilesSnapshot;
+    }
+
+    public FilesSnapshotSet getInputFilesSnapshot() {
+        return inputFilesSnapshot;
+    }
 
     public void outOfDate(final Action<? super InputFileDetails> outOfDateAction) {
         if (outOfDateProcessed) {

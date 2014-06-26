@@ -17,19 +17,14 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
-
-import java.util.Map;
+import org.gradle.api.internal.changedetection.state.*;
 
 /**
  * Represents the complete changes in a tasks state
  */
 public class TaskUpToDateState {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 3;
-    private final Map<String, byte[]> inputFilesSnapshot;
+    private final FilesSnapshotSet inputFilesSnapshot;
 
     private TaskStateChanges noHistoryState;
     private TaskStateChanges inputFilesState;
@@ -70,7 +65,7 @@ public class TaskUpToDateState {
         return rebuildChanges;
     }
 
-    public Map<String, byte[]> getInputFilesSnapshot() {
+    public FilesSnapshotSet getInputFilesSnapshot() {
         return inputFilesSnapshot;
     }
 }

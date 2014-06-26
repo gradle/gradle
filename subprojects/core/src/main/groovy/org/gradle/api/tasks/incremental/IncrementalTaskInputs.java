@@ -19,9 +19,6 @@ package org.gradle.api.tasks.incremental;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.Nullable;
-
-import java.util.Map;
 
 /**
  * Provides access to any input files that need to be processed by an incremental task.
@@ -121,10 +118,4 @@ public interface IncrementalTaskInputs {
      * @throws IllegalStateException if invoked prior to {@link #outOfDate}, or if invoked more than once.
      */
     void removed(Action<? super InputFileDetails> removedAction);
-
-    /**
-     * Provides the input files snapshot if such snapshot was created.
-     * Returns null when the task inputs snapshot was not created.
-     */
-    @Nullable Map<String, byte[]> getInputFilesSnapshot(); //TODO SF hide and model
 }

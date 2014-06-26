@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.messaging.serialize.SerializerRegistry;
@@ -69,7 +66,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         boolean isUpToDate(IncrementalFileSnapshot snapshot);
     }
 
-    static class FileHashSnapshot implements IncrementalFileSnapshot {
+    static class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
         final byte[] hash;
 
         public FileHashSnapshot(byte[] hash) {
@@ -88,6 +85,10 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public String toString() {
             return new BigInteger(1, hash).toString(16);
+        }
+
+        public byte[] getHash() {
+            return hash;
         }
     }
 
@@ -120,19 +121,16 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             return new SimpleFileCollection(files);
         }
 
-        public Map<String, byte[]> getSnapshot() {
-            //TODO SF, simplify, made FileHashSnapshot implement FileSnapshot, model the interface
-            Map<String, IncrementalFileSnapshot> fileSnapshotsOnly = Maps.filterValues(snapshots, new Predicate<IncrementalFileSnapshot>() {
-                public boolean apply(IncrementalFileSnapshot input) {
-                    return input instanceof FileHashSnapshot;
+        public FilesSnapshotSet getSnapshot() {
+            return new FilesSnapshotSet() {
+                public FileSnapshot findSnapshot(File file) {
+                    IncrementalFileSnapshot s = snapshots.get(file.getAbsolutePath());
+                    if (s instanceof FileSnapshot) {
+                        return (FileSnapshot) s;
+                    }
+                    return null;
                 }
-            });
-
-            return Maps.transformValues(fileSnapshotsOnly, new Function<IncrementalFileSnapshot, byte[]>() {
-                public byte[] apply(IncrementalFileSnapshot input) {
-                    return ((FileHashSnapshot) input).hash;
-                }
-            });
+            };
         }
 
         public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {

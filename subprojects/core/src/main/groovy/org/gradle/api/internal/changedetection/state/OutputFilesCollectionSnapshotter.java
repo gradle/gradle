@@ -102,7 +102,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return filesSnapshot.getFiles();
         }
 
-        public Map<String, byte[]> getSnapshot() {
+        public FilesSnapshotSet getSnapshot() {
             return filesSnapshot.getSnapshot();
         }
 
