@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
 
+import java.util.Map;
+
 /**
  * An immutable snapshot of the contents of a collection of files.
  */
@@ -29,6 +31,8 @@ public interface FileCollectionSnapshot {
     Diff changesSince(FileCollectionSnapshot oldSnapshot);
 
     FileCollection getFiles();
+
+    Map<String, byte[]> getSnapshot();
 
     public interface Diff {
         /**

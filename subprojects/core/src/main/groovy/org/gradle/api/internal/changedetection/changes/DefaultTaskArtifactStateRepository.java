@@ -87,9 +87,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (canPerformIncrementalBuild()) {
-                return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
+                return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges(), getStates().getInputFilesSnapshot());
             }
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getStates().getInputFilesSnapshot());
         }
 
         private boolean canPerformIncrementalBuild() {

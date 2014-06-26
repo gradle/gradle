@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 
+import java.util.Map;
+
 /**
  * Provides access to any input files that need to be processed by an incremental task.
  * <p>
@@ -119,4 +121,5 @@ public interface IncrementalTaskInputs {
      */
     void removed(Action<? super InputFileDetails> removedAction);
 
+    Map<String, byte[]> getInputFilesSnapshot(); //TODO SF hide and model
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.messaging.serialize.SerializerRegistry;
@@ -115,6 +118,21 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                 }
             }
             return new SimpleFileCollection(files);
+        }
+
+        public Map<String, byte[]> getSnapshot() {
+            //TODO SF, simplify, made FileHashSnapshot implement FileSnapshot, model the interface
+            Map<String, IncrementalFileSnapshot> fileSnapshotsOnly = Maps.filterValues(snapshots, new Predicate<IncrementalFileSnapshot>() {
+                public boolean apply(IncrementalFileSnapshot input) {
+                    return input instanceof FileHashSnapshot;
+                }
+            });
+
+            return Maps.transformValues(fileSnapshotsOnly, new Function<IncrementalFileSnapshot, byte[]>() {
+                public byte[] apply(IncrementalFileSnapshot input) {
+                    return ((FileHashSnapshot) input).hash;
+                }
+            });
         }
 
         public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {

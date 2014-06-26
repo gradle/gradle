@@ -73,7 +73,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         public IncrementalTaskInputs getInputChanges() {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
+            throw new RuntimeException("TODO SF");
+//            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
         }
 
         public TaskExecutionHistory getExecutionHistory() {

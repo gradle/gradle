@@ -17,15 +17,19 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+
+import java.util.Map;
 
 /**
  * Represents the complete changes in a tasks state
  */
 public class TaskUpToDateState {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 3;
+    private final Map<String, byte[]> inputFilesSnapshot;
 
     private TaskStateChanges noHistoryState;
     private TaskStateChanges inputFilesState;
@@ -43,7 +47,9 @@ public class TaskUpToDateState {
         taskTypeState = TaskTypeStateChangeRule.create(task, lastExecution, thisExecution);
         inputPropertiesState = InputPropertiesStateChangeRule.create(task, lastExecution, thisExecution);
         outputFilesState = caching(OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter));
-        inputFilesState = caching(InputFilesStateChangeRule.create(task, lastExecution, thisExecution, inputFilesSnapshotter));
+        FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
+        this.inputFilesSnapshot = inputFilesSnapshot.getSnapshot();
+        inputFilesState = caching(InputFilesStateChangeRule.create(lastExecution, thisExecution, inputFilesSnapshot));
         allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
         rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
     }
@@ -62,5 +68,9 @@ public class TaskUpToDateState {
 
     public TaskStateChanges getRebuildChanges() {
         return rebuildChanges;
+    }
+
+    public Map<String, byte[]> getInputFilesSnapshot() {
+        return inputFilesSnapshot;
     }
 }
