@@ -35,7 +35,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
     def setup() {
         fileSnapshotter.snapshot(_) >> { File file ->
-            return Stub(FileSnapshotter.FileSnapshot) {
+            return Stub(FileSnapshot) {
                 getHash() >> HashUtil.sha1(file).asByteArray()
             }
         }
