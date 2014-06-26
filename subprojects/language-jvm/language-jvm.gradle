@@ -4,6 +4,5 @@ dependencies {
     compile project(":core")
 }
 
-// TODO:DAZ Fix the cycle and switch this back on (cycle imported from 'plugins' subproject)
-//useClassycle()
+useClassycle(exclude: "org/gradle/api/internal/tasks/compile/**")
 useTestFixtures()
