@@ -16,23 +16,80 @@
 
 package org.gradle.language.java.plugins;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.language.base.LanguageRegistry;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
+import org.gradle.model.ModelRule;
+import org.gradle.model.ModelRules;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
+import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
+
+import javax.inject.Inject;
+import java.io.File;
 
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
  * Registers "java" language support with the {@link JavaSourceSet}.
  */
-public class JavaLanguagePlugin implements Plugin<Project> {
-    public void apply(Project project) {
+public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
+    private final ModelRules modelRules;
+    private final JavaToolChainInternal toolChain;
+
+    @Inject
+    public JavaLanguagePlugin(ModelRules modelRules, JavaToolChainInternal toolChain) {
+        this.modelRules = modelRules;
+        this.toolChain = toolChain;
+    }
+
+    public void apply(ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
         project.getPlugins().apply(JvmResourcesPlugin.class);
 
         project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("java", JavaSourceSet.class, DefaultJavaSourceSet.class);
+
+        File depCacheDir = project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve("jvm-dep-cache");
+        modelRules.rule(new CreateJavaCompileTasks(depCacheDir));
+    }
+
+    private class CreateJavaCompileTasks extends ModelRule {
+        private final File depCacheDir;
+
+        public CreateJavaCompileTasks(File depCacheDir) {
+            this.depCacheDir = depCacheDir;
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
+            for (JvmLibraryBinaryInternal binary : binaries.withType(JvmLibraryBinaryInternal.class)) {
+                for (JavaSourceSet javaSourceSet : binary.getSource().withType(JavaSourceSet.class)) {
+
+                    String compileTaskName = binary.getNamingScheme().getTaskName("compile", ((LanguageSourceSetInternal) javaSourceSet).getFullName());
+                    JavaCompile compile = tasks.create(compileTaskName, JavaCompile.class);
+                    compile.setDescription(String.format("Compiles %s.", javaSourceSet));
+                    compile.setDestinationDir(binary.getClassesDir());
+
+                    compile.setSource(javaSourceSet.getSource());
+                    compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
+                    compile.setSourceCompatibility(JavaVersion.current().toString());
+                    compile.setTargetCompatibility(JavaVersion.current().toString());
+                    compile.setDependencyCacheDir(depCacheDir);
+                    compile.setToolChain(toolChain);
+                    compile.dependsOn(javaSourceSet);
+
+                    binary.getTasks().add(compile);
+                    binary.getTasks().getJar().dependsOn(compile);
+                }
+            }
+        }
     }
 }
