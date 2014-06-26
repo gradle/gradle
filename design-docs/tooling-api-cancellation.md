@@ -94,11 +94,20 @@ completes, then do not exit. If the build does not complete in this time, exit t
 
 ### Story: Task graph execution is aborted when operation is cancelled
 
+In this story, task graph executor no longer starts executing new tasks when operation is cancelled.
+
 ### Story: Gradle distribution download is aborted when operation is cancelled
+
+In this story, the Gradle distribution download is stopped when operation is cancelled.
 
 ### Story: Model configuration is aborted when operation is cancelled
 
+In this story, no further projects are configured when operation is cancelled.
+
 ### Story: Build action receives exception when operation is cancelled
+
+In this story, a `BuildAction` receives an exception when it is using or uses a method on `BuildController` when operation is cancelled.
 
 ### Story: Make cancellation API public
 
+Add to public API and document.
