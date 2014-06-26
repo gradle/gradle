@@ -177,7 +177,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         and:
-        succeeds "myLib"
+        succeeds "assemble"
 
         then:
         executedAndNotSkipped ":processMyLibJarMyLibResources", ":processMyLibJarMyLibExtraResources", ":createMyLibJar", ":myLibJar"
@@ -224,7 +224,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         and:
-        succeeds "myLib"
+        succeeds "assemble"
 
         then:
         executedAndNotSkipped ":compileMyLibJarMyLibJava", ":compileMyLibJarMyLibExtraJava", ":createMyLibJar", ":myLibJar"

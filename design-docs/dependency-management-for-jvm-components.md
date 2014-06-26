@@ -178,7 +178,10 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - With both sources and resources
 - Reports failure to compile source
 - Compiled sources and resources are available in a common directory
-- All generated resources are removed when all resources source files are removed.
+- Incremental build for java library
+    - Tasks skipped when all sources up-to-date
+    - Class file is removed when source is removed
+    - Copied resource is removed when resource is removed
 - Can build native and JVM libraries in the same project
   - `gradle assemble` builds each native library and each jvm library
 
@@ -193,13 +196,15 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Need `groovy-lang` and `scala-lang` plugins
 - Possibly deprecate the existing 'cpp', 'c', etc plugins.
 - All compiled classes are removed when all java source files are removed.
+- Clean up output files for source set that is removed.
 - Clean up output files from components and binaries that have been removed or renamed.
-- Customise manifest for JvmLibrary and/or JvmLibraryBinary
-- Customise compiler options for JvmLibrary and/or JvmLibraryBinary
-- Customise output locations
-- Customise source directories
-    - Layout where source and resources are in the same directory - need to filter source files
-- More stuff about the source
+- Configure JvmLibrary and/or JvmLibraryBinary
+    - Customise manifest
+    - Customise compiler options
+    - Customise output locations
+    - Customise source directories
+        - Handle layout where source and resources are in the same directory - need to filter source files
+- Configure more stuff about the source
     - Java language version
     - Source encoding
 - How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
