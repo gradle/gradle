@@ -89,7 +89,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (canPerformIncrementalBuild()) {
                 return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges(), getStates().getInputFilesSnapshot());
             }
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getStates().getInputFilesSnapshot());
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
         }
 
         private boolean canPerformIncrementalBuild() {

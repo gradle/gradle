@@ -19,6 +19,7 @@ package org.gradle.api.tasks.incremental;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.Nullable;
 
 import java.util.Map;
 
@@ -121,5 +122,9 @@ public interface IncrementalTaskInputs {
      */
     void removed(Action<? super InputFileDetails> removedAction);
 
-    Map<String, byte[]> getInputFilesSnapshot(); //TODO SF hide and model
+    /**
+     * Provides the input files snapshot when the task inputs are incremental (see {@link #isIncremental()}).
+     * Returns null when the task inputs are not incremental.
+     */
+    @Nullable Map<String, byte[]> getInputFilesSnapshot(); //TODO SF hide and model
 }
