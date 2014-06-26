@@ -70,6 +70,11 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasPrivateConstructor, "param") != null
     }
 
+    def "class can be package scoped"() {
+        expect:
+        instantiator.newInstance(PackageScopedClass) != null
+    }
+
     def "selects annotated constructor when class has multiple constructors and only one is annotated"() {
         when:
         def result = instantiator.newInstance(HasOneInjectConstructor, 12)
