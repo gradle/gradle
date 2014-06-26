@@ -43,12 +43,15 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         return new FileCollectionSnapshotImpl(new HashMap<String, IncrementalFileSnapshot>());
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection sourceFiles) {
+    public FileCollectionSnapshot snapshot(FileCollection input) {
+        final Set<File> files = input.getAsFileTree().getFiles();
+        if (files.isEmpty()) {
+            return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
+        }
         final Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
-        final Set<File> theFiles = sourceFiles.getAsFileTree().getFiles();
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
-                for (File file : theFiles) {
+                for (File file : files) {
                     if (file.isFile()) {
                         snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(snapshotter.snapshot(file).getHash()));
                     } else if (file.isDirectory()) {
