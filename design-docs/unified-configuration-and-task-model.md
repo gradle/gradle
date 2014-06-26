@@ -450,20 +450,6 @@ provided by the build logic, and are visible to build logic with uses the tasks.
 - Plus whichever other hooks have since been added
 - Possibly expose the cache control hooks as rules too
 
-## Other things to consider
-
-- Integration with old DSL.
-- Enforcement of model element lifecycle (eg detect attempts to mutate a model element that has been closed).
-- Configure model elements on demand.
-- Native plugins: allow configuration of a default toolchain, without replacing the default toolchains. e.g. tweak `clang` without discarding `gcc`.
-- Error handling and reporting.
-- IDE integration.
-- Flesh out the JVM language plugins.
-
-# Old stories
-
-These need to be garbage collected and reworked ...
-
 ## Prevent `object.properties` triggering configuration of any deferred configurable properties (GRADLE-2754)
 
 ## Allow the project version to be determined early in the build configuration
@@ -539,17 +525,6 @@ The following changes should be detected:
 - The elements of a collection used to define artifacts.
 - The runtime dependencies or artifacts of a component.
 
-## Allow arbitrary deferred configuration logic
-
-This story allows arbitrary logic to be deferred until required. This will allow configuration logic to be sequenced naturally based on its dependencies.
-
-## Defer the creation of publication tasks until after the publications have been configured
-
-This story allows the creation and configuration of publication tasks to be deferred until after the publications have
-been configured. It will introduce a public mechanism to allow plugins to implement this pattern.
-
-It will allow the lazy configuration of tasks.
-
 ## Trigger the configuration of publications when tasks are referenced
 
 This story adds support for triggering the configuration of the publications when the publication tasks are
@@ -597,6 +572,13 @@ Reuse the domain object lifecycle mechanism to warn when:
 
 - Fire events before and after configuration of domain objects.
 - Allow task outputs to be used as inputs to rules. eg a `Report` produced by a task.
+- Integration with old DSL.
+- Enforcement of model element lifecycle (eg detect attempts to mutate a model element that has been closed).
+- Configure model elements on demand.
+- Native plugins: allow configuration of a default toolchain, without replacing the default toolchains. e.g. tweak `clang` without discarding `gcc`.
+- Error handling and reporting.
+- IDE integration.
+- Flesh out the JVM language plugins.
 
 # Spike
 
