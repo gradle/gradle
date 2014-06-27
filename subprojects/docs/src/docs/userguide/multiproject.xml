@@ -683,7 +683,7 @@
         <para>In order to make good use of cross project configuration without running into issues for parallel and 'configuration on demand' options, follow these recommendations:
         <itemizedlist>
             <listitem>
-                Avoid subproject's <literal>build.gradle</literal> referencing other subprojects, prefer cross configuration from the root project.
+                Avoid a subproject's <literal>build.gradle</literal> referencing other subprojects; prefering cross configuration from the root project.
             </listitem>
             <listitem>
                 Avoid changing the configuration of other projects at execution time.
@@ -758,9 +758,6 @@
         <para>Properties and methods declared in a project are inherited to all its subprojects. This is an alternative
             to configuration injection. But we think that the model of inheritance does not reflect the problem space of
             multi-project builds very well. In a future edition of this user guide we might write more about this.
-        </para>
-        <para>So inheritance can serve to define a common artifact group for all artifacts, a common release number (if
-        it should be the same), and to e.g. define the version of a dependency used by many subprojects.
         </para>
         <para>Method inheritance might be interesting to use as Gradle's
             <emphasis>Configuration Injection</emphasis>
