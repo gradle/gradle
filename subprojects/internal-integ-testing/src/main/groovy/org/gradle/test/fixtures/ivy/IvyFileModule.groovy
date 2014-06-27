@@ -77,7 +77,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     IvyFileModule undeclaredArtifact(Map<String, ?> options) {
-        artifact(options + [undeclared: true])
+        def undeclaredArtifact = toArtifact(options) + [undeclared: true]
+        artifacts << undeclaredArtifact
         return this
     }
 
