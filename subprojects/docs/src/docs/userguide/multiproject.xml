@@ -57,8 +57,8 @@
                 </para>
                 <para>
                     Configuration on demand mode attempts to configure only projects that are relevant for requested
-                    tasks, i.e. it only executes the <literal>build.gradle</literal> of projects that seem relevant.
-                    This way, the configuration time of a large multi-project build can be greatly improved.
+                    tasks, i.e. it only executes the <literal>build.gradle</literal> of projects that are participating in the build.
+                    This way, the configuration time of a large multi-project build can be reduced.
                     In the long term, this mode will become the default mode, possibly the only mode for Gradle build execution.
                     The configuration on demand feature is incubating so not every build is guaranteed to work correctly.
                     The feature should work very well for multi-project builds that have decoupled projects (<xref linkend="sec:decoupled_projects"/>).
