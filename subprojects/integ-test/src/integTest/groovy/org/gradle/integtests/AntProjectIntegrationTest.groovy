@@ -219,4 +219,48 @@ ant.importBuild('build.xml')
         // Testing that we don't get some obscure error message trying to set c.shouldRunAfter b
         inTestDirectory().withTasks('a').runWithFailure().assertHasCause("Imported Ant target 'a' depends on target or task 'b' which does not exist")
     }
+
+    @Test
+    public void canApplyJavaPluginWithAntBuild() {
+        testFile('build.xml') << """
+<project>
+    <target name='clean'>
+        <echo message='Executing Ant clean'/>
+    </target>
+    <target name='target2' depends='clean'/>
+    <target name='target1' depends='target2'/>
+</project>
+"""
+        testFile('build.gradle') << """
+apply plugin:'java'
+ant.importBuild(file('build.xml')) { antTaskName ->
+    'ant-'+antTaskName
+}
+
+task ant(dependsOn: 'ant-target1')
+"""
+        inTestDirectory().withTasks('clean', 'ant').run().assertTasksExecuted(':clean', ':ant-clean', ':ant-target2', ':ant-target1', ':ant')
+
+    }
+
+    @Test
+    public void canRenameAntDelegateTask() {
+        testFile('build.xml') << """
+<project>
+    <target name='c'/>
+    <target name='b' depends='c'/>
+    <target name='a' depends='b'/>
+</project>
+"""
+        testFile('build.gradle') << """
+
+ant.importBuild(file('build.xml')) { antTaskName ->
+    antTaskName == 'b' ? 'ant-b' : antTaskName
+}
+
+task runAnt(dependsOn: 'a')
+"""
+        inTestDirectory().withTasks('runAnt').run().assertTasksExecuted(':c', ':ant-b', ':a', ':runAnt')
+
+    }
 }

@@ -118,7 +118,7 @@ class DefaultAntBuilderTest {
         ant.test()
         Thread.currentThread().setContextClassLoader(original)
     }
-    
+
     @Test
     public void discardsTasksAfterExecution() {
         ant.echo(message: 'message')
@@ -135,6 +135,29 @@ class DefaultAntBuilderTest {
         List children = field.get(target)
         assertThat(children, isEmpty())
     }
+
+    @Test
+    public void testTaskAdapterRename() {
+        File buildFile = new File(project.projectDir, 'build.xml')
+        buildFile.withWriter { Writer writer ->
+            def xml = new MarkupBuilder(writer)
+            xml.project {
+                target(name: 'target1', depends: 'target2, target3')
+                target(name: 'target2')
+                target(name: 'target3')
+            }
+        }
+
+        ant.importBuild(buildFile) { taskName ->
+            'a-'+taskName
+        }
+
+        def task = project.tasks.'a-target1'
+        assertThat(task, instanceOf(AntTarget))
+        assertThat(task.target.name, equalTo('target1'))
+    }
+
+
 }
 
 public class TestTask extends Task {

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project.ant;
 
+import groovy.lang.Closure;
 import groovy.util.AntBuilder;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
@@ -60,6 +61,10 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder {
     }
 
     public void importBuild(Object antBuildFile) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void importBuild(Object antBuildFile, Closure<String> c) {
         throw new UnsupportedOperationException();
     }
 

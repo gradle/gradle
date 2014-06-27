@@ -151,6 +151,12 @@
             <sourcefile file="build.xml"/>
             <output args="hello"/>
         </sample>
+        <para>Sometimes it may be necessary to rename the task that delegates to the Ant target to avoid namespace clashes</para>
+        <sample id="renameAntDelegate" dir="userguide/ant/renameTaskDelegate" title="Renaming ant task delegates">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="build.xml"/>
+            <output args="a-hello"/>
+        </sample>
     </section>
 
     <section>
