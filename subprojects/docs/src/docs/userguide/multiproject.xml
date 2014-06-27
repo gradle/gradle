@@ -675,7 +675,6 @@
             define common configuration, but as far as Gradle is concerned this root project is still a fully-fledged project, and by using <literal>allprojects</literal>
             that project is effectively coupled to all other projects. Coupling of the root project to subprojects does not impact 'configuration on demand', but using the
             <literal>allprojects</literal> and <literal>subprojects</literal> in any subproject's <literal>build.gradle</literal> file will have an impact.
-            as the root project, as
         </para>
         <para>This means that using any form of shared build script logic or configuration injection (<literal>allprojects</literal>, <literal>subprojects</literal>, etc.)
             will cause your projects to be coupled. As we extend the concept of project decoupling and provide features that take advantage of decoupled projects,
