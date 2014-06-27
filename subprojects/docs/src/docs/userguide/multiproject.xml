@@ -106,7 +106,7 @@
                 <sourcefile file="build.gradle"/>
                 <output args="-q hello"/>
             </sample>
-            <para>By default, gradle allows you to access any project of the multi-project build from any build script. The Project
+            <para>Gradle allows you to access any project of the multi-project build from any build script. The Project
                 API provides a method called <literal>project()</literal>, which takes a path as an argument and returns
                 the Project object for this path. The capability to configure a project build from any build script we
                 call <firstterm>cross project configuration</firstterm>. Gradle implements this via
