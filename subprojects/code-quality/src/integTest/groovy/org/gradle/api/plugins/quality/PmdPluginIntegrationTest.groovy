@@ -16,7 +16,9 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.Matchers
 import org.hamcrest.Matcher
+import org.junit.Assert
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
@@ -148,7 +150,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
-        output.contains("org/gradle/Class1Test.java:1:\tEmpty initializer was found")
+        Assert.assertThat(output, Matchers.containsText("org/gradle/Class1Test\\.java:1:\\s+Empty initializer was found"))
     }
 
     private void writeBuildFile() {
