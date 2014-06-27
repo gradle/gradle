@@ -655,7 +655,7 @@
     </section>
     <section id="sec:decoupled_projects">
         <title>Decoupled Projects</title>
-        <para>By default, gradle allows any project to access any other project during both the configuration and execution phases.
+        <para>Gradle allows any project to access any other project during both the configuration and execution phases.
             While this provides a great deal of power and flexibility to the build author, it also limits the flexibility that Gradle has when building those projects.
             For instance, this effectively prevents Gradle from correctly building multiple projects in parallel, configuring only a subset of projects, or from substituting
             a pre-built artifact in place of a project dependency.
