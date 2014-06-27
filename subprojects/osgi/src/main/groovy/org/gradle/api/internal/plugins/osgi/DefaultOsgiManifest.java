@@ -115,12 +115,17 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
         if (!instructionNames.contains(Analyzer.EXPORT_PACKAGE)) {
             analyzer.setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + getVersion());
         }
+
+        Properties properties = new Properties();
+
         for (String instructionName : instructionNames) {
             String list = createPropertyStringFromList(instructionValue(instructionName));
             if (list != null && list.length() > 0) {
-                analyzer.setProperty(instructionName, list);
+                properties.setProperty(instructionName, list);
             }
         }
+
+        analyzer.setProperties(properties);
 
         analyzer.setJar(getClassesDir());
 
