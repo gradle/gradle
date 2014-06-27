@@ -26,6 +26,7 @@ import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.EarWebModule
+import org.gradle.util.ConfigureUtil
 
 class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
@@ -88,6 +89,13 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     public DeploymentDescriptor securityRole(String role) {
         securityRoles.add(new DefaultEarSecurityRole(role))
+        return this
+    }
+
+    DeploymentDescriptor securityRole(Closure closure) {
+        def newRole = new DefaultEarSecurityRole()
+        ConfigureUtil.configure(closure, newRole)
+        securityRoles.add(newRole)
         return this
     }
 

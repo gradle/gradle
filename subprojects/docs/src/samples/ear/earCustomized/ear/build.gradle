@@ -27,6 +27,10 @@ ear {
 //      webModule("my.war", "/")  // wouldn't deploy since my.war isn't a deploy dependency
         securityRole "admin"
         securityRole "superadmin"
+        securityRole {
+            roleName = 'supersuperadmin'
+            description = 'Super Super Administrator'
+        }
         withXml { provider -> // add a custom node to the XML
             provider.asNode().appendNode("data-source", "my/data/source")
         }
