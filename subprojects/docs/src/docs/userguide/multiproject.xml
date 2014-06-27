@@ -18,10 +18,8 @@
     <para>The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the
         most intellectually challenging.
     </para>
-    <para>A multi-project build in gradle consists of one root project, defining all subprojects in it's
-        settings.gradle, and those subprojects. Subprojects can be nested inside each other, but may not have their
-        own settings.gradle declaring subprojects recursively. The root project directory is also the only one which
-        may contain a <literal>buildSrc</literal> folder scanned at startup.
+    <para>
+        A multi-project build in gradle consists of one root project, and one or more subprojects that may also have subprojects.
     </para>
     <section id='sec:cross_project_configuration'>
         <title>Cross project configuration</title>
@@ -767,6 +765,14 @@
         will cause that same named task to be run on all the children. So you can just run
         <literal>gradle build</literal> to build and test all projects.
         </para>
+    </section>
+    <section>
+        <title>Multi Project and buildSrc</title>
+        <p>
+            The <xref linkend="sec:build_sources"/> section tells us that we can place build logic to be compiled and tested in the special <literal>buildSrc</literal> directory.
+            In a multi project build, there can only be one <literal>buildSrc</literal> directory which must be located in the root directory.
+        </p>
+
     </section>
     <section id='sec:property_and_method_inheritance'>
         <title>Property and method inheritance</title>
