@@ -25,17 +25,18 @@ import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Target;
 import org.gradle.api.*;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.ant.AntTarget;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 

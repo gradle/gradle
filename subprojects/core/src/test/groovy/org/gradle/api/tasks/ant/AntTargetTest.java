@@ -55,6 +55,7 @@ public class AntTargetTest {
 
         task.setTarget(antTarget);
         task.setBaseDir(baseDir);
+        task.importAntTargetDependencies();
         task.executeAntTarget();
 
         assertTrue(testTask.executed);
@@ -65,6 +66,7 @@ public class AntTargetTest {
         Task a = project.getTasks().create("a");
         Task b = project.getTasks().create("b");
         antTarget.setDepends("a, b");
+        task.importAntTargetDependencies();
 
         task.setTarget(antTarget);
         Set dependencies = task.getTaskDependencies().getDependencies(task);
