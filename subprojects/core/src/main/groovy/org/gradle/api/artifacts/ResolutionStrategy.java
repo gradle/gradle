@@ -219,4 +219,28 @@ public interface ResolutionStrategy {
      * @since 1.0-milestone-6
      */
     void cacheChangingModulesFor(int value, TimeUnit units);
+
+    /**
+     * Sets the duration during which information about missing dependencies will be cached.
+     *
+     * <p>Gradle caches the the fact that a dependency does not exist in a repository.
+     * By default, these cached values are kept for 24 hours,
+     * after which the cached entry is expired and the module is resolved again.</p>
+     * <p>Use this method to provide a custom time period to during which Gradle should cache this information about a missing module.</p>
+     * @param value The number of time units
+     * @param units The units
+     * @since ?
+     */
+    void cacheMissingModulesAndArtifactsFor(int value, String units);
+
+    /**
+     * Sets the duration during which information about missing dependencies will be cached.
+     *
+     * <p>A convenience method for {@link #cacheMissingModulesAndArtifactsFor(int, java.util.concurrent.TimeUnit)} with units expressed as a String.
+     * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
+     * @param value The number of time units
+     * @param units The units
+     * @since ?
+     */
+    void cacheMissingModulesAndArtifactsFor(int value, TimeUnit units);
 }

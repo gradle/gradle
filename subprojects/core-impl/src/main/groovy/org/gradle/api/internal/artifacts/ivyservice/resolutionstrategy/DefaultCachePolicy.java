@@ -92,7 +92,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         });
     }
 
-    private void cacheMissingModulesAndArtifactsFor(final int value, final TimeUnit units) {
+    public void cacheMissingModulesAndArtifactsFor(final int value, final TimeUnit units) {
         eachModule(new Action<ModuleResolutionControl>() {
             public void execute(ModuleResolutionControl moduleResolutionControl) {
                 if (moduleResolutionControl.getCachedResult() == null) {
