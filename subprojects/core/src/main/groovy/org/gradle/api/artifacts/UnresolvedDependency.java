@@ -19,15 +19,6 @@ package org.gradle.api.artifacts;
  * Unsuccessfully resolved dependency.
  */
 public interface UnresolvedDependency {
-
-    /**
-     * Deprecated. Please use {@link #getSelector()}
-     * <p>
-     * Returns the identifier of the dependency, for example group:name:version
-     */
-    @Deprecated
-    String getId();
-
     /**
      * The module selector of the dependency.
      *

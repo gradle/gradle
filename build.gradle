@@ -18,6 +18,7 @@ import org.gradle.build.Install
 import org.gradle.build.BuildTypes
 import org.gradle.build.TestReportAggregator
 
+
 defaultTasks 'assemble'
 apply plugin: 'java-base'
 archivesBaseName = 'gradle'
@@ -59,7 +60,7 @@ buildTypes {
     localPerformanceTest "performance:integTest"
 
     // Used for cross version tests on CI
-    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testVersions: "all", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+    crossVersionTest "crossVersionIntegTest", useIncomingDistributions: true
 
     // Used to build production distros and smoke test them
     packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
@@ -89,12 +90,13 @@ ext {
     internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions"] }
     groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects
-    publishedProjects = [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging')]
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageBase'
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageBase',
+        'plugin-development'
     ].collect {
+        publishedProjects = [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging'), project(':resources')]
         project(it)
     }
 }
@@ -108,7 +110,9 @@ apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
 apply from: "gradle/classycle.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
+apply from: "gradle/testSetup.gradle"
 apply from: "gradle/testGroupings.gradle"
+apply from: "gradle/analytics.gradle"
 
 allprojects {
     group = 'org.gradle'
@@ -157,6 +161,7 @@ dependencies {
     runtime project(':wrapper')
     gradlePlugins pluginProjects
     gradlePlugins project(':coreImpl')
+    gradlePlugins project(':pluginUse')
 }
 
 task verifyIsProductionBuildEnvironment << {

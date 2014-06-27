@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,18 +34,19 @@ public class MavenVersionLister implements VersionLister {
         this.mavenMetadataLoader = new MavenMetadataLoader(repository);
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module) {
-        return new DefaultVersionList() {
-            final Set<String> searched = new HashSet<String>();
+    public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
+        return new VersionPatternVisitor() {
+            final Set<ExternalResourceName> searched = new HashSet<ExternalResourceName>();
 
-            public void visit(ResourcePattern resourcePattern, ArtifactIdentifier artifactId) throws ResourceException {
-                String metadataLocation = resourcePattern.toModulePath(module) + "/maven-metadata.xml";
+            public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
+                ExternalResourceName metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml");
                 if (!searched.add(metadataLocation)) {
                     return;
                 }
-                MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
+                result.attempted(metadataLocation);
+                MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation.getUri());
                 for (String version : mavenMetaData.versions) {
-                    add(new ListedVersion(version, resourcePattern));
+                    dest.add(version);
                 }
             }
         };

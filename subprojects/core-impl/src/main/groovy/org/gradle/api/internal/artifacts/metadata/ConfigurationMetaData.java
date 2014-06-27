@@ -29,11 +29,11 @@ public interface ConfigurationMetaData {
 
     String getName();
 
-    ModuleVersionMetaData getModuleVersion();
+    ComponentMetaData getComponent();
 
     List<DependencyMetaData> getDependencies();
 
-    Set<ModuleVersionArtifactMetaData> getArtifacts();
+    Set<ComponentArtifactMetaData> getArtifacts();
 
     Set<ExcludeRule> getExcludeRules();
 

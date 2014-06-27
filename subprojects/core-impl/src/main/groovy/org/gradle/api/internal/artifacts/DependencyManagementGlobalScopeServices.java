@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 
@@ -49,20 +50,13 @@ class DependencyManagementGlobalScopeServices {
     }
 
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
-        DefaultClientModuleMetaDataFactory clientModuleDescriptorFactory = new DefaultClientModuleMetaDataFactory();
-        DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
-                new ClientModuleIvyDependencyDescriptorFactory(
-                        excludeRuleConverter,
-                        clientModuleDescriptorFactory
-                ),
+        return new DefaultDependencyDescriptorFactory(
                 new ProjectIvyDependencyDescriptorFactory(
                         excludeRuleConverter),
                 descriptorFactory);
-        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactory);
-        return dependencyDescriptorFactory;
     }
 
-    ResolveLocalComponentFactory createResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
+    LocalComponentFactory createPublishLocalComponentFactory(ModuleDescriptorFactory moduleDescriptorFactory,
                                                                             ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                                                             DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                             ExcludeRuleConverter excludeRuleConverter,
@@ -73,14 +67,8 @@ class DependencyManagementGlobalScopeServices {
                 new DefaultDependenciesToModuleDescriptorConverter(
                         dependencyDescriptorFactory,
                         excludeRuleConverter),
-                componentIdentifierFactory);
-
-    }
-
-    PublishLocalComponentFactory createPublishModuleDescriptorConverter(ResolveLocalComponentFactory moduleDescriptorConverter) {
-        return new PublishLocalComponentFactory(
-                moduleDescriptorConverter,
+                componentIdentifierFactory,
                 new DefaultConfigurationsToArtifactsConverter());
-    }
 
+    }
 }

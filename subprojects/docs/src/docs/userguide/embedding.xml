@@ -68,13 +68,6 @@
                 </listitem>
             </itemizedlist>
         </para>
-
-        <para>The Tooling API is the official and recommended way to embed Gradle.
-            This means that the existing APIs, namely <apilink class="org.gradle.GradleLauncher"/>
-            and the open API (the UIFactory and friends),
-            are deprecated and will be removed in some future version of Gradle.
-            If you happen to use one of the above APIs, please consider changing your application to use the tooling API instead.
-        </para>
     </section>
 
     <section id='sec:embedding_daemon'>

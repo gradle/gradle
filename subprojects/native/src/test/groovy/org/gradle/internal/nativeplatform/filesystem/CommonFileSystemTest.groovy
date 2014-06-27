@@ -28,19 +28,25 @@ class CommonFileSystemTest extends Specification {
     def fs = NativeServices.instance.get(FileSystem)
 
     def "unix permissions cannot be read on non existing file"() {
+        def file = tmpDir.file("someFile")
+
         when:
-        fs.getUnixMode(tmpDir.file("someFile"))
+        fs.getUnixMode(file)
 
         then:
-        thrown(FileNotFoundException)
+        FileException e = thrown()
+        e.message == "Could not get file mode for '$file'."
     }
 
     def "unix permissions cannot be set on non existing file"() {
+        def file = tmpDir.file("someFile")
+
         when:
-        fs.chmod(tmpDir.file("someFile"), 0644)
+        fs.chmod(file, 0644)
 
         then:
-        thrown(FileNotFoundException)
+        FileException e = thrown()
+        e.message == "Could not set file mode 644 on '$file'."
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -108,6 +114,6 @@ class CommonFileSystemTest extends Specification {
         fs.createSymbolicLink(link, target)
 
         then:
-        thrown(IOException)
+        thrown(FileException)
     }
 }

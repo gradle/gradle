@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -31,14 +30,12 @@ import static org.gradle.cache.internal.FileLockManager.LockMode;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheRepository implements CacheRepository {
-    private final CacheUsage cacheUsage;
     private final CacheScopeMapping cacheScopeMapping;
     private final CacheFactory factory;
 
-    public DefaultCacheRepository(CacheScopeMapping cacheScopeMapping, CacheUsage cacheUsage, CacheFactory factory) {
+    public DefaultCacheRepository(CacheScopeMapping cacheScopeMapping, CacheFactory factory) {
         this.cacheScopeMapping = cacheScopeMapping;
         this.factory = factory;
-        this.cacheUsage = cacheUsage;
     }
 
     public CacheBuilder store(String key) {
@@ -138,7 +135,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            return factory.open(cacheDir, displayName, cacheUsage, validator, properties, lockOptions, initializer);
+            return factory.open(cacheDir, displayName, validator, properties, lockOptions, initializer);
         }
     }
 

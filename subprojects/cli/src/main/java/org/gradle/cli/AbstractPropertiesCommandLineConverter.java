@@ -16,7 +16,6 @@
 
 package org.gradle.cli;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractPropertiesCommandLineConverter extends AbstractCommandLineConverter<Map<String, String>> {
@@ -28,10 +27,6 @@ public abstract class AbstractPropertiesCommandLineConverter extends AbstractCom
         CommandLineOption option = parser.option(getPropertyOption(), getPropertyOptionDetailed());
         option = option.hasArguments();
         option.hasDescription(getPropertyOptionDescription());
-    }
-
-    protected Map<String, String> newInstance() {
-        return new HashMap<String, String>();
     }
 
     public Map<String, String> convert(ParsedCommandLine options, Map<String, String> properties) throws CommandLineArgumentException {

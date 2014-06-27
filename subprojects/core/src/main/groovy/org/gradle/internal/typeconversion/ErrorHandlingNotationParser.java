@@ -16,22 +16,20 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.util.GUtil;
-
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Formatter;
 import java.util.List;
 
-public class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
+class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
     private final String targetTypeDisplayName;
     private final String invalidNotationMessage;
+    private final boolean allowNullInput;
     private final NotationParser<N, T> delegate;
 
-    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, NotationParser<N, T> delegate) {
+    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, boolean allowNullInput, NotationParser<N, T> delegate) {
         this.targetTypeDisplayName = targetTypeDisplayName;
         this.invalidNotationMessage = invalidNotationMessage;
+        this.allowNullInput = allowNullInput;
         this.delegate = delegate;
     }
 
@@ -40,27 +38,20 @@ public class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
     }
 
     public T parseNotation(N notation) {
-        Formatter message = new Formatter();
-        if (notation == null) {
-            //we don't support null input at the moment. If you need this please implement it.
-            message.format("Cannot convert a null value to an object of type %s.%n", targetTypeDisplayName);
+        String failure;
+        if (notation == null && !allowNullInput) {
+            failure = String.format("Cannot convert a null value to %s.", targetTypeDisplayName);
         } else {
             try {
                 return delegate.parseNotation(notation);
             } catch (UnsupportedNotationException e) {
-                message.format("Cannot convert the provided notation to an object of type %s: %s.%n", targetTypeDisplayName, e.getNotation());
+                failure = String.format("Cannot convert the provided notation to %s: %s.", targetTypeDisplayName, e.getNotation());
             }
         }
 
-        message.format("The following types/formats are supported:");
         List<String> formats = new ArrayList<String>();
         describe(formats);
-        for (String format : formats) {
-            message.format("%n  - %s", format);
-        }
-        if (GUtil.isTrue(invalidNotationMessage)) {
-            message.format("%n%s", invalidNotationMessage);
-        }
-        throw new InvalidUserDataException(message.toString());
+
+        throw new UnsupportedNotationException(notation, failure, invalidNotationMessage, formats);
     }
 }

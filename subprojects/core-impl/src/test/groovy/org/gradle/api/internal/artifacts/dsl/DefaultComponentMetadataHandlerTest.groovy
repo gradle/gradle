@@ -15,9 +15,12 @@
  */
 
 package org.gradle.api.internal.artifacts.dsl
-
+import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.artifacts.ComponentMetadataDetails
+import org.gradle.api.artifacts.IvyModuleMetadata
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
@@ -39,4 +42,184 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         ModuleVersionResolveException e = thrown()
         e.message == /Unexpected status 'green' specified for group:module:version. Expected one of: [alpha, beta]/
     }
+
+    def "supports rule with untyped ComponentMetaDataDetails parameter"() {
+        def metadata = Stub(MutableModuleVersionMetaData) {
+            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+            getStatus() >> "integration"
+            getStatusScheme() >> ["integration", "release"]
+        }
+        def capturedDetails = null
+        handler.eachComponent { details ->
+            capturedDetails = details
+        }
+
+        when:
+        handler.process(metadata)
+
+        then:
+        noExceptionThrown()
+        capturedDetails instanceof ComponentMetadataDetails
+        with(capturedDetails) {
+            id.group == "group"
+            id.name == "module"
+            id.version == "version"
+            status == "integration"
+            statusScheme == ["integration", "release"]
+        }
+    }
+
+    def "supports rule with typed ComponentMetaDataDetails parameter"() {
+        def metadata = Stub(MutableModuleVersionMetaData) {
+            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+            getStatus() >> "integration"
+            getStatusScheme() >> ["integration", "release"]
+        }
+        def capturedDetails = null
+        handler.eachComponent { ComponentMetadataDetails details ->
+            capturedDetails = details
+        }
+
+        when:
+        handler.process(metadata)
+
+        then:
+        noExceptionThrown()
+        capturedDetails instanceof ComponentMetadataDetails
+        with(capturedDetails) {
+            id.group == "group"
+            id.name == "module"
+            id.version == "version"
+            status == "integration"
+            statusScheme == ["integration", "release"]
+        }
+    }
+
+    def "supports rule with typed IvyModuleMetadata parameter"() {
+        def metadata = Stub(TestIvyMetaData) {
+            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+            getStatus() >> "integration"
+            getStatusScheme() >> ["integration", "release"]
+            getExtraInfo() >> [info1: "info1 value", info2: "info2 value"]
+        }
+        def capturedDescriptor = null
+        handler.eachComponent { details, IvyModuleMetadata descriptor ->
+            capturedDescriptor = descriptor
+        }
+
+        when:
+        handler.process(metadata)
+
+        then:
+        noExceptionThrown()
+        capturedDescriptor instanceof IvyModuleMetadata
+        with(capturedDescriptor) {
+            extraInfo == [info1: "info1 value", info2: "info2 value"]
+        }
+    }
+
+    def "rule with IvyModuleMetadata parameter does not get invoked for non-Ivy components"() {
+        def metadata = Stub(MutableModuleVersionMetaData) {
+            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+            getStatus() >> "integration"
+            getStatusScheme() >> ["integration", "release"]
+        }
+
+        def invoked = false
+        handler.eachComponent { details, IvyModuleMetadata descriptor ->
+            invoked = true
+        }
+
+        when:
+        handler.process(metadata)
+
+        then:
+        !invoked
+    }
+
+    def "complains if rule has no parameters"() {
+        handler.eachComponent { -> }
+
+        when:
+        handler.process(Stub(MutableModuleVersionMetaData))
+
+        then:
+        InvalidUserCodeException e = thrown()
+        e.message == "A component metadata rule needs to have at least one parameter."
+    }
+
+    def "complains if first parameter type isn't assignment compatible with ComponentMetadataDetails"() {
+        handler.eachComponent { String s -> }
+
+        when:
+        handler.process(Stub(MutableModuleVersionMetaData))
+
+        then:
+        InvalidUserCodeException e = thrown()
+        e.message == "First parameter of a component metadata rule needs to be of type 'ComponentMetadataDetails'."
+    }
+
+    def "complains if rule has unsupported parameter type"() {
+        def metadata = Stub(MutableModuleVersionMetaData) {
+            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+            getStatus() >> "integration"
+            getStatusScheme() >> ["integration", "release"]
+        }
+
+        def invoked = false
+        handler.eachComponent { details, String str ->
+            invoked = true
+        }
+
+        when:
+        handler.process(metadata)
+
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Unsupported parameter type for component metadata rule: java.lang.String"
+        !invoked
+    }
+
+    def "supports rule with multiple inputs in arbitrary order"() {
+        def metadata = Stub(TestIvyMetaData) {
+            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+            getStatus() >> "integration"
+            getStatusScheme() >> ["integration", "release"]
+            getExtraInfo() >> [info1: "info1 value", info2: "info2 value"]
+        }
+
+        def capturedDetails1 = null
+        def capturedDescriptor1 = null
+        def capturedDescriptor2 = null
+
+        handler.eachComponent { ComponentMetadataDetails details1, IvyModuleMetadata descriptor1, IvyModuleMetadata descriptor2  ->
+            capturedDetails1 = details1
+            capturedDescriptor1 = descriptor1
+            capturedDescriptor2 = descriptor2
+        }
+
+        when:
+        handler.process(metadata)
+
+        then:
+        noExceptionThrown()
+        capturedDetails1 instanceof ComponentMetadataDetails
+        with(capturedDetails1) {
+            id.group == "group"
+            id.name == "module"
+            id.version == "version"
+            status == "integration"
+            statusScheme == ["integration", "release"]
+        }
+        capturedDescriptor1 instanceof IvyModuleMetadata
+        with(capturedDescriptor1) {
+            extraInfo == [info1: "info1 value", info2: "info2 value"]
+        }
+        capturedDescriptor2 instanceof IvyModuleMetadata
+        with(capturedDescriptor2) {
+            extraInfo == [info1: "info1 value", info2: "info2 value"]
+        }
+    }
+
+    interface TestIvyMetaData extends IvyModuleVersionMetaData, MutableModuleVersionMetaData {}
 }

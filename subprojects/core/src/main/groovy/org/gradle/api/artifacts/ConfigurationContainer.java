@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -96,30 +95,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * {@inheritDoc}
      */
     Configuration getByName(String name, Closure configureClosure) throws UnknownConfigurationException;
-
-    /**
-     * Adds a configuration with the given name.
-     *
-     * @param name The name of the new configuration.
-     * @return The newly added configuration.
-     * @throws InvalidUserDataException when a configuration with the given name already exists in this container.
-     * @deprecated use {@link #create(String)} instead
-     */
-    @Deprecated
-    Configuration add(String name) throws InvalidUserDataException;
-
-    /**
-     * Adds a configuration with the given name. The given configuration closure is executed against the configuration
-     * before it is returned from this method.
-     *
-     * @param name The name of the new configuration.
-     * @param configureClosure The closure to use to configure the configuration.
-     * @return The newly added configuration.
-     * @throws InvalidUserDataException when a configuration with the given name already exists in this container.
-     * @deprecated use {@link #create(String, groovy.lang.Closure)} instead
-     */
-    @Deprecated
-    Configuration add(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**
      * Creates a configuration, but does not add it to this container.

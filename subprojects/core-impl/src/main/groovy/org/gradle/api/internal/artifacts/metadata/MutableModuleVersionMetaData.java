@@ -31,4 +31,9 @@ public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
      * Replaces the dependencies of this module version.
      */
     void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
+
+    /**
+     * Replaces the artifacts of this module version.
+     */
+    void setArtifacts(Iterable<? extends ModuleVersionArtifactMetaData> artifacts);
 }

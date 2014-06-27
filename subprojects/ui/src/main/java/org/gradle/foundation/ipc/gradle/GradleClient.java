@@ -15,9 +15,8 @@
  */
 package org.gradle.foundation.ipc.gradle;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.foundation.ipc.basic.ClientProcess;
+import org.gradle.internal.UncheckedException;
 
 import java.io.Serializable;
 
@@ -28,31 +27,24 @@ import java.io.Serializable;
  */
 public class GradleClient {
     private ClientProcess clientProcess;
-    private final Logger logger = Logging.getLogger(GradleClient.class);
-
-    public GradleClient() {
-    }
 
     /**
      * Call this to start the client. This version gets the port number as a system property. It does nothing if this property isn't defined.
      *
      * @param protocol the protocol to use to communicate with the server.
-     * @return true if successful, false if not.
      */
-    public boolean start(ClientProcess.Protocol protocol) {
+    public void start(ClientProcess.Protocol protocol) {
         //make sure we've been given the port number to use
         String portText = System.getProperty(ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY);
         if (portText == null) {
-            logger.error("No port number specified. Cannot run client");
-            return false;
+            throw new RuntimeException("No port number specified. Cannot run client");
         }
 
         try {
             int port = Integer.parseInt(portText);
-            return start(protocol, port);
+            start(protocol, port);
         } catch (NumberFormatException e) {
-            logger.error("Parsing port '" + portText + "'", e);
-            return false;
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -61,16 +53,10 @@ public class GradleClient {
      *
      * @param protocol the protocol to use to communicate with the server.
      * @param port the port the server is listening on
-     * @return true if successful, false if not.
      */
-    public boolean start(ClientProcess.Protocol protocol, int port) {
+    public void start(ClientProcess.Protocol protocol, int port) {
         clientProcess = new ClientProcess(protocol);
-
-        if (!clientProcess.start(port)) {
-            return false;
-        }
-
-        return true;
+        clientProcess.start(port);
     }
 
     /**

@@ -22,6 +22,7 @@ import org.gradle.openapi.external.foundation.TaskVersion1;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -57,7 +58,7 @@ public class ProjectWrapper implements ProjectVersion1 {
     }
 
     public List<ProjectVersion1> getDependantProjects() {
-        return convertProjects(projectView.getDependsOnProjects());
+        return Collections.emptyList();
     }
 
     public ProjectVersion1 getSubProject(String name) {

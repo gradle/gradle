@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
@@ -38,7 +38,7 @@ class ProjectDependencyResolverTest extends Specification {
         def componentMetaData = Stub(MutableLocalComponentMetaData) {
             toResolveMetaData() >> resolveMetaData
         }
-        def result = Mock(BuildableModuleVersionResolveResult)
+        def result = Mock(BuildableComponentResolveResult)
         def dependencyProject = Stub(ProjectInternal) {
             getPath() >> ":project"
         }
@@ -59,7 +59,7 @@ class ProjectDependencyResolverTest extends Specification {
     }
 
     def "delegates to backing resolver for non-project dependency"() {
-        def result = Mock(BuildableModuleVersionResolveResult)
+        def result = Mock(BuildableComponentResolveResult)
         def dependencyDescriptor = Stub(DependencyDescriptor)
         def dependencyMetaData = Stub(DependencyMetaData) {
             getDescriptor() >> dependencyDescriptor

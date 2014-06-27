@@ -42,7 +42,188 @@ The aim of this specification is to define a mechanism to flip around the flow s
 domain objects are eager. The new publication DSL will be used to validate this approach. If successful, this will then
 be rolled out to other incubating plugins, and later, to existing plugins in a backwards compatible way.
 
-# Implementation plan
+# Implementation plan - Milestone 1
+
+## Story: Plugin declares a top level model to make available
+
+Introduce some mechanism where a plugin can statically declare that a model object should be made available.
+
+A mock up:
+
+    public class SomePlugin { // Does not implement Plugin<?>
+
+        @Model("something")
+        public MyModel createSomething() {
+            ...
+        }
+    }
+
+    apply plugin: SomePlugin
+
+    model {
+        something {
+            ...
+        }
+    }
+
+### Test cases
+
+- Build script configuration closure receives the model instance created by the plugin.
+- Build script configuration closure is executed only when the model is used as input to some rule.
+- Reasonable error message when two rules create models with same name.
+- Reasonable error messages when creation rule or configuration closure fail.
+- Reasonable error messages when plugin does not correctly follow static pattern.
+
+### Open issues
+
+- Expose models as extensions as well:
+    - Have to handle creation rules that take inputs: defer creation until the convention is used, and close the inputs at this point.
+    - Once closed, cannot mutate an object.
+- Exact pattern to use to determine which model(s) a plugin exposes
+    - Alternative pattern that declares only the type and name and Gradle takes care of decoration, instantiation and dependency injection
+- Should assert that every model object is decorated, however it happens to be created.
+- Force rule methods to be static? Plugins to be stateless (eg no fields)?
+- Also add an API where a plugin can declare models dynamically?
+- DSL reference documents the model.
+- Another plugin or build script configures model.
+- Creation rule should be able to declare inputs, including (stateless) services.
+- Creation rule declares input of unknown type.
+- Settings or init script configures model.
+
+## Story: Plugin configures tasks using model as input
+
+Introduce some mechanism where a plugin can static declare a rule to define tasks using its model object as input.
+
+A mock up:
+
+    // Part of Gradle API
+    interface CollectionBuilder<T> {
+        void add(String name); // Adds element of type T with given name and default implementation for T
+
+        void add(String name, Class<? extends T> type); // Adds elements with given type
+
+        void add(String name, Action<? super T> configAction);
+        <S extends T> void add(String name, Class<S> type, Action<? super S> configAction);
+    }
+
+    public class SomePlugin {
+        ...
+
+        @Rule
+        public createTasks(CollectionBuilder<Task> container, MyModel model) {
+            // Invoked after MyModel has been configured
+        }
+    }
+
+    apply plugin: SomePlugin
+
+    model {
+        something {
+            ...
+        }
+    }
+
+### Test cases
+
+- Build script configuration closure is executed before rule method is invoked.
+- Reasonable error message when two rules create tasks with the same name.
+- Reasonable error message when rule method fails.
+- Reasonable error message when rule method declares input of unknown type.
+- Reasonable error message when rule method declares ambiguous input.
+
+### Open issues
+
+- Need another type to allow task instances to be defined without being created.
+- Don't fire rule when tasks not required (eg building model via tooling API).
+- Report on unknown target for configuration closure.
+- Can take extensions as input too?
+
+## Story: Build script configures tasks defined using configuration rule
+
+Improve the model DSL to allow tasks to be configured in the build script:
+
+    model {
+        tasks {
+            someTask {
+                ...
+            }
+        }
+    }
+
+### Test cases
+
+- Build script configuration closure is executed when `someTask` is required:
+    - Task is added to task graph
+    - Running `gradle tasks`
+    - Building `GradleProject` tooling API model.
+    - Using `TaskContainer` to query task instances.
+- Build script configuration closure is not executed when `someTask` is not required:
+    - Running `gradle help`
+    - Running `gradle someTask` in another project.
+    - Using `TaskContainer` to query task names.
+
+### Open issues
+
+- Reasonable behaviour when `someTask { ... }` appears as a top level statement in build script.
+- Replace `TaskContainerInternal.placeholderActions()` with something more general.
+- DSL to allow tasks to be defined.
+
+## Story: Model DSL rule uses a model as input
+
+A mock up:
+
+    model {
+        someThing {
+            prop = model.otherThing.value
+        }
+        tasks {
+            someTask {
+                prop = model.someThing.prop
+            }
+        }
+    }
+
+### Test cases
+
+- Reasonable error message when configuration closure fails.
+- Reasonable error message when unknown model element is requested as input.
+
+### Open issues
+
+- Build script declares model object.
+- Change closure resolution strategy to delegate-only.
+- Move `Project.afterEvaluate()` to fire after the build script has been executed.
+- Include rule execution time in the profile report.
+
+## Story: Make public the Model DSL and plugin rules mechanism
+
+- Document how to use the DSL and plugin mechanism, include samples.
+
+### Open issues
+
+- Improve logging and error message feedback, given that we have better insight into what's happening.
+
+## Story: New language and publication plugins use plugin rules mechanism to define tasks
+
+- Change the native language, jvm language and the publication plugins, to use this mechanism to define tasks from their models.
+
+## Story: Build author is informed when model rule targets unknown model object
+
+# Implementation plan - milestone 2
+
+## Feature: Rule is not executed when its outputs are up to date
+
+Short-circuit the execution of all configuration rules whose outputs are up-to-date:
+    - Inputs have not changed.
+    - Rule implementation has not changed.
+
+Continue to execute all legacy DSL.
+
+To implement this, model objects will need to be serializable in some form.
+
+For up-to-date checks, the implementation of a rule also forms input to the rule. Need to include this and invalidate cached outputs. Fix this for tasks at the same time.
+
+# Implementation plan - Later milestones
 
 ## Native language plugins use model rules to configure the native components model
 
@@ -70,12 +251,9 @@ There are a number of other places where the plugins use `container.all { }` to 
 These should be refactored to use model rules instead. These will probably require some DSL and rules support.
 
 - Remove all usages of `ModelRegistry` outside the rules infrastructure.
-- Document the model rule DSL.
 
 ### Open issues
 
-- Don't close the task container of a project until after all projects that need to be configured have been configured. Need to expose model closing time
-  in the profile report.
 - Add `ModelRules.register()` overload that is given an implementation class and takes care of instantiation and dependency injection.
 - Replace `ModelRules.register()` method that takes a `Factory` and instead takes a rule that is inspected for its dependencies and return type.
 
@@ -127,10 +305,6 @@ For locations #1 and #2, there are a few approaches we might take:
 For location #3, this is an incubating element, so we can simply defer all configuration.
 
 Similarly, this work should consider how the existing task DSL can be used to access these tasks: Is it an error? Does it trigger model rules?
-
-## Build author is warned when model rule targets unknown model object
-
-TBD
 
 ## Internal properties and methods are not visible from the model DSL
 
@@ -314,20 +488,6 @@ provided by the build logic, and are visible to build logic with uses the tasks.
 - Plus whichever other hooks have since been added
 - Possibly expose the cache control hooks as rules too
 
-## Other things to consider
-
-- Integration with old DSL.
-- Enforcement of model element lifecycle (eg detect attempts to mutate a model element that has been closed).
-- Configure model elements on demand.
-- Native plugins: allow configuration of a default toolchain, without replacing the default toolchains. e.g. tweak `clang` without discarding `gcc`.
-- Error handling and reporting.
-- IDE integration.
-- Flesh out the JVM language plugins.
-
-# Old stories
-
-These need to be garbage collected and reworked ...
-
 ## Prevent `object.properties` triggering configuration of any deferred configurable properties (GRADLE-2754)
 
 ## Allow the project version to be determined early in the build configuration
@@ -403,17 +563,6 @@ The following changes should be detected:
 - The elements of a collection used to define artifacts.
 - The runtime dependencies or artifacts of a component.
 
-## Allow arbitrary deferred configuration logic
-
-This story allows arbitrary logic to be deferred until required. This will allow configuration logic to be sequenced naturally based on its dependencies.
-
-## Defer the creation of publication tasks until after the publications have been configured
-
-This story allows the creation and configuration of publication tasks to be deferred until after the publications have
-been configured. It will introduce a public mechanism to allow plugins to implement this pattern.
-
-It will allow the lazy configuration of tasks.
-
 ## Trigger the configuration of publications when tasks are referenced
 
 This story adds support for triggering the configuration of the publications when the publication tasks are
@@ -461,6 +610,13 @@ Reuse the domain object lifecycle mechanism to warn when:
 
 - Fire events before and after configuration of domain objects.
 - Allow task outputs to be used as inputs to rules. eg a `Report` produced by a task.
+- Integration with old DSL.
+- Enforcement of model element lifecycle (eg detect attempts to mutate a model element that has been closed).
+- Configure model elements on demand.
+- Native plugins: allow configuration of a default toolchain, without replacing the default toolchains. e.g. tweak `clang` without discarding `gcc`.
+- Error handling and reporting.
+- IDE integration.
+- Flesh out the JVM language plugins.
 
 # Spike
 

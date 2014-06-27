@@ -18,9 +18,8 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.util.DeprecationLogger;
 
-public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, ResolutionAwareRepository, PublicationAwareRepository {
+public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal {
 
     private String name;
     private boolean isPartOfContainer;
@@ -35,7 +34,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
     public void setName(String name) {
         if (isPartOfContainer) {
-            DeprecationLogger.nagUserOfDeprecated("Changing the name of an ArtifactRepository that is part of a container", "Set the name when creating the repository");
+            throw new IllegalStateException("The name of an ArtifactRepository cannot be changed after it has been added to a repository container. You should set the name when creating the repository.");
         }
         this.name = name;
     }

@@ -35,13 +35,13 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
         R buildDependency(T dependency, String scope);
     }
 
-    public static IdeDependencyKey<IdeProjectDependency, ?> forProjectDependency(
-            IdeProjectDependency dependency, DependencyBuilder<IdeProjectDependency, ?> dependencyBuilder) {
+    public static <D> IdeDependencyKey<IdeProjectDependency, D> forProjectDependency(
+            IdeProjectDependency dependency, DependencyBuilder<IdeProjectDependency, D> dependencyBuilder) {
         return new ProjectDependencyKey(dependency, dependencyBuilder);
     }
 
-    public static IdeDependencyKey<IdeLocalFileDependency, ?> forLocalFileDependency(
-            IdeLocalFileDependency dependency, DependencyBuilder<IdeLocalFileDependency, ?> dependencyBuilder) {
+    public static <D> IdeDependencyKey<IdeLocalFileDependency, D> forLocalFileDependency(
+            IdeLocalFileDependency dependency, DependencyBuilder<IdeLocalFileDependency, D> dependencyBuilder) {
         return new LocalFileDependencyKey(dependency, dependencyBuilder);
     }
 

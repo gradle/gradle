@@ -15,28 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 
 import java.util.Arrays;
 
 public class DefaultConfigurationsToModuleDescriptorConverter implements ConfigurationsToModuleDescriptorConverter {
-    public void addConfigurations(DefaultModuleDescriptor moduleDescriptor, Iterable<? extends Configuration> configurations) {
+    public void addConfigurations(MutableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
-            moduleDescriptor.addConfiguration(getIvyConfiguration(configuration));
+            addConfiguration(metaData, configuration);
         }
     }
 
-    public org.apache.ivy.core.module.descriptor.Configuration getIvyConfiguration(Configuration configuration) {
+    private void addConfiguration(MutableLocalComponentMetaData metaData, Configuration configuration) {
         String[] superConfigs = Configurations.getNames(configuration.getExtendsFrom(), false).toArray(new String[configuration.getExtendsFrom().size()]);
         Arrays.sort(superConfigs);
-        return new org.apache.ivy.core.module.descriptor.Configuration(
-                configuration.getName(),
-                configuration.isVisible() ? org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC : org.apache.ivy.core.module.descriptor.Configuration.Visibility.PRIVATE,
-                configuration.getDescription(),
-                superConfigs,
-                configuration.isTransitive(),
-                null);
+        metaData.addConfiguration(configuration.getName(), configuration.isVisible(), configuration.getDescription(), superConfigs, configuration.isTransitive());
     }
 }

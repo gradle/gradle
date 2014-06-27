@@ -28,34 +28,39 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("settings.gradle") << "include 'client', 'a', 'b', 'c'"
 
-        [a: "b", b: "c", c: "a"].each { module, dep ->
-            def upped = module.toUpperCase()
-            file(module, "build.gradle") << """
-                apply plugin: 'java'
-                group = "group"
-                version = 1.0
+        buildFile << """
+allprojects {
+    configurations { compile; "default" { extendsFrom compile } }
+    group = "group"
+    version = 1.0
+}
 
-                dependencies {
-                    compile project(":$dep")
-                }
-            """
-            file(module, "src", "main", "java", "${upped}.java") << "public class $upped {}"
-        }
+project(":a") {
+    dependencies { compile project(":b") }
+    dependencies { compile project(":c") }
+}
 
-        and:
-        file("client", "build.gradle") << """
-            apply plugin: 'java'
-            
-            dependencies {
-                compile project(":a")
-            }
-        """
-        
+project(":b") {
+    dependencies { compile project(":c") }
+}
+
+project(":c") {
+    dependencies { compile project(":a") }
+}
+"""
+
         when:
-        run ":client:dependencies"
-        
+        run ":c:dependencies"
+
         then:
-        output.contains "(*) - dependencies omitted (listed previously)"
+        output.contains(toPlatformLineSeparators("""
+compile
+\\--- project :a
+     +--- project :b
+     |    \\--- project :c (*)
+     \\--- project :c (*)
+"""))
+        output.contains '(*) - dependencies omitted (listed previously)'
     }
 
     def "marks modules that can't be resolved as 'FAILED'"() {
@@ -325,6 +330,7 @@ rootProject.name = 'root'
 
         then:
         output.contains(toPlatformLineSeparators("""
+conf
 \\--- org:toplevel:1.0
      +--- org:middle1:1.0
      |    +--- org:leaf1:1.0
@@ -366,6 +372,7 @@ rootProject.name = 'root'
 
         then:
         output.contains(toPlatformLineSeparators("""
+conf
 +--- bar:bar:5.0 -> 6.0
 |    \\--- foo:foo:3.0
 +--- bar:bar:6.0 (*)
@@ -402,6 +409,7 @@ rootProject.name = 'root'
 
         then:
         output.contains(toPlatformLineSeparators("""
+conf
 +--- foo:foo:1+ -> 2.5
 |    \\--- foo:bar:2.0
 \\--- foo:foo:2+ -> 2.5 (*)
@@ -436,7 +444,11 @@ rootProject.name = 'root'
         run ":dependencies"
 
         then:
-        output.contains "org:child:1.0"
+        output.contains(toPlatformLineSeparators("""
+conf
+\\--- org:parent:1.0
+     \\--- org:child:1.0
+"""))
     }
 
     def "renders the ivy tree with conflicts"() {
@@ -471,6 +483,7 @@ rootProject.name = 'root'
 
         then:
         output.contains(toPlatformLineSeparators("""
+conf
 +--- org:toplevel:1.0
 |    +--- org:middle1:1.0
 |    |    +--- org:leaf1:1.0
@@ -481,6 +494,7 @@ rootProject.name = 'root'
 \\--- org:leaf4:2.0
 """))
     }
+
     def "tells if there are no dependencies"() {
         given:
         buildFile << "configurations { foo }"
@@ -489,7 +503,10 @@ rootProject.name = 'root'
         run "dependencies"
 
         then:
-        output.contains "No dependencies"
+        output.contains(toPlatformLineSeparators("""
+foo
+No dependencies
+"""))
     }
 
     def "tells if there are no configurations"() {
@@ -585,7 +602,8 @@ conf2
         run "dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""conf
+        output.contains(toPlatformLineSeparators("""
+conf
 \\--- org.utils:impl:1.3 FAILED
 """))
     }
@@ -650,6 +668,7 @@ rootProject.name = 'root'
         output.contains "compile - Compile classpath for source set 'main'."
 
         output.contains(toPlatformLineSeparators("""
+compile - Compile classpath for source set 'main'.
 +--- project :a
 |    \\--- foo:bar:1.0 -> 2.0
 +--- project :b

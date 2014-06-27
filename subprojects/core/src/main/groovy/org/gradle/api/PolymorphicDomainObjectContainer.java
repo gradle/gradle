@@ -71,4 +71,13 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * or the container does not support creating a domain object with the specified type
      */
     <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) throws InvalidUserDataException;
+
+    /**
+     * Creates a regular container that wraps the polymorphic container presenting all elements of a specified type.
+     *
+     * @param type the type of the container elements
+     * @param <U> the type of the container elements
+     * @return a {@link NamedDomainObjectContainer} providing access to elements of type U.
+     */
+    <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type);
 }

@@ -21,15 +21,16 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.Cast;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
-import org.gradle.api.publish.ivy.internal.publisher.*;
+import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Cast;
 
+import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
@@ -131,14 +132,17 @@ public class PublishToIvyRepository extends DefaultTask {
         doPublish(publicationInternal, repository);
     }
 
+    @Inject
+    protected IvyPublisher getIvyPublisher() {
+        throw new UnsupportedOperationException();
+    }
+
     private void doPublish(final IvyPublicationInternal publication, final IvyArtifactRepository repository) {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
-                IvyPublisher publisher = new DependencyResolverIvyPublisher();
-                publisher = new ValidatingIvyPublisher(publisher);
-                publisher = new ContextualizingIvyPublisher(publisher, getServices().get(IvyContextManager.class));
+                IvyPublisher publisher = getIvyPublisher();
                 publisher.publish(normalizedPublication, Cast.cast(PublicationAwareRepository.class, repository));
             }
         }.run();

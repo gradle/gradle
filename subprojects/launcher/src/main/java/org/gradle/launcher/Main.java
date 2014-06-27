@@ -25,24 +25,11 @@ import java.util.Arrays;
  * The main command-line entry-point for Gradle.
  */
 public class Main extends EntryPoint {
-
-    private final String[] args;
-    
-    public Main(String[] args) {
-        this.args = args;
-    }
-
     public static void main(String[] args) {
-        try {
-            new Main(args).run();
-            System.exit(0);
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            System.exit(1);
-        }
+        new Main().run(args);
     }
 
-    protected void doAction(ExecutionListener listener) {
+    protected void doAction(String[] args, ExecutionListener listener) {
         createActionFactory().convert(Arrays.asList(args)).execute(listener);
     }
 

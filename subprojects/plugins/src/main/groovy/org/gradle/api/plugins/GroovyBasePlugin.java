@@ -18,8 +18,6 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
@@ -32,7 +30,6 @@ import org.gradle.api.tasks.GroovyRuntime;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -43,16 +40,6 @@ import java.util.concurrent.Callable;
  * source files.
  */
 public class GroovyBasePlugin implements Plugin<ProjectInternal> {
-    /**
-     * The name of the configuration holding the Groovy compiler and tools.
-     *
-     * @deprecated Typically, usages of {@code groovy} can simply be replaced with {@code compile}.
-     * In some cases, it may be necessary to additionally configure the {@code groovyClasspath} property
-     * of {@code GroovyCompile} and {@code Groovydoc} tasks.
-     */
-    @Deprecated
-    public static final String GROOVY_CONFIGURATION_NAME = "groovy";
-
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
     private final FileResolver fileResolver;
@@ -69,7 +56,6 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         this.project = project;
         JavaBasePlugin javaBasePlugin = project.getPlugins().apply(JavaBasePlugin.class);
 
-        configureConfigurations(project);
         configureGroovyRuntimeExtension();
         configureCompileDefaults();
         configureSourceSetDefaults(javaBasePlugin);
@@ -77,24 +63,8 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         configureGroovydoc();
     }
 
-    private void configureConfigurations(ProjectInternal project) {
-        Configuration groovyConfiguration = project.getConfigurations().create(GROOVY_CONFIGURATION_NAME).setVisible(false).
-                setDescription("The Groovy libraries to be used for this Groovy project. (Deprecated)");
-        deprecateGroovyConfiguration(groovyConfiguration);
-    }
-
     private void configureGroovyRuntimeExtension() {
         groovyRuntime = project.getExtensions().create(GROOVY_RUNTIME_EXTENSION_NAME, GroovyRuntime.class, project);
-    }
-
-    private void deprecateGroovyConfiguration(Configuration groovyConfiguration) {
-        groovyConfiguration.getDependencies().whenObjectAdded(new Action<Dependency>() {
-            public void execute(Dependency dependency) {
-                DeprecationLogger.nagUserOfDiscontinuedConfiguration(GROOVY_CONFIGURATION_NAME, "Typically, usages of 'groovy' "
-                        + "can simply be replaced with 'compile'. In some cases, it may be necessary to additionally configure "
-                        + "the 'groovyClasspath' property of GroovyCompile and Groovydoc tasks.");
-            }
-        });
     }
 
     private void configureCompileDefaults() {

@@ -26,7 +26,7 @@ import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 class CopyFileVisitorImplTest extends Specification {
-    CopySpecInternal spec = Mock()
+    CopySpecResolver specResolver = Mock()
     CopyActionProcessingStreamAction action = Mock()
     Instantiator instantiator = Mock()
     FileSystem fileSystem = Mock()
@@ -34,19 +34,19 @@ class CopyFileVisitorImplTest extends Specification {
     FileVisitor copyFileVisitorImpl
 
     def setup() {
-        copyFileVisitorImpl = new CopyFileVisitorImpl(spec, action, instantiator, fileSystem)
+        copyFileVisitorImpl = new CopyFileVisitorImpl(specResolver, action, instantiator, fileSystem)
     }
 
     def "visit directory"() {
         given:
         FileVisitDetails dirDetails = Mock()
-        DefaultFileCopyDetails defaultFileCopyDetails = new DefaultFileCopyDetails(dirDetails, spec, fileSystem)
+        DefaultFileCopyDetails defaultFileCopyDetails = new DefaultFileCopyDetails(dirDetails, specResolver, fileSystem)
 
         when:
         copyFileVisitorImpl.visitDir(dirDetails)
 
         then:
-        1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, spec, fileSystem) >> defaultFileCopyDetails
+        1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, fileSystem) >> defaultFileCopyDetails
         1 * action.processFile(defaultFileCopyDetails)
         0 * defaultFileCopyDetails.excluded
     }
@@ -54,14 +54,14 @@ class CopyFileVisitorImplTest extends Specification {
     def "visit file if no action are defined in copy spec"() {
         given:
         FileVisitDetails dirDetails = Mock()
-        DefaultFileCopyDetails defaultFileCopyDetails = new DefaultFileCopyDetails(dirDetails, spec, fileSystem)
+        DefaultFileCopyDetails defaultFileCopyDetails = new DefaultFileCopyDetails(dirDetails, specResolver, fileSystem)
 
         when:
         copyFileVisitorImpl.visitFile(dirDetails)
 
         then:
-        1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, spec, fileSystem) >> defaultFileCopyDetails
-        1 * spec.getAllCopyActions() >> []
+        1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, fileSystem) >> defaultFileCopyDetails
+        1 * specResolver.getAllCopyActions() >> []
         1 * action.processFile(defaultFileCopyDetails)
         0 * defaultFileCopyDetails.excluded
     }
@@ -77,8 +77,8 @@ class CopyFileVisitorImplTest extends Specification {
         copyFileVisitorImpl.visitFile(dirDetails)
 
         then:
-        1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, spec, fileSystem) >> defaultFileCopyDetails
-        1 * spec.getAllCopyActions() >> [fileCopyAction1, fileCopyAction2]
+        1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, fileSystem) >> defaultFileCopyDetails
+        1 * specResolver.getAllCopyActions() >> [fileCopyAction1, fileCopyAction2]
         1 * action.processFile(defaultFileCopyDetails)
         1 * fileCopyAction1.execute(defaultFileCopyDetails)
         1 * fileCopyAction2.execute(defaultFileCopyDetails)
@@ -96,8 +96,8 @@ class CopyFileVisitorImplTest extends Specification {
         copyFileVisitorImpl.visitFile(dirDetails)
 
         then:
-        1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, spec, fileSystem) >> defaultFileCopyDetails
-        1 * spec.getAllCopyActions() >> [fileCopyAction1, fileCopyAction2]
+        1 * instantiator.newInstance(DefaultFileCopyDetails.class, dirDetails, specResolver, fileSystem) >> defaultFileCopyDetails
+        1 * specResolver.getAllCopyActions() >> [fileCopyAction1, fileCopyAction2]
         0 * action.processFile(defaultFileCopyDetails)
         1 * fileCopyAction1.execute(defaultFileCopyDetails)
         1 * defaultFileCopyDetails.excluded >> true

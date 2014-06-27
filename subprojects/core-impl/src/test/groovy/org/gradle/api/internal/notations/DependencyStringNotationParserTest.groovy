@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.notations
 
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.util.TestUtil
+import org.gradle.internal.typeconversion.NotationParserBuilder
 import spock.lang.Specification
 
 public class DependencyStringNotationParserTest extends Specification {
-
     def parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultExternalModuleDependency.class);
 
     def "with artifact"() {
         when:
-        def d = parser.parseNotation('org.gradle:gradle-core:4.4-beta2@mytype');
+        def d = parse(parser, 'org.gradle:gradle-core:4.4-beta2@mytype')
 
         then:
         d.name == 'gradle-core'
@@ -46,7 +46,7 @@ public class DependencyStringNotationParserTest extends Specification {
 
     def "with classified artifact"() {
         when:
-        def d = parser.parseNotation('org.gradle:gradle-core:10:jdk-1.4@zip');
+        def d = parse(parser, 'org.gradle:gradle-core:10:jdk-1.4@zip')
 
         then:
         d.name == 'gradle-core'
@@ -63,7 +63,7 @@ public class DependencyStringNotationParserTest extends Specification {
 
     def "with classifier"() {
         when:
-        def d = parser.parseNotation('org.gradle:gradle-core:10:jdk-1.4');
+        def d = parse(parser, 'org.gradle:gradle-core:10:jdk-1.4')
 
         then:
         d.name == 'gradle-core'
@@ -81,8 +81,9 @@ public class DependencyStringNotationParserTest extends Specification {
 
     def "with 3-element GString"() {
         when:
-        def gstring = TestUtil.createScript("descriptor = 'org.gradle:gradle-core:1.0'; \"\$descriptor\"").run()
-        def d = parser.parseNotation(gstring);
+        def descriptor = 'org.gradle:gradle-core:1.0'
+        def gstring = "$descriptor"
+        def d = parse(parser, gstring)
 
         then:
         d.group == 'org.gradle'
@@ -96,7 +97,7 @@ public class DependencyStringNotationParserTest extends Specification {
 
     def "with no group"() {
         when:
-        def d = parser.parseNotation(":foo:1.0");
+        def d = parse(parser, ":foo:1.0")
 
         then:
         d.group == null
@@ -110,7 +111,7 @@ public class DependencyStringNotationParserTest extends Specification {
 
     def "with no version"() {
         when:
-        def d = parser.parseNotation("hey:foo:");
+        def d = parse(parser, "hey:foo:")
 
         then:
         d.group == 'hey'
@@ -124,7 +125,7 @@ public class DependencyStringNotationParserTest extends Specification {
 
     def "with no version and no group"() {
         when:
-        def d = parser.parseNotation(":foo:");
+        def d = parse(parser, ":foo:")
 
         then:
         d.group == null
@@ -137,10 +138,10 @@ public class DependencyStringNotationParserTest extends Specification {
     }
 
     def "can create client module"() {
-        parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultClientModule);
+        def parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultClientModule);
 
         when:
-        def d = parser.parseNotation('org.gradle:gradle-core:10')
+        def d = parse(parser, 'org.gradle:gradle-core:10')
 
         then:
         d instanceof DefaultClientModule
@@ -153,10 +154,10 @@ public class DependencyStringNotationParserTest extends Specification {
     }
 
     def "client module ignores the artifact only notation"() {
-        parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultClientModule);
+        def parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultClientModule);
 
         when:
-        def d = parser.parseNotation('org.gradle:gradle-core:10@jar')
+        def d = parse(parser, 'org.gradle:gradle-core:10@jar')
 
         then:
         d instanceof DefaultClientModule
@@ -167,5 +168,9 @@ public class DependencyStringNotationParserTest extends Specification {
 
         !d.force
         d.artifacts.size() == 0
+    }
+
+    def parse(def parser, def value) {
+        return NotationParserBuilder.toType(Dependency).fromCharSequence(parser).toComposite().parseNotation(value)
     }
 }

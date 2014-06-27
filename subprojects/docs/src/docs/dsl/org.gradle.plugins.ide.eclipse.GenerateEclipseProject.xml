@@ -5,9 +5,13 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins</td>
+                    <td>Default with <literal>eclipse</literal> plugins</td>
                 </tr>
             </thead>
+            <tr>
+                <td>projectModel</td>
+                <td><literal>project.eclipse.project</literal></td>
+            </tr>
             <tr>
                 <td>outputFile</td>
                 <td><filename><replaceable>${project.projectDir}</replaceable>/.project</filename></td>

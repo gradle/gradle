@@ -40,6 +40,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
     private static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution();
     protected final List<GradleDistribution> previous;
+    protected final boolean implicitVersion;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {
         this(target, System.getProperty(VERSIONS_SYSPROP_NAME, "latest"));
@@ -53,7 +54,9 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
         final ReleasedVersionDistributions previousVersions = new ReleasedVersionDistributions();
         if (versionStr.equals("latest")) {
             previous.add(previousVersions.getMostRecentFinalRelease());
+            implicitVersion = true;
         } else if (versionStr.equals("all")) {
+            implicitVersion = true;
             List<GradleDistribution> all = previousVersions.getAll();
             for (GradleDistribution previous : all) {
                 if (!previous.worksWith(Jvm.current())) {
@@ -67,6 +70,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
                 this.previous.add(previous);
             }
         } else if (versionStr.matches("^\\d.*$")) {
+            implicitVersion = false;
             String[] versions = versionStr.split(",");
             List<GradleVersion> gradleVersions = CollectionUtils.sort(collect(Arrays.asList(versions), new Transformer<GradleVersion, String>() {
                 public GradleVersion transform(String versionString) {

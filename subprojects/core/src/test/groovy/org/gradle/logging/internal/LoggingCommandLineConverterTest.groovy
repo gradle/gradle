@@ -91,7 +91,7 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     void checkConversion(List<String> args) {
-        def actual = converter.convert(args)
+        def actual = converter.convert(args, new LoggingConfiguration())
         assert actual.logLevel == expectedConfig.logLevel
         assert actual.colorOutput == expectedConfig.colorOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace

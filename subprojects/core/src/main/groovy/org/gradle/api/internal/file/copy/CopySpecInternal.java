@@ -17,31 +17,24 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.RelativePath;
-
-import java.util.Collection;
 
 public interface CopySpecInternal extends CopySpec {
 
-    RelativePath getDestPath();
-
-    FileTree getSource();
-
-    FileTree getAllSource();
-
+    //TODO - does this belong here or on the resolver? PEZ
     boolean hasSource();
 
-    Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
-
     Iterable<CopySpecInternal> getChildren();
-
-    void walk(Action<? super CopySpecInternal> action);
 
     CopySpecInternal addChild();
 
     CopySpecInternal addChildBeforeSpec(CopySpecInternal childSpec);
 
     CopySpecInternal addFirst();
+
+    void walk(Action<? super CopySpecResolver> action);
+
+    CopySpecResolver buildRootResolver();
+
+    CopySpecResolver buildResolverRelativeToParent(CopySpecResolver parent);
+
 }

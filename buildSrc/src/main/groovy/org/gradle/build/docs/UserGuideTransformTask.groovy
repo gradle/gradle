@@ -80,11 +80,11 @@ public class UserGuideTransformTask extends DefaultTask {
     def transform() {
         XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
         provider.parse(sourceFile)
-        transform(provider.document)
+        transformImpl(provider.document)
         provider.write(destFile)
     }
 
-    private def transform(Document doc) {
+    private def transformImpl(Document doc) {
         use(DOMCategory) {
             use(BuildableDOMCategory) {
                 addVersionInfo(doc)

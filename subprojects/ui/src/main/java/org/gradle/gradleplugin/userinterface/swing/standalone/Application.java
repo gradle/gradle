@@ -57,26 +57,9 @@ public class Application implements AlternateUIInteraction {
      */
     public interface LifecycleListener {
         /**
-         * Notification that the application has started successfully. This is fired within the same thread that instantiates us.
-         */
-        public void hasStarted();
-
-        /**
          * Notification that the application has shut down. This is fired from the Event Dispatch Thread.
          */
         public void hasShutDown();
-    }
-
-    public static void main(String[] args) {
-        new Application(new LifecycleListener() {
-            public void hasStarted() {
-                //we don't care
-            }
-
-            public void hasShutDown() {
-                System.exit(0);
-            }
-        });
     }
 
     public Application(LifecycleListener lifecycleListener) {
@@ -104,8 +87,6 @@ public class Application implements AlternateUIInteraction {
         restoreSettings();
 
         frame.setVisible(true);
-
-        lifecycleListener.hasStarted();  //notify listeners that we have successfully started
     }
 
     private void setupUI() {

@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.Jvm;
@@ -33,7 +32,7 @@ public class DaemonParameters {
 
     private final String uid;
 
-    private File baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon");
+    private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
     private boolean usingDefaultJvmArgs = true;

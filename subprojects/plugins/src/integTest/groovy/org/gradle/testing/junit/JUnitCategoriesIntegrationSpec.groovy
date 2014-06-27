@@ -59,6 +59,6 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
 
     def testTaskFailsIfCategoriesNotSupported() {
         when: fails('test')
-        then: failure.error.contains("JUnit Categories defined but declared JUnit version does not support Categories.")
+        then: failure.assertHasCause("JUnit Categories defined but declared JUnit version does not support Categories.")
     }
 }

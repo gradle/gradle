@@ -37,10 +37,10 @@ public class SettingsFactory {
 
     public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
-                                           ClassLoaderScope classLoaderScope) {
+                                           ClassLoaderScope settingsClassLoaderScope) {
 
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
-                serviceRegistryFactory, gradle, classLoaderScope, settingsDir, settingsScript, startParameter
+                serviceRegistryFactory, gradle, settingsClassLoaderScope, settingsDir, settingsScript, startParameter
         );
 
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();

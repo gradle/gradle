@@ -16,12 +16,12 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -53,7 +53,7 @@ public class BuildSourceBuilder {
             return classLoaderScope;
         } else {
             ClassLoaderScope childScope = classLoaderScope.createChild();
-            childScope.export(classpath);
+            childScope.export(classLoaderScope.loader(classpath));
             childScope.lock();
             return childScope;
         }
@@ -74,7 +74,11 @@ public class BuildSourceBuilder {
         final PersistentCache buildSrcCache = createCache(startParameter);
         try {
             GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
-            return buildSrcCache.useCache("rebuild buildSrc", new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, new BuildSrcBuildListenerFactory()));
+            try {
+                return buildSrcCache.useCache("rebuild buildSrc", new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, new BuildSrcBuildListenerFactory()));
+            } finally {
+                gradleLauncher.stop();
+            }
         } finally {
             // This isn't quite right. We should not unlock the classes until we're finished with them, and the classes may be used across multiple builds
             buildSrcCache.close();

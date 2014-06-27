@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
-import org.gradle.language.jvm.Classpath;
+import org.gradle.runtime.jvm.Classpath;
 
 public class SourceSetCompileClasspath implements Classpath {
     private final SourceSet sourceSet;

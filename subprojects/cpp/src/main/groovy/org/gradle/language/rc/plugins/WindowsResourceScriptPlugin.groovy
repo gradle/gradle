@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.language.rc.plugins
-import org.gradle.api.Action
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.ProjectSourceSet
+import org.gradle.language.base.LanguageRegistry
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet
@@ -47,17 +47,6 @@ class WindowsResourceScriptPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
-
-        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        projectSourceSet.all(new Action<FunctionalSourceSet>() {
-            public void execute(final FunctionalSourceSet functionalSourceSet) {
-                functionalSourceSet.registerFactory(WindowsResourceSet) { name ->
-                    instantiator.newInstance(DefaultWindowsResourceSet, name, functionalSourceSet, project)
-                }
-
-                // Create a single windows resource set
-                functionalSourceSet.create "rc", WindowsResourceSet
-            }
-        });
+        project.getExtensions().getByType(LanguageRegistry).registerLanguage("rc", WindowsResourceSet, DefaultWindowsResourceSet)
     }
 }

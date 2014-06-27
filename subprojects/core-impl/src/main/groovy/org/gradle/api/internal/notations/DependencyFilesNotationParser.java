@@ -19,26 +19,24 @@ import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.Collection;
 
-public class DependencyFilesNotationParser
-        extends TypedNotationParser<FileCollection, SelfResolvingDependency> {
-
+public class DependencyFilesNotationParser implements NotationConverter<FileCollection, SelfResolvingDependency> {
     private final Instantiator instantiator;
 
     public DependencyFilesNotationParser(Instantiator instantiator) {
-        super(FileCollection.class);
         this.instantiator = instantiator;
     }
 
-    @Override
     public void describe(Collection<String> candidateFormats) {
         candidateFormats.add("FileCollections, e.g. files('some.jar', 'someOther.jar').");
     }
 
-    public SelfResolvingDependency parseType(FileCollection notation) {
-        return instantiator.newInstance(DefaultSelfResolvingDependency.class, notation);
+    public void convert(FileCollection notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
+        result.converted(instantiator.newInstance(DefaultSelfResolvingDependency.class, notation));
     }
 }

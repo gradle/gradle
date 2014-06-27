@@ -18,12 +18,12 @@ package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.nativebinaries.NativeDependencySet;
-import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
+import org.gradle.nativebinaries.internal.NativeLibraryBinaryInternal;
 
 public class DefaultNativeDependencySet implements NativeDependencySet {
-    private final LibraryBinaryInternal binary;
+    private final NativeLibraryBinaryInternal binary;
 
-    public DefaultNativeDependencySet(LibraryBinaryInternal binary) {
+    public DefaultNativeDependencySet(NativeLibraryBinaryInternal binary) {
         this.binary = binary;
     }
 

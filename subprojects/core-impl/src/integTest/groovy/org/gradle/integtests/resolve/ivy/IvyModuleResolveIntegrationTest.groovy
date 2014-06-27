@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
-class IvyModuleResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "wildcard on LHS of configuration mapping includes all public configurations of target module"() {
         given:
         buildFile << """
@@ -88,8 +88,6 @@ task retrieve(type: Sync) {
     @Unroll
     def "correctly handles configuration mapping rule '#rule'"() {
         given:
-        server.start()
-
         buildFile << """
 configurations {
     compile
@@ -219,5 +217,42 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar', 'projectC-alpha-12.jar')
+    }
+
+    def "prefers module with metadata to module with no metadata"() {
+        given:
+        def repo1 = ivyHttpRepo("repo1")
+        def moduleWithNoMetaData = repo1.module("org.gradle", "test", "1.45").withNoMetaData().publish()
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleWithMetaData = repo2.module("org.gradle", "test", "1.45").publishWithChangedContent()
+        assert moduleWithNoMetaData.jarFile.text != moduleWithMetaData.jarFile.text
+
+        and:
+        buildFile << """
+repositories {
+    ivy { url "${repo1.uri}" }
+    ivy { url "${repo2.uri}" }
+}
+configurations { compile }
+dependencies {
+    compile "org.gradle:test:1.45"
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into "libs"
+}
+"""
+
+        when:
+        moduleWithNoMetaData.ivy.expectGetMissing()
+        moduleWithNoMetaData.jar.expectHead()
+        moduleWithMetaData.ivy.expectGet()
+        moduleWithMetaData.jar.expectGet()
+        succeeds "retrieve"
+
+        then:
+        file("libs").assertHasDescendants("test-1.45.jar")
+        file("libs/test-1.45.jar").assertIsCopyOf(moduleWithMetaData.jarFile)
     }
 }

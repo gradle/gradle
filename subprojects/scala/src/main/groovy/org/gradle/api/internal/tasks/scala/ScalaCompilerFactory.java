@@ -16,36 +16,35 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
-import org.gradle.internal.Factory;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompilerFactory;
 
-public class ScalaCompilerFactory {
+public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final IsolatedAntBuilder antBuilder;
-    private final Factory<AntBuilder> antBuilderFactory;
-    private final CompilerDaemonManager compilerDaemonManager;
+    private final JavaCompilerFactory javaCompilerFactory;
+    private final CompilerDaemonFactory compilerDaemonFactory;
 
-    public ScalaCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, Factory<AntBuilder> antBuilderFactory, CompilerDaemonManager compilerDaemonManager) {
+    public ScalaCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory) {
         this.project = project;
         this.antBuilder = antBuilder;
-        this.antBuilderFactory = antBuilderFactory;
-        this.compilerDaemonManager = compilerDaemonManager;
+        this.javaCompilerFactory = javaCompilerFactory;
+        this.compilerDaemonFactory = compilerDaemonFactory;
     }
 
-    public org.gradle.api.internal.tasks.compile.Compiler<ScalaJavaJointCompileSpec> create(ScalaCompileOptions scalaOptions, CompileOptions javaOptions) {
+    public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
+        ScalaCompileOptions scalaOptions = spec.getScalaCompileOptions();
         if (scalaOptions.isUseAnt()) {
             Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(antBuilder);
-            Compiler<JavaCompileSpec> javaCompiler = new AntJavaCompiler(antBuilderFactory);
-            return new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler);
+            Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getCompileOptions());
+            return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler));
         }
 
         if (!scalaOptions.isFork()) {
@@ -62,7 +61,7 @@ public class ScalaCompilerFactory {
             throw new RuntimeException("Internal error: Failed to load org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler", e);
         }
 
-        scalaCompiler = new DaemonScalaCompiler(project, scalaCompiler, compilerDaemonManager);
+        scalaCompiler = new DaemonScalaCompiler(project.getRootProject().getProjectDir(), scalaCompiler, compilerDaemonFactory);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

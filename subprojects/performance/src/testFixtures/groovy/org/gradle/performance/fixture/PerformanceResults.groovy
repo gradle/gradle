@@ -33,7 +33,8 @@ public class PerformanceResults {
     String vcsCommit
 
     private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
-    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current Gradle")
+    final MeasuredOperationList current = new MeasuredOperationList(name: "Current Gradle")
+    private final results = new CurrentVersionResults(current)
 
     def clear() {
         baselineVersions.values().each { it.clearResults() }
@@ -65,20 +66,33 @@ public class PerformanceResults {
         return baselineVersion
     }
 
-    void assertEveryBuildSucceeds() {
-        LOGGER.info("Asserting all builds have succeeded...");
+    /**
+     * Locates the given version. Can use either a baseline version or the current branch name.
+     */
+    VersionResults version(String version) {
+        if (version.equals(vcsBranch)) {
+            return results
+        }
+        return baseline(version)
+    }
+
+    List<MeasuredOperationList> getFailures() {
         def failures = []
         baselineVersions.values().each {
             failures.addAll it.results.findAll { it.exception }
         }
         failures.addAll current.findAll { it.exception }
+        return failures
+    }
 
-        assert failures.collect { it.exception }.empty : "Some builds have failed."
+    void assertEveryBuildSucceeds() {
+        LOGGER.info("Asserting all builds have succeeded...");
+        assert failures.collect { it.exception }.empty: "Some builds have failed."
     }
 
     void assertCurrentVersionHasNotRegressed() {
-        def slower = checkBaselineVersion({it.fasterThan(current)},         {it.getSpeedStatsAgainst(displayName, current)})
-        def larger = checkBaselineVersion({it.usesLessMemoryThan(current)}, {it.getMemoryStatsAgainst(displayName, current)})
+        def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
+        def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
         assertEveryBuildSucceeds()
         if (slower && larger) {
             throw new AssertionError("$slower\n$larger")
@@ -103,5 +117,13 @@ public class PerformanceResults {
             println message
         }
         return failed ? failure.toString() : null
+    }
+
+    private static class CurrentVersionResults implements VersionResults {
+        final MeasuredOperationList results
+
+        CurrentVersionResults(MeasuredOperationList results) {
+            this.results = results
+        }
     }
 }

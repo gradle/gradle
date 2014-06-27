@@ -461,7 +461,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
      *
      * @param size the total number of tasks.
      */
-    public void reportNumberOfTasksToExecute(final int size) {  //if we only have a single task, then the intire process will be indeterminately long (it'll just from 0 to 100)
+    public void reportNumberOfTasksToExecute(final int size) {  //if we only have a single task, then the entire process will be indeterminately long (it'll just from 0 to 100)
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 boolean isIndeterminate = size == 1;

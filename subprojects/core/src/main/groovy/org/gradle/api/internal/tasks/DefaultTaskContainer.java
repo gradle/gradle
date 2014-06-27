@@ -28,7 +28,6 @@ import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -76,27 +75,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return create(name, type);
     }
 
-    public Task add(Map<String, ?> options) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
-        return create(options);
-    }
-
     public Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
         return create(options).configure(configureClosure);
     }
 
-    public Task add(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
-        return create(options, configureClosure);
-    }
-
     public <T extends Task> T create(String name, Class<T> type) {
         return type.cast(create(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type)));
-    }
-
-    public <T extends Task> T add(String name, Class<T> type) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
-        return create(name, type);
     }
 
     public Task create(String name) {
@@ -117,22 +101,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return create(name);
     }
 
-    public Task add(String name) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
-        return create(name);
-    }
-
     public Task replace(String name) {
         return create(GUtil.map(Task.TASK_NAME, name, Task.TASK_OVERWRITE, true));
     }
 
     public Task create(String name, Closure configureClosure) {
         return create(name).configure(configureClosure);
-    }
-
-    public Task add(String name, Closure configureClosure) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
-        return create(name, configureClosure);
     }
 
     public <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException {
@@ -163,17 +137,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
     }
 
-    public Task resolveTask(Object path) {
+    public Task resolveTask(String path) {
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        if (!(path instanceof CharSequence)) {
-            DeprecationLogger.nagUserOfDeprecated(
-                    String.format("Converting class %s to a task dependency using toString()", path.getClass().getName()),
-                    "Please use org.gradle.api.Task, java.lang.String, org.gradle.api.Buildable, org.gradle.tasks.TaskDependency or a Closure to declare your task dependencies"
-            );
-        }
-        return getByPath(path.toString());
+        return getByPath(path);
     }
 
     public Task getByPath(String path) throws UnknownTaskException {
@@ -243,5 +211,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public void addPlaceholderAction(String placeholderName, Runnable runnable) {
         placeholders.put(placeholderName, runnable);
+    }
+
+    public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
+        throw new UnsupportedOperationException();
     }
 }

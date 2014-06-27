@@ -115,7 +115,7 @@ public class DefaultResolvedDependencyTest {
             allowing(version).getId();
             will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency.getModule(), null , artifactStub, artifactSource, 0);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule(), artifactStub, artifactSource, 0);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {

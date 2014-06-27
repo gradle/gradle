@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
-public class DefaultBuildableModuleVersionSelectionResolveResult implements BuildableModuleVersionSelectionResolveResult {
+import java.util.Collection;
+
+public class DefaultBuildableModuleVersionSelectionResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionSelectionResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
     private ModuleVersionListing versions;
@@ -32,17 +35,31 @@ public class DefaultBuildableModuleVersionSelectionResolveResult implements Buil
         return state;
     }
 
+    public boolean hasResult() {
+        return state != State.Unknown;
+    }
+
     public ModuleVersionListing getVersions() throws ModuleVersionResolveException {
+        assertHasResult();
         return versions;
     }
 
     public ModuleVersionResolveException getFailure() {
+        assertHasResult();
         return failure;
     }
 
     public void listed(ModuleVersionListing versions) {
         reset(State.Listed);
         this.versions = versions;
+    }
+
+    public void listed(Collection<String> versions) {
+        DefaultModuleVersionListing listing = new DefaultModuleVersionListing();
+        for (String version : versions) {
+            listing.add(version);
+        }
+        listed(listing);
     }
 
     public void probablyListed(ModuleVersionListing versions) {
@@ -55,4 +72,9 @@ public class DefaultBuildableModuleVersionSelectionResolveResult implements Buil
         this.failure = failure;
     }
 
+    private void assertHasResult() {
+        if (!hasResult()) {
+            throw new IllegalStateException("No result has been specified.");
+        }
+    }
 }

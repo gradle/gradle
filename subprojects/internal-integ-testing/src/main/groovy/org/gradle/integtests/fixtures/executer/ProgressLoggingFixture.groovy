@@ -63,7 +63,7 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
     }
 
     boolean downloadProgressLogged(URI url) {
-        downloadProgressLogged(url.toString())
+        downloadProgressLogged(url.toASCIIString())
     }
 
     boolean downloadProgressLogged(String url) {

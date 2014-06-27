@@ -25,5 +25,5 @@ task sayGreeting(dependsOn: greet) << {
     println file(greetingFile).text
 }
 
-greetingFile = "$buildDir/hello.txt"
+ext.greetingFile = "$buildDir/hello.txt"
 // END SNIPPET config

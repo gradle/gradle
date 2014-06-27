@@ -43,7 +43,7 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
     }
 
-    def "await idle timeout throws exception when already stopped"() {
+    def "await idle timeout does nothing when already stopped"() {
         given:
         coordinator.stop()
 
@@ -51,7 +51,7 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
 
         then:
-        DaemonStoppedException e = thrown()
+        coordinator.stopped
     }
 
     def "await idle timeout waits for specified time and then stops"() {
@@ -351,7 +351,7 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
 
         then:
-        DaemonStoppedException e = thrown()
+        coordinator.stopped
 
         and:
         1 * onStartCommand.run()
@@ -429,7 +429,7 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
 
         then:
-        DaemonStoppedException e = thrown()
+        coordinator.stopped
 
         and:
         1 * onStartCommand.run()

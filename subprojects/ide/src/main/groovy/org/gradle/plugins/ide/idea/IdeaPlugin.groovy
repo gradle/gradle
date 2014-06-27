@@ -158,12 +158,13 @@ class IdeaPlugin extends IdePlugin {
         project.ideaModule {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
             module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
+            module.scopes = [:]
             def configurations = project.configurations
             module.scopes = [
                     PROVIDED: [plus: [], minus: []],
-                    COMPILE: [plus: [configurations.compile], minus: []],
-                    RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
-                    TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
+                    COMPILE: [plus: [], minus: []],
+                    RUNTIME: [plus: [], minus: []],
+                    TEST: [plus: [], minus: []]
             ]
             module.conventionMapping.singleEntryLibraries = {
                 [

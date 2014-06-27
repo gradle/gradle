@@ -34,14 +34,6 @@ import java.util.concurrent.TimeUnit
  This tests the multiproject sample with the GradleView mechanism.
  */
 class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationTest {
-
-    static final String JAVA_PROJECT_NAME = 'javaproject'
-    static final String SHARED_NAME = 'shared'
-    static final String API_NAME = 'api'
-    static final String WEBAPP_NAME = 'webservice'
-    static final String SERVICES_NAME = 'services'
-    static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
-
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
     GradlePluginLord gradlePluginLord = new GradlePluginLord()
 

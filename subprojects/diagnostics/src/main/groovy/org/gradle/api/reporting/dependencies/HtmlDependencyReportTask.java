@@ -30,6 +30,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Set;
 
@@ -60,7 +61,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     private final DefaultDependencyReportContainer reports;
 
     public HtmlDependencyReportTask() {
-        reports = getServices().get(Instantiator.class).newInstance(DefaultDependencyReportContainer.class, this);
+        reports = getInstantiator().newInstance(DefaultDependencyReportContainer.class, this);
         reports.getHtml().setEnabled(true);
         getOutputs().upToDateWhen(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
@@ -78,6 +79,16 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         return reports;
     }
 
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected VersionMatcher getVersionMatcher() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void generate() {
         if (!reports.getHtml().isEnabled()) {
@@ -86,7 +97,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         }
 
         try {
-            HtmlDependencyReporter reporter = new HtmlDependencyReporter(getServices().get(VersionMatcher.class));
+            HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionMatcher());
             reporter.setOutputDirectory(reports.getHtml().getDestination());
             reporter.generate(getProjects());
         } catch (IOException e) {

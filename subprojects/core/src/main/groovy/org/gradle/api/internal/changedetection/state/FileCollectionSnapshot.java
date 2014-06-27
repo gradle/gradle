@@ -30,6 +30,8 @@ public interface FileCollectionSnapshot {
 
     FileCollection getFiles();
 
+    FilesSnapshotSet getSnapshot();
+
     public interface Diff {
         /**
          * Applies this diff to the given snapshot. Adds any added or changed files in this diff to the given snapshot.

@@ -20,8 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.gradle.DefaultGradleTask;
-import org.gradle.tooling.internal.gradle.LaunchableGradleTask;
+import org.gradle.tooling.internal.impl.LaunchableGradleProjectTask;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
@@ -44,16 +44,17 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return buildHierarchy(project.getRootProject());
     }
 
-    private DefaultGradleProject buildHierarchy(Project project) {
-        List<DefaultGradleProject> children = new ArrayList<DefaultGradleProject>();
+    private DefaultGradleProject<LaunchableGradleTask> buildHierarchy(Project project) {
+        List<DefaultGradleProject<LaunchableGradleTask>> children = new ArrayList<DefaultGradleProject<LaunchableGradleTask>>();
         for (Project child : project.getChildProjects().values()) {
             children.add(buildHierarchy(child));
         }
 
-        DefaultGradleProject gradleProject = new DefaultGradleProject()
+        DefaultGradleProject<LaunchableGradleTask> gradleProject = new DefaultGradleProject<LaunchableGradleTask>()
                 .setPath(project.getPath())
                 .setName(project.getName())
                 .setDescription(project.getDescription())
+                .setBuildDirectory(project.getBuildDir())
                 .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
@@ -66,16 +67,17 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private static List<DefaultGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {
-        List<DefaultGradleTask> out = new LinkedList<DefaultGradleTask>();
+    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {
+        List<LaunchableGradleTask> out = new LinkedList<LaunchableGradleTask>();
 
         for (Task t : tasks) {
-            out.add(new LaunchableGradleTask()
+            out.add(new LaunchableGradleProjectTask()
+                    .setProject(owner)
                     .setPath(t.getPath())
                     .setName(t.getName())
                     .setDisplayName(t.toString())
                     .setDescription(t.getDescription())
-                    .setProject(owner));
+                    );
         }
 
         return out;

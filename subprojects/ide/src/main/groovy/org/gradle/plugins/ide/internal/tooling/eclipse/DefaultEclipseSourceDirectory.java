@@ -15,12 +15,10 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
-
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultEclipseSourceDirectory implements EclipseSourceDirectoryVersion1, Serializable {
+public class DefaultEclipseSourceDirectory implements Serializable {
     private final String path;
     private final File directory;
 

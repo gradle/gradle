@@ -23,8 +23,6 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,29 +43,8 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @InputFiles
     @SkipWhenEmpty
     public FileTree getSource() {
-        FileTree src;
-        if (this.source.isEmpty()) {
-            src = DeprecationLogger.whileDisabled(new Factory<FileTree>() {
-                public FileTree create() {
-                    return getDefaultSource();
-                }
-            });
-        } else {
-            src = getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
-        }
+        FileTree src = getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
         return src == null ? getProject().files().getAsFileTree() : src.matching(patternSet);
-    }
-
-    /**
-     * Returns the default source for this task, if any.
-     *
-     * @return The source. May return null.
-     * @deprecated Use getSource() instead.
-     */
-    @Deprecated
-    protected FileTree getDefaultSource() {
-        DeprecationLogger.nagUserOfReplacedMethod("SourceTask.getDefaultSource()", "getSource()");
-        return null;
     }
 
     /**

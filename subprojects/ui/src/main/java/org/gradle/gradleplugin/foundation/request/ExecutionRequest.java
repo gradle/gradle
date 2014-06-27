@@ -25,7 +25,7 @@ import org.gradle.logging.ShowStacktrace;
 import java.io.File;
 
 /**
- * This represents a reques to gradle that is executed in a separate process using the ProcessLauncherServer. This version is for directly executing commands in gradle (the most common type of
+ * This represents a request to gradle that is executed in a separate process using the ProcessLauncherServer. This version is for directly executing commands in gradle (the most common type of
  * request).
  */
 public class ExecutionRequest extends AbstractRequest {

@@ -29,10 +29,8 @@ class PluginBuilder {
     String packageName = "org.gradle.test"
 
     final Map<String, String> pluginIds = [:]
-    private final GradleExecuter executer
 
-    PluginBuilder(GradleExecuter executer, TestFile projectDir) {
-        this.executer = executer
+    PluginBuilder(TestFile projectDir) {
         this.projectDir = projectDir
     }
 
@@ -59,7 +57,7 @@ class PluginBuilder {
         file("build.gradle").text = (generateManagedBuildScript() + additions)
     }
 
-    void publishTo(TestFile testFile) {
+    void publishTo(GradleExecuter executer, TestFile testFile) {
         generateBuildScript """
             jar {
                 archiveName = "$testFile.name"
@@ -69,6 +67,11 @@ class PluginBuilder {
 
         writePluginDescriptors(pluginIds)
         executer.inDirectory(projectDir).withTasks("jar").run()
+    }
+
+    void generateForBuildSrc() {
+        generateBuildScript()
+        writePluginDescriptors(pluginIds)
     }
 
     protected void writePluginDescriptors(Map<String, String> pluginIds) {
@@ -91,6 +94,21 @@ class PluginBuilder {
             class $className implements $Plugin.name<$Project.name> {
                 void apply($Project.name project) {
                     $impl
+                }
+            }
+        """
+        this
+    }
+
+    PluginBuilder addUnloadablePlugin(String id = "test-plugin", String className = "TestPlugin") {
+        pluginIds[id] = className
+
+        groovy("${className}.groovy") << """
+            package $packageName
+
+            class $className implements $Plugin.name<$Project.name> {
+                static { throw new Exception("unloadable plugin class") }
+                void apply($Project.name project) {
                 }
             }
         """

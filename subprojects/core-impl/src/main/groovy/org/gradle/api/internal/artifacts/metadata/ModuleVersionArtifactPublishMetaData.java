@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 
 import java.io.File;
 
@@ -25,14 +24,12 @@ import java.io.File;
 public interface ModuleVersionArtifactPublishMetaData {
     ModuleVersionArtifactIdentifier getId();
 
-    // TODO:DAZ Replace use with getId()
-    ArtifactIdentifier getArtifactIdentifier();
-
     /**
-     * Returns this artifact as an Ivy Artifact. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
+     * Converts this artifact to an Ivy artifact. This method is here while we transition away from the Ivy types.
      */
-    Artifact getArtifact();
+    Artifact toIvyArtifact();
+
+    IvyArtifactName getArtifactName();
 
     File getFile();
 }

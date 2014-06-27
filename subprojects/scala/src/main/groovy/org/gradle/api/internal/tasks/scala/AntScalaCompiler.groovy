@@ -17,12 +17,12 @@ package org.gradle.api.internal.tasks.scala
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.util.GUtil
+import org.gradle.util.VersionNumber
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.util.VersionNumber
-import org.gradle.util.GUtil
 
 class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntScalaCompiler)
@@ -69,7 +69,6 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
                 extensionDirs.each {dir ->
                     extdirs(location: dir)
                 }
-                classpath(location: destinationDir)
                 compileClasspath.each {file ->
                     classpath(location: file)
                 }
@@ -92,20 +91,20 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     }
 
     private String chooseBackend(ScalaCompileSpec spec) {
-        // deprecated, but must still be honored
-        if (spec.scalaCompileOptions.targetCompatibility) {
-            return VersionNumber.parse(spec.scalaCompileOptions.targetCompatibility)
+        def maxSupported
+        def scalaVersion = sniffScalaVersion(spec.scalaClasspath)
+        if (scalaVersion >= VersionNumber.parse("2.10.0-M5")) {
+            maxSupported = VersionNumber.parse("1.7")
+        } else {
+            // prior to Scala 2.10.0-M5, scalac Ant task only supported "jvm-1.5" and "msil" backends
+            maxSupported = VersionNumber.parse("1.5")
         }
 
         def target = VersionNumber.parse(spec.targetCompatibility)
-        if (target <= VersionNumber.parse("1.5")) { return "jvm-${target.major}.${target.minor}" }
-
-        def scalaVersion = sniffScalaVersion(spec.scalaClasspath)
-        if (scalaVersion >= VersionNumber.parse("2.10.0-M5")) {
-            return "jvm-${target.major}.${target.minor}"
+        if (target > maxSupported) {
+            target = maxSupported
         }
 
-        // prior to Scala 2.10.0-M5, scalac Ant task only supported "jvm-1.5" and "msil" backends
-        return "jvm-1.5"
+        return "jvm-${target.major}.${target.minor}"
     }
 }

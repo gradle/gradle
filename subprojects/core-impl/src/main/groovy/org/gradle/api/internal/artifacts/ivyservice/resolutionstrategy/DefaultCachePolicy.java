@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.cache.*;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 
@@ -121,12 +122,20 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         return false;
     }
 
-    public boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, ModuleRevisionId moduleRevisionId, final long ageMillis) {
-        return mustRefreshModule(moduleVersionId, resolvedModuleVersion, ageMillis, false);
+    public boolean mustRefreshMissingModule(ModuleComponentIdentifier component, long ageMillis) {
+        return mustRefreshModule(component, null, ageMillis, false);
     }
 
-    public boolean mustRefreshChangingModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
-        return mustRefreshModule(moduleVersionId, resolvedModuleVersion, ageMillis, true);
+    public boolean mustRefreshModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
+        return mustRefreshModule(component, resolvedModuleVersion, ageMillis, false);
+    }
+
+    public boolean mustRefreshChangingModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
+        return mustRefreshModule(component, resolvedModuleVersion, ageMillis, true);
+    }
+
+    private boolean mustRefreshModule(ModuleComponentIdentifier component, ResolvedModuleVersion version, long ageMillis, boolean changingModule) {
+        return mustRefreshModule(DefaultModuleVersionIdentifier.newId(component), version, ageMillis, changingModule);
     }
 
     private boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion version, long ageMillis, boolean changingModule) {

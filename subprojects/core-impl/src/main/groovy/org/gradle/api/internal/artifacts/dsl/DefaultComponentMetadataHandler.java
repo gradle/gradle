@@ -15,33 +15,83 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.collect.Lists;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.artifacts.IvyModuleMetadata;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataProcessor {
     private final Instantiator instantiator;
-    private final ActionBroadcast<ComponentMetadataDetails> moduleRules = new ActionBroadcast<ComponentMetadataDetails>();
+    private final ActionBroadcast<ComponentMetadataDetails> ruleActions = new ActionBroadcast<ComponentMetadataDetails>();
+    private final List<Closure<?>> ruleClosures = Lists.newArrayList();
 
     public DefaultComponentMetadataHandler(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
     public void eachComponent(Action<? super ComponentMetadataDetails> rule) {
-        moduleRules.add(rule);
+        ruleActions.add(rule);
+    }
+
+    public void eachComponent(Closure<?> closure) {
+        ruleClosures.add(closure);
     }
 
     public void process(ModuleVersionMetaData metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
-        moduleRules.execute(details);
+        ruleActions.execute(details);
+        executeRuleClosures(metadata, details);
         if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
             throw new ModuleVersionResolveException(metadata.getId(), "Unexpected status '" + metadata.getStatus() + "' specified for %s. Expected one of: " +  metadata.getStatusScheme());
         }
+    }
+
+    private void executeRuleClosures(ModuleVersionMetaData metadata, ComponentMetadataDetails details) {
+        for (Closure<?> closure : ruleClosures) {
+            executeRuleClosure(metadata, details, closure);
+        }
+    }
+
+    private void executeRuleClosure(ModuleVersionMetaData metadata, ComponentMetadataDetails details, Closure<?> closure) {
+        Class<?>[] parameterTypes = closure.getParameterTypes();
+        if (parameterTypes.length == 0) {
+            throw new InvalidUserCodeException("A component metadata rule needs to have at least one parameter.");
+        }
+
+        List<Object> args = Lists.newArrayList();
+
+        if (parameterTypes[0].isAssignableFrom(ComponentMetadataDetails.class)) {
+            args.add(details);
+        } else {
+            throw new InvalidUserCodeException(
+                    String.format("First parameter of a component metadata rule needs to be of type '%s'.",
+                            ComponentMetadataDetails.class.getSimpleName()));
+        }
+
+        for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
+            if (parameterType == IvyModuleMetadata.class) {
+                if (!(metadata instanceof IvyModuleVersionMetaData)) {
+                    return;
+                }
+                args.add(new DefaultIvyModuleMetadata(((IvyModuleVersionMetaData) metadata).getExtraInfo()));
+            } else {
+                throw new InvalidUserCodeException(String.format("Unsupported parameter type for component metadata rule: %s", parameterType.getName()));
+            }
+        }
+        closure.call(args.toArray());
     }
 }

@@ -27,6 +27,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private List<File> includeRoots = new ArrayList<File>();
     private List<File> sourceFiles = new ArrayList<File>();
     private List<File> removedSourceFiles = new ArrayList<File>();
+    private boolean incrementalCompile;
     private Map<String, String> macros = new LinkedHashMap<String, String>();
     private File objectFileDir;
     private boolean positionIndependentCode;
@@ -67,6 +68,14 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     public void setRemovedSourceFiles(Collection<File> sources) {
         removedSourceFiles.clear();
         removedSourceFiles.addAll(sources);
+    }
+
+    public boolean isIncrementalCompile() {
+        return incrementalCompile;
+    }
+
+    public void setIncrementalCompile(boolean flag) {
+        incrementalCompile = flag;
     }
 
     public File getObjectFileDir() {

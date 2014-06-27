@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
 class MavenComponentMetadataRulesIntegrationTest extends ComponentMetadataRulesIntegrationTest {
     @Override
@@ -38,5 +38,38 @@ repositories {
     @Override
     String getDefaultStatus() {
         "release"
+    }
+
+    def "rule that accepts IvyModuleMetadata isn't invoked for Maven component"() {
+        def module = repo.module('org.test', 'projectA', '1.0').publish()
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        buildFile <<
+"""
+def plainRuleInvoked = false
+def ivyRuleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details ->
+            plainRuleInvoked = true
+        }
+        eachComponent { details, IvyModuleMetadata descriptor ->
+            ivyRuleInvoked = true
+        }
+    }
+}
+
+resolve.doLast {
+    assert plainRuleInvoked
+    assert !ivyRuleInvoked
+}
+"""
+
+        expect:
+        succeeds 'resolve'
+        // also works when already cached
+        succeeds 'resolve'
     }
 }

@@ -35,7 +35,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
             #import "${otherHeaderFile.name}"
 """
         and:
-        initialCompile()
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         otherHeaderFile << """
@@ -48,7 +48,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
         executedAndNotSkipped compileTask
 
         and:
-        recompiled sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     def "source is always recompiled if it imported header via macro"() {
@@ -59,7 +59,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
 """
 
         and:
-        initialCompile()
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         otherHeaderFile << """
@@ -72,9 +72,8 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
         executedAndNotSkipped compileTask
 
         and:
-        recompiled sourceFile
+        outputs.recompiledFile sourceFile
 
-        // TODO:DAZ Remove this behaviour
         when: "Header that is NOT included is changed"
         file("src/main/headers/notIncluded.h") << """
             // Dummy header file
@@ -86,7 +85,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
         executedAndNotSkipped compileTask
 
         and:
-        recompiled sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     def "recompiles source file when transitively imported header file is changed"() {
@@ -102,7 +101,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
 """
 
         and:
-        initialCompile()
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         transitiveHeaderFile << """
@@ -115,6 +114,6 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
         executedAndNotSkipped compileTask
 
         and:
-        recompiled sourceFile
+        outputs.recompiledFile sourceFile
     }
 }

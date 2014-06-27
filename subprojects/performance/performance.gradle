@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     junit 'junit:junit:4.11'
-    reports "jquery:jquery.min:1.8.0@js"
+    reports "jquery:jquery.min:1.11.0@js"
     reports "flot:flot:0.8.1:min@js"
 
     compile libraries.groovy
@@ -142,19 +142,8 @@ task report {
     }
 }
 
-integTestTasks.all {
+integTest {
     dependsOn prepareSamples
     finalizedBy report
     maxParallelForks = 1
-}
-
-eclipse {
-    classpath {
-        file.whenMerged { classpath ->
-            //**TODO
-            classpath.entries.removeAll {it.path.contains('src/test/groovy')}
-            classpath.entries.removeAll {it.path.contains('src/testFixtures/groovy')}
-            classpath.entries.removeAll {it.path.contains('src/integTest/groovy')}
-        }
-    }
 }

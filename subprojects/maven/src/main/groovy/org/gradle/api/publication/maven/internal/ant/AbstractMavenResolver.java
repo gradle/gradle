@@ -16,23 +16,7 @@
 package org.gradle.api.publication.maven.internal.ant;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
-import org.apache.ivy.core.report.DownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.core.search.ModuleEntry;
-import org.apache.ivy.core.search.OrganisationEntry;
-import org.apache.ivy.core.search.RevisionEntry;
-import org.apache.ivy.plugins.namespace.Namespace;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
@@ -43,10 +27,12 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
@@ -55,12 +41,9 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, DependencyResolver {
+public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, ModuleVersionPublisher, ResolutionAwareRepository, PublicationAwareRepository {
     
     private ArtifactPomContainer artifactPomContainer;
 
@@ -80,81 +63,24 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         this.loggingManager = loggingManager;
     }
 
-    public ConfiguredModuleVersionRepository createResolver() {
+    public ConfiguredModuleComponentRepository createResolver() {
         throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public ModuleVersionPublisher createPublisher() {
-        return new IvyResolverBackedModuleVersionPublisher(this);
-    }
-
-    public DependencyResolver createLegacyDslObject() {
         return this;
     }
 
     protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
 
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
+    public void publish(ModuleVersionPublishMetaData moduleVersion) {
+        for (ModuleVersionArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
+            collectArtifact(artifact.toIvyArtifact(), artifact.getFile());
+        }
+        publish();
     }
 
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public ArtifactDownloadReport download(ArtifactOrigin artifact, DownloadOptions options) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public boolean exists(Artifact artifact) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public ArtifactOrigin locate(Artifact artifact) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public void reportFailure() {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public void reportFailure(Artifact art) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public String[] listTokenValues(String token, Map otherTokenValues) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public Map[] listTokenValues(String[] tokens, Map criteria) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public OrganisationEntry[] listOrganisations() {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public ModuleEntry[] listModules(OrganisationEntry org) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public RevisionEntry[] listRevisions(ModuleEntry module) {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public Namespace getNamespace() {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public void dumpSettings() {
-        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
-    }
-
-    public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
+    private void collectArtifact(Artifact artifact, File src) {
         if (isIgnorable(artifact)) {
             return;
         }
@@ -165,15 +91,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         return artifact.getType().equals("ivy");
     }
 
-    public void beginPublishTransaction(ModuleRevisionId module, boolean overwrite) throws IOException {
-        // do nothing
-    }
-
-    public void abortPublishTransaction() throws IOException {
-        // do nothing
-    }
-
-    public void commitPublishTransaction() throws IOException {
+    private void publish() {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         mavenSettingsSupplier.supply(installDeployTaskSupport);
@@ -212,20 +130,8 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         }
     }
 
-    public void setSettings(ResolverSettings settings) {
-        // do nothing
-    }
-
-    public RepositoryCacheManager getRepositoryCacheManager() {
-        return new NoOpRepositoryCacheManager(getName());
-    }
-
     public ArtifactPomContainer getArtifactPomContainer() {
         return artifactPomContainer;
-    }
-
-    public void setArtifactPomContainer(ArtifactPomContainer artifactPomContainer) {
-        this.artifactPomContainer = artifactPomContainer;
     }
 
     public Settings getSettings() {
@@ -282,10 +188,6 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
 
     public PomFilterContainer getPomFilterContainer() {
         return pomFilterContainer;
-    }
-
-    public void setPomFilterContainer(PomFilterContainer pomFilterContainer) {
-        this.pomFilterContainer = pomFilterContainer;
     }
 
     public void beforeDeployment(Action<? super MavenDeployment> action) {

@@ -44,10 +44,22 @@ class DefaultIvyArtifactNameTest extends Specification {
         name != differentAttrs
     }
 
-    def "uses extended attributes to determine classifier"() {
-        def name = new DefaultIvyArtifactName("name", "type", "ext", ['classifier': 'classifier'])
+    def "ignores empty and null attributes when determining equality"() {
+        def name = new DefaultIvyArtifactName("name", "type", "ext", [attr1: "attr", attr2: "", attr3: null])
+        def same = new DefaultIvyArtifactName("name", "type", "ext", [attr1: "attr", attr4: "", attr5: null])
 
         expect:
-        name.classifier == 'classifier'
+        name Matchers.strictlyEqual(same)
+    }
+
+    def "uses extended attributes to determine classifier"() {
+        def withClassifier = new DefaultIvyArtifactName("name", "type", "ext", ['classifier': 'classifier'])
+        def emptyClassifier = new DefaultIvyArtifactName("name", "type", "ext", ['classifier': ''])
+        def noClassifier = new DefaultIvyArtifactName("name", "type", "ext", [:])
+
+        expect:
+        withClassifier.classifier == 'classifier'
+        emptyClassifier.classifier == null
+        noClassifier.classifier == null
     }
 }

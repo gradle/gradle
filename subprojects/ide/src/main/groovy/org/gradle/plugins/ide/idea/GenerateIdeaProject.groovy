@@ -27,7 +27,7 @@ import org.gradle.plugins.ide.idea.model.Project
 public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
     /**
-     * idea project model
+     * The Idea project model containing the details required to generate the project file.
      */
     IdeaProject ideaProject;
 

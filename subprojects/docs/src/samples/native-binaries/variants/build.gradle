@@ -69,8 +69,3 @@ task visualCppExecutables {
         it.toolChain in VisualCpp
     }
 }
-task buildExecutables {
-    dependsOn binaries.withType(ExecutableBinary).matching {
-        it.buildable
-    }
-}

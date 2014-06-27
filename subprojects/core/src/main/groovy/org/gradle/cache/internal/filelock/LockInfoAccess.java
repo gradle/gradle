@@ -60,7 +60,7 @@ public class LockInfoAccess {
     }
 
     public void clearLockInfo(RandomAccessFile lockFileAccess) throws IOException {
-        lockFileAccess.setLength(infoRegionPos);
+        lockFileAccess.setLength(Math.min(lockFileAccess.length(), infoRegionPos));
     }
 
     @Nullable

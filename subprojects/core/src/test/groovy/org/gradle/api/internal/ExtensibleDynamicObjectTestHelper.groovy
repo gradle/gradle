@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue
 public class ExtensibleDynamicObjectTestHelper {
     public static void assertCanGetAllProperties (ExtensibleDynamicObjectTest.Bean bean) {
         bean.readWriteProperty = 'readWrite'
-        bean.setProperty('additional', 'additional')
+        bean.defineProperty('additional', 'additional')
         assertEquals(bean.getProperties().readWriteProperty, 'readWrite')
         assertEquals(bean.getProperties().additional, 'additional')
     }
@@ -33,11 +33,8 @@ public class ExtensibleDynamicObjectTestHelper {
         bean.doSetReadOnlyProperty('value')
         assertEquals(bean.readOnlyProperty, 'value')
 
-        bean.extensibleDynamicObject.dynamicProperties.set('additional', 'value')
+        bean.defineProperty('additional', 'value')
         assertEquals(bean.additional, 'value')
-
-        bean.setProperty 'another', 'value'
-        assertEquals(bean.another, 'value')
     }
     
     public static void assertCanGetAndSetProperties (ExtensibleDynamicObjectTest.Bean bean) {
@@ -47,11 +44,8 @@ public class ExtensibleDynamicObjectTestHelper {
         bean.doSetReadOnlyProperty('value')
         assertEquals(bean.readOnlyProperty, 'value')
 
-        bean.additional = 'value'
+        bean.ext.additional = 'value'
         assertEquals(bean.additional, 'value')
-
-        bean.setProperty 'another', 'value'
-        assertEquals(bean.another, 'value')
     }
 
     public static void assertCanCallMethods (ExtensibleDynamicObjectTest.Bean bean) {

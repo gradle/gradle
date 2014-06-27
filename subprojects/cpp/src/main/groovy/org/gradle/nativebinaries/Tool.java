@@ -19,9 +19,6 @@ import org.gradle.api.Incubating;
 
 import java.util.List;
 
-// TODO:DAZ Possibly merge with org.gradle.nativecode.toolchain.GccTool
-// Need to work out if it makes sense to set the args when configuring a tool chain, or set the tool exe for a binary.
-// Seems like merging the 2 might work.
 /**
  * Configuration of the arguments of a ToolChain executable.
  */

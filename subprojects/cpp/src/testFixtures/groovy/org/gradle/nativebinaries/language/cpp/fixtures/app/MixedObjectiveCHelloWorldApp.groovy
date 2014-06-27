@@ -16,20 +16,20 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
-import org.gradle.internal.os.OperatingSystem
-
 class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
 
     List pluginList = ["objective-c", "objective-cpp", "c", "cpp"]
 
     public String getExtraConfiguration() {
-        def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
         return """
             binaries.all {
-                [objcCompiler, objcppCompiler].each{compiler ->
-                    compiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                if (targetPlatform.operatingSystem.macOsX) {
+                    linker.args "-framework", "Foundation"
+                } else {
+                    objcCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                    objcppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                    linker.args "-lgnustep-base", "-lobjc"
                 }
-                linker.args $linkerArgs
             }
         """
     }

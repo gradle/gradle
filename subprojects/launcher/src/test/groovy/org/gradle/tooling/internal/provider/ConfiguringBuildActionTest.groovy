@@ -18,6 +18,7 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.TaskParameter
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
@@ -102,18 +103,16 @@ class ConfiguringBuildActionTest extends Specification {
         assertThat(new ConfiguringBuildAction({} as ProviderOperationParameters, null, [foo: 'bar']), isSerializable())
     }
 
+    abstract class LaunchableParameter implements InternalLaunchable, TaskParameter {}
+
     def "accepts launchables from consumer"() {
         given:
-        def projectDir = temp.createDir('projectDir')
-        def subProjectDir = projectDir.createDir('child')
-        def selector = Mock(InternalLaunchable)
+        def selector = Mock(LaunchableParameter)
         _ * selector.taskName >> 'myTask'
-        _ * selector.projectDir >> subProjectDir
         _ * selector.projectPath >> ':child'
 
         ProviderOperationParameters providerParameters = Mock(ProviderOperationParameters)
         _ * providerParameters.launchables >> [selector]
-        _ * providerParameters.projectDir >> projectDir
         _ * providerParameters.tasks >> []
         def action = new ConfiguringBuildAction(providerParameters, null, [:])
 
@@ -121,6 +120,6 @@ class ConfiguringBuildActionTest extends Specification {
         def start = action.configureStartParameter()
 
         then:
-        start.currentDir == subProjectDir
+        start.taskParameters.size() == 1
     }
 }

@@ -23,7 +23,7 @@ import java.util.Set;
  * a client module you can declare a module dependency without the need of a module descriptor in a
  * remote repository.
  */
-public interface ClientModule extends ExternalDependency {
+public interface ClientModule extends ExternalModuleDependency {
     /**
      * Add a dependency to the client module. Such a dependency is transitive dependency for the
      * project that has a dependency on the client module.

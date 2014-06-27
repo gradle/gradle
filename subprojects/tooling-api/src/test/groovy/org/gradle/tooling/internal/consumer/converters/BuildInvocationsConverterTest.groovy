@@ -47,7 +47,7 @@ class BuildInvocationsConverterTest extends Specification {
         when:
         DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(rootProject)
         then:
-        builds.taskSelectors.size() == 2
+        builds.taskSelectors.size() == 1
         builds.taskSelectors*.name as Set == ['t1'] as Set
     }
 
@@ -73,15 +73,13 @@ class BuildInvocationsConverterTest extends Specification {
         DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project)
 
         then:
+        builds.taskSelectors.size() == 2
         builds.taskSelectors.find { BasicGradleTaskSelector it ->
-            it.name == 't1' && it.description.startsWith("t1")
-        }?.tasks == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
+            it.name == 't1'
+        }?.taskNames == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
         builds.taskSelectors.find { BasicGradleTaskSelector it ->
-            it.name == 't1' && it.description.startsWith(":child1:t1")
-        }?.tasks == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
-        builds.taskSelectors.find { BasicGradleTaskSelector it ->
-            it.name == 't1' && it.description.startsWith(":child1:child1a:t1")
-        }?.tasks == [':child1:child1a:t1'] as Set
+            it.name == 't2'
+        }?.taskNames == [':child1:child1b:t2'] as Set
         builds.taskSelectors*.name.each { it != null }
         builds.taskSelectors*.description.each { it != null }
         builds.taskSelectors*.displayName.each { it != null }

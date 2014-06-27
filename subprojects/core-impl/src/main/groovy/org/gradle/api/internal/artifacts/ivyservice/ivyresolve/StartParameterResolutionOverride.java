@@ -21,13 +21,12 @@ import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
 import org.gradle.api.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.component.ArtifactType;
 
 import java.util.concurrent.TimeUnit;
 
@@ -74,47 +73,46 @@ public class StartParameterResolutionOverride {
         }
     }
 
-    public ModuleVersionRepository overrideModuleVersionRepository(ModuleVersionRepository original) {
+    public ModuleComponentRepository overrideModuleVersionRepository(ModuleComponentRepository original) {
         if (startParameter.isOffline()) {
-            return new OfflineModuleVersionRepository(original);
+            return new OfflineModuleComponentRepository(original);
         }
         return original;
     }
 
-    private static class OfflineModuleVersionRepository implements ModuleVersionRepository {
-        private final ModuleVersionRepository original;
+    private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository {
 
-        public OfflineModuleVersionRepository(ModuleVersionRepository original) {
-            this.original = original;
+        private final FailedRemoteAccess failedRemoteAccess = new FailedRemoteAccess();
+
+        public OfflineModuleComponentRepository(ModuleComponentRepository original) {
+            super(original);
         }
 
-        public String getId() {
-            return original.getId();
+        @Override
+        public ModuleComponentRepositoryAccess getRemoteAccess() {
+            return failedRemoteAccess;
         }
+    }
 
-        public String getName() {
-            return original.getName();
-        }
-
-        public boolean isLocal() {
-            return false;
-        }
-
+    private static class FailedRemoteAccess implements ModuleComponentRepositoryAccess {
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
             result.failed(new ModuleVersionResolveException(dependency.getRequested(), "No cached version listing for %s available for offline mode."));
         }
 
-        public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-            result.failed(new ModuleVersionResolveException(dependency.getRequested(), "No cached version of %s available for offline mode."));
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+            result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, "No cached version of %s available for offline mode."));
         }
 
-        public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-            result.failed(new ArtifactResolveException(moduleMetaData.getId(), "No cached version available for offline mode"));
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+            result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
         }
 
-        public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+            result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
+        }
+
+        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
-
     }
 }

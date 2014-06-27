@@ -17,27 +17,30 @@
 package org.gradle.groovy.scripts
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.hamcrest.Matchers
 
 class StatementLabelsIntegrationTest extends AbstractIntegrationSpec {
-    def "use of statement label in build script is flagged"() {
+    def "use of statement label in build script is reported"() {
         buildFile << """
 version: '1.0'
         """
 
         expect:
-        executer.withDeprecationChecksDisabled()
-        succeeds("tasks")
-        output.contains("Usage of statement labels in build scripts has been deprecated")
-        output.contains("version")
+        fails("tasks")
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertHasLineNumber(2)
+        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
 
         // try again to make sure that warning sticks if build script is cached
-        executer.withDeprecationChecksDisabled()
-        succeeds("tasks")
-        output.contains("Usage of statement labels in build scripts has been deprecated")
-        output.contains("version")
+        fails("tasks")
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertHasLineNumber(2)
+        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
     }
 
-    def "all usages of statement labels are flagged"() {
+    def "all usages of statement labels are reported"() {
         buildFile << """
 version: '1.0'
 group = "foo"
@@ -45,15 +48,15 @@ description: "bar"
         """
 
         expect:
-        executer.withDeprecationChecksDisabled()
-        succeeds("tasks")
-        output.contains("Usage of statement labels in build scripts has been deprecated")
-        output.contains("version")
-        !output.contains("group")
-        output.contains("description")
+        fails("tasks")
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertHasLineNumber(2)
+        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
+        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 4: Statement labels may not be used in build scripts."))
     }
 
-    def "nested use of statement label in build script is flagged"() {
+    def "nested use of statement label in build script is reported"() {
         buildFile << """
 def foo() {
     1.times {
@@ -65,10 +68,11 @@ def foo() {
         """
 
         expect:
-        executer.withDeprecationChecksDisabled()
-        succeeds("tasks")
-        output.contains("Usage of statement labels in build scripts has been deprecated")
-        output.contains("label")
+        fails("tasks")
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertHasLineNumber(5)
+        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertThatCause(Matchers.containsString("build file '${buildFile}': 5: Statement labels may not be used in build scripts."))
     }
 
     def "use of statement label in class inside build script is allowed"() {

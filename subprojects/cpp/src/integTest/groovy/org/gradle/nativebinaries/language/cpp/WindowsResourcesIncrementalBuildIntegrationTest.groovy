@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.language.cpp
 
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
@@ -114,9 +115,12 @@ STRINGTABLE
     }
 
     def "stale .res files are removed when a resource source file is renamed"() {
-        given:
-        def oldResFile = file("build/objectFiles/mainExecutable/mainRc/${hashFor(mainResourceFile)}/resources.res")
-        def newResFile = file("build/objectFiles/mainExecutable/mainRc/${hashFor(file('src/main/rc/changed_resources.rc'))}/changed_resources.res")
+        setup:
+        def outputFileNameScheme = new CompilerOutputFileNamingScheme()
+                .withOutputBaseFolder(file("build/objectFiles/mainExecutable/mainRc"))
+                .withObjectFileNameSuffix(".res")
+        def oldResFile = outputFileNameScheme.map(mainResourceFile)
+        def newResFile = outputFileNameScheme.map(file('src/main/rc/changed_resources.rc'))
         assert oldResFile.file
         assert !newResFile.file
 
@@ -133,8 +137,13 @@ STRINGTABLE
     }
 
     def "recompiles resource when included header is changed"() {
+
         given: "set the generated res file timestamp to zero"
-        def resourceFile = file("build/objectFiles/mainExecutable/mainRc/${hashFor(mainResourceFile)}/resources.res")
+        def outputFileNameScheme = new CompilerOutputFileNamingScheme()
+                .withOutputBaseFolder(file("build/objectFiles/mainExecutable/mainRc"))
+                .withObjectFileNameSuffix(".res")
+        def resourceFile = outputFileNameScheme.map(mainResourceFile)
+
         resourceFile.lastModified = 0
         when: "Unused header is changed"
         unusedHeaderFile << """

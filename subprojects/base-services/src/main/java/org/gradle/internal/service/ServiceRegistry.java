@@ -75,14 +75,4 @@ public interface ServiceRegistry {
      * @throws ServiceLookupException On failure to lookup the specified service factory.
      */
     <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException;
-
-    /**
-     * Closes all services for this registry.
-     *
-     * For each service, if the service has a public void close() or stop() method, that method is called to close the service.
-     */
-    void close();
-
-    boolean isClosed();
-
 }

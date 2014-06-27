@@ -33,7 +33,6 @@ public class OsgiPlugin implements Plugin<Project> {
 
         project.plugins.withType(JavaPlugin) {
             def osgiManifest = osgiConvention.osgiManifest {
-                from project.manifest
                 classesDir = project.sourceSets.main.output.classesDir
                 classpath = project.configurations.runtime
             }

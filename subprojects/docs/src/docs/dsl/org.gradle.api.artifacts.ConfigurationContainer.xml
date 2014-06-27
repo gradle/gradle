@@ -24,9 +24,6 @@
                 <td>getAt</td>
             </tr>
             <tr>
-                <td>add</td>
-            </tr>
-            <tr>
                 <td>detachedConfiguration</td>
             </tr>
         </table>

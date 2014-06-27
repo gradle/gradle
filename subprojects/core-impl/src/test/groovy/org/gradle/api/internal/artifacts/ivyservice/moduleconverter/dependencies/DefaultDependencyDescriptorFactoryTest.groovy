@@ -17,30 +17,35 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
 import spock.lang.Specification
 
 public class DefaultDependencyDescriptorFactoryTest extends Specification {
-    def configurationName = "conf";
-    def moduleDescriptor = Mock(DefaultModuleDescriptor);
-    def projectDependency = Mock(ProjectDependency);
-    def dependencyDescriptor = Mock(EnhancedDependencyDescriptor)
+    def configurationName = "conf"
+    def moduleDescriptor = Stub(DefaultModuleDescriptor)
+    def projectDependency = Stub(ProjectDependency)
+    def dependencyDescriptor = Stub(EnhancedDependencyDescriptor)
 
     def "delegates to internal factory"() {
         given:
-        def ivyDependencyDescriptorFactory1 = Mock(IvyDependencyDescriptorFactory);
-        def ivyDependencyDescriptorFactory2 = Mock(IvyDependencyDescriptorFactory);
+        def ivyDependencyDescriptorFactory1 = Mock(IvyDependencyDescriptorFactory)
+        def ivyDependencyDescriptorFactory2 = Mock(IvyDependencyDescriptorFactory)
+
 
         when:
+        def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
+                ivyDependencyDescriptorFactory1, ivyDependencyDescriptorFactory2
+        );
+        def created = dependencyDescriptorFactory.createDependencyDescriptor(configurationName, moduleDescriptor, projectDependency)
+
+        then:
+        created instanceof DefaultDependencyMetaData
+        created.descriptor == dependencyDescriptor
+
+        and:
         1 * ivyDependencyDescriptorFactory1.canConvert(projectDependency) >> false
         1 * ivyDependencyDescriptorFactory2.canConvert(projectDependency) >> true
         1 * ivyDependencyDescriptorFactory2.createDependencyDescriptor(configurationName, projectDependency, moduleDescriptor) >> dependencyDescriptor
-        1 * moduleDescriptor.addDependency(dependencyDescriptor)
-
-        then:
-        DefaultDependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
-                ivyDependencyDescriptorFactory1, ivyDependencyDescriptorFactory2
-        );
-        dependencyDescriptorFactory.addDependencyDescriptor(configurationName, moduleDescriptor, projectDependency);
     }
 
     def "fails where no internal factory can handle dependency type"() {
@@ -50,10 +55,10 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         ivyDependencyDescriptorFactory1.canConvert(projectDependency) >> false
 
         and:
-        DefaultDependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
+        def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
                 ivyDependencyDescriptorFactory1
         );
-        dependencyDescriptorFactory.addDependencyDescriptor(configurationName, moduleDescriptor, projectDependency);
+        dependencyDescriptorFactory.createDependencyDescriptor(configurationName, moduleDescriptor, projectDependency)
 
         then:
         thrown InvalidUserDataException

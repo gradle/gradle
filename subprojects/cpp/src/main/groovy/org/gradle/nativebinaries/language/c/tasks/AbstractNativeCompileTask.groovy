@@ -15,12 +15,10 @@
  */
 
 package org.gradle.nativebinaries.language.c.tasks
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.changedetection.state.FileSnapshotter
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
-import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -33,13 +31,12 @@ import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 
 import javax.inject.Inject
+
 /**
  * Compiles native source files into object files.
  */
 @Incubating
 abstract class AbstractNativeCompileTask extends DefaultTask {
-    private final IncrementalCompilerBuilder incrementalCompilerBuilder
-
     /**
      * The tool chain used for compilation.
      */
@@ -92,12 +89,14 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     @Input
     List<String> compilerArgs
 
-    @Inject
     AbstractNativeCompileTask() {
-        incrementalCompilerBuilder = new IncrementalCompilerBuilder(services.get(TaskArtifactStateCacheAccess),
-                                                                    services.get(FileSnapshotter), this)
         includes = project.files()
         source = project.files()
+    }
+
+    @Inject
+    IncrementalCompilerBuilder getIncrementalCompilerBuilder(){
+        throw new UnsupportedOperationException()
     }
 
     @TaskAction
@@ -111,22 +110,16 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.macros = getMacros()
         spec.args getCompilerArgs()
         spec.positionIndependentCode = isPositionIndependentCode()
+        spec.incrementalCompile = inputs.incremental
 
         PlatformToolChain platformToolChain = toolChain.select(targetPlatform)
-        if (!inputs.incremental) {
-            incrementalCompilerBuilder.withCleanCompile()
-        }
-        incrementalCompilerBuilder.withIncludes(includes)
-        final compiler = createCompiler(platformToolChain)
-        final incrementalCompiler = incrementalCompilerBuilder.createIncrementalCompiler(compiler)
+        final compiler = platformToolChain.newCompiler(spec)
 
-        def result = incrementalCompiler.execute(spec)
+        def result = incrementalCompilerBuilder.createIncrementalCompiler(this, compiler, toolChain).execute(spec)
         didWork = result.didWork
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
-
-    protected abstract Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain)
 
     /**
      * Add directories where the compiler should search for header files.

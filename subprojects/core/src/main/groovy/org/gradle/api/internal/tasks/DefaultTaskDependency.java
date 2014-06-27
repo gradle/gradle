@@ -22,17 +22,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.GUtil;
 
 import java.util.*;
 import java.util.concurrent.Callable;
 
 public class DefaultTaskDependency extends AbstractTaskDependency {
-    private static final TaskResolver FAILING_RESOLVER = new TaskResolver() {
-        public Task resolveTask(Object path) {
-            throw new IllegalArgumentException(String.format("Cannot convert %s to a task.", path));
-        }
-    };
     private final Set<Object> values = new HashSet<Object>();
     private final TaskResolver resolver;
 
@@ -41,7 +37,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     public DefaultTaskDependency(TaskResolver resolver) {
-        this.resolver = resolver == null ? FAILING_RESOLVER : resolver;
+        this.resolver = resolver;
     }
 
     public void resolve(TaskDependencyResolveContext context) {
@@ -80,8 +76,20 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 if (callableResult != null) {
                     queue.add(0, callableResult);
                 }
+            } else if (resolver != null && dependency instanceof CharSequence) {
+                context.add(resolver.resolveTask(dependency.toString()));
             } else {
-                context.add(resolver.resolveTask(dependency));
+                List<String> formats = new ArrayList<String>();
+                if (resolver != null) {
+                    formats.add("A String or CharSequence task name or path");
+                }
+                formats.add("A Task instance");
+                formats.add("A Buildable instance");
+                formats.add("A TaskDependency instance");
+                formats.add("A Closure instance that returns any of the above types");
+                formats.add("A Callable instance that returns any of the above types");
+                formats.add("An Iterable, Collection, Map or array instance that contains any of the above types");
+                throw new UnsupportedNotationException(dependency, String.format("Cannot convert %s to a task.", dependency), null, formats);
             }
         }
     }

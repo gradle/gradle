@@ -37,7 +37,7 @@ public interface InternalConnection extends ConnectionVersion4, InternalProtocol
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-8 to 1.1. It is also used by later consumers when the
      * provider does not implement {@link BuildActionRunner} or {@link ModelBuilder}.</p>
-     * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-8.</p>
+     * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-8. Versions 2.0 and later fail with a 'no longer implemented' exception.</p>
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.

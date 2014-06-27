@@ -18,9 +18,8 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.BinaryContainer
-import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier
+import org.gradle.nativebinaries.ProjectNativeComponent
+import org.gradle.nativebinaries.internal.ProjectNativeComponentIdentifier
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.test.TestSuiteContainer
@@ -29,6 +28,7 @@ import org.gradle.nativebinaries.test.cunit.internal.ConfigureCUnitTestSources
 import org.gradle.nativebinaries.test.cunit.internal.CreateCUnitBinaries
 import org.gradle.nativebinaries.test.cunit.internal.DefaultCUnitTestSuite
 import org.gradle.nativebinaries.test.plugins.NativeBinariesTestPlugin
+import org.gradle.runtime.base.BinaryContainer
 
 import javax.inject.Inject
 /**
@@ -51,18 +51,15 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
 
         TestSuiteContainer testSuites = project.getExtensions().getByType(TestSuiteContainer)
         BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer)
-        project.getExtensions().getByType(ExecutableContainer).all { Executable executable ->
-            testSuites.add createCUnitTestSuite(executable, binaries, project)
-        }
-        project.getExtensions().getByType(LibraryContainer).all { Library library ->
-            testSuites.add createCUnitTestSuite(library, binaries, project)
+        project.nativeComponents.all { ProjectNativeComponent component ->
+            testSuites.add createCUnitTestSuite(component, binaries, project)
         }
     }
 
     private CUnitTestSuite createCUnitTestSuite(ProjectNativeComponent testedComponent, BinaryContainer binaries, ProjectInternal project) {
         String suiteName = "${testedComponent.name}Test"
         String path = (testedComponent as ProjectNativeComponentInternal).projectPath
-        NativeProjectComponentIdentifier id = new NativeProjectComponentIdentifier(path, suiteName);
+        ProjectNativeComponentIdentifier id = new ProjectNativeComponentIdentifier(path, suiteName);
         CUnitTestSuite cUnitTestSuite = instantiator.newInstance(DefaultCUnitTestSuite, id, testedComponent);
 
         new ConfigureCUnitTestSources(project).apply(cUnitTestSuite)

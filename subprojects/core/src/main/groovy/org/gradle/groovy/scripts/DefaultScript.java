@@ -43,7 +43,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.net.URI;
@@ -81,7 +80,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        ClassLoaderScope classLoaderScope = __scriptServices.get(ClassLoaderScope.class).createChild();
+        ClassLoaderScope classLoaderScope = __scriptServices.get(ClassLoaderScope.class);
         return new DefaultObjectConfigurationAction(
                 getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), __scriptServices.get(ScriptHandlerFactory.class), classLoaderScope, getScriptTarget()
         );
@@ -137,12 +136,6 @@ public abstract class DefaultScript extends BasicScript {
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return fileOperations.fileTree(args);
-    }
-
-    public ConfigurableFileTree fileTree(Closure closure) {
-        DeprecationLogger.nagUserOfDeprecated("fileTree(Closure)", "Use fileTree((Object){ baseDir }) to have the closure used as the file tree base directory");
-        //noinspection deprecation
-        return fileOperations.fileTree(closure);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure) {

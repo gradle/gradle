@@ -53,7 +53,7 @@ class SigningProjectSpec extends Specification {
     
     def addProperties(Map props) {
         props.each { k, v ->
-            project.setProperty(k, v)
+            project.ext.set(k, v)
         }
     }
     

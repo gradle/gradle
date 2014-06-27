@@ -28,7 +28,7 @@ public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
 
     public UserResolverChain(VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
-        this.dependencyResolver = new RepositoryChainDependencyResolver(versionMatcher, latestStrategy, new ModuleTransformer());
+        this.dependencyResolver = new RepositoryChainDependencyResolver(new NewestVersionComponentChooser(latestStrategy, versionMatcher), new ModuleTransformer());
     }
 
     public DependencyToModuleVersionResolver getDependencyResolver() {
@@ -39,7 +39,7 @@ public class UserResolverChain implements RepositoryChain {
         return artifactResolver;
     }
 
-    public void add(LocalAwareModuleVersionRepository repository) {
+    public void add(ModuleComponentRepository repository) {
         dependencyResolver.add(repository);
         artifactResolver.add(repository);
     }

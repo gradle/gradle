@@ -85,7 +85,11 @@ configurations {
     lib
 }
 repositories {
-    mavenRepo(urls: ['${repo.uri}'])
+    if (repositories.metaClass.respondsTo(repositories, 'maven')) {
+        maven { url "${repo.uri}" }
+    } else {
+        mavenRepo urls: ["${repo.uri}"]
+    }
 }
 dependencies {
     lib 'org.gradle.crossversion:published:1.9'

@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 

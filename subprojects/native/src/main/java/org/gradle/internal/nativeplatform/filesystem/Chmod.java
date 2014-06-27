@@ -17,7 +17,6 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import java.io.File;
-import java.io.IOException;
 
 public interface Chmod {
     /**
@@ -26,8 +25,7 @@ public interface Chmod {
      *
      * @param file the file to change permissions on
      * @param mode the permissions, e.g. 0755
-     * @throws java.io.FileNotFoundException if {@code file} doesn't exist
-     * @throws IOException if the permissions can't be changed
+     * @throws FileException if the permissions can't be changed for some reason.
      */
-    public void chmod(File file, int mode) throws IOException;
+    public void chmod(File file, int mode) throws FileException;
 }

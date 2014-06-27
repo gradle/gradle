@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 
 import java.io.IOException;
 
 public interface ModuleVersionPublisher {
     void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException;
-
-    void setSettings(IvySettings settings);
 }

@@ -22,11 +22,14 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.AvailablePortFinder
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
+@Requires(TestPrecondition.JDK7_OR_EARLIER)
 class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
     @Shared
     AvailablePortFinder portFinder = AvailablePortFinder.createPrivate()
@@ -68,7 +71,7 @@ sonar.embeddedDatabase.port=$databasePort
     def "can run Sonar analysis"() {
         executer.requireIsolatedDaemons()
         // Without forking, we run into problems with Sonar's BootStrapClassLoader, at least when running from IDEA.
-        // Problem is that BootStrapClassLoader, although generally isolated from its parent(s), always
+        // Problem is that BootStrapClassLoader, although generally isolated from its root(s), always
         // delegates to the system class loader. That class loader holds the test class path and therefore
         // also the Sonar dependencies with "provided" scope. Hence, the Sonar dependencies get loaded by
         // the wrong class loader.

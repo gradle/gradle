@@ -17,9 +17,7 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.io.File;
@@ -44,6 +42,10 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
         artifactsById.put(publishMetaData.getId(), publishMetaData);
     }
 
+    public void addArtifact(ModuleVersionArtifactPublishMetaData artifact) {
+        artifactsById.put(artifact.getId(), artifact);
+    }
+
     public Collection<ModuleVersionArtifactPublishMetaData> getArtifacts() {
         return artifactsById.values();
     }
@@ -53,22 +55,22 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
     }
 
     private static class DefaultModuleVersionArtifactPublishMetaData implements ModuleVersionArtifactPublishMetaData {
-        private final ModuleVersionArtifactIdentifier id;
+        private final DefaultModuleVersionArtifactIdentifier id;
         private final Artifact artifact;
         private final File file;
 
         private DefaultModuleVersionArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
-            this.id = new DefaultModuleVersionArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier, artifact);
+            this.id = new DefaultModuleVersionArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), artifact);
             this.artifact = artifact;
             this.file = file;
         }
 
-        public Artifact getArtifact() {
-            return artifact;
+        public IvyArtifactName getArtifactName() {
+            return id.getName();
         }
 
-        public ArtifactIdentifier getArtifactIdentifier() {
-            return new DefaultArtifactIdentifier(artifact.getId());
+        public Artifact toIvyArtifact() {
+            return artifact;
         }
 
         public ModuleVersionArtifactIdentifier getId() {

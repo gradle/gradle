@@ -37,7 +37,7 @@ public class ScriptHandlerClassLoaderFactory implements Factory<ClassLoader> {
         if (!classLoaderScope.isLocked()) {
             LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", scriptSource);
         }
-        return classLoaderScope.getScopeClassLoader();
+        return classLoaderScope.getLocalClassLoader();
     }
 
 }

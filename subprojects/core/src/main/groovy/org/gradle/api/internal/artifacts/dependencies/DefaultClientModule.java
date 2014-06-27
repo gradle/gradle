@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -24,15 +23,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultClientModule extends AbstractExternalDependency implements ClientModule {
-
-    private String group;
-
-    private String name;
-
-    private String version;
-
-    private boolean force;
+public class DefaultClientModule extends AbstractExternalModuleDependency implements ClientModule {
 
     private Set<ModuleDependency> dependencies = new HashSet<ModuleDependency>();
 
@@ -41,13 +32,11 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
     }
 
     public DefaultClientModule(String group, String name, String version, String configuration) {
-        super(configuration);
-        if (name == null) {
-            throw new InvalidUserDataException("Name must not be null!");
-        }
-        this.group = group;
-        this.name = name;
-        this.version = version;
+        super(group, name, version, configuration);
+    }
+
+    public String getId() {
+        return emptyStringIfNull(getGroup()) + ":" + getName() + ":" + emptyStringIfNull(getVersion());
     }
 
     private String emptyStringIfNull(String value) {
@@ -58,53 +47,12 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
         return dependencies;
     }
 
-    public String getId() {
-        return emptyStringIfNull(group) + ":" + emptyStringIfNull(name) + ":" + emptyStringIfNull(version);
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public ClientModule setGroup(String group) {
-        this.group = group;
-        return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public ClientModule setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public ClientModule setVersion(String version) {
-        this.version = version;
-        return this;
-    }
-
-    public boolean isForce() {
-        return force;
-    }
-
-    public ClientModule setForce(boolean force) {
-        this.force = force;
-        return this;
-    }
-
     public void addDependency(ModuleDependency dependency) {
         this.dependencies.add(dependency);
     }
 
     public ClientModule copy() {
-        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(),
-                getConfiguration());
+        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getConfiguration());
         copyTo(copiedClientModule);
         for (ModuleDependency dependency : dependencies) {
             copiedClientModule.addDependency(dependency.copy());
@@ -121,11 +69,8 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
         }
 
         ClientModule that = (ClientModule) dependency;
-        if (!isContentEqualsFor(that)) {
-            return false;
-        }
+        return isContentEqualsFor(that) && dependencies.equals(that.getDependencies());
 
-        return dependencies.equals(that.getDependencies());
     }
 
     @Override

@@ -15,12 +15,12 @@
  */
 package org.gradle.foundation.ipc.basic;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.ConnectException;
 import java.net.Socket;
 
 /**
@@ -64,33 +64,26 @@ public class ClientProcess {
      * Call this to attempt to connect to the server.
      *
      * @param port where the server is listening. Since it launched this client, it should have either been passed to it on the command line or via a system property (-D).
-     * @return true if we connected to the server, false if not.
      */
-    public boolean start(int port) {
-        Socket clientSocket = null;
+    public void start(int port) {
+        Socket clientSocket;
         try {
             clientSocket = new Socket((String) null, port);
             socketWrapper = new ObjectSocketWrapper(clientSocket);
             if (protocol.serverConnected(clientSocket)) {
-                return true;
+                return;
             }
-
-            logger.error("Failed to connect to server (might not have returned correct connection string): " + port);
-        } catch (ConnectException e) {
-            logger.error("Failed to connect to server: " + port);
-        } catch (Exception e) {
-            logger.error("Failed to connect to server: " + port, e);
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not connect to GUI server at port %s.", port), e);
         }
 
         try {
-            if (clientSocket != null) {
-                clientSocket.close();
-            }
+            clientSocket.close();
             socketWrapper = null;
-        } catch (IOException e1) {
-            logger.error("Failed to close socket", e1);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-        return false;
+        throw new UncheckedIOException("GUI protocol failed to connect.");
     }
 
     /**

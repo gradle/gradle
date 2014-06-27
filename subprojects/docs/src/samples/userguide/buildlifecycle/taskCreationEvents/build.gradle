@@ -1,5 +1,5 @@
 tasks.whenTaskAdded { task ->
-    task.srcDir = 'src/main/java'
+    task.ext.srcDir = 'src/main/java'
 }
 
 task a

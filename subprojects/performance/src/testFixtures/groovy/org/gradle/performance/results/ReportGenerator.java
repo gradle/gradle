@@ -37,9 +37,10 @@ public class ReportGenerator {
                 fileRenderer.render(testResults, testDataRenderer, new File(outputDirectory, testResults.getId() + ".json"));
             }
 
-            copyResource("jquery.min-1.8.0.js", outputDirectory);
+            copyResource("jquery.min-1.11.0.js", outputDirectory);
             copyResource("flot-0.8.1-min.js", outputDirectory);
             copyResource("style.css", outputDirectory);
+            copyResource("report.js", outputDirectory);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not generate performance test report to '%s'.", outputDirectory), e);
         }

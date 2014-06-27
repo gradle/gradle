@@ -29,6 +29,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
     def "has unknown state by default"() {
         expect:
         descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Unknown
+        !descriptor.hasResult()
     }
 
     def "can mark as missing"() {
@@ -38,6 +39,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         then:
         descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Missing
         descriptor.failure == null
+        descriptor.hasResult()
     }
 
     def "can mark as probably missing"() {
@@ -47,6 +49,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         then:
         descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing
         descriptor.failure == null
+        descriptor.hasResult()
     }
 
     def "can mark as failed"() {
@@ -58,6 +61,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         then:
         descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Failed
         descriptor.failure == failure
+        descriptor.hasResult()
     }
 
     def "can mark as resolved using meta-data"() {
@@ -71,9 +75,10 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.failure == null
         descriptor.metaData == metaData
         descriptor.moduleSource == moduleSource
+        descriptor.hasResult()
     }
 
-    def "cannot get failure when not resolved"() {
+    def "cannot get failure when has no result"() {
         when:
         descriptor.failure
 
@@ -81,7 +86,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         thrown(IllegalStateException)
     }
 
-    def "cannot get meta-data when not resolved"() {
+    def "cannot get meta-data when has no result"() {
         when:
         descriptor.metaData
 

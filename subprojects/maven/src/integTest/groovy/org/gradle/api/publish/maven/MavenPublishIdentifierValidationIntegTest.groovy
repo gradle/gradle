@@ -25,7 +25,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
     def artifactId = 'valid_artifact.name'
 
     @Unroll
-    def "can publish with version and description containing #title characters"() {
+    def "can publish with version and description containing #identifier characters"() {
         given:
         def version = identifier.safeForFileName().decorate("version")
         def description = identifier.decorate("description")
@@ -63,16 +63,11 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         resolveArtifacts(module) == ["${artifactId}-${version}.jar"]
 
         where:
-        title        | identifier
-        "punctuation"| Identifier.punctuation
-        "non-ascii"  | Identifier.nonAscii
-        "whitespace" | Identifier.whiteSpace
-        "filesystem" | Identifier.fileSystemReserved
-        "xml markup" | Identifier.xmlMarkup
+        identifier << Identifier.all
     }
 
     @Unroll
-    def "can publish artifacts with version, extension and classifier containing #title characters"() {
+    def "can publish artifacts with version, extension and classifier containing #identifier characters"() {
         given:
         file("content-file") << "some content"
         def version = identifier.safeForFileName().decorate("version")
@@ -113,12 +108,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         resolveArtifact(module, extension, classifier) == ["${artifactId}-${version}-${classifier}.${extension}"]
 
         where:
-        title        | identifier
-        "punctuation"| Identifier.punctuation
-        "non-ascii"  | Identifier.nonAscii
-        "whitespace" | Identifier.whiteSpace
-        "filesystem" | Identifier.fileSystemReserved
-        "xml markup" | Identifier.xmlMarkup
+        identifier << Identifier.all
     }
 
     def "fails with reasonable error message for invalid identifier value"() {

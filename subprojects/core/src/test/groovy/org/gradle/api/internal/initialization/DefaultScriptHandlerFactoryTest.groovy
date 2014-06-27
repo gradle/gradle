@@ -28,7 +28,7 @@ import spock.lang.Specification
 class DefaultScriptHandlerFactoryTest extends Specification {
     private final DependencyMetaDataProvider metaDataProvider = Mock()
     private final ClassLoaderScope parentScope = Stub() {
-        getScopeClassLoader() >> Stub(ClassLoader)
+        getLocalClassLoader() >> Stub(ClassLoader)
     }
     private final RepositoryHandler repositoryHandler = Mock()
     private final ConfigurationContainerInternal configurationContainer = Mock()

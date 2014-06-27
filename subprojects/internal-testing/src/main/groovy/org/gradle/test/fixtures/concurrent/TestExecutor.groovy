@@ -25,14 +25,12 @@ class TestExecutor implements Executor {
     private final Lock lock = new ReentrantLock()
     private final Condition condition = lock.newCondition()
     private final Set<Thread> threads = new HashSet<Thread>()
-    private final TestThreadListener listener
     private final TestLogger logger
     private Thread owner
     private Throwable failure
     private int threadNum
 
-    TestExecutor(TestThreadListener listener, TestLogger logger) {
-        this.listener = listener
+    TestExecutor(TestLogger logger) {
         this.logger = logger
     }
 
@@ -67,7 +65,6 @@ class TestExecutor implements Executor {
                     }
                 } finally {
                     logger.log "finished"
-                    listener.threadFinished(Thread.currentThread())
                     lock.lock()
                     try {
                         threads.remove(Thread.currentThread())
@@ -87,7 +84,6 @@ class TestExecutor implements Executor {
             lock.unlock()
         }
 
-        listener.threadStarted(thread)
         thread.start()
     }
 

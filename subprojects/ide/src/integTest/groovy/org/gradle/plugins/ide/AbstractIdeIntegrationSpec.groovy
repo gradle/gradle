@@ -17,18 +17,8 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec {
-    protected ExecutionResult runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {
-        def settingsFile = file("settings.gradle")
-        settingsFile << settingsScript
-
-        def buildFile = file("build.gradle")
-        buildFile << buildScript
-
-        return executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks(taskName).run()
-    }
 
     protected File getFile(Map options, String filename) {
         def file = options?.project ? file(options.project, filename) : file(filename)

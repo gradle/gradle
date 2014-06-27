@@ -16,18 +16,23 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.component.ArtifactType;
 
 public interface ArtifactResolver {
     /**
-     * Resolves a set of artifacts belonging to the given module, based on the supplied context. Any failures are packaged up in the result.
+     * Resolves a set of artifacts belonging to the given component, based on the supplied usage. Any failures are packaged up in the result.
      */
-    void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
+    void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result);
+
+    /**
+     * Resolves a set of artifacts belonging to the given component, with the type specified. Any failures are packaged up in the result.
+     */
+    void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
 
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    // TODO:DAZ Make this less ModuleVersion centric: Should take a ComponentArtifactIdentifier, and ModuleSource should be an attribute of the ModuleVersion subtype only
-    void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
+    void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
 }

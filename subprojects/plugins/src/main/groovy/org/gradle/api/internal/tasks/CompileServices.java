@@ -17,15 +17,22 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
+import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
+import org.gradle.api.internal.tasks.compile.incremental.cache.*;
+import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 
 public class CompileServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -36,6 +43,7 @@ public class CompileServices implements PluginServiceRegistry {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeCompileServices());
     }
 
     private static class BuildScopeCompileServices {
@@ -50,6 +58,28 @@ public class CompileServices implements PluginServiceRegistry {
 
         InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory() {
             return new InProcessCompilerDaemonFactory();
+        }
+
+        GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
+            return new DefaultGeneralCompileCaches(classAnalysisCache, jarSnapshotCache);
+        }
+
+        ClassAnalysisCache createClassAnalysisCache(CacheRepository cacheRepository) {
+            return new DefaultClassAnalysisCache(cacheRepository);
+        }
+
+        JarSnapshotCache createJarSnapshotCache(CacheRepository cacheRepository) {
+            return new DefaultJarSnapshotCache(cacheRepository);
+        }
+    }
+
+    private static class ProjectScopeCompileServices {
+        JavaCompilerFactory createJavaCompilerFactory(GradleInternal gradle, CompilerDaemonManager compilerDaemonManager) {
+            return new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonManager);
+        }
+
+        JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
+            return new DefaultJavaToolChain(compilerFactory, execActionFactory);
         }
     }
 }

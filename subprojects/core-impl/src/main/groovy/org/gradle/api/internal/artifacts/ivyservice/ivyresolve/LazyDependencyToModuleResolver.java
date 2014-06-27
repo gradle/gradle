@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -24,8 +22,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 /**
  * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't actually retrieve module descriptors until
@@ -51,7 +49,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
     private abstract class AbstractVersionResolveResult implements ModuleVersionIdResolveResult {
         final DependencyMetaData dependency;
-        private BuildableModuleVersionResolveResult resolveResult;
+        private DefaultBuildableComponentResolveResult resolveResult;
 
         public AbstractVersionResolveResult(DependencyMetaData dependency) {
             this.dependency = dependency;
@@ -61,17 +59,14 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return null;
         }
 
-        public ModuleVersionResolveResult resolve() {
+        public ComponentResolveResult resolve() {
             if (resolveResult == null) {
-                resolveResult = new DefaultBuildableModuleVersionResolveResult();
+                resolveResult = new DefaultBuildableComponentResolveResult();
                 try {
                     try {
                         dependencyResolver.resolve(dependency, resolveResult);
                     } catch (Throwable t) {
                         throw new ModuleVersionResolveException(dependency.getRequested(), t);
-                    }
-                    if (resolveResult.getFailure() instanceof ModuleVersionNotFoundException) {
-                        throw notFound();
                     }
                     if (resolveResult.getFailure() != null) {
                         throw resolveResult.getFailure();
@@ -89,18 +84,8 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return VersionSelectionReasons.REQUESTED;
         }
 
-        protected void checkDescriptor(ModuleVersionMetaData metaData) {
-            ModuleDescriptor moduleDescriptor = metaData.getDescriptor();
-            for (Configuration configuration : moduleDescriptor.getConfigurations()) {
-                for (String parent : configuration.getExtends()) {
-                    if (moduleDescriptor.getConfiguration(parent) == null) {
-                        throw new ModuleVersionResolveException(metaData.getId(), String.format("Configuration '%s' extends unknown configuration '%s' in module descriptor for %%s.", configuration.getName(), parent));
-                    }
-                }
-            }
+        protected void checkDescriptor(ComponentMetaData metaData) {
         }
-
-        protected abstract ModuleVersionNotFoundException notFound();
     }
 
     private class StaticVersionResolveResult extends AbstractVersionResolveResult {
@@ -121,15 +106,11 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         }
 
         @Override
-        protected void checkDescriptor(ModuleVersionMetaData metaData) {
+        protected void checkDescriptor(ComponentMetaData metaData) {
             if (!id.equals(metaData.getId())) {
                 throw new ModuleVersionResolveException(dependency.getRequested(), String.format("Received unexpected module descriptor %s for dependency %%s.", metaData.getId()));
             }
             super.checkDescriptor(metaData);
-        }
-
-        protected ModuleVersionNotFoundException notFound() {
-            return new ModuleVersionNotFoundException(id);
         }
     }
 
@@ -145,11 +126,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
         public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
             return resolve().getId();
-        }
-
-        @Override
-        protected ModuleVersionNotFoundException notFound() {
-            return new ModuleVersionNotFoundException(dependency.getRequested());
         }
     }
 }

@@ -45,7 +45,7 @@ std::string LoadStringFromResource(UINT stringID)
     return std::string(wide.begin(), wide.end());
 }
 
-void DLL_FUNC hello() {
+void hello() {
     std::string foo1 = LoadStringFromResource(IDS_FOO1);
     std::string foo2 = LoadStringFromResource(IDS_FOO2);
     std::cout << foo1;
@@ -77,15 +77,7 @@ STRINGTABLE
 #define IDS_FOO1    111
 #define IDS_FOO2    1000
 
-#ifdef DLL_EXPORT
-#define DLL_FUNC __declspec(dllexport)
-#define MODULE_HANDLE GetModuleHandle("hello")
-#else
-#define DLL_FUNC
-#define MODULE_HANDLE null
-#endif
-
-void DLL_FUNC hello();
+void hello();
 """)]
     }
 }

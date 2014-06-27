@@ -15,11 +15,9 @@
  */
 package org.gradle.integtests.tooling.m4
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-@TargetGradleVersion('>=1.0-milestone-4')
 class ToolingApiEclipseMinimalModelCrossVersionSpec extends ToolingApiSpecification {
     def "minimal Eclipse model does not attempt to resolve external dependencies"() {
 

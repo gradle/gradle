@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class IvyResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "dependency includes all artifacts and transitive dependencies of referenced configuration"() {
+class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def "a dependency on an ivy module includes all artifacts and transitive dependencies of referenced configuration"() {
         given:
         ivyRepo.module("org.gradle", "test", "1.45")
                 .dependsOn("org.gradle", "other", "preview-1")
@@ -77,6 +77,41 @@ task check << {
 """
 
         expect:
+        succeeds "check"
+    }
+
+    def "dependency includes only the artifacts of the default configuration"() {
+        given:
+        server.start()
+        def module = ivyHttpRepo.module("org.gradle", "test", "1.45")
+                .configuration('archives')
+                .configuration('default', extendsFrom: ['archives'])
+                .configuration('source')
+                .configuration('javadoc')
+                .artifact(conf: 'archives')
+                .artifact(classifier: 'source', conf: 'source')
+                .artifact(classifier: 'javadoc', conf: 'javadoc')
+                .publish()
+
+        and:
+        buildFile << """
+repositories { ivy { url "${ivyHttpRepo.uri}" } }
+configurations { compile }
+dependencies {
+    compile "org.gradle:test:1.45"
+}
+
+task check << {
+    assert configurations.compile.collect { it.name } == ['test-1.45.jar']
+}
+"""
+
+        expect:
+        module.ivy.expectGet()
+        module.getArtifact().expectGet()
+        succeeds "check"
+
+        // Need to check twice to use the cached version too
         succeeds "check"
     }
 

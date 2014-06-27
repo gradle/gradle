@@ -31,7 +31,6 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
 
     private def doResolveArtifacts(def dependency) {
         // Replace the existing buildfile with one for resolving the published module
-        // TODO:DAZ Use a separate directory for resolving
         settingsFile.text = "rootProject.name = 'resolve'"
         buildFile.text = """
             configurations {

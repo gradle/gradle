@@ -32,4 +32,8 @@ public interface ArtifactResolveResult {
      */
     File getFile() throws ArtifactResolveException;
 
+    /**
+     * Returns true if the result either has a file, or a failure.
+     */
+    boolean hasResult();
 }

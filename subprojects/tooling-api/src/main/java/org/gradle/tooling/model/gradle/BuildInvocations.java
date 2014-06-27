@@ -22,26 +22,29 @@ import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.TaskSelector;
 
 /**
- * A model providing access to {@link org.gradle.tooling.model.Launchable}s that can be used
+ * A model providing access to {@link org.gradle.tooling.model.Launchable} instances that can be used
  * to initiate Gradle build.
+ *
+ * <p>To launch a build, you pass one or more {@link org.gradle.tooling.model.Launchable} instances
+ * to either {@link org.gradle.tooling.BuildLauncher#forTasks(Iterable)} or {@link org.gradle.tooling.BuildLauncher#forLaunchables(Iterable)}.</p>
  *
  * @since 1.12
  */
 @Incubating
 public interface BuildInvocations {
     /*
-     * Returns tasks selectors that can be used to execute build.
+     * Returns tasks selectors that can be used to execute a build.
      *
-     * @return Task selectors.
+     * @return The task selectors.
      * @since 1.12
      */
     @Incubating
     DomainObjectSet<? extends TaskSelector> getTaskSelectors();
 
     /*
-     * Returns tasks selectors that can be used to execute build.
+     * Returns the tasks that can be used to execute a build.
      *
-     * @return Task selectors.
+     * @return The tasks.
      * @since 1.12
      */
     @Incubating

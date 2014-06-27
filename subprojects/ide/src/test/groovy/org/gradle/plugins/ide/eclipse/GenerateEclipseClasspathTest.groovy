@@ -32,22 +32,4 @@ public class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
         eclipseClasspath = createTask(GenerateEclipseClasspath.class);
         eclipseClasspath.classpath = new EclipseClasspath()
     }
-
-    def containers_shouldAdd() {
-        when:
-        eclipseClasspath.containers "container1"
-        eclipseClasspath.containers "container2"
-
-        then:
-        eclipseClasspath.containers == ['container1', 'container2'] as Set
-    }
-
-    def variables_shouldAdd() {
-        when:
-        eclipseClasspath.variables variable1: 'value1'
-        eclipseClasspath.variables variable2: 'value2'
-
-        then:
-        eclipseClasspath.variables == [variable1: 'value1', variable2: 'value2']
-    }
 }

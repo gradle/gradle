@@ -37,7 +37,7 @@ public interface ModuleVersionIdResolveResult {
      * Resolves the meta-data for this module version, if required. Failures are packaged up in the result.
      * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
      */
-    ModuleVersionResolveResult resolve() throws ModuleVersionResolveException;
+    ComponentResolveResult resolve() throws ModuleVersionResolveException;
 
     /**
      * @return why given id was selected. Should return a value even if the resolve failed.

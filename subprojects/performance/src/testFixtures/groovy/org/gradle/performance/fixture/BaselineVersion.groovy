@@ -22,7 +22,7 @@ import org.gradle.performance.measure.Duration
 
 import static org.gradle.performance.fixture.PrettyCalculator.*
 
-class BaselineVersion {
+class BaselineVersion implements VersionResults {
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)

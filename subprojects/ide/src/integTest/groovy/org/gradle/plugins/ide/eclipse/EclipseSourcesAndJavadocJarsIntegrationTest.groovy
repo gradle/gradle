@@ -16,10 +16,12 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
+import org.gradle.test.fixtures.server.http.HttpArtifact
 
 class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
-    void executeIdeTask(String buildScript) {
-        runTask "eclipseClasspath", buildScript
+    @Override
+    String getIdeTask() {
+        return "eclipseClasspath"
     }
 
     void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
@@ -28,4 +30,19 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         assert lib.sourcePath.endsWith("/module-1.0-${sourcesClassifier}.jar")
         assert lib.javadocLocation.endsWith("/module-1.0-${javadocClassifier}.jar!/")
     }
+
+    void ideFileContainsNoSourcesAndJavadocEntry() {
+        def classpath = new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
+        def lib = classpath.libs[0]
+        lib.assertHasNoSource()
+        lib.assertHasNoJavadoc()
+    }
+
+    @Override
+    void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact) {
+        httpArtifact.expectHead()
+    }
+
+    @Override
+    void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact) {}
 }

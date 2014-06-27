@@ -15,13 +15,14 @@
  */
 package org.gradle.scala
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 
 import static org.hamcrest.Matchers.startsWith
 
-class ScalaBasePluginIntegrationTest extends AbstractIntegrationSpec {
-    def "defaults scalaClasspath to 'scalaTools' configuration if the latter is non-empty"() {
-        executer.withDeprecationChecksDisabled()
+@TargetVersions(["2.10.4", "2.11.1"])
+class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
+    def "defaults scalaClasspath to inferred Scala compiler dependency"() {
         file("build.gradle") << """
 apply plugin: "scala-base"
 
@@ -34,36 +35,7 @@ repositories {
 }
 
 dependencies {
-    scalaTools "org.scala-lang:scala-compiler:2.10.1"
-}
-
-task scaladoc(type: ScalaDoc)
-
-task verify << {
-    assert compileCustomScala.scalaClasspath.is(configurations.scalaTools)
-    assert scalaCustomConsole.classpath.is(configurations.scalaTools)
-    assert scaladoc.scalaClasspath.is(configurations.scalaTools)
-}
-"""
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "defaults scalaClasspath to inferred Scala compiler dependency if 'scalaTools' configuration is empty"() {
-        file("build.gradle") << """
-apply plugin: "scala-base"
-
-sourceSets {
-    custom
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    customCompile "org.scala-lang:scala-library:2.10.1"
+    customCompile "org.scala-lang:scala-library:$version"
 }
 
 task scaladoc(type: ScalaDoc) {
@@ -71,9 +43,9 @@ task scaladoc(type: ScalaDoc) {
 }
 
 task verify << {
-    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-2.10.1.jar" }
-    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-2.10.1.jar" }
-    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-2.10.1.jar" }
+    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-${version}.jar" }
+    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
 }
 """
 
@@ -94,7 +66,7 @@ repositories {
 }
 
 dependencies {
-    customCompile "org.scala-lang:scala-library:2.10.1"
+    customCompile "org.scala-lang:scala-library:$version"
 }
 
 task scaladoc(type: ScalaDoc) {

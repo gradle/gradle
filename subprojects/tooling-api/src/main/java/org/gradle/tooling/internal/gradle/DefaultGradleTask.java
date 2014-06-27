@@ -16,17 +16,17 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Set;
+import com.google.common.collect.Sets;
+import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 
-public class DefaultGradleTask implements Serializable, TaskListingLaunchable {
+import java.util.SortedSet;
 
-    String path;
-    String name;
-    String description;
-    String displayName;
-    PartialGradleProject project;
+public class DefaultGradleTask implements TaskListingLaunchable {
+
+    private String path;
+    private String name;
+    private String description;
+    private String displayName;
 
     public String getPath() {
         return path;
@@ -64,23 +64,18 @@ public class DefaultGradleTask implements Serializable, TaskListingLaunchable {
         return this;
     }
 
-    public PartialGradleProject getProject() {
-        return project;
-    }
-
-    public DefaultGradleTask setProject(PartialGradleProject project) {
-        this.project = project;
-        return this;
-    }
-
-    public Set<String> getTasks() {
-        return Collections.singleton(getPath());
+    public SortedSet<String> getTaskNames() {
+        // TODO use comparator
+        SortedSet result = Sets.newTreeSet(new TaskNameComparator());
+        result.add(getPath());
+        return result;
     }
 
     @Override
     public String toString() {
         return "GradleTask{"
                 + "name='" + name + '\''
+                + " path='" + path + '\''
                 + '}';
     }
 }

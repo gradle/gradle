@@ -99,7 +99,6 @@ class ProjectConverterTest extends Specification {
         _ * project.tasks >> taskContainer
         _ * project.defaultTasks >> []
         _ * taskContainer.iterator() >> tasks.iterator()
-        _ * project.dependsOnProjects >> []
         _ * project.childProjects >> subprojects.inject([:]) { v, p -> v[p.name] = p; v }
         return project
     }

@@ -40,11 +40,10 @@ public class CoffeeScriptCompile extends SourceTask {
     private Object destinationDir;
     private Object rhinoClasspath;
     private CoffeeScriptCompileOptions options = new CoffeeScriptCompileOptions();
-    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
 
     @Inject
-    public CoffeeScriptCompile(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
-        this.workerProcessBuilderFactory = workerProcessBuilderFactory;
+    protected Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @InputFiles
@@ -88,7 +87,7 @@ public class CoffeeScriptCompile extends SourceTask {
 
     @TaskAction
     public void doCompile() {
-        RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
+        RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(getWorkerProcessBuilderFactory());
 
         CoffeeScriptCompileSpec spec = new DefaultCoffeeScriptCompileSpec();
         spec.setCoffeeScriptJs(getCoffeeScriptJs().getSingleFile());

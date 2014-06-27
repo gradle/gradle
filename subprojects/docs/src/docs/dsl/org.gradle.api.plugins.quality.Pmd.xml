@@ -25,6 +25,10 @@
                 <td><literal>project.pmd.ignoreFailures</literal></td>
             </tr>
             <tr>
+                <td>consoleOutput</td>
+                <td><literal>project.pmd.consoleOutput</literal></td>
+            </tr>
+            <tr>
                 <td>targetJdk</td>
                 <td><literal>project.pmd.targetJdk</literal></td>
             </tr>

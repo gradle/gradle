@@ -36,7 +36,8 @@ class ProjectFactoryTest extends Specification {
     def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
     def factory = new ProjectFactory(instantiator, projectRegistry)
-    def classLoaderScope = Mock(ClassLoaderScope)
+    def rootProjectScope = Mock(ClassLoaderScope)
+    def baseScope = Mock(ClassLoaderScope)
 
     def setup() {
         gradle.serviceRegistryFactory >> serviceRegistryFactory
@@ -52,11 +53,11 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, null, gradle, classLoaderScope)
+        def result = factory.createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof UriScriptSource }, gradle, serviceRegistryFactory, classLoaderScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof UriScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
@@ -70,11 +71,11 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, null, gradle, classLoaderScope)
+        def result = factory.createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof StringScriptSource }, gradle, serviceRegistryFactory, classLoaderScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof StringScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
@@ -89,11 +90,11 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, parent, gradle, classLoaderScope)
+        def result = factory.createProject(projectDescriptor, parent, gradle, rootProjectScope, baseScope)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, _, gradle, serviceRegistryFactory, classLoaderScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, _, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * parent.addChildProject(project)
         1 * projectRegistry.addProject(project)
     }

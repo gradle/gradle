@@ -15,31 +15,26 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.tools;
 
-import org.gradle.nativebinaries.toolchain.GccTool;
+import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ConfiguredToolRegistry implements ToolRegistry {
-    private final Map<ToolType, GccToolInternal> gccTools = new HashMap<ToolType, GccToolInternal>();
+    private final Map<ToolType, GccCommandLineToolConfigurationInternal> gccTools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
-    public ConfiguredToolRegistry(ConfigurableToolChainInternal configurableToolChain) {
-        // TODO:DAZ Replace TargetPlatformConfiguration with an action that applies to the entire registry.
-        register(configurableToolChain.getCCompiler());
-        register(configurableToolChain.getCppCompiler());
-        register(configurableToolChain.getAssembler());
-        register(configurableToolChain.getObjcCompiler());
-        register(configurableToolChain.getObjcppCompiler());
-        register(configurableToolChain.getLinker());
-        register(configurableToolChain.getStaticLibArchiver());
+    public ConfiguredToolRegistry(Iterable<? extends CommandLineToolConfiguration> toolConfigurations) {
+        for (CommandLineToolConfiguration registeredTool : toolConfigurations) {
+            register((GccCommandLineToolConfigurationInternal) registeredTool);
+        }
     }
 
-    private GccTool register(GccToolInternal tool) {
-        return gccTools.put(tool.getToolType(), tool);
+    private void register(GccCommandLineToolConfigurationInternal tool) {
+        gccTools.put(tool.getToolType(), tool);
     }
 
-    public GccToolInternal getTool(ToolType toolType) {
+    public GccCommandLineToolConfigurationInternal getTool(ToolType toolType) {
         return gccTools.get(toolType);
     }
 }

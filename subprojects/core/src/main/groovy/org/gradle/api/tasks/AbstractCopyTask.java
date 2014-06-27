@@ -19,14 +19,14 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
+import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
@@ -46,43 +46,42 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     }
 
     protected CopySpecInternal createRootSpec() {
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        FileResolver fileResolver = getServices().get(FileResolver.class);
+        Instantiator instantiator = getInstantiator();
+        FileResolver fileResolver = getFileResolver();
         return instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
     }
 
     protected abstract CopyAction createCopyAction();
 
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileSystem getFileSystem() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileLookup getFileLookup() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     protected void copy() {
-        configureRootSpec();
-
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        FileSystem fileSystem = getServices().get(FileSystem.class);
+        Instantiator instantiator = getInstantiator();
+        FileSystem fileSystem = getFileSystem();
 
         CopyActionExecuter copyActionExecuter = new CopyActionExecuter(instantiator, fileSystem);
         CopyAction copyAction = createCopyAction();
         WorkResult didWork = copyActionExecuter.execute(rootSpec, copyAction);
         setDidWork(didWork.getDidWork());
-    }
-
-    protected void configureRootSpec() {
-        if (!rootSpec.hasSource()) {
-            Object srcDirs = getDefaultSource();
-            if (srcDirs != null) {
-                from(srcDirs);
-            }
-        }
-    }
-
-    /**
-     * Returns the default source for this task.
-     * @deprecated Use getSource() instead.
-     */
-    @Deprecated
-    public FileCollection getDefaultSource() {
-        DeprecationLogger.nagUserOfReplacedMethod("AbstractCopyTask.getDefaultSource()", "getSource()");
-        return null;
     }
 
     /**
@@ -91,17 +90,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @InputFiles @SkipWhenEmpty @Optional
     public FileCollection getSource() {
-        if (rootSpec.hasSource()){
-            return rootSpec.getAllSource();
-        }else{
-            return DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
-                public FileCollection create() {
-                    return getDefaultSource();
-                }
-            });
-        }
+        return rootSpec.buildRootResolver().getAllSource();
     }
-
 
     public CopySpecInternal getRootSpec() {
         return rootSpec;

@@ -16,21 +16,23 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
+
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class FileOrUriNotationParserTest extends Specification {
 
     @Rule public TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();
 
-    final FileOrUriNotationParser<Serializable> parser = new FileOrUriNotationParser<Serializable>(TestFiles.fileSystem())
-
     def "with File returns this File"() {
         setup:
         def testFile = folder.createFile("test1")
         when:
-        def object = parser.parseNotation(testFile)
+        def object = parse(testFile)
         then:
         object instanceof File
         testFile == object
@@ -40,7 +42,7 @@ class FileOrUriNotationParserTest extends Specification {
         setup:
         def testFile = folder.createFile("test1")
         when:
-        def object = parser.parseNotation(testFile.getAbsolutePath())
+        def object = parse(testFile.getAbsolutePath())
         then:
         object instanceof File
         testFile.getAbsolutePath() == object.getAbsolutePath()
@@ -50,7 +52,7 @@ class FileOrUriNotationParserTest extends Specification {
         setup:
         def testFileURI = folder.createFile("test1").toURI()
         when:
-        def object = parser.parseNotation(testFileURI)
+        def object = parse(testFileURI)
         then:
         object instanceof File
         object.toURI() == testFileURI
@@ -60,7 +62,7 @@ class FileOrUriNotationParserTest extends Specification {
         setup:
         def uriString = folder.createFile("test1").toURI().toString()
         when:
-        def object = parser.parseNotation(uriString)
+        def object = parse(uriString)
         then:
         object instanceof File
         object.toURI().toString() == uriString
@@ -70,7 +72,7 @@ class FileOrUriNotationParserTest extends Specification {
         setup:
         def testFileURL = folder.createFile("test1").toURI().toURL()
         when:
-        def object = parser.parseNotation(testFileURL)
+        def object = parse(testFileURL)
         then:
         object instanceof File
         object.toURI().toURL() == testFileURL
@@ -80,7 +82,7 @@ class FileOrUriNotationParserTest extends Specification {
         setup:
         def unsupportedURI = URI.create("http://gradle.org")
         when:
-        def parsed = parser.parseNotation(unsupportedURI)
+        def parsed = parse(unsupportedURI)
         then:
         parsed instanceof URI
     }
@@ -89,19 +91,27 @@ class FileOrUriNotationParserTest extends Specification {
         setup:
         def unsupportedURIString = "http://gradle.org"
         when:
-        def parsed = parser.parseNotation(unsupportedURIString)
+        def parsed = parse(unsupportedURIString)
         then:
         parsed instanceof URI
     }
 
-//    @Issue("GRADLE-2072")
-//    def "parsing unknown types causes UnsupportedNotationException"() {
-//        setup:
-//        def taskInternalMock = Mock(TaskInternal)
-//        def fileResolverMock = Mock(FileResolver)
-//        when:
-//        parser.parseNotation(new DefaultTaskOutputs(fileResolverMock, taskInternalMock))
-//        then:
-//        thrown(UnsupportedNotationException)
-//    }
+    @Issue("GRADLE-2072")
+    def "parsing unknown types causes UnsupportedNotationException"() {
+        when:
+        parse(12)
+
+        then:
+        UnsupportedNotationException e = thrown()
+        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File or URI: 12.
+The following types/formats are supported:
+  - A String or CharSequence path, e.g 'src/main/java' or '/usr/include'
+  - A String or CharSequence URI, e.g 'file:/usr/include'
+  - A File instance.
+  - A URI or URL instance.""")
+    }
+
+    def parse(def value) {
+        return FileOrUriNotationParser.create(TestFiles.fileSystem()).parseNotation(value)
+    }
 }

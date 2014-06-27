@@ -20,17 +20,12 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
     private static final String DAEMON = "daemon";
     private static final String NO_DAEMON = "no-daemon";
-
-    protected DaemonParameters newInstance() {
-        return new DaemonParameters(new BuildLayoutParameters());
-    }
 
     public DaemonParameters convert(ParsedCommandLine args, DaemonParameters target) throws CommandLineArgumentException {
         if (args.hasOption(NO_DAEMON)) {

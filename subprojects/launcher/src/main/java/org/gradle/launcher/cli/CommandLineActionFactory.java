@@ -15,20 +15,28 @@
  */
 package org.gradle.launcher.cli;
 
+import groovy.lang.GroovySystem;
+import org.apache.tools.ant.Main;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
-import org.gradle.internal.Actions;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.internal.Actions;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
@@ -57,7 +65,8 @@ public class CommandLineActionFactory {
 
         return new ExceptionReportingAction(
                 new WithLogging(loggingServices, args, loggingConfiguration,
-                        new ParseAndBuildAction(loggingServices, args)),
+                        new JavaRuntimeValidationAction(
+                            new ParseAndBuildAction(loggingServices, args))),
                 new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
@@ -90,12 +99,12 @@ public class CommandLineActionFactory {
             parser.option(VERSION, "version").hasDescription("Print version info.");
         }
 
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+        public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(HELP)) {
-                return Actions.toAction(new ShowUsageAction(parser));
+                return new ShowUsageAction(parser);
             }
             if (commandLine.hasOption(VERSION)) {
-                return Actions.toAction(new ShowVersionAction());
+                return new ShowVersionAction();
             }
             return null;
         }
@@ -132,7 +141,28 @@ public class CommandLineActionFactory {
 
     private static class ShowVersionAction implements Runnable {
         public void run() {
-            System.out.println(GradleVersion.current().prettyPrint());
+            GradleVersion currentVersion = GradleVersion.current();
+
+            final StringBuilder sb = new StringBuilder();
+            sb.append("\n------------------------------------------------------------\nGradle ");
+            sb.append(currentVersion.getVersion());
+            sb.append("\n------------------------------------------------------------\n\nBuild time:   ");
+            sb.append(currentVersion.getBuildTime());
+            sb.append("\nBuild number: ");
+            sb.append(currentVersion.getBuildNumber());
+            sb.append("\nRevision:     ");
+            sb.append(currentVersion.getRevision());
+            sb.append("\n\nGroovy:       ");
+            sb.append(GroovySystem.getVersion());
+            sb.append("\nAnt:          ");
+            sb.append(Main.getAntVersion());
+            sb.append("\nJVM:          ");
+            sb.append(Jvm.current());
+            sb.append("\nOS:           ");
+            sb.append(OperatingSystem.current());
+            sb.append("\n");
+
+            System.out.println(sb.toString());
         }
     }
 
@@ -150,21 +180,27 @@ public class CommandLineActionFactory {
         }
 
         public void execute(ExecutionListener executionListener) {
-            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
+            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = new LoggingCommandLineConverter();
+            CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
+            BuildLayoutParameters buildLayout = new BuildLayoutParameters();
             CommandLineParser parser = new CommandLineParser();
             loggingConfigurationConverter.configure(parser);
+            buildLayoutConverter.configure(parser);
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
                 loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
+                buildLayoutConverter.convert(parsedCommandLine, buildLayout);
             } catch (CommandLineArgumentException e) {
-                // Ignore
+                // Ignore, deal with this problem later
             }
 
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
             loggingManager.start();
+
+            NativeServices.initialize(buildLayout.getGradleUserHomeDir());
             loggingManager.attachConsole(loggingConfiguration.isColorOutput());
 
             action.execute(executionListener);
@@ -203,9 +239,9 @@ public class CommandLineActionFactory {
 
         private Action<? super ExecutionListener> createAction(Iterable<CommandLineAction> factories, CommandLineParser parser, ParsedCommandLine commandLine) {
             for (CommandLineAction factory : factories) {
-                Action<? super ExecutionListener> action = factory.createAction(parser, commandLine);
+                Runnable action = factory.createAction(parser, commandLine);
                 if (action != null) {
-                    return action;
+                    return Actions.toAction(action);
                 }
             }
             throw new UnsupportedOperationException("No action factory for specified command-line arguments.");

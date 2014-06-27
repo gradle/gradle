@@ -16,101 +16,84 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.gradle.DefaultGradleTask;
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
-import org.gradle.tooling.internal.gradle.PartialGradleProject;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
+import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
-    private final GradleProjectBuilder gradleProjectBuilder;
+    private final ProjectTaskLister taskLister;
 
-    public BuildInvocationsBuilder(GradleProjectBuilder gradleProjectBuilder) {
-        this.gradleProjectBuilder = gradleProjectBuilder;
+    public BuildInvocationsBuilder(ProjectTaskLister taskLister) {
+        this.taskLister = taskLister;
     }
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
     }
 
-    public DefaultBuildInvocations buildAll(String modelName, Project project) {
+    public DefaultBuildInvocations<LaunchableGradleTask> buildAll(String modelName, Project project) {
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
-        List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
-        Multimap<String, String> aggregatedTasks = findTasks(project);
-        for (String selectorName : aggregatedTasks.keySet()) {
-            selectors.add(new DefaultGradleTaskSelector().
+        List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
+        Set<String> aggregatedTasks = Sets.newLinkedHashSet();
+        Set<String> visibleTasks = Sets.newLinkedHashSet();
+        findTasks(project, aggregatedTasks, visibleTasks);
+        for (String selectorName : aggregatedTasks) {
+            selectors.add(new LaunchableGradleTaskSelector().
                     setName(selectorName).
                     setTaskName(selectorName).
-                    setProjectDir(project.getProjectDir()).
                     setProjectPath(project.getPath()).
                     setDescription(project.getParent() != null
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
                             : String.format("%s task selector", selectorName)).
-                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())));
+                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
+                    setVisible(visibleTasks.contains(selectorName)));
         }
-        return new DefaultBuildInvocations()
+        return new DefaultBuildInvocations<LaunchableGradleTask>()
                 .setSelectors(selectors)
-                .setTasks(convertTasks(new ArrayList(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks())));
+                .setTasks(tasks(project));
     }
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
-        if (implicitProject) {
-            DefaultGradleProject gradleProject = gradleProjectBuilder.buildAll(project);
-            List<DefaultGradleTask> tasks = new ArrayList<DefaultGradleTask>();
-            fillTaskList(gradleProject, tasks);
-            return new DefaultBuildInvocations()
-                    .setSelectors(buildRecursively(modelName, project.getRootProject()))
-                    .setTasks(convertTasks(tasks));
-        } else {
-            return buildAll(modelName, project);
-        }
+        return buildAll(modelName, implicitProject ? project.getRootProject() : project);
     }
 
-    private void fillTaskList(PartialGradleProject gradleProject, List<DefaultGradleTask> tasks) {
-        tasks.addAll(gradleProject.getTasks());
-        for (PartialGradleProject childProject : gradleProject.getChildren()) {
-            fillTaskList(childProject, tasks);
-        }
-    }
-
-    private List<DefaultGradleTaskSelector> buildRecursively(String modelName, Project project) {
-        List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
-        selectors.addAll(buildAll(modelName, project).getTaskSelectors());
-        for (Project childProject : project.getSubprojects()) {
-            selectors.addAll(buildRecursively(modelName, childProject));
-        }
-        return selectors;
-    }
-
-    private List<DefaultGradleTask> convertTasks(List<DefaultGradleTask> tasks) {
-        for (DefaultGradleTask task :  tasks) {
-            task.setProject(null);
+    // build tasks without project reference
+    private List<LaunchableGradleTask> tasks(Project project) {
+        List<LaunchableGradleTask> tasks = Lists.newArrayList();
+        for (Task task : taskLister.listProjectTasks(project)) {
+            tasks.add(new LaunchableGradleTask()
+                    .setPath(task.getPath())
+                    .setName(task.getName())
+                    .setDisplayName(task.toString())
+                    .setDescription(task.getDescription())
+                    .setVisible(task.getGroup() != null));
         }
         return tasks;
     }
 
-    private Multimap<String, String> findTasks(Project project) {
-        Multimap<String, String> aggregatedTasks = ArrayListMultimap.create();
+    private void findTasks(Project project, Collection<String> tasks, Collection<String> visibleTasks) {
         for (Project child : project.getSubprojects()) {
-            Multimap<String, String> childTasks = findTasks(child);
-            aggregatedTasks.putAll(childTasks);
+            findTasks(child, tasks, visibleTasks);
         }
         for (Task task : project.getTasks()) {
-            aggregatedTasks.put(task.getName(), task.getPath());
+            tasks.add(task.getName());
+            if (task.getGroup() != null) {
+                visibleTasks.add(task.getName());
+            }
         }
-        return aggregatedTasks;
     }
 
 }

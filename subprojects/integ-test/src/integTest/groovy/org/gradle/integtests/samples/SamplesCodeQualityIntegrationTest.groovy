@@ -15,23 +15,26 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import org.junit.Test
 
-class SamplesCodeQualityIntegrationTest extends AbstractIntegrationTest {
+// FindBugs does not support Java 8 yet
+@Requires(TestPrecondition.JDK7_OR_EARLIER)
+class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'codeQuality')
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'codeQuality')
-
-    @Test
-    public void checkReportsGenerated() {
+    def checkReportsGenerated() {
         TestFile projectDir = sample.dir
         TestFile buildDir = projectDir.file('build')
 
+        when:
         executer.inDirectory(projectDir).requireGradleHome().withTasks('check').run()
 
+        then:
         buildDir.file('reports/checkstyle/main.xml').assertIsFile()
         buildDir.file('reports/codenarc/main.html').assertIsFile()
         buildDir.file('reports/codenarc/test.html').assertIsFile()

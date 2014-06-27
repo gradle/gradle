@@ -46,13 +46,13 @@ import org.gradle.util.ConfigureUtil
  *
  *   classpath {
  *     //you can tweak the classpath of the Eclipse project by adding extra configurations:
- *     plusConfigurations += configurations.provided
+ *     plusConfigurations += [ configurations.provided ]
  *
  *     //you can also remove configurations from the classpath:
- *     minusConfigurations += configurations.someBoringConfig
+ *     minusConfigurations += [ configurations.someBoringConfig ]
  *
  *     //if you don't want some classpath entries 'exported' in Eclipse
- *     noExportConfigurations += configurations.provided
+ *     noExportConfigurations += [ configurations.provided ]
  *
  *     //if you want to append extra containers:
  *     containers 'someFriendlyContainer', 'andYetAnotherContainer'

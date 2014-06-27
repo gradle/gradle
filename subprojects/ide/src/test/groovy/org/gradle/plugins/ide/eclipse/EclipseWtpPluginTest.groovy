@@ -82,7 +82,7 @@ class EclipseWtpPluginTest extends Specification {
         project.webAppDirName = 'foo'
 
         then:
-        project.eclipseWtpComponent.resources == [new WbResource('/', 'foo')]
+        project.eclipse.wtp.component.resources == [new WbResource('/', 'foo')]
     }
 
     def applyToEarProject_shouldHaveWebProjectAndClasspathTask() {
@@ -103,21 +103,23 @@ class EclipseWtpPluginTest extends Specification {
     }
 
     private void checkEclipseWtpComponentForEar() {
+        def wtp = project.eclipse.wtp.component
         def eclipseWtpComponent = project.eclipseWtpComponent
         assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
         assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp).contains(eclipseWtpComponent)
-        assert eclipseWtpComponent.sourceDirs == project.sourceSets.main.allSource.srcDirs
-        assert eclipseWtpComponent.component.rootConfigurations == [project.configurations.deploy] as Set
-        assert eclipseWtpComponent.component.libConfigurations == [project.configurations.earlib] as Set
-        assert eclipseWtpComponent.minusConfigurations == [] as Set
-        assert eclipseWtpComponent.deployName == project.name
-        assert eclipseWtpComponent.contextPath == null
+        assert eclipseWtpComponent.component == wtp
         assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
         assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
-        assert eclipseWtpComponent.variables == [:]
-        assert eclipseWtpComponent.resources == []
-        assert eclipseWtpComponent.component.classesDeployPath == "/"
-        assert eclipseWtpComponent.component.libDeployPath == "/lib"
+
+        assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
+        assert wtp.rootConfigurations == [project.configurations.deploy] as Set
+        assert wtp.libConfigurations == [project.configurations.earlib] as Set
+        assert wtp.minusConfigurations == [] as Set
+        assert wtp.deployName == project.name
+        assert wtp.contextPath == null
+        assert wtp.resources == []
+        assert wtp.classesDeployPath == "/"
+        assert wtp.libDeployPath == "/lib"
     }
 
     private void checkEclipseWtpFacet(def facets) {
@@ -129,26 +131,27 @@ class EclipseWtpPluginTest extends Specification {
     }
 
     private void checkEclipseWtpComponentForWar() {
+        def wtp = project.eclipse.wtp.component
         def eclipseWtpComponent = project.eclipseWtpComponent
         assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
         assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseWtpComponent)
-        assert eclipseWtpComponent.sourceDirs == project.sourceSets.main.allSource.srcDirs
-        assert eclipseWtpComponent.component.rootConfigurations == [] as Set
-        assert eclipseWtpComponent.component.libConfigurations == [project.configurations.runtime] as Set
-        assert eclipseWtpComponent.minusConfigurations == [project.configurations.providedRuntime] as Set
-        assert eclipseWtpComponent.deployName == project.name
-        assert eclipseWtpComponent.contextPath == project.war.baseName
+        assert eclipseWtpComponent.component == wtp
         assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
         assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
-        assert eclipseWtpComponent.variables == [:]
-        assert eclipseWtpComponent.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
-        assert eclipseWtpComponent.component.classesDeployPath == "/WEB-INF/classes"
-        assert eclipseWtpComponent.component.libDeployPath == "/WEB-INF/lib"
+
+        assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
+        assert wtp.rootConfigurations == [] as Set
+        assert wtp.libConfigurations == [project.configurations.runtime] as Set
+        assert wtp.minusConfigurations == [project.configurations.providedRuntime] as Set
+        assert wtp.deployName == project.name
+        assert wtp.contextPath == project.war.baseName
+        assert wtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
+        assert wtp.classesDeployPath == "/WEB-INF/classes"
+        assert wtp.libDeployPath == "/WEB-INF/lib"
     }
 
     private void checkEclipseClasspath(def configurations) {
-        GenerateEclipseClasspath eclipseClasspath = project.tasks.eclipseClasspath
-        assert eclipseClasspath.plusConfigurations == configurations
+        assert project.eclipse.classpath.plusConfigurations == configurations
     }
 
     def applyToEarProjectWithoutJavaPlugin_shouldUseAppDirInWtpComponentSource() {
@@ -156,6 +159,6 @@ class EclipseWtpPluginTest extends Specification {
         project.apply(plugin: 'ear')
         wtpPlugin.apply(project)
         then:
-        project.eclipseWtpComponent.sourceDirs == [project.file(project.appDirName)] as Set
+        project.eclipse.wtp.component.sourceDirs == [project.file(project.appDirName)] as Set
     }
 }

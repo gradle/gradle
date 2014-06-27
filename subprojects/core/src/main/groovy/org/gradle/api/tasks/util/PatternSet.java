@@ -25,15 +25,17 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.RelativePathSpec;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.CharSequenceNotationParser;
 import org.gradle.api.specs.*;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Standalone implementation of {@link PatternFilterable}.
@@ -44,6 +46,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     private final Set<String> excludes = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> includeSpecs = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> excludeSpecs = Sets.newLinkedHashSet();
+    private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
 
     boolean caseSensitive = true;
 
@@ -164,12 +167,8 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet include(Iterable includes) {
-        NotationParser<Object, String> parser = new NotationParserBuilder<String>()
-                .resultingType(String.class)
-                .parser(new CharSequenceNotationParser())
-                .toComposite();
         for (Object include : includes) {
-            this.includes.add(parser.parseNotation(include));
+            this.includes.add(PARSER.parseNotation(include));
         }
         return this;
     }
@@ -220,9 +219,8 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet exclude(Iterable excludes) {
-        CharSequenceNotationParser parser = new CharSequenceNotationParser();
         for (Object exclude : excludes) {
-            this.excludes.add(parser.parseNotation(exclude));
+            this.excludes.add(PARSER.parseNotation(exclude));
         }
         return this;
     }

@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
-import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.util.CollectionUtils;
@@ -54,8 +54,8 @@ public class NativeBinaryResolveResult {
         });
     }
 
-    public List<LibraryBinary> getAllLibraryBinaries() {
-        List<LibraryBinary> result = new ArrayList<LibraryBinary>();
+    public List<NativeLibraryBinary> getAllLibraryBinaries() {
+        List<NativeLibraryBinary> result = new ArrayList<NativeLibraryBinary>();
         for (NativeBinaryRequirementResolveResult resolution : getAllResolutions()) {
             if (resolution.getLibraryBinary() != null) {
                 result.add(resolution.getLibraryBinary());

@@ -65,8 +65,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
         if (isVersion("0.9-rc-1")) {
             return jvm.getJavaVersion().isJava6Compatible();
         }
-
-        return jvm.getJavaVersion().isJava5Compatible();
+        if (isSameOrOlder("1.12")) {
+            return jvm.getJavaVersion().isJava5Compatible();
+        }
+        return jvm.getJavaVersion().isJava6Compatible();
     }
 
     public boolean worksWith(OperatingSystem os) {
@@ -99,7 +101,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public boolean isOpenApiSupported() {
-        return isSameOrNewer("0.9-rc-1");
+        return isSameOrNewer("0.9-rc-1") && !isSameOrNewer("2.0-rc-1");
     }
 
     public boolean isToolingApiSupported() {
@@ -114,8 +116,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("1.12-rc-1")) {
-            return VersionNumber.parse("2.5");
+        if (isSameOrNewer("2.0-rc-1")) {
+            return VersionNumber.parse("2.12");
+        } else if (isSameOrNewer("1.12-rc-1")) {
+            return VersionNumber.parse("2.6");
         } else if (isSameOrNewer("1.11-rc-1")) {
             return VersionNumber.parse("2.2");
         } else if (isSameOrNewer("1.9-rc-2")) {

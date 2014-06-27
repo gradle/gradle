@@ -22,13 +22,38 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionNotFoundExceptionTest extends Specification {
-    def "formats message to include selector"() {
-        def exception1 = new ModuleVersionNotFoundException(newId("org", "a", "1.2"))
-        def exception2 = new ModuleVersionNotFoundException(newSelector("org", "a", "1.2"))
+    def "formats message to include id"() {
+        def exception = new ModuleVersionNotFoundException(newId("org", "a", "1.2"))
 
         expect:
-        exception1.message == 'Could not find org:a:1.2.'
-        exception2.message == 'Could not find any version that matches org:a:1.2.'
+        exception.message == 'Could not find org:a:1.2.'
+    }
+
+    def "formats message to include id and locations"() {
+        def exception = new ModuleVersionNotFoundException(newId("org", "a", "1.2"), ["http://somewhere", "file:/somewhere"])
+
+        expect:
+        exception.message == toPlatformLineSeparators("""Could not find org:a:1.2.
+Searched in the following locations:
+    http://somewhere
+    file:/somewhere""")
+    }
+
+    def "formats message to include selector"() {
+        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", "1.2"))
+
+        expect:
+        exception.message == 'Could not find any version that matches org:a:1.2.'
+    }
+
+    def "formats message to include selector and locations"() {
+        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", "1.2"), ["http://somewhere", "file:/somewhere"])
+
+        expect:
+        exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.2.
+Searched in the following locations:
+    http://somewhere
+    file:/somewhere""")
     }
 
     def "can add incoming paths to exception"() {

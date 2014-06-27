@@ -14,325 +14,348 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
+import org.gradle.test.fixtures.ivy.IvyRepository
+import spock.lang.Unroll
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-
-class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
-    def repo = ivyHttpRepo
-    def module = repo.module("some.group", "some-artifact", "1.0")
+class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def fileRepo = ivyRepo
+    def httpRepo = ivyHttpRepo
+    def module = httpRepo.module("some.group", "some-artifact", "1.0")
+    JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
-        server.start()
+        initBuild(httpRepo)
+
+        fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
+
+        publishModule()
+    }
+
+    def initBuild(IvyRepository repo) {
+        buildFile.text = """
+repositories {
+    ivy { url '$repo.uri' }
+}
+"""
     }
 
     def "resolve sources artifacts"() {
-        publishModule()
+        fixture.requestingSource()
+                .expectSourceArtifact("my-sources")
+                .prepare()
+
+        when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
 
-
-        buildFile <<
-"""
-import org.gradle.api.internal.artifacts.component.*
-
-repositories {
-    ivy { url "$repo.uri" }
-}
-
-task verify << {
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
-        .withArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
-        .execute()
-
-    def components = result.components
-    assert components.size() == 1
-    for (component in components) {
-        assert component.id.group == "some.group"
-        assert component.id.module == "some-artifact"
-        assert component.id.version == "1.0"
-        assert component.allArtifacts.size() == 1
-        assert component instanceof JvmLibrary
-
-        assert component.sourcesArtifacts.size() == 1
-        def sourceArtifact = component.sourcesArtifacts.iterator().next()
-        assert sourceArtifact instanceof JvmLibrarySourcesArtifact
-        assert sourceArtifact.file.name == "some-artifact-1.0-my-sources.jar"
-
-        assert component.javadocArtifacts.empty
-    }
-
-    assert result.unresolvedComponents.empty
-}
-"""
-
-        expect:
-        succeeds("verify")
+        then:
+        checkArtifactsResolvedAndCached()
     }
 
     def "resolve javadoc artifacts"() {
-        publishModule()
+        fixture.requestingJavadoc()
+                .expectJavadocArtifact("my-javadoc")
+                .prepare()
+
+        when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-javadoc").expectGet()
 
-        buildFile <<
-"""
-import org.gradle.api.internal.artifacts.component.*
-
-repositories {
-    ivy { url "$repo.uri" }
-}
-
-task verify << {
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
-        .withArtifacts(JvmLibrary, JvmLibraryJavadocArtifact)
-        .execute()
-
-    def components = result.components
-    assert components.size() == 1
-    for (component in components) {
-        assert component.id.group == "some.group"
-        assert component.id.module == "some-artifact"
-        assert component.id.version == "1.0"
-        assert component.allArtifacts.size() == 1
-        assert component instanceof JvmLibrary
-
-        assert component.sourcesArtifacts.empty
-
-        assert component.javadocArtifacts.size() == 1
-        def javadocArtifact = component.javadocArtifacts.iterator().next()
-        assert javadocArtifact instanceof JvmLibraryJavadocArtifact
-        assert javadocArtifact.file.name == "some-artifact-1.0-my-javadoc.jar"
-    }
-
-    assert result.unresolvedComponents.empty
-}
-"""
-
-        expect:
-        succeeds("verify")
+        then:
+        checkArtifactsResolvedAndCached()
     }
 
     def "resolve all artifacts"() {
-        publishModule()
+        fixture.expectSourceArtifact("my-sources")
+                .expectJavadocArtifact("my-javadoc")
+                .prepare()
+
+        when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
         module.getArtifact(classifier: "my-javadoc").expectGet()
 
-        buildFile <<
-"""
-import org.gradle.api.internal.artifacts.component.*
-
-repositories {
-    ivy { url "$repo.uri" }
-}
-
-task verify << {
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
-        .withArtifacts(JvmLibrary)
-        .execute()
-
-    def components = result.components
-    assert components.size() == 1
-    for (component in components) {
-        assert component.id.group == "some.group"
-        assert component.id.module == "some-artifact"
-        assert component.id.version == "1.0"
-        assert component.allArtifacts.size() == 2
-        assert component instanceof JvmLibrary
-
-        assert component.sourcesArtifacts.size() == 1
-        assert component.javadocArtifacts.size() == 1
-        assert component.allArtifacts.contains(component.sourcesArtifacts.iterator().next())
-        assert component.allArtifacts.contains(component.javadocArtifacts.iterator().next())
+        then:
+        checkArtifactsResolvedAndCached()
     }
 
-    assert result.unresolvedComponents.empty
+    def "resolves multiple artifacts of the same type"() {
+        given:
+        module.artifact(type: "source", classifier: "other-sources", ext: "jar", conf: "sources")
+        module.artifact(type: "javadoc", classifier: "other-javadoc", ext: "jar", conf: "javadoc")
+        module.publish()
+
+        fixture.expectSourceArtifact("my-sources")
+                .expectSourceArtifact("other-sources")
+                .expectJavadocArtifact("my-javadoc")
+                .expectJavadocArtifact("other-javadoc")
+                .prepare()
+
+        when:
+        module.ivy.expectGet()
+        module.getArtifact(classifier: "my-sources").expectGet()
+        module.getArtifact(classifier: "other-sources").expectGet()
+        module.getArtifact(classifier: "my-javadoc").expectGet()
+        module.getArtifact(classifier: "other-javadoc").expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+    }
+
+    def "resolves when configurations are present and empty"() {
+        given:
+        def module1 = httpRepo.module("some.group", "some-artifact", "1.1")
+        module1.configuration("sources")
+        module1.configuration("javadoc")
+        // Add an artifact to prevent the default artifact being added with conf='*'
+        module1.artifact([conf: 'default'])
+        module1.publish()
+
+        and:
+        fixture.withComponentVersion("some.group", "some-artifact", "1.1").prepare()
+
+        when:
+        module1.ivy.expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+    }
+
+    @Unroll
+    def "fetches missing artifacts for module #condition"() {
+        fixture.requestingSource()
+                .expectSourceArtifactNotFound("my-sources")
+                .prepare()
+        buildFile << """
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details ->
+            details.changing = true
+        }
+    }
+}
+
+if (project.hasProperty('nocache')) {
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 
-        expect:
+        when:
+        module.ivy.expectGet()
+        module.getArtifact(classifier: "my-sources").expectGetMissing()
+
+        then:
+        checkArtifactsResolvedAndCached()
+
+        when:
+        module.publishWithChangedContent()
+        fixture.clearExpectations()
+                .expectSourceArtifact("my-sources")
+                .createVerifyTask("verifyRefresh")
+
+        and:
+        server.resetExpectations()
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
+        module.getArtifact(classifier: "my-sources").expectGet()
+
+        then:
+        executer.withArgument(execArg)
+        succeeds("verifyRefresh")
+
+        where:
+        condition                     | execArg
+        "with --refresh-dependencies" | "--refresh-dependencies"
+        "when ivy descriptor changes" | "-Pnocache"
+    }
+
+    @Unroll
+    def "updates artifacts for module #condition"() {
+        buildFile << """
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details ->
+            details.changing = true
+        }
+    }
+}
+
+if (project.hasProperty('nocache')) {
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+"""
+
+        final sourceArtifact = module.getArtifact(classifier: "my-sources")
+        fixture.requestingSource()
+                .expectSourceArtifact("my-sources")
+                .prepare()
+
+        when:
+        module.ivy.expectGet()
+        sourceArtifact.expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+
+        when:
+        def snapshot = file("sources/some-artifact-1.0-my-sources.jar").snapshot()
+        module.publishWithChangedContent()
+
+        and:
+        server.resetExpectations()
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
+        sourceArtifact.expectHead()
+        sourceArtifact.sha1.expectGet()
+        sourceArtifact.expectGet()
+
+        then:
+        executer.withArgument(execArg)
         succeeds("verify")
+        file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
+
+        where:
+        condition                     | execArg
+        "with --refresh-dependencies" | "--refresh-dependencies"
+        "when ivy descriptor changes" | "-Pnocache"
     }
 
-    def "resolve artifacts of non-existing component"() {
+    def "reports failure to resolve artifacts of non-existing component"() {
+        fixture.expectComponentNotFound([module.ivy.uri.toString(), module.jar.uri.toString()]).prepare()
+
+        when:
         module.ivy.expectGetMissing()
         module.jar.expectHeadMissing()
 
-        buildFile <<
-"""
-import org.gradle.api.internal.artifacts.component.*
-
-repositories {
-    ivy { url "$repo.uri" }
-}
-
-task verify << {
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
-        .withArtifacts(JvmLibrary)
-        .execute()
-
-    assert result.components.empty
-    assert result.unresolvedComponents.size() == 1
-    for (component in result.unresolvedComponents) {
-        assert component.id.group == "some.group"
-        assert component.id.module == "some-artifact"
-        assert component.id.version == "1.0"
-        assert component.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
-    }
-}
-"""
-
-        expect:
+        then:
         succeeds("verify")
     }
 
-    def "resolve non-existing artifacts of existing component"() {
-        publishModule()
+    def "reports failure to resolve missing artifacts"() {
+        fixture.expectSourceArtifactNotFound("my-sources")
+                .expectJavadocArtifactNotFound("my-javadoc")
+                .prepare()
+
+        when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGetMissing()
         module.getArtifact(classifier: "my-javadoc").expectGetMissing()
 
-        buildFile <<
-"""
-import org.gradle.api.internal.artifacts.component.*
-
-repositories {
-    ivy { url "$repo.uri" }
-}
-
-task verify << {
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
-        .withArtifacts(JvmLibrary)
-        .execute()
-
-    assert result.components.size() == 1
-    for (component in result.components) {
-        assert component.id.group == "some.group"
-        assert component.id.module == "some-artifact"
-        assert component.id.version == "1.0"
-        assert component instanceof JvmLibrary
-
-        assert component.allArtifacts.size() == 2
-        assert component instanceof JvmLibrary
-
-        assert component.sourcesArtifacts.size() == 1
-        def sourceArtifact = component.sourcesArtifacts.iterator().next()
-        assert sourceArtifact instanceof JvmLibrarySourcesArtifact
-        assert sourceArtifact.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-
-        assert component.javadocArtifacts.size() == 1
-        def javadocArtifact = component.javadocArtifacts.iterator().next()
-        assert javadocArtifact instanceof JvmLibraryJavadocArtifact
-        assert javadocArtifact.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+        then:
+        checkArtifactsResolvedAndCached()
     }
 
-    assert result.unresolvedComponents.empty
-}
-"""
+    def "resolves when some artifacts are missing"() {
+        fixture.expectSourceArtifact("my-sources")
+                .expectJavadocArtifactNotFound("my-javadoc")
+                .prepare()
 
-        expect:
-        succeeds("verify")
-    }
-
-    def "resolve partially missing artifacts"() {
-        publishModule()
+        when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
         module.getArtifact(classifier: "my-javadoc").expectGetMissing()
 
-        buildFile <<
-"""
-import org.gradle.api.internal.artifacts.component.*
-
-repositories {
-    ivy { url "$repo.uri" }
-}
-
-task verify << {
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
-        .withArtifacts(JvmLibrary)
-        .execute()
-
-    def components = result.components
-    assert components.size() == 1
-    for (component in components) {
-        assert component.id.group == "some.group"
-        assert component.id.module == "some-artifact"
-        assert component.id.version == "1.0"
-        assert component.allArtifacts.size() == 2
-        assert component instanceof JvmLibrary
-
-        assert component.sourcesArtifacts.size() == 1
-        def sourceArtifact = component.sourcesArtifacts.iterator().next()
-        assert sourceArtifact instanceof JvmLibrarySourcesArtifact
-        assert sourceArtifact.file.name == "some-artifact-1.0-my-sources.jar"
-
-        assert component.javadocArtifacts.size() == 1
-        def javadocArtifact = component.javadocArtifacts.iterator().next()
-        assert javadocArtifact instanceof JvmLibraryJavadocArtifact
-        assert javadocArtifact.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+        then:
+        checkArtifactsResolvedAndCached()
     }
 
-    assert result.unresolvedComponents.empty
-}
-"""
+    def "resolves and recovers from broken artifacts"() {
+        given:
+        module.artifact(type: "source", classifier: "broken-sources", ext: "jar", conf: "sources")
+        module.publish()
 
-        expect:
-        succeeds("verify")
-    }
+        fixture.expectSourceArtifact("my-sources")
+                .expectSourceArtifactFailure(new ArtifactResolveException(
+                                                "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-broken-sources.jar'",
+                                                new Throwable("Received status code 500 from server: broken")))
+                .expectJavadocArtifactFailure(new ArtifactResolveException(
+                                                "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'",
+                                                new Throwable("Received status code 500 from server: broken")))
+                .prepare()
 
-    def "resolve partially broken artifacts"() {
-        publishModule()
+        when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
+        module.getArtifact(classifier: "broken-sources").expectGetBroken()
+
         module.getArtifact(classifier: "my-javadoc").expectGetBroken()
 
-        buildFile <<
-"""
-import org.gradle.api.internal.artifacts.component.*
+        then:
+        succeeds("verify")
 
-repositories {
-    ivy { url "$repo.uri" }
-}
+        when:
+        fixture.clearExpectations()
+                .expectSourceArtifact("my-sources")
+                .expectSourceArtifact("broken-sources")
+                .expectJavadocArtifact("my-javadoc")
+                .createVerifyTask("verifyFixed")
 
-task verify << {
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
-        .withArtifacts(JvmLibrary)
-        .execute()
+        and:
+        server.resetExpectations()
+        // Only the broken artifacts are not cached
+        module.getArtifact(classifier: "broken-sources").expectGet()
+        module.getArtifact(classifier: "my-javadoc").expectGet()
 
-    def components = result.components
-    assert components.size() == 1
-    for (component in components) {
-        assert component.id.group == "some.group"
-        assert component.id.module == "some-artifact"
-        assert component.id.version == "1.0"
-        assert component.allArtifacts.size() == 2
-        assert component instanceof JvmLibrary
-
-        assert component.sourcesArtifacts.size() == 1
-        def sourceArtifact = component.sourcesArtifacts.iterator().next()
-        assert sourceArtifact instanceof JvmLibrarySourcesArtifact
-        assert sourceArtifact.file.name == "some-artifact-1.0-my-sources.jar"
-
-        assert component.javadocArtifacts.size() == 1
-        def javadocArtifact = component.javadocArtifacts.iterator().next()
-        assert javadocArtifact instanceof JvmLibraryJavadocArtifact
-        assert javadocArtifact.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+        then:
+        succeeds("verifyFixed")
     }
 
-    assert result.unresolvedComponents.empty
-}
-"""
+    def "resolve and does not cache artifacts from local repository"() {
+        initBuild(fileRepo)
 
-        expect:
+        fixture.expectSourceArtifact("my-sources")
+                .expectJavadocArtifact("my-javadoc")
+                .prepare()
+
+        when:
         succeeds("verify")
+
+        and:
+        def snapshot = file("sources/some-artifact-1.0-my-sources.jar").snapshot()
+
+        and:
+        module.publishWithChangedContent()
+
+        then:
+        succeeds("verify")
+        file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
+    }
+
+    def "can resolve artifacts with maven scheme from ivy repository"() {
+        // Published with no configurations, and a source artifact only
+        def moduleWithMavenScheme = httpRepo.module("some.group", "some-artifact", "1.1")
+        moduleWithMavenScheme.artifact(classifier: "sources")
+        moduleWithMavenScheme.publish()
+
+        fixture.withComponentVersion("some.group", "some-artifact", "1.1")
+                .requestingSource().requestingJavadoc()
+                .expectSourceArtifact("sources")
+                .prepare()
+
+        when:
+        moduleWithMavenScheme.ivy.expectGet()
+        moduleWithMavenScheme.getArtifact(classifier: "sources").expectHead()
+        moduleWithMavenScheme.getArtifact(classifier: "sources").expectGet()
+        moduleWithMavenScheme.getArtifact(classifier: "javadoc").expectHeadMissing()
+
+        then:
+        checkArtifactsResolvedAndCached()
+    }
+
+    def checkArtifactsResolvedAndCached() {
+        assert succeeds("verify")
+        server.resetExpectations()
+        assert succeeds("verify")
+        true
     }
 
     private publishModule() {

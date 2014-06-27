@@ -26,6 +26,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaExecAction;
 import org.gradle.process.internal.JavaExecAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,17 +36,21 @@ import java.util.Map;
 /**
  * Executes a Java application in a child process.
  * <p>
- * The process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debugJvm` switch when invoking the build.
+ * The process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build.
  * <pre>
- * gradle someJavaExecTask --debugJvm
+ * gradle someJavaExecTask --debug-jvm
  * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private JavaExecAction javaExecHandleBuilder;
 
     public JavaExec() {
-        FileResolver fileResolver = getServices().get(FileResolver.class);
-        javaExecHandleBuilder = new DefaultJavaExecAction(fileResolver);
+        javaExecHandleBuilder = new DefaultJavaExecAction(getFileResolver());
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction
@@ -218,7 +223,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Option(option = "debugJvm", description = "Enable or disable debugging for the process. When enabled, the process is started suspended and listening on port 5005. [INCUBATING]")
+    @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         javaExecHandleBuilder.setDebug(enabled);
     }

@@ -6,32 +6,26 @@
                 <tr>
                     <td>Name</td>
                     <td>Default with <literal>checkstyle</literal> plugin</td>
-                    <td>Default with <literal>code-quality</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>toolVersion</td>
                 <td><literal>5.5</literal></td>
-                <td><literal>5.5</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>
                 <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/checkstyle</literal></td>
-                <td><literal>project.checkstyleResultsDir</literal></td>
             </tr>
             <tr>
                 <td>configFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/config/checkstyle/checkstyle.xml</literal></td>
-                <td><literal>project.checkstyleConfigFile</literal></td>
             </tr>
             <tr>
                 <td>configProperties</td>
                 <td><literal>[:]</literal></td>
-                <td><literal>project.checkstyleProperties</literal></td>
             </tr>
             <tr>
                 <td>showViolations</td>
-                <td><literal>true</literal></td>
                 <td><literal>true</literal></td>
             </tr>
         </table>

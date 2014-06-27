@@ -22,18 +22,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
 
-public class GenericFileSystem implements FileSystem {
+class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
     final boolean caseSensitive;
     final boolean canCreateSymbolicLink;
 
-    private final Chmod chmod;
-    private final Stat stat;
+    private final FileModeMutator chmod;
+    private final FileModeAccessor stat;
     private final Symlink symlink;
 
     public boolean isCaseSensitive() {
@@ -44,46 +43,41 @@ public class GenericFileSystem implements FileSystem {
         return canCreateSymbolicLink;
     }
 
-    public void createSymbolicLink(File link, File target) throws IOException {
-        symlink.symlink(link, target);
-    }
-
-    public boolean tryCreateSymbolicLink(File link, File target) {
+    public void createSymbolicLink(File link, File target) {
         try {
             symlink.symlink(link, target);
-            return true;
-        } catch (IOException e) {
-            return false;
+        } catch (Exception e) {
+            throw new FileException(String.format("Could not create symlink from '%s' to '%s'.", link.getPath(), target.getPath()), e);
         }
     }
 
-    public int getUnixMode(File f) throws IOException {
-        assertFileExists(f);
-        return stat.getUnixMode(f);
-    }
-
-    public void chmod(File f, int mode) throws IOException {
-        assertFileExists(f);
-        chmod.chmod(f, mode);
-    }
-
-    protected final void assertFileExists(File f) throws FileNotFoundException {
-        if (!f.exists()) {
-            throw new FileNotFoundException(f + " does not exist");
+    public int getUnixMode(File f) {
+        try {
+            return stat.getUnixMode(f);
+        } catch (Exception e) {
+            throw new FileException(String.format("Could not get file mode for '%s'.", f), e);
         }
     }
 
-    public GenericFileSystem(Chmod chmod, Stat stat, Symlink symlink) {
+    public void chmod(File f, int mode) {
+        try {
+            chmod.chmod(f, mode);
+        } catch (Exception e) {
+            throw new FileException(String.format("Could not set file mode %o on '%s'.", mode, f), e);
+        }
+    }
+
+    public GenericFileSystem(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink) {
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;
+        canCreateSymbolicLink = symlink.isSymlinkSupported();
         String content = generateUniqueContent();
         File file = null;
         try {
             checkJavaIoTmpDirExists();
             file = createFile(content);
             caseSensitive = probeCaseSensitive(file, content);
-            canCreateSymbolicLink = probeCanCreateSymbolicLink(file, content);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -114,25 +108,8 @@ public class GenericFileSystem implements FileSystem {
         }
     }
 
-    private boolean probeCanCreateSymbolicLink(File file, String content) {
-        File link = null;
-        try {
-            link = generateUniqueTempFileName();
-            return tryCreateSymbolicLink(link, file) && hasContent(link, content);
-        } catch (IOException e) {
-            LOGGER.info("Failed to determine if file system can create symbolic links. Assuming it can't.");
-            return false;
-        } finally {
-            FileUtils.deleteQuietly(link);
-        }
-    }
-
     private boolean hasContent(File file, String content) throws IOException {
         return file.exists() && Files.readFirstLine(file, Charsets.UTF_8).equals(content);
-    }
-
-    private File generateUniqueTempFileName() throws IOException {
-        return new File(System.getProperty("java.io.tmpdir"), "gradle_unique_file_name" + UUID.randomUUID().toString());
     }
 
     private void checkJavaIoTmpDirExists() throws IOException {

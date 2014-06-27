@@ -18,7 +18,8 @@ package org.gradle.tooling.model;
 import org.gradle.api.Incubating;
 
 /**
- * Represents a launchable that uses task name to select tasks executed from a given project and its sub-projects.
+ * Represents a {@link Launchable} that uses task name to select tasks executed from a given project and its sub-projects. This is
+ * roughly equivalent to running `gradle &lt;task-name>` from the command-line.
  *
  * @since 1.12
  */

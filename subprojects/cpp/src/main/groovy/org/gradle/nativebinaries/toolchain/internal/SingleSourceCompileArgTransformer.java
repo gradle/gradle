@@ -16,26 +16,27 @@
 
 package org.gradle.nativebinaries.toolchain.internal;
 
+import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
     private final ArgsTransformer<T> delegate;
-    private final String objectFileName;
+    private final String objectFileNameSuffix;
     private final File sourceFile;
-    private final boolean usingVisualCToolChain;
+    private final Transformer<List<String>, File> outputFileArgTransformer;
     private final boolean windowsPathLengthLimitation;
 
-    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileName, ArgsTransformer<T> delegate, boolean windowsPathLengthLimitation, boolean usingVisualCToolChain) {
+    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileNameSuffixExtension, ArgsTransformer<T> delegate, boolean windowsPathLengthLimitation, Transformer<List<String>, File> outputFileArgTransformer) {
         this.sourceFile = sourceFile;
         this.delegate = delegate;
-        this.objectFileName = objectFileName;
-        this.usingVisualCToolChain = usingVisualCToolChain;
+        this.objectFileNameSuffix = objectFileNameSuffixExtension;
+        this.outputFileArgTransformer = outputFileArgTransformer;
         this.windowsPathLengthLimitation = windowsPathLengthLimitation;
     }
 
@@ -46,21 +47,19 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
         args.addAll(delegate.transform(spec));
         args.add(sourceFile.getAbsolutePath());
 
-        if (usingVisualCToolChain) {
-            Collections.addAll(args, "/Fo" + outputFilePath.getAbsolutePath());
-        } else {
-            Collections.addAll(args, "-o", outputFilePath.getAbsolutePath());
-        }
+        CollectionUtils.addAll(args, outputFileArgTransformer.transform(outputFilePath));
         return args;
     }
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir) {
-        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
-        File outputFileDir = new File(objectFileDir, compactMD5);
-        if(!outputFileDir.exists()){
-            outputFileDir.mkdir();
+        File outputFile = new CompilerOutputFileNamingScheme()
+                                .withObjectFileNameSuffix(objectFileNameSuffix)
+                                .withOutputBaseFolder(objectFileDir)
+                                .map(sourceFile);
+        File outputDirectory = outputFile.getParentFile();
+        if (!outputDirectory.exists()) {
+            outputDirectory.mkdirs();
         }
-        File outputFile = new File(outputFileDir, objectFileName);
         return windowsPathLengthLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 }

@@ -9,6 +9,10 @@
                 </tr>
             </thead>
             <tr>
+                <td>workspace</td>
+                <td><literal>project.idea.workspace</literal></td>
+            </tr>
+            <tr>
                 <td>outputFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iws</literal></td>
             </tr>

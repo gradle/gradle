@@ -265,4 +265,23 @@ class PerformanceResultsTest extends ResultSpecification {
         e.message.contains("Memory ${result.displayName}: we need more memory than 1.0.")
         e.message.contains("Memory ${result.displayName}: we need more memory than 1.2.")
     }
+
+    def "can lookup the results for a baseline version"() {
+        expect:
+        def baseline = result.baseline("1.0")
+        baseline.version == "1.0"
+
+        and:
+        result.baseline("1.0") == baseline
+        result.version("1.0") == baseline
+    }
+
+    def "can lookup the current results using the branch as the version name"() {
+        given:
+        result.vcsBranch = 'master'
+
+        expect:
+        def version = result.version('master')
+        version.results.is(result.current)
+    }
 }

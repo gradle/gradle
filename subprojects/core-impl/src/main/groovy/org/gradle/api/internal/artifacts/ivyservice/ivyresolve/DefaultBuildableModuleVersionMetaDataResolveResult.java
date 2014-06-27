@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
-public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult {
+public class DefaultBuildableModuleVersionMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionMetaDataResolveResult {
     private State state = State.Unknown;
     private ModuleSource moduleSource;
     private ModuleVersionResolveException failure;
@@ -58,6 +59,10 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         return state;
     }
 
+    public boolean hasResult() {
+        return state != State.Unknown;
+    }
+
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;
@@ -69,7 +74,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     }
 
     private void assertHasResult() {
-        if (state == State.Unknown) {
+        if (!hasResult()) {
             throw new IllegalStateException("No result has been specified.");
         }
     }

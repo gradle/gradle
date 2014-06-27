@@ -29,7 +29,8 @@ public class BuildScriptProcessorTest extends Specification {
     def scriptSource = Mock(ScriptSource)
     def configurerFactory = Mock(ScriptPluginFactory)
     def scriptPlugin = Mock(ScriptPlugin)
-    def classLoaderScope = Mock(ClassLoaderScope)
+    def targetScope = Mock(ClassLoaderScope)
+    def baseScope = Mock(ClassLoaderScope)
     def BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor(configurerFactory)
     private ScriptHandler scriptHandler;
 
@@ -37,7 +38,8 @@ public class BuildScriptProcessorTest extends Specification {
         _ * project.buildScriptSource >> scriptSource
         scriptHandler = Mock(ScriptHandler)
         project.getBuildscript() >> scriptHandler
-        project.getClassLoaderScope() >> classLoaderScope
+        project.getClassLoaderScope() >> targetScope
+        project.getBaseClassLoaderScope() >> baseScope
     }
 
     def configuresProjectUsingBuildScript() {
@@ -45,7 +47,7 @@ public class BuildScriptProcessorTest extends Specification {
         buildScriptProcessor.execute(project)
 
         then:
-        1 * configurerFactory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", ProjectScript) >> scriptPlugin
+        1 * configurerFactory.create(scriptSource, scriptHandler, targetScope, baseScope, "buildscript", ProjectScript, true) >> scriptPlugin
         1 * scriptPlugin.apply(project)
     }
 }

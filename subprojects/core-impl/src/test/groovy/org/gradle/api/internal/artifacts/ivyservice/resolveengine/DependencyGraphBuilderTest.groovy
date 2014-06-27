@@ -26,13 +26,14 @@ import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentif
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
@@ -58,7 +59,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _, _) >> { it[2].resolved(root) }
 
-        _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ModuleVersionMetaData module, ArtifactResolveContext context, BuildableArtifactSetResolveResult result ->
+        _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ModuleVersionMetaData module, ComponentUsage context, BuildableArtifactSetResolveResult result ->
             result.resolved(module.artifacts)
         }
     }
@@ -82,9 +83,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     private DefaultLenientConfiguration resolve() {
-        def results = new DefaultResolvedConfigurationBuilder(
-                new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()),
-                artifactResolver)
+        def results = new DefaultResolvedConfigurationBuilder(new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
         builder.resolve(configuration, resultBuilder, results)
         new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
     }
@@ -848,7 +847,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def revision(String name, String revision = '1.0') {
         DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(createModuleRevisionId("group", name, revision), "release", new Date())
-        ModuleVersionMetaData metaData = new ModuleDescriptorAdapter(descriptor)
+        ModuleVersionMetaData metaData = new DefaultIvyModuleVersionMetaData(descriptor)
         config(metaData, 'default')
         descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
         return metaData
@@ -863,7 +862,7 @@ class DependencyGraphBuilderTest extends Specification {
     def traverses(Map<String, ?> args = [:], ModuleVersionMetaData from, ModuleVersionMetaData to) {
         def descriptor = dependsOn(args, from.descriptor, to.descriptor.moduleRevisionId)
         def idResolveResult = selectorResolvesTo(descriptor, to.id);
-        ModuleVersionResolveResult resolveResult = Mock()
+        ComponentResolveResult resolveResult = Mock()
         1 * idResolveResult.resolve() >> resolveResult
         _ * resolveResult.id >> to.id
         _ * resolveResult.metaData >> to
@@ -882,7 +881,7 @@ class DependencyGraphBuilderTest extends Specification {
     def traversesMissing(Map<String, ?> args = [:], ModuleVersionMetaData from, ModuleVersionMetaData to) {
         def descriptor = dependsOn(args, from.descriptor, to.descriptor.moduleRevisionId)
         def idResolveResult = selectorResolvesTo(descriptor, to.id)
-        ModuleVersionResolveResult resolveResult = Mock()
+        ComponentResolveResult resolveResult = Mock()
         1 * idResolveResult.resolve() >> resolveResult
         _ * resolveResult.failure >> { return new ModuleVersionNotFoundException(newId("org", "a", "1.2")) }
     }
@@ -890,7 +889,7 @@ class DependencyGraphBuilderTest extends Specification {
     def traversesBroken(Map<String, ?> args = [:], ModuleVersionMetaData from, ModuleVersionMetaData to) {
         def descriptor = dependsOn(args, from.descriptor, to.descriptor.moduleRevisionId)
         def idResolveResult = selectorResolvesTo(descriptor, to.id)
-        ModuleVersionResolveResult resolveResult = Mock()
+        ComponentResolveResult resolveResult = Mock()
         1 * idResolveResult.resolve() >> resolveResult
         _ * resolveResult.failure >> { return new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken") }
     }

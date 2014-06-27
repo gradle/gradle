@@ -19,10 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
+import java.util.Collection;
+
 /**
- * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
+ * The result of attempting to resolve a dependency descriptor to a list of candidate versions that might match that descriptor.
  */
-public interface BuildableModuleVersionSelectionResolveResult {
+public interface BuildableModuleVersionSelectionResolveResult extends ResourceAwareResolveResult {
 
     static enum State {
         Listed, ProbablyListed, Failed, Unknown
@@ -34,9 +36,14 @@ public interface BuildableModuleVersionSelectionResolveResult {
     State getState();
 
     /**
+     * Returns true if this result is available, ie the state is not {@link State#Unknown}.
+     */
+    boolean hasResult();
+
+    /**
      * Returns the versions that match the selector.
      *
-     * @throws org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException If the resolution was not successful.
+     * @throws ModuleVersionResolveException If the resolution was not successful.
      */
     ModuleVersionListing getVersions() throws ModuleVersionResolveException;
 
@@ -47,6 +54,11 @@ public interface BuildableModuleVersionSelectionResolveResult {
      * Marks the module as having been listed to have the specified versions available.
      */
     void listed(ModuleVersionListing versions);
+
+    /**
+     * Marks the module as having been listed to have the specified versions available.
+     */
+    void listed(Collection<String> versions);
 
     /**
      * Marks the module as probably having no versions available.

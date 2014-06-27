@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.ivy.IvyHttpModule
-import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
@@ -124,10 +124,10 @@ credentials {
 
         and:
         server.authenticationScheme = authScheme
-        module.expectJarPut('testuser', 'password')
-        module.expectJarSha1Put('testuser', 'password')
-        module.expectIvyPut('testuser', 'password')
-        module.expectIvySha1Put('testuser', 'password')
+        module.jar.expectPut('testuser', 'password')
+        module.jar.sha1.expectPut('testuser', 'password')
+        module.ivy.expectPut('testuser', 'password')
+        module.ivy.sha1.expectPut('testuser', 'password')
 
         when:
         run 'publish'
@@ -317,10 +317,10 @@ credentials {
         """
 
         and:
-        module.expectJarPut('testuser', 'password')
-        module.expectJarSha1Put('testuser', 'password')
-        module.expectIvyPut('testuser', 'password')
-        module.expectIvySha1Put('testuser', 'password')
+        module.jar.expectPut('testuser', 'password')
+        module.jar.sha1.expectPut('testuser', 'password')
+        module.ivy.expectPut('testuser', 'password')
+        module.ivy.sha1.expectPut('testuser', 'password')
 
         when:
         run 'publish'

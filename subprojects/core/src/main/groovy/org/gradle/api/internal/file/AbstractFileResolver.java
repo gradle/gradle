@@ -22,12 +22,12 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -41,11 +41,11 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractFileResolver implements FileResolver {
     private final FileSystem fileSystem;
-    private FileOrUriNotationParser fileNotationParser;
+    private final NotationParser<Object, Object> fileNotationParser;
 
     protected AbstractFileResolver(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
-        this.fileNotationParser = new FileOrUriNotationParser(fileSystem);
+        this.fileNotationParser = FileOrUriNotationParser.create(fileSystem);
     }
 
     public FileSystem getFileSystem() {
@@ -186,7 +186,6 @@ public abstract class AbstractFileResolver implements FileResolver {
             return (File) converted;
         }
         throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
-
     }
 
     private Object unpack(Object path) {

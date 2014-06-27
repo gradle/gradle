@@ -16,19 +16,43 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
+import org.gradle.test.fixtures.server.http.HttpArtifact
 
 class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
-    void executeIdeTask(String buildScript) {
-        runTask "ideaModule", buildScript
+    @Override
+    String getIdeTask() {
+        return "ideaModule"
     }
 
     void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
         def iml = parseFile("root.iml")
+
+        assert iml.component.orderEntry.library.CLASSES.root.size() == 1
 
         def sourcesUrl = iml.component.orderEntry.library.SOURCES.root.@url[0].text()
         assert sourcesUrl.endsWith("/module-1.0-${sourcesClassifier}.jar!/")
 
         def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[0].text()
         assert javadocUrl.endsWith("/module-1.0-${javadocClassifier}.jar!/")
+
+    }
+
+    void ideFileContainsNoSourcesAndJavadocEntry() {
+        def iml = parseFile("root.iml")
+
+        assert iml.component.orderEntry.library.CLASSES.root.size() == 1
+        assert iml.component.orderEntry.library.SOURCES.root.size() == 0
+        assert iml.component.orderEntry.library.JAVADOC.root.size() == 0
+    }
+
+    @Override
+    void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact) {
+        httpArtifact.expectHead()
+        httpArtifact.expectGet()
+    }
+
+    @Override
+    void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact) {
+        httpArtifact.expectGet()
     }
 }

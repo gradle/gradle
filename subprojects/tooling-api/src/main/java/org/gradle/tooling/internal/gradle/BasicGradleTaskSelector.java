@@ -17,19 +17,20 @@
 package org.gradle.tooling.internal.gradle;
 
 import org.gradle.api.Nullable;
+import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.TaskSelector;
+import org.gradle.tooling.model.internal.Exceptions;
 
-import java.io.Serializable;
-import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Data used for {@link org.gradle.tooling.model.TaskSelector} when created in consumer.
  */
-public class BasicGradleTaskSelector implements TaskSelector, TaskListingLaunchable, Serializable {
+public class BasicGradleTaskSelector implements TaskSelector, TaskListingLaunchable {
     private String name;
     private String displayName;
     private String description;
-    private Set<String> tasks;
+    private SortedSet<String> tasks;
 
     public String getName() {
         return name;
@@ -43,6 +44,10 @@ public class BasicGradleTaskSelector implements TaskSelector, TaskListingLauncha
     @Nullable
     public String getDescription() {
         return description;
+    }
+
+    public boolean isVisible() {
+        throw Exceptions.unsupportedMethod(Launchable.class.getSimpleName() + ".isVisible");
     }
 
     public BasicGradleTaskSelector setDescription(String description) {
@@ -59,11 +64,11 @@ public class BasicGradleTaskSelector implements TaskSelector, TaskListingLauncha
         return this;
     }
 
-    public Set<String> getTasks() {
+    public SortedSet<String> getTaskNames() {
         return tasks;
     }
 
-    public BasicGradleTaskSelector setTaskNames(Set<String> tasks) {
+    public BasicGradleTaskSelector setTaskNames(SortedSet<String> tasks) {
         this.tasks = tasks;
         return this;
     }

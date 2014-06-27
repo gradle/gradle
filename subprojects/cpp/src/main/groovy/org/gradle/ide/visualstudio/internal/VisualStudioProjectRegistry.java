@@ -46,7 +46,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
 
     private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(ProjectNativeBinary nativeBinary, DefaultVisualStudioProject project, String configuration, String platform) {
         Class<? extends VisualStudioProjectConfiguration> type =
-                nativeBinary instanceof ExecutableBinary ? ExecutableVisualStudioProjectConfiguration.class : VisualStudioProjectConfiguration.class;
+                nativeBinary instanceof NativeExecutableBinary ? ExecutableVisualStudioProjectConfiguration.class : VisualStudioProjectConfiguration.class;
         return getInstantiator().newInstance(type, project, configuration, platform, nativeBinary);
     }
 

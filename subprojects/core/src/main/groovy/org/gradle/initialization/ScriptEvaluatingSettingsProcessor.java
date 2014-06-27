@@ -53,12 +53,12 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
-                                    ClassLoaderScope classLoaderScope,
+                                    ClassLoaderScope baseClassLoaderScope,
                                     StartParameter startParameter) {
         Clock settingsProcessingClock = new Clock();
         Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(),
-                settingsLocation.getSettingsScriptSource(), properties, startParameter, classLoaderScope);
+                settingsLocation.getSettingsScriptSource(), properties, startParameter, baseClassLoaderScope.createChild());
         applySettingsScript(settingsLocation, settings);
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
         return settings;
@@ -66,9 +66,9 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     private void applySettingsScript(SettingsLocation settingsLocation, final SettingsInternal settings) {
         ScriptSource settingsScriptSource = settingsLocation.getSettingsScriptSource();
-        ClassLoaderScope classLoaderScope = settings.getClassLoaderScope();
-        ScriptHandler scriptHandler = scriptHandlerFactory.create(settingsScriptSource, classLoaderScope);
-        ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, scriptHandler, classLoaderScope, "buildscript", SettingsScript.class);
+        ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
+        ScriptHandler scriptHandler = scriptHandlerFactory.create(settingsScriptSource, settingsClassLoaderScope);
+        ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, scriptHandler, settingsClassLoaderScope, settingsClassLoaderScope.getParent(), "buildscript", SettingsScript.class, false);
         configurer.apply(settings);
     }
 

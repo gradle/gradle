@@ -90,6 +90,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
 
     /**
      * An object that represents the naming strategy used to name objects of this collection.
+     *
+     * @return Object representing the naming strategy.
      */
     Namer<T> getNamer();
 

@@ -64,7 +64,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             throw failure;
         }
 
-        public ModuleVersionResolveResult resolve() throws ModuleVersionResolveException {
+        public ComponentResolveResult resolve() throws ModuleVersionResolveException {
             throw failure;
         }
 

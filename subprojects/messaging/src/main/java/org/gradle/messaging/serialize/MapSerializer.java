@@ -18,6 +18,8 @@ package org.gradle.messaging.serialize;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 public class MapSerializer<U, V> implements Serializer<Map<U, V>> {
     private final Serializer<U> keySerializer;
     private final Serializer<V> valueSerializer;
@@ -41,8 +43,32 @@ public class MapSerializer<U, V> implements Serializer<Map<U, V>> {
     public void write(Encoder encoder, Map<U, V> value) throws Exception {
         encoder.writeInt(value.size());
         for (Map.Entry<U, V> entry : value.entrySet()) {
-            keySerializer.write(encoder, entry.getKey());
-            valueSerializer.write(encoder, entry.getValue());
+            try {
+                keySerializer.write(encoder, entry.getKey());
+                valueSerializer.write(encoder, entry.getValue());
+            } catch (Exception e) {
+                throw new EntrySerializationException(entry.getKey(), entry.getValue(), e);
+            }
+        }
+    }
+
+    public static class EntrySerializationException extends RuntimeException {
+
+        private final Object key;
+        private final Object value;
+
+        EntrySerializationException(Object key, Object value, Exception cause) {
+            super(format("Unable to write entry with key: '%s' and value: '%s'.", key, value), cause);
+            this.key = key;
+            this.value = value;
+        }
+
+        public Object getKey() {
+            return key;
+        }
+
+        public Object getValue() {
+            return value;
         }
     }
 }

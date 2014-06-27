@@ -15,23 +15,23 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 
 /**
- * <p>A {@code GradleLauncherFactory} is responsible for creating a {@link org.gradle.GradleLauncher} instance for a build, from a {@link
+ * <p>A {@code GradleLauncherFactory} is responsible for creating a {@link GradleLauncher} instance for a build, from a {@link
  * org.gradle.StartParameter}.</p>
  */
 public interface GradleLauncherFactory {
     /**
-     * Creates a new {@link org.gradle.GradleLauncher} instance for the given parameters.
-     *
-     * @param startParameter The parameters to use for the build.
-     * @return The new instance.
+     * Creates a new {@link GradleLauncher} instance for the given parameters.
+     * Caller must call {@link GradleLauncher#stop()} when finished with the launcher.
      */
     GradleLauncher newInstance(StartParameter startParameter, BuildRequestMetaData requestMetaData);
 
+    /**
+     * Creates a new {@link GradleLauncher} instance for the given parameters.
+     * Caller must call {@link GradleLauncher#stop()} when finished with the launcher.
+     */
     GradleLauncher newInstance(StartParameter startParameter);
 
-    StartParameter createStartParameter(String... commandLineArgs);
 }

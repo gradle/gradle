@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.GString;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -32,12 +33,12 @@ public class DefaultTaskInputs implements TaskInputs {
     private final DefaultConfigurableFileCollection inputFiles;
     private final DefaultConfigurableFileCollection sourceFiles;
     private final FileResolver resolver;
-    private final TaskStatusNagger taskStatusNagger;
+    private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
-    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskStatusNagger taskStatusNagger) {
+    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
-        this.taskStatusNagger = taskStatusNagger;
+        this.taskMutator = taskMutator;
         inputFiles = new DefaultConfigurableFileCollection(String.format("%s input files", task), resolver, null);
         sourceFiles = new DefaultConfigurableFileCollection(String.format("%s source files", task), resolver, null);
     }
@@ -50,21 +51,30 @@ public class DefaultTaskInputs implements TaskInputs {
         return new UnionFileCollection(inputFiles, sourceFiles);
     }
 
-    public TaskInputs files(Object... paths) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.files(Object...)");
-        inputFiles.from(paths);
+    public TaskInputs files(final Object... paths) {
+        taskMutator.mutate("TaskInputs.files(Object...)", new Runnable() {
+            public void run() {
+                inputFiles.from(paths);
+            }
+        });
         return this;
     }
 
-    public TaskInputs file(Object path) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.file(Object)");
-        files(path);
+    public TaskInputs file(final Object path) {
+        taskMutator.mutate("TaskInputs.file(Object)", new Runnable() {
+            public void run() {
+                inputFiles.from(path);
+            }
+        });
         return this;
     }
 
-    public TaskInputs dir(Object dirPath) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.dir(Object)");
-        inputFiles.from(resolver.resolveFilesAsTree(dirPath));
+    public TaskInputs dir(final Object dirPath) {
+        taskMutator.mutate("TaskInputs.dir(Object)", new Runnable() {
+            public void run() {
+                inputFiles.from(resolver.resolveFilesAsTree(dirPath));
+            }
+        });
         return this;
     }
 
@@ -76,34 +86,43 @@ public class DefaultTaskInputs implements TaskInputs {
         return sourceFiles;
     }
 
-    public TaskInputs source(Object... paths) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.source(Object...)");
-        sourceFiles.from(paths);
+    public TaskInputs source(final Object... paths) {
+        taskMutator.mutate("TaskInputs.source(Object...)", new Runnable() {
+            public void run() {
+                sourceFiles.from(paths);
+            }
+        });
         return this;
     }
 
-    public TaskInputs source(Object path) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.source(Object)");
-        sourceFiles.from(path);
+    public TaskInputs source(final Object path) {
+        taskMutator.mutate("TaskInputs.source(Object)", new Runnable() {
+            public void run() {
+                sourceFiles.from(path);
+            }
+        });
         return this;
     }
 
-    public TaskInputs sourceDir(Object path) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.sourceDir(Object)");
-        sourceFiles.from(resolver.resolveFilesAsTree(path));
+    public TaskInputs sourceDir(final Object path) {
+        taskMutator.mutate("TaskInputs.sourceDir(Object)", new Runnable() {
+            public void run() {
+                sourceFiles.from(resolver.resolveFilesAsTree(path));
+            }
+        });
         return this;
     }
 
     public Map<String, Object> getProperties() {
         Map<String, Object> actualProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            Object value = unwrap(entry.getValue());
+            Object value = prepareValue(entry.getValue());
             actualProperties.put(entry.getKey(), value);
         }
         return actualProperties;
     }
 
-    private Object unwrap(Object value) {
+    private Object prepareValue(Object value) {
         while (true) {
             if (value instanceof Callable) {
                 Callable callable = (Callable) value;
@@ -119,20 +138,30 @@ public class DefaultTaskInputs implements TaskInputs {
                 FileCollection fileCollection = (FileCollection) value;
                 return fileCollection.getFiles();
             } else {
-                return value;
+                return avoidGString(value);
             }
         }
     }
 
-    public TaskInputs property(String name, Object value) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.property(String, Object)");
-        properties.put(name, value);
+    private static Object avoidGString(Object value) {
+        return (value instanceof GString)? value.toString() : value;
+    }
+
+    public TaskInputs property(final String name, final Object value) {
+        taskMutator.mutate("TaskInputs.property(String, Object)", new Runnable() {
+            public void run() {
+                properties.put(name, value);
+            }
+        });
         return this;
     }
 
-    public TaskInputs properties(Map<String, ?> properties) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.properties(Map)");
-        this.properties.putAll(properties);
+    public TaskInputs properties(final Map<String, ?> newProps) {
+        taskMutator.mutate("TaskInputs.properties(Map)", new Runnable() {
+            public void run() {
+                properties.putAll(newProps);
+            }
+        });
         return this;
     }
 }

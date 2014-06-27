@@ -15,36 +15,11 @@
  */
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A {@code SourceSetContainer} manages a set of {@link SourceSet} objects.
  */
 public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet>, NamedDomainObjectSet<SourceSet> {
-    /**
-     * Adds a source set with the given name.
-     *
-     * @param name The name of the new source set.
-     * @return The newly added source set.
-     * @throws org.gradle.api.InvalidUserDataException when a source set with the given name already exists in this container.
-     * @deprecated use {@link #create(String)} instead
-     */
-    @Deprecated
-    SourceSet add(String name) throws InvalidUserDataException;
-
-    /**
-     * Adds a source set with the given name. The given configuration closure is executed against the source set
-     * before it is returned from this method.
-     *
-     * @param name The name of the new source set.
-     * @param configureClosure The closure to use to configure the source set.
-     * @return The newly added source set.
-     * @throws InvalidUserDataException when a source set with the given name already exists in this container.
-     * @deprecated use {@link #create(String, groovy.lang.Closure)} instead
-     */
-    @Deprecated
-    SourceSet add(String name, Closure configureClosure) throws InvalidUserDataException;
 }

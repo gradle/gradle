@@ -15,7 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.tasks
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativebinaries.platform.internal.PlatformInternal
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
@@ -49,7 +49,7 @@ class CppCompileTest extends Specification {
         _ * toolChain.outputType >> "cpp"
         _ * platform.compatibilityString >> "p"
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.createCppCompiler() >> cppCompiler
+        1 * platformToolChain.newCompiler({it instanceof CppCompileSpec}) >> cppCompiler
         1 * cppCompiler.execute({ CppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

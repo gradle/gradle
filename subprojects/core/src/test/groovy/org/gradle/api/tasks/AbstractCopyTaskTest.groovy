@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.util.TestUtil
@@ -30,34 +28,13 @@ class AbstractCopyTaskTest extends WorkspaceTest {
         task = TestUtil.createTask(TestCopyTask)
     }
 
-    void usesDefaultSourceWhenNoSourceHasBeenSpecified() {
-        given:
-        def defaultSource = Mock(FileTree)
-
-        when:
-        task.defaultSource = defaultSource
-
-        then:
-        task.source.is(defaultSource)
-    }
-
-    public void doesNotUseDefaultSourceWhenSourceHasBeenSpecifiedOnSpec() {
-        when:
-        FileTree source = Mock(FileTree)
-        task.defaultSource = source
-        task.from "foo"
-
-        then:
-        !task.source.is(source)
-    }
-
     @Test
     public void copySpecMethodsDelegateToMainSpecOfCopyAction() {
         given:
         file("include") << "bar"
 
         expect:
-        task.rootSpec.source.isEmpty()
+        task.rootSpec.hasSource() == false
 
         when:
         task.from testDirectory.absolutePath
@@ -65,12 +42,11 @@ class AbstractCopyTaskTest extends WorkspaceTest {
 
         then:
         task.mainSpec.getIncludes() == ["include"].toSet()
-        task.mainSpec.source.files == task.project.fileTree(testDirectory).files
+        task.mainSpec.buildRootResolver().source.files == task.project.fileTree(testDirectory).files
     }
 
     static class TestCopyTask extends AbstractCopyTask {
         CopyAction copyAction
-        FileCollection defaultSource
 
         protected CopyAction createCopyAction() {
             copyAction

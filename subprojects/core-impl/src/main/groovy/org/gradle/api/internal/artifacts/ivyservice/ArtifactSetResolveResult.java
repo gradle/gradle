@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 
 import java.util.Set;
 
@@ -28,5 +28,5 @@ public interface ArtifactSetResolveResult {
     @Nullable
     ArtifactResolveException getFailure();
 
-    Set<ModuleVersionArtifactMetaData> getArtifacts();
+    Set<ComponentArtifactMetaData> getArtifacts();
 }

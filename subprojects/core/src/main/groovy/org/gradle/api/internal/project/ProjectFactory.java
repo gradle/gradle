@@ -35,7 +35,7 @@ public class ProjectFactory implements IProjectFactory {
         this.projectRegistry = projectRegistry;
     }
 
-    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
+    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
         File buildFile = projectDescriptor.getBuildFile();
         ScriptSource source;
         if (!buildFile.exists()) {
@@ -51,8 +51,9 @@ public class ProjectFactory implements IProjectFactory {
                 source,
                 gradle,
                 gradle.getServiceRegistryFactory(),
-                classLoaderScope
-                );
+                selfClassLoaderScope,
+                baseClassLoaderScope
+        );
 
         if (parent != null) {
             parent.addChildProject(project);

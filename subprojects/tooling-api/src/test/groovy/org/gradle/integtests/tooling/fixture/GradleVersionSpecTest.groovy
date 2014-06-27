@@ -37,6 +37,24 @@ class GradleVersionSpecTest extends Specification {
         !spec.isSatisfiedBy(GradleVersion.version("0.5"))
     }
 
+    def "greater-than version constraint matches all versions later than specified base version"() {
+        def spec = GradleVersionSpec.toSpec(">1.0")
+
+        expect:
+        !spec.isSatisfiedBy(GradleVersion.version("1.0"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.0-rc-1"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.0-12341010120000+1000"))
+
+        spec.isSatisfiedBy(GradleVersion.version("1.1"))
+        spec.isSatisfiedBy(GradleVersion.version("1.1-rc-7"))
+        spec.isSatisfiedBy(GradleVersion.version("1.1-12341010120000+1000"))
+        spec.isSatisfiedBy(GradleVersion.version("2.56"))
+
+        !spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
+        !spec.isSatisfiedBy(GradleVersion.version("0.9.2"))
+        !spec.isSatisfiedBy(GradleVersion.version("0.5"))
+    }
+
     def "less-than-or-equal version constraint matches all versions with specified base version and earlier"() {
         def spec = GradleVersionSpec.toSpec("<=1.4")
 

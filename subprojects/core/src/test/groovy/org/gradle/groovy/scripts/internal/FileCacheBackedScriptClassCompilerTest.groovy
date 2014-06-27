@@ -16,7 +16,7 @@
 package org.gradle.groovy.scripts.internal
 
 import org.gradle.api.Action
-import org.gradle.api.internal.resource.Resource
+import org.gradle.internal.resource.Resource
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheValidator

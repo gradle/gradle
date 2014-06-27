@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -24,21 +24,26 @@ import java.util.Set;
 
 public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifactSetResolveResult {
     private ArtifactResolveException failure;
-    private Set<ModuleVersionArtifactMetaData> artifacts;
+    private Set<ComponentArtifactMetaData> artifacts;
 
-    public void resolved(Collection<? extends ModuleVersionArtifactMetaData> artifacts) {
-        this.artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>(artifacts);
+    public void resolved(Collection<? extends ComponentArtifactMetaData> artifacts) {
+        this.artifacts = new LinkedHashSet<ComponentArtifactMetaData>(artifacts);
     }
 
     public void failed(ArtifactResolveException failure) {
         this.failure = failure;
     }
 
+    public boolean hasResult() {
+        return artifacts != null || failure != null;
+    }
+
     public ArtifactResolveException getFailure() {
+        assertHasResult();
         return failure;
     }
 
-    public Set<ModuleVersionArtifactMetaData> getArtifacts() {
+    public Set<ComponentArtifactMetaData> getArtifacts() {
         assertResolved();
         return artifacts;
     }
@@ -51,7 +56,7 @@ public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifa
     }
 
     private void assertHasResult() {
-        if (failure == null && artifacts == null) {
+        if (!hasResult()) {
             throw new IllegalStateException("No result has been specified.");
         }
     }

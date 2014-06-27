@@ -16,7 +16,7 @@
 
 package org.gradle.api.logging;
 
-import org.apache.ivy.util.Message;
+import org.apache.tools.ant.Project;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
@@ -54,11 +54,11 @@ public class Logging {
 
     public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J_LEVEL_MAPPER = new HashMap<Integer, LogLevel>() {
         {
-            put(Message.MSG_ERR, LogLevel.ERROR);
-            put(Message.MSG_WARN, LogLevel.WARN);
-            put(Message.MSG_INFO, LogLevel.INFO);
-            put(Message.MSG_DEBUG, LogLevel.DEBUG);
-            put(Message.MSG_VERBOSE, LogLevel.DEBUG);
+            put(Project.MSG_ERR, LogLevel.ERROR);
+            put(Project.MSG_WARN, LogLevel.WARN);
+            put(Project.MSG_INFO, LogLevel.INFO);
+            put(Project.MSG_DEBUG, LogLevel.DEBUG);
+            put(Project.MSG_VERBOSE, LogLevel.DEBUG);
         }};
 
     private static class LoggerImpl implements Logger {

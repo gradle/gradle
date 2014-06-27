@@ -31,6 +31,8 @@ public class DuplicateMixedSameBaseNamesTestApp extends TestComponent {
 
     def plugins = ["assembler", "c", "cpp"]
 
+    def functionalSourceSets = [asm:'**/*.s', c:'**/*.c', cpp:'**/*.cpp']
+
     @Override
     public List<SourceFile> getSourceFiles() {
         [sourceFile("c", "main.c", """

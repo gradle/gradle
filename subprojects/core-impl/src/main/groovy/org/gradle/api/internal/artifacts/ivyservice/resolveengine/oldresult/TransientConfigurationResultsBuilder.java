@@ -30,6 +30,8 @@ import org.gradle.messaging.serialize.Encoder;
 import org.gradle.util.Clock;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
@@ -119,6 +121,7 @@ public class TransientConfigurationResultsBuilder {
 
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedContentsMapping mapping) {
         Clock clock = new Clock();
+        Map<ResolvedConfigurationIdentifier, DefaultResolvedDependency> allDependencies = new HashMap<ResolvedConfigurationIdentifier, DefaultResolvedDependency>();
         DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
         int valuesRead = 0;
         byte type = -1;
@@ -130,48 +133,48 @@ public class TransientConfigurationResultsBuilder {
                 switch (type) {
                     case NEW_DEP:
                         id = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        results.allDependencies.put(id, new DefaultResolvedDependency(id.getId(), id.getConfiguration()));
+                        allDependencies.put(id, new DefaultResolvedDependency(id.getId(), id.getConfiguration()));
                         break;
                     case ROOT:
                         id = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        results.root = results.allDependencies.get(id);
+                        results.root = allDependencies.get(id);
                         if (results.root == null) {
-                            throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, results.allDependencies.keySet()));
+                            throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
                         //root should be the last
                         LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
                         return results;
                     case FIRST_LVL:
                         id = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        DefaultResolvedDependency dependency = results.allDependencies.get(id);
+                        DefaultResolvedDependency dependency = allDependencies.get(id);
                         if (dependency == null) {
-                            throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, results.allDependencies.keySet()));
+                            throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, allDependencies.keySet()));
                         }
                         results.firstLevelDependencies.put(mapping.getModuleDependency(id), dependency);
                         break;
                     case PARENT_CHILD:
                         ResolvedConfigurationIdentifier parentId = resolvedConfigurationIdentifierSerializer.read(decoder);
                         ResolvedConfigurationIdentifier childId = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        DefaultResolvedDependency parent = results.allDependencies.get(parentId);
-                        DefaultResolvedDependency child = results.allDependencies.get(childId);
+                        DefaultResolvedDependency parent = allDependencies.get(parentId);
+                        DefaultResolvedDependency child = allDependencies.get(childId);
                         if (parent == null) {
-                            throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", parentId, results.allDependencies.keySet()));
+                            throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", parentId, allDependencies.keySet()));
                         }
                         if (child == null) {
-                            throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, results.allDependencies.keySet()));
+                            throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
                         break;
                     case PARENT_ARTIFACT:
                         ResolvedConfigurationIdentifier artifactParentId = resolvedConfigurationIdentifierSerializer.read(decoder);
                         ResolvedConfigurationIdentifier artifactChildId = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        DefaultResolvedDependency artifactParent = results.allDependencies.get(artifactParentId);
-                        DefaultResolvedDependency artifactChild = results.allDependencies.get(artifactChildId);
+                        DefaultResolvedDependency artifactParent = allDependencies.get(artifactParentId);
+                        DefaultResolvedDependency artifactChild = allDependencies.get(artifactChildId);
                         if (artifactParent == null) {
-                            throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", artifactParentId, results.allDependencies.keySet()));
+                            throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", artifactParentId, allDependencies.keySet()));
                         }
                         if (artifactChild == null) {
-                            throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", artifactChildId, results.allDependencies.keySet()));
+                            throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", artifactChildId, allDependencies.keySet()));
                         }
                         artifactParent.addParentSpecificArtifacts(artifactChild, newHashSet(mapping.getArtifact(decoder.readLong())));
                         break;

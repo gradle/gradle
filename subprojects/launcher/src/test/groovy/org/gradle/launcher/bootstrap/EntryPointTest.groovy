@@ -29,7 +29,7 @@ class EntryPointTest extends Specification {
         }
 
         @Override
-        protected void doAction(ExecutionListener listener) {
+        protected void doAction(String[] args, ExecutionListener listener) {
             action.execute(listener)
         }
     }

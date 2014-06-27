@@ -18,19 +18,70 @@ package org.gradle.nativebinaries.language.objectivec.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
+import org.gradle.language.objectivec.ObjectiveCSourceSet
+import org.gradle.language.objectivec.plugins.ObjectiveCLangPlugin
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
+import org.gradle.nativebinaries.SharedLibraryBinary
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
+import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 
 /**
  * A plugin for projects wishing to build native binary components from Objective-C sources.
  *
- * <p>Adds core tool chain support to the {@link ObjectiveCNativeBinariesPlugin}.</p>
+ * <p>Automatically includes the {@link ObjectiveCLangPlugin} for core Objective-C support and the {@link org.gradle.nativebinaries.plugins.NativeComponentPlugin} for native component support.</p>
+ *
+ * <li>Creates a {@link ObjectiveCCompile} task for each {@link ObjectiveCSourceSet} to compile the Objective-C sources.</li>
  */
 @Incubating
 class ObjectiveCPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(StandardToolChainsPlugin)
-        project.plugins.apply(ObjectiveCNativeBinariesPlugin)
+        project.plugins.apply(NativeComponentPlugin)
+        project.plugins.apply(ObjectiveCLangPlugin)
+
+        project.nativeComponents.all { ProjectNativeComponent component ->
+            component.binaries.all { binary ->
+                binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
+            }
+        }
+
+        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinary binary ->
+            binary.source.withType(ObjectiveCSourceSet).all { ObjectiveCSourceSet sourceSet ->
+                if (sourceSet.mayHaveSources) {
+                    def compileTask = createCompileTask(project, binary, sourceSet)
+                    binary.tasks.add compileTask
+                    binary.tasks.createOrLink.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                }
+            }
+        }
+    }
+
+    private def createCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, ObjectiveCSourceSet sourceSet) {
+        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: ObjectiveCCompile) {
+            description = "Compiles the $sourceSet of $binary"
+        }
+
+        compileTask.toolChain = binary.toolChain
+        compileTask.targetPlatform = binary.targetPlatform
+        compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
+
+        compileTask.includes {
+            sourceSet.exportedHeaders.srcDirs
+        }
+        compileTask.includes {
+            binary.getLibs(sourceSet)*.includeRoots
+        }
+
+        compileTask.source sourceSet.source
+
+        compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
+        compileTask.macros = binary.objcCompiler.macros
+        compileTask.compilerArgs = binary.objcCompiler.args
+
+        compileTask
     }
 
 }

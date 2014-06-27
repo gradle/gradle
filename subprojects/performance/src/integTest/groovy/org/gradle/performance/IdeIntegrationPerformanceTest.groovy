@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
@@ -29,7 +28,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
+        runner.targetVersions = ['1.0', '1.4', '1.8', '1.12', 'last']
 
         when:
         def result = runner.run()
@@ -39,9 +38,9 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | millis(700)
-        "multi"           | millis(1500)
-        "lotDependencies" | millis(3000)
+        "small"           | millis(800)
+        "multi"           | millis(500)
+        "lotDependencies" | millis(500)
     }
 
     @Unroll("Project '#testProject' idea")
@@ -51,7 +50,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
+        runner.targetVersions = ['1.0', '1.8', '1.10', '1.12', 'last']
 
         when:
         def result = runner.run()
@@ -61,8 +60,8 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | millis(700)
-        "multi"           | millis(1500)
-        "lotDependencies" | millis(3000)
+        "small"           | millis(800)
+        "multi"           | millis(500)
+        "lotDependencies" | millis(500)
     }
 }

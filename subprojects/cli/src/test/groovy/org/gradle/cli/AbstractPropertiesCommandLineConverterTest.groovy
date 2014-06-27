@@ -38,7 +38,7 @@ class AbstractPropertiesCommandLineConverterTest extends Specification {
     }
 
     def convert(String... args) {
-        converter.convert(Arrays.asList(args)).sort()
+        converter.convert(Arrays.asList(args), new HashMap<String, String>()).sort()
     }
 
     def "configures property based options"() {

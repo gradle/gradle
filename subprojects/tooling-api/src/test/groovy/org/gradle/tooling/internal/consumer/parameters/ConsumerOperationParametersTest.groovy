@@ -16,13 +16,17 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import com.google.common.collect.Sets
+import org.gradle.tooling.internal.gradle.TaskListingLaunchable
+import org.gradle.tooling.internal.protocol.InternalLaunchable
+import org.gradle.tooling.model.Launchable
+import org.gradle.tooling.model.TaskSelector
 import spock.lang.Specification
 
 class ConsumerOperationParametersTest extends Specification {
-    
-    def params = ConsumerOperationParameters.builder()
-    
+
     def "null or empty arguments have the same meaning"() {
+        def params = ConsumerOperationParameters.builder()
         when:
         params.arguments = null
 
@@ -43,6 +47,7 @@ class ConsumerOperationParametersTest extends Specification {
     }
 
     def "null or empty jvm arguments have the same meaning"() {
+        def params = ConsumerOperationParameters.builder()
         when:
         params.jvmArguments = null
 
@@ -60,5 +65,53 @@ class ConsumerOperationParametersTest extends Specification {
 
         then:
         params.build().jvmArguments == ['-Xmx']
+    }
+
+    def "task names and empty launchables"() {
+        def builder = ConsumerOperationParameters.builder()
+        when:
+        builder.tasks = ['a', 'b']
+        def params = builder.build()
+
+        then:
+        params.tasks == ['a', 'b']
+        params.launchables == null
+    }
+
+    interface LaunchableImpl extends Launchable, TaskSelector, InternalLaunchable {}
+
+    def "launchables from provider"() {
+        def builder = ConsumerOperationParameters.builder()
+        when:
+        def launchable1 = Mock(LaunchableImpl)
+        def launchable2 = Mock(LaunchableImpl)
+        builder.launchables = [launchable1, launchable2]
+        def params = builder.build()
+
+        then:
+        params.tasks == []
+        params.launchables == [launchable1, launchable2]
+    }
+
+    interface AdaptedLaunchable extends Launchable, TaskListingLaunchable {}
+
+    def "launchables from adapters"() {
+        def builder = ConsumerOperationParameters.builder()
+        when:
+        def launchable1 = Mock(AdaptedLaunchable)
+        def paths1 = Sets.newTreeSet()
+        paths1.add(':a')
+        _ * launchable1.taskNames >> paths1
+        def launchable2 = Mock(AdaptedLaunchable)
+        def paths2 = Sets.newTreeSet()
+        paths2.add(':b')
+        paths2.add(':lib:b')
+        _ * launchable2.taskNames >> paths2
+        builder.launchables = [launchable1, launchable2]
+        def params = builder.build()
+
+        then:
+        params.tasks == [':a', ':b', ':lib:b']
+        params.launchables == []
     }
 }

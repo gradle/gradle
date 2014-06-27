@@ -32,7 +32,6 @@ public interface LinkerSpec extends BinaryToolSpec {
 
     void libraries(Iterable<File> libraries);
 
-    // TODO:DAZ Work out how to test this
     List<File> getLibraryPath();
 
     void libraryPath(File... libraryPath);

@@ -81,8 +81,8 @@ allprojects {
         def expectedFiles = graph.artifactNodes.collect { it.fileName }
         assert actualFiles == expectedFiles
 
-        def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) }
-        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:default]" }
+        def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) } as LinkedHashSet
+        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:default]" } as LinkedHashSet
         assert actualFirstLevel == expectedFirstLevel
 
         def actualRoot = configDetails.find { it.startsWith('root:') }.substring(5)
@@ -161,10 +161,33 @@ allprojects {
             return root
         }
 
-        def node(String id, String moduleVersion) {
+        def node(Map attrs) {
+            def id = "${attrs.group}:${attrs.module}:${attrs.version}"
+            return node(id, id, attrs)
+        }
+
+        def node(String id, String moduleVersionId) {
+            def attrs
+            if (moduleVersionId.matches(':\\w+:')) {
+                def parts = moduleVersionId.split(':')
+                attrs = [group: null, module: parts[1], version:null]
+                moduleVersionId = ":${attrs.module}:unspecified"
+            } else if (moduleVersionId.matches('\\w+:\\w+:')) {
+                def parts = moduleVersionId.split(':')
+                attrs = [group: parts[0], module: parts[1], version: null]
+                moduleVersionId = "${attrs.group}:${attrs.module}:unspecified"
+            } else {
+                def parts = moduleVersionId.split(':')
+                assert parts.length == 3
+                attrs = [group: parts[1], module: parts[1], version: parts[2]]
+            }
+            return node(id, moduleVersionId, attrs)
+        }
+
+        def node(String id, String moduleVersion, Map attrs) {
             def node = nodes[moduleVersion]
             if (!node) {
-                node = new NodeBuilder(id, moduleVersion, this)
+                node = new NodeBuilder(id, moduleVersion, attrs, this)
                 nodes[moduleVersion] = node
             }
             return node
@@ -174,12 +197,17 @@ allprojects {
     public static class EdgeBuilder {
         final String requested
         final NodeBuilder from
-        final NodeBuilder selected
+        NodeBuilder selected
 
         EdgeBuilder(NodeBuilder from, String requested, NodeBuilder selected) {
             this.from = from
-            this.selected = selected
             this.requested = requested
+            this.selected = selected
+        }
+
+        EdgeBuilder selects(Map selectedModule) {
+            selected = from.graph.node(selectedModule)
+            return this
         }
     }
 
@@ -193,33 +221,13 @@ allprojects {
         final String version
         private String reason
 
-        NodeBuilder(String id, String moduleVersionId, GraphBuilder graph) {
+        NodeBuilder(String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
-            if (moduleVersionId.matches(':\\w+:')) {
-                def parts = moduleVersionId.split(':')
-                this.group = null
-                this.module = parts[1]
-                this.version = null
-                this.moduleVersionId = ":${module}:unspecified"
-            } else if (moduleVersionId.matches('\\w+:\\w+:')) {
-                def parts = moduleVersionId.split(':')
-                this.group = parts[0]
-                this.module = parts[1]
-                this.version = null
-                this.moduleVersionId = "${group}:${module}:unspecified"
-            } else {
-                def parts = moduleVersionId.split(':')
-                assert parts.length == 3
-                this.group = parts[0]
-                this.module = parts[1]
-                this.version = parts[2]
-                this.moduleVersionId = moduleVersionId
-            }
-            if (id == moduleVersionId) {
-                this.id = this.moduleVersionId
-            } else {
-                this.id = id
-            }
+            this.group = attrs.group
+            this.module = attrs.module
+            this.version = attrs.version
+            this.moduleVersionId = moduleVersionId
+            this.id = id
         }
 
         private def getReason() {
@@ -266,13 +274,22 @@ allprojects {
         }
 
         /**
-         * Defines a dependency on the given node.
+         * Defines a dependency from the current node to the given node.
          */
         def edge(String requested, String selectedModuleVersionId) {
             def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
             deps << new EdgeBuilder(this, requested, node)
             return node
         }
+
+        /**
+         * Defines a dependency of the current node.
+         */
+         EdgeBuilder dependency(Map requested) {
+             def edge = new EdgeBuilder(this, "${requested.group}:${requested.module}:${requested.version}", null)
+             deps << edge
+             return edge
+         }
 
         /**
          * Marks that this node was selected due to conflict resolution.

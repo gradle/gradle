@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.util.TextUtil;
 import org.hamcrest.Matcher;
 
 import java.util.ArrayList;
@@ -28,10 +29,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
+    private static final Pattern FAILURE_PATTERN = Pattern.compile("(?m)FAILURE: .+$");
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
-    private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+)^\\* Try:$");
+    private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
-    private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+)^\\* Exception is:$");
+    private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private final String description;
     private final String lineNumber;
     private final String fileName;
@@ -41,7 +43,14 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     public OutputScrapingExecutionFailure(String output, String error) {
         super(output, error);
 
-        java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(error);
+        java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(error);
+        if (matcher.find()) {
+            if (matcher.find()) {
+                throw new AssertionError("Found multiple failure sections in build error output.");
+            }
+        }
+
+        matcher = LOCATION_PATTERN.matcher(error);
         if (matcher.find()) {
             fileName = matcher.group(1).trim();
             lineNumber = matcher.group(3);
@@ -51,31 +60,18 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         }
 
         matcher = DESCRIPTION_PATTERN.matcher(error);
-        String problem;
         if (matcher.find()) {
-            problem = matcher.group(1);
-        } else {
-            problem = "";
-        }
-
-        matcher = CAUSE_PATTERN.matcher(problem);
-        if (!matcher.find()) {
-            description = problem.trim();
-        } else {
-            description = problem.substring(0, matcher.start()).trim();
-            while (true) {
-                int pos = matcher.end();
-                int prefix = matcher.group(1).length();
-                String prefixPattern = toPrefixPattern(prefix);
-                if (matcher.find(pos)) {
-                    String cause = problem.substring(pos, matcher.start()).trim().replaceAll(prefixPattern, "");
-                    causes.add(cause);
-                } else {
-                    String cause = problem.substring(pos).trim().replaceAll(prefixPattern, "");
-                    causes.add(cause);
-                    break;
-                }
+            String problemStr = matcher.group(1);
+            Problem problem = extract(problemStr);
+            description = problem.description;
+            causes.addAll(problem.causes);
+            while (matcher.find()) {
+                problemStr = matcher.group(1);
+                problem = extract(problemStr);
+                causes.addAll(problem.causes);
             }
+        } else {
+            description = "";
         }
 
         matcher = RESOLUTION_PATTERN.matcher(error);
@@ -84,6 +80,31 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         } else {
             resolution = matcher.group(1).trim();
         }
+    }
+
+    private Problem extract(String problem) {
+        java.util.regex.Matcher matcher = CAUSE_PATTERN.matcher(problem);
+        String description;
+        List<String> causes = new ArrayList<String>();
+        if (!matcher.find()) {
+            description = TextUtil.normaliseLineSeparators(problem.trim());
+        } else {
+            description = TextUtil.normaliseLineSeparators(problem.substring(0, matcher.start()).trim());
+            while (true) {
+                int pos = matcher.end();
+                int prefix = matcher.group(1).length();
+                String prefixPattern = toPrefixPattern(prefix);
+                if (matcher.find(pos)) {
+                    String cause = TextUtil.normaliseLineSeparators(problem.substring(pos, matcher.start()).trim().replaceAll(prefixPattern, ""));
+                    causes.add(cause);
+                } else {
+                    String cause = TextUtil.normaliseLineSeparators(problem.substring(pos).trim().replaceAll(prefixPattern, ""));
+                    causes.add(cause);
+                    break;
+                }
+            }
+        }
+        return new Problem(description, causes);
     }
 
     private String toPrefixPattern(int prefix) {
@@ -146,5 +167,15 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     public DependencyResolutionFailure assertResolutionFailure(String configuration) {
         return new DependencyResolutionFailure(this, configuration);
+    }
+
+    private static class Problem {
+        final String description;
+        final List<String> causes;
+
+        private Problem(String description, List<String> causes) {
+            this.description = description;
+            this.causes = causes;
+        }
     }
 }

@@ -18,19 +18,19 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.io.File;
 import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData>();
+    private final Map<ArtifactRevisionId, DefaultLocalArtifactMetaData> artifactsByIvyId = new LinkedHashMap<ArtifactRevisionId, DefaultLocalArtifactMetaData>();
     private final Multimap<String, DefaultLocalArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
@@ -50,39 +50,43 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return moduleDescriptor;
     }
 
-    public void addArtifact(String configuration, Artifact artifact, File file) {
-        moduleDescriptor.addArtifact(configuration, artifact);
-        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id, artifact, file);
-        artifactsById.put(artifactMetaData.id, artifactMetaData);
-        artifactsById.put(artifactMetaData.selectorId, artifactMetaData);
+    public void addArtifact(String configuration, IvyArtifactName artifact, File file) {
+        Artifact ivyArtifact = new MDArtifact(moduleDescriptor, artifact.getName(), artifact.getType(), artifact.getExtension(), null, artifact.getAttributes());
+
+        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifact, file);
+        if (artifactsById.containsKey(artifactMetaData.getId())) {
+            artifactMetaData = artifactsById.get(artifactMetaData.getId());
+        } else {
+            artifactsById.put(artifactMetaData.id, artifactMetaData);
+            artifactsByIvyId.put(ivyArtifact.getId(), artifactMetaData);
+        }
+        moduleDescriptor.addArtifact(configuration, ivyArtifact);
         artifactsByConfig.put(configuration, artifactMetaData);
+        ((MDArtifact) artifactMetaData.artifact).addConfiguration(configuration);
+    }
+
+    public void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive) {
+        moduleDescriptor.addConfiguration(new Configuration(name, visible ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE, description, superConfigs, transitive, null));
+    }
+
+    public void addDependency(DependencyMetaData dependency) {
+        moduleDescriptor.addDependency(dependency.getDescriptor());
+    }
+
+    public void addExcludeRule(ExcludeRule excludeRule) {
+        moduleDescriptor.addExcludeRule(excludeRule);
     }
 
     public Collection<? extends LocalArtifactMetaData> getArtifacts() {
-        return artifactsByConfig.values();
+        return artifactsById.values();
     }
 
     public LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier) {
         return artifactsById.get(artifactIdentifier);
     }
 
-    public ModuleVersionMetaData toResolveMetaData() {
-        // TODO:ADAM - need to clone the descriptor
-        return new ModuleDescriptorAdapter(id, moduleDescriptor, componentIdentifier) {
-            @Override
-            protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-                Set<ModuleVersionArtifactMetaData> result = new LinkedHashSet<ModuleVersionArtifactMetaData>();
-                Set<ModuleVersionArtifactIdentifier> seen = new HashSet<ModuleVersionArtifactIdentifier>();
-                for (String configName : configurationMetaData.getHierarchy()) {
-                    for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {
-                        if (seen.add(localArtifactMetaData.id)) {
-                            result.add(localArtifactMetaData);
-                        }
-                    }
-                }
-                return result;
-            }
-        };
+    public ComponentMetaData toResolveMetaData() {
+        return new LocalComponentResolveMetaData();
     }
 
     public BuildableModuleVersionPublishMetaData toPublishMetaData() {
@@ -93,46 +97,79 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return publishMetaData;
     }
 
-    private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData, ModuleVersionArtifactMetaData {
+    private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
         private final ComponentIdentifier componentIdentifier;
-        private final DefaultModuleVersionArtifactIdentifier id;
-        private final ModuleVersionArtifactIdentifier selectorId;
+        private final DefaultLocalArtifactIdentifier id;
         private final Artifact artifact;
         private final File file;
 
-        private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
+        private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String displayName, Artifact artifact, File file) {
             this.componentIdentifier = componentIdentifier;
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.putAll(artifact.getExtraAttributes());
-            attrs.put("file", file.getAbsolutePath());
-            this.id = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
-            this.selectorId = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact);
+            attrs.put("file", file == null ? "null" : file.getAbsolutePath());
+            this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, displayName, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
             this.artifact = artifact;
             this.file = file;
         }
 
-        public ModuleVersionIdentifier getModuleVersion() {
-            return id.getModuleVersionIdentifier();
+        @Override
+        public String toString() {
+            return id.toString();
         }
 
         public IvyArtifactName getName() {
             return id.getName();
         }
 
-        public ArtifactIdentifier toArtifactIdentifier() {
-            return new DefaultArtifactIdentifier(id);
-        }
-
         public ComponentIdentifier getComponentId() {
             return componentIdentifier;
         }
 
-        public ModuleVersionArtifactIdentifier getId() {
+        public ComponentArtifactIdentifier getId() {
             return id;
         }
 
         public File getFile() {
             return file;
+        }
+    }
+
+    private class LocalComponentResolveMetaData extends AbstractModuleDescriptorBackedMetaData {
+        public LocalComponentResolveMetaData() {
+            // TODO:ADAM - need to clone the descriptor
+            super(id, moduleDescriptor, componentIdentifier);
+        }
+
+        public MutableModuleVersionMetaData copy() {
+            throw new UnsupportedOperationException();
+        }
+
+        public ModuleVersionMetaData withSource(ModuleSource source) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ComponentArtifactMetaData artifact(Artifact artifact) {
+            DefaultLocalArtifactMetaData candidate = artifactsByIvyId.get(artifact.getId());
+            return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), artifact, null);
+        }
+
+        public Set<ComponentArtifactMetaData> getArtifacts() {
+            return new LinkedHashSet<ComponentArtifactMetaData>(artifactsById.values());
+        }
+
+        @Override
+        protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
+            Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
+            Set<ComponentArtifactIdentifier> seen = new HashSet<ComponentArtifactIdentifier>();
+            for (String configName : configurationMetaData.getHierarchy()) {
+                for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {
+                    if (seen.add(localArtifactMetaData.id)) {
+                        result.add(localArtifactMetaData);
+                    }
+                }
+            }
+            return result;
         }
     }
 }

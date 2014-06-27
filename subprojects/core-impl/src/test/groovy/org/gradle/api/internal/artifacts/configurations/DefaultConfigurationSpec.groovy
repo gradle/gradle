@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolverResults
@@ -25,7 +26,6 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.listener.ListenerManager
 import spock.lang.Specification
-import org.gradle.api.artifacts.*
 
 class DefaultConfigurationSpec extends Specification {
 
@@ -316,5 +316,19 @@ class DefaultConfigurationSpec extends Specification {
         then:
         1 * resolver.resolve(config) >> resolverResults
         out == result
+    }
+
+    def "provides task dependency from project dependency using 'needed'"() {
+        def conf = conf("conf")
+        when: def dep = conf.getTaskDependencyFromProjectDependency(true, "foo") as TasksFromProjectDependencies
+        then: dep.taskName == "foo"
+    }
+
+    def "provides task dependency from project dependency using 'dependents'"() {
+        def conf = conf("conf")
+        when: def dep = conf.getTaskDependencyFromProjectDependency(false, "bar") as TasksFromDependentProjects
+        then:
+        dep.taskName == "bar"
+        dep.configurationName == "conf"
     }
 }

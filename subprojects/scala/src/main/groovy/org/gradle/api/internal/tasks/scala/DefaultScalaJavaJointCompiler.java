@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternFilterable;

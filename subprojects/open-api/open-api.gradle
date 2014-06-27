@@ -1,15 +1,7 @@
 dependencies {
-    testCompile libraries.groovy
-
+    integTestCompile libraries.groovy
     integTestCompile libraries.slf4j_api
     integTestCompile libraries.commons_lang
 }
 
 useTestFixtures()
-
-integTestTasks.all {
-    jvmArgs '-XX:MaxPermSize=256m'
-    if (isWindows && systemProperties['org.gradle.integtest.executer'] == "embedded") {
-        systemProperties['org.gradle.integtest.executer'] =  "forking"
-    }
-}

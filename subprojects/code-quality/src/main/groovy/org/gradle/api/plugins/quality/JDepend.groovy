@@ -54,12 +54,18 @@ class JDepend extends DefaultTask implements Reporting<JDependReports> {
     @Nested
     private final JDependReportsImpl reports
 
-    private final IsolatedAntBuilder antBuilder
+    JDepend() {
+        reports = instantiator.newInstance(JDependReportsImpl, this)
+    }
 
     @Inject
-    JDepend(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
-        this.antBuilder = antBuilder
-        reports = instantiator.newInstance(JDependReportsImpl, this)
+    Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException();
     }
 
     /**

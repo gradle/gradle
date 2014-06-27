@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.nativeplatform.services;
 
-import com.sun.jna.Native;
 import net.rubygrapefruit.platform.*;
 import net.rubygrapefruit.platform.Process;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
@@ -27,7 +26,8 @@ import org.gradle.internal.nativeplatform.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeplatform.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeplatform.filesystem.FileSystemServices;
-import org.gradle.internal.nativeplatform.jna.*;
+import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
+import org.gradle.internal.nativeplatform.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeplatform.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -64,7 +64,10 @@ public class NativeServices extends DefaultServiceRegistry {
                 useNativePlatform = false;
             }
         }
-        new JnaBootPathConfigurer().configure(nativeDir);
+        if (OperatingSystem.current().isWindows()) {
+            // JNA is still being used by jansi
+            new JnaBootPathConfigurer().configure(nativeDir);
+        }
     }
 
     public static NativeServices getInstance() {
@@ -98,17 +101,7 @@ public class NativeServices extends DefaultServiceRegistry {
             }
         }
 
-        try {
-            if (operatingSystem.isUnix()) {
-                return new LibCBackedProcessEnvironment(get(LibC.class));
-            } else {
-                return new UnsupportedEnvironment();
-            }
-        } catch (LinkageError e) {
-            // Thrown when jna cannot initialize the native stuff
-            LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
-            return new UnsupportedEnvironment();
-        }
+        return new UnsupportedEnvironment();
     }
 
     protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {
@@ -127,12 +120,11 @@ public class NativeServices extends DefaultServiceRegistry {
             if (operatingSystem.isWindows()) {
                 return new WindowsConsoleDetector();
             }
-            return new LibCBackedConsoleDetector(get(LibC.class));
         } catch (LinkageError e) {
             // Thrown when jna cannot initialize the native stuff
             LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
-            return new NoOpConsoleDetector();
         }
+        return new NoOpConsoleDetector();
     }
 
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
@@ -166,10 +158,6 @@ public class NativeServices extends DefaultServiceRegistry {
 
     private <T> T notAvailable(Class<T> type) {
         return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, new BrokenService(type.getSimpleName()));
-    }
-
-    protected LibC createLibC() {
-        return (LibC) Native.loadLibrary("c", LibC.class);
     }
 
     private static String format(Throwable throwable) {

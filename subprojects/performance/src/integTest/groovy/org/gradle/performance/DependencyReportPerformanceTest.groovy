@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
@@ -29,7 +28,7 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
+        runner.targetVersions = ['1.0', '1.8', 'last']
 
         when:
         def result = runner.run()
@@ -39,8 +38,8 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | millis(500)
-        "multi"           | millis(500)
-        "lotDependencies" | millis(500)
+        "small"           | millis(1000)
+        "multi"           | millis(1000)
+        "lotDependencies" | millis(1250)
     }
 }

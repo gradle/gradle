@@ -19,6 +19,17 @@ import spock.lang.Specification
 import org.gradle.util.Matchers
 
 class DefaultClassPathTest extends Specification {
+    def "removes duplicates when constructed"() {
+        def file1 = new File("a.jar")
+        def file2 = new File("b.jar")
+        def cp1 = new DefaultClassPath(file1, file2, file1, file2)
+        def cp2 = new DefaultClassPath([file1, file1, file2, file1])
+
+        expect:
+        cp1.asFiles == [file1, file2]
+        cp2.asFiles == [file1, file2]
+    }
+
     def "can add classpaths together"() {
         def file1 = new File("a.jar")
         def file2 = new File("b.jar")
@@ -28,6 +39,18 @@ class DefaultClassPathTest extends Specification {
         expect:
         def cp3 = cp1 + cp2
         cp3.asFiles == [file1, file2]
+    }
+
+    def "removes duplicates when added together"() {
+        def file1 = new File("a.jar")
+        def file2 = new File("b.jar")
+        def file3 = new File("c.jar")
+        def cp1 = new DefaultClassPath(file1, file2)
+        def cp2 = new DefaultClassPath(file3, file2, file1)
+
+        expect:
+        def cp3 = cp1 + cp2
+        cp3.asFiles == [file1, file2, file3]
     }
 
     def "add returns lhs when rhs is empty"() {
@@ -48,7 +71,7 @@ class DefaultClassPathTest extends Specification {
 
     def "can add collection of files to classpath"() {
         def file1 = new File("a.jar")
-        def file2 = new File("a.jar")
+        def file2 = new File("b.jar")
         def cp = new DefaultClassPath(file1)
 
         expect:
@@ -62,6 +85,7 @@ class DefaultClassPathTest extends Specification {
         def file3 = new File("c.jar")
         def cp = new DefaultClassPath(file1, file2)
         def same = new DefaultClassPath(file1, file2)
+        def sameWithDuplicates = new DefaultClassPath(file1, file2, file2, file1)
         def differentOrder = new DefaultClassPath(file2, file1)
         def missing = new DefaultClassPath(file2)
         def extra = new DefaultClassPath(file1, file2, file3)
@@ -69,6 +93,7 @@ class DefaultClassPathTest extends Specification {
 
         expect:
         cp Matchers.strictlyEqual(same)
+        cp Matchers.strictlyEqual(sameWithDuplicates)
         cp != differentOrder
         cp != missing
         cp != extra

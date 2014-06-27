@@ -238,9 +238,7 @@ task test << {
 }
 """
 
-        executer.withDeprecationChecksDisabled()
-        def result = inTestDirectory().withTasks('test').run()
-        assert result.output.contains('Relying on packaging to define the extension of the main artifact has been deprecated')
+        inTestDirectory().withTasks('test').run()
     }
 
     @Test
@@ -378,9 +376,7 @@ task test << {
     checkDeps configurations.extendedWithType, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'external1-1.0.txt']
 }
 """
-        executer.withDeprecationChecksDisabled()
-        def result = inTestDirectory().withTasks('test').run()
-        assert result.output.contains('Relying on packaging to define the extension of the main artifact has been deprecated')
+        inTestDirectory().withTasks('test').run()
     }
 
     @Test

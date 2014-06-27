@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.language.cpp
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
@@ -27,6 +28,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.Ignore
 
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.TextUtil.escapeString
 
@@ -124,6 +126,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles but does not relink executable with source comment change"() {
         given:
         run "installMainExecutable"
+        maybeWait()
 
         when:
         sourceFile.text = sourceFile.text.replaceFirst("// Simple hello world app", "// Comment is changed")
@@ -152,6 +155,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles library and relinks executable with library source file change"() {
         given:
         run "installMainExecutable"
+        maybeWait()
         def install = installation("build/install/mainExecutable")
 
         when:
@@ -180,6 +184,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles binary when header file changes"() {
         given:
         run "installMainExecutable"
+        maybeWait()
 
         when:
         headerFile << """
@@ -208,6 +213,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
         given:
         run "installMainExecutable"
+        maybeWait()
 
         when:
         headerFile << """
@@ -224,8 +230,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
         } else if(objectiveCWithAslr()){
-             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
-             executed ":linkMainExecutable", ":mainExecutable"
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
@@ -237,7 +243,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     // We saw this behaviour only on linux so far. 
     boolean objectiveCWithAslr() {
         return (sourceType == "Objc" || sourceType == "Objcpp") &&
-                OperatingSystem.current().isLinux() && 
+                OperatingSystem.current().isLinux() &&
                 toolChain.displayName == "clang"
     }
 
@@ -259,6 +265,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             }
 """
 
+        maybeWait()
         run "installMainExecutable"
 
         then:
@@ -331,7 +338,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         and:
         def linkerArgs =
-            toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
+                toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
@@ -418,6 +425,39 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
+    @RequiresInstalledToolChain(GccCompatible)
+    def "recompiles binary when imported header file changes"() {
+        sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
+        if(buildingCorCppWithGcc()){
+            buildFile << """
+                //support for #import on c/cpp is deprecated in gcc
+                binaries.all { ${compilerTool}.args '-Wno-deprecated'; }
+            """
+        }
+
+        given:
+        run "installMainExecutable"
+
+
+        when:
+        headerFile << """
+            int unused();
+"""
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask
+        executedAndNotSkipped mainCompileTask
+
+        if(objectiveCWithAslr()){
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
+        }
+    }
+
     @RequiresInstalledToolChain(VisualCpp)
     def "cleans up stale debug files when changing from debug to non-debug"() {
 
@@ -492,11 +532,21 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     }
 
 
-    private static boolean rename(TestFile sourceFile) {
+    def buildingCorCppWithGcc() {
+        return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")
+    }
+
+    private void maybeWait() {
+        if (toolChain.visualCpp) {
+            def now = System.currentTimeMillis()
+            def nextSecond = now % 1000
+            Thread.sleep(1200 - nextSecond)
+        }
+    }
+
+    static boolean rename(TestFile sourceFile) {
         final newFile = new File(sourceFile.getParentFile(), "changed_${sourceFile.name}")
         newFile << sourceFile.text
         sourceFile.delete()
     }
-
-
 }

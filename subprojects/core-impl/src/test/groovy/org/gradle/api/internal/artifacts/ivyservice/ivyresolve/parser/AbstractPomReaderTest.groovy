@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt
-import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
+import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
+import org.gradle.internal.resource.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
@@ -37,7 +37,7 @@ abstract class AbstractPomReaderTest extends Specification {
         pomFile = tmpDir.file('pom.xml')
         pomFile.createFile()
         LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI().toURL().toString(), locallyAvailableResource)
+        locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
     }
 
     protected void assertResolvedPomDependency(MavenDependencyKey key, String version) {
@@ -65,7 +65,7 @@ abstract class AbstractPomReaderTest extends Specification {
         pomFile.createFile()
         pomFile << pomDefinition
         LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI().toURL().toString(), locallyAvailableResource)
+        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
         return new PomReader(locallyAvailableExternalResource)
     }
 }

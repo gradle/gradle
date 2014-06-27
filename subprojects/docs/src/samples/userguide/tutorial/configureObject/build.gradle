@@ -1,5 +1,5 @@
 task configure << {
-    pos = configure(new java.text.FieldPosition(10)) {
+    def pos = configure(new java.text.FieldPosition(10)) {
         beginIndex = 1
         endIndex = 5
     }

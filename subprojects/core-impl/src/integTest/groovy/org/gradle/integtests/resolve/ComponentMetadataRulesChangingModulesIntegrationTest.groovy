@@ -16,17 +16,16 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.HttpRepository
 
-abstract class ComponentMetadataRulesChangingModulesIntegrationTest extends AbstractDependencyResolutionTest {
+abstract class ComponentMetadataRulesChangingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     abstract HttpRepository getRepo()
     abstract String getRepoDeclaration()
 
     def moduleA = getRepo().module('org.test', 'moduleA', '1.0')
 
     def setup() {
-        server.start()
         moduleA.publish()
         moduleA.allowAll()
     }

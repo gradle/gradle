@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,56 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.internal.protocol.InternalGradleProject;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultGradleProject extends PartialGradleProject implements InternalGradleProject, Serializable, GradleProjectIdentity {
+public class DefaultGradleProject<T> extends PartialGradleProject implements Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
-    private List<DefaultGradlePublication> publications = Collections.emptyList();
-
-    public DefaultGradleProject() {}
-
-    public DefaultGradleProject(String path) {
-        super(path);
-    }
+    private File buildDirectory;
+    private List<T> tasks = new LinkedList<T>();
 
     @Override
-    public DefaultGradleProject setName(String name) {
+    public DefaultGradleProject<T> setName(String name) {
         super.setName(name);
         return this;
     }
 
     @Override
-    public DefaultGradleProject setPath(String path) {
+    public DefaultGradleProject<T> setPath(String path) {
         super.setPath(path);
         return this;
     }
 
     @Override
-    public DefaultGradleProject setDescription(String description) {
+    public DefaultGradleProject<T> setDescription(String description) {
         super.setDescription(description);
         return this;
     }
 
     @Override
-    public DefaultGradleProject setChildren(List<? extends PartialGradleProject> children) {
+    public DefaultGradleProject<T> setChildren(List<? extends PartialGradleProject> children) {
         super.setChildren(children);
+        return this;
+    }
+
+    public Collection<T> getTasks() {
+        return tasks;
+    }
+
+    public DefaultGradleProject<T> setTasks(List<T> tasks) {
+        this.tasks = tasks;
+        return this;
+    }
+
+    public File getBuildDirectory() {
+        return buildDirectory;
+    }
+
+    public DefaultGradleProject<T> setBuildDirectory(File buildDirectory) {
+        this.buildDirectory = buildDirectory;
         return this;
     }
 
@@ -62,21 +73,8 @@ public class DefaultGradleProject extends PartialGradleProject implements Intern
         return buildScript;
     }
 
-    public File getProjectDirectory() {
-        throw new RuntimeException("ProjectVersion3 methods are deprecated.");
-    }
-
     @Override
-    public DefaultGradleProject findByPath(String path) {
-        return (DefaultGradleProject) super.findByPath(path);
-    }
-
-    public Collection<DefaultGradlePublication> getPublications() {
-        return publications;
-    }
-
-    public DefaultGradleProject setPublications(List<DefaultGradlePublication> publications) {
-        this.publications = publications;
-        return this;
+    public DefaultGradleProject<T> findByPath(String path) {
+        return (DefaultGradleProject<T>) super.findByPath(path);
     }
 }

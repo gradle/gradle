@@ -15,21 +15,23 @@
  */
 package org.gradle.api.internal.notations
 
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileResolver
-import spock.lang.Specification
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.typeconversion.NotationParserBuilder
+import spock.lang.Specification
 
 public class DependencyClassPathNotationParserTest extends Specification {
     def instantiator = Mock(Instantiator.class)
     def classPathRegistry = Mock(ClassPathRegistry.class)
     def fileResolver = Mock(FileResolver.class)
-    def DependencyClassPathNotationParser factory = new DependencyClassPathNotationParser(instantiator, classPathRegistry, fileResolver)
+    def factory = new DependencyClassPathNotationParser(instantiator, classPathRegistry, fileResolver)
 
     def "parses classpath literals"() {
         given:
@@ -45,11 +47,16 @@ public class DependencyClassPathNotationParserTest extends Specification {
         instantiator.newInstance(DefaultSelfResolvingDependency.class, fileCollection as Object) >> dependency
 
         when:
-        def out = factory.parseType(DependencyFactory.ClassPathNotation.GRADLE_API)
+        def out = parse(DependencyFactory.ClassPathNotation.GRADLE_API)
 
         then:
         out.is dependency
     }
+
+    def parse(def value) {
+        return NotationParserBuilder.toType(Dependency).fromType(DependencyFactory.ClassPathNotation, factory).toComposite().parseNotation(value)
+    }
+
 }
 
 

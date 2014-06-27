@@ -61,7 +61,7 @@ idea {
         testSourceDirs += file('additionalCustomTestSources')
         excludeDirs += file('excludeMePlease')
 
-        scopes.PROVIDED.plus += configurations.compile
+        scopes.PROVIDED.plus += [ configurations.compile ]
         downloadJavadoc = true
         downloadSources = false
 
@@ -122,7 +122,7 @@ dependencies {
 
 idea {
     module {
-        scopes.COMPILE.plus += configurations.foo
+        scopes.COMPILE.plus << configurations.foo
         scopes.COMPILE.minus += [configurations.bar, configurations.baz]
     }
 }
@@ -135,6 +135,34 @@ idea {
 
         assert !content.contains('bar.jar')
         assert !content.contains('foo3.jar')
+    }
+
+    @Issue("GRADLE-3101")
+    @Test
+    void scopesCustomizedUsingPlusEqualOperator() {
+        //when
+        runTask 'idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+configurations {
+  bar
+}
+
+idea {
+    module {
+        scopes.COMPILE.plus += [ configurations.bar ]
+    }
+}
+
+dependencies {
+  bar files('bar.jar')
+}
+'''
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        assert content.contains('bar.jar')
     }
 
     @Test
@@ -190,14 +218,11 @@ apply plugin: "idea"
 sourceSets.main.output.dir "$buildDir/generated/main"
 sourceSets.test.output.dir "$buildDir/ws/test"
 '''
-        def iml = parseFile(print: true, 'root.iml')
-
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
-
-        def classesDirs = iml.component.orderEntry.library.CLASSES.root.@url.collect { it.text() }
-        assert classesDirs.any { it.contains ('generated/main') }
-        assert classesDirs.any { it.contains ('ws/test') }
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 2
+        dependencies.assertHasLibrary('RUNTIME', 'generated/main')
+        dependencies.assertHasLibrary('TEST', 'ws/test')
     }
 
     @Test
@@ -391,15 +416,151 @@ dependencies {
     runtime 'org.gradle:impl-artifact:1.0'
 }
 """
-        def iml = parseFile(print: true, 'root.iml')
-
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
+        dependencies.assertHasLibrary('RUNTIME', 'impl-artifact-1.0.jar')
+        dependencies.assertHasLibrary('TEST', 'impl-artifact-1.0.jar')
+    }
 
-        def orderEntries = iml.component.orderEntry
-        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'RUNTIME' &&
-            it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
-        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'TEST' &&
-                it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
+    @Test
+    void "provided wins over compile scope for compile configuration"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+dependencies {
+    compile 'org.gradle:api-artifact:1.0'
+}
+
+idea {
+  module {
+    scopes.PROVIDED.plus << configurations.compile
+  }
+}
+"""
+        //then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 1
+        dependencies.assertHasLibrary('PROVIDED', 'api-artifact-1.0.jar')
+    }
+
+    @Test
+    void "custom configuration gets first scope"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+        maven(repoDir).module("foo", "bar").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+configurations {
+  myCustom
+}
+
+dependencies {
+    myCustom 'foo:bar:1.0'
+    compile 'org.gradle:api-artifact:1.0'
+}
+
+idea {
+  module {
+    scopes.PROVIDED.plus << configurations.myCustom
+    scopes.COMPILE.plus << configurations.myCustom
+  }
+}
+"""
+        //then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 2
+        dependencies.assertHasLibrary('PROVIDED', 'bar-1.0.jar')
+        dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
+    }
+
+    @Test
+    void "custom configuration can be added to TEST and RUNTIME"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+        maven(repoDir).module("foo", "bar").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+configurations {
+  myCustom
+}
+
+dependencies {
+    myCustom 'foo:bar:1.0'
+    compile 'org.gradle:api-artifact:1.0'
+}
+
+idea {
+  module {
+    scopes.RUNTIME_TEST = [:]
+    scopes.RUNTIME_TEST.plus = [configurations.myCustom]
+    // scopes.TEST.plus += configurations.myCustom
+    // scopes.RUNTIME.plus += configurations.myCustom
+  }
+}
+"""
+        //then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
+        dependencies.assertHasLibrary('TEST', 'bar-1.0.jar')
+        dependencies.assertHasLibrary('RUNTIME', 'bar-1.0.jar')
+    }
+
+    @Test
+    void "no libraries generated without java plugin"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+        maven(repoDir).module("foo", "bar").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+configurations {
+  compile
+}
+
+dependencies {
+    compile 'org.gradle:api-artifact:1.0'
+}
+"""
+        //then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.isEmpty()
     }
 }

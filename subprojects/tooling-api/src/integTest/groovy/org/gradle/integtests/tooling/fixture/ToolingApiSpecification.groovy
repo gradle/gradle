@@ -30,17 +30,19 @@ import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
 /**
- * A spec that executes tests against all compatible versions of tooling API consumer and provider, including the current Gradle version under test.
+ * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
  * <p>A test class or test method can be annotated with the following annotations to specify which versions the test is compatible with:
  * </p>
  *
  * <ul>
  *     <li>{@link ToolingApiVersion} - specifies the tooling API consumer versions that the test is compatible with.
- *     <li>{@link TargetGradleVersion} - specifies the tooling API provider versions that the test is compatible with.
+ *     <li>{@link TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
  * </ul>
  */
 @RunWith(ToolingApiCompatibilitySuiteRunner)
+@ToolingApiVersion('>=1.2')
+@TargetGradleVersion('>=1.0-milestone-8')
 abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()

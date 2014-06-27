@@ -17,6 +17,7 @@
 package org.gradle
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.DefaultTaskParameter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -41,7 +42,6 @@ class StartParameterTest extends Specification {
         parameter.systemPropertiesArgs = [b: 'b']
         parameter.gradleUserHomeDir = new File('b')
         parameter.initScripts = [new File('init script'), new File("/path/to/another init script")]
-        parameter.cacheUsage = CacheUsage.ON
         parameter.logLevel = LogLevel.WARN
         parameter.colorOutput = false
         parameter.continueOnFailure = true
@@ -102,12 +102,12 @@ class StartParameterTest extends Specification {
         parameter.logLevel == LogLevel.LIFECYCLE
         parameter.colorOutput
         parameter.taskNames.empty
+        parameter.taskParameters.empty
         parameter.excludedTaskNames.empty
         parameter.projectProperties.isEmpty()
         parameter.systemPropertiesArgs.isEmpty()
         !parameter.dryRun
         !parameter.continueOnFailure
-        parameter.refreshOptions == RefreshOptions.NONE
         !parameter.rerunTasks
         !parameter.recompileScripts
         !parameter.refreshDependencies
@@ -235,12 +235,27 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
+    void "considers system properties for null user home dir"() {
+        def gradleUserHome = tmpDir.file("someGradleUserHomePath")
+        System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
+
+        given:
+        StartParameter parameter = new StartParameter()
+        parameter.gradleUserHomeDir = tmpDir.file("ignore-me")
+
+        when:
+        parameter.gradleUserHomeDir = null
+
+        then:
+        parameter.gradleUserHomeDir == gradleUserHome
+        assertThat(parameter, isSerializable())
+    }
+
     void "creates parameter for new build"() {
         StartParameter parameter = new StartParameter()
 
         // Copied properties
         parameter.gradleUserHomeDir = new File("home")
-        parameter.cacheUsage = CacheUsage.REBUILD
         parameter.logLevel = LogLevel.DEBUG
         parameter.colorOutput = false
         parameter.configureOnDemand = true
@@ -267,7 +282,6 @@ class StartParameterTest extends Specification {
 
         newParameter.configureOnDemand == parameter.configureOnDemand
         newParameter.gradleUserHomeDir == parameter.gradleUserHomeDir
-        newParameter.cacheUsage == parameter.cacheUsage
         newParameter.logLevel == parameter.logLevel
         newParameter.colorOutput == parameter.colorOutput
         newParameter.continueOnFailure == parameter.continueOnFailure
@@ -276,6 +290,7 @@ class StartParameterTest extends Specification {
         newParameter.recompileScripts == parameter.recompileScripts
 
         newParameter.buildFile == null
+        newParameter.taskParameters.empty
         newParameter.taskNames.empty
         newParameter.excludedTaskNames.empty
         newParameter.currentDir == new File(System.getProperty("user.dir")).getCanonicalFile()
@@ -313,5 +328,34 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.allInitScripts == [userMainInit, userInit1, userInit2, distroInit1, distroInit2]
+    }
+
+    def 'taskNames getter defaults to taskParameters'() {
+        StartParameter parameter = new StartParameter()
+
+        when:
+        parameter.taskParameters = [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+
+        then:
+        parameter.taskNames == [ 'a', 'b' ]
+        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+    }
+
+    def 'taskNames setter defaults to taskParameters'() {
+        StartParameter parameter = new StartParameter()
+
+        when:
+        parameter.taskNames = [ 'a', 'b' ]
+
+        then:
+        parameter.taskNames == [ 'a', 'b' ]
+        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+
+        when:
+        parameter.taskNames = null
+
+        then:
+        parameter.taskNames == []
+        parameter.taskParameters == []
     }
 }

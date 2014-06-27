@@ -28,7 +28,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
     def setup() {
-        requireOwnGradleUserHomeDir()
         buildFile << """
                 repositories {
                     mavenLocal()
@@ -42,8 +41,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
                     from configurations.compile
                     into 'build'
                 }"""
-
-        using m2Installation
     }
 
     def "can resolve artifacts from local m2 when user settings.xml does not exist"() {
@@ -55,7 +52,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
         then:
         hasArtifact(moduleA)
-
     }
 
     def "can resolve artifacts from local m2 with custom local repository defined in user settings.xml"() {
@@ -141,8 +137,27 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause('Could not find group:projectA:1.2')
     }
 
+    def "mavenLocal reports and recovers from missing module"() {
+        def module = m2Installation.mavenRepo().module('group', 'projectA', '1.2')
+
+        when:
+        runAndFail 'retrieve'
+
+        then:
+        failure.assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${module.pomFile.toURL()}
+    ${module.artifactFile.toURL()}""")
+
+        when:
+        module.publish()
+
+        then:
+        succeeds 'retrieve'
+    }
+
     @Issue('GRADLE-2034')
-    def "mavenLocal skipped if contains pom but no artifact"() {
+    def "mavenLocal skipped if contains pom but no artifact and there is another repository available"() {
         given:
         def anotherRepo = maven("another-local-repo")
         m2Installation.mavenRepo().module('group', 'projectA', '1.2').publishPom()

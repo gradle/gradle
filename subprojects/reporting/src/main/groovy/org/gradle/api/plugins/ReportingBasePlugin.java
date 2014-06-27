@@ -22,20 +22,16 @@ import org.gradle.api.reporting.ReportingExtension;
 /**
  * <p>A {@link Plugin} which provides the basic skeleton for reporting.</p>
  *
- * <p>This plugin adds the following convention objects to the project:</p>
+ * <p>This plugin adds the following extension objects to the project:</p>
  *
  * <ul>
  *
- * <li>{@link ReportingBasePluginConvention}</li>
+ * <li>{@link org.gradle.api.reporting.ReportingExtension}</li>
  *
  * </ul>
  */
 public class ReportingBasePlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
-        Convention convention = project.getConvention();
-        ReportingExtension extension = project.getExtensions().create(ReportingExtension.NAME, ReportingExtension.class, project);
-
-        // This convention is deprecated
-        convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention(project, extension));
+        project.getExtensions().create(ReportingExtension.NAME, ReportingExtension.class, project);
     }
 }

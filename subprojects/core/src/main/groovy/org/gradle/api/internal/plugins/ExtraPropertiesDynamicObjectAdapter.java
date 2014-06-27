@@ -18,22 +18,17 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.BeanDynamicObject;
-import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Map;
 
 public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
-
     private final ExtraPropertiesExtension extension;
-    private final Object delegate;
-    private final DynamicObject dynamicOwner;
+    private final Class<?> delegateType;
 
-    public ExtraPropertiesDynamicObjectAdapter(Object delegate, DynamicObject dynamicOwner, ExtraPropertiesExtension extension) {
+    public ExtraPropertiesDynamicObjectAdapter(Class<?> delegateType, ExtraPropertiesExtension extension) {
         super(extension);
-        this.delegate = delegate;
-        this.dynamicOwner = dynamicOwner;
+        this.delegateType = delegateType;
         this.extension = extension;
     }
 
@@ -47,8 +42,8 @@ public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
 
     @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
-        if (!dynamicOwner.hasProperty(name)) {
-            DeprecationLogger.nagUserAboutDynamicProperty(name, delegate, value);
+        if (!hasProperty(name)) {
+            throw new MissingPropertyException(name, delegateType);
         }
 
         super.setProperty(name, value);

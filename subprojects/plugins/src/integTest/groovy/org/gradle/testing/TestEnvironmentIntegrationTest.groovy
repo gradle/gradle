@@ -58,6 +58,7 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySecurityManagerIsUsed')
     }
 
+    @Requires(TestPrecondition.JDK7_OR_EARLIER)
     def canRunTestsWithJMockitLoadedWithJavaAgent() {
         when:
         run 'test'

@@ -17,14 +17,14 @@
 package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder
+import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Flavor
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.internal.DefaultExecutable
-import org.gradle.nativebinaries.internal.DefaultLibrary
-import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier
+import org.gradle.nativebinaries.internal.DefaultNativeExecutable
+import org.gradle.nativebinaries.internal.DefaultNativeLibrary
+import org.gradle.nativebinaries.internal.ProjectNativeComponentIdentifier
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
@@ -39,14 +39,14 @@ class DefaultNativeBinariesFactoryTest extends Specification {
     def buildType = Mock(BuildType)
     def flavor = Mock(Flavor)
 
-    def id = new NativeProjectComponentIdentifier("project", "name")
+    def id = new ProjectNativeComponentIdentifier("project", "name")
 
     def namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder().withComponentName("test")
     def factory = new DefaultNativeBinariesFactory(new DirectInstantiator(), configAction, resolver)
 
     def "creates binaries for executable"() {
         given:
-        def executable = new DefaultExecutable(id)
+        def executable = new DefaultNativeExecutable(id)
 
         when:
         1 * configAction.execute(_)
@@ -66,7 +66,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for library"() {
         given:
-        def library = new DefaultLibrary(id)
+        def library = new DefaultNativeLibrary(id)
 
         when:
         2 * configAction.execute(_)

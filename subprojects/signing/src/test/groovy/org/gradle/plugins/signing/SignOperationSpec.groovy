@@ -47,7 +47,7 @@ class SignOperationSpec extends SigningProjectSpec {
     
     def "sign single file with defaults"() {
         when:
-        def operation = sign(input1)
+        def operation = signing.sign(input1)
         
         then:
         output1.exists()
@@ -56,7 +56,7 @@ class SignOperationSpec extends SigningProjectSpec {
     
     def "sign single artifact with defaults"() {
         when:
-        def operation = sign(input1Artifact)
+        def operation = signing.sign(input1Artifact)
         
         then:
         output1.exists()
@@ -65,7 +65,7 @@ class SignOperationSpec extends SigningProjectSpec {
     
     def "sign multiple files with defaults"() {
         when:
-        def operation = sign(input1, input2)
+        def operation = signing.sign(input1, input2)
         
         then:
         output1.exists() && output2.exists()
@@ -76,7 +76,7 @@ class SignOperationSpec extends SigningProjectSpec {
 
     def "sign multiple artifacts with defaults"() {
         when:
-        def operation = sign(input1Artifact, input2Artifact)
+        def operation = signing.sign(input1Artifact, input2Artifact)
         
         then:
         output1.exists() && output2.exists()

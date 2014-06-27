@@ -230,7 +230,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         e.message == "Operation 'doStuff' has not completed yet."
     }
 
-    def "can use test threads to define instants outside of an async { } block"() {
+    def "can use test threads to define instants"() {
         def worker = new Worker(executor)
 
         given:
@@ -246,13 +246,28 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         instant.actionExecuted
     }
 
-    def "fails when waiting for an instant and no other test threads are running"() {
+    def "can use arbitrary thread to define an instant"() {
+        given:
+        def action = { instant.actionExecuted }
+        def thread = new Thread(action)
+
+        when:
+        thread.start()
+        thread.join()
+
+        then:
+        instant.actionExecuted
+    }
+
+    def "fails when waiting for an instant that is not defined by any thread"() {
+        instant.timeout = 100
+
         when:
         thread.blockUntil.unknown
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cannot wait for instant 'unknown', as it has not been defined and no test threads are currently running."
+        e.message == "Timeout waiting for instant 'unknown' to be defined by another thread."
 
         when:
         async {
@@ -261,7 +276,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
 
         then:
         e = thrown()
-        e.message == "Cannot wait for instant 'unknown', as it has not been defined and no other test threads are currently running."
+        e.message == "Timeout waiting for instant 'unknown' to be defined by another thread."
 
         when:
         start {
@@ -271,7 +286,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
 
         then:
         e = thrown()
-        e.message == "Cannot wait for instant 'unknown', as it has not been defined and no other test threads are currently running."
+        e.message == "Timeout waiting for instant 'unknown' to be defined by another thread."
     }
 
     def "async { } block rethrows test thread failures"() {

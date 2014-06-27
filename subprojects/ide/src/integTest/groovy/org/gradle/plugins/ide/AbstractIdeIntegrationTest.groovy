@@ -19,6 +19,7 @@ package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.plugins.ide.idea.IdeaModuleFixture
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
@@ -50,6 +51,10 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
 
     protected ExecutionResult runIdeaTask(buildScript) {
         return runTask("idea", buildScript)
+    }
+
+    protected IdeaModuleFixture parseIml(Map options = [:], String moduleFile) {
+        return new IdeaModuleFixture(parseFile(options, moduleFile))
     }
 
     protected parseImlFile(Map options = [:], String projectName) {

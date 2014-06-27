@@ -15,7 +15,7 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.language.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
@@ -27,9 +27,9 @@ import spock.lang.Specification
 class VisualStudioProjectMapperTest extends Specification {
     def mapper = new VisualStudioProjectMapper()
 
-    def executable = Mock(ExecutableInternal)
-    ExecutableBinaryInternal executableBinary
-    def library = Mock(LibraryInternal)
+    def executable = Mock(NativeExecutableInternal)
+    NativeExecutableBinaryInternal executableBinary
+    def library = Mock(NativeLibraryInternal)
     def namingScheme = Mock(BinaryNamingScheme)
 
     def flavorOne = Mock(Flavor)
@@ -103,7 +103,7 @@ class VisualStudioProjectMapperTest extends Specification {
     }
 
     private def createExecutableBinary(String binaryName, def buildType, def platform) {
-        def binary = Mock(ExecutableBinaryInternal)
+        def binary = Mock(NativeExecutableBinaryInternal)
         binary.name >> binaryName
         binary.component >> executable
         binary.buildType >> buildType
@@ -124,7 +124,7 @@ class VisualStudioProjectMapperTest extends Specification {
         return ArchitectureNotationParser.parser().parseNotation(name)
     }
 
-    private libraryBinary(Class<? extends LibraryBinary> type) {
+    private libraryBinary(Class<? extends NativeLibraryBinary> type) {
         def binary = Mock(type)
         binary.component >> library
         binary.flavor >> flavorOne
@@ -134,9 +134,9 @@ class VisualStudioProjectMapperTest extends Specification {
         return binary
     }
 
-    interface ExecutableInternal extends Executable, ProjectNativeComponentInternal {}
-    interface LibraryInternal extends Library, ProjectNativeComponentInternal {}
-    interface ExecutableBinaryInternal extends ExecutableBinary, ProjectNativeBinaryInternal {}
+    interface NativeExecutableInternal extends NativeExecutable, ProjectNativeComponentInternal {}
+    interface NativeLibraryInternal extends NativeLibrary, ProjectNativeComponentInternal {}
+    interface NativeExecutableBinaryInternal extends NativeExecutableBinary, ProjectNativeBinaryInternal {}
     interface SharedLibraryBinaryInternal extends SharedLibraryBinary, ProjectNativeBinaryInternal {}
     interface StaticLibraryBinaryInternal extends StaticLibraryBinary, ProjectNativeBinaryInternal {}
 }

@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.M2Installation
-import org.gradle.test.fixtures.maven.MavenHttpModule
-import org.gradle.test.fixtures.maven.MavenHttpRepository
-import org.gradle.test.fixtures.maven.PomHttpArtifact
+import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule

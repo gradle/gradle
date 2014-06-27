@@ -181,7 +181,7 @@ class FilteringClassLoaderTest extends Specification {
         classLoader.visit(visitor)
 
         then:
-        1 * visitor.visitSpec({it instanceof FilteringClassLoader.Spec}) >> { FilteringClassLoader.Spec spec ->
+        1 * visitor.visitSpec({ it instanceof FilteringClassLoader.Spec }) >> { FilteringClassLoader.Spec spec ->
             spec.classNames == [Test.name]
             spec.disallowedClassNames == [Before.name]
             spec.packageNames == ["org.junit"]
@@ -235,7 +235,7 @@ class FilteringClassLoaderTest extends Specification {
 
     def "does not attempt to load not allowed class"() {
         given:
-        def parent = Mock(ClassLoader)
+        def parent = Mock(ClassLoader, useObjenesis: false)
         def loader = new FilteringClassLoader(parent)
 
         and:

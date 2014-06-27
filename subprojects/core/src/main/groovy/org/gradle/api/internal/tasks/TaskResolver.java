@@ -18,5 +18,5 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Task;
 
 public interface TaskResolver {
-    Task resolveTask(Object path);
+    Task resolveTask(String path);
 }

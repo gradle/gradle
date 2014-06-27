@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts.dsl;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
@@ -51,4 +52,26 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      */
     void eachComponent(Action<? super ComponentMetadataDetails> rule);
+
+    /**
+     * Adds a rule to modify the metadata of depended-on software components.
+     * For example, this allows to set a component's status and status scheme
+     * from within the build script, overriding any value specified in the
+     * component descriptor.
+     *
+     * <p>The rule must declare a {@link ComponentMetadataDetails} as it's first parameter,
+     * allowing the component metadata to be modified.
+     *
+     * <p>In addition, the rule can declare additional (read-only) parameters, which may provide extra details
+     * about the component. The order of these additional parameters is irrelevant.
+     *
+     * <p>Presently, the following additional parameter types are supported:
+     * <ul>
+     *     <li>{@link org.gradle.api.artifacts.IvyModuleMetadata} Additional Ivy-specific
+     *     metadata. Rules declaring this parameter will only be invoked for Ivy components.</li>
+     * </ul>
+     *
+     * @param rule the rule to be added
+     */
+    void eachComponent(Closure<?> rule);
 }

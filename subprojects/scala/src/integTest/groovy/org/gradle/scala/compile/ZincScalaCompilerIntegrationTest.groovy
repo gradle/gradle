@@ -13,37 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TestResources
+import org.junit.Rule
 
-@Requires(TestPrecondition.JDK5)
-class ZincScalaCompilerIntegrationTest extends AbstractIntegrationSpec {
-    def "gives sensible error when run with Java 5"() {
-        buildFile <<
-"""
-apply plugin: "scala"
+@TargetVersions(["2.10.4", "2.11.1"])
+class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+    @Rule TestResources testResources = new TestResources(temporaryFolder)
 
-repositories {
-    mavenCentral()
+    String compilerConfiguration() {
+        """
+compileScala.scalaCompileOptions.with {
+    useAnt = false
 }
+        """
+    }
 
-dependencies {
-    compile "org.scala-lang:scala-library:2.9.2"
-}
+    String logStatement() {
+        "Compiling with Zinc Scala compiler"
+    }
 
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.useAnt = false
-}
-"""
+    def compilesScalaCodeIncrementally() {
+        setup:
+        def person = file("build/classes/main/Person.class")
+        def house = file("build/classes/main/House.class")
+        def other = file("build/classes/main/Other.class")
+        run("compileScala")
 
+        when:
+        file("src/main/scala/Person.scala").delete()
         file("src/main/scala/Person.scala") << "class Person"
+        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        run("compileScala")
 
-        expect:
-        fails("compileScala")
-        failure.assertHasCause("To use the Zinc Scala compiler, Java 6 or higher is required.")
+        then:
+        person.exists()
+        house.exists()
+        other.exists()
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() == old(other.lastModified())
+    }
+
+    def compilesJavaCodeIncrementally() {
+        setup:
+        def person = file("build/classes/main/Person.class")
+        def house = file("build/classes/main/House.class")
+        def other = file("build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("src/main/scala/Person.java").delete()
+        file("src/main/scala/Person.java") << "public class Person {}"
+        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() == old(other.lastModified())
+    }
+
+    def compilesIncrementallyAcrossProjectBoundaries() {
+        setup:
+        def person = file("prj1/build/classes/main/Person.class")
+        def house = file("prj2/build/classes/main/House.class")
+        def other = file("prj2/build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("prj1/src/main/scala/Person.scala").delete()
+        file("prj1/src/main/scala/Person.scala") << "class Person"
+        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() == old(other.lastModified())
     }
 }

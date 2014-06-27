@@ -31,13 +31,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultPluginRegistry implements PluginRegistry {
-    private final Map<String, Class<? extends Plugin>> idMappings = new HashMap<String, Class<? extends Plugin>>();
+    private final Map<String, Class<? extends Plugin<?>>> idMappings = new HashMap<String, Class<? extends Plugin<?>>>();
     private final DefaultPluginRegistry parent;
     private final Factory<ClassLoader> classLoaderFactory;
     private final Instantiator instantiator;
 
-    public DefaultPluginRegistry(ClassLoader classLoaderFactory, Instantiator instantiator) {
-        this(null, Factories.constant(classLoaderFactory), instantiator);
+    public DefaultPluginRegistry(ClassLoader classLoader, Instantiator instantiator) {
+        this(null, Factories.constant(classLoader), instantiator);
     }
 
     private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<ClassLoader> classLoaderFactory, Instantiator instantiator) {
@@ -49,13 +49,13 @@ public class DefaultPluginRegistry implements PluginRegistry {
     public PluginRegistry createChild(final ClassLoaderScope lookupScope, Instantiator instantiator) {
         Factory<ClassLoader> classLoaderFactory = new Factory<ClassLoader>() {
             public ClassLoader create() {
-                return lookupScope.getScopeClassLoader();
+                return lookupScope.getLocalClassLoader();
             }
         };
         return new DefaultPluginRegistry(this, classLoaderFactory, instantiator);
     }
 
-    public <T extends Plugin> T loadPlugin(Class<T> pluginClass) {
+    public <T extends Plugin<?>> T loadPlugin(Class<T> pluginClass) {
         if (!Plugin.class.isAssignableFrom(pluginClass)) {
             throw new InvalidUserDataException(String.format(
                     "Cannot create plugin of type '%s' as it does not implement the Plugin interface.",
@@ -69,7 +69,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
     }
 
-    public Class<? extends Plugin> getTypeForId(String pluginId) {
+    public Class<? extends Plugin<?>> getTypeForId(String pluginId) {
         if (parent != null) {
             try {
                 return parent.getTypeForId(pluginId);
@@ -78,7 +78,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
             }
         }
 
-        Class<? extends Plugin> implClass = idMappings.get(pluginId);
+        Class<? extends Plugin<?>> implClass = idMappings.get(pluginId);
         if (implClass != null) {
             return implClass;
         }
@@ -103,7 +103,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
                 throw new PluginInstantiationException(String.format("Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface. Specified in %s.",
                         implClassName, pluginId, pluginDescriptor));
             }
-            implClass = rawClass.asSubclass(Plugin.class);
+            @SuppressWarnings("unchecked") Class<Plugin<?>> cast = (Class<Plugin<?>>) rawClass.asSubclass(Plugin.class);
+            implClass = cast;
         } catch (ClassNotFoundException e) {
             throw new PluginInstantiationException(String.format(
                     "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClassName, pluginId,

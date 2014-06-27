@@ -15,6 +15,7 @@
  */
 package org.gradle.execution
 
+import org.gradle.internal.DefaultTaskParameter
 import spock.lang.Specification
 import org.gradle.StartParameter
 import org.gradle.api.internal.project.ProjectInternal
@@ -35,7 +36,7 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
 
     def "proceeds when task names specified in StartParameter"() {
         given:
-        _ * startParameter.taskNames >> ['a']
+        _ * startParameter.taskParameters >> [ new DefaultTaskParameter('a') ]
 
         when:
         action.configure(context)
@@ -47,6 +48,7 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
     def "sets task names to project defaults when none specified in StartParameter"() {
         given:
         _ * startParameter.taskNames >> []
+        _ * startParameter.taskParameters >> []
         _ * defaultProject.defaultTasks >> ['a', 'b']
 
         when:
@@ -60,6 +62,7 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
     def "uses the help task if no tasks specified in StartParameter or project"() {
         given:
         _ * startParameter.taskNames >> []
+        _ * startParameter.taskParameters >> []
         _ * defaultProject.defaultTasks >> []
 
         when:

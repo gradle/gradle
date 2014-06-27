@@ -111,6 +111,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         succeeds("checkstyleMain") && ":checkstyleMain" in nonSkippedTasks
+        executer.withArgument("-i")
         succeeds(":checkstyleMain") && ":checkstyleMain" in skippedTasks
 
         when:

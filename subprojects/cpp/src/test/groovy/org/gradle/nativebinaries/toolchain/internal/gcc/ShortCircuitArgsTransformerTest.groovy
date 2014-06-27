@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
+import org.gradle.nativebinaries.toolchain.internal.ShortCircuitArgsTransformer
 import spock.lang.Specification
 
 class ShortCircuitArgsTransformerTest extends Specification {

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dsl
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.ThreadGlobalInstantiator
@@ -26,6 +25,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 import java.awt.*
@@ -109,7 +109,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifactNotationParser.parseNotation(null)
 
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
     }
 
     public void createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
@@ -117,6 +117,6 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifactNotationParser.parseNotation(new Point(1, 2))
 
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
     }
 }

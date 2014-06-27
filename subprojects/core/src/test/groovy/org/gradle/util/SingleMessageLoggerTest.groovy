@@ -60,7 +60,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
             SingleMessageLogger.nagUserWith("nag")
             return "result"
         }
-        0 * _._
+        0 * _
 
         and:
         appender.toString().length() == 0
@@ -74,7 +74,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
 
         then:
         1 * action.run()
-        0 * _._
+        0 * _
 
         and:
         appender.toString().length() == 0

@@ -16,12 +16,15 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.hamcrest.Matcher
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
+@Requires(TestPrecondition.JDK7_OR_EARLIER)
 class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {

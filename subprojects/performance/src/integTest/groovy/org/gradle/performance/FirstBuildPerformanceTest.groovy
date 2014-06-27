@@ -16,10 +16,8 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
 class FirstBuildPerformanceTest extends AbstractPerformanceTest {
@@ -32,8 +30,7 @@ class FirstBuildPerformanceTest extends AbstractPerformanceTest {
         runner.tasksToRun = ['help']
         runner.args = ['--recompile-scripts']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['1.0', '1.4', '1.8', '1.10', 'last']
+        runner.targetVersions = ['1.0', '1.10', '1.12', 'last']
 
         when:
         def result = runner.run()
@@ -42,7 +39,7 @@ class FirstBuildPerformanceTest extends AbstractPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject    | maxExecutionTimeRegression | maxMemoryRegression
-        "manyProjects" | millis(500)                | mbytes(10)
+        testProject    | maxExecutionTimeRegression
+        "manyProjects" | millis(500)
     }
 }

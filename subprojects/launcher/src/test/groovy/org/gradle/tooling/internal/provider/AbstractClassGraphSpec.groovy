@@ -48,14 +48,14 @@ abstract class AbstractClassGraphSpec extends Specification {
     }
 
     /**
-     * Returns a URLClassLoader with the given classpath and parent. Parent defaults to system ClassLoader.
+     * Returns a URLClassLoader with the given classpath and root. Parent defaults to system ClassLoader.
      */
     URLClassLoader urlClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
         return new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], parent)
     }
 
     /**
-     * Returns a custom ClassLoader with the given classpath and parent. Parent defaults to system ClassLoader.
+     * Returns a custom ClassLoader with the given classpath and root. Parent defaults to system ClassLoader.
      */
     ClassLoader customClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
         return new TestClassLoader(parent, classpath)

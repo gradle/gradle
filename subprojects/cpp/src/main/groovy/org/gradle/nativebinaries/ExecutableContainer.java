@@ -23,5 +23,5 @@ import org.gradle.api.NamedDomainObjectSet;
  * A container of native executables.
  */
 @Incubating
-public interface ExecutableContainer extends NamedDomainObjectSet<Executable> {
+public interface ExecutableContainer extends NamedDomainObjectSet<NativeExecutable> {
 }

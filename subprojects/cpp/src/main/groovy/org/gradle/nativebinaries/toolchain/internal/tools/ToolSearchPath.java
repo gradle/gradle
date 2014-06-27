@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ToolSearchPath {
-    private final Map<String, CommandLineToolSearchResult> executables = new HashMap<String, CommandLineToolSearchResult>();
+    private final Map<String, File> executables = new HashMap<String, File>();
     private final List<File> pathEntries = new ArrayList<File>();
 
     private final OperatingSystem operatingSystem;
@@ -55,12 +55,14 @@ public class ToolSearchPath {
     }
 
     public CommandLineToolSearchResult locate(ToolType key, String exeName) {
-        CommandLineToolSearchResult result = executables.get(exeName);
-        if (result == null) {
-            File exe = findExecutable(operatingSystem, exeName);
-            result = exe == null || !exe.isFile() ? new MissingTool(key, exeName, pathEntries) : new FoundTool(exe);
-            executables.put(exeName, result);
+        File executable = executables.get(exeName);
+        if(executable == null){
+            executable = findExecutable(operatingSystem, exeName);
+            if(executable != null){
+                executables.put(exeName, executable);
+            }
         }
+        CommandLineToolSearchResult result = executable == null || !executable.isFile() ? new MissingTool(key, exeName, pathEntries) : new FoundTool(executable);
         return result;
     }
 

@@ -25,7 +25,8 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             #include "hello.h"
 
             int main () {
-              sayHello();
+              Greeter greeter;
+              greeter.sayHello();
               std::cout << sum(5, 7);
               return 0;
             }
@@ -38,7 +39,8 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             #include "hello.h"
 
             int main () {
-              sayHello();
+              Greeter greeter;
+              greeter.sayHello();
               return 0;
             }
         """)
@@ -55,7 +57,11 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             #define DLL_FUNC
             #endif
 
-            void DLL_FUNC sayHello();
+            class Greeter {
+                public:
+                void DLL_FUNC sayHello();
+            };
+
             int DLL_FUNC sum(int a, int b);
         """);
     }
@@ -71,7 +77,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             }
             #endif
 
-            void DLL_FUNC sayHello() {
+            void DLL_FUNC Greeter::sayHello() {
                 #ifdef FRENCH
                 std::cout << greeting() << std::endl;
                 #else
@@ -93,7 +99,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             #include <iostream>
             #include "hello.h"
 
-            void DLL_FUNC sayHello() {
+            void DLL_FUNC Greeter::sayHello() {
                 std::cout << "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]" << std::endl;
             }
 

@@ -16,16 +16,14 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import java.net.URI;
-import java.util.List;
 
 public interface PatternBasedResolver {
+    /**
+     * Must be called before any patterns are added.
+     */
+    void setM2compatible(boolean b);
+
     void addArtifactLocation(URI baseUri, String pattern);
 
     void addDescriptorLocation(URI baseUri, String pattern);
-
-    void setM2compatible(boolean b);
-
-    List<String> getIvyPatterns();
-
-    List<String> getArtifactPatterns();
 }

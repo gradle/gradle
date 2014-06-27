@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.fixture;
 public class TextUtil {
 
     /**
-     * TODO SF - temporary hack to avoid classloading issues. We should use org.gradle.util.TextUtil
+     * TODO - hack to avoid classloading issues. We should use org.gradle.util.TextUtil
      */
     public static String escapeString(Object obj) {
         return obj.toString().replaceAll("\\\\", "\\\\\\\\");

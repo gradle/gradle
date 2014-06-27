@@ -21,7 +21,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Before
@@ -112,19 +112,6 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
         modifyLargeBuildScript()
         testBuild("newTask", "I am new", "--recompile-scripts")
-        assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
-    }
-
-    @Test
-    public void "does not rebuild artifact cache when run with --cache rebuild"() {
-        createLargeBuildScript()
-        testBuild("hello1", "Hello 1")
-
-        TestFile dependenciesCache = findDependencyCacheDir()
-        assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
-
-        modifyLargeBuildScript()
-        testBuild("newTask", "I am new", "-Crebuild")
         assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
     }
 

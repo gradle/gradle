@@ -45,11 +45,7 @@ public class SettingsHandler {
         StartParameter startParameter = gradle.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
 
-        File explicitProjectDir = startParameter.getProjectDir();
-        File explicitBuildFile = startParameter.getBuildFile();
-        ProjectSpec spec = explicitBuildFile != null
-                ? new BuildFileProjectSpec(explicitBuildFile)
-                : explicitProjectDir == null ? new DefaultProjectSpec(startParameter.getCurrentDir()) : new ProjectDirectoryProjectSpec(explicitProjectDir);
+        ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter);
 
         if (!spec.containsProject(settings.getProjectRegistry())) {
             // The settings we found did not include the desired default project. Try again with an empty settings file.
@@ -89,7 +85,7 @@ public class SettingsHandler {
                 BaseSettings.DEFAULT_BUILD_SRC_DIR));
         ClassLoaderScope buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
-        return loadSettings(gradle, settingsLocation, buildSourceClassLoader.createRebasedChild(), startParameter);
+        return loadSettings(gradle, settingsLocation, buildSourceClassLoader.createChild().lock(), startParameter);
     }
 
     private SettingsLocation findSettings(StartParameter startParameter) {
@@ -97,8 +93,8 @@ public class SettingsHandler {
     }
 
     private SettingsInternal loadSettings(GradleInternal gradle, SettingsLocation settingsLocation,
-                                          ClassLoaderScope classLoaderScope, StartParameter startParameter) {
-        return settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
+                                          ClassLoaderScope baseClassLoaderScope, StartParameter startParameter) {
+        return settingsProcessor.process(gradle, settingsLocation, baseClassLoaderScope, startParameter);
     }
 }
 

@@ -18,26 +18,5 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions(["2.8.2", "2.9.2"])
-class AntForkingScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
-    def setup() {
-        executer.requireIsolatedDaemons()
-    }
-
-    String compilerConfiguration() {
-        '''
-compileScala.scalaCompileOptions.with {
-    useAnt = true
-    fork = true
-}
-'''
-    }
-
-    String logStatement() {
-        "Compiling with Ant scalac task"
-    }
-
-    String getErrorOutput() {
-        return result.output
-    }
-}
+@TargetVersions(["2.10.4", "2.11.1"])
+class AntForkingScalaCompilerIntegrationTest extends AbstractAntForkingScalaCompilerIntegrationTest {}

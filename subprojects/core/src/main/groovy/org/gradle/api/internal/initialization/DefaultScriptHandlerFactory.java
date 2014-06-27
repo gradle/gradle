@@ -60,9 +60,4 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, new ScriptHandlerClassLoaderFactory(scriptSource, classLoaderScope));
     }
 
-    private static class BasicDomainObjectContext implements DomainObjectContext {
-        public String absoluteProjectPath(String name) {
-            return name;
-        }
-    }
 }

@@ -43,7 +43,7 @@ public class DaemonStartupCommunication {
     }
 
     public DaemonDiagnostics readDiagnostics(String message) {
-        //TODO SF dont assume the message has correct format
+        //Assuming the message has correct format. Not bullet proof, but seems to work ok for now.
         String[] split = message.split(DELIM);
         String pidString = split[1];
         Long pid = pidString.equals("null")? null : Long.valueOf(pidString);

@@ -16,11 +16,15 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.GradleException
+import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
+import org.gradle.internal.nativeplatform.console.ConsoleDetector
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData
+import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 
@@ -65,8 +69,6 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     @Nested
     private final PmdReportsImpl reports
 
-    private final IsolatedAntBuilder antBuilder
-
     /**
      * Whether or not to allow the build to continue if there are warnings.
      *
@@ -74,9 +76,24 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     boolean ignoreFailures
 
-    @Inject Pmd(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
+    /**
+     * Whether or not to write PMD results to {@code System.out}.
+     */
+    @Incubating
+    boolean consoleOutput
+
+    Pmd() {
         reports = instantiator.newInstance(PmdReportsImpl, this)
-        this.antBuilder = antBuilder
+    }
+
+    @Inject
+    Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction
@@ -97,25 +114,34 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
             }
         }
 
-        antBuilder.withClasspath(getPmdClasspath()).execute {
+        antBuilder.withClasspath(getPmdClasspath()).execute { a ->
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-                ant.pmd(antPmdArgs) {
-                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                    getRuleSets().each {
-                        ruleset(it)
-                    }
-                    getRuleSetFiles().each {
-                        ruleset(it)
-                    }
-
-                    if (reports.html.enabled) {
-                        assert reports.html.destination.parentFile.exists()
-                        formatter(type: prePmd5 ? "betterhtml" : "html", toFile: reports.html.destination)
-                    }
-                    if (reports.xml.enabled) {
-                        formatter(type: 'xml', toFile: reports.xml.destination)
-                    }
+            ant.pmd(antPmdArgs) {
+                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                getRuleSets().each {
+                    ruleset(it)
                 }
+                getRuleSetFiles().each {
+                    ruleset(it)
+                }
+
+                if (reports.html.enabled) {
+                    assert reports.html.destination.parentFile.exists()
+                    formatter(type: prePmd5 ? "betterhtml" : "html", toFile: reports.html.destination)
+                }
+                if (reports.xml.enabled) {
+                    formatter(type: 'xml', toFile: reports.xml.destination)
+                }
+
+                if (getConsoleOutput()) {
+                    def consoleOutputType = 'text'
+                    if (stdOutIsAttachedToTerminal()) {
+                        consoleOutputType = 'textcolor'
+                    }
+                    a.builder.saveStreams = false
+                    formatter(type: consoleOutputType, toConsole: true)
+                }
+            }
             def failureCount = ant.project.properties["pmdFailureCount"]
             if (failureCount) {
                 def message = "$failureCount PMD rule violations were found."
@@ -131,6 +157,12 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
                 }
             }
         }
+    }
+
+    boolean stdOutIsAttachedToTerminal() {
+        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class)
+        ConsoleMetaData consoleMetaData = consoleDetector.getConsole()
+        consoleMetaData?.stdOut
     }
 
     /**

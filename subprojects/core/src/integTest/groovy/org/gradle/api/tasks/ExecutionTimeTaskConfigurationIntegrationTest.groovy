@@ -17,148 +17,80 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.SystemProperties
+import spock.lang.Unroll
 
 class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationSpec {
-
-    private static final String NL = SystemProperties.getLineSeparator()
-
-    def "throws decent warnings when task is configured during execution time"() {
-
-        setup:
-        def invalidConfig = """
-            def anAction = new Action() {
-                public void execute(Object object) {
-                }
-            }
-            doFirst(anAction)
-            doLast(anAction)
-            doFirst {}
-            doLast {}
-
-            actions.set(0, anAction)
-            actions.add(anAction)
-            actions.addAll([anAction])
-
-            def iter = actions.iterator()
-            iter.next()
-            iter.remove()
-
-            actions.removeAll([anAction, anAction])
-            actions.clear()
-
-            onlyIf {false}
-            setActions(new ArrayList())
-            dependsOn bar
-            dependsOn = [bar]
-            setOnlyIf({false})
-            setOnlyIf({false})
-
-            Spec spec = new Spec() {
-                public boolean isSatisfiedBy(Object element) {
-                    return false;
-                }
-            };
-            setOnlyIf(spec)
-            onlyIf(spec)
-            enabled = false
-            deleteAllActions()
-
-            inputs.file("afile")
-            inputs.files("anotherfile")
-            inputs.dir("aDir")
-            inputs.property("propertyName", "propertyValue")
-            inputs.properties(["propertyName": "propertyValue"])
-            inputs.source("aSource")
-            inputs.sourceDir("aSourceDir")
-
-            outputs.upToDateWhen {false}
-            outputs.upToDateWhen(spec)
-            outputs.file("afile")
-            outputs.files("anotherfile")
-            outputs.dir("aDir")
-
-            """
-        when:
+    @Unroll
+    def "fails when task is configured using #config during execution time"() {
         buildFile.text = """
-            task bar{
-                doLast{
-                    $invalidConfig
+            def anAction = {} as Action
+
+            task broken {
+                doLast {
+                    $config
                 }
             }
 
-            task foo << {
-                $invalidConfig
+            task broken2 << {
+                $config
+            }
+
+            task broken3 << { }
+
+            task broken4 {
+                dependsOn broken3
+                doLast {
+                    broken3.configure { $config }
+                }
             }
         """
-        and:
-        executer.withDeprecationChecksDisabled()
+
+        when:
+        executer.withArgument("--continue")
+        fails("broken", "broken2", "broken4")
+
         then:
-        succeeds("bar", "foo")
+        failure.assertHasCause("Cannot call ${description} on task ':broken' after task has started execution.")
+        failure.assertHasCause("Cannot call ${description} on task ':broken2' after task has started execution. Check the configuration of task ':broken2' as you may have misused '<<' at task declaration.")
+        failure.assertHasCause("Cannot call ${description} on task ':broken3' after task has started execution.")
 
-        output.contains("Calling Task.doFirst(Action) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.doFirst(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.doLast(Action) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.doLast(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.getActions().add() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.getActions().addAll() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.getActions().set(int, Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.getActions().remove() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.getActions().removeAll() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.getActions().clear() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.onlyIf(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.setActions(Actions<Task>) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.dependsOn(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.setDependsOn(Iterable) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.setOnlyIf(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.setOnlyIf(Spec) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.onlyIf(Spec) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.setEnabled(boolean) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling Task.deleteAllActions() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskInputs.dir(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskInputs.files(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskInputs.file(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskInputs.property(String, Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskInputs.properties(Map) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskInputs.source(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskInputs.sourceDir(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskOutputs.upToDateWhen(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskOutputs.upToDateWhen(Spec) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskOutputs.file(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskOutputs.files(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        output.contains("Calling TaskOutputs.dir(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':bar'.$NL")
-        and:
-
-        output.contains("Calling Task.doFirst(Action) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.doFirst(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.doLast(Action) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.doLast(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.getActions().add() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.getActions().addAll() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.getActions().set(int, Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.getActions().remove() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.getActions().removeAll() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.getActions().clear() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.onlyIf(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.setActions(Actions<Task>) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.dependsOn(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.setDependsOn(Iterable) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.setOnlyIf(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.setOnlyIf(Spec) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.onlyIf(Spec) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.setEnabled(boolean) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling Task.deleteAllActions() after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskInputs.dir(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskInputs.files(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskInputs.file(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskInputs.property(String, Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskInputs.properties(Map) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskInputs.source(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskInputs.sourceDir(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskOutputs.upToDateWhen(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskOutputs.upToDateWhen(Spec) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskOutputs.file(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskOutputs.files(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
-        output.contains("Calling TaskOutputs.dir(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 3.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.$NL")
+        where:
+        config                                                      | description
+        "doFirst(anAction)"                                         | "Task.doFirst(Action)"
+        "doFirst({})"                                               | "Task.doFirst(Closure)"
+        "doLast(anAction)"                                          | "Task.doLast(Action)"
+        "doLast({})"                                                | "Task.doLast(Closure)"
+        "actions.add(anAction)"                                     | "Task.getActions().add()"
+        "actions.addAll([anAction])"                                | "Task.getActions().addAll()"
+        "actions.set(0, anAction)"                                  | "Task.getActions().set(int, Object)"
+        "actions.removeAll(actions)"                                | "Task.getActions().removeAll()"
+        "actions.remove(actions[0])"                                | "Task.getActions().remove()"
+        "actions.clear()"                                           | "Task.getActions().clear()"
+        "def iter = actions.iterator(); iter.next(); iter.remove()" | "Task.getActions().remove()"
+        "actions = []"                                              | "Task.setActions(List<Action>)"
+        "deleteAllActions()"                                        | "Task.deleteAllActions()"
+        "onlyIf { }"                                                | "Task.onlyIf(Closure)"
+        "onlyIf({ } as Spec)"                                       | "Task.onlyIf(Spec)"
+        "setOnlyIf({ })"                                            | "Task.setOnlyIf(Closure)"
+        "onlyIf = ({ } as Spec)"                                    | "Task.setOnlyIf(Spec)"
+        "enabled = false"                                           | "Task.setEnabled(boolean)"
+        "dependsOn 'a', 'b'"                                        | "Task.dependsOn(Object...)"
+        "dependsOn = ['a', 'b']"                                    | "Task.setDependsOn(Iterable)"
+        "mustRunAfter 'a', 'b'"                                     | "Task.mustRunAfter(Object...)"
+        "mustRunAfter = ['a', 'b']"                                 | "Task.setMustRunAfter(Iterable)"
+        "finalizedBy 'a', 'b'"                                      | "Task.finalizedBy(Object...)"
+        "finalizedBy = ['a', 'b']"                                  | "Task.setFinalizedBy(Iterable)"
+        "inputs.file('a')"                                          | "TaskInputs.file(Object)"
+        "inputs.files('a')"                                         | "TaskInputs.files(Object...)"
+        "inputs.dir('a')"                                           | "TaskInputs.dir(Object)"
+        "inputs.property('key', 'value')"                           | "TaskInputs.property(String, Object)"
+        "inputs.properties([key: 'value'])"                         | "TaskInputs.properties(Map)"
+        "inputs.source('a')"                                        | "TaskInputs.source(Object)"
+        "inputs.sourceDir('a')"                                     | "TaskInputs.sourceDir(Object)"
+        "outputs.upToDateWhen { }"                                  | "TaskOutputs.upToDateWhen(Closure)"
+        "outputs.upToDateWhen({ } as Spec)"                         | "TaskOutputs.upToDateWhen(Spec)"
+        "outputs.file('a')"                                         | "TaskOutputs.file(Object)"
+        "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"
+        "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"
     }
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-public class CachedChangingModulesIntegrationTest extends AbstractDependencyResolutionTest {
+public class CachedChangingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def "can cache and refresh unique versioned maven artifacts with a classifier"() {
         given:
-        server.start()
         def repo = mavenHttpRepo("repo")
         def module = repo.module("group", "projectA", "1.0-SNAPSHOT")
         def sourceArtifact = module.artifact(classifier: "source")
@@ -93,7 +92,6 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
 
     def "can cache and refresh non unique versioned maven artifacts with a classifier"() {
         given:
-        server.start()
         def repo = mavenHttpRepo("repo")
         def module = repo.module("group", "projectA", "1.0-SNAPSHOT").withNonUniqueSnapshots()
         def sourceArtifact = module.artifact(classifier: "source")
@@ -164,7 +162,6 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
 
     def "can cache and refresh ivy changing artifacts with a classifier"() {
         given:
-        server.start()
         def repo = ivyHttpRepo("repo")
         def module = repo.module("group", "projectA", "1.0")
         module.artifact(classifier: "source")
@@ -196,7 +193,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
           """
         when:
         module.ivy.expectGet()
-        module.expectArtifactGet(name: "projectA", classifier: "source")
+        module.getArtifact(classifier: "source").expectGet()
 
         then:
         run 'retrieve'
@@ -204,7 +201,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         when:
         server.resetExpectations()
         module.ivy.expectHead()
-        module.expectArtifactHead(name: "projectA", classifier: 'source')
+        module.getArtifact(classifier: 'source').expectHead()
         then:
         run 'retrieve'
 
@@ -212,12 +209,12 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.publishWithChangedContent()
         server.resetExpectations()
         module.ivy.expectHead()
-        module.expectArtifactHead(name: "projectA", classifier: 'source')
+        module.getArtifact(classifier: 'source').expectHead()
 
         module.ivy.sha1.expectGet()
         module.ivy.expectGet()
-        module.expectArtifactGet(name: "projectA", classifier: 'source')
-        module.expectArtifactSha1Get(name: "projectA", classifier: 'source')
+        module.getArtifact(classifier: 'source').expectGet()
+        module.getArtifact(classifier: 'source').sha1.expectGet()
 
         then:
         run 'retrieve'

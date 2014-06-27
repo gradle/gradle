@@ -77,7 +77,7 @@ class DefaultBuildOutcomeComparatorFactoryTest extends Specification {
     }
 
     private static BuildOutcomeComparator toBuildOutcomeComparator(BuildOutcome buildOutcome) {
-        new BuildOutcomeComparator<>() {
+        new BuildOutcomeComparator() {
             String toString() {
                 "comparator for $buildOutcome"
             }

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
 import org.junit.Test
+import spock.lang.Issue
 
 class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
 
@@ -87,5 +88,42 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
         file('buildSrc/src/main/java/Broken.java') << 'broken!'
         ExecutionFailure failure = executer.runWithFailure()
         failure.assertHasDescription('Execution failed for task \':compileJava\'.')
+    }
+
+    @Test
+    @Issue("http://issues.gradle.org//browse/GRADLE-3052")
+    void buildTaskCanHaveInputsAndOutputs() {
+        file("input") << "foo"
+        file("settings.gradle") << "rootProject.name = 'proj'"
+        file("build.gradle") << """
+            class UpperFile extends DefaultTask {
+                @InputFile
+                File input
+
+                @OutputFile
+                File output
+
+                @TaskAction
+                void upper() {
+                  output.text = input.text.toUpperCase()
+                }
+            }
+
+            task upper(type: UpperFile) {
+                input = file("input")
+                output = file("output")
+            }
+
+            task build(type: GradleBuild) {
+              dependsOn upper
+              tasks = ["upper"]
+              startParameter.searchUpwards = false
+              outputs.file "build.gradle" // having an output (or input) triggers the bug
+            }
+        """
+
+        def run = executer.withTasks("build").run()
+        assert run.executedTasks == [":upper", ":build", ":proj:upper"]
+        assert run.skippedTasks == [":proj:upper"].toSet()
     }
 }

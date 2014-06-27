@@ -32,7 +32,7 @@ public abstract class AbstractTargetedProjectNativeComponent extends AbstractPro
     private final Set<String> buildTypes = new HashSet<String>();
     private final Set<String> flavors = new HashSet<String>();
 
-    public AbstractTargetedProjectNativeComponent(NativeProjectComponentIdentifier id) {
+    public AbstractTargetedProjectNativeComponent(ProjectNativeComponentIdentifier id) {
         super(id);
     }
 

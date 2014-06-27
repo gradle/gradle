@@ -1,4 +1,4 @@
-classesDir = file('build/classes')
+def classesDir = file('build/classes')
 classesDir.mkdirs()
 task clean(type: Delete) {
     delete 'build'

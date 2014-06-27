@@ -338,3 +338,148 @@ for now we'll need an implementation backed by ExternalResourceRepository#list (
 
 Later we may add a ModuleVersionLister backed by an Artifactory REST listing, our own file format, etc... The idea would be that these ModuleVersionLister
 implementations will be pluggable in the future, so you could combine maven-metadata.xml with ivy.xml in a single repository, for example.
+
+# GRADLE-2861 Handle parent pom with unknown placeholders (DONE)
+
+See [GRADLE-2861](http://issues.gradle.org/browse/GRADLE-2861)
+
+Currently, the POM parser (inherited from Ivy) attaches special extra attributes to the `ModuleDescriptor` for a POM. These are later used by the POM parser
+when it parses a child POM. Sometimes these attributes cause badly formed XML to be generated, hence the failure listed in the jira issue.
+
+The solution is to have the parser request the parent POM artifact directly, rather than indirectly via the module meta-data:
+
+1. Add a `LocallyAvailableExternalResource getArtifact(Artifact)` method to `DescriptorParseContext`.
+    - Implementation can reuse the `ModuleVersionResolveResult` from the existing `getModuleDescriptor()` method. This result includes an `ArtifactResolver` which
+      can be used to resolve an `Artifact` to a `File`. There's an example of how to adapt a `File` to a `LocallyAvailableExternalResource` instance in
+      `AbstractModuleDescriptorParser.parseMetaData()`.
+2. Change the `GradlePomModuleDescriptorParser.parseOtherPom()` to use this new method to fetch and parse the parent POM artifact, rather than using the parsed
+   `ModuleDescriptor` for the parent. For this step, can continue to represent the parent pom using a `ModuleDescriptor` inside the parser.
+3. Change `GradlePomModuleDescriptorParser` to represent the parent POM using a `PomReader` rather than a `ModuleDescriptor`.
+4. Clean out `GradlePomModuleDescriptorBuilder` so that it no longer defines any extra properties on the parsed `ModuleDescriptor`.
+5. Change `IvyXmlModuleDescriptorParser.parseOtherIvyFile()` to use the new method to fetch and parse the Ivy descriptor artifact.
+6. Remove `DescriptorParseContext.getModuleDescriptor()`. It should no longer be required.
+
+## Test coverage
+
+* Unignore the existing test case in `BadPomFileResolveIntegrationTest`.
+* Add a test case to `MavenParentPomResolveIntegrationTest` to cover two Maven modules that share a common parent.
+* Add a test case to `MavenParentPomResolveIntegrationTest` to cover a Maven module that has a parent and grandparent module.
+
+# Latest status dynamic versions work across multiple repositories (DONE)
+
+See [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502)
+
+### Test coverage
+
+1. Using `latest.integration`
+    1. Empty repository fails with not found.
+    2. Publish `1.0` and `1.1` with status `integration`. Resolves to `1.1`.
+    3. Publish `1.2` with status `release`. Resolves to `1.2`
+    4. Publish `1.3` with no ivy.xml. Resolves to `1.3`.
+2. Using `latest.milestone`
+    1. Empty repository fails with not found.
+    2. Publish `2.0` with no ivy.xml. Fails with not found.
+    3. Publish `1.3` with status `integration`. Fails with not found.
+    4. Publish `1.0` and `1.1` with ivy.xml and status `milestone`. Resolves to `1.1`.
+    5. Publish `1.2` with status `release`. Resolves to `1.2`
+3. Using `latest.release`
+    1. Empty repository fails with not found.
+    2. Publish `2.0` with no ivy.xml. Fails with not found.
+    3. Publish `1.3` with status `milestone`. Fails with not found.
+    4. Publish `1.0` and `1.1` with ivy.xml and status `release`. Resolves to `1.1`.
+4. Multiple repositories.
+5. Checking for changes. Using `latest.release`
+    1. Publish `1.0` with status `release` and `2.0` with status `milestone`.
+    2. Resolve and assert directory listing and `1.0` artifacts downloaded.
+    3. Resolve and assert directory listing downloaded.
+    4. Publish `1.1` with status `release`.
+    5. Resolve and assert directory listing and `1.1` artifacts downloaded.
+6. Maven integration
+    1. Publish `1.0`. Check `latest.integration` resolves to `1.0` and `latest.release` fails with not found.
+    2. Publish `1.1-SNAPSHOT`. Check `latest.integration` resolves to `1.1-SNAPSHOT` and `latest.release` fails with not found.
+7. Version ranges
+8. Repository with multiple patterns.
+9. Repository with `[type]` in pattern before `[revision]`.
+10. Multiple dynamic versions match the same remote revision.
+
+### Implementation strategy
+
+Change ExternalResourceResolver.getDependency() to use the following algorithm:
+1. Calculate an ordered list of candidate versions.
+    1. For a static version selector the list contains a single candidate.
+    2. For a dynamic version selector the list is the full set of versions for the module.
+        * For a Maven repository, this is determined using `maven-metadata.xml` if available, falling back to a directory listing.
+        * For an Ivy repository, this is determined using a directory listing.
+        * Fail if directory listing is not available.
+2. For each candidate version:
+    1. If the version matcher does not accept the module version, continue.
+    2. Fetch the module version meta-data, as described below. If not found, continue.
+    3. If the version matcher requires the module meta-data and it does not accept the meta-data, continue.
+    4. Use the module version.
+3. Return not found.
+
+To fetch the meta-data for a module version:
+1. Download the meta data descriptor resource, via the resource cache. If found, parse.
+    1. Validate module version in meta-data == the expected module version.
+2. Check for a jar artifact, via the resource cache. If found, use default meta-data. The meta-data must have `default` set to `true` and `status` set to `integration`.
+3. Return not found.
+
+# Correct handling of packaging and dependency type declared in poms (DONE)
+
+* GRADLE-2188: Artifact not found resolving dependencies with packaging/type "orbit"
+
+### Description
+
+Our engine for parsing Maven pom files is borrowed from ivy, and assumes the 'packaging' element equals the artifact type, with a few exceptions (ejb, bundle, eclipse-plugin, maven-plugin).
+This is different from the way Maven does the calculation, which is:
+
+* Type defaults to 'jar' but can be explicitly declared.
+* Maven maps the type to an [extension, classifier] combination using some hardcoded rules. Unknown types are mapped to [type, ""].
+* To resolve the artefact, maven looks for an artefact with the given artifactId, version, classifier and extension.
+
+### Strategic solution
+
+At present, our model of an Artifact is heavily based on ivy; for this fix we can introduce the concept of mapping between our internal model and a repository-centric
+artifact model. This will be a small step toward an independent Gradle model of artifacts, which then maps to repository specific things link extension, classifier, etc.
+
+### User visible changes
+
+* When the dependency declaration has no 'type' specified, or a 'type' that maps to the extension 'jar'
+    * Resolution of a POM module with packaging in ['', 'pom', 'jar', 'ejb', 'bundle', 'maven-plugin', 'eclipse-plugin'] will not change
+    * Resolution of a POM with packaging 'foo' that maps to 'module.foo', a deprecation warning will be emitted and the artifact 'module.foo' will be used
+    * Resolution of a POM with packaging 'foo' that maps to 'module.jar', the artifact 'module.jar' will be successfully found. (ie 'orbit'). An extra HTTP
+      request will be required to first look for 'module.foo'.
+* When the dependency declaration has a 'type' specified that maps to an extension 'ext' (other than 'jar')
+    * Resolution of a POM module with packaging in ['pom', 'jar', 'ejb', 'bundle', 'maven-plugin', 'eclipse-plugin'] will emit a deprecation warning before using 'module.jar' if it exists
+    * Resolution of a POM with packaging 'foo' and actual artifact 'module.foo', a deprecation warning will be emitted and the artifact 'module.foo' will be used
+    * Resolution of a POM with packaging 'foo' and actual artifact 'module.ext', the artifact 'module.ext' will be successfully found. An extra HTTP
+      request will be required to first look for 'module.foo'.
+
+### Integration test coverage
+
+* Coverage for resolving pom dependencies referenced in various ways:
+    * Need modules published in maven repositories with packaging = ['', 'pom', 'jar', 'war', 'eclipse-plugin', 'custom']
+    * Test resolution of artifacts in these modules via
+        1. Direct dependency in a Gradle project
+        2. Transitive dependency in a maven module (pom) which is itself a dependency of a Gradle project
+        3. Transitive dependency in an ivy module (ivy.xml) which is itself a dependency of a Gradle project
+    * For 1. and 2., need dependency declaration with and without type attribute specified
+    * Must verify that deprecation warning is logged appropriately
+* Sad-day coverage for the case where neither packaging nor type can successfully locate the maven artifact. Error message should report 'type'-based location.
+
+### Implementation approach
+
+* Determine 2 locations for the primary artifact:
+    * The 'packaging' location: apply the current logic to determine location from module packaging attribute
+        * Retain current packaging->extension mapping for specific packaging types
+    * The 'type' location: Use maven3 rules to map type->extension+classifier, and construct a location
+* If both locations are the same, use the artifact at that location.
+* If not, look for the artifact in the packaging location
+    * If found, emit a deprecation warning and use that location
+    * If not found, use the artifact from the type location
+* In 2.0, we will remove the packaging->extension mapping and the deprecation warning
+
+# Handle pom-only modules in mavenLocal (DONE)
+
+* GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
+* GRADLE-2369: Dependency resolution fails for mavenLocal(), mavenCentral() if artifact partially in mavenLocal()

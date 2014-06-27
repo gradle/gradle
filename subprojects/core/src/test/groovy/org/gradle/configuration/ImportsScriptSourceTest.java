@@ -15,7 +15,7 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.internal.resource.Resource;
+import org.gradle.internal.resource.Resource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;

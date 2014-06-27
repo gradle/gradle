@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

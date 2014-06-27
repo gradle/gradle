@@ -33,7 +33,7 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private DefaultIdeaProject parent;
 
     private List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
-    private DefaultGradleProject gradleProject;
+    private DefaultGradleProject<?> gradleProject;
 
     private IdeaCompilerOutput compilerOutput;
 

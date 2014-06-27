@@ -151,7 +151,7 @@ class EclipsePlugin extends IdePlugin {
                         def provided = ["scala-library", "scala-swing", "scala-dbc"]
                         def dependencies = classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
                         if (!dependencies.empty) {
-                            classpath.minusConfigurations += project.configurations.detachedConfiguration(dependencies as Dependency[])
+                            classpath.minusConfigurations << project.configurations.detachedConfiguration(dependencies as Dependency[])
                         }
                     }
                 }

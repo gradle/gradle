@@ -19,13 +19,18 @@ package org.gradle.nativebinaries;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.nativebinaries.tasks.BuildBinaryTask;
+import org.gradle.nativebinaries.tasks.ObjectFilesToBinary;
 
 /**
  * Provides access to key tasks used for building the binary.
  */
 @Incubating
 public interface NativeBinaryTasks extends DomainObjectSet<Task> {
+    /**
+     * The 'lifecycle' task, that can be used to construct this native binary.
+     */
+    Task getBuild();
+
     /**
      * The link task, if one is present. Null otherwise.
      */
@@ -39,5 +44,5 @@ public interface NativeBinaryTasks extends DomainObjectSet<Task> {
     /**
      * The task that builds the binary out of object files: either the link task or create static library task as appropriate.
      */
-    BuildBinaryTask getBuilder();
+    ObjectFilesToBinary getCreateOrLink();
 }

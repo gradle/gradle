@@ -15,25 +15,25 @@
  */
 package org.gradle.internal.typeconversion
 
-import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ErrorHandlingNotationParserTest extends Specification {
     def NotationParser<String, String> target = Mock()
-    def parser = new ErrorHandlingNotationParser<String, String>("String", "<broken>", target)
+    def parser = new ErrorHandlingNotationParser<String, String>("a thing", "<broken>", false, target)
 
     def "reports unable to parse null"() {
         when:
         parser.parseNotation(null)
 
         then:
-        InvalidUserDataException e = thrown()
-        e.message == toPlatformLineSeparators('''Cannot convert a null value to an object of type String.
+        UnsupportedNotationException e = thrown()
+        e.message == toPlatformLineSeparators('''Cannot convert a null value to a thing.
 The following types/formats are supported:
   - format 1
   - format 2
+
 <broken>''')
 
         1 * target.describe(!null) >> { args -> args[0].add("format 1"); args[0].add("format 2") }
@@ -49,11 +49,12 @@ The following types/formats are supported:
         parser.parseNotation("bad")
 
         then:
-        InvalidUserDataException e = thrown()
-        e.message == toPlatformLineSeparators('''Cannot convert the provided notation to an object of type String: broken-part.
+        UnsupportedNotationException e = thrown()
+        e.message == toPlatformLineSeparators('''Cannot convert the provided notation to a thing: broken-part.
 The following types/formats are supported:
   - format 1
   - format 2
+
 <broken>''')
 
     }

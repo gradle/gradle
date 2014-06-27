@@ -53,32 +53,6 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         recordings.findAll{ it }.size() == invocation
     }
 
-    def "recompiles binary when imported header file changes"() {
-        sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
-
-        given:
-        run "installMainExecutable"
-
-
-        when:
-        headerFile << """
-            int unused();
-"""
-        run "mainExecutable"
-
-        then:
-        executedAndNotSkipped libraryCompileTask
-        executedAndNotSkipped mainCompileTask
-
-        if(objectiveCWithAslr()){
-            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
-            executed ":linkMainExecutable", ":mainExecutable"
-        } else {
-            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-            skipped ":linkMainExecutable", ":mainExecutable"
-        }
-    }
-
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCHelloWorldApp()

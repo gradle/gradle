@@ -29,18 +29,18 @@ class DefaultInitScriptProcessorTest extends Specification {
         when:
         def scriptPluginFactory = Mock(ScriptPluginFactory)
         def scriptHandlerFactory = Mock(ScriptHandlerFactory)
-        def compileScope = Mock(ClassLoaderScope)
+        def gradleScope = Mock(ClassLoaderScope)
         def initScriptMock = Mock(ScriptSource)
         def gradleMock = Mock(GradleInternal)
+        def siblingScope = Mock(ClassLoaderScope)
         def scriptHandler = Mock(ScriptHandler)
         def scriptPlugin = Mock(ScriptPlugin)
 
-        1 * gradleMock.getClassLoaderScope() >> Mock(ClassLoaderScope) {
-            createSibling() >> compileScope
-        }
+        1 * gradleMock.getClassLoaderScope() >> gradleScope
+        1 * gradleScope.createSibling() >> siblingScope
 
-        1 * scriptHandlerFactory.create(initScriptMock, compileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, compileScope, "initscript", InitScript) >> scriptPlugin
+        1 * scriptHandlerFactory.create(initScriptMock, siblingScope) >> scriptHandler
+        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, siblingScope, gradleScope, "initscript", InitScript, false) >> scriptPlugin
         1 * scriptPlugin.apply(gradleMock)
 
         DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptPluginFactory, scriptHandlerFactory)

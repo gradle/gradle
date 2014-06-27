@@ -1,9 +1,13 @@
 /*
  * A set of general-purpose resource abstractions.
  */
+apply plugin: "groovy"
+
 dependencies {
     compile libraries.slf4j_api
     compile project(':baseServices')
+    compile project(':messaging')
+    compile libraries.commons_io
     testCompile libraries.groovy
 }
 

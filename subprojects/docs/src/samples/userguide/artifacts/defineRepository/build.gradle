@@ -1,5 +1,37 @@
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 
+//START SNIPPET maven-ivy-repository-no-auth
+repositories {
+    maven {
+        url "http://repo.mycompany.com/maven2"
+    }
+
+    ivy {
+        url "http://repo.mycompany.com/repo"
+    }
+}
+//END SNIPPET maven-ivy-repository-no-auth
+
+//START SNIPPET maven-ivy-repository-auth
+repositories {
+    maven {
+        url "sftp://repo.mycompany.com:22/maven2"
+        credentials {
+            username 'user'
+            password 'password'
+        }
+    }
+
+    ivy {
+        url "sftp://repo.mycompany.com:22/repo"
+        credentials {
+            username 'user'
+            password 'password'
+        }
+    }
+}
+//END SNIPPET maven-ivy-repository-auth
+
 //START SNIPPET maven-central
 repositories {
     mavenCentral()

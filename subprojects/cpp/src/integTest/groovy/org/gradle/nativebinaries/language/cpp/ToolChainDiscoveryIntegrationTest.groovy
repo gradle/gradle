@@ -34,10 +34,13 @@ class ToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegr
         toolChain.initialiseEnvironment();
 
         and:
-        // We explicitly apply a single tool chain plugin here, to avoid using an alternative tool chain
         buildFile << """
-            apply plugin: CppNativeBinariesPlugin
-            apply plugin: ${toolChain.pluginClass}
+            apply plugin: 'cpp'
+            model {
+                toolChains {
+                    tc(${toolChain.implementationClass})
+                }
+            }
             executables {
                 main {}
             }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
+import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.util.ArrayList;
@@ -28,7 +29,8 @@ public class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInp
     private final TaskStateChanges inputFilesState;
     private List<InputFileDetails> removedFiles = new ArrayList<InputFileDetails>();
 
-    public ChangesOnlyIncrementalTaskInputs(TaskStateChanges inputFilesState) {
+    public ChangesOnlyIncrementalTaskInputs(TaskStateChanges inputFilesState, FilesSnapshotSet inputFilesSnapshot) {
+        super(inputFilesSnapshot);
         this.inputFilesState = inputFilesState;
     }
 

@@ -38,9 +38,6 @@
                 <td>dependencies</td>
             </tr>
             <tr>
-                <td>dependsOnProjects</td>
-            </tr>
-            <tr>
                 <td>defaultTasks</td>
             </tr>
             <tr>
@@ -201,16 +198,7 @@
                 <td>task</td>
             </tr>
             <tr>
-                <td>dependsOn</td>
-            </tr>
-            <tr>
                 <td>evaluationDependsOn</td>
-            </tr>
-            <tr>
-                <td>childrenDependOnMe</td>
-            </tr>
-            <tr>
-                <td>dependsOnChildren</td>
             </tr>
             <tr>
                 <td>findProject</td>

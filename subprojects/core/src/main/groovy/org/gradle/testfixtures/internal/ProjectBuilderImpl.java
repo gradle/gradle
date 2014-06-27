@@ -23,6 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -58,7 +59,8 @@ public class ProjectBuilderImpl {
                 new StringScriptSource("test build file", null),
                 parentProject.getGradle(),
                 parentProject.getGradle().getServiceRegistryFactory(),
-                parentProject.getClassLoaderScope().createChild()
+                parentProject.getClassLoaderScope().createChild(),
+                parentProject.getBaseClassLoaderScope()
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
@@ -78,7 +80,9 @@ public class ProjectBuilderImpl {
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
                 topLevelRegistry.get(FileResolver.class));
-        ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, gradle.getClassLoaderScope().createSibling());
+        ClassLoaderScope baseScope = gradle.getClassLoaderScope().createSibling();
+        ClassLoaderScope rootProjectScope = baseScope.createSibling();
+        ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);

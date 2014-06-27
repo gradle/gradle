@@ -128,7 +128,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void startForegroundDaemonWithAlternateJavaHome() {
         run {
-            javaHome = AvailableJavaHomes.bestAlternative
+            javaHome = AvailableJavaHomes.differentJdk.javaHome
             startForegroundDaemonNow()
             javaHome = null
         }
@@ -169,8 +169,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run { failed builds[num] }
     }
 
-    void foregroundDaemonFailed(int num = 0) {
-        run { failed foregroundDaemons[num] }
+    void foregroundDaemonCompleted(int num = 0) {
+        run { foregroundDaemons[num].waitForFinish() }
     }
 
     void failed(GradleHandle handle) {
@@ -328,7 +328,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         buildFailedWithDaemonDisappearedMessage()
 
         and:
-        foregroundDaemonFailed()
+        foregroundDaemonCompleted()
     }
 
     @IgnoreIf({OperatingSystem.current().windows})
@@ -377,7 +377,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped() // just means the daemon has disappeared from the registry
 
         and:
-        foregroundDaemonFailed()
+        foregroundDaemonCompleted()
     }
 
     def "tearing down daemon process produces nice error message for client"() {
@@ -404,7 +404,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run { assert executer.daemonRegistry.all.empty }
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
     def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -414,7 +414,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         and:
         foregroundDaemonContext {
-            assert javaHome == AvailableJavaHomes.bestAlternative
+            assert javaHome == AvailableJavaHomes.differentJdk.javaHome
         }
 
         when:
@@ -434,7 +434,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
     def "can stop a daemon that is using a different java home"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()

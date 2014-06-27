@@ -38,7 +38,9 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     protected void createExecutions() {
         def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
         try {
-            add(new Permutation(resolver.resolve(current.version.version), current))
+            if (implicitVersion) {
+                add(new Permutation(resolver.resolve(current.version.version), current))
+            }
             previous.each {
                 if (it.toolingApiSupported) {
                     add(new Permutation(resolver.resolve(current.version.version), it))

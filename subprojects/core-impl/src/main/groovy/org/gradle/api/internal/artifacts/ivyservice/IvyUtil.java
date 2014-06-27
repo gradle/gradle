@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.util.GUtil;
 
 import java.util.Map;
@@ -46,6 +49,10 @@ public class IvyUtil {
         return createModuleRevisionId(id.getGroup(), id.getName(), id.getVersion());
     }
 
+    public static ModuleRevisionId createModuleRevisionId(ModuleComponentIdentifier id) {
+        return createModuleRevisionId(id.getGroup(), id.getModule(), id.getVersion());
+    }
+
     public static ModuleRevisionId createModuleRevisionId(ModuleRevisionId revId, String version) {
         return createModuleRevisionId(revId.getOrganisation(), revId.getName(), revId.getBranch(), version, revId.getQualifiedExtraAttributes());
     }
@@ -68,5 +75,11 @@ public class IvyUtil {
         synchronized (MODULE_ID_LOCK) {
             return ModuleId.newInstance(org, name);
         }
+    }
+
+    public static DefaultModuleDescriptor createModuleDescriptor(DependencyDescriptor dependencyDescriptor) {
+        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(dependencyDescriptor.getDependencyRevisionId(), dependencyDescriptor.getAllDependencyArtifacts());
+        moduleDescriptor.setStatus("integration");
+        return moduleDescriptor;
     }
 }

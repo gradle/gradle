@@ -16,14 +16,11 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
-@IgnoreIf({!JavaVersion.current().java6Compatible})
 class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'scala/zinc')

@@ -17,11 +17,9 @@
 package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.text.TreeFormatter;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
-import org.gradle.nativebinaries.internal.LinkerSpec;
-import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
+import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.TreeVisitor;
 
 public class UnavailablePlatformToolChain implements PlatformToolChain {
@@ -45,35 +43,7 @@ public class UnavailablePlatformToolChain implements PlatformToolChain {
         return new GradleException(formatter.toString());
     }
 
-    public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-        throw failure();
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-        throw failure();
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-        throw failure();
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler() {
-        throw failure();
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler() {
-        throw failure();
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
-        throw failure();
-    }
-
-    public <T extends LinkerSpec> Compiler<T> createLinker() {
-        throw failure();
-    }
-
-    public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
+    public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
         throw failure();
     }
 }

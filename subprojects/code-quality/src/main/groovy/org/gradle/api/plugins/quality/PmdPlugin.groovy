@@ -49,7 +49,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("pmd", PmdExtension, project)
         extension.with {
-            toolVersion = "4.3"
+            toolVersion = "5.1.1"
             // NOTE: should change default rule set to java-basic once we bump default version to 5.0+
             // this will also require a change to Pmd.run() (convert java-basic to basic for old versions,
             // instead of basic to java-basic for new versions)
@@ -78,7 +78,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         config.incoming.beforeResolve {
             if (config.dependencies.empty) {
                 VersionNumber version = VersionNumber.parse(extension.toolVersion)
-                String dependency = (version < VersionNumber.parse("5.0.0"))?
+                String dependency = (version < VersionNumber.version(5))?
                     "pmd:pmd:$extension.toolVersion" : "net.sourceforge.pmd:pmd:$extension.toolVersion"
                 config.dependencies.add(project.dependencies.create(dependency))
             }
@@ -88,6 +88,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
             ignoreFailures = { extension.ignoreFailures }
+            consoleOutput = { extension.consoleOutput }
             targetJdk = { extension.targetJdk }
             task.reports.all { report ->
                 report.conventionMapping.with {

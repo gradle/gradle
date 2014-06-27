@@ -19,6 +19,7 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.internal.SystemProperties
+import org.gradle.internal.jvm.Jvm
 import org.junit.Assert
 import org.gradle.util.TextUtil
 
@@ -62,10 +63,14 @@ class SequentialOutputMatcher {
         if (lines.empty) {
             return lines;
         }
+        boolean seenWarning = false
         List<String> result = new ArrayList<String>()
         for (String line : lines) {
             if (line.matches('Download .+')) {
                 // ignore
+            } else if (!seenWarning && !Jvm.current().javaVersion.java7Compatible && line == 'Support for reading or changing file permissions is only available on this platform using Java 7 or later.') {
+                // ignore this warning once only on java < 7
+                seenWarning = true
             } else {
                 result << line
             }

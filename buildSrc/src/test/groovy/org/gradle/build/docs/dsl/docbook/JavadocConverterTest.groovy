@@ -185,6 +185,16 @@ line 2</para>'''
 literal code</programlisting>'''
     }
 
+    def preElementCanContainReservedCharacters() {
+        _ * classMetaData.rawCommentText >> ''' * <pre>a << b</pre>'''
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<programlisting language="java">a &lt;&lt; b</programlisting>'''
+    }
+
     def implicitlyEndsCurrentParagraphAtNextBlockElement() {
         _ * classMetaData.rawCommentText >> ''' * for example: <pre>this is some
  * literal code</pre> does something.
@@ -279,6 +289,16 @@ literal code</programlisting><para> does something.
 
     def convertsAnEmElementToAnEmphasisElement() {
         _ * classMetaData.rawCommentText >> '<em>text</em>'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<para><emphasis>text</emphasis></para>'''
+    }
+
+    def convertsAStrongElementToAnEmphasisElement() {
+        _ * classMetaData.rawCommentText >> '<strong>text</strong>'
 
         when:
         def result = parser.parse(classMetaData, listener)

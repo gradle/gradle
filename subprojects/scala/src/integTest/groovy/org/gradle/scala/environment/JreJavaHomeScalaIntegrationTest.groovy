@@ -18,15 +18,16 @@ package org.gradle.scala.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+@TargetVersions(["2.10.4", "2.11.1"])
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
-    @Requires(TestPrecondition.JDK6_OR_LATER)
     @Unroll
     def "scala java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
@@ -49,7 +50,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.9.2'
+                        compile 'org.scala-lang:scala-library:2.11.1'
                     }
 
                     compileScala {
@@ -83,7 +84,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.9.2'
+                        compile 'org.scala-lang:scala-library:2.11.1'
                     }
                     """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }

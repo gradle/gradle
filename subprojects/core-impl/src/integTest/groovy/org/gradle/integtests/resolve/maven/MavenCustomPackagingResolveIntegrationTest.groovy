@@ -16,27 +16,19 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
 
-class MavenCustomPackagingResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2984")
     def "can resolve dependency with custom packaging"() {
-        given:
-        executer.withDeprecationChecksDisabled()
-
         def extension = "aar"
         m2Installation.mavenRepo().module("local", "local", "1.0").hasType(extension).hasPackaging(extension).publish()
-        mavenHttpRepo.module("remote", "remote", "1.0").with {
-            allowAll()
-            hasType(extension).hasPackaging(extension).publish()
-        }
-
-        // Not publishing, just allowing the HTTP requests to 404
-        mavenHttpRepo.module("local", "local", "1.0").allowAll()
-
-        server.start()
+        def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType(extension).hasPackaging(extension).publish()
+        remote.pom.expectGet()
+        remote.artifact.expectHead()
+        remote.artifact.expectGet()
 
         when:
         buildScript """
@@ -53,16 +45,22 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractDependencyResol
                 remote "remote:remote:1.0"
             }
 
-            task showDeps {
-                doLast {
-                    println configurations.local.files // trigger resolve
-                    println configurations.remote.files // trigger resolve
-                }
+            task local(type: Sync) {
+                into 'local'
+                from configurations.local
+            }
+            task remote(type: Sync) {
+                into 'remote'
+                from configurations.remote
             }
         """
 
         then:
-        succeeds("showDeps")
+        succeeds("local", "remote")
+
+        and:
+        file("local").assertHasDescendants("local-1.0.aar")
+        file("remote").assertHasDescendants("remote-1.0.aar")
     }
 
 }

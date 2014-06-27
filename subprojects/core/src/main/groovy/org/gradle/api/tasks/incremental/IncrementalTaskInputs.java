@@ -118,5 +118,4 @@ public interface IncrementalTaskInputs {
      * @throws IllegalStateException if invoked prior to {@link #outOfDate}, or if invoked more than once.
      */
     void removed(Action<? super InputFileDetails> removedAction);
-
 }

@@ -16,7 +16,7 @@
 package org.gradle.language.java.internal
 
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.language.jvm.Classpath
+import org.gradle.runtime.jvm.Classpath
 import org.gradle.language.base.FunctionalSourceSet
 import spock.lang.Specification
 

@@ -43,7 +43,7 @@ public class OptionNotationParserFactory {
         return new ValueAwareCompositeNotationParser<Object>(parsers);
     }
 
-    private class UnsupportedNotationParser implements ValueAwareNotationParser<Object> {
+    private static class UnsupportedNotationParser implements ValueAwareNotationParser<Object> {
 
         public Object parseNotation(CharSequence notation) throws UnsupportedNotationException, TypeConversionException {
             throw new UnsupportedOperationException();
@@ -56,7 +56,7 @@ public class OptionNotationParserFactory {
         }
     }
 
-    private class NoDescriptionValuesJustReturningParser<T> extends JustReturningParser<CharSequence, T> implements ValueAwareNotationParser<T> {
+    private static class NoDescriptionValuesJustReturningParser<T> extends JustReturningParser<CharSequence, T> implements ValueAwareNotationParser<T> {
         public NoDescriptionValuesJustReturningParser(Class<? extends T> targetType) {
             super(targetType);
         }
@@ -66,7 +66,7 @@ public class OptionNotationParserFactory {
         }
     }
 
-    private class ValueAwareCompositeNotationParser<T> extends CompositeNotationParser<CharSequence, T> implements ValueAwareNotationParser<T> {
+    private static class ValueAwareCompositeNotationParser<T> extends CompositeNotationParser<CharSequence, T> implements ValueAwareNotationParser<T> {
         private final Collection<ValueAwareNotationParser<? extends T>> delegates;
 
         public ValueAwareCompositeNotationParser(Collection<ValueAwareNotationParser<? extends T>> delegates) {

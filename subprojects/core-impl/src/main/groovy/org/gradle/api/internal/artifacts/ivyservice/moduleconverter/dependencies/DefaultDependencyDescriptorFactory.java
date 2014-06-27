@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.util.WrapUtil;
 
 import java.util.List;
@@ -30,11 +32,9 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         this.dependencyDescriptorFactories = WrapUtil.toList(dependencyDescriptorFactories);
     }
 
-    public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
-                                        ModuleDependency dependency) {
+    public DependencyMetaData createDependencyDescriptor(String configuration, ModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
         IvyDependencyDescriptorFactory factoryInternal = findFactoryForDependency(dependency);
-        EnhancedDependencyDescriptor dependencyDescriptor = factoryInternal.createDependencyDescriptor(configuration, dependency, moduleDescriptor);
-        moduleDescriptor.addDependency(dependencyDescriptor);
+        return new DefaultDependencyMetaData(factoryInternal.createDependencyDescriptor(configuration, dependency, moduleDescriptor));
     }
 
     private IvyDependencyDescriptorFactory findFactoryForDependency(ModuleDependency dependency) {

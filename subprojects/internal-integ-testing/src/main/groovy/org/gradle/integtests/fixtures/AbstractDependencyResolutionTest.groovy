@@ -17,22 +17,13 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.ivy.IvyFileRepository
-import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.test.fixtures.maven.MavenHttpRepository
-import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.GradleVersion
-import org.junit.Rule
-
-import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
     private M2Installation m2Installation = new M2Installation(testDirectory)
 
     def setup() {
-        server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         requireOwnGradleUserHomeDir()
         executer.beforeExecute m2Installation
     }
@@ -45,29 +36,7 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
         return ivy(dir)
     }
 
-    IvyHttpRepository getIvyHttpRepo() {
-        return new IvyHttpRepository(server, "/repo", ivyRepo)
-    }
-
-    IvyHttpRepository ivyHttpRepo(String name) {
-        assert !name.startsWith("/")
-        return new IvyHttpRepository(server, "/${name}", ivyRepo(name))
-    }
-
     MavenFileRepository mavenRepo(String name = "repo") {
         return maven(name)
-    }
-
-    MavenHttpRepository getMavenHttpRepo() {
-        return new MavenHttpRepository(server, "/repo", mavenRepo)
-    }
-
-    MavenHttpRepository mavenHttpRepo(String name) {
-        assert !name.startsWith("/")
-        return new MavenHttpRepository(server, "/${name}", mavenRepo(name))
-    }
-
-    MavenHttpRepository mavenHttpRepo(String contextPath, MavenFileRepository backingRepo) {
-        return new MavenHttpRepository(server, contextPath, backingRepo)
     }
 }

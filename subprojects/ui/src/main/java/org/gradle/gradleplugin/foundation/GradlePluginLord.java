@@ -148,6 +148,9 @@ public class GradlePluginLord {
     }
 
     public File getGradleHomeDirectory() {
+        if (gradleHomeDirectory == null || !gradleHomeDirectory.isDirectory()) {
+            throw new IllegalArgumentException("Could not locate Gradle home directory.");
+        }
         return gradleHomeDirectory;
     }
 

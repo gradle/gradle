@@ -28,7 +28,7 @@ class DefaultNativeBinaryTasksTest extends Specification {
         expect:
         tasks.link == null
         tasks.createStaticLib == null
-        tasks.builder == null
+        tasks.createOrLink == null
     }
 
     def "returns link task when defined"() {
@@ -39,7 +39,7 @@ class DefaultNativeBinaryTasksTest extends Specification {
         then:
         tasks.link == linkTask
         tasks.createStaticLib == null
-        tasks.builder == linkTask
+        tasks.createOrLink == linkTask
     }
 
     def "returns create task when defined"() {
@@ -50,6 +50,6 @@ class DefaultNativeBinaryTasksTest extends Specification {
         then:
         tasks.link == null
         tasks.createStaticLib == createTask
-        tasks.builder == createTask
+        tasks.createOrLink == createTask
     }
 }

@@ -322,8 +322,7 @@ public class DefaultFileLockManager implements FileLockManager {
                         LOGGER.debug("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
                     }
                 }
-                //TODO SF it would really nice to print some message to the user after say 2 seconds of waiting
-                //saying what gradle is doing, and why we're waiting.
+                //TODO SF we should inform on the progress/status bar that we're waiting
                 Thread.sleep(200L);
             } while (System.currentTimeMillis() < waitUntil);
             return null;

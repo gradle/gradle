@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
-import org.gradle.test.fixtures.ivy.IvyHttpModule
+import org.gradle.test.fixtures.encoding.Identifier
+import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
 
-class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
 
     def setup() {
@@ -28,8 +30,6 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyR
 
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
-
-        server.start()
     }
 
     def "uses latest version from version range and latest status"() {
@@ -74,6 +74,39 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.integration": "group:projectB:2.2"
     }
 
+    @Unroll
+    def "uses latest version from version range with #identifier characters"() {
+        given:
+        def name = identifier.safeForFileName().decorate("name")
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+}
+
+dependencies {
+    compile group: /${name}/, name: /${name}/, version: "latest.integration"
+}
+"""
+        when:
+        def projectA1 = ivyHttpRepo.module(name, name, name).publish()
+
+        and:
+        expectGetDynamicRevision(projectA1)
+
+        then:
+        succeeds('checkDeps')
+        resolve.expectGraph {
+            root(":", ":test:") {
+                dependency(group: name, module: name, version: 'latest.integration').selects(group: name, module: name, version: name)
+            }
+        }
+
+        where:
+        identifier << Identifier.all
+    }
+
     def "determines latest version with jar only"() {
         given:
         useRepository ivyHttpRepo
@@ -81,6 +114,7 @@ dependencies {
 configurations { compile }
 dependencies {
   compile group: "group", name: "projectA", version: "1.+"
+  compile group: "group", name: "projectB", version: "latest.integration"
 }
 """
 
@@ -88,21 +122,29 @@ dependencies {
         ivyHttpRepo.module("group", "projectA", "1.1").withNoMetaData().publish()
         def projectA12 = ivyHttpRepo.module("group", "projectA", "1.2").withNoMetaData().publish()
         ivyHttpRepo.module("group", "projectA", "2.0").withNoMetaData().publish()
+        ivyHttpRepo.module("group", "projectB", "1.1").withNoMetaData().publish()
+        def projectB12 = ivyHttpRepo.module("group", "projectB", "1.2").withNoMetaData().publish()
 
         and:
-        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        ivyHttpRepo.directoryList("group", "projectA").expectGet()
         projectA12.ivy.expectGetMissing()
         projectA12.jar.expectHead()
         projectA12.jar.expectGet()
+        ivyHttpRepo.directoryList("group", "projectB").expectGet()
+        projectB12.ivy.expectGetMissing()
+        projectB12.jar.expectHead()
+        projectB12.jar.expectGet()
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2",
+                     "group:projectB:latest.integration": "group:projectB:1.2"
 
         when: "result is cached"
         server.resetExpectations()
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2",
+                     "group:projectB:latest.integration": "group:projectB:1.2"
     }
 
     def "uses latest version with correct status for latest.release and latest.milestone"() {
@@ -126,7 +168,7 @@ dependencies {
         def integration = ivyHttpRepo.module('group', 'projectA', '2.2').withStatus('integration').publish()
 
         and:
-        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        ivyHttpRepo.directoryList("group", "projectA").expectGet()
         integration.ivy.expectGet()
         milestone.ivy.expectGet()
         release.ivy.expectGet()
@@ -174,7 +216,7 @@ dependencies {
         and:
         expectGetDynamicRevision(version11)
 
-        repo2.expectDirectoryListGet("group", "projectA")
+        repo2.directoryList("group", "projectA").expectGet()
         version12.ivy.expectGet()
 
         then:
@@ -185,48 +227,6 @@ dependencies {
 
         then:
         checkResolve "group:projectA:latest.milestone": "group:projectA:1.1"
-    }
-
-    def "can get latest version from repository with multiple ivyPatterns"() {
-        given:
-        def repo1 = ivyHttpRepo("ivyRepo1")
-        def repo1version2 = repo1.module('org.test', 'projectA', '1.2').withStatus("milestone").publish()
-        def repo1version3 = repo1.module('org.test', 'projectA', '1.3')
-        def repo2 = ivyHttpRepo("ivyRepo2")
-        repo2.module('org.test', 'projectA', '1.1').withStatus("integration").publish()
-        def repo2version3 = repo2.module('org.test', 'projectA', '1.3').withStatus("integration").publish()
-
-        and:
-        buildFile << """
-repositories {
-    ivy {
-        url "${repo1.uri}"
-        ivyPattern "${repo2.ivyPattern}"
-        artifactPattern "${repo2.artifactPattern}"
-    }
-}
-configurations { compile }
-dependencies {
-  compile 'org.test:projectA:latest.milestone'
-}
-"""
-        when:
-        repo1.expectDirectoryListGet("org.test", "projectA")
-        repo2.expectDirectoryListGet("org.test", "projectA")
-        // TODO - don't need this request
-        repo1version3.ivy.expectGetMissing()
-        repo2version3.ivy.expectGet()
-        repo1version2.ivy.expectGet()
-        repo1version2.jar.expectGet()
-
-        then:
-        checkResolve "org.test:projectA:latest.milestone": "org.test:projectA:1.2"
-
-        when:
-        server.resetExpectations()
-
-        then:
-        checkResolve "org.test:projectA:latest.milestone": "org.test:projectA:1.2"
     }
 
     def "checks new repositories before returning any cached value"() {
@@ -277,7 +277,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    def "recovers from broken modules in subsequent resolution"() {
+    def "recovers from broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
 
@@ -295,7 +295,7 @@ dependencies {
         def projectA11 = repo2.module("group", "projectA", "1.1").publish()
 
         and: "projectA is broken in repo1"
-        repo1.expectDirectoryListGetBroken("group", "projectA")
+        repo1.directoryList("group", "projectA").expectGetBroken()
         expectGetDynamicRevision(projectA11)
 
         then:
@@ -328,10 +328,10 @@ dependencies {
         def projectA12 = repo3.module("group", "projectA", "1.2").publish()
 
         and:
-        repo1.expectDirectoryListGet("group", "projectA")
+        repo1.directoryList("group", "projectA").expectGet()
         // TODO Should not need to get this
         projectA11.ivy.expectGet()
-        repo2.expectDirectoryListGet("group", "projectA")
+        repo2.directoryList("group", "projectA").expectGet()
         expectGetDynamicRevision(projectA12)
 
         then:
@@ -350,7 +350,8 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "org.test", name: "projectA", version: project.getProperty('dependencyVersion')
+    compile group: "org.test", name: "projectA", version: "1.+"
+    compile group: "org.test", name: "projectA", version: "latest.integration"
 }
 """
 
@@ -361,20 +362,34 @@ dependencies {
         and:
         expectGetDynamicRevision(projectA12)
 
-        and:
-        executer.withArgument("-PdependencyVersion=1.+")
-
         then:
-        checkResolve "org.test:projectA:1.+": "org.test:projectA:1.2"
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge "org.test:projectA:1.+", "org.test:projectA:1.2"
+                edge "org.test:projectA:latest.integration", "org.test:projectA:1.2"
+            }
+        }
 
         when:
         server.resetExpectations()
 
         and:
-        executer.withArgument("-PdependencyVersion=[1.0,2.0)")
+        buildFile << """
+dependencies {
+    compile group: "org.test", name: "projectA", version: "[1.0,2.0)"
+}
+"""
 
         then:
-        checkResolve "org.test:projectA:[1.0,2.0)": "org.test:projectA:1.2"
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge "org.test:projectA:1.+", "org.test:projectA:1.2"
+                edge "org.test:projectA:latest.integration", "org.test:projectA:1.2"
+                edge "org.test:projectA:[1.0,2.0)", "org.test:projectA:1.2"
+            }
+        }
     }
 
     def "caches resolved revisions until cache expiry"() {
@@ -515,7 +530,7 @@ dependencies {
 """
 
         when:
-        repo1.expectDirectoryListGetMissing("group", "projectA")
+        repo1.directoryList("group", "projectA").expectGetMissing()
         expectGetDynamicRevision(moduleA)
 
         then:
@@ -576,7 +591,7 @@ dependencies {
         checkResolve "org.test:a:[1.0,2.0)": "org.test:a:1.1"
     }
 
-    def "can resolve dynamic versions with multiple ivy patterns"() {
+    def "can resolve dynamic versions from repository with multiple ivy patterns"() {
         given:
         def repo1versions = [:]
         def repo1 = ivyHttpRepo("ivyRepo1")
@@ -613,14 +628,16 @@ dependencies {
 """
 
         when:
-        repo1.expectDirectoryListGet("org.test", "projectA")
+        repo1.directoryList("org.test", "projectA").expectGet()
+        // TODO Should not be looking in repo1, since A3 was not included in the version listing
         repo1versions.A3.ivy.expectGetMissing()
         repo1versions.A3.jar.expectGetMissing()
         expectGetDynamicRevision(repo2versions.A3)
 
         and:
+        // TODO Should not be looking in repo1, since B3 was not included in the version listing
         repo1versions.B3.ivy.expectGetMissing()
-        repo2.expectDirectoryListGet("org.test", "projectB")
+        repo2.directoryList("org.test", "projectB").expectGet()
         repo2versions.B3.ivy.expectGet()
         expectGetDynamicRevision(repo1versions.B2)
 
@@ -661,7 +678,7 @@ configurations.all {
         and:
         mainProject.ivy.expectGet()
         mainProject.jar.expectGet()
-        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        ivyHttpRepo.directoryList("group", "projectA").expectGet()
         projectA1.ivy.expectGet()
         projectA1.jar.expectGet()
 
@@ -681,7 +698,7 @@ configurations.all {
 
         and:
         server.resetExpectations()
-        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        ivyHttpRepo.directoryList("group", "projectA").expectGet()
         projectA2.ivy.expectGet()
         projectA2.jar.expectGet()
 
@@ -697,8 +714,7 @@ configurations.all {
         }
     }
 
-    @Unroll
-    def "checks remote for dynamic version before failing due to #scenario"() {
+    def "reports and recovers from no matching version for dynamic version"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """
@@ -710,14 +726,15 @@ dependencies {
 
         when: "no version > 2"
         ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        if (isMissing) {
-            ivyHttpRepo.expectDirectoryListGetMissing("group", "projectA")
-        } else {
-            ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        }
+        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        directoryList.expectGet()
 
         then:
         fails "checkDeps"
+        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Searched in the following locations:
+    ${directoryList.uri}
+""")
 
         when:
         def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
@@ -728,11 +745,69 @@ dependencies {
 
         then:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
+    }
 
-        where:
-        scenario | isMissing
-        "module missing in cache listing" | true
-        "no valid version in cache listing" | false
+    def "reports and recovers from missing directory available for dynamic version"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "2.+"
+}
+"""
+
+        when: "no version > 2"
+        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        directoryList.expectGetMissing()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Searched in the following locations:
+    ${directoryList.uri}
+""")
+
+        when:
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
+
+        and:
+        server.resetExpectations()
+        expectGetDynamicRevision(projectA2)
+
+        then:
+        checkResolve "group:projectA:2.+": "group:projectA:2.2"
+    }
+
+    def "reports and recovers from broken directory available for dynamic version"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "2.+"
+}
+"""
+
+        when: "no version > 2"
+        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        directoryList.expectGetBroken()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("Could not resolve group:projectA:2.+")
+        failure.assertHasCause("Could not list versions using Ivy pattern '${ivyHttpRepo.ivyPattern}'.")
+        failure.assertHasCause("Could not GET '${directoryList.uri}'. Received status code 500 from server")
+
+        when:
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
+
+        and:
+        server.resetExpectations()
+        expectGetDynamicRevision(projectA2)
+
+        then:
+        checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
     @Unroll
@@ -764,7 +839,7 @@ configurations.all {
 
         when: "missing from remote"
         fileRepo.module('group', 'projectA', '1.1').publish()
-        ivyHttpRepo.expectDirectoryListGetMissing("group", "projectA")
+        ivyHttpRepo.directoryList("group", "projectA").expectGetMissing()
 
         then:
         checkResolve "group:projectA:1.+": "group:projectA:1.1"
@@ -814,7 +889,7 @@ dependencies {
     }
 
     def expectGetDynamicRevision(IvyHttpModule module) {
-        module.repository.expectDirectoryListGet(module.organisation, module.module)
+        module.repository.directoryList(module.organisation, module.module).expectGet()
         module.ivy.expectGet()
         module.jar.expectGet()
     }

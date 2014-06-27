@@ -49,67 +49,6 @@ class DefaultTestReportTest extends Specification {
         index.assertHasNoNavLinks()
     }
 
-    TestResultsProvider buildResults(Closure closure) {
-        ConfigureUtil.configure(closure, new BuildableTestResultsProvider())
-    }
-
-    TestResultsProvider passingBuildResults() {
-        buildResults {
-            testClassResult("org.gradle.passing.Passed") {
-                testcase("passed") {
-                    duration = 1000;
-                }
-            }
-            testClassResult("org.gradle.passing.subpackage.AlsoPassed") {
-                testcase("passedToo") {
-                    duration = 1000;
-                    stdout "this is\nstandard output"
-                    stderr "this is\nstandard error"
-                }
-            }
-        }
-    }
-
-    TestResultsProvider failingBuildResults() {
-        buildResults {
-            testClassResult("org.gradle.passing.Passed") {
-                testcase("passed") {
-                    duration = 1000;
-                }
-            }
-            testClassResult("org.gradle.passing.AlsoPassed") {
-                testcase("passedToo") {
-                    duration = 1000;
-                    stdout "this is\nstandard output"
-                    stderr "this is\nstandard error"
-                }
-            }
-            testClassResult("org.gradle.ignoring.SomeIgnoredSomePassed") {
-                testcase("passed") {
-                    duration = 1000;
-                }
-                testcase("ignored") {
-                    duration = 1000;
-                    ignore()
-                }
-            }
-            testClassResult("org.gradle.failing.SomeIgnoredSomePassedSomeFailed") {
-                testcase("passed") {
-                    duration = 1000;
-                }
-                testcase("ignored") {
-                    duration = 1000;
-                    ignore()
-                }
-                testcase("failed") {
-                    duration = 1000;
-                    failure("something failed", "this is the failure\nat someClass")
-                }
-            }
-        }
-    }
-
-
     def generatesReportWithAggregatedIndexPageForBuildWithNoFailures() {
         given:
         def testTestResults = passingBuildResults()
@@ -163,9 +102,7 @@ class DefaultTestReportTest extends Specification {
         alsoPassedClassDetails.assertSuccessRate("100%");
         alsoPassedClassDetails.assertPassed()
         alsoPassedClassDetails.assertLinksTo("classes/org.gradle.passing.subpackage.AlsoPassed.html");
-
     }
-
 
     def generatesReportWithAggregatedIndexPageForFailingBuild() {
         given:
@@ -252,7 +189,6 @@ class DefaultTestReportTest extends Specification {
         someFailedClassDetails.assertLinksTo("classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html");
     }
 
-
     def generatesReportWithAggregatedPackagePages() {
         given:
         def testTestResults = failingBuildResults()
@@ -326,7 +262,6 @@ class DefaultTestReportTest extends Specification {
         someFailedClassDetails.assertFailed()
         someFailedClassDetails.assertLinksTo("classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html");
     }
-
 
     def generatesReportWithClassPages() {
         given:
@@ -403,41 +338,6 @@ class DefaultTestReportTest extends Specification {
         failingTestDetails.assertFailed()
 
         failingClassFile.assertHasFailure('failed', 'something failed\n\nthis is the failure\nat someClass\n')
-    }
-
-    TestResultsProvider aggregatedBuildResultsRun1() {
-        buildResults {
-            testClassResult("org.gradle.aggregation.FooTest") {
-                testcase("first") {
-                    duration = 1000;
-                }
-            }
-            testClassResult("org.gradle.aggregation.BarTest") {
-                testcase("second") {
-                    duration = 1000;
-                    stdout "this is\nstandard output"
-                    stderr "this is\nstandard error"
-                }
-            }
-        }
-    }
-
-    TestResultsProvider aggregatedBuildResultsRun2(methodNameSuffix = "") {
-        buildResults {
-            testClassResult("org.gradle.aggregation.FooTest") {
-                testcase("first" + methodNameSuffix) {
-                    duration = 1000;
-                }
-            }
-            testClassResult("org.gradle.aggregation.BarTest") {
-                testcase("second" + methodNameSuffix) {
-                    duration = 1100;
-                    stdout "failed on second run\nstandard output"
-                    stderr "failed on second run\nstandard error"
-                    failure("something failed", "this is the failure\nat someClass")
-                }
-            }
-        }
     }
 
     def aggregateSameTestsRunWithDifferentResults() {
@@ -575,6 +475,101 @@ class DefaultTestReportTest extends Specification {
         testClassFile.assertHasTest('\u0107')
         testClassFile.assertHasStandardOutput('out:\u0256')
         testClassFile.assertHasStandardError('err:\u0102')
+    }
+
+    TestResultsProvider buildResults(Closure closure) {
+        ConfigureUtil.configure(closure, new BuildableTestResultsProvider())
+    }
+
+    TestResultsProvider passingBuildResults() {
+        buildResults {
+            testClassResult("org.gradle.passing.Passed") {
+                testcase("passed") {
+                    duration = 1000;
+                }
+            }
+            testClassResult("org.gradle.passing.subpackage.AlsoPassed") {
+                testcase("passedToo") {
+                    duration = 1000;
+                    stdout "this is\nstandard output"
+                    stderr "this is\nstandard error"
+                }
+            }
+        }
+    }
+
+    TestResultsProvider failingBuildResults() {
+        buildResults {
+            testClassResult("org.gradle.passing.Passed") {
+                testcase("passed") {
+                    duration = 1000;
+                }
+            }
+            testClassResult("org.gradle.passing.AlsoPassed") {
+                testcase("passedToo") {
+                    duration = 1000;
+                    stdout "this is\nstandard output"
+                    stderr "this is\nstandard error"
+                }
+            }
+            testClassResult("org.gradle.ignoring.SomeIgnoredSomePassed") {
+                testcase("passed") {
+                    duration = 1000;
+                }
+                testcase("ignored") {
+                    duration = 1000;
+                    ignore()
+                }
+            }
+            testClassResult("org.gradle.failing.SomeIgnoredSomePassedSomeFailed") {
+                testcase("passed") {
+                    duration = 1000;
+                }
+                testcase("ignored") {
+                    duration = 1000;
+                    ignore()
+                }
+                testcase("failed") {
+                    duration = 1000;
+                    failure("something failed", "this is the failure\nat someClass")
+                }
+            }
+        }
+    }
+
+    TestResultsProvider aggregatedBuildResultsRun1() {
+        buildResults {
+            testClassResult("org.gradle.aggregation.FooTest") {
+                testcase("first") {
+                    duration = 1000;
+                }
+            }
+            testClassResult("org.gradle.aggregation.BarTest") {
+                testcase("second") {
+                    duration = 1000;
+                    stdout "this is\nstandard output"
+                    stderr "this is\nstandard error"
+                }
+            }
+        }
+    }
+
+    TestResultsProvider aggregatedBuildResultsRun2(methodNameSuffix = "") {
+        buildResults {
+            testClassResult("org.gradle.aggregation.FooTest") {
+                testcase("first" + methodNameSuffix) {
+                    duration = 1000;
+                }
+            }
+            testClassResult("org.gradle.aggregation.BarTest") {
+                testcase("second" + methodNameSuffix) {
+                    duration = 1100;
+                    stdout "failed on second run\nstandard output"
+                    stderr "failed on second run\nstandard error"
+                    failure("something failed", "this is the failure\nat someClass")
+                }
+            }
+        }
     }
 
     def results(TestFile file) {

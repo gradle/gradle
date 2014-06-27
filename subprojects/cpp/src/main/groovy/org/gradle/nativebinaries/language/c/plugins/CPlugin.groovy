@@ -18,18 +18,67 @@ package org.gradle.nativebinaries.language.c.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
+import org.gradle.language.c.CSourceSet
+import org.gradle.language.c.plugins.CLangPlugin
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.SharedLibraryBinary
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.language.c.tasks.CCompile
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 
 /**
  * A plugin for projects wishing to build native binary components from C sources.
  *
- * <p>Adds core tool chain support to the {@link CNativeBinariesPlugin}.</p>
+ * <p>Automatically includes the {@link CLangPlugin} for core C++ support and the {@link org.gradle.nativebinaries.plugins.NativeComponentPlugin} for native component support.</p>
+ *
+ * <li>Creates a {@link CCompile} task for each {@link CSourceSet} to compile the C sources.</li>
  */
 @Incubating
 class CPlugin implements Plugin<ProjectInternal> {
-
     void apply(ProjectInternal project) {
-        project.plugins.apply(StandardToolChainsPlugin)
-        project.plugins.apply(CNativeBinariesPlugin)
+        project.plugins.apply(NativeComponentPlugin)
+        project.plugins.apply(CLangPlugin)
+
+        project.nativeComponents.all { component ->
+            component.binaries.all { binary ->
+                binary.extensions.create("cCompiler", DefaultPreprocessingTool)
+            }
+        }
+
+        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
+            binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
+                if (sourceSet.mayHaveSources) {
+                    def compileTask = createCompileTask(project, binary, sourceSet)
+                    compileTask.dependsOn sourceSet
+                    binary.tasks.add compileTask
+                    binary.tasks.createOrLink.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                }
+            }
+        }
+    }
+
+    private def createCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, CSourceSet sourceSet) {
+        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CCompile) {
+            description = "Compiles the $sourceSet of $binary"
+        }
+
+        compileTask.toolChain = binary.toolChain
+        compileTask.targetPlatform = binary.targetPlatform
+        compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
+
+        compileTask.includes {
+            sourceSet.exportedHeaders.srcDirs
+        }
+        compileTask.includes {
+            binary.getLibs(sourceSet)*.includeRoots
+        }
+        compileTask.source sourceSet.source
+
+        compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
+        compileTask.macros = binary.cCompiler.macros
+        compileTask.compilerArgs = binary.cCompiler.args
+
+        compileTask
     }
 }

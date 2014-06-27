@@ -49,11 +49,10 @@ public class JsHint extends SourceTask {
     private Object jsHint;
     private String encoding = "UTF-8";
     private Object jsonReport;
-    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
 
     @Inject
-    public JsHint(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
-        this.workerProcessBuilderFactory = workerProcessBuilderFactory;
+    protected Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @InputFiles
@@ -94,7 +93,7 @@ public class JsHint extends SourceTask {
 
     @TaskAction
     public void doJsHint() {
-        RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
+        RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(getWorkerProcessBuilderFactory());
 
         LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
         RhinoWorkerHandle<JsHintResult, JsHintSpec> rhinoHandle = handleFactory.create(getRhinoClasspath(), createWorkerSpec(), logLevel, new Action<JavaExecSpec>() {

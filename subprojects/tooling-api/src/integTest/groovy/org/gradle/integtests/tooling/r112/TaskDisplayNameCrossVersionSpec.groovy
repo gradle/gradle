@@ -15,14 +15,12 @@
  */
 package org.gradle.integtests.tooling.r112
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
 @ToolingApiVersion('>=1.12')
 class TaskDisplayNameCrossVersionSpec extends ToolingApiSpecification {
-    @TargetGradleVersion('>=1.0-milestone-5') // Task.path is broken on 1.0-m3
     def "can get task's display name"() {
         file('build.gradle') << '''
 task a

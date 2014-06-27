@@ -46,6 +46,11 @@ public interface IvyModule extends Module {
 
     IvyModule artifact(Map<String, ?> options);
 
+    /**
+     * Adds an artifact that is not declared in the ivy.xml file.
+     */
+    IvyModule undeclaredArtifact(Map<String, ?> options);
+
     IvyModule withXml(Closure action);
 
     IvyModule configuration(String name);

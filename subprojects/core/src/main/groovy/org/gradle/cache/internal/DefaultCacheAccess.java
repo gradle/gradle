@@ -40,7 +40,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
 
 @ThreadSafe
-public class DefaultCacheAccess implements CacheCoordinator {
+public class    DefaultCacheAccess implements CacheCoordinator {
 
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
 
@@ -117,7 +117,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
             stateAtOpen = fileLock.getState();
             takeOwnership(String.format("Access %s", cacheDisplayName));
-        } catch(Throwable throwable) {
+        } catch (Throwable throwable) {
             if (fileLock != null) {
                 fileLock.close();
                 fileLock = null;
@@ -324,7 +324,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             caches.add(indexedCache);
             if (fileLock != null) {
-                indexedCache.onStartWork(operations.getDescription(), stateAtOpen);
+                String description = operations.isInCacheAction() ? operations.getDescription() : "cache creation";
+                indexedCache.onStartWork(description, stateAtOpen);
             }
         } finally {
             lock.unlock();

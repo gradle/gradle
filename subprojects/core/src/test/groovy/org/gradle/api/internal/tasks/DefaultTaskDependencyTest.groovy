@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.internal.typeconversion.UnsupportedNotationException
+
 import java.util.concurrent.Callable
 import org.gradle.api.Buildable
 import org.gradle.api.Task
@@ -49,6 +51,19 @@ public class DefaultTaskDependencyTest {
     @Test
     public void hasNoDependenciesByDefault() {
         assertThat(dependency.getDependencies(task), equalTo(WrapUtil.toSet()));
+    }
+
+    @Test
+    public void canDependOnACharSequence() {
+        def input = new StringBuilder("other")
+        dependency.add(input);
+
+        context.checking({
+            one(resolver).resolveTask("other");
+            will(returnValue(otherTask));
+        })
+
+        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
     }
 
     @Test
@@ -144,7 +159,20 @@ public class DefaultTaskDependencyTest {
     }
 
     @Test
-    public void failsForOtherObjectsWhenNoResolverProvided() {
+    public void failsForOtherTypes() {
+        dependency.add(12)
+
+        try {
+            dependency.getDependencies(task)
+            fail()
+        } catch (GradleException e) {
+            assertThat(e.cause, instanceOf(UnsupportedNotationException))
+            assertThat(e.cause.message, startsWith("Cannot convert 12 to a task." as String))
+        }
+    }
+
+    @Test
+    public void failsForCharSequencesWhenNoResolverProvided() {
         StringBuffer dep = new StringBuffer("task")
 
         DefaultTaskDependency dependency = new DefaultTaskDependency()
@@ -154,22 +182,9 @@ public class DefaultTaskDependencyTest {
             dependency.getDependencies(task)
             fail()
         } catch (GradleException e) {
-            assertThat(e.cause, instanceOf(IllegalArgumentException))
-            assertThat(e.cause.message, equalTo("Cannot convert $dep to a task." as String))
+            assertThat(e.cause, instanceOf(UnsupportedNotationException))
+            assertThat(e.cause.message, startsWith("Cannot convert $dep to a task." as String))
         }
-    }
-    
-    @Test
-    public void resolvesOtherObjects() {
-
-        dependency.add(9);
-
-        context.checking({
-            one(resolver).resolveTask(9);
-            will(returnValue(otherTask));
-        });
-
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
     }
 
     @Test

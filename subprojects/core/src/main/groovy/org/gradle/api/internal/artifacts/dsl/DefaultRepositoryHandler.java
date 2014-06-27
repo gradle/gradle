@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
@@ -27,11 +26,8 @@ import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.gradle.util.CollectionUtils.flattenCollections;
@@ -48,7 +44,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     private final BaseRepositoryFactory repositoryFactory;
 
     public DefaultRepositoryHandler(BaseRepositoryFactory repositoryFactory, Instantiator instantiator) {
-        super(repositoryFactory, instantiator);
+        super(instantiator);
         this.repositoryFactory = repositoryFactory;
     }
 
@@ -82,46 +78,12 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
-        if (modifiedArgs.containsKey("urls")) {
-            DeprecationLogger.nagUserOfDeprecated(
-                    "The 'urls' property of the RepositoryHandler.mavenCentral() method",
-                    "You should use the 'artifactUrls' property to define additional artifact locations"
-            );
-            List<?> urls = flattenCollections(modifiedArgs.remove("urls"));
-            modifiedArgs.put("artifactUrls", urls);
-        }
-
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(modifiedArgs));
     }
 
     public MavenArtifactRepository mavenLocal() {
         return addRepository(repositoryFactory.createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME);
     }
-
-    public DependencyResolver mavenRepo(Map<String, ?> args) {
-        return mavenRepo(args, null);
-    }
-
-    public DependencyResolver mavenRepo(Map<String, ?> args, Closure configClosure) {
-        DeprecationLogger.nagUserOfReplacedMethod("RepositoryHandler.mavenRepo()", "maven()");
-        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
-        if (modifiedArgs.containsKey("urls")) {
-            List<?> urls = flattenCollections(modifiedArgs.remove("urls"));
-            if (!urls.isEmpty()) {
-                modifiedArgs.put("url", urls.get(0));
-                List<?> extraUrls = urls.subList(1, urls.size());
-                modifiedArgs.put("artifactUrls", extraUrls);
-            }
-        }
-
-        MavenArtifactRepository repository = repositoryFactory.createMavenRepository();
-        ConfigureUtil.configureByMap(modifiedArgs, repository);
-        DependencyResolver resolver = repositoryFactory.toResolver(repository);
-        ConfigureUtil.configure(configClosure, resolver);
-        addRepository(repositoryFactory.createResolverBackedRepository(resolver), "mavenRepo");
-        return resolver;
-    }
-
 
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {
         return addRepository(repositoryFactory.createMavenRepository(), MAVEN_REPO_DEFAULT_NAME, action);

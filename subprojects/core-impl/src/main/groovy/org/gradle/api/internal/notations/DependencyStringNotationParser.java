@@ -21,31 +21,30 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DependencyStringNotationParser<T extends ExternalDependency> extends TypedNotationParser<CharSequence, T> {
-
+public class DependencyStringNotationParser<T extends ExternalDependency> implements NotationConverter<String, T> {
     private final Instantiator instantiator;
     private final Class<T> wantedType;
 
     public DependencyStringNotationParser(Instantiator instantiator, Class<T> wantedType) {
-        super(CharSequence.class);
         this.instantiator = instantiator;
         this.wantedType = wantedType;
     }
 
-    @Override
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Strings/CharSequences, e.g. 'org.gradle:gradle-core:1.0'.");
+        candidateFormats.add("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
     }
 
-    protected T parseType(CharSequence notation) {
-        return createDependencyFromString(notation.toString());
+    public void convert(String notation, NotationConvertResult<? super T> result) throws TypeConversionException {
+        result.converted(createDependencyFromString(notation));
     }
 
     public static final Pattern EXTENSION_SPLITTER = Pattern.compile("^(.+)\\@([^:]+$)");

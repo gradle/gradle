@@ -50,9 +50,8 @@ public interface ComponentSelectionReason {
     boolean isSelectedByRule();
 
     /**
-     * Informs whether the component is an expected selection.
+     * Informs whether the component is the requested selection of all dependency declarations, and was not replaced for some reason, such as conflict resolution.
      *
-     * @return Flag
      * @since 1.11
      */
     boolean isExpected();

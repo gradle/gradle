@@ -330,6 +330,7 @@ public class JavadocConverter {
             elementToElementMap.put("ol", "orderedlist");
             elementToElementMap.put("li", "listitem");
             elementToElementMap.put("em", "emphasis");
+            elementToElementMap.put("strong", "emphasis");
             elementToElementMap.put("i", "emphasis");
             elementToElementMap.put("b", "emphasis");
             elementToElementMap.put("code", "literal");

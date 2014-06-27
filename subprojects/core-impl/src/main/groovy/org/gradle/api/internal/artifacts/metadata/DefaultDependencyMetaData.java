@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector;
@@ -43,6 +46,16 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         requested = new DefaultModuleVersionSelector(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
     }
 
+    public DefaultDependencyMetaData(ModuleVersionIdentifier moduleVersionIdentifier) {
+        dependencyDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), false);
+        requested = new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
+    }
+
+    public DefaultDependencyMetaData(ModuleComponentIdentifier componentIdentifier) {
+        dependencyDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(componentIdentifier), false);
+        requested = new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
+    }
+
     @Override
     public String toString() {
         return dependencyDescriptor.toString();
@@ -64,19 +77,31 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return dependencyDescriptor;
     }
 
-    public Set<ModuleVersionArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
+    public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
         String[] targetConfigurations = fromConfiguration.getHierarchy().toArray(new String[fromConfiguration.getHierarchy().size()]);
         DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
         if (dependencyArtifacts.length == 0) {
             return Collections.emptySet();
         }
-        Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+        Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
         for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-            ModuleRevisionId id = toConfiguration.getModuleVersion().getDescriptor().getModuleRevisionId();
+            ModuleRevisionId id = toConfiguration.getComponent().getDescriptor().getModuleRevisionId();
             Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-            artifacts.add(new DefaultModuleVersionArtifactMetaData(toConfiguration.getModuleVersion(), artifact));
+            artifacts.add(toConfiguration.getComponent().artifact(artifact));
         }
         return artifacts;
+    }
+
+    public Set<IvyArtifactName> getArtifacts() {
+        DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getAllDependencyArtifacts();
+        if (dependencyArtifacts.length == 0) {
+            return Collections.emptySet();
+        }
+        Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
+        for (DependencyArtifactDescriptor artifact : dependencyArtifacts) {
+            artifactSet.add(new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
+        }
+        return artifactSet;
     }
 
     public DependencyMetaData withRequestedVersion(String requestedVersion) {

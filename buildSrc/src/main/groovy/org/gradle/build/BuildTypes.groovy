@@ -60,6 +60,7 @@ class BuildTypes {
                 tasks.reverse().each {
                     taskNames.add(index, it)
                 }
+                project.gradle.startParameter.taskNames = taskNames
                 projectProperties.each { k, v ->
                     if (!project.hasProperty(k)) {
                         project.ext."$k" = null

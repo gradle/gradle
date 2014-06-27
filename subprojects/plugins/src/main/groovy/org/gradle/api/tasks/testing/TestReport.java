@@ -129,6 +129,7 @@ public class TestReport extends DefaultTask {
                 DefaultTestReport testReport = new DefaultTestReport();
                 testReport.generateReport(resultsProvider, getDestinationDir());
             } else {
+                getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResultDirs().getFiles());
                 setDidWork(false);
             }
         } finally {

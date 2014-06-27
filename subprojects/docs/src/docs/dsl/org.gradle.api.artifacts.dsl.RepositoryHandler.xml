@@ -40,9 +40,6 @@
                 <td>maven</td>
             </tr>
             <tr>
-                <td>mavenRepo</td>
-            </tr>
-            <tr>
                 <td>mavenCentral</td>
             </tr>
             <tr>

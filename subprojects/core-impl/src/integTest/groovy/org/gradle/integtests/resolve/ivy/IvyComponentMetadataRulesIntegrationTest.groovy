@@ -16,7 +16,9 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
-import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
+
+import static org.gradle.util.Matchers.containsLine
 
 class IvyComponentMetadataRulesIntegrationTest extends ComponentMetadataRulesIntegrationTest {
     @Override
@@ -38,5 +40,148 @@ repositories {
     @Override
     String getDefaultStatus() {
         "integration"
+    }
+
+    def "can access Ivy extra info by accepting parameter of type IvyModuleMetadata"() {
+        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
+        module.ivy.expectDownload()
+        module.artifact.expectDownload()
+
+        buildFile <<
+"""
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleMetadata descriptor ->
+            ruleInvoked = true
+            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        expect:
+        succeeds 'resolve'
+        // also works when already cached
+        succeeds 'resolve'
+    }
+
+    def "rule that doesn't initially access Ivy extra info can be changed to get access at any time"() {
+        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
+        module.ivy.expectDownload()
+        module.artifact.expectDownload()
+
+        def baseScript = buildFile.text
+
+        when:
+        buildFile.text = baseScript +
+"""
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details ->
+            ruleInvoked = true
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        then:
+        succeeds 'resolve'
+
+        when:
+        buildFile.text = baseScript +
+"""
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleMetadata descriptor ->
+            ruleInvoked = true
+            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        then:
+        succeeds 'resolve'
+    }
+
+    def "changed Ivy extra info becomes visible once module is refreshed"() {
+        def baseScript = buildFile.text
+
+        when:
+        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
+        module.ivy.expectMetadataRetrieve()
+        module.ivy.expectDownload()
+        module.ivy.expectDownload()
+        module.ivy.sha1.expectGet()
+        module.artifact.expectMetadataRetrieve()
+        module.artifact.expectDownload()
+        module.artifact.expectDownload()
+        module.artifact.sha1.expectGet()
+
+        buildFile.text = baseScript +
+                """
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleMetadata descriptor ->
+            ruleInvoked = true
+            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        then:
+        succeeds 'resolve'
+
+        when:
+        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValueChanged", bar: "barValueChanged").publishWithChangedContent()
+
+        then:
+        succeeds 'resolve'
+
+        when:
+        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValueChanged", bar: "barValueChanged").publishWithChangedContent()
+        args("--refresh-dependencies")
+        buildFile.text = baseScript +
+"""
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleMetadata descriptor ->
+            ruleInvoked = true
+            file("extraInfo").delete()
+            descriptor.extraInfo.each { key, value ->
+                file("extraInfo") << "\$key->\$value\\n"
+            }
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        then:
+        succeeds 'resolve'
+        // TODO: rule is invoked twice, and changes to extra info are only visible the second time
+        def text = file("extraInfo").text
+        assert containsLine(text, "my:foo->fooValueChanged")
+        assert containsLine(text, "my:bar->barValueChanged")
     }
 }

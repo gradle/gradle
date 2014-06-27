@@ -20,7 +20,6 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
@@ -96,7 +95,7 @@ public class DefaultArtifactPom implements ArtifactPom {
     }
 
     private String getClassifier(Artifact artifact) {
-        return artifact.getExtraAttribute(Dependency.CLASSIFIER);
+        return artifact.getExtraAttribute("classifier");
     }
 
     private void assignArtifactValuesToPom(Artifact artifact, MavenPom pom, boolean setType) {

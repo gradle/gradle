@@ -25,7 +25,6 @@ import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
 
@@ -101,11 +100,6 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         } else {
             extensionsStorage.add(name, extension);
         }
-    }
-
-    public void add(String name, Class<?> type, Object... constructionArguments) {
-        DeprecationLogger.nagUserOfReplacedMethod("extensions.add(String, Class, Object...)", "extensions.create(String, Class, Object...)");
-        create(name, type, constructionArguments);
     }
 
     public <T> T create(String name, Class<T> type, Object... constructionArguments) {

@@ -85,4 +85,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     ClassLoaderScope getClassLoaderScope();
 
+    ClassLoaderScope getBaseClassLoaderScope();
+
 }

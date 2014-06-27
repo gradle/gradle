@@ -15,10 +15,7 @@
  */
 package org.gradle.nativebinaries.platform.internal;
 
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.TypedNotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.internal.typeconversion.*;
 import org.gradle.nativebinaries.platform.OperatingSystem;
 import org.gradle.util.GUtil;
 
@@ -36,18 +33,20 @@ public class OperatingSystemNotationParser {
     private static final List<String> FREEBSD_ALIASES = Arrays.asList("freebsd");
 
     public static NotationParser<Object, OperatingSystem> parser() {
-        return new NotationParserBuilder<OperatingSystem>()
-                .resultingType(OperatingSystem.class)
-                .parser(new Parser())
+        return NotationParserBuilder
+                .toType(OperatingSystem.class)
+                .fromCharSequence(new Parser())
                 .toComposite();
     }
 
-    private static final class Parser extends TypedNotationParser<String, OperatingSystem> {
-        private Parser() {
-            super(String.class);
+    private static final class Parser implements NotationConverter<String, OperatingSystem> {
+        public void convert(String notation, NotationConvertResult<? super OperatingSystem> result) throws TypeConversionException {
+            OperatingSystem operatingSystem = parseType(notation);
+            if (operatingSystem != null) {
+                result.converted(operatingSystem);
+            }
         }
 
-        @Override
         protected OperatingSystem parseType(String notation) {
             if (WINDOWS_ALIASES.contains(notation.toLowerCase())) {
                 return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.WINDOWS);
@@ -64,10 +63,9 @@ public class OperatingSystemNotationParser {
             if (FREEBSD_ALIASES.contains(notation.toLowerCase())) {
                 return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.FREE_BSD);
             }
-            throw new UnsupportedNotationException(notation);
+            return null;
         }
 
-        @Override
         public void describe(Collection<String> candidateFormats) {
             List<String> allValues = new ArrayList<String>();
             allValues.addAll(WINDOWS_ALIASES);

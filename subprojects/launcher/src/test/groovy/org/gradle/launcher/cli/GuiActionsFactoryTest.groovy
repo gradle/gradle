@@ -31,7 +31,7 @@ class GuiActionsFactoryTest extends Specification {
 
         then:
         // Relying on impl of Actions.toAction(Runnable)
-        action.runnable instanceof GuiActionsFactory.ShowGuiAction
+        action instanceof GuiActionsFactory.ShowGuiAction
     }
 
 }

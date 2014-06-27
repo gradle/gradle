@@ -82,17 +82,14 @@ enum TestPrecondition {
     NOT_UNKNOWN_OS({
         !UNKNOWN_OS.fulfilled
     }),
-    JDK5({
-        JavaVersion.current().java5
-    }),
-    JDK6_OR_LATER({
-        JavaVersion.current() >= JavaVersion.VERSION_1_6
-    }),
-    JDK6_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_1_6
-    }),
     JDK7_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_7
+    }),
+    JDK7_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_1_7
+    }),
+    JDK8_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_1_8
     }),
     JDK7_POSIX({
         JDK7_OR_LATER.fulfilled && NOT_WINDOWS.fulfilled
@@ -102,7 +99,7 @@ enum TestPrecondition {
     }),
     ONLINE({
         try {
-            new URL("http://google.com").openConnection().openStream()
+            new URL("http://google.com").openConnection().getInputStream().close()
             true
         } catch (IOException) {
             false

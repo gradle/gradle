@@ -1,0 +1,3 @@
+//Making all source dirs test source dirs to work around issues with IDEA 13 compilation
+idea.module.testSourceDirs = idea.module.testSourceDirs + idea.module.sourceDirs
+idea.module.sourceDirs = [] as Set

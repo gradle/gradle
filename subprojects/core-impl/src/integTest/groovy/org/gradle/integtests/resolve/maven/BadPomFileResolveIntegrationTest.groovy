@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
 
-class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Issue("http://issues.gradle.org/browse/GRADLE-1005")
     def "can handle self referencing dependency"() {
         given:
@@ -43,8 +43,6 @@ class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest 
     @Issue("http://issues.gradle.org/browse/GRADLE-2861")
     def "can handle pom with placeholders in dependency management"() {
         given:
-        server.start()
-
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()
         parent.pomFile.text = parent.pomFile.text.replace("</project>", """
 <dependencyManagement>
@@ -85,7 +83,6 @@ class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest 
     }
 
     public void "reports POM that cannot be parsed"() {
-        server.start()
         given:
         buildFile << """
 repositories {
@@ -116,8 +113,6 @@ task showBroken << { println configurations.compile.files }
 
     def "reports missing parent POM"() {
         given:
-        server.start()
-
         def parent = mavenHttpRepo.module("org", "parent", "1.0")
 
         def child = mavenHttpRepo.module("org", "child", "1.0")
@@ -147,13 +142,14 @@ task showBroken << { println configurations.compile.files }
         then:
         failure.assertResolutionFailure(':compile')
                 .assertHasCause("Could not parse POM ${child.pom.uri}")
-                .assertHasCause("Could not find any version that matches org:parent:1.0.")
+                .assertHasCause("""Could not find org:parent:1.0.
+Searched in the following locations:
+    ${parent.pom.uri}
+    ${parent.artifact.uri}""")
     }
 
     def "reports parent POM that cannot be parsed"() {
         given:
-        server.start()
-
         def parent = mavenHttpRepo.module("org", "parent", "1.0").publish()
         parent.pomFile.text = "<project/>"
 

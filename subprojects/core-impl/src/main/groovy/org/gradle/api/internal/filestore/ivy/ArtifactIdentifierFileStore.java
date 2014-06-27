@@ -17,16 +17,14 @@
 package org.gradle.api.internal.filestore.ivy;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.filestore.GroupedAndNamedUniqueFileStore;
-import org.gradle.api.internal.filestore.PathKeyFileStore;
+import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
+import org.gradle.internal.resource.local.PathKeyFileStore;
 
-public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ArtifactIdentifier> {
+public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleVersionArtifactMetaData> {
 
     private static final String GROUP_PATTERN = "[organisation]/[module](/[branch])/[revision]";
     private static final String NAME_PATTERN = "[artifact]-[revision](-[classifier])(.[ext])";
@@ -35,25 +33,12 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
         super(pathKeyFileStore, temporaryFileProvider, toTransformer(GROUP_PATTERN), toTransformer(NAME_PATTERN));
     }
 
-    private static Transformer<String, ArtifactIdentifier> toTransformer(final String pattern) {
-         return new Transformer<String, ArtifactIdentifier>() {
-             public String transform(ArtifactIdentifier id) {
-                 ResourcePattern resourcePattern = new IvyResourcePattern(pattern);
-
-                 // TODO:DAZ Not sure if this is required: left in as part of refactor.
-                 id = normalizeGroup(id);
-
-                 return resourcePattern.toPath(id);
+    private static Transformer<String, ModuleVersionArtifactMetaData> toTransformer(final String pattern) {
+        final ResourcePattern resourcePattern = new IvyResourcePattern(pattern);
+        return new Transformer<String, ModuleVersionArtifactMetaData>() {
+             public String transform(ModuleVersionArtifactMetaData artifact) {
+                 return resourcePattern.getLocation(artifact).getPath();
              }
          };
-    }
-
-    private static ArtifactIdentifier normalizeGroup(ArtifactIdentifier id) {
-        ModuleVersionIdentifier mvi = id.getModuleVersionIdentifier();
-        if (mvi.getGroup().contains("/")) {
-            String newGroup = id.getModuleVersionIdentifier().getGroup().replace('/', '.');
-            return new DefaultArtifactIdentifier(newGroup, mvi.getName(), mvi.getVersion(), id.getName(), id.getType(), id.getExtension(), id.getClassifier());
-        }
-        return id;
     }
 }

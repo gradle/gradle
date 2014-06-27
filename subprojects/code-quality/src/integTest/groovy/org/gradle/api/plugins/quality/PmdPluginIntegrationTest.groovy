@@ -16,7 +16,9 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.Matchers
 import org.hamcrest.Matcher
+import org.junit.Assert
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
@@ -136,6 +138,21 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
+    def "can enable console output"() {
+        buildFile << """
+            pmd {
+                consoleOutput = true
+            }
+        """
+        badCode()
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        Assert.assertThat(output, Matchers.containsText("org/gradle/Class1Test\\.java:1:\\s+Empty initializer was found"))
+    }
+
     private void writeBuildFile() {
         file("build.gradle") << """
             apply plugin: "java"
@@ -184,7 +201,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
 
                 <description>Custom rule set</description>
 
-                <rule ref="rulesets/braces.xml"/>
+                <rule ref="rulesets/java/braces.xml"/>
             </ruleset>
         """
     }

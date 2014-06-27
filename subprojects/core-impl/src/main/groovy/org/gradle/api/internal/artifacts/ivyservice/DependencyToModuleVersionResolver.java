@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 /**
- * Resolves a dependency to the meta-data for a module.
+ * Resolves a dependency to a component instance.
  */
 public interface DependencyToModuleVersionResolver {
     /**
-     * Resolves the given dependency to a module version id. Failures are packaged up in the returned result.
+     * Resolves the given dependency to component instance. Failures are packaged up in the returned result.
      */
-    void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result);
+    void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result);
 }

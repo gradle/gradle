@@ -25,7 +25,7 @@ import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
-import org.gradle.launcher.daemon.bootstrap.DaemonMain
+import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
@@ -92,8 +92,7 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--stop')
 
         then:
-        // Relying on impl of Actions.toAction(Runnable)
-        action.runnable instanceof StopDaemonAction
+        action instanceof StopDaemonAction
     }
 
     def "runs daemon in foreground"() {
@@ -101,8 +100,7 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--foreground')
 
         then:
-        // Relying on impl of Actions.toAction(Runnable)
-        action.runnable instanceof DaemonMain
+        action instanceof ForegroundDaemonAction
     }
 
     def "executes with single use daemon if java home is not current"() {
@@ -126,20 +124,17 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     void isDaemon(def action) {
-        // Relying on impl of Actions.toAction(Runnable)
-        assert action.runnable instanceof RunBuildAction
-        assert action.runnable.executer instanceof DaemonClient
+        assert action instanceof RunBuildAction
+        assert action.executer instanceof DaemonClient
     }
 
     void isInProcess(def action) {
-        // Relying on impl of Actions.toAction(Runnable)
-        assert action.runnable instanceof RunBuildAction
-        assert action.runnable.executer instanceof InProcessBuildActionExecuter
+        assert action instanceof RunBuildAction
+        assert action.executer instanceof InProcessBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {
-        // Relying on impl of Actions.toAction(Runnable)
-        assert action.runnable instanceof RunBuildAction
-        assert action.runnable.executer instanceof SingleUseDaemonClient
+        assert action instanceof RunBuildAction
+        assert action.executer instanceof SingleUseDaemonClient
     }
 }

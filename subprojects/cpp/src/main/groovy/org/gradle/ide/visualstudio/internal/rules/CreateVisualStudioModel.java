@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio.internal.rules;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
-import org.gradle.language.base.BinaryContainer;
+import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 

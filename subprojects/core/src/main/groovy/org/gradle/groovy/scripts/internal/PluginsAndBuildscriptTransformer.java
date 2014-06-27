@@ -26,19 +26,23 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.DefaultScript;
-import org.gradle.plugin.PluginHandler;
+import org.gradle.plugin.use.internal.PluginDependenciesService;
+import org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer;
 
 public class PluginsAndBuildscriptTransformer implements StatementTransformer {
 
     private static final String PLUGINS = "plugins";
-    private static final ScriptBlockToServiceConfigurationTransformer PLUGIN_BLOCK_TRANSFORMER = new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginHandler.class);
+    private static final PluginUseScriptBlockTransformer PLUGIN_BLOCK_TRANSFORMER = new PluginUseScriptBlockTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginDependenciesService.class);
 
     private final String classpathBlockName;
+    private final String pluginsBlockMessage;
+
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
 
-    public PluginsAndBuildscriptTransformer(String classpathBlockName) {
+    public PluginsAndBuildscriptTransformer(String classpathBlockName, String pluginsBlockMessage) {
         this.classpathBlockName = classpathBlockName;
+        this.pluginsBlockMessage = pluginsBlockMessage;
     }
 
     public Statement transform(SourceUnit sourceUnit, Statement statement) {
@@ -48,20 +52,31 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
             return null;
         } else {
             if (scriptBlock.getName().equals(PLUGINS)) {
-                seenPluginsBlock = true;
-                if (seenNonClasspathStatement) {
-                    String message = String.format(
-                            "only %s {} and and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",
-                            classpathBlockName, PLUGINS, PLUGINS
-                    );
+                String failMessage = null;
+                Statement returnStatement = statement;
+
+                if (pluginsBlockMessage != null) {
+                    failMessage = pluginsBlockMessage;
+                } else {
+                    seenPluginsBlock = true;
+                    if (seenNonClasspathStatement) {
+                        failMessage = String.format(
+                                "only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",
+                                classpathBlockName, PLUGINS, PLUGINS
+                        );
+                    } else {
+                        returnStatement = PLUGIN_BLOCK_TRANSFORMER.transform(sourceUnit, scriptBlock);
+                    }
+                }
+
+                if (failMessage != null) {
                     sourceUnit.getErrorCollector().addError(
-                            new SyntaxException(message, statement.getLineNumber(), statement.getColumnNumber()),
+                            new SyntaxException(failMessage, statement.getLineNumber(), statement.getColumnNumber()),
                             sourceUnit
                     );
-                    return statement;
-                } else {
-                    return PLUGIN_BLOCK_TRANSFORMER.transform(scriptBlock);
                 }
+
+                return returnStatement;
             } else {
                 if (seenPluginsBlock) {
                     String message = String.format(

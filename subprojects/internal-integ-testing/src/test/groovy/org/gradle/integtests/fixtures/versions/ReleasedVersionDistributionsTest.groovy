@@ -19,23 +19,21 @@ package org.gradle.integtests.fixtures.versions
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
-import static org.gradle.integtests.fixtures.versions.ReleasedGradleVersion.Type.FINAL
-import static org.gradle.integtests.fixtures.versions.ReleasedGradleVersion.Type.RELEASE_CANDIDATE
 import static org.gradle.util.GradleVersion.version
 
 class ReleasedVersionDistributionsTest extends Specification {
 
-    List<ReleasedGradleVersion> all = []
+    Properties props = new Properties()
 
     def versions() {
-        new ReleasedVersionDistributions(new Factory<List<ReleasedGradleVersion>>() {
-            List<ReleasedGradleVersion> create() {
-                all
+        new ReleasedVersionDistributions(new Factory<Properties>() {
+            Properties create() {
+                props
             }
         })
     }
 
-    // Will fail if the classpath resource is not available, see ClasspathVersionJsonSource
+    // Will fail if the classpath resource is not available, see ClasspathVersionSource
     def "can create from classpath"() {
         when:
         def versions = new ReleasedVersionDistributions()
@@ -47,8 +45,7 @@ class ReleasedVersionDistributionsTest extends Specification {
 
     def "get most recent final does that"() {
         when:
-        all << new ReleasedGradleVersion(version("1.3-rc-1"), RELEASE_CANDIDATE, true)
-        all << new ReleasedGradleVersion(version("1.2"), FINAL, true)
+        props.mostRecent = "1.2"
 
         then:
         versions().mostRecentFinalRelease.version == version("1.2")
@@ -56,8 +53,7 @@ class ReleasedVersionDistributionsTest extends Specification {
 
     def "get all final does that"() {
         when:
-        all << new ReleasedGradleVersion(version("1.3-rc-1"), RELEASE_CANDIDATE, true)
-        all << new ReleasedGradleVersion(version("1.2"), FINAL, true)
+        props.versions = "1.3-rc-1 1.2"
 
         then:
         versions().all*.version == [version("1.3-rc-1"), version("1.2")]

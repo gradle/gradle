@@ -81,7 +81,9 @@ class MapNotationParserTest extends Specification {
         parser.parseNotation([name: 'name', version: 1.2, unknown: 'unknown'])
 
         then:
-        MissingFieldException e = thrown()
+        MissingPropertyException e = thrown()
+        e.property == 'unknown'
+        e.type == TargetObject
     }
 
     def "does not parse notation that is not a map"() {
@@ -99,11 +101,11 @@ class MapNotationParserTest extends Specification {
             return new TargetObject(key1:  name, key2:  version, optional:  optional)
         }
     }
+}
 
-    static class TargetObject {
-        String key1;
-        String key2;
-        String optional;
-        String prop1;
-    }
+class TargetObject {
+    String key1;
+    String key2;
+    String optional;
+    String prop1;
 }

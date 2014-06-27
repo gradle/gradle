@@ -81,4 +81,41 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         expect:
         succeeds("test")
     }
+
+    @Issue("GRADLE-3068")
+    def "can use gradleApi in test"() {
+        given:
+        file("src/test/groovy/org/acme/BreakingTest.groovy") << """
+            package com.acme
+import org.gradle.api.Project
+import org.gradle.testfixtures.ProjectBuilder
+import org.junit.Test
+
+class BreakingTest {
+  @Test
+  void "can evaluate ProjectBuilder"() {
+    def project = ProjectBuilder.builder().build()
+    project.apply(plugin: 'groovy')
+    project.evaluate()
+  }
+}
+        """
+
+        and:
+        buildFile << '''
+            apply plugin: 'groovy'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile gradleApi()
+                compile localGroovy()
+            }
+        '''
+
+        expect:
+        succeeds("test")
+    }
 }

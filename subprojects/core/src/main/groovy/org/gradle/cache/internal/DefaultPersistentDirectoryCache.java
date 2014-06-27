@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
@@ -33,15 +32,13 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final File propertiesFile;
     private final Properties properties = new Properties();
-    private final CacheUsage cacheUsage;
     private final Action<? super PersistentCache> initAction;
     private final CacheValidator validator;
     private boolean didRebuild;
 
-    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
+    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
         super(dir, displayName, lockOptions, lockManager);
         this.validator = validator;
-        this.cacheUsage = cacheUsage;
         this.initAction = initAction;
         propertiesFile = new File(dir, "cache.properties");
         this.properties.putAll(properties);
@@ -65,10 +62,6 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private class Initializer implements CacheInitializationAction {
         public boolean requiresInitialization(FileLock lock) {
             if (!didRebuild) {
-                if (cacheUsage == CacheUsage.REBUILD) {
-                    LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
-                    return true;
-                }
                 if (validator!=null && !validator.isValid()) {
                     LOGGER.debug("Invalidating {} as cache validator return false.", this);
                     return true;

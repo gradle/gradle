@@ -30,9 +30,6 @@
                 <td>baseName</td>
             </tr>
             <tr>
-                <td>source</td>
-            </tr>
-            <tr>
                 <td>displayName</td>
             </tr>
         </table>
@@ -45,9 +42,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>source</td>
-            </tr>
         </table>
     </section>
 </section>

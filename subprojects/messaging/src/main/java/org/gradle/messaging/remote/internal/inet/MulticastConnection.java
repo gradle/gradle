@@ -15,31 +15,50 @@
  */
 package org.gradle.messaging.remote.internal.inet;
 
-import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.MessageIOException;
 import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.net.DatagramPacket;
-import java.net.MulticastSocket;
-import java.net.SocketException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.*;
 
 public class MulticastConnection<T> implements Connection<T> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MulticastConnection.class);
     private static final int MAX_MESSAGE_SIZE = 32*1024;
     private final MulticastSocket socket;
     private final SocketInetAddress address;
     private final MessageSerializer<T> serializer;
     private final SocketInetAddress localAddress;
 
-    public MulticastConnection(SocketInetAddress address, MessageSerializer<T> serializer) {
+    public MulticastConnection(SocketInetAddress address, MessageSerializer<T> serializer, InetAddressFactory addressFactory) {
         this.address = address;
         this.serializer = serializer;
         try {
             socket = new MulticastSocket(address.getPort());
-            socket.joinGroup(address.getAddress());
+            boolean bound = false;
+            SocketException bindFailure = null;
+            // Should attempt both ip4 and ip6 multicast addresses, as some interfaces don't accept ipv4
+            for (NetworkInterface networkInterface : addressFactory.findMulticastInterfaces()) {
+                try {
+                    socket.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
+                    LOGGER.debug("Joined multicast address {} on network interface {}.", address, networkInterface.getDisplayName());
+                    bound = true;
+                } catch (SocketException e) {
+                    LOGGER.debug("Failed to join multicast address {} on network interface {}.", address, networkInterface.getDisplayName());
+                    if (bindFailure == null) {
+                        bindFailure = e;
+                    }
+                }
+            }
+            if (!bound) {
+                throw bindFailure;
+            }
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new RuntimeException(String.format("Could not create multicast socket for %s", address.getDisplayName()), e);
         }
         localAddress = new SocketInetAddress(socket.getInetAddress(), socket.getLocalPort());
     }

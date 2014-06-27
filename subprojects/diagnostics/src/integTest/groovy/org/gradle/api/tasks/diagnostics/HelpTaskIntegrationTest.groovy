@@ -44,7 +44,6 @@ Options
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
 
-
 BUILD SUCCESSFUL"""))
     }
 
@@ -62,11 +61,10 @@ Type
      Help (org.gradle.configuration.Help)
 
 Options
-     --task     The task, detailed help is requested for.
+     --task     The task to show help for.
 
 Description
      Displays a help message
-
 
 BUILD SUCCESSFUL"""))
     }
@@ -123,7 +121,6 @@ Type
 Description
      Assembles a jar archive containing the main classes.
 
-
 BUILD SUCCESSFUL"""))
 
         when:
@@ -140,7 +137,6 @@ Type
 
 Description
      Assembles a jar archive containing the main classes.
-
 
 BUILD SUCCESSFUL"""))
 

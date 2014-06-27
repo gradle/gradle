@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,8 @@ public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs 
 
     private final Task task;
 
-    public RebuildIncrementalTaskInputs(Task task) {
+    public RebuildIncrementalTaskInputs(Task task, FilesSnapshotSet inputFilesSnapshot) {
+        super(inputFilesSnapshot);
         LOGGER.info("All input files are considered out-of-date for incremental {}.", task);
         this.task = task;
     }

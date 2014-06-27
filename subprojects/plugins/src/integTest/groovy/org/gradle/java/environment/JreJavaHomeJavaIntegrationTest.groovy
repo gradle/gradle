@@ -27,7 +27,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null })
     @Unroll
-    def "java compilation works in forking mode = #forkMode and useAnt = #useAnt when JAVA_HOME is set to JRE"() {
+    def "java compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre
         writeJavaTestSource("src/main/java");
@@ -36,44 +36,36 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         apply plugin:'java'
         compileJava {
             options.fork = ${forkMode}
-            options.useAnt = ${useAnt}
         }
         """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withDeprecationChecksDisabled().withTasks("compileJava").run().output
+        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileJava").run().output
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()
 
         where:
-        forkMode | useAnt
-        false    | false
-        false    | true
-        true     | false
+        forkMode << [true, false]
     }
 
     @Requires(TestPrecondition.WINDOWS)
     @Unroll
-    def "java compilation works in forking mode = #forkMode and useAnt = #useAnt when gradle is started with no JAVA_HOME defined"() {
+    def "java compilation works in forking mode = #forkMode when gradle is started with no JAVA_HOME defined"() {
         given:
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """
         apply plugin:'java'
         compileJava {
             options.fork = ${forkMode}
-            options.useAnt = ${useAnt}
         }
         """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
         when:
-        executer.withEnvironmentVars(envVars).withDeprecationChecksDisabled().withTasks("compileJava").run()
+        executer.withEnvironmentVars(envVars).withTasks("compileJava").run()
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()
         where:
-        forkMode | useAnt
-        false    | false
-        false    | true
-        true     | false
+        forkMode << [true, false]
     }
 
     private writeJavaTestSource(String srcDir) {

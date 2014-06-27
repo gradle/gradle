@@ -32,14 +32,15 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinaryContainer;
+import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
-import org.gradle.language.jvm.ClassDirectoryBinary;
-import org.gradle.language.jvm.Classpath;
+import org.gradle.api.jvm.ClassDirectoryBinary;
+import org.gradle.runtime.jvm.Classpath;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
+import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -58,10 +59,12 @@ public class JavaBasePlugin implements Plugin<Project> {
     public static final String DOCUMENTATION_GROUP = "documentation";
 
     private final Instantiator instantiator;
+    private final JavaToolChainInternal toolChain;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator) {
+    public JavaBasePlugin(Instantiator instantiator, JavaToolChainInternal toolChain) {
         this.instantiator = instantiator;
+        this.toolChain = toolChain;
     }
 
     public void apply(Project project) {
@@ -193,6 +196,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getTasks().withType(JavaCompile.class, new Action<JavaCompile>() {
             public void execute(final JavaCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
+                compile.setToolChain(toolChain);
                 conventionMapping.map("dependencyCacheDir", new Callable<Object>() {
                     public Object call() throws Exception {
                         return javaConvention.getDependencyCacheDir();
@@ -205,6 +209,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
         project.getTasks().withType(Javadoc.class, new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
+                javadoc.setToolChain(toolChain);
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
                     public Object call() throws Exception {
                         return new File(convention.getDocsDir(), "javadoc");

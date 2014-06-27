@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
-
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -24,7 +23,7 @@ import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
@@ -133,7 +132,7 @@ public class DefaultCachePolicySpec extends Specification {
                 t.refresh()
             }
         })
-        cachePolicy.mustRefreshModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), null, 0)
+        cachePolicy.mustRefreshModule(moduleComponent('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
     }
 
     def "provides details of cached changing module"() {
@@ -146,7 +145,7 @@ public class DefaultCachePolicySpec extends Specification {
                 t.refresh()
             }
         })
-        cachePolicy.mustRefreshChangingModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
+        cachePolicy.mustRefreshChangingModule(moduleComponent('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
     }
 
     def "provides details of cached artifact"() {
@@ -219,26 +218,29 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def hasChangingModuleTimeout(int timeout) {
+        def id = moduleComponent('group', 'name', 'version')
         def module = moduleVersion('group', 'name', 'version')
-        assert !cachePolicy.mustRefreshChangingModule(null, module, timeout - 1)
-        assert !cachePolicy.mustRefreshChangingModule(null, module, timeout);
-        cachePolicy.mustRefreshChangingModule(null, module, timeout + 1)
+        assert !cachePolicy.mustRefreshChangingModule(id, module, timeout - 1)
+        assert !cachePolicy.mustRefreshChangingModule(id, module, timeout);
+        cachePolicy.mustRefreshChangingModule(id, module, timeout + 1)
     }
 
     private def hasModuleTimeout(int timeout) {
+        def id = moduleComponent('group', 'name', 'version')
         def module = moduleVersion('group', 'name', 'version')
-        assert !cachePolicy.mustRefreshModule(null, module, null, timeout);
-        assert !cachePolicy.mustRefreshModule(null, module, null, timeout - 1)
+        assert !cachePolicy.mustRefreshModule(id, module, timeout);
+        assert !cachePolicy.mustRefreshModule(id, module, timeout - 1)
         if (timeout == FOREVER) {
             return true
         }
-        cachePolicy.mustRefreshModule(null, module, timeout + 1)
+        cachePolicy.mustRefreshModule(id, module, timeout + 1)
     }
 
     private def hasMissingModuleTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshModule(null, null, null, timeout);
-        assert !cachePolicy.mustRefreshModule(null, null, null, timeout - 1)
-        cachePolicy.mustRefreshModule(null, null, null, timeout + 1)
+        def id = moduleComponent('group', 'name', 'version')
+        assert !cachePolicy.mustRefreshModule(id, null, timeout);
+        assert !cachePolicy.mustRefreshModule(id, null, timeout - 1)
+        cachePolicy.mustRefreshModule(id, null, timeout + 1)
     }
 
     private def hasChangingArtifactTimeout(int timeout){
@@ -257,8 +259,8 @@ public class DefaultCachePolicySpec extends Specification {
         assert moduleId.version == version
     }
 
-    private def moduleSelector(String group, String name, String version) {
-        new DefaultModuleVersionSelector(group, name, version)
+    private def moduleComponent(String group, String name, String version) {
+        new DefaultModuleComponentIdentifier(group, name, version)
     }
 
     private def moduleIdentifier(String group, String name, String version) {

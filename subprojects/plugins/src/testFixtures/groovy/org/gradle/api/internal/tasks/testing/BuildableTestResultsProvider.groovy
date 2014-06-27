@@ -124,7 +124,6 @@ class BuildableTestResultsProvider implements TestResultsProvider {
 
         long duration
         List<TestFailure> failures = []
-        boolean ignored
 
         TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
 
@@ -143,7 +142,6 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         }
         
         void ignore() {
-            ignored = true
             resultType = TestResult.ResultType.SKIPPED
         }
 

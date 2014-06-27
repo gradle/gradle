@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.base.Binary;
+import org.gradle.runtime.base.Binary;
 import org.gradle.nativebinaries.platform.Platform;
 
 /**

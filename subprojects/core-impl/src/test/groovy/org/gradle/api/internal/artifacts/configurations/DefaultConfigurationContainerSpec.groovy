@@ -66,7 +66,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
                 resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal) >> conf
 
         when:
-        def compile = configurationContainer.add("compile") {
+        def compile = configurationContainer.create("compile") {
             description = "I compile!"
         }
 

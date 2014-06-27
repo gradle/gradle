@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
@@ -28,6 +30,10 @@ public class ConnectorServices {
     private static ServiceRegistry singletonRegistry = new ConnectorServiceRegistry();
 
     public DefaultGradleConnector createConnector() {
+        JavaVersion javaVersion = JavaVersion.current();
+        if (!javaVersion.isJava6Compatible()) {
+            throw UnsupportedJavaRuntimeException.usingUnsupportedVersion("Gradle Tooling API", JavaVersion.VERSION_1_6);
+        }
         ConnectionFactory connectionFactory = new ConnectionFactory(singletonRegistry.get(ToolingImplementationLoader.class));
         return new DefaultGradleConnector(connectionFactory, new DistributionFactory());
     }

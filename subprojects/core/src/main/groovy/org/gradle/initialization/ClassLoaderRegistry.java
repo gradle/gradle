@@ -35,4 +35,9 @@ public interface ClassLoaderRegistry {
      * Returns the class loader for the plugins.
      */
     ClassLoader getPluginsClassLoader();
+
+    /**
+     * Just the core API, no core plugins.
+     */
+    ClassLoader getGradleCoreApiClassLoader();
 }

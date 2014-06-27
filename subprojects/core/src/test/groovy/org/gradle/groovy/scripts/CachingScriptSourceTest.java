@@ -15,8 +15,8 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.internal.resource.CachingResource;
-import org.gradle.api.internal.resource.Resource;
+import org.gradle.internal.resource.CachingResource;
+import org.gradle.internal.resource.Resource;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;

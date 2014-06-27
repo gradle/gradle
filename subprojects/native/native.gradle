@@ -7,9 +7,6 @@ dependencies {
     compile libraries.slf4j_api
     compile libraries.jna
     compile libraries.nativePlatform
-    compile module('org.jruby.ext.posix:jna-posix:1.0.3') {
-        dependency libraries.jna
-    }
     compile module('org.fusesource.jansi:jansi:1.2.1') {
         dependency libraries.jna
     }

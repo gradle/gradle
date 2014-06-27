@@ -34,7 +34,6 @@ class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
     String compilerConfiguration() {
         '''
 tasks.withType(GroovyCompile) {
-    groovyOptions.useAnt = false
     groovyOptions.fork = false
 }
         '''

@@ -15,7 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.assembler.tasks
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativebinaries.platform.internal.PlatformInternal
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
@@ -48,7 +48,7 @@ class AssemblerTest extends Specification {
         _ * toolChain.outputType >> "c"
         _ * platform.compatibilityString >> "p"
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.createAssembler() >> assembler
+        1 * platformToolChain.newCompiler({it instanceof AssembleSpec}) >> assembler
         1 * assembler.execute({ AssembleSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

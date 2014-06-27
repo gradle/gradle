@@ -1,9 +1,11 @@
 subprojects {
-    // Inject a property and method
-    srcDirName = 'src/java'
-    srcDir = { file(srcDirName) }
+    // Define a new property
+    ext.srcDirName = 'src/java'
 
-    // Inject a task
+    // Define a method using a closure as the method body
+    ext.srcDir = { file(srcDirName) }
+
+    // Define a task
     task show << {
         println 'project: ' + project.path
         println 'srcDirName: ' + srcDirName
@@ -14,5 +16,5 @@ subprojects {
 
 // Inject special case configuration into a particular project
 project(':child2') {
-    srcDirName = "$srcDirName/legacy"
+    ext.srcDirName = "$srcDirName/legacy"
 }

@@ -19,25 +19,25 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.Collection;
 
-public class DependencyProjectNotationParser extends TypedNotationParser<Project, ProjectDependency> {
+public class DependencyProjectNotationParser implements NotationConverter<Project, ProjectDependency> {
 
     private final DefaultProjectDependencyFactory factory;
 
     public DependencyProjectNotationParser(DefaultProjectDependencyFactory factory) {
-        super(Project.class);
         this.factory = factory;
     }
 
-    @Override
     public void describe(Collection<String> candidateFormats) {
         candidateFormats.add("Projects, e.g. project(':some:project:path').");
     }
 
-    public ProjectDependency parseType(Project notation) {
-        return factory.create(notation);
+    public void convert(Project notation, NotationConvertResult<? super ProjectDependency> result) throws TypeConversionException {
+        result.converted(factory.create(notation));
     }
 }

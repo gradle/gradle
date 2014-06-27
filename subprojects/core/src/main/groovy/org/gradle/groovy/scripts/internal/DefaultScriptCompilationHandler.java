@@ -89,11 +89,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     @Override
                     protected groovyjarjarasm.asm.ClassVisitor createClassVisitor() {
                         return new ClassWriter(ClassWriter.COMPUTE_MAXS) {
-                            // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
-                            // insert the full path if our script source has a source file
                             @Override
-                            public void visitSource(String sourcePath, String debugInfo) {
-                                super.visitSource(source.getFileName(), debugInfo);
+                            public byte[] toByteArray() {
+                                // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
+                                // insert the full path if our script source has a source file
+                                visitSource(source.getFileName(), null);
+                                return super.toByteArray();
                             }
                         };
                     }

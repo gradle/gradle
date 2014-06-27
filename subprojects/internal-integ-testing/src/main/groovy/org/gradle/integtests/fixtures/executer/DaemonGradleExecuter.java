@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
@@ -64,10 +63,6 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
             jvmArgs.add("-XX:MaxPermSize=320m");
             jvmArgs.add("-XX:+HeapDumpOnOutOfMemoryError");
             jvmArgs.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());
-            if (JavaVersion.current().isJava5()) {
-                jvmArgs.add("-XX:+CMSPermGenSweepingEnabled");
-                jvmArgs.add("-Dcom.sun.management.jmxremote");
-            }
 
             String quotedArgs = join(" ", collect(jvmArgs, new Transformer<String, String>() {
                 public String transform(String input) {

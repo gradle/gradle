@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildLayoutParameters;
@@ -41,7 +40,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,10 +126,12 @@ public class ProviderConnection {
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {
-        BuildLayoutParameters layout = new BuildLayoutParameters()
-                .setGradleUserHomeDir(GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME))
-                .setSearchUpwards(operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true)
-                .setProjectDir(operationParameters.getProjectDir());
+        BuildLayoutParameters layout = new BuildLayoutParameters();
+        if (operationParameters.getGradleUserHomeDir() != null) {
+            layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
+        }
+        layout.setSearchUpwards(operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true);
+        layout.setProjectDir(operationParameters.getProjectDir());
 
         Map<String, String> properties = new HashMap<String, String>();
         new LayoutToPropertiesConverter().convert(layout, properties);

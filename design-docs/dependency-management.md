@@ -47,39 +47,6 @@ A component instance with an associated (group, module, version) identifier.
 
 See also the completed stories in [dependency-management.md](done/dependency-management.md).
 
-## Story: Dependency reports indicate the source of a component
-
-The dependency reporting will change to give some indication of the source of the component:
-
-For an external component instance, this will be unchanged:
-
-    +- group:name:1.2
-    +- group:other:1.3 -> group:other:1.3.1
-
-For a local component that is not a module version, this will look something like:
-
-    +- project :some:path
-    +- project :some:path -> group:other:1.2
-
-For a local component that is a module version, this will look something like
-
-    +- project :some:path (group:name:1.2)
-    +- project :some:path (group:name:1.2) -> group:other:1.2
-
-1. Change the `RenderableDependency` hierarchy to use the component id and module version id, if not null.
-2. Update the the dependency report tests as appropriate.
-
-The HTML dependency report should change in a similar way.
-
-### Test coverage
-
-- Update the existing test coverage for the new display values.
-- Ensure there is coverage for the dependency report and the dependency HTML report where
-    - There are a mix of external and project dependencies in the graph
-- Ensure there is coverage for the dependency insight report where:
-    - There are a mix of external and project dependencies in the graph
-    - There are a mix of external and project dependencies in the graph and the `--dependency` option is used.
-
 ## Story: IDE plugins use dependency resolution result to determine IDE class paths
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE project classpath.
@@ -87,80 +54,7 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 - Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
   external dependencies.
 
-## Story: Dependency resolution result exposes a consumer that is not a module version
-
-This story exposes different kinds of consumers for a dependency graph. The consumer is represented as the root of the dependency resolution result.
-
-- Result `root.id` should return a `ProjectComponentIdentifier` when a project configuration is resolved.
-- Result `root.id` should return an opaque `ComponentIdentifier` implementation when any other kind of configuration is resolved.
-    - Add an internal implementation that implements only `ComponentIdentifier`. Two such implementations are equal when their display
-      names are the same.
-    - This implementation should use the configuration's display name for the component display name.
-- When there is a project dependency in the graph that refers to the root, the selected component for the dependency should be the same instance
-  as `root`.
-- Some internal refactoring to push components down further:
-    - Rename internal class `ModuleVersionSelection` and its methods.
-    - Change `ResolutionResultBuilder` and its implementations to use component id rather than module version id as the key for the graph node.
-
-### Test coverage
-
-- `root.id` has the correct type when resolving a script classpath.
-- `root.id` has the correct type when resolving a project configuration.
-- `root.id` has the correct type when there is a dependency cycle between projects.
-- Update dependency report tests to reflect the change in root id display name.
-
-### Open issues
-
-- Is it a bit of a stretch to call some of these consumers a 'component'?
-- The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
-- Sync this up with the variant resolution stories below. When resolving a native component's dependencies, the `root` should represent the consuming native component.
-- Clean up the display names for configurations.
-- Packages for the new types.
-- Convenience for casting selector and id?
-- Convenience for selecting things with a given id type or selector type?
-- Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
-- Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
-- Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
-
-## Story: Allow the artifacts for a component instance to be queried
-
-Currently, there is no way to determine which artifacts in a resolution result are associated with a given component. The artifacts are currently exposed
-as `ResolvedArtifact` instances. These artifacts have a module version identifier associated with them, which is used to match against the component's
-module version identifier. This only work when the component has a module version associated with it, which is not always the case.
-
-TBD: provide some API to query the artifacts associated for a given component instance in a resolution result.
-
-- It should be possible to query only the graph and not the artifacts. This should not download any artifacts.
-- It should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
-      in parallel.
-- The API should expose download failures.
-- A component may have zero or more artifacts associated with it.
-
-### Test cases
-
-- Can query the artifacts of an external component.
-- Can query the artifacts of a project component.
-- Can query those artifacts that could not be resolved or downloaded.
-- Caching is applied as appropriate.
-
-## Story: IDE plugins use the resolution result to determine library artifacts
-
-This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
-
-- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
-  external artifacts.
-
-## Story: Dependency resolution resolves all artifacts as a batch
-
-Change dependency resolution implementation to resolve all artifacts as a single batch, when any artifact is requested.
-
-- Use progress logging to report on the batch resolution progress.
-
-## Story: Profile report displays artifact resolution time
-
-TBD
-
-## Story: Allow the source and Javadoc artifacts for an external Java library to be queried
+## Story: Allow the source and Javadoc artifacts for an external Java library to be queried (✓)
 
 This story introduces an API which allows the source and Javadoc artifacts for a Java library to be queried
 
@@ -180,58 +74,14 @@ This story introduces an API which allows the source and Javadoc artifacts for a
 - Query which artifacts could not be resolved or downloaded.
 - Caching is applied as appropriate.
 
-### API design proposals
-
-#### Resolve and iterate over all jvm libraries, without resolving artifacts
-
-Not supported because this API is all about resolving artifacts.
-
-#### Resolve jvm libraries together with their main and source artifacts, iterate over artifacts
-
-```
-def componentIds = ... // ComponentIdentifier's whose artifacts are to be resolved. Can be obtained from `configuration.incoming` API.
-def result = dependencies.createArtifactResolutionQuery()
-  .forComponents(componentIds)
-  .forArtifacts(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
-  .execute()
-for (jvmLibrary in result.getComponents(JvmLibrary)) { // separate type for each type of component
-  for (artifact in jvmLibrary.artifacts) { // separate type for each type of artifact
-    println artifact.id
-    println artifact.file
-  }
-}
-```
-
-#### Resolve jvm libraries together with their main and source artifacts, inspect component resolution failures
-
-```
-def componentIds = ... // ComponentIdentifier's whose artifacts are to be resolved. Can be obtained from `configuration.incoming` API.
-def result = dependencies.createArtifactResolutionQuery()
-  .forComponents(componentIds)
-  .forArtifacts(JvmLibrary) // shorthand for resolving all of the component's artifacts
-  .execute()
-for (component in result.unresolvedComponents) { // same representation for all components
-    println component.id
-    println component.failure
-  }
-}
-```
-
-### Open issues
-
-* API for artifact download failures
-* How to implement API for artifact download failures (`LenientConfiguration` only exposes module resolution failures)
-* How to determine what the main artifacts of a `JvmLibrary` component are (or more specifically, how to deal with Maven artifacts with classifiers;
-  the current API just provides the component ID). Resolving main artifacts isn't required for this story, but is related.
-
-## Story: IDE plugins use the resolution result to determine library source and Javadoc artifacts
+## Story: IDE plugins use new artifact resolution API to download sources and javadoc (✓)
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
 
 - Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the source and Javadoc artifacts.
 - Should ignore project components.
 
-## Story: Dependency resolution uses conventional schemes to locate source and Javadoc artifacts for Ivy modules
+## Story: Dependency resolution uses conventional schemes to locate source and Javadoc artifacts for Ivy modules (✓)
 
 This story improves the convention used to locate the source and Javadocs to cover some common Ivy conventions.
 
@@ -268,15 +118,234 @@ Source artifacts contained in a 'sources' configuration in ivy.xml will be now b
     * Ivy module with no source/javadoc configurations defined in metadata
 * Maven conventions are not used if ivy file declares empty sources and javadoc configuration
 
+## Story: Dependency resolution result exposes a consumer that is not a module version
+
+This story exposes different kinds of consumers for a dependency graph. The consumer is represented as the root of the dependency resolution result.
+
+- Result `root.id` should return a `ProjectComponentIdentifier` when a project configuration is resolved.
+- Result `root.id` should return an opaque `ComponentIdentifier` implementation when any other kind of configuration is resolved.
+    - Add an internal implementation that implements only `ComponentIdentifier`. Two such implementations are equal when their display
+      names are the same.
+    - This implementation should use the configuration's display name for the component display name.
+- When there is a project dependency in the graph that refers to the root, the selected component for the dependency should be the same instance
+  as `root`.
+- The 'required by' message in the resolve exception should use the root's display name, rather than the module version.
+- Some internal refactoring to push components down further:
+    - Rename internal class `ModuleVersionSelection` and its methods.
+    - Change `ResolutionResultBuilder` and its implementations to use component id rather than module version id as the key for the graph node.
+
+### Test coverage
+
+- `root.id` has the correct type when resolving a script classpath.
+- `root.id` has the correct type when resolving a project configuration.
+- `root.id` has the correct type when there is a dependency cycle between projects.
+- Update dependency report tests to reflect the change in root id display name.
+
 ### Open issues
 
-## Story: Source and Javadoc artifacts are exposed for a local Java component
+- Is it a bit of a stretch to call some of these consumers a 'component'?
+- The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
+- Sync this up with the variant resolution stories below. When resolving a native component's dependencies, the `root` should represent the consuming native component.
+- Clean up the display names for configurations.
+- Packages for the new types.
+- Convenience for casting selector and id?
+- Convenience for selecting things with a given id type or selector type?
+- Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
+- Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
+- Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
+
+## Story: Query the artifacts for all components defined by a configuration
+
+Currently, there is no way to determine which artifacts in a resolution result are associated with a given component. The artifacts are currently exposed
+as `ResolvedArtifact` instances, which reference a module version identifier but not a component identifier. As such, there is no way
+to match a `ResolvedArtifact` to a component that is not uniquely identified by a module version.
+
+This story makes it possible to obtain an `ArtifactResolutionResult` directly from a `Configuration`, providing the same set of
+artifacts as returned by `Configuration.getResolvedArtifacts()`. In doing so, the artifacts for a configuration are provided per component.
+
+This story also adds convenience mechanisms for obtaining all artifacts for an `ArtifactResolutionResult`, in addition to the existing
+way to get artifacts per component and query for artifact download failures.
+
+### User visible changes
+
+Download all artifact files for a configuration, failing if the graph could not be resolved:
+
+    copy {
+        from configurations.compile.incoming.artifactResolutionResult.artifactFiles
+        into "libs"
+    }
+
+Report on failed artifact downloads for a configuration:
+
+    configurations.compile.incoming.artifactResolutionResult.artifacts.each { ArtifactResult artifact ->
+        if (artifact instanceof UnresolvedArtifactResult) {
+            println "Failed to download artifact ${artifact.id} for component ${artifact.id.componentIdentifier}: ${artifact.failure.message}"
+        }
+    }
+
+### Implementation
+
+- Add `ResolverResults.getArtifactQueryResult()`: the result should be constructed by combining the existing `ResolverResults` and `ResolvedConfiguration`.
+    - Provides the same set of artifacts as `ResolvedConfiguration.getResolvedArtifacts()`
+    - If resolution of the dependency graph fails, then `ResolverResults.getArtifactResolutionResult()` should throw a descriptive exception
+    - If artifacts for a component cannot be determined or downloaded, then the `ArtifactResolutionResult` should encapsulate those failures.
+- Add `Configuration.incoming.getArtifactResolutionResult()` produces an `ArtifactResolutionResult` for the configuration.
+    - This result should contain the same set of artifacts currently returned by `ResolvedConfiguration.getResolvedArtifacts()`
+- Move `ComponentArtifactIdentifier` onto the public API, and return that from new method `ArtifactResult.getId()`
+- Add `ResolvedComponentArtifactsResult.getArtifacts()` that returns the set of all `ArtifactResult` instances for a component.
+- Add convenience methods to `ArtifactResolutionResult`:
+    - `getArtifacts()` returns the set of all `ArtifactResult` instances for all resolved components, failing if the result contains any
+      `UnresolvedComponentResult` instances.
+    - `getFiles()` returns a `FileCollection` containing all files associated with `ArtifactResult` instances for all resolved components,
+      throwing an exception on access for any `UnresolvedArtifactResult`
+
+### Test cases
+
+- Refactor existing test cases to verify:
+    - Can query artifacts for configuration consisting of project and external components
+    - Can query artifacts for configuration with classifier set on dependency
+    - Can query artifacts for configuration with artifact defined on dependency
+    - Can query artifacts for configuration with dependency on a configuration other than default
+- Caching of artifacts resolved from configuration
+- Reports failure to resolve dependency graph
+- Reports failures for all artifacts that could not be resolved or downloaded.
+- Reports composite failure on attempt to get all artifacts where multiple artifacts could not be downloaded
+- Use `Configuration.incoming.artifactResolutionResult` after first using `Configuration.incoming.resolutionResult`: artifact result is not regenerated
+
+### Open issues
+
+- Replacement for `ResolvedArtifact.name`, `ResolvedArtifact.extension` etc
+- Need a way to query Artifact model without downloading artifact files
+
+## Story: Access the ivy and maven metadata artifacts via the Artifact Query API
+
+### User visible changes
+
+Access the ivy.xml files for a ivy components with the specified id:
+
+    def result = dependencies.createArtifactResolutionQuery()
+        .forComponents(ivyModuleComponentId1, ivyModuleComponentId2)
+        .withArtifacts(IvyModule, IvyDescriptorArtifact)
+        .execute()
+
+    Set<File> ivyFiles = result.artifactFiles()
+
+Get the pom files for all maven modules in a configuration:
+
+    def artifactResult = dependencies.createArtifactResolutionQuery()
+        .forComponents(configurations.compile)
+        .withArtifacts(MavenModule, MavenPomArtifact)
+        .execute()
+    Set<File> pomFiles = artifactResult.getArtifactFiles()
+
+### Test cases
+
+- Invalid component type and artifact type
+    - Cannot call `withArtifacts` multiple times for query
+    - Cannot mix `JvmLibrary` with metadata artifact types
+    - Cannot mix `IvyModule` and `MavenModule` component types with jvm library artifact types
+- Unsupported artifact types:
+    - When requesting `IvyModule` artifacts, the result for a maven component is `UnresolvedComponentResult` with a useful failure.
+    - When requesting `MavenModule` artifacts, the result for an ivy component is `UnresolvedComponentResult` with a useful failure.
+    - When requesting `IvyModule` or `MavenModule` artifacts, the result for a project component is `UnresolvedComponentResult` with a useful failure.
+- Optional artifacts:
+    - Request an ivy descriptor for an ivy module with no descriptor, and get empty set of artifacts.
+    - Request a pom for a maven module with no pom, and get empty set of artifacts.
+- Metadata artifacts are cached
+    - Updates `IvyDescriptorArtifact` for changing module
+    - Updates `MavenPomArtifact` for maven snapshot
+    - Updates both with `--refresh-dependencies`
+
+### Open issues
+
+- Typed domain model for IvyModule and MavenModule
+
+## Story: Reliable mechanism for checking for success with new resolution result APIs
+
+- Add `rethrowFailure()` to `ArtifactResolutionResult` and `ResolutionResult`
+- Collect all failures
+    - All component metadata resolution failures
+    - All artifact resolution failures
+- Update JvmLibraryArtifactResolveTestFixture to rethrow failures and verify the exception messages and causes directly in the tests
+
+## Story: Directly access the source and javadoc artifacts for a configuration using the Artifact Query API
+
+### User visible changes
+
+Get JvmLibrary components with source and javadoc artifacts for a configuration:
+
+    def artifactResult = dependencies.createArtifactResolutionQuery()
+        .forComponents(configurations.compile)
+        .withArtifacts(JvmLibrary, JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
+        .execute()
+    def libraries = artifactResult.getComponents(JvmLibrary)
+
+## Story: IDE plugins use the resolution result to determine library artifacts
+
+This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
+
+- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
+  external artifacts.
+
+## Story: Dependency resolution resolves all artifacts as a batch
+
+Change dependency resolution implementation to resolve all artifacts as a single batch, when any artifact is requested.
+
+- Use progress logging to report on the batch resolution progress.
+
+## Story: Profile report displays artifact resolution time
 
 TBD
 
-## Story: Source and Javadoc artifacts are published for a Java component
+## Story: Source and javadoc artifacts are updated when Maven snapshot changes
 
-This story changes the `ivy-publish` and `maven-publish` plugins to publish the source and Javadocs for a Java component.
+- Use the timestamp as part of the component identifier for unique Maven snapshots.
+- A unique snapshot is no longer considered a changing module.
+
+### Test cases
+
+* New artifacts are used when snapshot has expired:
+    * Resolve the source and javadoc artifacts for a Maven snapshot.
+    * Publish a new snapshot with changed artifacts.
+    * With `cacheChangingModules` set to 0, verify that the new source and javadoc artifacts are used.
+
+* Old artifacts are used when snapshot has not expired:
+    * Resolve a Maven snapshot, but not the source and javadoc artifacts.
+    * Publish a new snapshot with changed artifacts
+    * With `cacheChangingModules` set to default, verify that the old source and javadoc artifacts are used.
+
+* No requests for Maven snapshot source and javadoc are made with build is executed with `--offline`, even when cache has expired.
+* Can recover from a broken HTTP request by switching to use `--offline`.
+
+## Story: Source and javadoc artifacts are updated for changing module based on configured cache expiry
+
+Currently it is not possible to configure how often the Artifact Query API should check for changes to artifacts.
+This means that the source and javadoc for a changing module may not be updated when the corresponding artifact is updated.
+
+This story introduces a new cache control DSL that can apply to both dependency graph and artifact resolution:
+
+- Introduce a 'check for changes' cache control DSL, as a replacement for `ResolutionStrategy`.
+- Cache control DSL allows a frequency at which changing things should be checked.
+    - Should be possible to declare 'never', 'always' and some duration.
+- Cache control DSL allows a rule to be declared that specifies the frequency at which changing things from a given module should be checked.
+- DSL should be reusable in some form for plugin resolution and external build script caching (but not wired up to these things yet).
+- The existing DSL on `ResolutionStrategy` should win over the new cache control DSL.
+- User guide explains how to use the cache control DSL, and DSL is documented in the DSL guide.
+
+### Test cases
+
+* New DSL can be used to control caching for all types of cached dependency resolution state:
+    - version list
+    - module version meta-data
+    - downloaded artifacts
+    - resolved artifact meta-data
+    - Maven snapshot timestamp
+
+Some test cases that are not directly related, but require this feature to be implemented:
+
+* Source and javadoc for a non-unique Maven snapshot is updated when check-for-changes is 'always'.
+* No requests for source and javadoc are made with build is executed with `--offline`, even when cache has expired.
+* Can recover from a broken HTTP request by switching to use `--offline`.
 
 ## Story: Dependency resolution result exposes local component instances that are not module versions
 
@@ -329,7 +398,7 @@ reports.
 - Verify that when a local component is replaced by an external component (via conflict resolution or dependency substitution) then none of the files
   from the local component are included in the result. For example, when a local component includes some file dependency declarations.
 
-## Story: User guide describes the dependency management problem in terms of components
+## Story: User guide describes the dependency management problem using new terminology
 
 Update the user guide to use the term 'component' instead of 'module version' or 'module' where appropriate.
 
@@ -364,39 +433,6 @@ meet the requirements.
     - A registry of requirement -> buildable file collection converters.
 - Add some way to query the resolved include roots, link files and runtime files for a native binary.
 
-## Story: Implement native binary dependency resolution using self resolving dependencies
-
-This story starts to push the resolution mechanism introduced in the above story down into the dependency management engine. For this story,
-native binary dependencies will be converted to self-resolving dependencies which are then fed into the dependency management engine.
-
-This story is simply a refactoring. No new user-visible behaviour will be added.
-
-## Story: Native component dependencies are visible in the dependency reports
-
-### Open issues
-
-- Dependencies need to shown per-variant.
-
-## Story: Plugin contributes a component type implementation
-
-Allow a plugin to contribute a component type implementation, which is responsible for defining some component type. For this story, the definition is
-responsible for extracting the component meta-data from some local component instance. Later stories will generalise this to make the definition
-reusable for other purposes, such as publishing.
-
-- Use this in the native binary plugins to convert native library and binary instances to meta-data.
-
-### Open issues
-
-- Add some way to influence the target of a project dependency
-- Generalise so that the meta-data model can be reused for publishing and resolving external components
-    - Version the model
-- Detangle the usage context from the dependency implementation and pass through to the resolvers
-    - Needs to be considered when caching stuff
-- Add some sugar to infer the meta-data model from some static types
-- Expose the component instance graph from the new requirements API
-- Remove `NativeDependencySet` and `LibraryResolver` interfaces
-- Replace the existing headers and files configurations
-
 ## Story: Conflict resolution prefers local components over other components
 
 When two components have conflicting external identifiers, select a local component.
@@ -429,6 +465,23 @@ Handle the following reasons why a given artifact cannot be found:
     - List the available artifacts, if any are available. Present some candidates which might match the selector.
 - Typo in repository configuration:
     - Inform which URLs were used to locate the artifact
+
+### Open issues
+
+- Test cases for dynamic selector used with maven repo.
+- Error message should include some candidate versions for dynamic version when some versions found.
+- Error message should include some candidate artifacts when artifact not found.
+- Error messages should distinguish between no versions found and no matching versions found.
+- Fix case where static selector is used multiple times in same build for missing module.
+- Fix case where dynamic selector is used multiple times in same build for module with no versions.
+- Fix case where maven local contains pom and not artifact. Currently the error message implies that the pom is not there.
+- Artifact resolution exception should include description of why the artifact is required, similar to module version resolution exception.
+- Include this information in the HTML dependency reports.
+- Does not report locations when cannot connect to server and is missing from other repositories.
+- Report file locations as file paths.
+- Move offline handling, so that only a single 'no cached version for offline model' exception is collected, instead of one per repository.
+    - should handle case where there is a mix of local and remote repositories.
+- Warn (once per build) when using an expired cached thing in offline mode.
 
 ## Story: New dependency graph uses less heap
 
@@ -466,4 +519,4 @@ TBD
 # Open issues
 
 - When resolving a pre-built component, fail if the specified file does not exist/has not been built (if buildable).
-
+- In-memory caching for the list of artifacts for a component

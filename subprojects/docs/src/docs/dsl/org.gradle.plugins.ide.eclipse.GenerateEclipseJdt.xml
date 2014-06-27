@@ -9,6 +9,10 @@
                 </tr>
             </thead>
             <tr>
+                <td>jdt</td>
+                <td><literal>project.eclipse.jdt</literal></td>
+            </tr>
+            <tr>
                 <td>outputFile</td>
                 <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.jdt.core.prefs</filename></td>
             </tr>

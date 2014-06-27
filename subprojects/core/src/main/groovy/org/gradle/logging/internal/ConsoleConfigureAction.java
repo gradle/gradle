@@ -16,18 +16,15 @@
 
 package org.gradle.logging.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
 import org.gradle.internal.nativeplatform.console.ConsoleDetector;
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 
 import java.io.PrintStream;
 
 public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
     public void execute(OutputEventRenderer renderer) {
-        StartParameter startParameter = new StartParameter();
-        NativeServices.initialize(startParameter.getGradleUserHomeDir());
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
         ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
         if (consoleMetaData == null) {

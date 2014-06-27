@@ -15,15 +15,13 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 import static org.hamcrest.Matchers.containsString
 
-class IvyBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     public void "reports and recovers from missing module"() {
-        server.start()
-
         given:
         def repo = ivyHttpRepo("repo1")
         def module = repo.module("group", "projectA", "1.2").publish()
@@ -45,10 +43,13 @@ task showMissing << { println configurations.missing.files }
 
         then:
         fails("showMissing")
-        failure
-            .assertHasDescription('Execution failed for task \':showMissing\'.')
-            .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
-            .assertHasCause('Could not find group:projectA:1.2.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+                .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+                .assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${module.ivy.uri}
+    ${module.jar.uri}
+""")
 
         when:
         server.resetExpectations()
@@ -59,9 +60,93 @@ task showMissing << { println configurations.missing.files }
         succeeds('showMissing')
     }
 
-    public void "reports and recovers from failed Ivy descriptor download"() {
-        server.start()
+    public void "reports and recovers from missing module when dependency declaration references an artifact"() {
+        given:
+        def repo = ivyHttpRepo("repo1")
+        def module = repo.module("group", "projectA", "1.2").artifact(classifier: 'thing').publish()
 
+        buildFile << """
+repositories {
+    ivy { url "${repo.uri}"}
+}
+configurations { missing }
+dependencies {
+    missing 'group:projectA:1.2:thing'
+}
+task showMissing << { println configurations.missing.files }
+"""
+
+        when:
+        module.ivy.expectGetMissing()
+        def artifact = module.getArtifact(classifier: 'thing')
+        artifact.expectHeadMissing()
+
+        then:
+        fails("showMissing")
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+                .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+                .assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${module.ivy.uri}
+    ${artifact.uri}
+""")
+
+        when:
+        server.resetExpectations()
+        module.ivy.expectGet()
+        artifact.expectGet()
+
+        then:
+        succeeds('showMissing')
+    }
+
+    public void "reports and recovers from module missing from multiple repositories"() {
+        given:
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleInRepo1 = repo1.module("group", "projectA", "1.2").publish()
+        def moduleInRepo2 = repo2.module("group", "projectA", "1.2")
+
+        buildFile << """
+repositories {
+    ivy { url "${repo1.uri}"}
+    ivy { url "${repo2.uri}"}
+}
+configurations { missing }
+dependencies {
+    missing 'group:projectA:1.2'
+}
+task showMissing << { println configurations.missing.files }
+"""
+
+        when:
+        moduleInRepo1.ivy.expectGetMissing()
+        moduleInRepo1.jar.expectHeadMissing()
+        moduleInRepo2.ivy.expectGetMissing()
+        moduleInRepo2.jar.expectHeadMissing()
+
+        then:
+        fails("showMissing")
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+                .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+                .assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${moduleInRepo1.ivy.uri}
+    ${moduleInRepo1.jar.uri}
+    ${moduleInRepo2.ivy.uri}
+    ${moduleInRepo2.jar.uri}
+""")
+
+        when:
+        server.resetExpectations()
+        moduleInRepo1.ivy.expectGet()
+        moduleInRepo1.jar.expectGet()
+
+        then:
+        succeeds('showMissing')
+    }
+
+    public void "reports and recovers from failed Ivy descriptor download"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.3').publish()
 
@@ -98,9 +183,7 @@ task showBroken << { println configurations.broken.files }
         succeeds("showBroken")
     }
 
-    public void "reports and caches missing artifacts"() {
-        server.start()
-
+    public void "reports and caches missing artifact"() {
         given:
         buildFile << """
 repositories {
@@ -128,19 +211,20 @@ task retrieve(type: Sync) {
         then:
         fails "retrieve"
 
-        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2:projectA.jar' not found"))
+        failure.assertHasCause("""Artifact 'group:projectA:1.2:projectA.jar' not found.
+Searched in the following locations:
+    ${module.jar.uri}""")
 
         when:
         server.resetExpectations()
 
         then:
         fails "retrieve"
+        // TODO - report on the locations when cached
         failure.assertThatCause(containsString("Artifact 'group:projectA:1.2:projectA.jar' not found"))
     }
 
     public void "reports and recovers from failed artifact download"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {

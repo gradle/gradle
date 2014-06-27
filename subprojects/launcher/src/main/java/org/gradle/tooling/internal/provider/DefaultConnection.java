@@ -15,22 +15,21 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.*;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.OutputStream;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -65,8 +64,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This method was used by consumers 1.0-rc-1 through to 1.1. Later consumers use {@link #configure(org.gradle.tooling.internal.protocol.ConnectionParameters)} instead.
      */
     public void configureLogging(final boolean verboseLogging) {
-        ProviderConnectionParameters providerConnectionParameters = adapter.adapt(ProviderConnectionParameters.class, new VerboseLoggingOnlyConnectionParameters(verboseLogging));
-        connection.configure(providerConnectionParameters);
+        // Ignore - we don't support these consumer versions any more
     }
 
     /**
@@ -89,9 +87,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        sendDeprecationMessage(operationParameters);
-        logTargetVersion();
-        connection.run(ModelIdentifier.NULL_MODEL, new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
+        throw unsupportedConnectionException();
     }
 
     /**
@@ -99,9 +95,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
-        sendDeprecationMessage(parameters);
-        logTargetVersion();
-        return run(type, parameters);
+        throw unsupportedConnectionException();
     }
 
     /**
@@ -109,9 +103,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
-        sendDeprecationMessage(parameters);
-        logTargetVersion();
-        return run(type, parameters);
+        throw unsupportedConnectionException();
     }
 
     private <T> T run(Class<T> type, BuildOperationParametersVersion1 parameters) {
@@ -124,7 +116,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
-        logTargetVersion();
+        validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(buildParameters);
         String modelName = new ModelMapping().getModelNameFromProtocolType(type);
         T result = (T) connection.run(modelName, providerParameters);
@@ -135,7 +127,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 1.6-rc-1 and later
      */
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        logTargetVersion();
+        validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         Object result = connection.run(modelIdentifier.getName(), providerParameters);
         return new ProviderBuildResult<Object>(result);
@@ -145,40 +137,24 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 1.8-rc-1 and later.
      */
     public <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        logTargetVersion();
+        validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         Object results = connection.run(action, providerParameters);
         return new ProviderBuildResult<T>((T) results);
     }
 
-    private void logTargetVersion() {
+    private void validateCanRun() {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
+        if (!JavaVersion.current().isJava6Compatible()) {
+            throw UnsupportedJavaRuntimeException.usingUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6);
+        }
     }
 
-    private void sendDeprecationMessage(BuildOperationParametersVersion1 parameters) {
-        OutputStream out = parameters.getStandardOutput();
-        if (out != null) {
-            try {
-                out.write(String.format("Connection from tooling API older than version 1.2 %s%n", DeprecationLogger.getDeprecationMessage()).getBytes());
-            } catch (IOException e) {
-                throw new RuntimeException("Cannot write to stream", e);
-            }
-        }
+    private UnsupportedVersionException unsupportedConnectionException() {
+        return new UnsupportedVersionException("Support for clients using a tooling API version older than 1.2 was removed in Gradle 2.0. You should upgrade your tooling API client to version 1.2 or later.");
     }
 
     private ProviderOperationParameters toProviderParameters(BuildParameters buildParameters) {
         return adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
-    }
-
-    private static class VerboseLoggingOnlyConnectionParameters {
-        private final boolean verboseLogging;
-
-        public VerboseLoggingOnlyConnectionParameters(boolean verboseLogging) {
-            this.verboseLogging = verboseLogging;
-        }
-
-        public boolean getVerboseLogging() {
-            return verboseLogging;
-        }
     }
 }

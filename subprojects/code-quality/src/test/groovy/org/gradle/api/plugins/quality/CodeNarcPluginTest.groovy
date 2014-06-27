@@ -85,8 +85,8 @@ class CodeNarcPluginTest extends Specification {
             assert maxPriority1Violations == 0
             assert maxPriority2Violations == 0
             assert maxPriority3Violations == 0
-            assert reportFormat == "html"
-            assert reportFile == project.file("build/reports/codenarc/${sourceSet.name}.html")
+            assert reports.enabled*.name == ["html"]
+            assert reports.html.destination == project.file("build/reports/codenarc/${sourceSet.name}.html")
             assert ignoreFailures == false
         }
     }
@@ -100,7 +100,6 @@ class CodeNarcPluginTest extends Specification {
         }
 
         project.codenarc {
-            checkTasks = ["codenarcMain"]
             configFile = project.file("codenarc-config")
             maxPriority1Violations = 10
             maxPriority2Violations = 50
@@ -127,8 +126,8 @@ class CodeNarcPluginTest extends Specification {
             assert maxPriority1Violations == 10
             assert maxPriority2Violations == 50
             assert maxPriority3Violations == 200
-            assert reportFormat == "xml"
-            assert reportFile == project.file("codenarc-reports/${sourceSet.name}.xml")
+            assert reports.enabled*.name == ["xml"]
+            assert reports.xml.destination == project.file("codenarc-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
         }
     }
@@ -144,8 +143,8 @@ class CodeNarcPluginTest extends Specification {
         task.maxPriority1Violations == 0
         task.maxPriority2Violations == 0
         task.maxPriority3Violations == 0
-        task.reportFormat == "html"
-        task.reportFile == project.file("build/reports/codenarc/custom.html")
+        task.reports.enabled*.name == ["html"]
+        task.reports.html.destination == project.file("build/reports/codenarc/custom.html")
         task.ignoreFailures == false
     }
 
@@ -170,8 +169,8 @@ class CodeNarcPluginTest extends Specification {
         task.maxPriority1Violations == 10
         task.maxPriority2Violations == 50
         task.maxPriority3Violations == 200
-        task.reportFormat == "xml"
-        task.reportFile == project.file("codenarc-reports/custom.xml")
+        task.reports.enabled*.name == ["xml"]
+        task.reports.xml.destination == project.file("codenarc-reports/custom.xml")
         task.ignoreFailures == true
     }
     

@@ -20,9 +20,11 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -77,6 +79,11 @@ public class GeneratorTask<T> extends ConventionTask {
         afterConfigured.execute(domainObject);
 
         generator.write(domainObject, getOutputFile());
+    }
+
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
     }
 
     /**

@@ -57,7 +57,7 @@ class ConcurrentSpec extends Specification {
      */
     final TestThread thread = new TestThread(instant)
 
-    private final TestExecutor executor = new TestExecutor(instant, logger)
+    private final TestExecutor executor = new TestExecutor(logger)
     private final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)
 
     /**
@@ -74,8 +74,16 @@ class ConcurrentSpec extends Specification {
         return executorFactory
     }
 
+    def setup() {
+        instant.mainThread(Thread.currentThread())
+    }
+
     def cleanup() {
-        executor.stop(new Date(System.currentTimeMillis() + 5000))
+        try {
+            executor.stop(new Date(System.currentTimeMillis() + 5000))
+        } finally {
+            instant.mainThread(null)
+        }
     }
 
     /**

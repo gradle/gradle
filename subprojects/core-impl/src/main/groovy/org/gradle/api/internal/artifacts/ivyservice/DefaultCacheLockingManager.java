@@ -30,8 +30,6 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
 
-    // If you update this, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
-    // You should also update LocallyAvailableResourceFinderFactory
     public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
 
     private final PersistentCache cache;

@@ -18,8 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.component.ArtifactType;
 
 public class ContextualArtifactResolver implements ArtifactResolver {
     private final CacheLockingManager lockingManager;
@@ -32,26 +33,34 @@ public class ContextualArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveModuleArtifacts(final ModuleVersionMetaData moduleMetaData, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
-        lockingManager.useCache(String.format("Resolve %s for %s", context.getDescription(), moduleMetaData), new Runnable() {
-            public void run() {
-                ivyContextManager.withIvy(new Action<Ivy>() {
-                    public void execute(Ivy ivy) {
-                        delegate.resolveModuleArtifacts(moduleMetaData, context, result);
-                    }
-                });
+    public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+        executeInContext(String.format("Resolve %s for %s", artifactType, component), new Action<Ivy>() {
+            public void execute(Ivy ivy) {
+                delegate.resolveModuleArtifacts(component, artifactType, result);
             }
         });
     }
 
-    public void resolveArtifact(final ModuleVersionArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-        lockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
+    public void resolveModuleArtifacts(final ComponentMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
+        executeInContext(String.format("Resolve %s for %s", usage, component), new Action<Ivy>() {
+            public void execute(Ivy ivy) {
+                delegate.resolveModuleArtifacts(component, usage, result);
+            }
+        });
+    }
+
+    public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
+        executeInContext(String.format("Resolve %s", artifact), new Action<Ivy>() {
+            public void execute(Ivy ivy) {
+                delegate.resolveArtifact(artifact, moduleSource, result);
+            }
+        });
+    }
+
+    private void executeInContext(String description, final Action<Ivy> action) {
+        lockingManager.useCache(description, new Runnable() {
             public void run() {
-                ivyContextManager.withIvy(new Action<Ivy>() {
-                    public void execute(Ivy ivy) {
-                        delegate.resolveArtifact(artifact, moduleSource, result);
-                    }
-                });
+                ivyContextManager.withIvy(action);
             }
         });
     }

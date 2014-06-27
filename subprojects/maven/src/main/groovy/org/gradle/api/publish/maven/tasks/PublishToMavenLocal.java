@@ -26,8 +26,6 @@ import org.gradle.api.publish.maven.internal.publisher.AntTaskBackedMavenLocalPu
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
-import org.gradle.internal.Factory;
-import org.gradle.logging.LoggingManagerInternal;
 
 import javax.inject.Inject;
 
@@ -38,20 +36,16 @@ import javax.inject.Inject;
  */
 @Incubating
 public class PublishToMavenLocal extends PublishToMavenRepository {
-
-    private final BaseRepositoryFactory baseRepositoryFactory;
-
     @Inject
-    public PublishToMavenLocal(Factory<LoggingManagerInternal> loggingManagerFactory, BaseRepositoryFactory baseRepositoryFactory) {
-        super(loggingManagerFactory);
-        this.baseRepositoryFactory = baseRepositoryFactory;
+    protected BaseRepositoryFactory getBaseRepositoryFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public MavenArtifactRepository getRepository() {
         if (super.getRepository() == null) {
             // Instantiate the default MavenLocal repository if none has been set explicitly
-            MavenArtifactRepository mavenLocalRepository = baseRepositoryFactory.createMavenLocalRepository();
+            MavenArtifactRepository mavenLocalRepository = getBaseRepositoryFactory().createMavenLocalRepository();
             mavenLocalRepository.setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME);
             setRepository(mavenLocalRepository);
         }

@@ -60,18 +60,6 @@ class JavaPluginConvention {
     private JavaVersion srcCompat
     private JavaVersion targetCompat
 
-    /**
-     * Deprecated. Please use jar.metaInf instead. The property didn't add much value over the jar's setting
-     * and Gradle offers convenient ways of configuring all tasks of given type should someone needed.
-     * <p>
-     * The lines of metaInf file that will be configured by default to every jar task.
-     */
-    @Deprecated
-    List metaInf
-
-    @Deprecated
-    DefaultManifest manifest
-
     JavaPluginConvention(ProjectInternal project, Instantiator instantiator) {
         this.project = project
         sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.fileResolver, project.tasks, instantiator)
@@ -79,8 +67,6 @@ class JavaPluginConvention {
         docsDirName = 'docs'
         testResultsDirName = 'test-results'
         testReportDirName = 'tests'
-        manifest = manifest();
-        metaInf = []
     }
 
     /**

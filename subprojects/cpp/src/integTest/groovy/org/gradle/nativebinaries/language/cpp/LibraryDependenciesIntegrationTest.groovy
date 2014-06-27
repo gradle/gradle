@@ -75,9 +75,9 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         where:
         label                                  | dependencyNotation                      | description                                                | cause
-        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | "Library with name 'unknown' not found."
+        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | "NativeLibrary with name 'unknown' not found."
         "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Could not locate library 'hello' for project ':unknown'." | "Project with path ':unknown' could not be found in project ':exe'."
-        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | "Library with name 'unknown' not found."
+        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | "NativeLibrary with name 'unknown' not found."
     }
 
     @Unroll
@@ -342,7 +342,6 @@ project.afterEvaluate {
         sharedLibrary("build/binaries/greetingsSharedLibrary/greetings").assertExists()
         staticLibrary("build/binaries/greetingsStaticLibrary/greetings").assertExists()
 
-        // TODO:DAZ Investigate this output and parse to ensure that greetings is dynamically linked into mainExe but not helloShared
         and:
         println executable("build/binaries/mainExecutable/main").binaryInfo.listLinkedLibraries()
         println sharedLibrary("build/binaries/helloSharedLibrary/hello").binaryInfo.listLinkedLibraries()

@@ -22,7 +22,9 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
@@ -33,12 +35,30 @@ import spock.lang.Specification
 class DefaultDependencyMetaDataTest extends Specification {
     final requestedModuleId = IvyUtil.createModuleRevisionId("org", "module", "1.2+")
 
-    def "constructs selector from descriptor"() {
+    def "constructs meta-data from ivy descriptor"() {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false)
         def metaData = new DefaultDependencyMetaData(descriptor)
 
         expect:
         metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.2+")
+    }
+
+    def "constructs meta-data from component id"() {
+        def id = new DefaultModuleComponentIdentifier("org", "module", "1.1")
+        def metaData = new DefaultDependencyMetaData(id)
+
+        expect:
+        metaData.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.1")
+        metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.1")
+    }
+
+    def "constructs meta-data from module version id"() {
+        def id = new DefaultModuleVersionIdentifier("org", "module", "1.1")
+        def metaData = new DefaultDependencyMetaData(id)
+
+        expect:
+        metaData.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.1")
+        metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.1")
     }
 
     def "creates a copy with new requested version"() {
@@ -107,20 +127,43 @@ class DefaultDependencyMetaDataTest extends Specification {
         metaData.getArtifacts(fromConfiguration, toConfiguration).empty
     }
 
-    def "uses artifacts defined by dependency descriptor"() {
+    def "uses artifacts defined by dependency descriptor for specified source and target configurations "() {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
         def metaData = new DefaultDependencyMetaData(descriptor)
         def fromConfiguration = Stub(ConfigurationMetaData)
+        def targetComponent = Stub(ComponentMetaData)
         def toConfiguration = Stub(ConfigurationMetaData)
+        def artifact1 = Stub(ComponentArtifactMetaData)
+        def artifact2 = Stub(ComponentArtifactMetaData)
 
         given:
         fromConfiguration.hierarchy >> (['config', 'super'] as LinkedHashSet)
+        toConfiguration.component >> targetComponent
+        descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
+        descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
+        descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
+        targetComponent.artifact({it.name == 'art1'}) >> artifact1
+        targetComponent.artifact({it.name == 'art3'}) >> artifact2
+
+        expect:
+        metaData.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact2] as Set
+    }
+
+    def "uses artifacts defined by dependency descriptor"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        given:
         descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
         descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
         descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
 
         expect:
-        metaData.getArtifacts(fromConfiguration, toConfiguration)*.name*.name == ['art1', 'art3']
+        metaData.artifacts.size() == 3
+        def artifacts = metaData.artifacts as List
+        artifacts[0].name == 'art1'
+        artifacts[1].name == 'art2'
+        artifacts[2].name == 'art3'
     }
 
     def "returns a build component selector if descriptor indicates a project dependency"() {

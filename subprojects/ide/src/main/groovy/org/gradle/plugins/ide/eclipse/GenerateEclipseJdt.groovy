@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.PropertiesGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt
@@ -29,12 +28,12 @@ import org.gradle.plugins.ide.eclipse.model.Jdt
 class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     /**
-     * Eclipse project model that contains information needed for this task
+     * Eclipse JDT model that contains information needed to generate the JDT file.
      */
     EclipseJdt jdt
 
     GenerateEclipseJdt() {
-        jdt = services.get(Instantiator).newInstance(EclipseJdt, new PropertiesFileContentMerger(getTransformer()))
+        jdt = instantiator.newInstance(EclipseJdt, new PropertiesFileContentMerger(getTransformer()))
     }
     
     protected Jdt create() {

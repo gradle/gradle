@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.platform.internal
 
-import org.gradle.api.InvalidUserDataException
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class OperatingSystemNotationParserTest extends Specification {
@@ -26,7 +26,7 @@ class OperatingSystemNotationParserTest extends Specification {
         parser.parseNotation("bad")
 
         then:
-        def e = thrown(InvalidUserDataException)
+        def e = thrown(UnsupportedNotationException)
         e.message.contains("One of the following values: 'windows', 'osx', 'mac os x', 'linux', 'solaris', 'sunos'")
     }
 

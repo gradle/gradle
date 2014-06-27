@@ -90,11 +90,6 @@ integTestTasks.all { Test task ->
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
 
-    if (project.hasProperty('crossVersionTestsOnly')) {
-        include '**/*CrossVersion*'
-        forkEvery = 1
-    }
-
     systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default';
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
@@ -125,6 +120,20 @@ check.dependsOn(integTest)
     def taskName = "${mode}IntegTest"
     tasks.create(taskName, Test).configure {
         systemProperties['org.gradle.integtest.executer'] = mode
+    }
+}
+
+task crossVersionIntegTest {
+    description "Runs the cross version tests against all Gradle versions"
+}
+
+releasedVersions.allVersions.each { targetVersion ->
+    tasks.create("gradle${targetVersion}IntegTest", Test).configure {
+        crossVersionIntegTest.dependsOn path
+        description "Runs the cross version tests against Gradle ${targetVersion}"
+        systemProperties['org.gradle.integtest.versions'] = targetVersion
+        systemProperties['org.gradle.integtest.executer'] = 'forking'
+        include '**/*CrossVersion*'
     }
 }
 

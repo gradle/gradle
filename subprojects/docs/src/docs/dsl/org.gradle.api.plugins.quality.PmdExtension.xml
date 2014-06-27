@@ -28,6 +28,10 @@
                 <td>targetJdk</td>
                 <td><literal>project.sourceCompatibility</literal></td>
             </tr>
+            <tr>
+                <td>consoleOutput</td>
+                <td><literal>false</literal></td>
+            </tr>
         </table>
     </section>
     <section>

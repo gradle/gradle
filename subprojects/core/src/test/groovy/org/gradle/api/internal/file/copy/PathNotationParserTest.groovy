@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.file.copy
 
+import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.internal.typeconversion.UnsupportedNotationException
+
 import java.util.concurrent.Callable
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import spock.lang.Specification
 
 class PathNotationParserTest extends Specification {
-    PathNotationParser<String> pathNotationParser = new PathNotationParser<String>();
+    NotationParser<Object, String> pathNotationParser = PathNotationParser.create();
 
     def "with null"() {
         expect:
@@ -33,6 +36,13 @@ class PathNotationParserTest extends Specification {
         pathToParse == pathNotationParser.parseNotation(pathToParse);
         where:
         pathToParse << ["this/is/a/path", 'this/is/a/path', "this/is/a/${'path'}"]
+    }
+
+    def "with File"() {
+        def file = new File("a.txt")
+
+        expect:
+        pathNotationParser.parseNotation(file) == file.path
     }
 
     def "with Number"() {
@@ -53,8 +63,12 @@ class PathNotationParserTest extends Specification {
 
     def "with unsupported class"() {
         def customObj = new DefaultExcludeRule();
-        expect:
-        customObj.toString() == pathNotationParser.parseNotation(customObj);
+
+        when:
+        pathNotationParser.parseNotation(customObj);
+
+        then:
+        thrown(UnsupportedNotationException)
     }
 
     def "with closure "() {
@@ -74,8 +88,12 @@ class PathNotationParserTest extends Specification {
 
     def "with closure of unsupported return value"() {
         def customObj = new DefaultExcludeRule()
-        expect:
-        customObj.toString() == pathNotationParser.parseNotation({ customObj });
+
+        when:
+        pathNotationParser.parseNotation({ customObj });
+
+        then:
+        thrown(UnsupportedNotationException)
     }
 
     def "with Callable that throws exception"() {

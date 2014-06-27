@@ -22,12 +22,17 @@
         <para>Gradle provides a <firstterm>domain specific language</firstterm>, or DSL, for describing builds.
             This build language is based on Groovy, with some additions to make it easier to describe a build.
         </para>
+        <para>
+            A build script can contain any Groovy language element.
+            <footnote><para>Any language element except for statement labels.</para></footnote>
+            Gradle assumes that each build script is encoded using UTF-8.
+        </para>
     </section>
     <section id='sec:project_api'>
         <title>The Project API</title>
         <para>In the tutorial in <xref linkend='tutorial_java_projects'/> we used, for example, the
             <literal>apply()</literal> method. Where does this method come from? We said earlier that the build script
-            defines a project in Gradle. For each project in the build, Gradle creates an instance of type
+            defines a project in Gradle. For each project in the build, Gradle creates an object of type
             <apilink class='org.gradle.api.Project'/> and associates this <classname>Project</classname> object with
             the build script. As the build script executes, it configures this <classname>Project</classname> object:
         </para>
@@ -164,13 +169,8 @@
             </para>
             <para>By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property
                 but the property is misspelled or does not exist.
-                <footnote>
-                    <para>As of Gradle 1.0-milestone-9, using <literal>ext</literal> to add extra properties is strongly encouraged but not yet enforced.
-                        Therefore, Gradle will not fail when an unknown property is set. However, it will print a warning.
-                    </para>
-                </footnote>
                 Extra properties can be accessed from anywhere their owning object can be accessed, giving them a wider scope than local variables.
-                Extra properties on a parent project are visible from subprojects.
+                Extra properties on a project are visible from its subprojects.
             </para>
             <para>For further details on extra properties and their API, see <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/>.</para>
         </section>
@@ -184,7 +184,7 @@
         <section>
             <title>Groovy JDK</title>
             <para>
-                Groovy adds lots of useful methods to JVM classes. For example, <classname>Iterable</classname> gets
+                Groovy adds lots of useful methods to the standard Java classes. For example, <classname>Iterable</classname> gets
                 an <literal>each</literal> method, which iterates over the elements of the <classname>Iterable</classname>:
             </para>
             <sample id="groovyBasics" dir="userguide/tutorial/groovy" title="Groovy JDK methods">

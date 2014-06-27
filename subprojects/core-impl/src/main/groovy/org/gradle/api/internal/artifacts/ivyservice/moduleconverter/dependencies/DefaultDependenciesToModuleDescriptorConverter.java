@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 
 import java.util.Collection;
 
@@ -33,26 +33,26 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
+    public void addDependencyDescriptors(MutableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         assert !configurations.isEmpty();
-        addDependencies(moduleDescriptor, configurations);
-        addExcludeRules(moduleDescriptor, configurations);
+        addDependencies(metaData, configurations);
+        addExcludeRules(metaData, configurations);
     }
 
-    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
+    private void addDependencies(MutableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ModuleDependency dependency : configuration.getDependencies().withType(ModuleDependency.class)) {
-                dependencyDescriptorFactory.addDependencyDescriptor(configuration.getName(), moduleDescriptor, dependency);
+                metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), metaData.getModuleDescriptor(), dependency));
             }
         }
     }
 
-    private void addExcludeRules(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
+    private void addExcludeRules(MutableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
                 org.apache.ivy.core.module.descriptor.ExcludeRule rule = excludeRuleConverter.createExcludeRule(
                         configuration.getName(), excludeRule);
-                moduleDescriptor.addExcludeRule(rule);
+                metaData.addExcludeRule(rule);
             }
         }
     }

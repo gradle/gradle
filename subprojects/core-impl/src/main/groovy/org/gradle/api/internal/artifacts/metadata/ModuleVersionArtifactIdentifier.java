@@ -16,8 +16,14 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+
 /**
  * An immutable identifier for an artifact that belongs to some module version.
  */
 public interface ModuleVersionArtifactIdentifier extends ComponentArtifactIdentifier {
+    /**
+     * Returns the id of the component that this artifact belongs to.
+     */
+    ModuleComponentIdentifier getComponentIdentifier();
 }

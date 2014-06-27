@@ -22,15 +22,19 @@ import org.gradle.api.specs.Specs;
 
 import java.util.Collection;
 
-public class ClosureToSpecNotationParser<T> implements NotationParser<Object, Spec<T>> {
-    public Spec<T> parseNotation(Object notation) throws UnsupportedNotationException {
-        if (notation instanceof Closure) {
-            return Specs.convertClosureToSpec((Closure) notation);
-        }
-        throw new UnsupportedNotationException(notation);
+public class ClosureToSpecNotationParser<T> implements NotationConverter<Closure, Spec<T>> {
+    private final Class<T> type;
+
+    public ClosureToSpecNotationParser(Class<T> type) {
+        this.type = type;
+    }
+
+    public void convert(Closure notation, NotationConvertResult<? super Spec<T>> result) throws TypeConversionException {
+        Spec<T> spec = Specs.convertClosureToSpec(notation);
+        result.converted(spec);
     }
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Closure that returns boolean. See the DSL reference for information what parameters are passed into the closure.");
+        candidateFormats.add(String.format("Closure that returns boolean and takes a single %s as a parameter.", type.getSimpleName()));
     }
 }

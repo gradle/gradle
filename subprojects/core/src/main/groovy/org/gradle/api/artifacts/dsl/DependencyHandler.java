@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.resolution.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 
 import java.util.Map;
 
@@ -343,5 +343,11 @@ public interface DependencyHandler {
     @Incubating
     void components(Action<? super ComponentMetadataHandler> configureAction);
 
+    /**
+     * Creates an artifact resolution query.
+     *
+     * @since 2.0
+     */
+    @Incubating
     ArtifactResolutionQuery createArtifactResolutionQuery();
 }

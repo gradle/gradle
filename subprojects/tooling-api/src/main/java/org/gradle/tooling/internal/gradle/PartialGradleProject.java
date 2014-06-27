@@ -21,19 +21,15 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PartialGradleProject implements GradleProjectIdentity, Serializable {
+/**
+ * A partial implementation of {@link org.gradle.tooling.model.GradleProject}.
+ */
+public class PartialGradleProject implements Serializable {
     private String name;
     private String description;
     private String path;
     private PartialGradleProject parent;
     private List<? extends PartialGradleProject> children = new LinkedList<PartialGradleProject>();
-    private List<DefaultGradleTask> tasks = new LinkedList<DefaultGradleTask>();
-
-    public PartialGradleProject() {}
-
-    public PartialGradleProject(String path) {
-        this.path = path;
-    }
 
     public String getName() {
         return name;
@@ -71,15 +67,6 @@ public class PartialGradleProject implements GradleProjectIdentity, Serializable
         return this;
     }
 
-    public Collection<DefaultGradleTask> getTasks() {
-        return tasks;
-    }
-
-    public PartialGradleProject setTasks(List<DefaultGradleTask> tasks) {
-        this.tasks = tasks;
-        return this;
-    }
-
     public String getPath() {
         return path;
     }
@@ -106,7 +93,6 @@ public class PartialGradleProject implements GradleProjectIdentity, Serializable
     public String toString() {
         return "GradleProject{"
                 + "path='" + path + '\''
-                + "tasks='" + tasks + '\''
                 + '}';
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli.converter
 
 import org.gradle.cli.CommandLineParser
+import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import spock.lang.Specification
 
@@ -34,6 +35,6 @@ class DaemonCommandLineConverterTest extends Specification {
         CommandLineParser parser = new CommandLineParser()
         def converter = new DaemonCommandLineConverter()
         converter.configure(parser)
-        converter.convert(args)
+        converter.convert(args, new DaemonParameters(new BuildLayoutParameters()))
     }
 }

@@ -19,8 +19,9 @@ package org.gradle.integtests.tooling.r112
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiDeprecationsCrossVersionSpec extends ToolingApiSpecification {
@@ -34,7 +35,7 @@ task noop << {
 
     @ToolingApiVersion(">=1.12")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "build shows deprecation warning for pre 1.0m8 providers"() {
+    def "build rejected for pre 1.0m8 providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -45,12 +46,13 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessageProvider(targetDist.version.version))
+        UnsupportedVersionException e = thrown()
+        e.message == "Support for Gradle version ${targetDist.version.version} was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later."
     }
 
     @ToolingApiVersion(">=1.12")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "model retrieving shows deprecation warning for pre 1.0m8 providers"() {
+    def "model retrieving fails for pre 1.0m8 providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -60,47 +62,13 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessageProvider(targetDist.version.version))
-    }
-
-    @ToolingApiVersion(">=1.12")
-    @TargetGradleVersion(">=1.0-milestone-8")
-    def "build shows no deprecation warning for 1.0m8+ providers"() {
-        when:
-        def output = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            build.standardOutput = output
-            build.forTasks("noop")
-            build.run()
-        }
-
-        then:
-        !output.toString().contains(deprecationMessageProvider(targetDist.version.version))
-    }
-
-    @ToolingApiVersion(">=1.12")
-    @TargetGradleVersion(">=1.0-milestone-8")
-    def "model retrieving shows no deprecation warning for 1.0m8+ providers"() {
-        when:
-        def output = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
-            def modelBuilder = connection.model(GradleProject)
-            modelBuilder.standardOutput = output
-            modelBuilder.get()
-        }
-
-        then:
-        !output.toString().contains(deprecationMessageProvider(targetDist.version.version))
-    }
-
-    def deprecationMessageProvider(def version) {
-        "Connecting to Gradle version " + version + " from the Gradle tooling API has been deprecated and is scheduled to be removed in version 2.0 of the Gradle tooling API"
+        UnsupportedVersionException e = thrown()
+        e.message == "Support for Gradle version ${targetDist.version.version} was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later."
     }
 
     @ToolingApiVersion("<1.2")
     @TargetGradleVersion(">=1.12")
-    def "provider shows deprecation warning when build is requested by old toolingApi"() {
+    def "provider rejects build request from a tooling API older than 1.2"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -111,28 +79,13 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessageApi(targetDist.version.version))
-    }
-
-    @ToolingApiVersion(">=1.2")
-    @TargetGradleVersion(">=1.12")
-    def "provider shows no deprecation warning when build is requested by supported toolingApi"() {
-        when:
-        def output = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            build.standardOutput = output
-            build.forTasks("noop")
-            build.run()
-        }
-
-        then:
-        !output.toString().contains(deprecationMessageApi(targetDist.version.version))
+        GradleConnectionException e = thrown()
+        e.cause.message.contains('Support for clients using a tooling API version older than 1.2 was removed in Gradle 2.0. You should upgrade your tooling API client to version 1.2 or later.')
     }
 
     @ToolingApiVersion("<1.2")
     @TargetGradleVersion(">=1.12")
-    def "provider shows deprecation warning when model is requested by old toolingApi"() {
+    def "provider rejects model request from a tooling API older than 1.2"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -142,26 +95,7 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessageApi(targetDist.version.version))
+        GradleConnectionException e = thrown()
+        e.cause.message.contains('Support for clients using a tooling API version older than 1.2 was removed in Gradle 2.0. You should upgrade your tooling API client to version 1.2 or later.')
     }
-
-    @ToolingApiVersion(">=1.2")
-    @TargetGradleVersion(">=1.12")
-    def "provider shows no deprecation warning when model is requested by supported toolingApi"() {
-        when:
-        def output = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
-            def modelBuilder = connection.model(EclipseProject)
-            modelBuilder.standardOutput = output
-            modelBuilder.get()
-        }
-
-        then:
-        !output.toString().contains(deprecationMessageApi(targetDist.version.version))
-    }
-
-    def deprecationMessageApi(def version) {
-        "Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 3.0"
-    }
-
 }

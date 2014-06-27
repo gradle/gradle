@@ -18,15 +18,19 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability
 import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -34,6 +38,9 @@ class VisualCppToolChainTest extends Specification {
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
+    final Instantiator instantiator = Mock(Instantiator)
+    ToolChain toolChain
+
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
         locateVisualStudioInstalls(_) >> visualStudioLookup
     }
@@ -43,7 +50,14 @@ class VisualCppToolChainTest extends Specification {
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
     }
-    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
+
+    def setup() {
+        instantiator.newInstance(DefaultCommandLineToolConfiguration.class, _) >> { args ->
+            new DefaultCommandLineToolConfiguration(args[1][0])
+        }
+        toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+    }
+
 
     def "uses .lib file for shared library at link time"() {
         given:
@@ -65,7 +79,7 @@ class VisualCppToolChainTest extends Specification {
         given:
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
-        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
+        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
 
         when:
         def availability = new ToolChainAvailability()
@@ -188,6 +202,41 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         toolChain.windowsSdkDir == file("one")
+    }
+
+    @Unroll
+    def "registers default #toolConfigurationName"() {
+        expect:
+        toolChain.getByName(toolConfigurationName)
+        where:
+        toolConfigurationName << ["cCompiler", "cppCompiler", "linker", "staticLibArchiver"]
+    }
+
+    def "can configure args for commandlineTool"() {
+        setup:
+        def commandLineArgs = ["given", "args"]
+
+        def visualStudio = Stub(VisualStudioInstall)
+        def visualCpp = Stub(VisualCppInstall)
+        def platform = Stub(Platform)
+        visualStudioLookup.available >> true
+        windowsSdkLookup.available >> true
+        visualStudioLookup.visualStudio >> visualStudio
+        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        visualStudio.visualCpp >> visualCpp
+        visualCpp.isSupportedPlatform(platform) >> true
+
+        when:
+        toolChain.getByName(toolConfigurationName).withArguments { args -> args.addAll(["custom", "args"])}
+        def  platformToolChain = toolChain.select(platform)
+        def commandLineToolConfigurationInternal = platformToolChain.commandLineToolConfigurations.get(toolConfigurationName)
+        commandLineToolConfigurationInternal.getArgAction().execute(commandLineArgs)
+
+        then:
+        commandLineArgs == ["given", "args", "custom", "args"]
+
+        where:
+        toolConfigurationName << ["cCompiler", "cppCompiler", "linker", "staticLibArchiver"]
     }
 
     def file(String name) {

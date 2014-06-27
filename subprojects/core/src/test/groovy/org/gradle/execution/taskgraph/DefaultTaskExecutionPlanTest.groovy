@@ -20,9 +20,9 @@ import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskState
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.util.TextUtil
 import spock.lang.Issue
@@ -862,7 +862,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     private TaskInternal createTask(final String name) {
         TaskInternal task = Mock()
-        TaskState state = Mock()
+        TaskStateInternal state = Mock()
         task.getProject() >> root
         task.name >> name
         task.path >> ':' + name

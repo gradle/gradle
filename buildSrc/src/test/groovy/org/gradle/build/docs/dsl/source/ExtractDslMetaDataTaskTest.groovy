@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class ExtractDslMetaDataTaskTest extends Specification {
     final Project project = new ProjectBuilder().build()
-    final ExtractDslMetaDataTask task = project.tasks.add('dsl', ExtractDslMetaDataTask.class)
+    final ExtractDslMetaDataTask task = project.tasks.create('dsl', ExtractDslMetaDataTask.class)
     final SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>()
 
     def setup() {
@@ -305,6 +305,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         arrayMethod.parameters[0].name == 'strings'
         arrayMethod.parameters[0].type.signature == 'java.lang.String[]...'
         arrayMethod.parameters[0].type.arrayDimensions == 2
+        arrayMethod.parameters[0].type.varargs
 
         javaClass.declaredPropertyNames == ['intProp'] as Set
     }

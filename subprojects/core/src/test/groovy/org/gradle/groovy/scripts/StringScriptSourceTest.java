@@ -19,7 +19,7 @@ import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import org.gradle.api.internal.resource.StringResource;
+import org.gradle.internal.resource.StringResource;
 import org.junit.Test;
 
 public class StringScriptSourceTest {

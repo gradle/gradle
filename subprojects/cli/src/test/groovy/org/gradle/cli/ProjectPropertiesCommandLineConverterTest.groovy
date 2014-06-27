@@ -22,7 +22,7 @@ class ProjectPropertiesCommandLineConverterTest extends Specification{
   def converter = new ProjectPropertiesCommandLineConverter();
 
   def convert(String... args) {
-    converter.convert(Arrays.asList(args)).sort()
+    converter.convert(Arrays.asList(args), new HashMap<String, String>()).sort()
   }
 
   def "parses project properties args"() {

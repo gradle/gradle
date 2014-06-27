@@ -34,3 +34,5 @@ dependencies {
 }
 
 useClassycle()
+
+apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

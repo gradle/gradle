@@ -41,6 +41,7 @@ class ExecutableVisualStudioProjectConfiguration extends VisualStudioProjectConf
     }
 
     private InstallExecutable getInstallTask() {
-        return binary.tasks.withType(InstallExecutable).iterator().next()
+        final installTasks = binary.tasks.withType(InstallExecutable)
+        return installTasks.empty ? null : installTasks.iterator().next()
     }
 }

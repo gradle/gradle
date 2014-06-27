@@ -59,6 +59,13 @@ public class GradleVersionSpec {
                         return element.getBaseVersion().compareTo(minVersion) >= 0;
                     }
                 });
+            } else if (value.startsWith(">")) {
+                final GradleVersion minVersion = GradleVersion.version(value.substring(1));
+                specs.add(new Spec<GradleVersion>() {
+                    public boolean isSatisfiedBy(GradleVersion element) {
+                        return element.getBaseVersion().compareTo(minVersion) > 0;
+                    }
+                });
             } else if (value.startsWith("<=")) {
                 final GradleVersion maxVersion = GradleVersion.version(value.substring(2));
                 specs.add(new Spec<GradleVersion>() {

@@ -16,11 +16,9 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.Factory;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -28,12 +26,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final ResolvedModuleVersion owner;
     private final IvyArtifactName artifact;
     private long id;
-    private final Factory<ResolvedDependency> ownerSource;
     private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedModuleVersion owner, Factory<ResolvedDependency> ownerSource, IvyArtifactName artifact, Factory<File> artifactSource, long id) {
-        this.ownerSource = ownerSource;
+    public DefaultResolvedArtifact(ResolvedModuleVersion owner, IvyArtifactName artifact, Factory<File> artifactSource, long id) {
         this.owner = owner;
         this.artifact = artifact;
         this.id = id;
@@ -42,15 +38,6 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     public long getId() {
         return id;
-    }
-
-    public ResolvedDependency getResolvedDependency() {
-        DeprecationLogger.nagUserOfDeprecated(
-                "ResolvedArtifact.getResolvedDependency()",
-                "For version info use ResolvedArtifact.getModuleVersion(), to access the dependency graph use ResolvedConfiguration.getFirstLevelModuleDependencies()"
-        );
-        //resolvedDependency is expensive so lazily create it
-        return ownerSource.create();
     }
 
     public ResolvedModuleVersion getModuleVersion() {

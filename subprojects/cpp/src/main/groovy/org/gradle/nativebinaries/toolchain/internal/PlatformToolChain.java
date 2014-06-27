@@ -16,25 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
-import org.gradle.nativebinaries.internal.LinkerSpec;
-import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
+import org.gradle.runtime.base.internal.toolchain.ToolProvider;
 
-public interface PlatformToolChain extends ToolSearchResult {
-    <T extends BinaryToolSpec> Compiler<T> createCppCompiler();
-
-    <T extends BinaryToolSpec> Compiler<T> createCCompiler();
-
-    <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler();
-
-    <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler();
-
-    <T extends BinaryToolSpec> Compiler<T> createAssembler();
-
-    <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler();
-
-    <T extends LinkerSpec> Compiler<T> createLinker();
-
-    <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();
+public interface PlatformToolChain extends ToolSearchResult, ToolProvider {
 }

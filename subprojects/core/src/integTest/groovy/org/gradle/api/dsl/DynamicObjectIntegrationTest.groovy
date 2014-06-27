@@ -447,9 +447,9 @@ assert 'overridden value' == global
         executer.withTasks("run").run()
     }
 
-    @Test void warnsWhenNewPropertiesAreAddedDirectlyOnTargetObject() {
-        
-        file("build.gradle") << """
+    @Test void failsWhenNewPropertiesAreAddedDirectlyOnTargetObject() {
+        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
             assert !hasProperty("p1")
 
             p1 = 1
@@ -465,12 +465,8 @@ assert 'overridden value' == global
             }
         """
 
-        executer.withDeprecationChecksDisabled()
-        def result = executer.withTasks("run").run()
-
-        assert result.output.contains('Creating properties on demand (a.k.a. dynamic properties) has been deprecated')
-        assert result.output.contains('Deprecated dynamic property: "p1" on "root project ')
-        assert result.output.contains('Deprecated dynamic property: "p2" on "task \':run\'", value: "2".')
+        def result = executer.withTasks("run").runWithFailure()
+        result.assertHasCause("No such property: p1 for class: org.gradle.api.internal.project.DefaultProject_Decorated")
     }
 
     @Issue("GRADLE-2163")

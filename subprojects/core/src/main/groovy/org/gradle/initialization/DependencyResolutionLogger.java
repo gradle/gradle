@@ -34,7 +34,6 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
         this.loggerFactory = loggerFactory;
     }
 
-    //TODO SF add concurrent unit test coverage
     public void beforeResolve(ResolvableDependencies dependencies) {
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
         progressLoggers.set(loggers);

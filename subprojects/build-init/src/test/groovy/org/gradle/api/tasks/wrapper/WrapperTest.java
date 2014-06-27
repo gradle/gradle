@@ -94,19 +94,19 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testDownloadsFromReleaseRepositoryForReleaseVersions() {
         wrapper.setGradleVersion("0.9.1");
-        assertEquals("http://services.gradle.org/distributions/gradle-0.9.1-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("https://services.gradle.org/distributions/gradle-0.9.1-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test
     public void testDownloadsFromReleaseRepositoryForPreviewReleaseVersions() {
         wrapper.setGradleVersion("1.0-milestone-1");
-        assertEquals("http://services.gradle.org/distributions/gradle-1.0-milestone-1-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("https://services.gradle.org/distributions/gradle-1.0-milestone-1-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test
     public void testDownloadsFromSnapshotRepositoryForSnapshotVersions() {
         wrapper.setGradleVersion("0.9.1-20101224110000+1100");
-        assertEquals("http://services.gradle.org/distributions-snapshots/gradle-0.9.1-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("https://services.gradle.org/distributions-snapshots/gradle-0.9.1-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test

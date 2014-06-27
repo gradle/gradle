@@ -19,7 +19,7 @@ package org.gradle.testfixtures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server

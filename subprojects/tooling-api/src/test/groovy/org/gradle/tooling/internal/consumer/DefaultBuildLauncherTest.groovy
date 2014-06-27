@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import com.google.common.collect.Sets
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.GradleConnectionException
@@ -24,7 +25,7 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
+import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Launchable
@@ -104,7 +105,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     def "can configure task selector build operation for consumer generated selectors"() {
         TaskSelector ts = Mock(BasicGradleTaskSelector)
         _ * ts.name >> 'myTask'
-        _ * ts.tasks >> [':a:myTask', ':b:myTask']
+        _ * ts.taskNames >> Sets.newTreeSet([':a:myTask', ':b:myTask'])
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
         OutputStream stdout = Stub()
@@ -125,7 +126,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         }
         1 * connection.run(Void, _) >> {args ->
             ConsumerOperationParameters params = args[1]
-            assert params.tasks as Set == [':a:myTask', ':b:myTask'] as Set
+            assert params.tasks == [':a:myTask', ':b:myTask']
             assert params.standardOutput == stdout
             assert params.standardError == stderr
             return null
@@ -135,9 +136,11 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         0 * handler._
     }
 
+    static interface InternalTaskSelectorImplementation extends TaskSelector, InternalLaunchable {
+    }
 
     def "can configure task selector build operation"() {
-        TaskSelector ts = Mock(DefaultGradleTaskSelector)
+        TaskSelector ts = Mock(InternalTaskSelectorImplementation)
         _ * ts.name >> 'myTask'
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
@@ -172,13 +175,13 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     def "preserves task selectors order in build operation"() {
         TaskSelector ts1 = Mock(BasicGradleTaskSelector)
         _ * ts1.name >> 'firstTask'
-        _ * ts1.tasks >> [':firstTask']
+        _ * ts1.taskNames >> Sets.newTreeSet([':firstTask'])
         TaskSelector ts2 = Mock(BasicGradleTaskSelector)
         _ * ts2.name >> 'secondTask'
-        _ * ts2.tasks >> [':secondTask']
+        _ * ts2.taskNames >> Sets.newTreeSet([':secondTask'])
         TaskSelector ts3 = Mock(BasicGradleTaskSelector)
         _ * ts3.name >> 'thirdTask'
-        _ * ts3.tasks >> [':thirdTask']
+        _ * ts3.taskNames >> Sets.newTreeSet([':thirdTask'])
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
         OutputStream stdout = Stub()

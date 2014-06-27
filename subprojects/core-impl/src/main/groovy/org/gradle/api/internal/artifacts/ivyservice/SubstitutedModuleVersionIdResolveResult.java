@@ -37,7 +37,7 @@ class SubstitutedModuleVersionIdResolveResult implements ModuleVersionIdResolveR
         return result.getId();
     }
 
-    public ModuleVersionResolveResult resolve() {
+    public ComponentResolveResult resolve() {
         return result.resolve();
     }
 

@@ -60,8 +60,6 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     private String force = "never";
 
-    private String targetCompatibility;
-
     private List<String> additionalParameters;
 
     private boolean listFiles;
@@ -190,28 +188,6 @@ public class ScalaCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns which backend is to be used.
-     *
-     * @deprecated use {@link ScalaCompile#getTargetCompatibility} instead
-     */
-    @Input
-    @Optional
-    @Deprecated
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    /**
-     * Sets which backend is to be used.
-     *
-     * @deprecated use {@link ScalaCompile#setTargetCompatibility} instead
-     */
-    @Deprecated
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
-    }
-
-    /**
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
      */
@@ -335,9 +311,6 @@ public class ScalaCompileOptions extends AbstractOptions {
         }
         if (fieldName.equals("optimize")) {
             return toOnOffString(isOptimize());
-        }
-        if (fieldName.equals("targetCompatibility")) {
-            return String.format("jvm-%s", getTargetCompatibility());
         }
         if (fieldName.equals("loggingPhases")) {
             return getLoggingPhases().isEmpty() ? " " : Joiner.on(',').join(getLoggingPhases());

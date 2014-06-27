@@ -366,6 +366,16 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
         and:
         isEmptyLockFile(testFileLock)
+
+        when:
+        lock = createLock(Shared)
+        lock.close()
+
+        then:
+        lock.isLockFile(testFileLock)
+
+        and:
+        isEmptyLockFile(testFileLock)
     }
 
     def "leaves lock file after lock on existing file is closed"() {

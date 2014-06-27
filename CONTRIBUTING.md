@@ -19,7 +19,7 @@ You'll need to sign one of these before any code contributions will be accepted 
 (Currently, the signed CLA must be posted or scanned/emailed directly to Gradleware. We're still working on our electronic signing process).
     1. Download, print and fill out the CLA, entering all of the requested personal information (Name, E-Mail, Mailing Address, Telephone, Country).
     2. Sign the CLA.
-    3. Post the document to one of the Gradleware offices listed at http://www.gradleware.com/contact, or scan and email the document to info@gradleware.com.
+    3. Post the document to one of the Gradleware offices listed at http://www.gradleware.com/contact, or scan and email the document to info@gradleware.com (please include your GitHub username in the email or letter so we know who you are).
 2. Before starting to work on a feature or a fix, it's generally a good idea to open a discussion about your proposed changes on the Gradle Developer List (dev@gradle.codehaus.org). 
 Doing so helps to ensure that:
     1. You understand how your proposed changes fit with the strategic goals of the Gradle project.

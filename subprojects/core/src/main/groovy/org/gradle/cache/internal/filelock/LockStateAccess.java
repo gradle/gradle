@@ -44,9 +44,9 @@ public class LockStateAccess {
         ByteArrayOutputStream outstr = new ByteArrayOutputStream();
         DataOutputStream dataOutput = new DataOutputStream(outstr);
         dataOutput.writeByte(protocol.getVersion());
+        protocol.write(dataOutput, lockState);
         dataOutput.flush();
 
-        protocol.write(dataOutput, lockState);
         lockFileAccess.seek(REGION_START);
         lockFileAccess.write(outstr.toByteArray());
         assert lockFileAccess.getFilePointer() == stateRegionSize;

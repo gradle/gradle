@@ -38,10 +38,6 @@ dependencies {
 
 task generateTemplateVersionFile(type: GenerateVersionProperties) {
     outputFile = new File(generatedResourcesDir, "org/gradle/buildinit/tasks/templates/library-versions.properties")
-    library 'org.scalatest:scalatest_2.10:latest.release'
-    library 'org.scala-lang:scala-library:latest.release'
-    library 'org.codehaus.groovy:groovy:latest.release'
-    library 'junit:junit:latest.release'
 }
 
 sourceSets.main.resources.srcDir generatedResourcesDir
@@ -55,29 +51,33 @@ class GenerateVersionProperties extends DefaultTask {
     @OutputFile
     File outputFile
 
-    @Input
-    def libraryDefinitions = []
-
     @TaskAction
     void generateFile() {
         resolveFiles()
     }
 
     def resolveFiles() {
-        def libDependencies = libraryDefinitions.collect { project.dependencies.create(it) }
-        def templateVersionConfiguration = project.configurations.detachedConfiguration(libDependencies.toArray(new Dependency[libDependencies.size()]))
-        templateVersionConfiguration.transitive = false
         Properties versionProperties = new Properties()
 
-        ResolutionResult resolutionResult = templateVersionConfiguration.incoming.resolutionResult
-        resolutionResult.root.dependencies.findAll { it.requested instanceof ModuleComponentSelector }. each { dep -> versionProperties.put(dep.requested.module, dep.selected.moduleVersion.version) }
+        findLatest('scala-library', 'org.scala-lang:scala-library:latest.release', versionProperties)
+        def scalaVersion = VersionNumber.parse(versionProperties['scala-library'])
+        versionProperties.put('scala', "${scalaVersion.major}.${scalaVersion.minor}" as String)
+        findLatest('scalatest', "org.scalatest:scalatest_${versionProperties.scala}:latest.release", versionProperties)
+        findLatest('scala-xml', "org.scala-lang.modules:scala-xml_${versionProperties.scala}:latest.release", versionProperties)
+        findLatest('groovy', 'org.codehaus.groovy:groovy:latest.release', versionProperties)
+        findLatest('junit', 'junit:junit:latest.release', versionProperties)
+
         outputFile.withOutputStream { outputStream ->
             versionProperties.store(outputStream, "Version values used in build-init templates")
         }
     }
 
-    def library(Object dependencyNotation) {
-        libraryDefinitions << dependencyNotation
+    private void findLatest(String name, String notation, Properties dest) {
+        def libDependencies = [ project.dependencies.create(notation) ]
+        def templateVersionConfiguration = project.configurations.detachedConfiguration(libDependencies as Dependency[])
+        templateVersionConfiguration.transitive = false
+        ResolutionResult resolutionResult = templateVersionConfiguration.incoming.resolutionResult
+        resolutionResult.allComponents.findAll { it != resolutionResult.root }. each { dep -> dest.put(name, dep.id.version) }
     }
 }
 

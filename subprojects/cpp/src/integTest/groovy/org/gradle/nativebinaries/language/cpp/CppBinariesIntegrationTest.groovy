@@ -223,7 +223,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                 main {}
             }
 
-            binaries.withType(ExecutableBinary) { binary ->
+            binaries.withType(NativeExecutableBinary) { binary ->
                 def preLink = task("\${binary.name}PreLink") {
                     dependsOn binary.tasks.withType(CppCompile)
 

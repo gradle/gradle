@@ -77,8 +77,8 @@ public class TaskDetailPrinter {
 
             output.println();
             printTaskDescription(output, tasksByType);
-            output.println();
             if (multipleClasses) {
+                output.println();
                 output.println("----------------------");
             }
         }

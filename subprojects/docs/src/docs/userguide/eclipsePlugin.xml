@@ -288,7 +288,7 @@
                     the default behavior, add <code>tasks.eclipse.dependsOn(cleanEclipse)</code> to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
-                <para>Complete overwrite works equally well for individual files, for example by executing <userinput> gradle cleanEclipseClasspath eclipseClasspath</userinput>.
+                <para>Complete overwrite works equally well for individual files, for example by executing <userinput>gradle cleanEclipseClasspath eclipseClasspath</userinput>.
                 </para>
             </section>
         </section>

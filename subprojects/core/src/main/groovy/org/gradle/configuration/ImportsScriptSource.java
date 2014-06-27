@@ -15,8 +15,8 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.internal.resource.DelegatingResource;
-import org.gradle.api.internal.resource.Resource;
+import org.gradle.internal.resource.DelegatingResource;
+import org.gradle.internal.resource.Resource;
 import org.gradle.groovy.scripts.DelegatingScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 

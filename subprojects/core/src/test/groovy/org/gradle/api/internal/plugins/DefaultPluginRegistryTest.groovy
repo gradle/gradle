@@ -193,7 +193,7 @@ class DefaultPluginRegistryTest extends Specification {
 
         given:
         PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator)
-        _ * lookupScope.scopeClassLoader >> childClassLoader
+        _ * lookupScope.localClassLoader >> childClassLoader
         _ * childClassLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * childClassLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 

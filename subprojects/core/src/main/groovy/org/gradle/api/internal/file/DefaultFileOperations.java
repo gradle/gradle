@@ -43,7 +43,6 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.gradle.util.ConfigureUtil.configure;
@@ -99,12 +98,6 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, fileCopier);
-    }
-
-    @Deprecated
-    public ConfigurableFileTree fileTree(Closure closure) {
-        // This method is deprecated, but the deprecation warning is added on public classes that delegate to this. 
-        return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver, fileCopier));
     }
 
     public FileTree zipTree(Object zipPath) {

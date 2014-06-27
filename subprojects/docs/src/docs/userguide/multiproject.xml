@@ -18,16 +18,27 @@
     <para>The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the
         most intellectually challenging.
     </para>
+    <para>
+        A multi-project build in gradle consists of one root project, and one or more subprojects that may also have subprojects.
+    </para>
     <section id='sec:cross_project_configuration'>
         <title>Cross project configuration</title>
-        <para>Let's start with a very simple multi-project build. After all Gradle is a general purpose build tool at
+        <para>
+            While each subproject could configure itself in complete isolation of the other subprojects, it is
+            common that subprojects share common traits. It is then usually preferrable to share configurations
+            among projects, so the same configuration affects several subprojects.
+        </para>
+        <para>
+            Let's start with a very simple multi-project build. After all Gradle is a general purpose build tool at
             its core, so the projects don't have to be java projects. Our first examples are about marine life.
         </para>
         <section>
             <title>Configuration and execution</title>
             <para><xref linkend="sec:build_phases"/> describes the phases of every Gradle build.
                 Let's zoom into configuration and execution phases of a multi-project build.
-                The configuration of all projects happens before any task is executed.
+                Configuration here means executing the build.gradle of a project, which implies e.g.
+                downloading all plugins that were declared using '<literal>apply plugin</literal>'.
+                By default, the configuration of all projects happens before any task is executed.
                 This means that when a single task, from a single project is requested,
                 <emphasis>all</emphasis> projects of multi-project build are configured first.
                 The reason every project needs to be configured is to support
@@ -35,16 +46,19 @@
             </para>
             <section id='sec:configuration_on_demand'>
                 <title>Configuration on demand</title>
-                <para>Configuration injection feature and access to the complete project model
+                <para><firstterm>Configuration injection</firstterm> feature and access to the complete project model
                     are possible because every project is configured before the execution phase.
                     Yet, this approach may not be the most efficient in a very large multi-project builds.
                     There are Gradle builds with a hierarchy of hundreds of subprojects.
                     Configuration time of huge multi-project builds may become noticeable.
-                    Scalability is an important requirement for Gradle. Hence, starting from version 1.4
-                    new incubating 'configuration on demand' mode is introduced.</para>
+                    Scalability is an important requirement for Gradle.
+                    Hence, starting from version 1.4
+                    new incubating 'configuration on demand' mode is introduced.
+                </para>
                 <para>
-                    Configuration on demand mode attempts to configure only projects that are relevant for requested tasks.
-                    This way, the configuration time of a large multi-project build is greatly improved.
+                    Configuration on demand mode attempts to configure only projects that are relevant for requested
+                    tasks, i.e. it only executes the <literal>build.gradle</literal> of projects that are participating in the build.
+                    This way, the configuration time of a large multi-project build can be reduced.
                     In the long term, this mode will become the default mode, possibly the only mode for Gradle build execution.
                     The configuration on demand feature is incubating so not every build is guaranteed to work correctly.
                     The feature should work very well for multi-project builds that have decoupled projects (<xref linkend="sec:decoupled_projects"/>).
@@ -128,6 +142,10 @@
                 inheritance for projects as you will see later. But Gradle uses configuration injection as the usual way
                 of defining common behavior. We think it provides a very powerful and flexible way of configuring
                 multiproject builds.
+            </para>
+            <para>
+                Another possibilty for sharing configuration is to use a common external script.
+                See <xref linkend="http://www.gradle.org/docs/current/userguide/tutorial_this_and_that.html#sec:configuring_using_external_script"/> for more information.
             </para>
         </section>
     </section>
@@ -278,12 +296,11 @@
     </section>
     <section id='sec:project_and_task_paths'>
         <title>Project and task paths</title>
-        <para>A project path has the following pattern: It starts always with a colon, which denotes the root project.
-            The root project is the only project in a path that is not specified by its name. The path
-            <literal>:bluewhale</literal>
-            corresponds to the file system path
-            <literal>water/bluewhale</literal>
-            in the case of the example above.
+        <para>A project path has the following pattern: It starts
+        always with a colon, which denotes the root project.  The root
+        project is the only project in a path that is not specified by
+        its name. The rest of a project path is a colon-separated
+        sequence of project names, where the next project is a subproject of the previous project.
         </para>
         <para>The path of a task is simply its project path plus the task name. For example <literal>
             :bluewhale:hello</literal>. Within a project you can address a task of the same project just by its name.
@@ -638,25 +655,40 @@
     </section>
     <section id="sec:decoupled_projects">
         <title>Decoupled Projects</title>
-        <para>Gradle allows any project to access any other project during both the configuration and execution phases. While this provides a great deal of power
-            and flexibility to the build author, it also limits the flexibility that Gradle has when building those projects. For instance, this tight <emphasis>coupling</emphasis> of projects
-            effectively prevents Gradle from building multiple projects in parallel, or from substituting a pre-built artifact in place of a project dependency.
+        <para>Gradle allows any project to access any other project during both the configuration and execution phases.
+            While this provides a great deal of power and flexibility to the build author, it also limits the flexibility that Gradle has when building those projects.
+            For instance, this effectively prevents Gradle from correctly building multiple projects in parallel, configuring only a subset of projects, or from substituting
+            a pre-built artifact in place of a project dependency.
         </para>
         <para>Two projects are said to be <emphasis>decoupled</emphasis> if they do not directly access each other's project model. Decoupled projects may only interact in terms of
             declared dependencies: project dependencies (<xref linkend='sub:project_dependencies'/>) and/or task dependencies (<xref linkend='sec:task_dependencies'/>).
             Any other form of project interaction (i.e. by modifying another project object or by reading a value from another project object) causes the projects to
-            be coupled.
+            be coupled. The consequence of coupling during the configuration phase is that if gradle is invoked with the 'configuration on demand' option, the result of the build can be flawed
+            in several ways. The consequence of coupling during execution phase is that if gradle is invoked with the parallel option,
+            one project task runs too late to influence a task of a project building in parallel.
+            Gradle does not attempt to detect coupling and warn the user, as there are too many possibilities to introduce coupling.
         </para>
         <para>
             A very common way for projects to be coupled is by using configuration injection (<xref linkend='sec:cross_project_configuration'/>). It may not be immediately apparent, but using key
-            Gradle features like the <literal>allprojects</literal> and <literal>subprojects</literal> keywords automatically cause your projects to be coupled. This is
-            because these keywords are used in a <literal>build.gradle</literal> file, which defines a project. Often this is a "root project" that does nothing more than
+            Gradle features like the <literal>allprojects</literal> and <literal>subprojects</literal> keywords automatically cause your projects to be coupled.
+            This is because these keywords are used in a <literal>build.gradle</literal> file, which defines a project. Often this is a "root project" that does nothing more than
             define common configuration, but as far as Gradle is concerned this root project is still a fully-fledged project, and by using <literal>allprojects</literal>
-            that project is effectively coupled to all other projects.
+            that project is effectively coupled to all other projects. Coupling of the root project to subprojects does not impact 'configuration on demand', but using the
+            <literal>allprojects</literal> and <literal>subprojects</literal> in any subproject's <literal>build.gradle</literal> file will have an impact.
         </para>
         <para>This means that using any form of shared build script logic or configuration injection (<literal>allprojects</literal>, <literal>subprojects</literal>, etc.)
             will cause your projects to be coupled. As we extend the concept of project decoupling and provide features that take advantage of decoupled projects,
             we will also introduce new features to help you to solve common use cases (like configuration injection) without causing your projects to be coupled.
+        </para>
+        <para>In order to make good use of cross project configuration without running into issues for parallel and 'configuration on demand' options, follow these recommendations:
+        <itemizedlist>
+            <listitem>
+                Avoid a subproject's <literal>build.gradle</literal> referencing other subprojects; prefering cross configuration from the root project.
+            </listitem>
+            <listitem>
+                Avoid changing the configuration of other projects at execution time.
+            </listitem>
+        </itemizedlist>
         </para>
     </section>
     <section id="sec:multiproject_build_and_test">
@@ -712,6 +744,14 @@
         will cause that same named task to be run on all the children. So you can just run
         <literal>gradle build</literal> to build and test all projects.
         </para>
+    </section>
+    <section>
+        <title>Multi Project and buildSrc</title>
+        <p>
+            The <xref linkend="sec:build_sources"/> section tells us that we can place build logic to be compiled and tested in the special <literal>buildSrc</literal> directory.
+            In a multi project build, there can only be one <literal>buildSrc</literal> directory which must be located in the root directory.
+        </p>
+
     </section>
     <section id='sec:property_and_method_inheritance'>
         <title>Property and method inheritance</title>

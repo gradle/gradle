@@ -10,6 +10,11 @@
                 </tr>
             </thead>
             <tr>
+                <td>module</td>
+                <td><literal>project.idea.module</literal></td>
+                <td/>
+            </tr>
+            <tr>
                 <td>outputFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iml</literal>
                     (sometimes the <replaceable>project.name</replaceable> is prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqeness).

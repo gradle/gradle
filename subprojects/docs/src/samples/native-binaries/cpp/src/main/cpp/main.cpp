@@ -1,6 +1,7 @@
 #include "hello.h"
 
 int main () {
-  hello();
-  return 0;
+    Greeter greeter;
+    greeter.hello();
+    return 0;
 }

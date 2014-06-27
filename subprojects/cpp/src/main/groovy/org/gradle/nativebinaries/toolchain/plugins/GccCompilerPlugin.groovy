@@ -19,12 +19,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import org.gradle.nativebinaries.toolchain.Gcc
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.toolchain.internal.gcc.GccToolChain
 import org.gradle.process.internal.ExecActionFactory
 
@@ -48,12 +48,12 @@ class GccCompilerPlugin implements Plugin<Project> {
     }
 
     void apply(Project project) {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentModelPlugin);
 
         modelRules.rule(new ModelRule() {
             void addGccToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(Gcc, { String name ->
-                    return instantiator.newInstance(GccToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
+                    return instantiator.newInstance(GccToolChain, instantiator, name, OperatingSystem.current(), fileResolver, execActionFactory)
                 })
                 toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc)
             }

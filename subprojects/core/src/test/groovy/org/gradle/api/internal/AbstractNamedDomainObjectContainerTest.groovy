@@ -103,7 +103,11 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         when:
         container.configure {
-            someObj { unknown { anotherUnknown(2) } }
+            someObj {
+                unknown {
+                    anotherUnknown(2)
+                }
+            }
         }
 
         then:
@@ -180,7 +184,9 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         container.configure {
             someObj {
                 children {
-                    child1 { prop = 'child1' }
+                    child1 {
+                        prop = 'child1'
+                    }
                     child2
                 }
             }

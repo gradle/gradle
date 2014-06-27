@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -89,7 +90,7 @@ public class ModuleVersionSelectorParsersTest extends Specification {
         multiParser().parseNotation(new Object())
 
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
     }
 
     def "reports missing keys for map notation"() {
@@ -130,13 +131,13 @@ public class ModuleVersionSelectorParsersTest extends Specification {
         multiParser().parseNotation(null)
 
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
 
         when:
         parser().parseNotation(null)
 
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
     }
 
     def "single parser understands String notation"() {

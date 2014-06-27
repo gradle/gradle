@@ -26,6 +26,7 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
 
@@ -43,9 +44,14 @@ public class ProjectReportTask extends AbstractReportTask {
         return renderer;
     }
 
+    @Inject
+    protected BuildClientMetaData getClientMetaData() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     protected void generate(Project project) throws IOException {
-        BuildClientMetaData metaData = getServices().get(BuildClientMetaData.class);
+        BuildClientMetaData metaData = getClientMetaData();
 
         StyledTextOutput textOutput = getRenderer().getTextOutput();
 

@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * Options that determine which test events get logged, and at which detail.
  */
-public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
+public interface TestLogging {
     /**
      * Returns the events to be logged.
      *

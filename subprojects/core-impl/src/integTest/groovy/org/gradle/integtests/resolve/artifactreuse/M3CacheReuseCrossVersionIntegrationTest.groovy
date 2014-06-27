@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
@@ -34,7 +34,11 @@ class M3CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         server.start()
         buildFile << """
 repositories {
-    mavenRepo(urls: ['${remoteRepo.uri}'])
+    if (repositories.metaClass.respondsTo(repositories, 'maven')) {
+        maven { url "${remoteRepo.uri}" }
+    } else {
+        mavenRepo urls: ["${remoteRepo.uri}"]
+    }
 }
 configurations { compile }
 dependencies {

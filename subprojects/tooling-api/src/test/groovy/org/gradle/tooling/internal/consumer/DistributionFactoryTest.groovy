@@ -21,8 +21,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -191,13 +189,12 @@ class DistributionFactoryTest extends Specification {
         0 * _._
     }
 
-    @Requires(TestPrecondition.ONLINE)
     def failsWhenDistributionZipDoesNotExist() {
-        URI zipFile = new URI("http://google.com/does-not-exist/gradle-1.0.zip")
+        URI zipFile = tmpDir.file("no-exists.zip").toURI()
         def dist = factory.getDistribution(zipFile)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, null)
 
         then:
         IllegalArgumentException e = thrown()

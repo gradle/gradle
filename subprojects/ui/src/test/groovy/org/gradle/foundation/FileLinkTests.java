@@ -155,7 +155,7 @@ public class FileLinkTests extends TestCase {
 
    /**
       This test that test reports file is found. This is a special case since we're not given
-      the actual file path and instead given only its parent path. The code assumes the report file
+      the actual file path and instead given only its root path. The code assumes the report file
       is present.
       */
    public void testFailedTestsReportFile() {

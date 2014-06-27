@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.internal.tasks.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
 import java.util.List;

@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
-class IvyDescriptorResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "substitutes system properties into ivy descriptor"() {
         given:
         ivyRepo.module("org.gradle", "test", "1.45")
@@ -56,7 +56,6 @@ task check << {
 
     def "merges values from parent descriptor file that is available locally"() {
         given:
-        server.start()
         def parentModule = ivyHttpRepo.module("org.gradle.parent", "parent_module", "1.1").dependsOn("org.gradle.dep", "dep_module", "1.1").publish()
         def depModule = ivyHttpRepo.module("org.gradle.dep", "dep_module", "1.1").publish()
 
@@ -96,7 +95,6 @@ task check << {
 
     def "merges values from parent descriptor file"() {
         given:
-        server.start()
         final parentModule = ivyHttpRepo.module("org.gradle.parent", "parent_module", "1.1").dependsOn("org.gradle.dep", "dep_module", "1.1").publish()
         final depModule = ivyHttpRepo.module("org.gradle.dep", "dep_module", "1.1").publish()
 

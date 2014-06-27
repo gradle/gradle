@@ -27,7 +27,7 @@ public class CacheAccessSerializer<K, V> implements Cache<K, V> {
         this.cache = cache;
     }
 
-    public <T extends K> V get(final T key, final Factory<? extends V> factory) {
+    public V get(final K key, final Factory<V> factory) {
         return synchronizer.synchronize(new Factory<V>() {
             public V create() {
                 return cache.get(key, factory);

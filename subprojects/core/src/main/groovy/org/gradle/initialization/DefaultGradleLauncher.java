@@ -17,19 +17,20 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
-import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.logging.LoggingManagerInternal;
+
+import java.io.Closeable;
 
 public class DefaultGradleLauncher extends GradleLauncher {
     private enum Stage {
-        Configure, PopulateTaskGraph, Build
+        Configure, Build
     }
 
     private final GradleInternal gradle;
@@ -42,17 +43,18 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final LoggingManagerInternal loggingManager;
     private final ModelConfigurationListener modelConfigurationListener;
     private final TasksCompletionListener tasksCompletionListener;
+    private final BuildCompletionListener buildCompletionListener;
     private final BuildExecuter buildExecuter;
+    private final Closeable buildServices;
 
     /**
-     * Creates a new instance.  Don't call this directly, use {@link #newInstance(org.gradle.StartParameter)} or {@link
-     * #newInstance(String...)} instead.
+     * Creates a new instance.
      */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
                                  ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
-                                 BuildExecuter buildExecuter) {
+                                 BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener, Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -64,6 +66,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.modelConfigurationListener = modelConfigurationListener;
         this.tasksCompletionListener = tasksCompletionListener;
         this.buildExecuter = buildExecuter;
+        this.buildCompletionListener = buildCompletionListener;
+        this.buildServices = buildServices;
     }
 
     public GradleInternal getGradle() {
@@ -92,18 +96,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         return doBuild(Stage.Configure);
     }
 
-    /**
-     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via
-     * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object. Fills the execution plan without running
-     * the build. The tasks to be executed tasks are available via {@link org.gradle.api.invocation.Gradle#getTaskGraph()}.
-     *
-     * @return A BuildResult object. Never returns null.
-     */
-    @Override
-    public BuildResult getBuildAndRunAnalysis() {
-        return doBuild(Stage.PopulateTaskGraph);
-    }
-
     private BuildResult doBuild(Stage upTo) {
         loggingManager.start();
         buildListener.buildStarted(gradle);
@@ -117,12 +109,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         BuildResult buildResult = new BuildResult(gradle, failure);
         buildListener.buildFinished(buildResult);
 
-        // Switching Logging off is important if the Gradle factory is used to
-        // run multiple Gradle builds (each one requiring a new instances of GradleLauncher).
-        // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
-        // always be closed. But as we expose this functionality to the builds, we can't
-        // guarantee this.
-        loggingManager.stop();
         return buildResult;
     }
 
@@ -135,7 +121,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         buildListener.settingsEvaluated(settings);
 
         // Load build
-        buildLoader.load(settings.getRootProject(), gradle, settings.getClassLoaderScope().createSibling());
+        buildLoader.load(settings.getRootProject(), gradle, settings.getClassLoaderScope().createSibling().lock());
         buildListener.projectsLoaded(gradle);
 
         // Configure build
@@ -158,18 +144,12 @@ public class DefaultGradleLauncher extends GradleLauncher {
             buildListener.projectsEvaluated(gradle);
         }
 
-        if (upTo == Stage.PopulateTaskGraph) {
-            return;
-        }
-
         // Execute build
         buildExecuter.execute();
         tasksCompletionListener.onTasksFinished(gradle);
 
         assert upTo == Stage.Build;
     }
-
-    // This is used for mocking
 
     /**
      * <p>Adds a listener to this build instance. The listener is notified of events which occur during the
@@ -183,16 +163,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         gradle.addListener(listener);
     }
 
-    /**
-     * Use the given listener. See {@link org.gradle.api.invocation.Gradle#useLogger(Object)} for details.
-     *
-     * @param logger The logger to use.
-     */
-    @Override
-    public void useLogger(Object logger) {
-        gradle.useLogger(logger);
-    }
-    
     /**
      * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
      * standard output by Gradle's logging system
@@ -215,8 +185,12 @@ public class DefaultGradleLauncher extends GradleLauncher {
         loggingManager.addStandardErrorListener(listener);
     }
 
-    @Override
-    public StartParameter getStartParameter() {
-        return gradle.getStartParameter();
+    public void stop() {
+        try {
+            loggingManager.stop();
+            CompositeStoppable.stoppable(buildServices).stop();
+        } finally {
+            buildCompletionListener.completed();
+        }
     }
 }

@@ -19,9 +19,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * Represents an object that can be used to launch the build.
+ * Represents an object that can be used to launch a Gradle build, such as a task.
  *
- * This can be an existing task or a task selector used to run a build.
+ * <p>To launch a build, you pass one or more {@link org.gradle.tooling.model.Launchable} instances
+ * to either {@link org.gradle.tooling.BuildLauncher#forTasks(Iterable)} or {@link org.gradle.tooling.BuildLauncher#forLaunchables(Iterable)}.</p>
  *
  * @since 1.12
  */
@@ -43,4 +44,13 @@ public interface Launchable {
      */
     @Nullable
     String getDescription();
+
+    /**
+     * Returns whether launchable is public or not.
+     * Visible tasks are those that have non-null {@code group} property.
+     *
+     * @return Visibility property.
+     * @since 2.1
+     */
+    boolean isVisible();
 }

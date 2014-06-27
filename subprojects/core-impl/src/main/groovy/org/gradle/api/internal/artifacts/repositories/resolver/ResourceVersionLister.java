@@ -17,10 +17,12 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,43 +43,46 @@ public class ResourceVersionLister implements VersionLister {
         this.repository = repository;
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module) {
-        return new DefaultVersionList() {
-            final Set<String> directories = new HashSet<String>();
+    public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
+        return new VersionPatternVisitor() {
+            final Set<ExternalResourceName> directories = new HashSet<ExternalResourceName>();
 
-            public void visit(ResourcePattern resourcePattern, ArtifactIdentifier artifactId) throws ResourceException {
-                String partiallyResolvedPattern = resourcePattern.toVersionListPattern(artifactId);
-                LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
+            public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
+                ExternalResourceName versionListPattern = pattern.toVersionListPattern(module, artifact);
+                LOGGER.debug("Listing all in {}", versionListPattern);
                 try {
-                    List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
+                    List<String> versionStrings = listRevisionToken(versionListPattern);
                     for (String versionString : versionStrings) {
-                        add(new ListedVersion(versionString, resourcePattern));
+                        dest.add(versionString);
                     }
                 } catch (ResourceException e) {
                     throw e;
                 } catch (Exception e) {
-                    throw new ResourceException(String.format("Could not list versions using %s.", resourcePattern), e);
+                    throw new ResourceException(String.format("Could not list versions using %s.", pattern), e);
                 }
             }
 
             // lists all the values a revision token listed by a given url lister
-            private List<String> listRevisionToken(String pattern) throws IOException {
-                pattern = standardize(pattern);
+            private List<String> listRevisionToken(ExternalResourceName versionListPattern) throws IOException {
+                String pattern = versionListPattern.getPath();
                 if (!pattern.contains(REVISION_TOKEN)) {
                     LOGGER.debug("revision token not defined in pattern {}.", pattern);
                     return Collections.emptyList();
                 }
                 String prefix = pattern.substring(0, pattern.indexOf(REVISION_TOKEN));
                 if (revisionMatchesDirectoryName(pattern)) {
-                    return listAll(prefix);
+                    ExternalResourceName parent = versionListPattern.getRoot().resolve(prefix);
+                    return listAll(parent);
                 } else {
                     int parentFolderSlashIndex = prefix.lastIndexOf(fileSeparator);
                     String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex + 1);
+                    ExternalResourceName parent = versionListPattern.getRoot().resolve(revisionParentFolder);
                     LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
-                    if (!directories.add(revisionParentFolder)) {
+                    if (!directories.add(parent)) {
                         return Collections.emptyList();
                     }
-                    List<String> all = repository.list(revisionParentFolder);
+                    result.attempted(parent);
+                    List<String> all = repository.list(parent.getUri());
                     if (all == null) {
                         return Collections.emptyList();
                     }
@@ -87,10 +92,6 @@ public class ResourceVersionLister implements VersionLister {
                     LOGGER.debug("{} matched {}" + pattern, ret.size(), pattern);
                     return ret;
                 }
-            }
-
-            private String standardize(String source) {
-                return source.replace('\\', '/');
             }
 
             private List<String> filterMatchedValues(List<String> all, final Pattern p) {
@@ -115,10 +116,7 @@ public class ResourceVersionLister implements VersionLister {
                 }
                 namePattern = namePattern.replaceAll("\\.", "\\\\.");
 
-                String acceptNamePattern = ".*?"
-                        + namePattern.replaceAll("\\[revision\\]", "([^" + fileSeparator + "]+)")
-                        + "($|" + fileSeparator + ".*)";
-
+                String acceptNamePattern = namePattern.replaceAll("\\[revision\\]", "(.+)");
                 return Pattern.compile(acceptNamePattern);
             }
 
@@ -136,29 +134,18 @@ public class ResourceVersionLister implements VersionLister {
                 return true;
             }
 
-            private List<String> listAll(String parent) throws IOException {
+            private List<String> listAll(ExternalResourceName parent) throws IOException {
                 if (!directories.add(parent)) {
                     return Collections.emptyList();
                 }
                 LOGGER.debug("using {} to list all in {}", repository, parent);
-                List<String> fullPaths = repository.list(parent);
-                if (fullPaths == null) {
+                result.attempted(parent.toString());
+                List<String> paths = repository.list(parent.getUri());
+                if (paths == null) {
                     return Collections.emptyList();
                 }
-                LOGGER.debug("found {} resources", fullPaths.size());
-                return extractVersionInfoFromPaths(fullPaths);
-            }
-
-            private List<String> extractVersionInfoFromPaths(List<String> paths) {
-                List<String> ret = new ArrayList<String>(paths.size());
-                for (String fullpath : paths) {
-                    if (fullpath.endsWith(fileSeparator)) {
-                        fullpath = fullpath.substring(0, fullpath.length() - 1);
-                    }
-                    int slashIndex = fullpath.lastIndexOf(fileSeparator);
-                    ret.add(fullpath.substring(slashIndex + 1));
-                }
-                return ret;
+                LOGGER.debug("found {} resources", paths.size());
+                return paths;
             }
         };
     }

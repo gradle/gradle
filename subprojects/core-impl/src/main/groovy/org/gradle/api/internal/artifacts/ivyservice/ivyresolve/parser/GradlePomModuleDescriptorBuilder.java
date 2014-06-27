@@ -24,18 +24,9 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -163,18 +154,16 @@ public class GradlePomModuleDescriptorBuilder {
 
     private ModuleRevisionId mrid;
 
-    private DescriptorParseContext parserSettings;
     private final PomReader pomReader;
 
-    public GradlePomModuleDescriptorBuilder(ExternalResource res, DescriptorParseContext ivySettings, PomReader pomReader) {
+    public GradlePomModuleDescriptorBuilder(PomReader pomReader) {
         ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
-        ivyModuleDescriptor.setResolvedPublicationDate(new Date(res.getLastModified()));
+        ivyModuleDescriptor.setResolvedPublicationDate(new Date());
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
             ivyModuleDescriptor.addConfiguration(maven2Configuration);
         }
         ivyModuleDescriptor.setMappingOverride(true);
         ivyModuleDescriptor.addExtraAttributeNamespace("m", Ivy.getIvyHomeURL() + "maven");
-        parserSettings = ivySettings;
         this.pomReader = pomReader;
     }
 
@@ -213,31 +202,6 @@ public class GradlePomModuleDescriptorBuilder {
         for (License license : licenses) {
             ivyModuleDescriptor.addLicense(license);
         }
-    }
-
-    public void addMainArtifact(String artifactId, String packaging) {
-        if ("pom".equals(packaging)) {
-            return;
-        }
-
-        if (!isKnownJarPackaging(packaging)) {
-            ComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(mrid.getOrganisation(), mrid.getName(), mrid.getRevision());
-            DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
-            ModuleVersionArtifactIdentifier artifactIdentifier = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, DefaultModuleVersionIdentifier.newId(mrid), artifact);
-            ModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(artifactIdentifier);
-            if (parserSettings.artifactExists(artifactMetaData)) {
-                ivyModuleDescriptor.addArtifact("master", artifact);
-
-                DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
-                return;
-            }
-        }
-
-        ivyModuleDescriptor.addArtifact("master", new DefaultArtifact(mrid, new Date(), artifactId, packaging, "jar"));
-    }
-
-    private boolean isKnownJarPackaging(String packaging) {
-        return "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
     }
 
     public void addDependency(PomDependencyData dep) {

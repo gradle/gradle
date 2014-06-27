@@ -37,10 +37,9 @@ dependencies {
     compile libraries.slf4j_api
     compile 'org.testng:testng:6.3.1'
 
-    provided files(jvm.toolsJar) // for SunJavaCompiler
-
     runtime libraries.commons_cli
 
+    testCompile "com.google.inject:guice:2.0@jar"
     testCompile libraries.jsoup
 }
 
