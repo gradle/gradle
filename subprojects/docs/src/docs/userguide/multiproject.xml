@@ -301,16 +301,6 @@
         project is the only project in a path that is not specified by
         its name. The rest of a project path is a colon-separated
         sequence of project names, where the next project is a subproject of the previous project.
-        Subprojects are usually structured by the <literal>include</literal> keyword in the
-        <literal>settings.gradle</literal>. So a command <literal>include ':example1:example2:example3'</literal>
-        generates 3 projects, expecting by default convention that the projects exist in filesystem path
-        corresponding to the project structure, so gradle would expect a folder <literal>example1/example2</literal>
-        for project <literal>example2</literal> containing a subfolder for project <literal>example3</literal>.
-        Any <literal>build.gradle</literal> file in those locations would be used by gradle to configure the subprojects.
-        Both the mapping from project path to filesystem path as well as the name of the file to use for
-        configuration can be configured in the <literal>settings.gradle</literal> to deviate from the default,
-        e.g. <literal>project(':example1:example2').projectDir = File('exampleSubProjects/example2')</literal>.
-        This is one way to deeply nest your subprojects in directories without creating a project for each containing folder.
         </para>
         <para>The path of a task is simply its project path plus the task name. For example <literal>
             :bluewhale:hello</literal>. Within a project you can address a task of the same project just by its name.
