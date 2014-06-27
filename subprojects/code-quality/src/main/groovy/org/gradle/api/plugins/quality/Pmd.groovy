@@ -65,12 +65,21 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     @Nested
     private final PmdReportsImpl reports
 
+    private final IsolatedAntBuilder antBuilder
+
     /**
      * Whether or not to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
      */
     boolean ignoreFailures
+
+    /**
+     * Whether or not to allow the console output of pmd.
+     *
+     * Example: consoleOutput = true
+     */
+    boolean consoleOutput
 
     Pmd() {
         reports = instantiator.newInstance(PmdReportsImpl, this)
@@ -121,6 +130,14 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
                     }
                     if (reports.xml.enabled) {
                         formatter(type: 'xml', toFile: reports.xml.destination)
+                    }
+
+                    if (consoleOutput) {
+                        def consoleOutputType = 'text';
+                        if (project.getGradle().getStartParameter().isColorOutput()) {
+                            consoleOutputType = 'textcolor';
+                        }
+                        formatter(type: consoleOutputType, toConsole: true)
                     }
                 }
             def failureCount = ant.project.properties["pmdFailureCount"]
