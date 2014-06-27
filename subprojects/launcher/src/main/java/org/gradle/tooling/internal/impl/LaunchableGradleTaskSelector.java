@@ -32,6 +32,7 @@ public class LaunchableGradleTaskSelector implements TaskSelector, InternalLaunc
     private String description;
     private String taskName;
     private String projectPath;
+    private boolean visible;
 
     public String getName() {
         return name;
@@ -76,6 +77,15 @@ public class LaunchableGradleTaskSelector implements TaskSelector, InternalLaunc
 
     public LaunchableGradleTaskSelector setProjectPath(String projectPath) {
         this.projectPath = projectPath;
+        return this;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public LaunchableGradleTaskSelector setVisible(boolean visible) {
+        this.visible = visible;
         return this;
     }
 

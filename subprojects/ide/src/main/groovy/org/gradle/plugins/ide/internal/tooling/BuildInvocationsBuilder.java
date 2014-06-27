@@ -48,7 +48,8 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         }
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
         Set<String> aggregatedTasks = Sets.newLinkedHashSet();
-        findTasks(project, aggregatedTasks);
+        Set<String> visibleTasks = Sets.newLinkedHashSet();
+        findTasks(project, aggregatedTasks, visibleTasks);
         for (String selectorName : aggregatedTasks) {
             selectors.add(new LaunchableGradleTaskSelector().
                     setName(selectorName).
@@ -57,7 +58,8 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     setDescription(project.getParent() != null
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
                             : String.format("%s task selector", selectorName)).
-                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())));
+                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
+                    setVisible(visibleTasks.contains(selectorName)));
         }
         return new DefaultBuildInvocations<LaunchableGradleTask>()
                 .setSelectors(selectors)
@@ -76,17 +78,21 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     .setPath(task.getPath())
                     .setName(task.getName())
                     .setDisplayName(task.toString())
-                    .setDescription(task.getDescription()));
+                    .setDescription(task.getDescription())
+                    .setVisible(task.getGroup() != null));
         }
         return tasks;
     }
 
-    private void findTasks(Project project, Collection<String> tasks) {
+    private void findTasks(Project project, Collection<String> tasks, Collection<String> visibleTasks) {
         for (Project child : project.getSubprojects()) {
-            findTasks(child, tasks);
+            findTasks(child, tasks, visibleTasks);
         }
         for (Task task : project.getTasks()) {
             tasks.add(task.getName());
+            if (task.getGroup() != null) {
+                visibleTasks.add(task.getName());
+            }
         }
     }
 
