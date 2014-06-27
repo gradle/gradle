@@ -48,6 +48,18 @@ This is a plugin to assist in developing gradle plugins.  It validates the plugi
 if the plugin metadata is not valid.
 
     apply plugin: 'java-gradle-plugin'
+    
+### PMD Console Output (i)
+
+It is now possible to have [PMD static analysis](userguide/pmd_plugin.html) output results directly to the console.
+
+    pmd {
+      consoleOutput = true
+    }
+
+Output will be written to `System.out` in addition to any configured reports.
+
+This feature was contributed by [Vyacheslav Blinov](https://github.com/dant3).
 
 ## Promoted features
 
@@ -107,6 +119,7 @@ will be affected by this change.
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Rob Spieldenner](https://github.com/rspieldenner) - Made the worker processes better described in the process list.
+* [Vyacheslav Blinov](https://github.com/dant3) - PMD console output.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

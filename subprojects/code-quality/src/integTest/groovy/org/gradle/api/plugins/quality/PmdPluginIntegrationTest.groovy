@@ -148,7 +148,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
-        output.contains("org/gradle/Class1Test.java:1\tEmpty initializer was found")
+        output.contains("org/gradle/Class1Test.java:1:\tEmpty initializer was found")
     }
 
     private void writeBuildFile() {
