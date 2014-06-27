@@ -143,10 +143,9 @@
                 of defining common behavior. We think it provides a very powerful and flexible way of configuring
                 multiproject builds.
             </para>
-            <para>Another possibilty for sharing some configuration accross some, but not all subprojects, is to extract
-            the configuration logic in some arbitrary gradle file, and include it from the subprojects using
-            <literal>apply from: "$rootDir/config/additionalConfig.gradle"</literal>. That way the relevant subprojects
-            do not need to be managed as a set.
+            <para>
+                Another possibilty for sharing configuration is to use a common external script.
+                See <xref linkend="http://www.gradle.org/docs/current/userguide/tutorial_this_and_that.html#sec:configuring_using_external_script"/> for more information.
             </para>
         </section>
     </section>
