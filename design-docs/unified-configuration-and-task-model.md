@@ -73,7 +73,9 @@ A mock up:
 
 ### Open issues
 
-- Expose as a convention as well?
+- Expose as a convention as well
+    - Have to handle creation rules that take inputs: defer creation until the convention is used, and close the inputs at this point.
+    - Once closed, cannot mutate an object.
 - Exact pattern to use to determine which model(s) a plugin exposes
     - Alternative pattern that declares only the type and name and Gradle takes care of decoration, instantiation and dependency injection
 - Should assert that every model object is decorated, however it happens to be created.
@@ -181,9 +183,21 @@ A mock up:
 
 ## Story: New language and publication plugins use plugin rules mechanism to define tasks
 
-- Change the native and jvm language plugins and the publication plugins, to use this mechanism to define tasks from their models.
+- Change the native language, jvm language and the publication plugins, to use this mechanism to define tasks from their models.
 
-## Story: Build author is warned when model rule targets unknown model object
+## Story: Build author is informed when model rule targets unknown model object
+
+# Implementation plan - milestone 2
+
+## Feature: Rule is not executed when its outputs are up to date
+
+Short-circuit the execution of all configuration rules whose outputs are up-to-date:
+    - Inputs have not changed.
+    - Rule implementation has not changed.
+
+Continue to execute all legacy DSL.
+
+To implement this, model objects will need to be serializable in some form.
 
 # Implementation plan - Later milestones
 
