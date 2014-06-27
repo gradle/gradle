@@ -51,8 +51,8 @@
                     Yet, this approach may not be the most efficient in a very large multi-project builds.
                     There are Gradle builds with a hierarchy of hundreds of subprojects.
                     Configuration time of huge multi-project builds may become noticeable.
-                    Scalability is an important requirement for Gradle. Configuration time also include the time
-                    to download 3rd party plugins. Hence, starting from version 1.4
+                    Scalability is an important requirement for Gradle.
+                    Hence, starting from version 1.4
                     new incubating 'configuration on demand' mode is introduced.
                 </para>
                 <para>
