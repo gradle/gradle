@@ -99,7 +99,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         configurationActions.add(Actions.composite(
                 new ConfigureGeneratedSourceSets(),
-                new ApplySourceSetConventions()
+                new ApplyHeaderSourceSetConventions()
         ));
     }
 

@@ -161,12 +161,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
 
     sources {
         myLib {
-            resources {
-                source.srcDir "src/myLib/resources"
-            }
-            extraResources(ResourceSet) {
-                source.srcDir "src/myLib/extraResources"
-            }
+            extraResources(ResourceSet)
         }
     }
 
@@ -200,20 +195,13 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         source1.writeToDir(file("src/myLib/java"))
         source2.writeToDir(file("src/myLib/extraJava"))
 
-        // TODO:DAZ Need to configure the default source locations (move out of Native)
-        // Will currently have different behaviour if native-component plugin is applied!
         buildFile << """
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
     sources {
         myLib {
-            java {
-                source.srcDir "src/myLib/java"
-            }
-            extraJava(JavaSourceSet) {
-                source.srcDir "src/myLib/extraJava"
-            }
+            extraJava(JavaSourceSet)
         }
     }
 
@@ -235,6 +223,81 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         and:
         def jar = jarFile("build/jars/myLibJar/myLib.jar")
         jar.hasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
+    }
+
+    def "can configure source locations for java and resource source sets"() {
+        when:
+        app.sources*.writeToDir(file("src/myLib/myJava"))
+        app.resources*.writeToDir(file("src/myLib/myResources"))
+        String[] expectedOutputs = [app.sources[0].classFile.fullPath, app.sources[1].classFile.fullPath, app.resources[0].fullPath, app.resources[1].fullPath]
+
+        // Conventional locations are ignore with explicit configuration
+        file("src/myLib/java/Ignored.java") << "IGNORE ME"
+        file("src/myLib/resources/Ignored.txt") << "IGNORE ME"
+
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    sources {
+        myLib {
+            java {
+                source.srcDir "src/myLib/myJava"
+            }
+            resources {
+                source.srcDir "src/myLib/myResources"
+            }
+        }
+    }
+
+    jvm {
+        libraries {
+            myLib
+        }
+    }
+"""
+        and:
+        succeeds "assemble"
+
+        then:
+        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+    }
+
+    def "can combine resources and sources in a single source directory"() {
+        when:
+        app.sources*.writeToDir(file("src/myLib"))
+        app.resources*.writeToDir(file("src/myLib"))
+        String[] expectedOutputs = [app.sources[0].classFile.fullPath, app.sources[1].classFile.fullPath, app.resources[0].fullPath, app.resources[1].fullPath]
+
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    sources {
+        myLib {
+            java {
+                source.srcDir "src/myLib"
+            }
+            resources.source {
+                srcDir "src/myLib"
+                exclude "**/*.java"
+            }
+        }
+    }
+
+    jvm {
+        libraries {
+            myLib
+        }
+    }
+"""
+        and:
+        succeeds "assemble"
+
+        then:
+        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
     private JarTestFixture jarFile(String s) {

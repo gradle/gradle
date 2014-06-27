@@ -20,22 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 
 /**
- * Applies source set conventions when no source directories are explicitly configured.
+ * Applies source set conventions for HeaderExportingSourceSets when no source directories are explicitly configured.
  */
-public class ApplySourceSetConventions implements Action<ProjectInternal> {
+public class ApplyHeaderSourceSetConventions implements Action<ProjectInternal> {
     public void execute(ProjectInternal project) {
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
         for (FunctionalSourceSet functionalSourceSet : projectSourceSet) {
-            for (LanguageSourceSet languageSourceSet : functionalSourceSet) {
-                // Only apply default locations when none explicitly configured
-                if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                    languageSourceSet.getSource().srcDir(String.format("src/%s/%s", functionalSourceSet.getName(), languageSourceSet.getName()));
-                }
-            }
             for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
                 // Only apply default locations when none explicitly configured
                 if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {

@@ -233,8 +233,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     def "generator task produces assembler sources"() {
         given:
         def app = new MixedLanguageHelloWorldApp(toolChain)
-        def asmSources = app.sourceFiles.findAll {it.path == 'asm'}
-        def mainSources = app.headerFiles + app.sourceFiles - asmSources
+        def asmSources = app.sourceFiles.findAll({it.path == 'asm'})
+        def mainSources = app.headerFiles + app.sourceFiles.findAll({it.path != 'asm'})
+        mainSources.removeAll {it.path == 'asm'}
         mainSources*.writeToDir(file("src/main"))
         asmSources*.writeToDir(file("src/input"))
         degenerateInputSources()

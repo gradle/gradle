@@ -17,6 +17,7 @@ package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -26,6 +27,7 @@ import org.gradle.language.base.internal.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistryInternal;
+import org.gradle.language.base.internal.plugins.ApplyDefaultSourceLocations;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.BinaryContainer;
@@ -52,11 +54,14 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final ModelRules modelRules;
+    // TODO:DAZ This should be a model rule, once sourceSets are included in the model
+    private final ProjectConfigurationActionContainer configurationActions;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRules modelRules) {
+    public LanguageBasePlugin(Instantiator instantiator, ModelRules modelRules, ProjectConfigurationActionContainer configurationActions) {
         this.instantiator = instantiator;
         this.modelRules = modelRules;
+        this.configurationActions = configurationActions;
     }
 
     public void apply(final Project target) {
@@ -86,6 +91,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
         });
         createProjectSourceSetForEachComponent(sources, components);
         createLanguageSourceSets(target, domainRegistry, sources);
+
+        configurationActions.add(new ApplyDefaultSourceLocations());
     }
 
     private void createLanguageSourceSets(final Project project, final LanguageRegistryInternal domainRegistry, final ProjectSourceSet sources) {

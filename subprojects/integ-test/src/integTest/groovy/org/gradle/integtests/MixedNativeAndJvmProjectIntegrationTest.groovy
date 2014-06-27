@@ -15,8 +15,8 @@
  */
 
 package org.gradle.integtests
-
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegrationSpec {
 
@@ -86,18 +86,37 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         succeeds "check"
     }
 
-    // TODO:DAZ Need to add some sources and actually build the binary outputs
     def "can build jvm and native components in the same project"() {
+        given:
+        file("src/jvmLib/java/org/gradle/test/Test.java") << """
+package org.gradle.test;
+
+class Test {
+    int val = 4;
+    String name = "foo";
+}
+"""
+        file("src/jvmLib/resources/test.txt") << "Here is a test resource"
+
+        file("src/nativeApp/c/main.c") << """
+#include <stdio.h>
+
+int main () {
+    printf("Hello world!");
+    return 0;
+}
+"""
+
+        and:
         buildFile << """
     apply plugin: 'native-component'
+    apply plugin: 'c'
     apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
 
     nativeRuntime {
         executables {
             nativeApp
-        }
-        libraries {
-            nativeLib
         }
     }
     jvm {
@@ -110,27 +129,24 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         succeeds "jvmLibJar"
 
         then:
-        executed ":createJvmLibJar", ":jvmLibJar"
-        notExecuted  ":nativeAppExecutable", ":nativeLibStaticLibrary", ":nativeLibSharedLibrary"
-
-        when:
-        succeeds "nativeLibStaticLibrary"
-
-        then:
-        executed ":createNativeLibStaticLibrary", ":nativeLibStaticLibrary"
-        notExecuted ":jvmLibJar", ":nativeAppExecutable", ":nativeLibSharedLibrary"
+        executedAndNotSkipped ":compileJvmLibJarJvmLibJava", ":processJvmLibJarJvmLibResources", ":createJvmLibJar", ":jvmLibJar"
+        notExecuted  ":nativeAppExecutable"
 
         when:
         succeeds  "nativeAppExecutable"
 
         then:
-        executed ":linkNativeAppExecutable", ":nativeAppExecutable"
-        notExecuted ":jvmLibJar", ":nativeLibStaticLibrary", ":nativeLibSharedLibrary"
+        executed ":compileNativeAppExecutableNativeAppC", ":linkNativeAppExecutable", ":nativeAppExecutable"
+        notExecuted ":jvmLibJar"
 
         when:
         succeeds "assemble"
 
         then:
-        executed ":jvmLibJar", ":nativeAppExecutable", ":nativeLibSharedLibrary", ":nativeLibStaticLibrary"
+        executed ":jvmLibJar", ":nativeAppExecutable"
+
+        and:
+        new JarTestFixture(file("build/jars/jvmLibJar/jvmLib.jar")).hasDescendants("org/gradle/test/Test.class", "test.txt");
+        file("build/binaries/nativeAppExecutable/nativeApp").assertExists()
     }
 }
