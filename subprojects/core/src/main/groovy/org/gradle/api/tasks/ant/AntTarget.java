@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.ant;
 
-import groovy.lang.Closure;
 import org.apache.tools.ant.Target;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
