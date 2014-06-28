@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -83,8 +84,8 @@ public class MavenPomFileGenerator {
 
         for (ExcludeRule excludeRule : dependency.getExcludeRules()) {
             Exclusion exclusion = new Exclusion();
-            exclusion.setGroupId(excludeRule.getGroup());
-            exclusion.setArtifactId(excludeRule.getModule());
+            exclusion.setGroupId(GUtil.elvis(excludeRule.getGroup(), "*"));
+            exclusion.setArtifactId(GUtil.elvis(excludeRule.getModule(), "*"));
             mavenDependency.addExclusion(exclusion);
         }
 

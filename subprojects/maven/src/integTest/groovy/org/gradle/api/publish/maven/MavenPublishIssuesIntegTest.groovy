@@ -181,7 +181,8 @@ subprojects {
     dependencies {
         compile ("org.gradle:pom-excludes:0.1"){
            exclude group: "org.opensource1", module: "dep1"
-           exclude group: "org.opensource2", module: "dep2"
+           exclude group: "org.opensource2"
+           exclude module: "dep2"
         }
     }
     publishing {
@@ -202,10 +203,12 @@ subprojects {
        then:
        def mainPom = mavenRepo.module('org.gradle', 'root', '1.0').parsedPom
        def dependency = mainPom.scopes.runtime.expectDependency('org.gradle:pom-excludes:0.1')
-       dependency.exclusions.size() == 2
+       dependency.exclusions.size() == 3
        dependency.exclusions[0].groupId == "org.opensource1"
        dependency.exclusions[0].artifactId == "dep1"
        dependency.exclusions[1].groupId == "org.opensource2"
-       dependency.exclusions[1].artifactId == "dep2"
+       dependency.exclusions[1].artifactId == "*"
+       dependency.exclusions[2].groupId == "*"
+       dependency.exclusions[2].artifactId == "dep2"
     }
 }

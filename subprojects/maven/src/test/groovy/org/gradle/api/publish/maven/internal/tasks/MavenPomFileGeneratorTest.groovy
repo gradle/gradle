@@ -125,6 +125,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def dependency = Mock(MavenDependencyInternal)
         def exclude1 = Mock(ExcludeRule)
         def exclude2 = Mock(ExcludeRule)
+        def exclude3 = Mock(ExcludeRule)
 
         when:
         generator.addRuntimeDependency(dependency)
@@ -134,22 +135,28 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.groupId >> "dep-group"
         dependency.artifactId >> "dep-name"
         dependency.version >> "dep-version"
-        dependency.excludeRules >> CollectionUtils.toSet([exclude1, exclude2])
+        dependency.excludeRules >> CollectionUtils.toSet([exclude1, exclude2, exclude3])
         exclude1.group >> "excl-1-group"
         exclude1.module >> "excl-1-module"
         exclude2.group >> "excl-2-group"
-        exclude2.module >> "excl-2-module"
+        exclude2.module >> null
+        exclude3.group >> null
+        exclude3.module >> "excl-3-module"
 
         and:
         with (pom) {
-            dependencies.dependency.exclusions.exclusion.size() == 2
+            dependencies.dependency.exclusions.exclusion.size() == 3
             with (dependencies[0].dependency[0].exclusions[0].exclusion[0]) {
                 groupId == "excl-1-group"
                 artifactId == "excl-1-module"
             }
             with (dependencies[0].dependency[0].exclusions[0].exclusion[1]) {
                 groupId == "excl-2-group"
-                artifactId == "excl-2-module"
+                artifactId == "*"
+            }
+            with (dependencies[0].dependency[0].exclusions[0].exclusion[2]) {
+                groupId == "*"
+                artifactId == "excl-3-module"
             }
         }
     }
