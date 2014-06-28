@@ -79,6 +79,18 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !errorOutput
     }
 
+    def "compileBadTypeCheckedCode"() {
+        expect:
+        fails("compileGroovy")
+        // for some reasons, line breaks occur in different places when running this
+        // test in different environments; hence we only check for short snippets
+        if (versionLowerThan("2.1")) {
+            compileErrorOutput.contains 'Groovy configuration script requires Groovy 2.1+'
+        } else {
+            compileErrorOutput.contains 'Cannot find matching method'
+        }
+    }
+
     protected ExecutionResult run(String... tasks) {
         configureGroovy()
         super.run(tasks)

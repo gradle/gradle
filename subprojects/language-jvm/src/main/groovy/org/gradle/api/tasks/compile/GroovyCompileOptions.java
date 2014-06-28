@@ -19,8 +19,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
 
 import java.io.File;
 import java.util.List;
@@ -132,15 +134,32 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Gets the path to an optional groovy configuration file passed to the compiler. Defaults to {@code null}
      */
     @InputFile
+    @Incubating
+    @Optional
     public File getConfigurationScript() {
         return configurationScript;
     }
 
     /**
      * Sets the path to the groovy configuration file. Defaults to {@code null}.
-     * @param configurationFile
+     * <p>
+     *     The configuration file should conform to the format that Groovy 2.1+ compiler
+     *     accepts. It consists of a script exposing a {@link org.codehaus.groovy.control.CompilerConfiguration}
+     *     instance named <pre>configuration</pre>, and a <pre>withConfig</pre> method to tweak the configuration.
+     * </p>
+     * <p>
+     *     For example, a compiler configuration file activating type checking by default for all Groovy classes
+     *     may be written like this:
+     *     <pre><code>import groovy.transform.TypeChecked
+     * withConfig(configuration) {
+     *     ast(TypeChecked)
+     * }</code></pre>
+     * </p>
+     * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
+     * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfigurationBuilder.html">CompilerConfigurationBuilder</a>
      */
-    public void setConfigurationScript(File configurationFile) {
+    @Incubating
+    public void setConfigurationScript(@Nullable File configurationFile) {
         this.configurationScript = configurationFile;
     }
 

@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
+import groovy.lang.GroovySystem;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.io.IOException;
@@ -127,6 +129,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {
+        VersionNumber version = VersionNumber.parse(GroovySystem.getVersion());
+        if (version.getMajor()<2 || (version.getMajor()>=2 && version.getMinor()<1)) {
+            throw new GradleException("Groovy configuration script requires Groovy 2.1+");
+        }
         Binding binding = new Binding();
         binding.setVariable("configuration", configuration);
 
