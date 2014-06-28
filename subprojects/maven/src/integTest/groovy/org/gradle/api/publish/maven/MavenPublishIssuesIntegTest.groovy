@@ -159,4 +159,54 @@ subprojects {
         def utilPom = mavenRepo.module('my.org', 'util', '1.0').parsedPom
         utilPom.scopes.runtime.expectDependency('org.gradle:dep:1.1')
     }
+   
+   
+   @Issue("GRADLE-2945")
+   def "maven-publish plugin adds excludes to pom"() {
+	   
+	   given:
+	   def module = mavenRepo.module("org.gradle", "pom-excludes", "0.1").publish()
+
+	   and:
+	   settingsFile << 'rootProject.name = "root"'
+	   buildFile << """
+    apply plugin: "java"
+    apply plugin: "maven-publish"
+
+    group = "org.gradle"
+    version = "1.0"
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+    dependencies {
+        compile ("org.gradle:pom-excludes:0.1"){
+		   exclude group: "org.opensource1", module: "dep1"
+		   exclude group: "org.opensource2", module: "dep2"
+		}
+    }
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            pub(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+    """
+
+	   when:
+	   succeeds 'publish'
+
+	   then:
+	   def mainPom = mavenRepo.module('org.gradle', 'root', '1.0').parsedPom
+	   def dependency = mainPom.scopes.runtime.expectDependency('org.gradle:pom-excludes:0.1')
+	   dependency.exclusions.size() == 2
+	   dependency.exclusions[0].groupId == "org.opensource1"
+	   dependency.exclusions[0].artifactId == "dep1"
+	   dependency.exclusions[1].groupId == "org.opensource2"
+	   dependency.exclusions[1].artifactId == "dep2"
+	}
 }
