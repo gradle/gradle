@@ -249,7 +249,9 @@ A custom library type:
 
 #### Implementation Plan
 
-#### Test Cases
+- Allow a rule-based plugin to add general rules via the @Rule annotation
+- When registering a rule-based plugin, inspect any declared rules for ones that create Library instances via a `CollectionBuilder<? extends Library>`.
+- The library-creation rule will be executed when closing the LibraryContainer. This mechanism can be specific to the language-base plugin.
 
 #### Open issues
 
@@ -291,9 +293,20 @@ A custom binary:
 - Extends or implements some public base `LibraryBinary` type.
 - Has some lifecycle task to build its outputs.
 
+#### Implementation Plan
+
+- For a library-producing plugin:
+    - Inspect any declared rules that take the created library type as input, and produce LibraryBinary instances
+      via a `CollectionBuilder<? extends LibraryBinary> parameter.
+    - Inspect any declared rules that take the created binary type as input, and produce Task instances
+      via a `CollectionBuilder<Task> parameter.
+- The binary-creation rule will be executed for each library when closing the BinariesContainer.
+- The task-creation rule will be executed for each binary when closing the TaskContainer.
+
 #### Open issues
 
 - Public mechanism to 'implement' Binary and common subtypes such as ProjectBinary.
+- General mechanism to register a model collection and have rules that apply to each element of that collection.
 - Validation of binary names
 
 ### Story: Custom binary is built from Java sources
