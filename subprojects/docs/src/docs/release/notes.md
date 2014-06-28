@@ -48,7 +48,7 @@ This is a plugin to assist in developing gradle plugins.  It validates the plugi
 if the plugin metadata is not valid.
 
     apply plugin: 'java-gradle-plugin'
-    
+
 ### PMD Console Output (i)
 
 It is now possible to have [PMD static analysis](userguide/pmd_plugin.html) output results directly to the console.
@@ -60,6 +60,42 @@ It is now possible to have [PMD static analysis](userguide/pmd_plugin.html) outp
 Output will be written to `System.out` in addition to any configured reports.
 
 This feature was contributed by [Vyacheslav Blinov](https://github.com/dant3).
+
+### Dependency exclusions are included in POM file by `maven-publish` plugin (i)
+
+The incubating [maven-publish](userguide/publishing_maven.html) plugin will now handle dependency excludes when generating a POM file for publishing.
+
+So for a dependency declaration like:
+
+    dependencies {
+        compile("my.org:my-module:1.2") {
+            exclude group: 'commons-logging', module: 'commons-logging'
+            exclude group: 'commons-collections'
+        }
+    }
+
+The generated POM file will contain the following content:
+
+    <dependency>
+        <groupId>my.org</groupId>
+        <artifactId>my-module</artifactId>
+        <version>1.2</version>
+        <scope>runtime</scope>
+        <exclusions>
+            <exclusion>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>commons-collections</groupId>
+                <artifactId>*</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+
+
+
+This feature addresses [GRADLE-2945] was contributed by [Biswa Dahal](https://github.com/ffos).
 
 ## Promoted features
 
@@ -121,6 +157,7 @@ We would like to thank the following community members for making contributions 
 * [Rob Spieldenner](https://github.com/rspieldenner) - Made the worker processes better described in the process list.
 * [Vyacheslav Blinov](https://github.com/dant3) - PMD console output.
 * [Thibault Kruse](https://github.com/tkruse) - Documentation improvements.
+* [Biswa Dahal](https://github.com/ffos) - Dependency exclude support for `maven-publish`.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
