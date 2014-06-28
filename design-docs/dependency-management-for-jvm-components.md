@@ -208,6 +208,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - Java language version
     - Source encoding
 - How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
+- When to document and announce the new JVM plugins?
 
 ## Feature: Custom plugin defines a custom library type
 
@@ -259,6 +260,7 @@ A custom library type:
 be extended (should have no-args constructor) or generate the implementation from the interface.
 - Infer the dependency on the language base plugin.
 - Interaction with the `model { }` block.
+- Need some way to declare a language domain, without necessarily defining any particular component instances.
 
 ### Story: Custom plugin defines binaries and tasks for each custom library
 
@@ -302,6 +304,7 @@ A custom binary:
       via a `CollectionBuilder<Task> parameter.
 - The binary-creation rule will be executed for each library when closing the BinariesContainer.
 - The task-creation rule will be executed for each binary when closing the TaskContainer.
+- Document in the user guide how to use this. Include some samples.
 
 #### Open issues
 
