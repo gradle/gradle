@@ -29,7 +29,6 @@ import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 import org.gradle.nativebinaries.test.NativeTestSuiteBinary;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuite;
-import org.gradle.nativebinaries.test.internal.DefaultNativeTestSuiteBinary;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
@@ -68,7 +67,7 @@ public class CreateCUnitBinaries {
                 .withComponentName(cUnitTestSuite.getBaseName())
                 .withTypeString("CUnitExe").build();
 
-        ProjectNativeBinary testBinary = instantiator.newInstance(DefaultNativeTestSuiteBinary.class,
+        ProjectNativeBinary testBinary = instantiator.newInstance(DefaultCUnitTestSuiteExecutableBinary.class,
                 cUnitTestSuite, testedBinary.getFlavor(), testedBinary.getToolChain(),
                 testedBinary.getTargetPlatform(), testedBinary.getBuildType(), namingScheme, resolver);
 
