@@ -998,25 +998,6 @@ from the same sources that link against different implementation libraries.
         }
     }
 
-## Story: Support CUnit test execution
-
-### Implementation
-
-Generally, C++ test frameworks compile and link a test launcher executable, which is then run to execute the tests.
-
-To implement this:
-* Define a test source set and associated tasks to compile, link and run the test executable.
-* It should be possible to run the tests for all architectures supported by the current machine.
-* Generate the test launcher source and compile it into the executable.
-
-### Open issues
-
-* Need a `unitTest` lifecycle task, plus a test execution task for each variant of the unit tests.
-* Need to exclude the `main` method from unit test sources.
-* Generate a test launcher that is integrated with Gradle's test eventing.
-* Automatically detect and register tests in test source files; don't require them to be explicitly registered. (Similar to JUnit and TestNG tests).
-* Generate nice HTML reports for CUnit test output
-
 # Bugfixes
 
 ## Files with identical names in C/C++ source tree are silently excluded from compilation (GRADLE-2923)
