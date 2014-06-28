@@ -88,6 +88,7 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.groupId >> "dep-group"
         dependency.artifactId >> "dep-name"
         dependency.version >> "dep-version"
+        dependency.excludeRules >> []
 
         and:
         with (pom) {
@@ -111,6 +112,7 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.groupId >> "dep-group"
         dependency.artifactId >> "dep-name"
         dependency.version >> "dep-version"
+        dependency.excludeRules >> []
 
         and:
         with (pom) {
@@ -119,12 +121,12 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     def "writes dependency with excludes"() {
-		given:
+        given:
         def dependency = Mock(MavenDependencyInternal)
-		def exclude1 = Mock(ExcludeRule)
-		def exclude2 = Mock(ExcludeRule)
-		
-		when:
+        def exclude1 = Mock(ExcludeRule)
+        def exclude2 = Mock(ExcludeRule)
+
+        when:
         generator.addRuntimeDependency(dependency)
 
         then:
@@ -132,11 +134,11 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.groupId >> "dep-group"
         dependency.artifactId >> "dep-name"
         dependency.version >> "dep-version"
-		dependency.excludeRules >> CollectionUtils.toSet([exclude1, exclude2])
-		exclude1.group >> "excl-1-group"
-		exclude1.module >> "excl-1-module"
-		exclude2.group >> "excl-2-group"
-		exclude2.module >> "excl-2-module"
+        dependency.excludeRules >> CollectionUtils.toSet([exclude1, exclude2])
+        exclude1.group >> "excl-1-group"
+        exclude1.module >> "excl-1-module"
+        exclude2.group >> "excl-2-group"
+        exclude2.module >> "excl-2-module"
 
         and:
         with (pom) {
@@ -164,6 +166,7 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.artifacts >> CollectionUtils.toSet([artifact1, artifact2])
         dependency.groupId >> "dep-group"
         dependency.version >> "dep-version"
+        dependency.excludeRules >> []
         artifact1.name >> "artifact-1"
         artifact1.type >> "type-1"
         artifact1.classifier >> "classifier-1"

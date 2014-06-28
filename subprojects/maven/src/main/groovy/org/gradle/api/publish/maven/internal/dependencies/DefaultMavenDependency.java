@@ -15,7 +15,6 @@
  */
 package org.gradle.api.publish.maven.internal.dependencies;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 
@@ -43,9 +42,7 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
 
     public DefaultMavenDependency(String groupId, String artifactId, String version, Collection<DependencyArtifact> artifacts, Collection<ExcludeRule> excludeRules) {
         this(groupId, artifactId, version, artifacts);
-        if (!CollectionUtils.isEmpty(excludeRules)){
-            this.excludeRules.addAll(excludeRules);
-        }
+        this.excludeRules.addAll(excludeRules);
     }
 
     public String getGroupId() {
