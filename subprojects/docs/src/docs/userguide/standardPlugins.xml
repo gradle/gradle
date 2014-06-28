@@ -658,6 +658,18 @@
                     </para>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <link linkend="javaGradle_plugin">
+                        <literal>java-gradle-plugin</literal>
+                    </link>
+                </td>
+                <td>java</td>
+                <td></td>
+                <td>
+                    <para>Assists with development of Gradle plugins by providing standard plugin build configuration and validation.</para>
+                </td>
+            </tr>
         </table>
     </section>
     <section>

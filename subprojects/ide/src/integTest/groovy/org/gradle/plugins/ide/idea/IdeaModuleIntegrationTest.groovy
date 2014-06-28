@@ -61,7 +61,7 @@ idea {
         testSourceDirs += file('additionalCustomTestSources')
         excludeDirs += file('excludeMePlease')
 
-        scopes.PROVIDED.plus += configurations.compile
+        scopes.PROVIDED.plus += [ configurations.compile ]
         downloadJavadoc = true
         downloadSources = false
 
@@ -135,6 +135,34 @@ idea {
 
         assert !content.contains('bar.jar')
         assert !content.contains('foo3.jar')
+    }
+
+    @Issue("GRADLE-3101")
+    @Test
+    void scopesCustomizedUsingPlusEqualOperator() {
+        //when
+        runTask 'idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+configurations {
+  bar
+}
+
+idea {
+    module {
+        scopes.COMPILE.plus += [ configurations.bar ]
+    }
+}
+
+dependencies {
+  bar files('bar.jar')
+}
+'''
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        assert content.contains('bar.jar')
     }
 
     @Test

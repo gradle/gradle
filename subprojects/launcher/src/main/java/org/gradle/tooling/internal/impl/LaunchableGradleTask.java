@@ -27,6 +27,7 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
     private String name;
     private String description;
     private String displayName;
+    private boolean visible;
 
     public String getPath() {
         return path;
@@ -72,8 +73,17 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
         return null;
     }
 
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public LaunchableGradleTask setVisible(boolean visible) {
+        this.visible = visible;
+        return this;
+    }
+
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{path='" + path + "'}";
+        return getClass().getSimpleName() + "{path='" + path + "',visible=" + visible + "}";
     }
 }

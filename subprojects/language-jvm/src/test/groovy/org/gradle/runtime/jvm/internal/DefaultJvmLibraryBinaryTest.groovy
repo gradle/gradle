@@ -36,4 +36,25 @@ class DefaultJvmLibraryBinaryTest extends Specification {
         binary.name == "jvm-lib-jar"
         binary.displayName == "the jar"
     }
+
+    def "binary has properties for classesDir and jar file"() {
+        when:
+        def binary = new DefaultJvmLibraryBinary(library, namingScheme)
+
+        then:
+        binary.jarFile == null
+        binary.classesDir == null
+
+        when:
+        def jarFile = Mock(File)
+        def classesDir = Mock(File)
+
+        and:
+        binary.jarFile = jarFile
+        binary.classesDir = classesDir
+
+        then:
+        binary.jarFile == jarFile
+        binary.classesDir == classesDir
+    }
 }

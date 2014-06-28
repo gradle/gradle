@@ -73,6 +73,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
         return moduleDescriptor;
     }
 
+    public boolean isGenerated() {
+        return moduleDescriptor.isDefault();
+    }
+
     public boolean isChanging() {
         return changing;
     }

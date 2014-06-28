@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
@@ -76,6 +77,55 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.getArtifacts("default")[0].type == "jar"
         md.dependencies.length == 0
         md.inheritedDescriptors.length == 0
+    }
+
+    def "adds implicit artifact when none declared"() throws Exception {
+        when:
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="mymodule"
+          revision="myrev"
+    />
+    <configurations>
+        <conf name="A"/>
+        <conf name="B"/>
+    </configurations>
+</ivy-module>
+"""
+        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
+
+        then:
+        md.allArtifacts.length == 1
+
+        def artifact = md.allArtifacts[0]
+        artifact.name == 'mymodule'
+        artifact.type == 'jar'
+        artifact.ext == 'jar'
+        md.configurations*.name == ["A", "B"]
+        md.getArtifacts("A") == [artifact]
+        md.getArtifacts("B") == [artifact]
+
+        md.dependencies.length == 0
+        md.inheritedDescriptors.length == 0
+    }
+
+    public void "fails when ivy.xml uses unknown version of descriptor format"() throws IOException {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="unknown">
+    <info organisation="myorg"
+          module="mymodule"
+    />
+</ivy-module>
+"""
+
+        when:
+        parser.parseMetaData(parseContext, file, true)
+
+        then:
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.cause.message == "invalid version unknown"
     }
 
     public void "fails when configuration extends an unknown configuration"() throws IOException {
@@ -293,6 +343,37 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         dependency.moduleConfigurations == ["myconf"]
     }
 
+    def "defaultconf is respected"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+                <info organisation="myorg"
+                      module="mymodule"
+                      revision="myrev"
+                      status="integration"
+                      publication="20041101110000">
+                </info>
+                <configurations>
+                    <conf name="conf1" />
+                    <conf name="conf2" />
+                </configurations>
+                <publications defaultconf="conf2">
+                    <artifact/>
+                </publications>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+
+        then:
+        def artifact = descriptor.allArtifacts[0]
+        artifact.configurations == ["conf2"]
+        descriptor.getArtifacts("conf2") == [artifact]
+        descriptor.getArtifacts("conf1") == []
+    }
+
     def "parses dependency config mappings"() {
         given:
         def file = temporaryFolder.createFile("ivy.xml")
@@ -494,7 +575,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                 <publications>
                     <artifact/>
                     <artifact name='art2' type='type' ext='ext' conf='*'/>
-                    <artifact name='art3' type='type2' conf='a, b'/>
+                    <artifact name='art3' type='type2' conf='a, b  '/>
                 </publications>
             </ivy-module>
         """

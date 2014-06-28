@@ -73,7 +73,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         }
         ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, componentId);
         if (descriptor == null) {
-            // Descriptor file has been manually deleted - ignore the entry
+            // Descriptor file has been deleted - ignore the entry
             return null;
         }
         return new DefaultCachedMetaData(entry, entry.createMetaData(descriptor), timeProvider);

@@ -83,7 +83,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     // TODO:DAZ Once use of the extension has been rolled into the rest of the integration tests, this test won't be necessary
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "can define native binaries using nativeCode extension"() {
+    def "can define native binaries using nativeRuntime extension"() {
         given:
         helloWorldApp.library.writeSources(file("src/hello"))
         helloWorldApp.executable.writeSources(file("src/main"))
@@ -93,7 +93,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     apply plugin: 'cpp'
     apply plugin: 'c'
 
-    nativeCode {
+    nativeRuntime {
         executables {
             main
         }

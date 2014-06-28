@@ -18,9 +18,11 @@ package org.gradle.nativebinaries.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.NativeExecutableBinary
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.SharedLibraryBinary
+import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
@@ -29,7 +31,6 @@ import org.gradle.nativebinaries.tasks.LinkSharedLibrary
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.runtime.base.BinaryContainer
-import org.gradle.runtime.base.ProjectComponentContainer
 
 /**
  * A plugin that creates tasks used for constructing native binaries.
@@ -40,14 +41,6 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.plugins.apply(NativeComponentModelPlugin.class);
         project.plugins.apply(StandardToolChainsPlugin)
-
-
-        // Create a functionalSourceSet for each native component, with the same name
-        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        final ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer)
-        components.withType(ProjectNativeComponent).all { ProjectNativeComponent component ->
-            component.source projectSourceSet.maybeCreate(component.name)
-        }
 
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
         binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->

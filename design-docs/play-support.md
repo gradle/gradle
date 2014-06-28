@@ -8,7 +8,7 @@ There are 3 main use cases:
 - A developer runs a Play application during development.
 - A deployer runs a Play application. That is, a Play application is packaged up as a distribution which can be run in a production environment.
 
-# Implementation plan - Milestone 1
+# Milestone 1
 
 ## Out of scope
 
@@ -60,7 +60,7 @@ Extend the standard build lifecycle to compile the front end assets to CSS and J
     - Javascript minification, requirejs optimization
 - Include the compiled assets in the Jar
 - Include the `public/` assets in the Jar
-- Include Play config files in the Jar (eg `conf/play.plugins`)
+- Include Play config files in the Jar (e.g. `conf/play.plugins`)
 - Define source sets for each type of source file
 - Compilation should be incremental and remove stale outputs
 - Expose some compiler options
@@ -90,10 +90,53 @@ developer may run `gradle stage` to stage the local application, or `gradle dist
 
 Reuse the compiler daemon across builds to keep the Scala compiler warmed up. This is also useful for the other compilers.
 
+## Developer triggers rebuild of running Play application
+
+This story adds an equivalent of Play's run command, where a build is triggered by the developer reloading the application in the browser
+and some source files have changed.
+
+The plugin will need to depend on Play's [sbt-link](http://repo.typesafe.com/typesafe/releases/com/typesafe/play/sbt-link/) library.
+See [Play's BuildLink.java](https://github.com/playframework/playframework/blob/master/framework/src/build-link/src/main/java/play/core/BuildLink.java)
+for good documentation about interfacing between Play and the build system. Gradle must implement the BuildLink interface and provide
+it to Play's NettyServer. When a new request comes in, Play will call Gradle's implementation of BuildLink.reload and if any files have
+changed then gradle will have to recompile and return a new classloader to Play.
+
+## Resources are built on demand when running Play application
+
+When running a Play application, start the application without building any resources. Build these resources only when requested
+by the client.
+
+- On each request, check whether the task which produces the requested resource has been executed or not. If not, run the task synchronously
+  and block until completed.
+- Include the transitive input of these tasks as inputs to the watch mechanism, so that further changes in these source files will
+  trigger a restart of the application at the appropriate time.
+- Failures need to be forwarded to the application for display.
+
+## Developer views compile and other build failures in Play application
+
+Adapt compiler output to the format expected by Play:
+
+- Model configuration problems
+- Java and scala compilation failures
+- Asset compilation failures
+- Other verification task failures?
+
+## Documentation
+
+- Migrating an SBT based Play project to Gradle
+- Writing Gradle plugins that extend the base Play plugin
+
+# Milestone 2
+
+## Publish Play application to a binary repository
+
+Allow a Play application distribution to be published to a binary repository.
+
 ## Keep running Play application up-to-date when source changes
 
-This story adds an equivalent of Play's continuous mode, where Gradle monitors the source files for changes and rebuilds and restarts the application when
-some change is detected. Note that 'restart' here means a logical restart.
+This story adds an equivalent of Play's continuous mode (i.e. developer adds ~ before a command such as play ~run), where Gradle
+monitors the source files for changes and rebuilds and restarts the application when some change is detected. Note that 'restart'
+here means a logical restart.
 
 Add a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. For example,
 a developer may run `gradle --watch <tasks>`.
@@ -115,39 +158,6 @@ So:
 
 Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
 For example, running `gradle --watch test run` would restart the application if a test source file changes.
-
-## Developer triggers rebuild of running Play application
-
-This story adds an equivalent of Play's non-continuous mode, where Gradle restarts the application when triggered by the developer reloading
-the application in the browser and some source files have changed. Note that 'restart' here means a logical restart.
-
-- Gradle starts the Play server configured with the appropriate hooks to be informed when a request is in progress.
-- On each request, check asynchronously whether the application is up-to-date, if a check or rebuild is not already in progress.
-- Checks the same set of files as for the above feature, possibly monitored in the same way.
-- When an input file is out of date, rebuild the application.
-
-The implementation for continuous and non-continuous modes are basically the same, the main difference being when a rebuild
-is triggered.
-
-## Resources are built on demand when running Play application
-
-When running a Play application, start the application without building any resources. Build these resources only when requested
-by the client.
-
-- On each request, check whether the task which produces the requested resource has been executed or not. If not, run the task synchronously
-  and block until completed.
-- Include the transitive input of these tasks as inputs to the watch mechanism, so that further changes in these source files will
-  trigger a restart of the application at the appropriate time.
-- Failures need to be forwarded to the application for display.
-
-## Developer views compile and other build failures in Play application
-
-Adapt compiler output to the format expected by Play:
-
-- Model configuration problems
-- Java and scala compilation failures
-- Asset compilation failures
-- Other verification task failures?
 
 ## Native integration with Specs 2
 
@@ -184,18 +194,7 @@ Allow the Scala interactive console to be launched from the command-line.
 Extend the build init plugin so that it can bootstrap a new Play project, producing the same output as `play new` except with a Gradle build instead of
 an SBT build.
 
-## Documentation
-
-- Migrating an SBT based Play project to Gradle
-- Writing Gradle plugins that extend the base Play plugin
-
-# Implementation plan - Milestone 2
-
-## Publish Play application to a binary repository
-
-Allow a Play application distribution to be published to a binary repository.
-
-# Implementation plan - Later milestones
+# Later milestones
 
 Some candidates for later work:
 

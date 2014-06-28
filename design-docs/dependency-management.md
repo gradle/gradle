@@ -469,13 +469,13 @@ Handle the following reasons why a given artifact cannot be found:
 ### Open issues
 
 - Test cases for dynamic selector used with maven repo.
-- List candidate versions for dynamic version when some versions found.
+- Error message should include some candidate versions for dynamic version when some versions found.
+- Error message should include some candidate artifacts when artifact not found.
 - Error messages should distinguish between no versions found and no matching versions found.
-- Fix case where static selector is used multiple times in same build missing module.
+- Fix case where static selector is used multiple times in same build for missing module.
 - Fix case where dynamic selector is used multiple times in same build for module with no versions.
-- Fix case where maven local contains pom and not artifact.
-- Report locations for missing artifacts.
-- Test cases for error messages for missing snapshot module.
+- Fix case where maven local contains pom and not artifact. Currently the error message implies that the pom is not there.
+- Artifact resolution exception should include description of why the artifact is required, similar to module version resolution exception.
 - Include this information in the HTML dependency reports.
 - Does not report locations when cannot connect to server and is missing from other repositories.
 - Report file locations as file paths.

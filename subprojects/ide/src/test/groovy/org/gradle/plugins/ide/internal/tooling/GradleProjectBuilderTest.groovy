@@ -37,6 +37,7 @@ class GradleProjectBuilderTest extends Specification {
         model.path == ':'
         model.name == 'test'
         model.description == 'a test project'
+        model.buildDirectory == project.buildDir
         model.buildScript.sourceFile == buildFile
     }
 }

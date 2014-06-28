@@ -25,7 +25,7 @@ import java.util.Map;
 
 class DefaultFileSnapshotterSerializer implements Serializer<DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl> {
     public DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl read(Decoder decoder) throws Exception {
-        Map<String, DefaultFileCollectionSnapshotter.FileSnapshot> snapshots = new HashMap<String, DefaultFileCollectionSnapshotter.FileSnapshot>();
+        Map<String, DefaultFileCollectionSnapshotter.IncrementalFileSnapshot> snapshots = new HashMap<String, DefaultFileCollectionSnapshotter.IncrementalFileSnapshot>();
         DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl snapshot = new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl(snapshots);
         int snapshotsCount = decoder.readSmallInt();
         for (int i = 0; i < snapshotsCount; i++) {
@@ -51,14 +51,14 @@ class DefaultFileSnapshotterSerializer implements Serializer<DefaultFileCollecti
         encoder.writeSmallInt(value.snapshots.size());
         for (String key : value.snapshots.keySet()) {
             encoder.writeString(key);
-            DefaultFileCollectionSnapshotter.FileSnapshot fileSnapshot = value.snapshots.get(key);
-            if (fileSnapshot instanceof DefaultFileCollectionSnapshotter.DirSnapshot) {
+            DefaultFileCollectionSnapshotter.IncrementalFileSnapshot incrementalFileSnapshot = value.snapshots.get(key);
+            if (incrementalFileSnapshot instanceof DefaultFileCollectionSnapshotter.DirSnapshot) {
                 encoder.writeByte((byte) 1);
-            } else if (fileSnapshot instanceof DefaultFileCollectionSnapshotter.MissingFileSnapshot) {
+            } else if (incrementalFileSnapshot instanceof DefaultFileCollectionSnapshotter.MissingFileSnapshot) {
                 encoder.writeByte((byte) 2);
-            } else if (fileSnapshot instanceof DefaultFileCollectionSnapshotter.FileHashSnapshot) {
+            } else if (incrementalFileSnapshot instanceof DefaultFileCollectionSnapshotter.FileHashSnapshot) {
                 encoder.writeByte((byte) 3);
-                byte[] hash = ((DefaultFileCollectionSnapshotter.FileHashSnapshot) fileSnapshot).hash;
+                byte[] hash = ((DefaultFileCollectionSnapshotter.FileHashSnapshot) incrementalFileSnapshot).hash;
                 encoder.writeByte((byte) hash.length);
                 encoder.writeBytes(hash);
             }

@@ -16,6 +16,7 @@
 package org.gradle.runtime.base.internal
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
+import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

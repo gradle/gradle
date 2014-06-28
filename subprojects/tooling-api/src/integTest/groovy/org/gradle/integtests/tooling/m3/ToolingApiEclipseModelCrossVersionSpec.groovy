@@ -169,8 +169,6 @@ dependencies {
         eclipseProject.classpath.collect { it.javadoc?.name } as Set == [null, null] as Set
     }
 
-    //TODO SF: write a test that checks if minimal project has necessary project dependencies
-
     def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {
         
         projectDir.file('build.gradle').text = '''

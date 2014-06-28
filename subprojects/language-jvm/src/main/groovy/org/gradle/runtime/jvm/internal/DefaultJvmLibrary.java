@@ -17,9 +17,13 @@
 package org.gradle.runtime.jvm.internal;
 
 
+import org.gradle.api.DomainObjectSet;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.jvm.JvmLibrary;
 
 public class DefaultJvmLibrary implements JvmLibrary {
+    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final String name;
 
     public DefaultJvmLibrary(String name) {
@@ -28,5 +32,13 @@ public class DefaultJvmLibrary implements JvmLibrary {
 
     public String getName() {
         return name;
+    }
+
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return sourceSets;
+    }
+
+    public void source(Object sources) {
+        sourceSets.source(sources);
     }
 }

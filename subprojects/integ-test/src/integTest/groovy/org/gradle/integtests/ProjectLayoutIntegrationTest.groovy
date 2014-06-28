@@ -39,7 +39,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.3.2'
+    compile 'org.codehaus.groovy:groovy-all:2.3.3'
     compile 'org.scala-lang:scala-library:2.11.1'
 }
 

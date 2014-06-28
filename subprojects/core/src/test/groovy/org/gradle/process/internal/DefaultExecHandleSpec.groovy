@@ -143,7 +143,7 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.abort()
     }
 
-    @Ignore //TODO SF not yet implemented, as following @Ignores
+    @Ignore //not yet implemented
     void "aborts daemon"() {
         def output = new ByteArrayOutputStream()
         def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
@@ -182,7 +182,7 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.abort()
     }
 
-    @Ignore
+    @Ignore //not yet implemented
     void "can detach from long daemon and then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(SlowDaemonApp.class, "200")).build();
@@ -201,7 +201,7 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.state == ExecHandleState.SUCCEEDED
     }
 
-    @Ignore
+    @Ignore //not yet implemented
     void "can detach from fast app then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(TestApp.class)).build();
@@ -215,7 +215,7 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.state == ExecHandleState.SUCCEEDED
     }
 
-    @Ignore
+    @Ignore //not yet implemented
     //it may not be easily testable
     void "detach detects when process did not start or died prematurely"() {
         def execHandle = handle().args(args(BrokenApp.class)).build();
@@ -260,7 +260,7 @@ class DefaultExecHandleSpec extends Specification {
     }
 
     @Timeout(2)
-    @Ignore
+    @Ignore //not yet implemented
     void "exec handle can detach with timeout"() {
         given:
         def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build();
@@ -274,7 +274,7 @@ class DefaultExecHandleSpec extends Specification {
         //the timeout does not hit
     }
 
-    @Ignore
+    @Ignore //not yet implemented
     void "exec handle can wait with timeout"() {
         given:
         def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build();

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -89,6 +90,18 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             artifacts.add(toConfiguration.getComponent().artifact(artifact));
         }
         return artifacts;
+    }
+
+    public Set<IvyArtifactName> getArtifacts() {
+        DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getAllDependencyArtifacts();
+        if (dependencyArtifacts.length == 0) {
+            return Collections.emptySet();
+        }
+        Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
+        for (DependencyArtifactDescriptor artifact : dependencyArtifacts) {
+            artifactSet.add(new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
+        }
+        return artifactSet;
     }
 
     public DependencyMetaData withRequestedVersion(String requestedVersion) {

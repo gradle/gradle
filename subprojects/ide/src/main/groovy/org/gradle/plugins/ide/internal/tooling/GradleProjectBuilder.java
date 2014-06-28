@@ -54,6 +54,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                 .setPath(project.getPath())
                 .setName(project.getName())
                 .setDescription(project.getDescription())
+                .setBuildDirectory(project.getBuildDir())
                 .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());

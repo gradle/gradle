@@ -25,11 +25,18 @@ import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.jvm.JvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultJvmLibraryBinary;
 
+import java.io.File;
+
 public class CreateJvmBinaries extends ModelRule {
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
+    private final File binariesDir;
+    private final File classesDir;
 
-    public CreateJvmBinaries(BinaryNamingSchemeBuilder namingSchemeBuilder) {
+    // TODO:DAZ Add a ProjectLayout model that can be input to a rule
+    public CreateJvmBinaries(BinaryNamingSchemeBuilder namingSchemeBuilder, File buildDir) {
         this.namingSchemeBuilder = namingSchemeBuilder;
+        this.binariesDir = new File(buildDir, "jars");
+        this.classesDir = new File(buildDir, "classes");
     }
 
     void createBinaries(BinaryContainer binaries, @Path("jvm.libraries") NamedDomainObjectCollection<JvmLibrary> libraries) {
@@ -38,7 +45,16 @@ public class CreateJvmBinaries extends ModelRule {
                     .withComponentName(jvmLibrary.getName())
                     .withTypeString("jar")
                     .build();
-            binaries.add(new DefaultJvmLibraryBinary(jvmLibrary, namingScheme));
+            DefaultJvmLibraryBinary jvmLibraryBinary = new DefaultJvmLibraryBinary(jvmLibrary, namingScheme);
+            jvmLibraryBinary.source(jvmLibrary.getSource());
+            configureBinaryOutputLocations(jvmLibraryBinary);
+            binaries.add(jvmLibraryBinary);
         }
+    }
+
+    private void configureBinaryOutputLocations(DefaultJvmLibraryBinary jvmLibraryBinary) {
+        String outputBaseName = jvmLibraryBinary.getNamingScheme().getOutputDirectoryBase();
+        jvmLibraryBinary.setClassesDir(new File(classesDir, outputBaseName));
+        jvmLibraryBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jvmLibraryBinary.getLibrary().getName())));
     }
 }

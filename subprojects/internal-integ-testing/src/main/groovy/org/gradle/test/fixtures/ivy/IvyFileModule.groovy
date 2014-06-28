@@ -77,7 +77,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     IvyFileModule undeclaredArtifact(Map<String, ?> options) {
-        artifact(options + [undeclared: true])
+        def undeclaredArtifact = toArtifact(options) + [undeclared: true]
+        artifacts << undeclaredArtifact
         return this
     }
 
@@ -236,7 +237,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         builder.publications {
             artifacts.each { art ->
                 if (!art.undeclared) {
-                    builder.artifact(name: art.name, type:art.type, ext: art.ext, conf:art.conf, "m:classifier": art.classifier ?: '')
+                    def attrs = [name: art.name, type:art.type, ext: art.ext, conf:art.conf]
+                    if (art.classifier) {
+                        attrs["m:classifier"] = art.classifier
+                    }
+                    builder.artifact(attrs)
                 }
             }
         }

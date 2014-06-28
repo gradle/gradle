@@ -27,18 +27,21 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
         def iml = parseFile("root.iml")
 
+        assert iml.component.orderEntry.library.CLASSES.root.size() == 1
+
         def sourcesUrl = iml.component.orderEntry.library.SOURCES.root.@url[0].text()
         assert sourcesUrl.endsWith("/module-1.0-${sourcesClassifier}.jar!/")
 
         def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[0].text()
         assert javadocUrl.endsWith("/module-1.0-${javadocClassifier}.jar!/")
+
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
         def iml = parseFile("root.iml")
 
+        assert iml.component.orderEntry.library.CLASSES.root.size() == 1
         assert iml.component.orderEntry.library.SOURCES.root.size() == 0
-
         assert iml.component.orderEntry.library.JAVADOC.root.size() == 0
     }
 

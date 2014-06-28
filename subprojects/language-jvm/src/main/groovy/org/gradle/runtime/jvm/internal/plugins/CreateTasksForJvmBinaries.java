@@ -18,23 +18,28 @@ package org.gradle.runtime.jvm.internal.plugins;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.model.ModelRule;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
-import org.gradle.model.ModelRule;
 
 public class CreateTasksForJvmBinaries extends ModelRule {
     void createTasks(TaskContainer tasks, BinaryContainer binaries) {
         for (JvmLibraryBinaryInternal binary : binaries.withType(JvmLibraryBinaryInternal.class)) {
             Task jarTask = createJarTask(tasks, binary);
             binary.builtBy(jarTask);
+            binary.getTasks().add(jarTask);
         }
     }
 
     private Task createJarTask(TaskContainer tasks, JvmLibraryBinaryInternal binary) {
-        // TODO:DAZ This should be a Jar task: need to move 'jar' and related infrastructure out of 'plugins' project
-        Zip jarTask = tasks.create(binary.getNamingScheme().getTaskName("create"), Zip.class);
-        jarTask.setDescription(String.format("Creates the binary file for %s.", binary.getDisplayName()));
-        return jarTask;
+        Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
+        jar.setDescription(String.format("Creates the binary file for %s.", binary.getDisplayName()));
+        jar.from(binary.getClassesDir());
+
+        jar.setDestinationDir(binary.getJarFile().getParentFile());
+        jar.setArchiveName(binary.getJarFile().getName());
+
+        return jar;
     }
 }

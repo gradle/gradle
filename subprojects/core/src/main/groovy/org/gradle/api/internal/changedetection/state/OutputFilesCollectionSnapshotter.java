@@ -102,6 +102,10 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return filesSnapshot.getFiles();
         }
 
+        public FilesSnapshotSet getSnapshot() {
+            return filesSnapshot.getSnapshot();
+        }
+
         public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
             OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
             return new OutputFilesDiff(rootFileIds, other.rootFileIds, filesSnapshot.changesSince(other.filesSnapshot));

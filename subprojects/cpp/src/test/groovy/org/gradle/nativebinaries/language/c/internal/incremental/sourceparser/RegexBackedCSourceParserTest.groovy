@@ -228,15 +228,17 @@ class RegexBackedCSourceParserTest extends Specification {
         sourceFile << """
   #  include   "test1"
 \t#\tinclude "test2"
+\u0000#include "test3"
 
   #  include   <system1>
 \t#\tinclude <system2>
+\u0000#include <system3>
 """
         and:
         useDirective(directive)
 
         then:
-        found == ['"test1"', '"test2"', '<system1>', '<system2>']
+        found == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>']
 
         where:
         directive << ["include", "import"]

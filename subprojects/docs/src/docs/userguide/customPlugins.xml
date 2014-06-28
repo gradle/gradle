@@ -184,6 +184,18 @@
                 <sourcefile file="src/test/groovy/org/gradle/GreetingPluginTest.groovy" snippet="test-plugin"/>
             </sample>
         </section>
+        <section>
+            <title>Using the Java Gradle Plugin development plugin</title>
+            <para>You can use the incubating <link linkend="javaGradle_plugin">Java Gradle Plugin development plugin</link>
+                to eliminate some of the boiler-plate declarations in your build script and provide some basic validations
+                of plugin metadata.  This plugin will automatically apply the <link linkend="java_plugin">Java plugin</link>,
+                add the <literal>gradleApi()</literal> dependency to the compile configuration, and perform plugin metadata
+                validations as part of the <literal>jar</literal> task execution.
+            </para>
+            <sample id="useJavaGradlePluginPlugin" dir="javaGradlePlugin" title="Using the Java Gradle Plugin Development plugin">
+                <sourcefile file="build.gradle" snippet="use-java-gradle-plugin-plugin"/>
+            </sample>
+        </section>
     </section>
 
     <section>

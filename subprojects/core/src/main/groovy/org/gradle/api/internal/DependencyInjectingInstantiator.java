@@ -84,7 +84,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
 
         if (constructors.length == 1) {
             Constructor<?> constructor = constructors[0];
-            if (constructor.getParameterTypes().length == 0 && Modifier.isPublic(constructor.getModifiers())) {
+            if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type, constructor)) {
                 return constructor;
             }
         }
@@ -103,6 +103,18 @@ public class DependencyInjectingInstantiator implements Instantiator {
             throw new IllegalArgumentException(String.format("Class %s has multiple constructors that are annotated with @Inject.", type.getName()));
         }
         return injectConstructors.get(0);
+    }
+
+    private static boolean isPublicOrPackageScoped(Class<?> type, Constructor<?> constructor) {
+        if (isPackagePrivate(type.getModifiers())) {
+            return !Modifier.isPrivate(constructor.getModifiers()) && !Modifier.isProtected(constructor.getModifiers());
+        } else {
+            return Modifier.isPublic(constructor.getModifiers());
+        }
+    }
+
+    private static boolean isPackagePrivate(int modifiers) {
+        return !Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers);
     }
 
     private <T> void validateType(Class<T> type) {

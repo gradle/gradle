@@ -49,6 +49,35 @@ task showBroken << { println configurations.compile.files }
             .assertHasCause("invalid version null")
     }
 
+    def "reports Ivy descriptor with configuration that extends unknown configuration"() {
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task showBroken << { println configurations.compile.files }
+"""
+
+        and:
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').configuration('conf', extendsFrom: ['unknown']).publish()
+
+        when:
+        module.ivy.expectGet()
+
+        then:
+        fails "showBroken"
+        failure
+            .assertResolutionFailure(":compile")
+            .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")
+            .assertHasCause("unknown configuration 'unknown'. It is extended by conf")
+    }
+
     def "reports missing parent descriptor"() {
         given:
         buildFile << """

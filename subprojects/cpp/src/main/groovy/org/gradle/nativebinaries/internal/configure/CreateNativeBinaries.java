@@ -55,8 +55,8 @@ public class CreateNativeBinaries extends ModelRule {
         Action<ProjectNativeComponent> createBinariesAction =
                 new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
-        ProjectComponentContainer softwareComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
-        for (ProjectNativeComponent component : softwareComponents.withType(ProjectNativeComponent.class)) {
+        ProjectComponentContainer projectComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
+        for (ProjectNativeComponent component : projectComponents.withType(ProjectNativeComponent.class)) {
             createBinariesAction.execute(component);
             binaries.addAll(component.getBinaries());
         }

@@ -29,7 +29,7 @@ public class JUnitAssumptionsIntegrationTest extends MultiVersionIntegrationSpec
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def supportsAssumptions() {
-        executer.noExtraLogging() //TODO SF check if this is still needed (and in other tests, too)
+        executer.noExtraLogging()
         buildFile << "dependencies { testCompile 'junit:junit:$version' }"
 
         when:

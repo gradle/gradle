@@ -28,7 +28,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
     def setup() {
-        requireOwnGradleUserHomeDir()
         buildFile << """
                 repositories {
                     mavenLocal()
@@ -42,8 +41,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
                     from configurations.compile
                     into 'build'
                 }"""
-
-        using m2Installation
     }
 
     def "can resolve artifacts from local m2 when user settings.xml does not exist"() {
@@ -160,7 +157,7 @@ Searched in the following locations:
     }
 
     @Issue('GRADLE-2034')
-    def "mavenLocal skipped if contains pom but no artifact"() {
+    def "mavenLocal skipped if contains pom but no artifact and there is another repository available"() {
         given:
         def anotherRepo = maven("another-local-repo")
         m2Installation.mavenRepo().module('group', 'projectA', '1.2').publishPom()

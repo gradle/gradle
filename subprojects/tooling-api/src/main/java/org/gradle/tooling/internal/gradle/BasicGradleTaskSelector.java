@@ -17,7 +17,9 @@
 package org.gradle.tooling.internal.gradle;
 
 import org.gradle.api.Nullable;
+import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.TaskSelector;
+import org.gradle.tooling.model.internal.Exceptions;
 
 import java.util.SortedSet;
 
@@ -42,6 +44,10 @@ public class BasicGradleTaskSelector implements TaskSelector, TaskListingLauncha
     @Nullable
     public String getDescription() {
         return description;
+    }
+
+    public boolean isVisible() {
+        throw Exceptions.unsupportedMethod(Launchable.class.getSimpleName() + ".isVisible");
     }
 
     public BasicGradleTaskSelector setDescription(String description) {

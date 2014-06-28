@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.language.objectivec.plugins
-import org.gradle.api.Action
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.ProjectSourceSet
+import org.gradle.language.base.LanguageRegistry
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.objectivec.ObjectiveCSourceSet
 import org.gradle.language.objectivec.internal.DefaultObjectiveCSourceSet
@@ -47,16 +47,6 @@ class ObjectiveCLangPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
-
-        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        projectSourceSet.all(new Action<FunctionalSourceSet>() {
-            public void execute(final FunctionalSourceSet functionalSourceSet) {
-                functionalSourceSet.registerFactory(ObjectiveCSourceSet) { name ->
-                    instantiator.newInstance(DefaultObjectiveCSourceSet, name, functionalSourceSet, project)
-                }
-                // Add a single Objective-C source set
-                functionalSourceSet.create "objc", ObjectiveCSourceSet
-            }
-        });
+        project.getExtensions().getByType(LanguageRegistry).registerLanguage("objc", ObjectiveCSourceSet, DefaultObjectiveCSourceSet)
     }
 }

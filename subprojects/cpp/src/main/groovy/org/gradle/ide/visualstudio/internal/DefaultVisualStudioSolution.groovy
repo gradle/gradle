@@ -22,7 +22,7 @@ import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.runtime.base.internal.AbstractBuildableModelElement
+import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.NativeLibraryBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal

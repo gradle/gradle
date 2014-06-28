@@ -59,12 +59,14 @@ public interface ComponentMetadataHandler {
      * from within the build script, overriding any value specified in the
      * component descriptor.
      *
-     * <p>The rule can declare one or multiple parameters, depending on which
-     * metadata it is interested in. The order of parameters is irrelevant.
-     * The following parameter types are supported:
+     * <p>The rule must declare a {@link ComponentMetadataDetails} as it's first parameter,
+     * allowing the component metadata to be modified.
+     *
+     * <p>In addition, the rule can declare additional (read-only) parameters, which may provide extra details
+     * about the component. The order of these additional parameters is irrelevant.
+     *
+     * <p>Presently, the following additional parameter types are supported:
      * <ul>
-     *     <li>{@link ComponentMetadataDetails} Core metadata which is provided for
-     *     every kind of component. When declaring this parameter, the type may be omitted.</li>
      *     <li>{@link org.gradle.api.artifacts.IvyModuleMetadata} Additional Ivy-specific
      *     metadata. Rules declaring this parameter will only be invoked for Ivy components.</li>
      * </ul>

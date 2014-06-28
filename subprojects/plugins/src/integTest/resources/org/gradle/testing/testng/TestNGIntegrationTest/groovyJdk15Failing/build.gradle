@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-	compile "org.codehaus.groovy:groovy:2.3.2"
+	compile "org.codehaus.groovy:groovy:2.3.3"
     testCompile 'org.testng:testng:6.3.1'
 }
 

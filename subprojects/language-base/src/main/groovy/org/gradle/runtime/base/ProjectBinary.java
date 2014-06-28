@@ -16,7 +16,9 @@
 
 package org.gradle.runtime.base;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a binary artifact that is the result of building a project component.
@@ -27,4 +29,22 @@ public interface ProjectBinary extends Binary {
      * Can this binary be built in the current environment?
      */
     boolean isBuildable();
+
+    /**
+     * The source sets used to compile this binary.
+     */
+    DomainObjectSet<LanguageSourceSet> getSource();
+
+    /**
+     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
+     * <p/>
+     * This method accepts the following types:
+     *
+     * <ul>
+     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
+     *     <li>A {@link org.gradle.language.base.LanguageSourceSet}</li>
+     *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
+     * </ul>
+     */
+    void source(Object source);
 }

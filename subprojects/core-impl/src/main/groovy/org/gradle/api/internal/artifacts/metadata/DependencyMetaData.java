@@ -28,6 +28,8 @@ public interface DependencyMetaData {
     /**
      * Returns this dependency as an Ivy DependencyDescriptor. This method is here to allow us to migrate away from the Ivy types
      * and will be removed.
+     *
+     * <p>You should avoid using this method.
      */
     DependencyDescriptor getDescriptor();
 
@@ -36,10 +38,17 @@ public interface DependencyMetaData {
     boolean isTransitive();
 
     /**
-     * Returns the artifacts defined by this dependency, if any.
+     * Returns the artifacts referenced by this dependency for the given combination of source and target configurations, if any. Returns an empty set if
+     * this dependency does not reference any specific artifacts - the defaults for the target configuration should be used in this case.
      */
     // TODO:ADAM - fromConfiguration should be implicit in this metadata
     Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration);
+
+    /**
+     * Returns the artifacts referenced by this dependency, if any. Returns an empty set if this dependency does not reference any specific artifacts - the
+     * defaults should be used in this case.
+     */
+    Set<IvyArtifactName> getArtifacts();
 
     /**
      * Returns a copy of this dependency with the given requested version.

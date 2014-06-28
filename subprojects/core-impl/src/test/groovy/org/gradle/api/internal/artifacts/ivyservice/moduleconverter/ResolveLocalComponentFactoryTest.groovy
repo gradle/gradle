@@ -35,12 +35,14 @@ public class ResolveLocalComponentFactoryTest extends Specification {
     def configurationsConverter = Mock(ConfigurationsToModuleDescriptorConverter)
     def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
+    def configurationsToArtifactsConverter = Mock(ConfigurationsToArtifactsConverter)
 
     ResolveLocalComponentFactory resolveModuleDescriptorConverter = new ResolveLocalComponentFactory(
             moduleDescriptorFactory,
             configurationsConverter,
             dependenciesConverter,
-            componentIdentifierFactory);
+            componentIdentifierFactory,
+            configurationsToArtifactsConverter)
 
     def "converts for provided default module"() {
         given:
@@ -55,8 +57,8 @@ public class ResolveLocalComponentFactoryTest extends Specification {
 
         then:
         1 * moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
-        1 * configurationsConverter.addConfigurations(moduleDescriptor, configurations)
-        1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations)
+        1 * configurationsConverter.addConfigurations(!null, configurations)
+        1 * dependenciesConverter.addDependencyDescriptors(!null, configurations)
         1 * componentIdentifierFactory.createComponentIdentifier(module) >> new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
 
         and:
@@ -79,8 +81,8 @@ public class ResolveLocalComponentFactoryTest extends Specification {
 
         then:
         1 * moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
-        1 * configurationsConverter.addConfigurations(moduleDescriptor, configurations)
-        1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations)
+        1 * configurationsConverter.addConfigurations(!null, configurations)
+        1 * dependenciesConverter.addDependencyDescriptors(!null, configurations)
         1 * componentIdentifierFactory.createComponentIdentifier(module) >> new DefaultProjectComponentIdentifier(':myPath')
 
         and:

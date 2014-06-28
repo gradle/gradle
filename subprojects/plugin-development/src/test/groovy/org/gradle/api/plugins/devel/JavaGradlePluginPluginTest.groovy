@@ -16,22 +16,36 @@
 
 package org.gradle.api.plugins.devel
 
+import ch.qos.logback.classic.spi.LoggingEvent
+import ch.qos.logback.core.AppenderBase
 import org.gradle.api.Action
+import org.gradle.api.Task
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.ConventionMapping
+import org.gradle.api.internal.plugins.PluginDescriptor
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.logging.ConfigureLogging
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
 
 class JavaGradlePluginPluginTest extends Specification {
+    final ResettableAppender appender = new ResettableAppender()
+    @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
+
+    final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
+    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
+    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
+
     def project = TestUtil.builder().withName("plugin").build()
 
-    def "FindPluginDescriptor correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedEmpty) {
+    def "PluginDescriptorCollectorAction correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedEmpty) {
         setup:
-        Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.FindPluginDescriptorAction()
+        List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>()
+        Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.PluginDescriptorCollectorAction(descriptors)
         File descriptorFile = project.file('test-plugin.properties')
         descriptorFile << contents
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
@@ -40,9 +54,8 @@ class JavaGradlePluginPluginTest extends Specification {
 
         expect:
         findPluginDescriptor.execute(stubDetails)
-        findPluginDescriptor.descriptors.isEmpty() == expectedEmpty
-        findPluginDescriptor.descriptors.isEmpty() ||
-                findPluginDescriptor.descriptors.get(0).implementationClassName == expectedPluginImpl
+        descriptors.isEmpty() == expectedEmpty
+        descriptors.isEmpty() || descriptors.get(0).implementationClassName == expectedPluginImpl
 
         where:
         contents                             | expectedPluginImpl | expectedEmpty
@@ -53,7 +66,8 @@ class JavaGradlePluginPluginTest extends Specification {
 
     def "ClassManifestCollector captures class name" () {
         setup:
-        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction()
+        Set<String> classList = new HashSet<String>()
+        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction(classList)
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
             getRelativePath() >> { new RelativePath(true, 'com', 'xxx', 'TestPlugin.class')}
         }
@@ -62,15 +76,15 @@ class JavaGradlePluginPluginTest extends Specification {
         classManifestCollector.execute(stubDetails)
 
         then:
-        classManifestCollector.classList.contains('com/xxx/TestPlugin.class')
+        classList.contains('com/xxx/TestPlugin.class')
     }
 
-    def "ClassManifestCollector finds fully qualified class" (List classList, String fqClass, boolean expectedValue) {
+    def "PluginValidationAction finds fully qualified class" (List classList, String fqClass, boolean expectedValue) {
         setup:
-        Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction(classList as Collection<String>)
+        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction([], classList as Set<String>)
 
         expect:
-        classManifestCollector.hasFullyQualifiedClass(fqClass) == expectedValue
+        pluginValidationAction.hasFullyQualifiedClass(fqClass) == expectedValue
 
         where:
         classList                           | fqClass              | expectedValue
@@ -78,6 +92,36 @@ class JavaGradlePluginPluginTest extends Specification {
         [ 'TestPlugin.class' ]              | 'TestPlugin'         | true
         [ ]                                 | 'com.xxx.TestPlugin' | false
         [ 'com/xxx/yyy/TestPlugin.class']   | 'com.xxx.TestPlugin' | false
+    }
+
+   def "PluginValidationAction logs correct warning messages" (String impl, String implFile, String expectedMessage) {
+        setup:
+        Task stubTask = Stub(Task)
+        List<PluginDescriptor> descriptors = []
+        if (impl != null) {
+            descriptors.add(Stub(PluginDescriptor) {
+                _ * getPropertiesFileUrl() >> { new URL("file:///test-plugin-${impl}.properties") }
+                _ * getImplementationClassName() >> { impl }
+            })
+        }
+        Set<String> classes = new HashSet<String>()
+        if (implFile) {
+            classes.add(implFile)
+        }
+        Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(descriptors, classes)
+        appender.reset()
+
+        expect:
+        pluginValidationAction.execute(stubTask)
+        expectedMessage == null || appender.toString().contains(expectedMessage)
+
+        where:
+        impl    | implFile       | expectedMessage
+        null    | null           | NO_DESCRIPTOR_WARNING
+        ''      | null           | INVALID_DESCRIPTOR_WARNING_PREFIX
+        'x.y.z' | null           | BAD_IMPL_CLASS_WARNING_PREFIX
+        'x.y.z' | 'z.class'      | BAD_IMPL_CLASS_WARNING_PREFIX
+        'x.y.z' | 'x/y/z.class'  | null
     }
 
     def "apply adds java plugin" () {
@@ -96,7 +140,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.configurations
                 .getByName(JavaGradlePluginPlugin.COMPILE_CONFIGURATION)
                 .dependencies.find {
-                    project.dependencies.gradleApi().source.files.containsAll(it.source.files)
+                    it.source.files == project.dependencies.gradleApi().source.files
                 }
     }
 
@@ -109,7 +153,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.plugins.apply(JavaGradlePluginPlugin)
 
         then:
-        1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.PLUGIN_DESCRIPTOR_PATTERN, { it instanceof JavaGradlePluginPlugin.FindPluginDescriptorAction })
+        1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.PLUGIN_DESCRIPTOR_PATTERN, { it instanceof JavaGradlePluginPlugin.PluginDescriptorCollectorAction })
         1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.CLASSES_PATTERN, { it instanceof JavaGradlePluginPlugin.ClassManifestCollectorAction })
     }
 
@@ -122,7 +166,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.plugins.apply(JavaGradlePluginPlugin)
 
         then:
-        1 * mockJarTask.doLast(_)
+        1 * mockJarTask.doLast({ it instanceof JavaGradlePluginPlugin.PluginValidationAction})
     }
 
     @Ignore
@@ -134,5 +178,27 @@ class JavaGradlePluginPluginTest extends Specification {
         project.tasks.remove(project.tasks.getByName(JavaGradlePluginPlugin.JAR_TASK))
         project.tasks.add(mockJar)
         return mockJar
+    }
+
+    static class ResettableAppender extends AppenderBase<LoggingEvent> {
+        final StringBuffer buffer = new StringBuffer()
+
+        synchronized void doAppend(LoggingEvent e) {
+            append(e)
+        }
+
+        @Override
+        protected void append(LoggingEvent eventObject) {
+            buffer.append(eventObject.formattedMessage)
+        }
+
+        void reset() {
+            buffer.delete(0,buffer.size())
+        }
+
+        @Override
+        String toString() {
+            return buffer.toString()
+        }
     }
 }

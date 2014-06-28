@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public interface LocalComponentMetaData {
     ModuleVersionIdentifier getId();
-
-    ModuleDescriptor getModuleDescriptor();
 
     /**
      * Converts this component to resolve meta-data.

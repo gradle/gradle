@@ -59,4 +59,10 @@ class JarTestFixture extends ZipTestFixture {
             IOUtils.closeQuietly(zip)
         }
     }
+
+    @Override
+    def hasDescendants(String... relativePaths) {
+        String[] allDescendants = relativePaths + JarFile.MANIFEST_NAME
+        return super.hasDescendants(allDescendants)
+    }
 }

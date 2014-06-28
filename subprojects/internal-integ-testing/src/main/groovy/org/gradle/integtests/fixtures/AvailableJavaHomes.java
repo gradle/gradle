@@ -61,12 +61,12 @@ abstract public class AvailableJavaHomes {
     }
 
     /**
-     * Locates a JVM installation that is different to the current JVM.
+     * Locates a JDK installation that is different to the current JVM, ie for which java.home is different.
      *
      * @return null if not found.
      */
     @Nullable
-    public static File getBestAlternative() {
+    public static JavaInfo getDifferentJdk() {
         Jvm jvm = Jvm.current();
         for (JvmInstallation candidate : getJvms()) {
             if (candidate.getJavaHome().equals(jvm.getJavaHome())) {
@@ -76,7 +76,25 @@ abstract public class AvailableJavaHomes {
             if (!candidate.isJdk()) {
                 continue;
             }
-            return candidate.getJavaHome();
+            return Jvm.forHome(candidate.getJavaHome());
+        }
+
+        return null;
+    }
+
+    /**
+     * Locates a JVM installation that has a different version to the current JVM, ie for which java.version is different.
+     *
+     * @return null if not found.
+     */
+    @Nullable
+    public static JavaInfo getDifferentVersion() {
+        Jvm jvm = Jvm.current();
+        for (JvmInstallation candidate : getJvms()) {
+            if (candidate.getJavaVersion().equals(jvm.getJavaVersion())) {
+                continue;
+            }
+            return Jvm.forHome(candidate.getJavaHome());
         }
 
         return null;

@@ -18,6 +18,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -91,13 +92,13 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
 """
     }
 
-    def String useAlternativeJavaPath() {
-        File javaHome = AvailableJavaHomes.bestAlternative
+    def String useAlternativeJavaPath(JavaInfo jvm = AvailableJavaHomes.differentJdk) {
+        File javaHome = jvm.javaHome
         file("gradle.properties").writeProperties("org.gradle.java.home": javaHome.canonicalPath)
         return javaHome.canonicalPath
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "honours java home specified in gradle.properties"() {
         given:
         String javaPath = useAlternativeJavaPath()
@@ -106,11 +107,11 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
         buildSucceeds "assert System.getProperty('java.home').startsWith('${TextUtil.escapeString(javaPath)}')"
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || System.getProperty('java.runtime.version') == null})
+    @IgnoreIf({ AvailableJavaHomes.differentVersion == null || System.getProperty('java.runtime.version') == null})
     def "does not alter java.runtime.version"() {
         given:
 
-        useAlternativeJavaPath()
+        useAlternativeJavaPath(AvailableJavaHomes.differentVersion)
         String javaRuntimeVersion = System.getProperty('java.runtime.version')
 
         expect:

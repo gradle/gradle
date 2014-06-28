@@ -19,14 +19,10 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.select.Elements
 import org.junit.Test
-import static org.junit.Assert.*
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-@TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002'])
+@TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002', '0.7.1.201405082137'])
 class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
 
     @Test
@@ -48,12 +44,18 @@ class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
         }
         """
         createTestFiles();
+
         when:
-        executer.withArgument("-d")
         succeeds('test', 'jacocoTestReport')
+
         then:
-        correctJacocoVersionUsed()
-        file("build/reports/jacoco/test/html/index.html").exists()
+        def report = htmlReport()
+        report.totalCoverage() == 100
+        report.jacocoVersion() == version
+    }
+
+    private JacocoReportFixture htmlReport(String basedir = "build/reports/jacoco/test/html") {
+        return new JacocoReportFixture(file(basedir))
     }
 
     private void createTestFiles() {
@@ -61,12 +63,5 @@ class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
                 "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
         file("src/test/java/org/gradle/Class1Test.java") <<
                 "package org.gradle; import org.junit.Test; public class Class1Test { @Test public void someTest() { new Class1().isFoo(\"test\"); } }"
-    }
-
-    def correctJacocoVersionUsed() {
-        Document parsedHtmlReport = Jsoup.parse(file("build/reports/jacoco/test/html/index.html"), "UTF-8")
-        Elements footer = parsedHtmlReport.select("div.footer:has(a[href=http://www.eclemma.org/jacoco])")
-        assertTrue footer.text().contains(version)
-        true
     }
 }

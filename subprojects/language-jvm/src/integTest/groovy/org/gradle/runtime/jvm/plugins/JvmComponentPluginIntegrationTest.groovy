@@ -16,6 +16,7 @@
 
 package org.gradle.runtime.jvm.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "does not create library or binaries when not configured"() {
@@ -34,7 +35,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         !file("build").exists()
     }
 
-    def "creates jvm library and binary model objects and lifecycle task"() {
+    def "defines jvm library and binary model objects and lifecycle task"() {
         when:
         buildFile << """
     apply plugin: 'jvm-component'
@@ -52,6 +53,9 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLib == jvm.libraries['myLib']
         assert myLib instanceof JvmLibrary
 
+        assert sources.size() == 1
+        assert sources.myLib instanceof FunctionalSourceSet
+
         assert binaries.size() == 1
         def myLibJar = (binaries as List)[0]
         assert myLibJar instanceof JvmLibraryBinary
@@ -64,19 +68,16 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLibJar.buildTask == binaryTask
 
         def jarTask = tasks['createMyLibJar']
-        assert jarTask instanceof Zip
+        assert jarTask instanceof Jar
         assert jarTask.group == null
         assert jarTask.description == "Creates the binary file for jar 'myLib:jar'."
     }
 """
         then:
         succeeds "check"
-
-        and:
-        !file("build").exists()
     }
 
-    def "skips creating binary when binary has no sources"() {
+    def "creates empty binary when binary has no sources"() {
         given:
         buildFile << """
     apply plugin: 'jvm-component'
@@ -94,7 +95,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         executed ":createMyJvmLibJar", ":myJvmLibJar"
 
         and:
-        !file("build").exists()
+        def jar = new JarTestFixture(file("build/jars/myJvmLibJar/myJvmLib.jar"))
+        jar.hasDescendants()
     }
 
     def "can specify additional builder tasks for binary"() {

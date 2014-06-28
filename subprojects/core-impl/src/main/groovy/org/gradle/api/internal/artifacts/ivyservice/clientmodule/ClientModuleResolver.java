@@ -26,7 +26,10 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveRes
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.internal.Transformers;
 
 import java.util.List;
@@ -66,8 +69,8 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
     private void addClientModuleDependencies(ClientModule clientModule, MutableModuleVersionMetaData clientModuleMetaData) {
         List<DependencyMetaData> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
-            DependencyDescriptor dependencyDescriptor = dependencyDescriptorFactory.createDependencyDescriptor(moduleDependency.getConfiguration(), clientModuleMetaData.getDescriptor(), moduleDependency);
-            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+            DependencyMetaData dependencyMetaData = dependencyDescriptorFactory.createDependencyDescriptor(moduleDependency.getConfiguration(), clientModuleMetaData.getDescriptor(), moduleDependency);
+            dependencies.add(dependencyMetaData);
         }
         clientModuleMetaData.setDependencies(dependencies);
     }

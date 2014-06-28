@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
+
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toDomainObjectSet
@@ -32,12 +34,13 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
     def converter = new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter)
 
     def descriptor = Mock(DefaultModuleDescriptor)
+    def metaData = Mock(MutableLocalComponentMetaData)
     def configuration = Mock(Configuration)
     def dependencySet = Mock(DependencySet.class);
 
     def "ignores configuration with no dependencies or exclude rules"() {
         when:
-        converter.addDependencyDescriptors(descriptor, [configuration])
+        converter.addDependencyDescriptors(metaData, [configuration])
 
         then:
         1 * configuration.dependencies >> dependencySet
@@ -47,18 +50,19 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
     }
 
     def "adds dependencies from configuration"() {
-        def dependencyDescriptor = Mock(DependencyDescriptor)
+        def dependencyDescriptor = Mock(DependencyMetaData)
         def dependency = Mock(ModuleDependency)
 
         when:
-        converter.addDependencyDescriptors(descriptor, [configuration])
+        converter.addDependencyDescriptors(metaData, [configuration])
 
         then:
+        _ * metaData.moduleDescriptor >> descriptor
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency, dependency)
         1 * configuration.name >> "config"
         1 * dependencyDescriptorFactory.createDependencyDescriptor("config", descriptor, dependency) >> dependencyDescriptor
-        1 * descriptor.addDependency(dependencyDescriptor)
+        1 * metaData.addDependency(dependencyDescriptor)
         1 * configuration.excludeRules >> ([] as Set)
         0 * _
     }
@@ -68,7 +72,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
         def ivyExcludeRule = Mock(org.apache.ivy.core.module.descriptor.ExcludeRule)
 
         when:
-        converter.addDependencyDescriptors(descriptor, [configuration])
+        converter.addDependencyDescriptors(metaData, [configuration])
 
         then:
         1 * configuration.dependencies >> dependencySet
@@ -77,7 +81,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         1 * configuration.getName() >> "config"
         1 * excludeRuleConverter.createExcludeRule("config", excludeRule) >> ivyExcludeRule
-        1 * descriptor.addExcludeRule(ivyExcludeRule)
+        1 * metaData.addExcludeRule(ivyExcludeRule)
         0 * _
     }
 }

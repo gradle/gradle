@@ -16,18 +16,23 @@
 package org.gradle.language.base.plugins
 
 import org.gradle.api.Project
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class LanguageBasePluginTest extends Specification {
+class LanguageBasePluginTest extends WellBehavedPluginTest {
     Project project = TestUtil.createRootProject()
 
     def setup() {
         project.plugins.apply(LanguageBasePlugin)
+    }
+
+    @Override
+    String getPluginId() {
+        return 'language-base'
     }
 
     def "adds a 'binaries' container to the project"() {

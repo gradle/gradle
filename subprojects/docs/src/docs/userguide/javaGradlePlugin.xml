@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright 2014 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id="javaGradle_plugin">
+    <title>The Java Gradle Plugin Development Plugin</title>
+    <note>
+        <para>
+            The java gradle plugin development plugin is currently <link linkend="feature_lifecycle">incubating</link>.
+            Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
+    <para>
+        The Java Gradle Plugin development plugin can be used to assist in the development of Gradle plugins.  It automatically applies
+        the <link linkend="java_plugin">Java</link> plugin, adds the <literal>gradleApi()</literal> dependency to the compile configuration
+        and performs validation of plugin metadata during <literal>jar</literal> task execution.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the Java Gradle Plugin Development plugin, include the following in your build script:</para>
+        <sample id="useJavaGradlePluginPlugin" dir="javaGradlePlugin" title="Using the Java Gradle Plugin Development plugin">
+            <sourcefile file="build.gradle" snippet="use-java-gradle-plugin-plugin"/>
+        </sample>
+        <para>
+            Applying the plugin automatically applies the <link linkend="java_plugin">Java</link> plugin and adds the
+            <literal>gradleApi()</literal> dependency to the compile configuration.  It also decorates the <literal>jar</literal>
+            task with validations.
+        </para>
+        <para>
+            The following validations are performed:
+        </para>
+        <itemizedlist>
+            <listitem>There is a plugin descriptor defined for the plugin.</listitem>
+            <listitem>The plugin descriptor contains an <literal>implementation-class</literal> property.</listitem>
+            <listitem>The <literal>implementation-class</literal> property references a valid class file in the jar.</listitem>
+        </itemizedlist>
+        <para>
+            Any failed validations will result in a warning message.
+        </para>
+    </section>
+</chapter>

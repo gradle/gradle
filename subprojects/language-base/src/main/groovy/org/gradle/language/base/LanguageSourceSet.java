@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.runtime.base.BuildableModelElement;
+import org.gradle.api.BuildableModelElement;
 import org.gradle.internal.HasInternalProtocol;
 
 /**

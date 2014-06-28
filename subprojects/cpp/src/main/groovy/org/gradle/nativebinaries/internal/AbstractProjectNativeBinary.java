@@ -18,11 +18,10 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
+import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.NativeBinaryResolveResult;
@@ -37,9 +36,8 @@ import java.util.Set;
 
 public abstract class AbstractProjectNativeBinary extends AbstractBuildableModelElement implements ProjectNativeBinaryInternal {
     private final ProjectNativeComponent component;
-    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
+    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
-    private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final DefaultTool linker = new DefaultTool();
     private final DefaultTool staticLibArchiver = new DefaultTool();
     private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
@@ -63,7 +61,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
         this.resolver = resolver;
         owner.getSource().all(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet sourceSet) {
-                source.add(sourceSet);
+                sourceSets.add(sourceSet);
             }
         });
     }
@@ -102,11 +100,11 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return source;
+        return sourceSets;
     }
 
     public void source(Object sources) {
-        source.addAll(sourcesNotationParser.parseNotation(sources));
+        sourceSets.source(sources);
     }
 
     public Tool getLinker() {
@@ -126,7 +124,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     }
 
     public Collection<NativeDependencySet> getLibs() {
-        return resolve(source.withType(DependentSourceSet.class)).getAllResults();
+        return resolve(sourceSets.withType(DependentSourceSet.class)).getAllResults();
     }
 
     public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
@@ -138,7 +136,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     }
 
     public Collection<NativeLibraryBinary> getDependentBinaries() {
-        return resolve(source.withType(DependentSourceSet.class)).getAllLibraryBinaries();
+        return resolve(sourceSets.withType(DependentSourceSet.class)).getAllLibraryBinaries();
     }
 
     private NativeBinaryResolveResult resolve(Collection<? extends DependentSourceSet> sourceSets) {

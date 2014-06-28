@@ -15,9 +15,8 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
@@ -48,7 +47,7 @@ class ClientModuleResolverTest extends Specification {
         def clientModule = Mock(ClientModule)
         def dep = Mock(ModuleDependency)
         def moduleDescriptor = Mock(ModuleDescriptor)
-        def dependencyDescriptor = Mock(DependencyDescriptor)
+        def dependencyMetaData = Mock(DependencyMetaData)
         def artifact = Mock(ModuleVersionArtifactMetaData)
 
         when:
@@ -64,11 +63,8 @@ class ClientModuleResolverTest extends Specification {
         1 * clientModule.getDependencies() >> ([dep] as Set)
         1 * dep.getConfiguration() >> "config"
         1 * metaData.getDescriptor() >> moduleDescriptor
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", moduleDescriptor, dep) >> dependencyDescriptor
-        1 * dependencyDescriptor.getDependencyRevisionId() >> ModuleRevisionId.newInstance("org", "mod", "1.0")
-        1 * metaData.setDependencies({
-            it.size() == 1 && it[0].descriptor == dependencyDescriptor
-        })
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", moduleDescriptor, dep) >> dependencyMetaData
+        1 * metaData.setDependencies([dependencyMetaData])
         1 * metaData.artifact('jar', 'jar', null) >> artifact
         1 * metaData.setArtifacts({
             (it as List) == [artifact]

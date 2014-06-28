@@ -20,13 +20,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can combine java, cpp-exe and cpp-lib plugins in a single project"() {
+    def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: "java"
             apply plugin: "cpp"
 
-            nativeCode {
+            nativeRuntime {
                 executables {
                     mainExe
                 }
@@ -50,7 +50,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
-    nativeCode {
+    nativeRuntime {
         executables {
             nativeExe
         }
@@ -66,14 +66,14 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     }
 
     task check << {
-        assert softwareComponents.size() == 3
-        assert softwareComponents.nativeExe instanceof NativeExecutable
-        assert softwareComponents.nativeLib instanceof NativeLibrary
-        assert softwareComponents.jvmLib instanceof JvmLibrary
+        assert projectComponents.size() == 3
+        assert projectComponents.nativeExe instanceof NativeExecutable
+        assert projectComponents.nativeLib instanceof NativeLibrary
+        assert projectComponents.jvmLib instanceof JvmLibrary
 
-        assert nativeCode.executables as List == [softwareComponents.nativeExe]
-        assert nativeCode.libraries as List == [softwareComponents.nativeLib]
-        assert jvm.libraries as List == [softwareComponents.jvmLib]
+        assert nativeRuntime.executables as List == [projectComponents.nativeExe]
+        assert nativeRuntime.libraries as List == [projectComponents.nativeLib]
+        assert jvm.libraries as List == [projectComponents.jvmLib]
 
         assert binaries.size() == 4
         binaries.jvmLibJar instanceof JvmLibraryBinary
@@ -92,7 +92,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
-    nativeCode {
+    nativeRuntime {
         executables {
             nativeApp
         }

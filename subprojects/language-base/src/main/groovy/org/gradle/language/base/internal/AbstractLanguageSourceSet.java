@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.FunctionalSourceSet;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {

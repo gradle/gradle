@@ -4,5 +4,5 @@ dependencies {
     compile project(":core")
 }
 
-useClassycle()
+useClassycle(exclude: "org/gradle/api/internal/tasks/compile/**")
 useTestFixtures()

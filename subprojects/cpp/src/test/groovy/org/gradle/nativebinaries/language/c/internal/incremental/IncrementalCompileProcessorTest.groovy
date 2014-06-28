@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental
 
+import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.HashUtil
@@ -45,7 +46,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def setup() {
         fileSnapshotter.snapshot(_) >> { File file ->
-            return Stub(FileSnapshotter.FileSnapshot) {
+            return Stub(FileSnapshot) {
                 getHash() >> HashUtil.sha1(file).asByteArray()
             }
         }

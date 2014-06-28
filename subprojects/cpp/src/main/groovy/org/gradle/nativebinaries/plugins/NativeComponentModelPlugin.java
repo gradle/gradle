@@ -90,7 +90,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         components.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
         NamedDomainObjectContainer<NativeLibrary> nativeLibraries = components.containerWithType(NativeLibrary.class);
 
-        project.getExtensions().create("nativeCode", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
+        project.getExtensions().create("nativeRuntime", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
 
         // TODO:DAZ Not sure if we should keep these
         project.getExtensions().add("nativeComponents", components.withType(ProjectNativeComponent.class));

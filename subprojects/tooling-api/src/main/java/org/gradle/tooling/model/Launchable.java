@@ -44,4 +44,13 @@ public interface Launchable {
      */
     @Nullable
     String getDescription();
+
+    /**
+     * Returns whether launchable is public or not.
+     * Visible tasks are those that have non-null {@code group} property.
+     *
+     * @return Visibility property.
+     * @since 2.1
+     */
+    boolean isVisible();
 }

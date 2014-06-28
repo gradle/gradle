@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 
@@ -82,4 +83,11 @@ class PmdExtension extends CodeQualityExtension {
     void ruleSetFiles(Object... ruleSetFiles) {
         this.ruleSetFiles.add(project.files(ruleSetFiles))
     }
+
+    /**
+     * Whether or not to write PMD results to {@code System.out}.
+     */
+    @Incubating
+    boolean consoleOutput
+
 }

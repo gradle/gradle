@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
+import org.gradle.api.internal.artifacts.metadata.DefaultLocalComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -41,9 +43,10 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
     public void testAddConfigurations() {
         Configuration configurationStub1 = createNamesAndExtendedConfigurationStub("conf1");
         Configuration configurationStub2 = createNamesAndExtendedConfigurationStub("conf2", configurationStub1);
-        final DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(Collections.EMPTY_SET);
+        DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(Collections.EMPTY_SET);
+        MutableLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleDescriptor, null);
 
-        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, WrapUtil.toSet(configurationStub1, configurationStub2));
+        configurationsToModuleDescriptorConverter.addConfigurations(metaData, WrapUtil.toSet(configurationStub1, configurationStub2));
 
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub1.getName()),
                 expectedIvyConfiguration(configurationStub1));

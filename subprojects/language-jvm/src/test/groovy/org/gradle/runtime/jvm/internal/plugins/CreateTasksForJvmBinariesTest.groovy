@@ -15,10 +15,12 @@
  */
 
 package org.gradle.runtime.jvm.internal.plugins
+
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.runtime.jvm.JvmBinaryTasks
 import org.gradle.runtime.jvm.JvmLibraryBinary
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal
 import spock.lang.Specification
@@ -33,7 +35,10 @@ class CreateTasksForJvmBinariesTest extends Specification {
     def "creates a 'jar' tasks for each jvm library binary"() {
         def jvmLibraryBinary = Mock(JvmLibraryBinaryInternal)
         def namingScheme = Mock(BinaryNamingScheme)
-        def jarTask = Mock(Zip)
+        def jarTask = Mock(Jar)
+        def binaryTasks = Mock(JvmBinaryTasks)
+        def classesDir = Mock(File)
+        def jarFile = Mock(File)
 
         when:
         1 * binaries.withType(JvmLibraryBinaryInternal) >> toNamedDomainObjectSet(JvmLibraryBinary, jvmLibraryBinary)
@@ -45,9 +50,20 @@ class CreateTasksForJvmBinariesTest extends Specification {
         _ * jvmLibraryBinary.name >> "binaryName"
         _ * jvmLibraryBinary.displayName >> "binaryDisplayName"
         1 * jvmLibraryBinary.namingScheme >> namingScheme
+        1 * jvmLibraryBinary.classesDir >> classesDir
+        2 * jvmLibraryBinary.jarFile >> jarFile
+        1 * jarFile.parentFile >> jarFile
+        1 * jarFile.name >> "binary.jar"
         1 * namingScheme.getTaskName("create") >> "theTaskName"
-        1 * tasks.create("theTaskName", Zip) >> jarTask
+
+        1 * tasks.create("theTaskName", Jar) >> jarTask
         1 * jarTask.setDescription("Creates the binary file for binaryDisplayName.")
+        1 * jarTask.from(classesDir)
+        1 * jarTask.setDestinationDir(jarFile)
+        1 * jarTask.setArchiveName("binary.jar")
+
+        1 * jvmLibraryBinary.getTasks() >> binaryTasks
+        1 * binaryTasks.add(jarTask)
         1 * jvmLibraryBinary.builtBy(jarTask)
         0 * _
     }

@@ -54,7 +54,7 @@ Combining native and jvm libraries in single project
             myJvmLib
         }
     }
-    nativeCode {
+    nativeRuntime {
         libraries {
             myNativeLib
         }
@@ -79,11 +79,12 @@ Combining native and jvm libraries in single project
 - Extract a common supertype `Application` for `NativeExecutable`, and a common supertype `Component` for `Library` and `Application`
 - Introduce a 'filtered' view of the ExtensiblePolymorphicDomainObjectContainer, such that only elements of a particular type are returned
   and any element created is given that type.
-    - Add a backing 'components' container that contains all Library and Application elements
-    - Add 'jvm' and 'nativeCode' extensions for namespacing different library containers
-    - Add 'nativeCode.libraries' and 'jvm.libraries' as filtered containers on 'components', with appropriate library type
-    - Add 'nativeCode.executables' as filtered view on 'components
-    - Use the 'components' container in native code where currently must iterate separately over 'libraries' and 'executables'
+    - Add a backing `projectComponents` container extension that contains all Library and Application elements
+        - Will later be merged with `project.components`.
+    - Add 'jvm' and 'nativeRuntime' extensions for namespacing different library containers
+    - Add 'nativeRuntime.libraries' and 'jvm.libraries' as filtered containers on 'components', with appropriate library type
+    - Add 'nativeRuntime.executables' as filtered view on 'components
+    - Use the 'projectComponents' container in native code where currently must iterate separately over 'libraries' and 'executables'
 
 #### Test cases
 
@@ -109,7 +110,7 @@ Combining native and jvm libraries in single project
       For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
       Or, if I'm building for Android, fail if the SDK is not installed.
     - Build everything. Fail if a certain binary cannot be built.
-- Validation of library names
+- Validation of component, binary and source set names (e.g. don't include ':' and reserved filesystem characters, or limit to valid Java identifiers).
 
 ### Story: Build author creates JVM library jar from Java sources
 
@@ -146,7 +147,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
             myJvmLib
         }
     }
-    nativeCode {
+    nativeRuntime {
         libraries {
             myNativeLib
         }
@@ -159,12 +160,12 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - Adds a single `ResourceSet` for `src/${component}/resources`
     - Adds a single `JavaSourceSet` for `src/${component}/java`
 - Each created `JvmLibraryBinary` has the source sets of its `JvmLibrary`
-- Create a `ProcessResources` task for each `ResourceSet for a `JvmLibraryBinary`
+- Create a `ProcessResources` task for each `ResourceSet` for a `JvmLibraryBinary`
     - copy resources to `build/classes/${binaryName}`
 - Create a `CompileJava` task for each `JavaSourceSet` for a `JvmLibraryBinary`
     - compile classes to `build/classes/${binaryName}`
 - Create a `Jar` task for each `JvmLibraryBinary`
-    - produce jar file at `build/binaries/${binaryName}/${componentName}.jar`
+    - produce jar file at `build/${binaryType}/${binaryName}/${componentName}.jar`
 - Rejig the native language plugins so that '*-lang' + 'native-components' is sufficient to apply language support
     - Existing 'cpp', 'c', etc plugins will simply apply '*-lang' and 'native-components'
 
@@ -177,21 +178,179 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - With both sources and resources
 - Reports failure to compile source
 - Compiled sources and resources are available in a common directory
-- All generated resources are removed when all resources source files are removed.
+- Incremental build for java library
+    - Tasks skipped when all sources up-to-date
+    - Class file is removed when source is removed
+    - Copied resource is removed when resource is removed
 - Can build native and JVM libraries in the same project
   - `gradle assemble` builds each native library and each jvm library
 
 #### Open issues
 
+- Don't attach Java source sets to native components
+- Don't attach native language source sets to jvm components.
+- Don't build a jar when there is no source, mark the binary as not buildable.
+    - Should do a similar thing with native components.
+- Need to be able to navigate from a `JvmLibrary` to its binaries.
+- Need to be able to navigate from a `JvmLibraryBinary` to its tool chain.
 - Need `groovy-lang` and `scala-lang` plugins
 - Possibly deprecate the existing 'cpp', 'c', etc plugins.
 - All compiled classes are removed when all java source files are removed.
+- Clean up output files for source set that is removed.
+- Clean up output files from components and binaries that have been removed or renamed.
+- Configure JvmLibrary and/or JvmLibraryBinary
+    - Customise manifest
+    - Customise compiler options
+    - Customise output locations
+    - Customise source directories
+        - Handle layout where source and resources are in the same directory - need to filter source files
+- Configure more stuff about the source
+    - Java language version
+    - Source encoding
+- How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
+
+## Feature: Custom plugin defines a custom library type
+
+### Story: plugin declares its own library type
+
+Define a sample plugin that declares a custom library type:
+    
+    interface SampleLibrary extends Library {
+        String color
+    }
+
+    interface SampleExtension {
+        def addSampleLibrary(name, color)
+    }
+
+    @DomainModel("mySample")
+    class MySamplePlugin {
+
+        // Gradle will call this and register the extension as "mySample"
+        // Will extend the SampleExtension with "mySample.components" and "mySample.libraries" collections
+        SampleExtension createExtension(Instantiator instantiator) {
+            return instantiator.newInstance(SampleExtensionImpl, someArg)
+        }
+
+        // Gradle will create and pass in a filtered view: mySample.libraries.withType(SampleLibrary)
+        // Will add this view to SampleExtension as "mySample.sampleLibraries" (using parameter name?)
+        void createSampleLibraryComponents(NamedDomainObjectSet<SampleLibrary> sampleLibraries, Instantiator instantiator, SampleExtension sampleExtension) {
+            ... Create sample libraries based on configured sampleExtension, adding to sampleLibraries Set
+        }
+    }
+    
+
+Apply and use the sample plugin:
+
+    apply plugin: 'my-sample'
+
+    mySample {
+        // Plugin can use it's own DSL to define libraries
+        // eg. Plugin will add 2 libraries of type SampleLibrary to 'mySample.libraries'
+        addSampleLibrary("redLib", "Red")
+        addSampleLibrary("blueLib", "Blue")
+    }
+
+    // Library is visible in libraries and components containers
+    assert mySample.sampleLibraries.size() == 2
+    assert mySample.libraries.size() == 2
+    assert mySample.components.size() == 2
+    assert projectComponents.withType(SampleLibrary).size() == 2
+
+    // Libraries are configured correctly
+    assert mySample.libraries.redLib.color == "Red"
+    assert mySample.sampleLibraries.collect({it.color}) == ["Red", "Blue"]
+
+A custom library type:
+- Extends or implements some public base `Library` type.
+- Has no dependencies.
+- Produces no artifacts.
+
+#### Implementation Plan
+
+#### Test Cases
+
+#### Open issues
+
+- `DomainRegistry` should be a service rather than a project extension.
+- Need some public way to easily 'implement' Library and commons subtypes such as `ProjectComponent`. For example, a public default implementation that can
+be extended (should have no-args constructor) or generate the implementation from the interface.
+- Statically declare the component type and associated meta-data, so it can be inferred from the plugin implementation class without applying the plugin.
+For example, use a method signature or annotation, or add some specific interface other than `Plugin` that is to be implemented.
+- Statically declare the rules to create the libraries given the extension. For example, use a method signature or annotation.
+- Infer the dependency on the language base plugin.
+- Interaction with the `model { }` block.
+- Use annotations instead of inspecting method signatures?
+
+### Story: Custom library produces custom binaries
+
+Add a binary type to the sample plugin:
+
+    interface SampleBinary extends LibraryBinary {}
+
+    class SampleExtension {
+        def addSampleLibrary(name, color)
+        def flavors = ['default']
+        def signBinaries = false
+    }
+
+    class MySamplePlugin {
+        ...
+
+        void createBinariesForSampleLibrary(NamedDomainObjectSet<SampleBinary> binaries, SampleLibrary library, Instantiator instantiator, SampleExtension sampleExtension) {
+            ... Create sample binaries for this library, one for each flavor. Add to the 'binaries' set.
+        }
+
+        void createTasksForSampleBinary(TaskContainer tasks, SampleBinary binary, SampleExtension sampleExtension) {
+            ... Add tasks that create this binary. Create additional tasks where signing is required.
+        }
+    }
+
+Binaries are now visible in the appropriate containers:
+
+    apply plugin: 'my-sample'
+
+    mySample {
+        addSampleLibrary("redLib", "Red")
+        addSampleLibrary("blueLib", "Blue")
+        flavors = ['Lime', 'Lemon']
+        signBinaries = true
+    }
+
+    // Binaries are visible in the appropriate containers
+    assert binaries.withType(SampleBinary).size() == 4
+    assert mySample.libraries['redLib'].binaries.collect({it.name}) == ['redLibLime', 'redLibLemon']
+
+A custom binary:
+- Extends or implements some public base `LibraryBinary` type.
+- Has some lifecycle task to build its outputs.
+
+Running `gradle assemble` will execute tasks for each library binary.
+
+#### Open issues
+
+- Public mechanism to 'implement' Binary and common subtypes such as ProjectBinary.
+- Statically declare the binary type.
+- Statically declare the rules to create binaries given a library.
+- Statically declare the rules to create tasks given a binary.
+- Use annotations in place of method signature patterns?
+- Validation of binary names
+
+### Story: Custom binary is built from Java sources
+
+Change the sample plugin so that it compiles Java source to produce its binaries
+
+- Uses same conventions as a Java library.
+- No dependencies.
+
+## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
 ### Story: Legacy JVM language plugins declare a jvm library
 
 - Rework the existing `SoftwareComponent` implementations so that they are `Component` implementations instead.
 - Expose all native and jvm components through `project.components`.
-- Don't need to support publishing yet.
+- Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
+
 
     apply plugin: 'java'
 
@@ -209,6 +368,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - JVM library with name `main` is defined with any combination of `java`, `groovy` and `scala` plugins applied
 - Web application with name `war` is defined when `war` plugin is applied.
 - Can build legacy jvm library jar using standard lifecycle task
+- Can mix legacy and new jvm libraries in the same project.
 
 #### Open issues
 
@@ -217,62 +377,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - The `ear` plugin should also declare a j2ee application.
 - These plugins should also declare binaries.
 
-## Feature: Custom plugin defines a custom library type
-
-### Story: plugin declares its own library type
-
-Add a sample plugin that declares a custom library type:
-
-    apply plugin: 'my-sample'
-
-    mySample {
-        // can use its own DSL
-        ...
-    }
-
-    // Library is also visible in libraries and components containers
-    assert libraries.withType(SampleLibrary).size() == 1
-    assert components.withType(SampleLibrary).size() == 1
-
-A custom library type:
-- Extends or implements some public base `Library` type.
-- Has no dependencies.
-- Produces no artifacts.
-
-### Story: Custom library produces custom binaries
-
-Change the sample plugin so that it declares its own binary type for the libraries it defines:
-
-    apply plugin: 'my-sample'
-
-    mySample {
-        // can use its own DSL
-        ...
-    }
-
-    // Binaries are also visible in the binaries container
-    assert binaries.withType(SampleBinary).size() == 2
-
-Allow a plugin to declare the binaries for a custom library.
-
-A custom binary:
-- Extends or implements some public base `LibraryBinary` type.
-- Has some lifecycle task to build its outputs.
-
-Running `gradle assemble` will build each library binary.
-
-#### Open issues
-
-- Validation of binary names
-
-### Story: Custom binary is built from Java sources
-
-Change the sample plugin so that it compiles Java source to produce its binaries
-
-- Uses same conventions as a Java library.
-- No dependencies.
-
-## Feature: Build author declares that a Java library depends on a Java library produced by another project
+### Story: Build author declares a dependency on another Java library
 
 For example:
 
@@ -299,7 +404,7 @@ When the project attribute refers to a project without a component plugin applie
 
 - At compile and runtime, include the artifacts and dependencies from the `default` configuration.
 
-### Open issues
+#### Open issues
 
 - Should be able to depend on a library in the same project.
 - Need an API to query the various classpaths.

@@ -16,6 +16,7 @@
 
 package org.gradle.runtime.base;
 
+import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;

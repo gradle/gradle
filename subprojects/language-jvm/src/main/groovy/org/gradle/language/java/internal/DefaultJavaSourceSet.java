@@ -17,17 +17,27 @@ package org.gradle.language.java.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.runtime.jvm.Classpath;
+import org.gradle.runtime.jvm.internal.DefaultClasspath;
 
+import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements JavaSourceSet {
     private final Classpath compileClasspath;
+
+    @Inject
+    public DefaultJavaSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
+        super(name, parent, "Java source", new DefaultSourceDirectorySet("source", project.getFileResolver()));
+        this.compileClasspath = new DefaultClasspath(project.getFileResolver(), project.getTasks());
+    }
 
     public DefaultJavaSourceSet(String name, SourceDirectorySet source, Classpath compileClasspath, FunctionalSourceSet parent) {
         super(name, parent, "Java source", source);
@@ -37,7 +47,6 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
     public Classpath getCompileClasspath() {
         return compileClasspath;
     }
-
 
     public TaskDependency getBuildDependencies() {
         return new TaskDependency() {

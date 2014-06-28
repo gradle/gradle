@@ -76,6 +76,7 @@
     <xi:include href='buildInitPlugin.xml'/>
     <xi:include href='wrapperPlugin.xml'/>
     <xi:include href='buildDashboardPlugin.xml'/>
+    <xi:include href='javaGradlePlugin.xml' />
     <xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='mavenPlugin.xml'/>

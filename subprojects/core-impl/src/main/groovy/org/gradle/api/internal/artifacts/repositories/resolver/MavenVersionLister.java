@@ -19,10 +19,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,15 +36,15 @@ public class MavenVersionLister implements VersionLister {
 
     public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
         return new VersionPatternVisitor() {
-            final Set<URI> searched = new HashSet<URI>();
+            final Set<ExternalResourceName> searched = new HashSet<ExternalResourceName>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
-                URI metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml").getUri();
+                ExternalResourceName metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml");
                 if (!searched.add(metadataLocation)) {
                     return;
                 }
-                result.attempted(metadataLocation.toString());
-                MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
+                result.attempted(metadataLocation);
+                MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation.getUri());
                 for (String version : mavenMetaData.versions) {
                     dest.add(version);
                 }

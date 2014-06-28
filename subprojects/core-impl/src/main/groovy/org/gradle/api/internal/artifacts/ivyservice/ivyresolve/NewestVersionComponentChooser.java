@@ -58,7 +58,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
     }
 
     private boolean isGeneratedModuleDescriptor(ComponentMetaData componentMetaData) {
-        return componentMetaData.getDescriptor().isDefault();
+        return componentMetaData.isGenerated();
     }
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {

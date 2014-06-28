@@ -29,7 +29,7 @@ class RepositoryChainModuleResolution implements Versioned {
     }
 
     public boolean isGeneratedModuleDescriptor() {
-        return module.getDescriptor().isDefault();
+        return module.isGenerated();
     }
 
     public String getVersion() {
