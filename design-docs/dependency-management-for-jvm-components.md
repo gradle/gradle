@@ -211,55 +211,36 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 ## Feature: Custom plugin defines a custom library type
 
+This features allows the development of a custom plugin that can contribute Library, Binary and Task instances to the language domain.
+
+Development of this feature depends on the first 2 stories from the `unified-configuration-and-task-model` spec, namely:
+
+- Story: Plugin declares a top level model to make available
+- Story: Plugin configures tasks using model as input
+
 ### Story: plugin declares its own library type
 
 Define a sample plugin that declares a custom library type:
     
-    interface SampleLibrary extends Library {
-        String color
-    }
+    interface SampleLibrary extends Library {}
 
-    interface SampleExtension {
-        def addSampleLibrary(name, color)
-    }
-
-    @DomainModel("mySample")
     class MySamplePlugin {
-
-        // Gradle will call this and register the extension as "mySample"
-        // Will extend the SampleExtension with "mySample.components" and "mySample.libraries" collections
-        SampleExtension createExtension(Instantiator instantiator) {
-            return instantiator.newInstance(SampleExtensionImpl, someArg)
+        @Model("mySample")
+        SampleExtension createSampleExtension() {
+            ...
         }
 
-        // Gradle will create and pass in a filtered view: mySample.libraries.withType(SampleLibrary)
-        // Will add this view to SampleExtension as "mySample.sampleLibraries" (using parameter name?)
-        void createSampleLibraryComponents(NamedDomainObjectSet<SampleLibrary> sampleLibraries, Instantiator instantiator, SampleExtension sampleExtension) {
-            ... Create sample libraries based on configured sampleExtension, adding to sampleLibraries Set
+        @Rule
+        void createSampleLibraryComponents(CollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
+            ... Register sample libraries based on configured sampleExtension
         }
     }
-    
 
-Apply and use the sample plugin:
-
-    apply plugin: 'my-sample'
-
-    mySample {
-        // Plugin can use it's own DSL to define libraries
-        // eg. Plugin will add 2 libraries of type SampleLibrary to 'mySample.libraries'
-        addSampleLibrary("redLib", "Red")
-        addSampleLibrary("blueLib", "Blue")
-    }
+Libraries are then visible in libraries and components containers:
 
     // Library is visible in libraries and components containers
-    assert mySample.sampleLibraries.size() == 2
-    assert mySample.libraries.size() == 2
-    assert mySample.components.size() == 2
     assert projectComponents.withType(SampleLibrary).size() == 2
-
-    // Libraries are configured correctly
-    assert mySample.libraries.redLib.color == "Red"
-    assert mySample.sampleLibraries.collect({it.color}) == ["Red", "Blue"]
+    assert libraries.withType(SampleLibrary).size() == 2
 
 A custom library type:
 - Extends or implements some public base `Library` type.
@@ -272,68 +253,47 @@ A custom library type:
 
 #### Open issues
 
-- `DomainRegistry` should be a service rather than a project extension.
 - Need some public way to easily 'implement' Library and commons subtypes such as `ProjectComponent`. For example, a public default implementation that can
 be extended (should have no-args constructor) or generate the implementation from the interface.
-- Statically declare the component type and associated meta-data, so it can be inferred from the plugin implementation class without applying the plugin.
-For example, use a method signature or annotation, or add some specific interface other than `Plugin` that is to be implemented.
-- Statically declare the rules to create the libraries given the extension. For example, use a method signature or annotation.
 - Infer the dependency on the language base plugin.
 - Interaction with the `model { }` block.
-- Use annotations instead of inspecting method signatures?
 
-### Story: Custom library produces custom binaries
+### Story: Custom plugin defines binaries and tasks for each custom library
 
 Add a binary type to the sample plugin:
 
     interface SampleBinary extends LibraryBinary {}
 
-    class SampleExtension {
-        def addSampleLibrary(name, color)
-        def flavors = ['default']
-        def signBinaries = false
-    }
-
     class MySamplePlugin {
         ...
 
-        void createBinariesForSampleLibrary(NamedDomainObjectSet<SampleBinary> binaries, SampleLibrary library, Instantiator instantiator, SampleExtension sampleExtension) {
+        @Rule
+        void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
             ... Create sample binaries for this library, one for each flavor. Add to the 'binaries' set.
         }
 
-        void createTasksForSampleBinary(TaskContainer tasks, SampleBinary binary, SampleExtension sampleExtension) {
+        @Rule
+        void createTasksForSampleBinary(CollectionBuilder<Task> tasks, SampleBinary binary) {
             ... Add tasks that create this binary. Create additional tasks where signing is required.
         }
     }
 
 Binaries are now visible in the appropriate containers:
 
-    apply plugin: 'my-sample'
-
-    mySample {
-        addSampleLibrary("redLib", "Red")
-        addSampleLibrary("blueLib", "Blue")
-        flavors = ['Lime', 'Lemon']
-        signBinaries = true
-    }
-
     // Binaries are visible in the appropriate containers
+    // (assume 2 libraries & 2 binaries per library)
     assert binaries.withType(SampleBinary).size() == 4
-    assert mySample.libraries['redLib'].binaries.collect({it.name}) == ['redLibLime', 'redLibLemon']
+    assert libraries[0].binaries.size() == 2
+
+Running `gradle assemble` will execute tasks for each library binary.
 
 A custom binary:
 - Extends or implements some public base `LibraryBinary` type.
 - Has some lifecycle task to build its outputs.
 
-Running `gradle assemble` will execute tasks for each library binary.
-
 #### Open issues
 
 - Public mechanism to 'implement' Binary and common subtypes such as ProjectBinary.
-- Statically declare the binary type.
-- Statically declare the rules to create binaries given a library.
-- Statically declare the rules to create tasks given a binary.
-- Use annotations in place of method signature patterns?
 - Validation of binary names
 
 ### Story: Custom binary is built from Java sources
