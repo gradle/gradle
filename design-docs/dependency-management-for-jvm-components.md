@@ -781,11 +781,17 @@ Dependency resolution selects the best binary from each dependency for the targe
 - Support multiple input source sets for a component and binary.
     - Apply conflict resolution across all inputs source sets.
 - Support for custom language implementations.
+- Java language support
+    - Java language level.
+    - Source encoding.
 - Groovy and Scala language support, including joint compilation.
-- ANTLR language support.
-- Java component plugins support variants.
-- JVM libraries declare API.
+    - Language level.
 - Test suites.
+- Libraries declare an API that is used at compile time.
+- ANTLR language support.
+    - Improve the generated source support from the native plugins
+    - ANTLR runs on the JVM, but can target other platforms.
+- Java component plugins support variants.
 - Expose the source and javadoc artifacts for local binaries.
 - Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
 - Deprecate and remove support for resolution via configurations.
