@@ -295,7 +295,7 @@ be extended (should have no-args constructor) or generate the implementation fro
 - Interaction with the `model { }` block.
 - Need some way to declare a language domain, without necessarily defining any particular component instances.
 
-### Story: Custom plugin defines binaries and tasks for each custom library
+### Story: Custom plugin defines binaries for each custom library
 
 Add a binary type to the sample plugin:
 
