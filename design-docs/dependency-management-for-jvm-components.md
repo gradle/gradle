@@ -152,13 +152,7 @@ Combining native and jvm libraries in single project
 
 #### Open issues
 
-- Come up with a better name for `JvmLibraryBinary`, or perhaps add a `JarBinary` subtype
-- Consider splitting up `assemble` into various lifecycle tasks. There are several use cases:
-    - As a developer, build me a binary I can play with or test in some way.
-    - As part of some workflow, build all binaries that should be possible to build in this specific environment. Fail if a certain binary cannot be built.
-      For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
-      Or, if I'm building for Android, fail if the SDK is not installed.
-    - Build everything. Fail if a certain binary cannot be built.
+- Come up with a better name for `JvmLibraryBinary`, or perhaps add a `JarBinary` subtype.
 - Validation of component, binary and source set names (e.g. don't include ':' and reserved filesystem characters, or limit to valid Java identifiers).
 
 ### Story: Build author creates JVM library jar from Java sources
@@ -236,26 +230,16 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 #### Open issues
 
-- Don't attach Java source sets to native components
+- Don't attach Java source sets to native components.
 - Don't attach native language source sets to jvm components.
 - Don't build a jar when there is no source, mark the binary as not buildable.
     - Should do a similar thing with native components.
 - Need to be able to navigate from a `JvmLibrary` to its binaries.
 - Need to be able to navigate from a `JvmLibraryBinary` to its tool chain.
-- Need `groovy-lang` and `scala-lang` plugins
 - Possibly deprecate the existing 'cpp', 'c', etc plugins.
 - All compiled classes are removed when all java source files are removed.
 - Clean up output files for source set that is removed.
 - Clean up output files from components and binaries that have been removed or renamed.
-- Configure JvmLibrary and/or JvmLibraryBinary
-    - Customise manifest
-    - Customise compiler options
-    - Customise output locations
-    - Customise source directories
-        - Handle layout where source and resources are in the same directory - need to filter source files
-- Configure more stuff about the source
-    - Java language version
-    - Source encoding
 - How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
 - When to document and announce the new JVM plugins?
 
@@ -398,9 +382,6 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 #### Open issues
 
 - Expose through the DSL, or just through the APIs?
-- The `application` plugin should also declare a jvm application.
-- The `ear` plugin should also declare a j2ee application.
-- These plugins should also declare binaries.
 
 ### Story: Build author declares a dependency on another Java library
 
@@ -774,10 +755,28 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 # Open issues and Later work
 
+## Component model
+
 - Should use rules mechanism, so that this DSL lives under `model { ... }`
 - Reuse the local component and binary meta-data for publication.
     - Version the meta-data schemas.
     - Source and javadoc artifacts.
+- Test suites.
+- Libraries declare an API that is used at compile time.
+- Java component plugins support variants.
+- Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
+- The `application` plugin should also declare a jvm application.
+- The `war` plugin should also declare a j2ee web application.
+- The `ear` plugin should also declare a j2ee application.
+- Configure `JvmLibrary` and `JvmLibraryBinary`
+    - Customise manifest
+    - Customise compiler options
+    - Customise output locations
+    - Customise source directories
+        - Handle layout where source and resources are in the same directory - need to filter source files
+
+## Language support
+
 - Support multiple input source sets for a component and binary.
     - Apply conflict resolution across all inputs source sets.
 - Support for custom language implementations.
@@ -786,14 +785,19 @@ Dependency resolution selects the best binary from each dependency for the targe
     - Source encoding.
 - Groovy and Scala language support, including joint compilation.
     - Language level.
-- Test suites.
-- Libraries declare an API that is used at compile time.
 - ANTLR language support.
     - Improve the generated source support from the native plugins
     - ANTLR runs on the JVM, but can target other platforms.
-- Java component plugins support variants.
+
+## Misc
+
+- Consider splitting up `assemble` into various lifecycle tasks. There are several use cases:
+    - As a developer, build me a binary I can play with or test in some way.
+    - As part of some workflow, build all binaries that should be possible to build in this specific environment. Fail if a certain binary cannot be built.
+      For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
+      Or, if I'm building for Android, fail if the SDK is not installed.
+    - Build everything. Fail if a certain binary cannot be built.
 - Expose the source and javadoc artifacts for local binaries.
-- Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
 - Deprecate and remove support for resolution via configurations.
 - Add a report that shows the details for the components and binaries produced by a project.
 - Bust up the 'plugins' project.
