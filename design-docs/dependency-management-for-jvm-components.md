@@ -1,5 +1,54 @@
 
-This spec describes some work to allow plugins to define the kinds of components that they produce and consume.
+Currently, the JVM language plugins assume that a given set of source files is assembled into a single
+output. For example, the `main` Java source is compiled and assembled into a JAR file. However, this is not
+always a reasonable assumption. Here are some examples:
+
+* When building for multiple runtimes, such as Scala 2.10 and Scala 2.11.
+* When building multiple variants composed from various source sets, such as an Android application.
+* When packaging the output in various different ways, such as in a JAR and a fat JAR.
+
+By making this assumption, the language plugins force the build author to implement these cases in ways that
+are not understood by other plugins that extend the JVM language plugins, such as the code quality and IDE
+plugins.
+
+This problem is also evident in non-JVM languages such as C++, where a given source file may be compiled and
+linked into more than one binaries.
+
+This spec describes some work to allow plugins to define the kinds of JVM components that they produce and consume,
+and to allow plugins to define their own custom JVM based components.
+
+# Use cases
+
+## Multiple build types for Android applications
+
+An Android application is assembled in to multiple _build types_, such as 'debug' or 'release'.
+
+## Build a library for multiple Scala or Groovy runtimes
+
+A library is compiled and published for multiple Scala or Groovy runtimes, or for multiple JVM runtimes.
+
+# Build different variants of an application
+
+An application is tailored for various purposes, with each purpose represented as a separate variant. For
+each variant, some common source files and some variant specific source files are jointly compiled to
+produce the application.
+
+For example, when building against the Java 5 APIs do not include the Java 6 or Java 7 specific source files.
+
+# Compose a library from source files compiled in different ways
+
+For example, some source files are compiled using the aspectj compiler and some source files are
+compiled using the javac compiler. The resulting class files are assembled into the library.
+
+# Implement a library using multiple languages
+
+A library is implemented using a mix of Java, Scala and Groovy and these source files are jointly compiled
+to produce the library.
+
+## Package a library in multiple ways
+
+A library may be packaged as a classes directory, or a set of directories, or a single jar file, or a
+far jar, or an API jar and an implementation jar.
 
 ## A note on terminology
 
@@ -726,11 +775,19 @@ Dependency resolution selects the best binary from each dependency for the targe
 # Open issues and Later work
 
 - Should use rules mechanism, so that this DSL lives under `model { ... }`
-- Expose the source and javadoc artifacts for local binaries.
 - Reuse the local component and binary meta-data for publication.
     - Version the meta-data schemas.
     - Source and javadoc artifacts.
+- Support multiple input source sets for a component and binary.
+    - Apply conflict resolution across all inputs source sets.
+- Support for custom language implementations.
+- Groovy and Scala language support, including joint compilation.
+- ANTLR language support.
 - Java component plugins support variants.
+- JVM libraries declare API.
+- Test suites.
+- Expose the source and javadoc artifacts for local binaries.
 - Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
 - Deprecate and remove support for resolution via configurations.
 - Add a report that shows the details for the components and binaries produced by a project.
+- Bust up the 'plugins' project.
