@@ -23,10 +23,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultLanguageRegistry;
-import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.language.base.internal.LanguageRegistryInternal;
+import org.gradle.language.base.internal.*;
 import org.gradle.language.base.internal.plugins.ApplyDefaultSourceLocations;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
@@ -67,7 +64,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
-        LanguageRegistryInternal domainRegistry = target.getExtensions().create("languages", DefaultLanguageRegistry.class);
+        LanguageRegistry domainRegistry = target.getExtensions().create("languages", DefaultLanguageRegistry.class);
 
         // TODO:DAZ Rename to 'components' and merge with Project.components
         ProjectComponentContainer components = target.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
@@ -95,7 +92,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         configurationActions.add(new ApplyDefaultSourceLocations());
     }
 
-    private void createLanguageSourceSets(final Project project, final LanguageRegistryInternal domainRegistry, final ProjectSourceSet sources) {
+    private void createLanguageSourceSets(final Project project, final LanguageRegistry domainRegistry, final ProjectSourceSet sources) {
         DomainObjectSet<LanguageRegistration> languages = domainRegistry.getLanguages();
         languages.all(new Action<LanguageRegistration>() {
             public void execute(final LanguageRegistration languageRegistration) {

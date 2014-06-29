@@ -92,7 +92,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         project.getExtensions().create("nativeRuntime", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
 
-        // TODO:DAZ Not sure if we should keep these
+        // TODO:DAZ Remove these: should not pollute the global namespace
         project.getExtensions().add("nativeComponents", components.withType(ProjectNativeComponent.class));
         project.getExtensions().add("executables", nativeExecutables);
         project.getExtensions().add("libraries", nativeLibraries);

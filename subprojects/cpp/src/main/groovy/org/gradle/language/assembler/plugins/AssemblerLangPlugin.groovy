@@ -19,7 +19,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.LanguageRegistry
+import org.gradle.language.base.internal.LanguageRegistry
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet

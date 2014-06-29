@@ -210,11 +210,11 @@ Combining jvm-java and native (multi-lang) libraries in single project
 #### Test cases
 
 - Define and build the jar for a java library (assert jar contents for each case)
-    - With no sources or resources
     - With sources but no resources
     - With resources but no sources
     - With both sources and resources
 - Reports failure to compile source
+- Reports failure to build java library with no sources or resources
 - Compiled sources and resources are available in a common directory
 - Incremental build for java library
     - Tasks skipped when all sources up-to-date

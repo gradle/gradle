@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.LanguageRegistry
+import org.gradle.language.base.internal.LanguageRegistry
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.objectivec.ObjectiveCSourceSet
 import org.gradle.language.objectivec.internal.DefaultObjectiveCSourceSet
