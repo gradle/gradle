@@ -308,11 +308,6 @@ Add a binary type to the sample plugin:
         void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
             ... Create sample binaries for this library, one for each flavor. Add to the 'binaries' set.
         }
-
-        @Rule
-        void createTasksForSampleBinary(CollectionBuilder<Task> tasks, SampleBinary binary) {
-            ... Add tasks that create this binary. Create additional tasks where signing is required.
-        }
     }
 
 Binaries are now visible in the appropriate containers:
@@ -322,7 +317,7 @@ Binaries are now visible in the appropriate containers:
     assert binaries.withType(SampleBinary).size() == 4
     assert libraries[0].binaries.size() == 2
 
-Running `gradle assemble` will execute tasks for each library binary.
+Running `gradle assemble` will execute lifecycle task for each library binary.
 
 A custom binary:
 - Extends or implements some public base `LibraryBinary` type.
@@ -333,10 +328,8 @@ A custom binary:
 - For a library-producing plugin:
     - Inspect any declared rules that take the created library type as input, and produce LibraryBinary instances
       via a `CollectionBuilder<? extends LibraryBinary> parameter.
-    - Inspect any declared rules that take the created binary type as input, and produce Task instances
-      via a `CollectionBuilder<Task> parameter.
 - The binary-creation rule will be executed for each library when closing the BinariesContainer.
-- The task-creation rule will be executed for each binary when closing the TaskContainer.
+- For each created binary, create the lifecycle task
 - Document in the user guide how to use this. Include some samples.
 
 #### Open issues
@@ -344,6 +337,32 @@ A custom binary:
 - Public mechanism to 'implement' Binary and common subtypes such as ProjectBinary.
 - General mechanism to register a model collection and have rules that apply to each element of that collection.
 - Validation of binary names
+
+### Story: Custom plugin defines tasks from binaries
+
+Add a rule to the sample plugin:
+
+    class MySamplePlugin {
+        ...
+
+        @Rule
+        void createTasksForSampleBinary(CollectionBuilder<Task> tasks, SampleBinary binary) {
+            ... Add tasks that create this binary. Create additional tasks where signing is required.
+        }
+    }
+
+Running `gradle assemble` will execute tasks for each library binary.
+
+#### Implementation Plan
+
+- For a library-producing plugin:
+    - Inspect any declared rules that take the created binary type as input, and produce Task instances
+      via a `CollectionBuilder<Task> parameter.
+- The task-creation rule will be executed for each binary when closing the TaskContainer.
+- Document in the user guide how to use this. Include some samples.
+
+#### Open issues
+
 
 ### Story: Custom binary is built from Java sources
 
