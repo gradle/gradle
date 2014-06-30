@@ -18,10 +18,9 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 
-import java.io.Serializable;
 import java.util.Map;
 
-public class JarSnapshotData implements Serializable {
+public class JarSnapshotData {
 
     final Map<String, byte[]> hashes;
     final ClassDependencyInfo info;
