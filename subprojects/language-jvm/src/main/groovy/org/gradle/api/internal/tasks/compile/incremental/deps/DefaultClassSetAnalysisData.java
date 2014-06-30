@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import java.io.Serializable;
 import java.util.Map;
 
-class DefaultClassSetAnalysisData implements ClassSetAnalysisData {
+class DefaultClassSetAnalysisData implements ClassSetAnalysisData, Serializable {
 
     private final Map<String, DependentsSet> dependents;
 
