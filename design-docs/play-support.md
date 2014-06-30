@@ -8,11 +8,9 @@ There are 3 main use cases:
 - A developer runs a Play application during development.
 - A deployer runs a Play application. That is, a Play application is packaged up as a distribution which can be run in a production environment.
 
-# Milestone 1
+# Out of scope
 
-## Out of scope
-
-The following features are currently out of scope for this milestone, but certainly make sense for later work:
+The following features are currently out of scope for this spec, but certainly make sense for later work:
 
 - Building a Play application for multiple Scala versions. For now, the build for a given Play application will target a single Scala version.
   It will be possible to declare which version of Scala to build for.
@@ -24,13 +22,15 @@ The following features are currently out of scope for this milestone, but certai
 - Installing the Play tools on the build machine.
 - Migrating or importing SBT settings for a Play project.
 
-## Performance
+# Performance
 
 Performance should be comparable to SBT:
 
 - Building and starting an application.
 - Reload after a change.
 - Executing tests for an application.
+
+# Milestone 1
 
 ## Developer compiles Java and Scala source for Play application
 
@@ -86,9 +86,38 @@ developer may run `gradle stage` to stage the local application, or `gradle dist
 - Build distribution image and zips, as per `play stage` and `play dist`
 - Integrate with the distribution plugin.
 
+# Milestone 2
+
 ## Long running compiler daemon
 
 Reuse the compiler daemon across builds to keep the Scala compiler warmed up. This is also useful for the other compilers.
+
+## Keep running Play application up-to-date when source changes
+
+This story adds an equivalent of Play's continuous mode (i.e. developer adds ~ before a command such as play ~run), where Gradle
+monitors the source files for changes and rebuilds and restarts the application when some change is detected. Note that 'restart'
+here means a logical restart.
+
+Add a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. For example,
+a developer may run `gradle --watch <tasks>`.
+
+- Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
+- Monitor files that are inputs to the model for changes too.
+- When the tasks start a service, stop and restart the service(s) after rebuilding, or reload if supported by the service container.
+- The Play application container must support reload. According to the Play docs the plugin can simply recreate the application
+  ClassLoader.
+- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
+
+So:
+
+- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
+  restart the application.
+- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
+  Gradle would rerun the tests, rebuild and restart the Play application.
+- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
+
+Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
+For example, running `gradle --watch test run` would restart the application if a test source file changes.
 
 ## Developer triggers rebuild of running Play application
 
@@ -121,43 +150,12 @@ Adapt compiler output to the format expected by Play:
 - Asset compilation failures
 - Other verification task failures?
 
+# Milestone 3
+
 ## Documentation
 
 - Migrating an SBT based Play project to Gradle
 - Writing Gradle plugins that extend the base Play plugin
-
-# Milestone 2
-
-## Publish Play application to a binary repository
-
-Allow a Play application distribution to be published to a binary repository.
-
-## Keep running Play application up-to-date when source changes
-
-This story adds an equivalent of Play's continuous mode (i.e. developer adds ~ before a command such as play ~run), where Gradle
-monitors the source files for changes and rebuilds and restarts the application when some change is detected. Note that 'restart'
-here means a logical restart.
-
-Add a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. For example,
-a developer may run `gradle --watch <tasks>`.
-
-- Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
-- Monitor files that are inputs to the model for changes too.
-- When the tasks start a service, stop and restart the service(s) after rebuilding, or reload if supported by the service container.
-- The Play application container must support reload. According to the Play docs the plugin can simply recreate the application
-  ClassLoader.
-- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
-
-So:
-
-- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
-  restart the application.
-- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
-  Gradle would rerun the tests, rebuild and restart the Play application.
-- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
-
-Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
-For example, running `gradle --watch test run` would restart the application if a test source file changes.
 
 ## Native integration with Specs 2
 
@@ -195,6 +193,10 @@ Extend the build init plugin so that it can bootstrap a new Play project, produc
 an SBT build.
 
 # Later milestones
+
+## Publish Play application to a binary repository
+
+Allow a Play application distribution to be published to a binary repository.
 
 Some candidates for later work:
 
