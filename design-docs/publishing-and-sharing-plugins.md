@@ -474,7 +474,7 @@ The development/testing tooling can support loading non-declarative plugins in t
 
 This milestone enables plugin authors to start making their plugins (relatively as is) usable via `plugins {}`, and allows users to start using `plugins {}` (with some limitations)
 
-## Story: Introduce plugins DSL block
+## ~~Story: Introduce plugins DSL block~~
 
 Adds the `plugins {}` DSL to build scripts (settings, init or arbitrary script not supported at this point). Plugin specs can be specified in the DSL, but they don't do anything yet.
 
@@ -508,7 +508,7 @@ Adds the `plugins {}` DSL to build scripts (settings, init or arbitrary script n
 - ~~Plugin id cannot be empty string~~
 - ~~Plugin version cannot be empty string~~
   
-## Story: Can use plugins {} in build script to use core plugin
+## ~~Story: Can use plugins {} in build script to use core plugin~~
 
 This story makes it possible for the user to use the new application mechanism to apply core plugins.
 At this point, there's no real advantage to the user or us in this, other than fleshing out the mechanics
@@ -533,7 +533,7 @@ Note: plugins from buildSrc are not core plugins.
 - ~~`plugins { id "«non core plugin»" }` produces suitable 'not found' type error message~~
 - ~~Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)~~
 
-## Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
+## ~~Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes~~
 
 > This story doesn't strictly deal with the milestone goal, but is included in this milestone for historical reasons.
 > Moreover, it's a simpler story than adding support for non-declarative plugins and adding plugin resolution service support  in one step.
