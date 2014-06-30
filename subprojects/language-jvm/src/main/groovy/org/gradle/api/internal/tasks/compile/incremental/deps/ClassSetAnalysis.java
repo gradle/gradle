@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class ClassSetAnalysis implements Serializable {
+public class ClassSetAnalysis {
 
     private final ClassSetAnalysisData data;
 

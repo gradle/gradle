@@ -16,22 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
 
-public class DefaultDependentsSet implements Serializable, DependentsSet {
+public class DefaultDependentsSet implements DependentsSet {
 
     private final Set<String> dependentClasses = new HashSet<String>();
     private boolean dependencyToAll;
-
-    public DefaultDependentsSet(boolean dependencyToAll) {
-        this(dependencyToAll, Collections.<String>emptyList());
-    }
 
     public DefaultDependentsSet(Collection<String> dependentClasses) {
         this(false, dependentClasses);
