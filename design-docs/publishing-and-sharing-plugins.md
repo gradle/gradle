@@ -681,16 +681,7 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
 ## Story: Script plugins are able to use `plugins {}`
 
-## Story: Plugin author submits plugin for inclusion in plugins.gradle.org
-
-Includes:
-
-- Includes generating all necessary metadata (e.g. exported classes, plugin dependencies)
-- Tooling support for publishing in manner suitable for inclusion in plugins.gradle.org
-- Admin processes for including plugin, including acceptance policies etc.
-- Prevention of use of 'org.gradle' and 'com.gradleware' namespaces
-
-## Story: Build author searches for plugins using central Web UI
+## Story: Error message for unknown plugin or plugin version includes link to relevant human search interfaces
 
 ### Test Coverage
 
