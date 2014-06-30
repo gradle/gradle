@@ -17,9 +17,16 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.messaging.serialize.*;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDataSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.MapSerializer;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.util.Map;
+
+import static org.gradle.messaging.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
+import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
 
@@ -27,8 +34,8 @@ public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
     private final Serializer<ClassSetAnalysisData> analysisSerializer;
 
     public JarSnapshotDataSerializer() {
-        mapSerializer = new MapSerializer<String, byte[]>(new BaseSerializerFactory().getSerializerFor(String.class), new BaseSerializerFactory().getSerializerFor(byte[].class));
-        analysisSerializer = new BaseSerializerFactory().getSerializerFor(ClassSetAnalysisData.class);
+        mapSerializer = new MapSerializer<String, byte[]>(STRING_SERIALIZER, BYTE_ARRAY_SERIALIZER);
+        analysisSerializer = new ClassSetAnalysisDataSerializer();
     }
 
     public JarSnapshotData read(Decoder decoder) throws Exception {
