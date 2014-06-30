@@ -158,7 +158,8 @@ We would like to thank the following community members for making contributions 
 * [Vyacheslav Blinov](https://github.com/dant3) - PMD console output.
 * [Thibault Kruse](https://github.com/tkruse) - Documentation improvements.
 * [Biswa Dahal](https://github.com/ffos) - Dependency exclude support for `maven-publish`.
-* [Marcin Zajączkowski](https://github.com/szpak) - Improvements to groovy-library build template
+* [Marcin Zajączkowski](https://github.com/szpak) - Improvements to groovy-library build template.
+* [Chris Earle](https://github.com/pickypg) - Improvements to the distribution plugin.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
