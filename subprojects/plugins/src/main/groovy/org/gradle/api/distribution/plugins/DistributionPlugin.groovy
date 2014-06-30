@@ -106,22 +106,12 @@ class DistributionPlugin implements Plugin<Project> {
     private void addInstallTask(Project project, Distribution distribution) {
         def taskName = TASK_INSTALL_NAME
         if (MAIN_DISTRIBUTION_NAME != distribution.name) {
-            taskName = "install"+ distribution.name.capitalize() + "Dist"
+            taskName = "install" + distribution.name.capitalize() + "Dist"
         }
         def installTask = project.tasks.create(taskName, Sync)
-        installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
+        installTask.description = "Installs the project as a distribution as-is."
         installTask.group = DISTRIBUTION_GROUP
         installTask.with distribution.contents
         installTask.into { project.file("${project.buildDir}/install/${distribution.baseName}") }
-        installTask.doFirst {
-            if (destinationDir.directory) {
-                if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin').directory) {
-                    throw new GradleException("The specified installation directory '${destinationDir}' is neither empty nor does it contain an installation for '${distribution.name}'.\n" +
-                            "If you really want to install to this directory, delete it and run the install task again.\n" +
-                            "Alternatively, choose a different installation directory."
-                    )
-                }
-            }
-        }
     }
 }
