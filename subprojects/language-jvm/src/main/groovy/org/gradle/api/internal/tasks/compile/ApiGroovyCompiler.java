@@ -39,6 +39,7 @@ import org.gradle.util.VersionNumber;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.List;
@@ -129,9 +130,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {
-        VersionNumber version = VersionNumber.parse(GroovySystem.getVersion());
+        VersionNumber version = parseGroovyVersion();
         if (version.getMajor()<2 || (version.getMajor()>=2 && version.getMinor()<1)) {
-            throw new GradleException("Groovy configuration script requires Groovy 2.1+");
+            throw new GradleException("Groovy configuration script '"+configScript+"' requires Groovy 2.1+ but found Groovy "+version+"");
         }
         Binding binding = new Binding();
         binding.setVariable("configuration", configuration);
@@ -146,7 +147,28 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             shell.evaluate(configScript);
         } catch (IOException e) {
             throw new GradleException("Unable to parse Groovy compiler configuration script: "+configScript.getAbsolutePath(), e);
+        } catch (Exception e) {
+            throw new GradleException("Error while executing Groovy compiler configuration script: "+configScript.getAbsolutePath(), e);
         }
+    }
+
+    private VersionNumber parseGroovyVersion() {
+        String version = null;
+        try {
+            version = GroovySystem.getVersion();
+        } catch (Throwable e) {
+            if (NoSuchMethodError.class==e.getClass()) {
+                // for Groovy <1.6, we need to call org.codehaus.groovy.runtime.InvokerHelper#getVersion
+                try {
+                    Class<?> ih = Class.forName("org.codehaus.groovy.runtime.InvokerHelper");
+                    Method getVersion = ih.getDeclaredMethod("getVersion");
+                    version = (String) getVersion.invoke(ih);
+                } catch (Exception e1) {
+                    throw new GradleException("Unable to determine Groovy version number");
+                }
+            }
+        }
+        return VersionNumber.parse(version);
     }
 
     // Make sure that map only contains Boolean.TRUE and Boolean.FALSE values and no other Boolean instances.

@@ -155,6 +155,9 @@ public class GroovyCompileOptions extends AbstractOptions {
      *     ast(TypeChecked)
      * }</code></pre>
      * </p>
+     * <p>
+     *     This feature is only available if Groovy 2.1+ is found on the classpath.
+     * </p>
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfigurationBuilder.html">CompilerConfigurationBuilder</a>
      */
