@@ -21,7 +21,7 @@ import java.io.File;
 public class BaseSerializerFactory {
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     public static final Serializer<Long> LONG_SERIALIZER = new LongSerializer();
-    public static final Serializer FILE_SERIALIZER = new FileSerializer();
+    public static final Serializer<File> FILE_SERIALIZER = new FileSerializer();
     public static final Serializer<byte[]> BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
@@ -34,7 +34,7 @@ public class BaseSerializerFactory {
             return (Serializer) LONG_SERIALIZER;
         }
         if (type.equals(File.class)) {
-            return FILE_SERIALIZER;
+            return (Serializer) FILE_SERIALIZER;
         }
         if (type.equals(byte[].class)) {
             return (Serializer) BYTE_ARRAY_SERIALIZER;
