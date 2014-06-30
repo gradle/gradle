@@ -33,7 +33,7 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     def "knows dependencies of a java class"() {
         expect:
-        analyze(SomeOtherClass).classDependencies == [YetAnotherClass.name, SomeClass.name]
+        analyze(SomeOtherClass).classDependencies == [YetAnotherClass.name, SomeClass.name] as Set
     }
 
     def "knows basic class dependencies of a groovy class"() {
@@ -46,28 +46,28 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     def "knows if a class have non-private constants"() {
         expect:
-        analyze(HasNonPrivateConstants).classDependencies == [UsedByNonPrivateConstantsClass.name]
+        analyze(HasNonPrivateConstants).classDependencies == [UsedByNonPrivateConstantsClass.name] as Set
         analyze(HasNonPrivateConstants).dependencyToAll
 
-        analyze(HasPublicConstants).classDependencies == []
+        analyze(HasPublicConstants).classDependencies.isEmpty()
         analyze(HasPublicConstants).dependencyToAll
 
-        analyze(HasPrivateConstants).classDependencies == [HasNonPrivateConstants.name]
+        analyze(HasPrivateConstants).classDependencies == [HasNonPrivateConstants.name] as Set
         !analyze(HasPrivateConstants).dependencyToAll
     }
 
     def "knows if a class uses annotations"() {
         expect:
-        analyze(UsesRuntimeAnnotation).classDependencies == []
-        analyze(SomeRuntimeAnnotation).classDependencies == []
+        analyze(UsesRuntimeAnnotation).classDependencies.isEmpty()
+        analyze(SomeRuntimeAnnotation).classDependencies.isEmpty()
         analyze(SomeRuntimeAnnotation).dependencyToAll
 
-        analyze(UsesClassAnnotation).classDependencies == []
-        analyze(SomeClassAnnotation).classDependencies == []
+        analyze(UsesClassAnnotation).classDependencies.isEmpty()
+        analyze(SomeClassAnnotation).classDependencies.isEmpty()
         analyze(SomeClassAnnotation).dependencyToAll
 
-        analyze(UsesSourceAnnotation).classDependencies == [] //source annotations are wiped from the bytecode
-        analyze(SomeSourceAnnotation).classDependencies == []
+        analyze(UsesSourceAnnotation).classDependencies.isEmpty() //source annotations are wiped from the bytecode
+        analyze(SomeSourceAnnotation).classDependencies.isEmpty()
         analyze(SomeSourceAnnotation).dependencyToAll
     }
 

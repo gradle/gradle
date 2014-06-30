@@ -18,8 +18,10 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisSerializer;
 import org.gradle.cache.CacheRepository;
-import org.gradle.messaging.serialize.BaseSerializerFactory;
+
+import static org.gradle.messaging.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
 
 /**
  * Cross-process, global cache of class bytecode/dependency analysis. Required to make incremental java compilation fast.
@@ -28,7 +30,7 @@ import org.gradle.messaging.serialize.BaseSerializerFactory;
 public class DefaultClassAnalysisCache extends MinimalPersistentCache<byte[], ClassAnalysis> implements ClassAnalysisCache {
 
     public DefaultClassAnalysisCache(CacheRepository cacheRepository) {
-        //TODO SF BaseSerializerFactory.getSerializerFor - make it static
-        super(cacheRepository, "class analysis", new BaseSerializerFactory().getSerializerFor(byte[].class), new BaseSerializerFactory().getSerializerFor(ClassAnalysis.class));
+        //TODO SF BaseSerializerFactory.getSerializerFor - make it static or use static fields consistently here
+        super(cacheRepository, "class analysis", BYTE_ARRAY_SERIALIZER, new ClassAnalysisSerializer());
     }
 }
