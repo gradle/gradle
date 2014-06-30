@@ -16,9 +16,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.util.Matchers
 import org.hamcrest.Matcher
-import org.junit.Assert
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
@@ -150,7 +148,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
-        Assert.assertThat(output, Matchers.containsText("org/gradle/Class1Test\\.java:1:\\s+Empty initializer was found"))
+        output.contains "Class1Test.java:1:\tEmpty initializer was found"
     }
 
     private void writeBuildFile() {
@@ -192,7 +190,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     private customRuleSet() {
-        file ("customRuleSet.xml") << """
+        file("customRuleSet.xml") << """
             <ruleset name="custom"
                 xmlns="http://pmd.sf.net/ruleset/1.0.0"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
