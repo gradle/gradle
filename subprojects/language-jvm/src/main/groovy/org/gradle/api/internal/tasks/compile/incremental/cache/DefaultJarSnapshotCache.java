@@ -37,8 +37,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
     private final MinimalPersistentCache<byte[], JarSnapshotData> cache;
 
     public DefaultJarSnapshotCache(CacheRepository cacheRepository) {
-        BaseSerializerFactory f = new BaseSerializerFactory();
-        cache = new MinimalPersistentCache<byte[], JarSnapshotData>(cacheRepository, "jar snapshots", f.getSerializerFor(byte[].class), new JarSnapshotDataSerializer());
+        cache = new MinimalPersistentCache<byte[], JarSnapshotData>(cacheRepository, "jar snapshots", BaseSerializerFactory.BYTE_ARRAY_SERIALIZER, new JarSnapshotDataSerializer());
     }
 
     public Map<File, JarSnapshot> getJarSnapshots(final Map<File, byte[]> jarHashes) {

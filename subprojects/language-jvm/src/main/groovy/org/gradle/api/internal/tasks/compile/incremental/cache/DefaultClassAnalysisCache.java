@@ -30,7 +30,6 @@ import static org.gradle.messaging.serialize.BaseSerializerFactory.BYTE_ARRAY_SE
 public class DefaultClassAnalysisCache extends MinimalPersistentCache<byte[], ClassAnalysis> implements ClassAnalysisCache {
 
     public DefaultClassAnalysisCache(CacheRepository cacheRepository) {
-        //TODO SF BaseSerializerFactory.getSerializerFor - make it static or use static fields consistently here
         super(cacheRepository, "class analysis", BYTE_ARRAY_SERIALIZER, new ClassAnalysisSerializer());
     }
 }
