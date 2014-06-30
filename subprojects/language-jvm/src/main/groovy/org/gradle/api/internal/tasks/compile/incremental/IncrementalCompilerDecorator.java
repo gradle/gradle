@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -68,12 +69,12 @@ public class IncrementalCompilerDecorator {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
-        ClassSetAnalysis analysis = compileCaches.getLocalClassSetAnalysisStore().get();
-        if (analysis == null) {
+        ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
+        if (data == null) {
             LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
-        PreviousCompilation previousCompilation = new PreviousCompilation(analysis, compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
+        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
         return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
     }
 }

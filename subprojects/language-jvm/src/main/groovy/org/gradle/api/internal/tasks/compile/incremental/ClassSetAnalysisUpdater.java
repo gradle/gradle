@@ -20,8 +20,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisExtractor;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassFilesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisWriter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -44,10 +44,10 @@ public class ClassSetAnalysisUpdater {
     public void updateAnalysis(JavaCompileSpec spec) {
         Clock clock = new Clock();
         FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
-        ClassSetAnalysisExtractor extractor = new ClassSetAnalysisExtractor(analyzer);
-        tree.visit(extractor);
-        ClassSetAnalysis a = extractor.getAnalysis();
-        writer.put(a);
+        ClassFilesAnalyzer analyzer = new ClassFilesAnalyzer(this.analyzer);
+        tree.visit(analyzer);
+        ClassSetAnalysisData data = analyzer.getAnalysis();
+        writer.put(data);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getTime());
     }
 }

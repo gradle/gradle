@@ -17,16 +17,17 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class ClassSetAnalysis implements Serializable {
 
-    //TODO SF refactor all persistent objects into data objects because it's cleaner and easier to add hand crafted serialization
+    private final ClassSetAnalysisData data;
 
-    private final Map<String, ? extends DependentsSet> dependents;
-
-    public ClassSetAnalysis(Map<String, ? extends DependentsSet> dependents) {
-        this.dependents = dependents;
+    public ClassSetAnalysis(ClassSetAnalysisData data) {
+        this.data = data;
     }
 
     public DependentsSet getRelevantDependents(Iterable<String> classes) {
@@ -42,7 +43,7 @@ public class ClassSetAnalysis implements Serializable {
     }
 
     public DependentsSet getRelevantDependents(String className) {
-        DependentsSet deps = dependents.get(className);
+        DependentsSet deps = data.getDependents(className);
         if (deps == null) {
             return new DefaultDependentsSet();
         }
@@ -56,7 +57,7 @@ public class ClassSetAnalysis implements Serializable {
     }
 
     public boolean isDependencyToAll(String className) {
-        DependentsSet deps = dependents.get(className);
+        DependentsSet deps = data.getDependents(className);
         return deps != null && deps.isDependencyToAll();
     }
 
@@ -68,8 +69,12 @@ public class ClassSetAnalysis implements Serializable {
             if (!d.contains("$")) { //filter out the inner classes
                 result.add(d);
             }
-            DependentsSet currentDependents = dependents.get(d);
+            DependentsSet currentDependents = data.getDependents(d);
             recurseDependents(visited, result, currentDependents.getDependentClasses());
         }
+    }
+
+    public ClassSetAnalysisData getData() {
+        return data;
     }
 }

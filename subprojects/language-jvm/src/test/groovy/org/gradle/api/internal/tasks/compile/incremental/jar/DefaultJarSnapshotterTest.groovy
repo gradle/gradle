@@ -22,8 +22,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassFilesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisExtractor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -46,17 +46,17 @@ class DefaultJarSnapshotterTest extends Specification {
     def "creates snapshot of a jar with classes"() {
         def f1 = temp.createFile("foo/Foo.class")
         def f2 = temp.createFile("foo/com/Foo2.class")
-        def extractor = Mock(ClassSetAnalysisExtractor)
+        def analyzer = Mock(ClassFilesAnalyzer)
         def analysis = Stub(ClassSetAnalysis)
 
         when:
-        def snapshot = snapshotter.createSnapshot(new byte[0], new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), extractor)
+        def snapshot = snapshotter.createSnapshot(new byte[0], new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), analyzer)
 
         then:
-        2 * extractor.visitFile(_)
+        2 * analyzer.visitFile(_)
         1 * hasher.hash(f1)
         1 * hasher.hash(f2)
-        1 * extractor.getAnalysis() >> analysis
+        1 * analyzer.getAnalysis() >> analysis
         0 * _._
 
         and:

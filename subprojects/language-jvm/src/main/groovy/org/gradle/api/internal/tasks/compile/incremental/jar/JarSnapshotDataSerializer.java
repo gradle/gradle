@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.messaging.serialize.*;
 
 import java.util.Map;
@@ -24,23 +24,23 @@ import java.util.Map;
 public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
 
     private final MapSerializer<String, byte[]> mapSerializer;
-    private final Serializer<ClassSetAnalysis> analysisSerializer;
+    private final Serializer<ClassSetAnalysisData> analysisSerializer;
 
     public JarSnapshotDataSerializer() {
         mapSerializer = new MapSerializer<String, byte[]>(new BaseSerializerFactory().getSerializerFor(String.class), new BaseSerializerFactory().getSerializerFor(byte[].class));
-        analysisSerializer = new BaseSerializerFactory().getSerializerFor(ClassSetAnalysis.class);
+        analysisSerializer = new BaseSerializerFactory().getSerializerFor(ClassSetAnalysisData.class);
     }
 
     public JarSnapshotData read(Decoder decoder) throws Exception {
         byte[] hash = decoder.readBinary();
         Map<String, byte[]> hashes = mapSerializer.read(decoder);
-        ClassSetAnalysis a = analysisSerializer.read(decoder);
-        return new JarSnapshotData(hash, hashes, a);
+        ClassSetAnalysisData data = analysisSerializer.read(decoder);
+        return new JarSnapshotData(hash, hashes, data);
     }
 
     public void write(Encoder encoder, JarSnapshotData value) throws Exception {
         encoder.writeBinary(value.hash);
         mapSerializer.write(encoder, value.hashes);
-        analysisSerializer.write(encoder, value.analysis);
+        analysisSerializer.write(encoder, value.data);
     }
 }

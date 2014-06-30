@@ -17,5 +17,5 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 public interface ClassSetAnalysisProvider {
-    ClassSetAnalysis get();
+    ClassSetAnalysisData get();
 }

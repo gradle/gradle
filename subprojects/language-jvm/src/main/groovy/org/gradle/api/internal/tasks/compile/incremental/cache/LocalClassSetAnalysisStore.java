@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.SingleOperationPersistentStore;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisProvider;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisWriter;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -26,18 +26,18 @@ import org.gradle.cache.CacheRepository;
 //Keeps the class set analysis of the given JavaCompile task
 public class LocalClassSetAnalysisStore implements ClassSetAnalysisProvider, ClassSetAnalysisWriter {
 
-    private SingleOperationPersistentStore<ClassSetAnalysis> store;
+    private SingleOperationPersistentStore<ClassSetAnalysisData> store;
 
     public LocalClassSetAnalysisStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        this.store = new SingleOperationPersistentStore<ClassSetAnalysis>(cacheRepository, javaCompile, "local class set analysis", ClassSetAnalysis.class);
+        this.store = new SingleOperationPersistentStore<ClassSetAnalysisData>(cacheRepository, javaCompile, "local class set analysis", ClassSetAnalysisData.class);
     }
 
-    public void put(ClassSetAnalysis analysis) {
+    public void put(ClassSetAnalysisData analysis) {
         store.putAndClose(analysis);
     }
 
-    public ClassSetAnalysis get() {
-        return this.store.getAndClose();
+    public ClassSetAnalysisData get() {
+        return store.getAndClose();
     }
 }
