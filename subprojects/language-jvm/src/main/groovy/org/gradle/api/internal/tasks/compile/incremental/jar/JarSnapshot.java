@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.*;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,10 +32,6 @@ public class JarSnapshot {
 
     public JarSnapshot(JarSnapshotData data) {
         this.data = data;
-    }
-
-    public JarSnapshot(byte[] hash, Map<String, byte[]> hashes, ClassSetAnalysisData data) {
-        this.data = new JarSnapshotData(hash, hashes, data);
     }
 
     public DependentsSet getAllClasses() {

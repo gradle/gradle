@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassFilesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -47,7 +47,6 @@ class DefaultJarSnapshotterTest extends Specification {
         def f1 = temp.createFile("foo/Foo.class")
         def f2 = temp.createFile("foo/com/Foo2.class")
         def analyzer = Mock(ClassFilesAnalyzer)
-        def analysis = Stub(ClassSetAnalysis)
 
         when:
         def snapshot = snapshotter.createSnapshot(new byte[0], new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), analyzer)
@@ -56,11 +55,11 @@ class DefaultJarSnapshotterTest extends Specification {
         2 * analyzer.visitFile(_)
         1 * hasher.hash(f1)
         1 * hasher.hash(f2)
-        1 * analyzer.getAnalysis() >> analysis
+        1 * analyzer.getAnalysis() >> Stub(ClassSetAnalysisData)
         0 * _._
 
         and:
         snapshot.hashes.keySet() == ["Foo", "com.Foo2"] as Set
-        snapshot.analysis == analysis
+        snapshot.analysis
     }
 }

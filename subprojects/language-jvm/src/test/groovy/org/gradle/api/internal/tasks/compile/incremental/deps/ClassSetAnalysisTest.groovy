@@ -22,13 +22,17 @@ import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDepe
 
 class ClassSetAnalysisTest extends Specification {
 
+    ClassSetAnalysis analysis(Map<String, DependentsSet> dependents) {
+        new ClassSetAnalysis(new DefaultClassSetAnalysisData(dependents))
+    }
+
     def "returns empty analysis"() {
-        def a = new ClassSetAnalysis([:])
+        def a = analysis([:])
         expect: a.getRelevantDependents("Foo").dependentClasses.isEmpty()
     }
 
     def "does not recurse if root class is a dependency to all"() {
-        def a = new ClassSetAnalysis(["Foo": new DefaultDependentsSet(true, ["Bar"])])
+        def a = analysis(["Foo": new DefaultDependentsSet(true, ["Bar"])])
         def deps = a.getRelevantDependents("Foo")
 
         expect:
@@ -39,7 +43,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "marks as dependency to all only if root class is a dependency to all"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "a":   new DefaultDependentsSet(false, ['b']),
                 'b': new DefaultDependentsSet(true, ['c']),
                 "c": new DefaultDependentsSet(true, [])
@@ -52,7 +56,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "recurses nested dependencies"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "Foo": dependents("Bar"),
                 "Bar": dependents("Baz"),
                 "Baz": dependents(),
@@ -66,7 +70,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "recurses multiple dependencies"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "a": dependents("b", "c"),
                 "b": dependents("d"),
                 "c": dependents("e"),
@@ -80,7 +84,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "removes self from dependents"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "Foo": dependents("Foo")
         ])
         def deps = a.getRelevantDependents("Foo")
@@ -90,7 +94,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "handles dependency cycles"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "Foo": dependents("Bar"),
                 "Bar": dependents("Baz"),
                 "Baz": dependents("Foo"),
@@ -102,7 +106,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "recurses but filters out inner classes"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "a":   dependents('a$b', 'c'),
                 'a$b': dependents('d'),
                 "c": dependents(),
@@ -115,7 +119,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "handles cycles with inner classes"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "a":   dependents('a$b'),
                 'a$b': dependents('a$b', 'c'),
                 "c": dependents()
@@ -127,7 +131,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "provides dependents of all input classes"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "A": dependents("B"), "B": dependents(),
                 "C": dependents("D"), "D": dependents(),
                 "E": dependents("D"), "F": dependents(),
@@ -139,7 +143,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "provides recursive dependents of all input classes"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "A": dependents("B"), "B": dependents("C"), "C": dependents(),
                 "D": dependents("E"), "E": dependents(),
                 "F": dependents("G"), "G": dependents(),
@@ -151,7 +155,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "knows when any of the input classes is a dependency to all"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "A": dependents("B"), "B": dependents(),
                 "C": new DefaultDependentsSet(true, []),
                 "D": dependents("E"), "E": dependents(),
@@ -163,7 +167,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "knows when input class is a dependency to all"() {
-        def a = new ClassSetAnalysis([
+        def a = analysis([
                 "A": dependents("B"), "B": dependents(),
                 "C": new DefaultDependentsSet(true, []),
         ])
