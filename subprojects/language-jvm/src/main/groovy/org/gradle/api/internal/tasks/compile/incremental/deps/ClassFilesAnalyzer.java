@@ -30,13 +30,13 @@ public class ClassFilesAnalyzer implements FileVisitor {
     private final ClassDependentsAccumulator accumulator;
 
     public ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer) {
-        this(analyzer, "");
+        this(analyzer, "", new ClassDependentsAccumulator(""));
     }
 
-    ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer, String packagePrefix) {
+    ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer, String packagePrefix, ClassDependentsAccumulator accumulator) {
         this.analyzer = analyzer;
         this.packagePrefix = packagePrefix;
-        accumulator = new ClassDependentsAccumulator(packagePrefix);
+        this.accumulator = accumulator;
     }
 
     public void visitDir(FileVisitDetails dirDetails) {}

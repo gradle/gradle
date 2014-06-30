@@ -18,35 +18,44 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps
 
-import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.test.*
-import org.gradle.internal.classloader.ClasspathUtil
-import spock.lang.Ignore
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Ignore //TODO SF tighten and refactor the coverage, use mocks
 class ClassFilesAnalyzerTest extends Specification {
 
-    @Subject analyzer = new ClassFilesAnalyzer(new DefaultClassDependenciesAnalyzer(), "org.gradle.api.internal.tasks.compile.incremental.test")
+    def classAnalyzer = Mock(ClassDependenciesAnalyzer)
+    def accumulator = Mock(ClassDependentsAccumulator)
+    @Subject analyzer = new ClassFilesAnalyzer(classAnalyzer, "org.foo", accumulator)
 
-    def "knows relevant dependents"() {
-        def classesDir = ClasspathUtil.getClasspathForClass(ClassFilesAnalyzerTest)
-        def tree = new FileTreeAdapter(new DirectoryFileTree(classesDir))
+    def "does not visit dirs"() {
+        when: analyzer.visitDir(null)
+        then: 0 * _
+    }
 
-        when:
-        tree.visit(analyzer)
-        def a = analyzer.analysis
+    def "does not visit non .class files"() {
+        def details = Stub(FileVisitDetails) { getName() >> "foo.xml"}
+        when: analyzer.visitFile(details)
+        then: 0 * _
+    }
 
+    def "is sensitive to package prefix"() {
+        def details = Stub(FileVisitDetails) { getPath() >> "com/foo/Foo.class"}
+        when: analyzer.visitFile(details)
+        then: 0 * _
+    }
+
+    def "accumulates dependencies"() {
+        def details = Stub(FileVisitDetails) {
+            getPath() >> "org/foo/Foo.class"
+            getFile() >> new File("Foo.class")
+        }
+        when: analyzer.visitFile(details)
         then:
-        a.getRelevantDependents(SomeClass.name).dependentClasses == [SomeOtherClass.name] as Set
-        a.getRelevantDependents(SomeOtherClass.name).dependentClasses == [] as Set
-        a.getRelevantDependents(YetAnotherClass.name).dependentClasses == [SomeOtherClass.name] as Set
-        a.getRelevantDependents(AccessedFromPrivateClass.name).dependentClasses == [SomeClass.name, SomeOtherClass.name] as Set
-        a.getRelevantDependents(HasPrivateConstants.name).dependentClasses == [] as Set
-        a.getRelevantDependents(UsedByNonPrivateConstantsClass.name).dependentClasses == [HasNonPrivateConstants.name, HasPrivateConstants.name] as Set
-        a.getRelevantDependents(HasNonPrivateConstants.name).dependencyToAll
+        1 * classAnalyzer.getClassAnalysis("org.foo.Foo", new File("Foo.class")) >> new ClassAnalysis(new HashSet(["A"]), true)
+        1 * accumulator.addClass("org.foo.Foo", true, new HashSet(["A"]))
+        0 * _
     }
 }
