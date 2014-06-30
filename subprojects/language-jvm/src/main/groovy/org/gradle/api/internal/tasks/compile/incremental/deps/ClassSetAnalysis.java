@@ -19,13 +19,13 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import java.io.Serializable;
 import java.util.*;
 
-public class ClassDependencyInfo implements Serializable {
+public class ClassSetAnalysis implements Serializable {
 
     //TODO SF refactor all persistent objects into data objects because it's cleaner and easier to add hand crafted serialization
 
     private final Map<String, ? extends DependentsSet> dependents;
 
-    public ClassDependencyInfo(Map<String, ? extends DependentsSet> dependents) {
+    public ClassSetAnalysis(Map<String, ? extends DependentsSet> dependents) {
         this.dependents = dependents;
     }
 

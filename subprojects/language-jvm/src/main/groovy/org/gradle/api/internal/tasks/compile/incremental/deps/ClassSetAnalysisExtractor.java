@@ -23,17 +23,17 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenc
 
 import java.io.File;
 
-public class ClassDependencyInfoExtractor implements FileVisitor {
+public class ClassSetAnalysisExtractor implements FileVisitor {
 
     private final ClassDependenciesAnalyzer analyzer;
     private final String packagePrefix;
     private final ClassDependentsAccumulator accumulator;
 
-    public ClassDependencyInfoExtractor(ClassDependenciesAnalyzer analyzer) {
+    public ClassSetAnalysisExtractor(ClassDependenciesAnalyzer analyzer) {
         this(analyzer, "");
     }
 
-    ClassDependencyInfoExtractor(ClassDependenciesAnalyzer analyzer, String packagePrefix) {
+    ClassSetAnalysisExtractor(ClassDependenciesAnalyzer analyzer, String packagePrefix) {
         this.analyzer = analyzer;
         this.packagePrefix = packagePrefix;
         accumulator = new ClassDependentsAccumulator(packagePrefix);
@@ -55,7 +55,7 @@ public class ClassDependencyInfoExtractor implements FileVisitor {
         accumulator.addClass(className, analysis.isDependencyToAll(), analysis.getClassDependencies());
     }
 
-    public ClassDependencyInfo getDependencyInfo() {
-        return new ClassDependencyInfo(accumulator.getDependentsMap());
+    public ClassSetAnalysis getAnalysis() {
+        return new ClassSetAnalysis(accumulator.getDependentsMap());
     }
 }

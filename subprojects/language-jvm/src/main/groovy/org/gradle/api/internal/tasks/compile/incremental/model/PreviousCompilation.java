@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.model;
 
 import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
@@ -29,19 +29,19 @@ import java.util.Set;
 
 public class PreviousCompilation {
 
-    private ClassDependencyInfo dependencyInfo;
+    private ClassSetAnalysis analysis;
     private LocalJarClasspathSnapshotStore classpathSnapshotStore;
     private final JarSnapshotCache jarSnapshotCache;
     private Map<File, JarSnapshot> jarSnapshots;
 
-    public PreviousCompilation(ClassDependencyInfo dependencyInfo, LocalJarClasspathSnapshotStore classpathSnapshotStore, JarSnapshotCache jarSnapshotCache) {
-        this.dependencyInfo = dependencyInfo;
+    public PreviousCompilation(ClassSetAnalysis analysis, LocalJarClasspathSnapshotStore classpathSnapshotStore, JarSnapshotCache jarSnapshotCache) {
+        this.analysis = analysis;
         this.classpathSnapshotStore = classpathSnapshotStore;
         this.jarSnapshotCache = jarSnapshotCache;
     }
 
     public DependentsSet getDependents(Set<String> allClasses) {
-        return dependencyInfo.getRelevantDependents(allClasses);
+        return analysis.getRelevantDependents(allClasses);
     }
 
     public JarSnapshot getJarSnapshot(File file) {
@@ -53,6 +53,6 @@ public class PreviousCompilation {
     }
 
     public DependentsSet getDependents(String className) {
-        return dependencyInfo.getRelevantDependents(className);
+        return analysis.getRelevantDependents(className);
     }
 }

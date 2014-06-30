@@ -43,7 +43,7 @@ public class DefaultCompileCaches implements CompileCaches {
         return new LocalJarClasspathSnapshotStore(repository, javaCompile);
     }
 
-    public LocalClassDependencyInfoStore getLocalClassDependencyInfoStore() {
-        return new LocalClassDependencyInfoStore(repository, javaCompile);
+    public LocalClassSetAnalysisStore getLocalClassSetAnalysisStore() {
+        return new LocalClassSetAnalysisStore(repository, javaCompile);
     }
 }

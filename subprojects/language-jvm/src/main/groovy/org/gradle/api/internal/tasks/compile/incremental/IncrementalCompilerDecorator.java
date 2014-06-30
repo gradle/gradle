@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -36,13 +36,13 @@ public class IncrementalCompilerDecorator {
     private final CleaningJavaCompiler cleaningCompiler;
     private final String displayName;
     private final RecompilationSpecProvider staleClassDetecter;
-    private final ClassDependencyInfoUpdater classDependencyInfoUpdater;
+    private final ClassSetAnalysisUpdater classSetAnalysisUpdater;
     private final CompilationSourceDirs sourceDirs;
     private final IncrementalCompilationInitializer compilationInitializer;
 
     public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, CompileCaches compileCaches,
                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
-                                        RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater,
+                                        RecompilationSpecProvider staleClassDetecter, ClassSetAnalysisUpdater classSetAnalysisUpdater,
                                         CompilationSourceDirs sourceDirs) {
         this.jarClasspathSnapshotMaker = jarClasspathSnapshotMaker;
         this.compileCaches = compileCaches;
@@ -50,13 +50,13 @@ public class IncrementalCompilerDecorator {
         this.cleaningCompiler = cleaningCompiler;
         this.displayName = displayName;
         this.staleClassDetecter = staleClassDetecter;
-        this.classDependencyInfoUpdater = classDependencyInfoUpdater;
+        this.classSetAnalysisUpdater = classSetAnalysisUpdater;
         this.sourceDirs = sourceDirs;
     }
 
     public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs) {
         final Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalCompilationFinalizer(compiler, jarClasspathSnapshotMaker, classDependencyInfoUpdater);
+        return new IncrementalCompilationFinalizer(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater);
     }
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
@@ -68,12 +68,12 @@ public class IncrementalCompilerDecorator {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
-        ClassDependencyInfo classDependencyInfo = compileCaches.getLocalClassDependencyInfoStore().get();
-        if (classDependencyInfo == null) {
+        ClassSetAnalysis analysis = compileCaches.getLocalClassSetAnalysisStore().get();
+        if (analysis == null) {
             LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
-        PreviousCompilation previousCompilation = new PreviousCompilation(classDependencyInfo, compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
+        PreviousCompilation previousCompilation = new PreviousCompilation(analysis, compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
         return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
     }
 }

@@ -20,16 +20,16 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
 
-class ClassDependencyInfoTest extends Specification {
+class ClassSetAnalysisTest extends Specification {
 
-    def "returns empty info"() {
-        def info = new ClassDependencyInfo([:])
-        expect: info.getRelevantDependents("Foo").dependentClasses.isEmpty()
+    def "returns empty analysis"() {
+        def a = new ClassSetAnalysis([:])
+        expect: a.getRelevantDependents("Foo").dependentClasses.isEmpty()
     }
 
     def "does not recurse if root class is a dependency to all"() {
-        def info = new ClassDependencyInfo(["Foo": new DefaultDependentsSet(true, ["Bar"])])
-        def deps = info.getRelevantDependents("Foo")
+        def a = new ClassSetAnalysis(["Foo": new DefaultDependentsSet(true, ["Bar"])])
+        def deps = a.getRelevantDependents("Foo")
 
         expect:
         deps.dependencyToAll
@@ -39,12 +39,12 @@ class ClassDependencyInfoTest extends Specification {
     }
 
     def "marks as dependency to all only if root class is a dependency to all"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "a":   new DefaultDependentsSet(false, ['b']),
                 'b': new DefaultDependentsSet(true, ['c']),
                 "c": new DefaultDependentsSet(true, [])
         ])
-        def deps = info.getRelevantDependents("a")
+        def deps = a.getRelevantDependents("a")
 
         expect:
         deps.dependentClasses == ['b', 'c'] as Set
@@ -52,124 +52,124 @@ class ClassDependencyInfoTest extends Specification {
     }
 
     def "recurses nested dependencies"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "Foo": dependents("Bar"),
                 "Bar": dependents("Baz"),
                 "Baz": dependents(),
         ])
-        def deps = info.getRelevantDependents("Foo")
+        def deps = a.getRelevantDependents("Foo")
 
         expect:
         deps.dependentClasses == ["Bar", "Baz"] as Set
-        info.getRelevantDependents("Bar").dependentClasses == ["Baz"] as Set
-        info.getRelevantDependents("Baz").dependentClasses == [] as Set
+        a.getRelevantDependents("Bar").dependentClasses == ["Baz"] as Set
+        a.getRelevantDependents("Baz").dependentClasses == [] as Set
     }
 
     def "recurses multiple dependencies"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "a": dependents("b", "c"),
                 "b": dependents("d"),
                 "c": dependents("e"),
                 "d": dependents(),
                 "e": dependents()
         ])
-        def deps = info.getRelevantDependents("a")
+        def deps = a.getRelevantDependents("a")
 
         expect:
         deps.dependentClasses == ["b", "c", "d", "e"] as Set
     }
 
     def "removes self from dependents"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "Foo": dependents("Foo")
         ])
-        def deps = info.getRelevantDependents("Foo")
+        def deps = a.getRelevantDependents("Foo")
 
         expect:
         deps.dependentClasses == [] as Set
     }
 
     def "handles dependency cycles"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "Foo": dependents("Bar"),
                 "Bar": dependents("Baz"),
                 "Baz": dependents("Foo"),
         ])
-        def deps = info.getRelevantDependents("Foo")
+        def deps = a.getRelevantDependents("Foo")
 
         expect:
         deps.dependentClasses == ["Bar", "Baz"] as Set
     }
 
     def "recurses but filters out inner classes"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "a":   dependents('a$b', 'c'),
                 'a$b': dependents('d'),
                 "c": dependents(),
                 "d": dependents(),
         ])
-        def deps = info.getRelevantDependents("a")
+        def deps = a.getRelevantDependents("a")
 
         expect:
         deps.dependentClasses == ["c", "d"] as Set
     }
 
     def "handles cycles with inner classes"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "a":   dependents('a$b'),
                 'a$b': dependents('a$b', 'c'),
                 "c": dependents()
         ])
-        def deps = info.getRelevantDependents("a")
+        def deps = a.getRelevantDependents("a")
 
         expect:
         deps.dependentClasses == ["c"] as Set
     }
 
     def "provides dependents of all input classes"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "A": dependents("B"), "B": dependents(),
                 "C": dependents("D"), "D": dependents(),
                 "E": dependents("D"), "F": dependents(),
         ])
-        def deps = info.getRelevantDependents(["A", "E"])
+        def deps = a.getRelevantDependents(["A", "E"])
 
         expect:
         deps.dependentClasses == ["D", "B"] as Set
     }
 
     def "provides recursive dependents of all input classes"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "A": dependents("B"), "B": dependents("C"), "C": dependents(),
                 "D": dependents("E"), "E": dependents(),
                 "F": dependents("G"), "G": dependents(),
         ])
-        def deps = info.getRelevantDependents(["A", "D"])
+        def deps = a.getRelevantDependents(["A", "D"])
 
         expect:
         deps.dependentClasses == ["E", "B", "C"] as Set
     }
 
     def "knows when any of the input classes is a dependency to all"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "A": dependents("B"), "B": dependents(),
                 "C": new DefaultDependentsSet(true, []),
                 "D": dependents("E"), "E": dependents(),
         ])
-        def deps = info.getRelevantDependents(["A", "C", "will not be reached"])
+        def deps = a.getRelevantDependents(["A", "C", "will not be reached"])
 
         expect:
         deps.dependencyToAll
     }
 
     def "knows when input class is a dependency to all"() {
-        def info = new ClassDependencyInfo([
+        def a = new ClassSetAnalysis([
                 "A": dependents("B"), "B": dependents(),
                 "C": new DefaultDependentsSet(true, []),
         ])
         expect:
-        !info.isDependencyToAll("A")
-        info.isDependencyToAll("C")
-        !info.isDependencyToAll("Unknown")
+        !a.isDependencyToAll("A")
+        a.isDependencyToAll("C")
+        !a.isDependencyToAll("Unknown")
     }
 }

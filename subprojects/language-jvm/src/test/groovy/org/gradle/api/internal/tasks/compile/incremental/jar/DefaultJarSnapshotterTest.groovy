@@ -22,8 +22,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisExtractor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -40,14 +40,14 @@ class DefaultJarSnapshotterTest extends Specification {
         expect:
         def snapshot = snapshotter.createSnapshot(new byte[0], new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing")))))
         snapshot.hashes.isEmpty()
-        snapshot.info
+        snapshot.analysis
     }
 
     def "creates snapshot of a jar with classes"() {
         def f1 = temp.createFile("foo/Foo.class")
         def f2 = temp.createFile("foo/com/Foo2.class")
-        def extractor = Mock(ClassDependencyInfoExtractor)
-        def info = Stub(ClassDependencyInfo)
+        def extractor = Mock(ClassSetAnalysisExtractor)
+        def analysis = Stub(ClassSetAnalysis)
 
         when:
         def snapshot = snapshotter.createSnapshot(new byte[0], new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), extractor)
@@ -56,11 +56,11 @@ class DefaultJarSnapshotterTest extends Specification {
         2 * extractor.visitFile(_)
         1 * hasher.hash(f1)
         1 * hasher.hash(f2)
-        1 * extractor.getDependencyInfo() >> info
+        1 * extractor.getAnalysis() >> analysis
         0 * _._
 
         and:
         snapshot.hashes.keySet() == ["Foo", "com.Foo2"] as Set
-        snapshot.info == info
+        snapshot.analysis == analysis
     }
 }

@@ -26,13 +26,13 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
 
     private final Compiler<JavaCompileSpec> delegate;
     private final JarClasspathSnapshotWriter writer;
-    private final ClassDependencyInfoUpdater dependencyInfoUpdater;
+    private final ClassSetAnalysisUpdater updater;
 
     public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer,
-                                           ClassDependencyInfoUpdater dependencyInfoUpdater) {
+                                           ClassSetAnalysisUpdater updater) {
         this.delegate = delegate;
         this.writer = writer;
-        this.dependencyInfoUpdater = dependencyInfoUpdater;
+        this.updater = updater;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
@@ -40,8 +40,8 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
 
         if (!(out instanceof RecompilationNotNecessary)) {
             //if recompilation was skipped
-            //there's no point in updating the info because we have exactly the same output classes)
-            dependencyInfoUpdater.updateInfo(spec);
+            //there's no point in updating because we have exactly the same output classes)
+            updater.updateAnalysis(spec);
         }
 
         writer.storeJarSnapshots(spec.getClasspath());

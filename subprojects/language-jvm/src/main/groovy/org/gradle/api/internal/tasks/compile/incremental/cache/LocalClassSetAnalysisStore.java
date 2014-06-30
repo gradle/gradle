@@ -17,27 +17,27 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.SingleOperationPersistentStore;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisProvider;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisWriter;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
-//Keeps the class dependency info of the given JavaCompile task
-public class LocalClassDependencyInfoStore implements ClassDependencyInfoProvider, ClassDependencyInfoWriter {
+//Keeps the class set analysis of the given JavaCompile task
+public class LocalClassSetAnalysisStore implements ClassSetAnalysisProvider, ClassSetAnalysisWriter {
 
-    private SingleOperationPersistentStore<ClassDependencyInfo> store;
+    private SingleOperationPersistentStore<ClassSetAnalysis> store;
 
-    public LocalClassDependencyInfoStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
+    public LocalClassSetAnalysisStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        this.store = new SingleOperationPersistentStore<ClassDependencyInfo>(cacheRepository, javaCompile, "local class dependency info", ClassDependencyInfo.class);
+        this.store = new SingleOperationPersistentStore<ClassSetAnalysis>(cacheRepository, javaCompile, "local class set analysis", ClassSetAnalysis.class);
     }
 
-    public void put(ClassDependencyInfo dependencyInfo) {
-        store.putAndClose(dependencyInfo);
+    public void put(ClassSetAnalysis analysis) {
+        store.putAndClose(analysis);
     }
 
-    public ClassDependencyInfo get() {
+    public ClassSetAnalysis get() {
         return this.store.getAndClose();
     }
 }

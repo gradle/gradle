@@ -26,26 +26,26 @@ import org.gradle.internal.classloader.ClasspathUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
-class ClassDependencyInfoExtractorTest extends Specification {
+class ClassSetAnalysisExtractorTest extends Specification {
 
-    @Subject extractor = new ClassDependencyInfoExtractor(new DefaultClassDependenciesAnalyzer(), "org.gradle.api.internal.tasks.compile.incremental.test")
+    @Subject extractor = new ClassSetAnalysisExtractor(new DefaultClassDependenciesAnalyzer(), "org.gradle.api.internal.tasks.compile.incremental.test")
 
     def "knows relevant dependents"() {
-        def classesDir = ClasspathUtil.getClasspathForClass(ClassDependencyInfoExtractorTest)
+        def classesDir = ClasspathUtil.getClasspathForClass(ClassSetAnalysisExtractorTest)
         def tree = new FileTreeAdapter(new DirectoryFileTree(classesDir))
 
         when:
         tree.visit(extractor)
-        def info = extractor.dependencyInfo
+        def a = extractor.analysis
 
         then:
-        info.getRelevantDependents(SomeClass.name).dependentClasses == [SomeOtherClass.name] as Set
-        info.getRelevantDependents(SomeOtherClass.name).dependentClasses == [] as Set
-        info.getRelevantDependents(YetAnotherClass.name).dependentClasses == [SomeOtherClass.name] as Set
-        info.getRelevantDependents(AccessedFromPrivateClass.name).dependentClasses == [SomeClass.name, SomeOtherClass.name] as Set
-        info.getRelevantDependents(HasPrivateConstants.name).dependentClasses == [] as Set
-        info.getRelevantDependents(UsedByNonPrivateConstantsClass.name).dependentClasses == [HasNonPrivateConstants.name, HasPrivateConstants.name] as Set
-        info.getRelevantDependents(HasNonPrivateConstants.name).dependencyToAll
+        a.getRelevantDependents(SomeClass.name).dependentClasses == [SomeOtherClass.name] as Set
+        a.getRelevantDependents(SomeOtherClass.name).dependentClasses == [] as Set
+        a.getRelevantDependents(YetAnotherClass.name).dependentClasses == [SomeOtherClass.name] as Set
+        a.getRelevantDependents(AccessedFromPrivateClass.name).dependentClasses == [SomeClass.name, SomeOtherClass.name] as Set
+        a.getRelevantDependents(HasPrivateConstants.name).dependentClasses == [] as Set
+        a.getRelevantDependents(UsedByNonPrivateConstantsClass.name).dependentClasses == [HasNonPrivateConstants.name, HasPrivateConstants.name] as Set
+        a.getRelevantDependents(HasNonPrivateConstants.name).dependencyToAll
     }
 
     //TODO SF tighten and refactor the coverage, use mocks

@@ -16,28 +16,28 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 
 import java.util.Map;
 
 public class JarSnapshotData {
 
     final Map<String, byte[]> hashes;
-    final ClassDependencyInfo info;
+    final ClassSetAnalysis analysis;
     final byte[] hash;
 
     /**
      * @param hash of this jar
      * @param hashes hashes of all classes from the jar
-     * @param info dependency info of classes in this jar
+     * @param analysis of classes in this jar
      */
-    public JarSnapshotData(byte[] hash, Map<String, byte[]> hashes, ClassDependencyInfo info) {
+    public JarSnapshotData(byte[] hash, Map<String, byte[]> hashes, ClassSetAnalysis analysis) {
         assert hash != null;
         assert hashes != null;
-        assert info != null;
+        assert analysis != null;
 
         this.hash = hash;
         this.hashes = hashes;
-        this.info = info;
+        this.analysis = analysis;
     }
 }

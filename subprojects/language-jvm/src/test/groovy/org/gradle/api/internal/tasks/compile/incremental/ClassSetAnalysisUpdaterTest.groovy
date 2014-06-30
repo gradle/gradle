@@ -20,20 +20,20 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisWriter
 import spock.lang.Specification
 import spock.lang.Subject
 
-class ClassDependencyInfoUpdaterTest extends Specification {
+class ClassSetAnalysisUpdaterTest extends Specification {
 
-    def writer = Mock(ClassDependencyInfoWriter)
+    def writer = Mock(ClassSetAnalysisWriter)
     def operations = Mock(FileOperations)
     def analyzer = Mock(ClassDependenciesAnalyzer)
 
-    @Subject updater = new ClassDependencyInfoUpdater(writer, operations, analyzer)
+    @Subject updater = new ClassSetAnalysisUpdater(writer, operations, analyzer)
 
-    def "updates info"() {
-        when: updater.updateInfo(Stub(JavaCompileSpec))
+    def "updates"() {
+        when: updater.updateAnalysis(Stub(JavaCompileSpec))
 
         then:
         1 * operations.fileTree(_) >> Mock(ConfigurableFileTree)

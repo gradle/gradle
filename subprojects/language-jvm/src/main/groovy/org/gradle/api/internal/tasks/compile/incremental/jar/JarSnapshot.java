@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
@@ -34,15 +34,15 @@ public class JarSnapshot {
         this.data = data;
     }
 
-    public JarSnapshot(byte[] hash, Map<String, byte[]> hashes, ClassDependencyInfo info) {
-        this.data = new JarSnapshotData(hash, hashes, info);
+    public JarSnapshot(byte[] hash, Map<String, byte[]> hashes, ClassSetAnalysis analysis) {
+        this.data = new JarSnapshotData(hash, hashes, analysis);
     }
 
     public DependentsSet getAllClasses() {
         final Set<String> result = new HashSet<String>();
         for (Map.Entry<String, byte[]> cls : getHashes().entrySet()) {
             String className = cls.getKey();
-            if (getInfo().isDependencyToAll(className)) {
+            if (getAnalysis().isDependencyToAll(className)) {
                 return new DependencyToAll();
             }
             result.add(className);
@@ -65,7 +65,7 @@ public class JarSnapshot {
             if (thisClsBytes == null || !Arrays.equals(thisClsBytes, otherClassBytes)) {
                 //removed since or changed since
                 affected.add(otherClassName);
-                DependentsSet dependents = other.getInfo().getRelevantDependents(otherClassName);
+                DependentsSet dependents = other.getAnalysis().getRelevantDependents(otherClassName);
                 if (dependents.isDependencyToAll()) {
                     return dependents;
                 }
@@ -89,8 +89,8 @@ public class JarSnapshot {
         return data.hashes;
     }
 
-    public ClassDependencyInfo getInfo() {
-        return data.info;
+    public ClassSetAnalysis getAnalysis() {
+        return data.analysis;
     }
 
     public Set<String> getClasses() {

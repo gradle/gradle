@@ -18,7 +18,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet
 import spock.lang.Specification
@@ -27,14 +27,14 @@ import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDepe
 
 class JarSnapshotTest extends Specification {
 
-    def info = Stub(ClassDependencyInfo)
+    def analysis = Stub(ClassSetAnalysis)
 
     def setup() {
-        info.getRelevantDependents(_ as String) >> Stub(DependentsSet)
+        analysis.getRelevantDependents(_ as String) >> Stub(DependentsSet)
     }
 
-    private JarSnapshot snapshot(Map<String, byte[]> hashes, ClassDependencyInfo info) {
-        new JarSnapshot(new JarSnapshotData(new byte[0], hashes, info))
+    private JarSnapshot snapshot(Map<String, byte[]> hashes, ClassSetAnalysis a) {
+        new JarSnapshot(new JarSnapshotData(new byte[0], hashes, a))
     }
 
     private DependentsSet altered(JarSnapshot s1, JarSnapshot s2) {
@@ -42,16 +42,16 @@ class JarSnapshotTest extends Specification {
     }
 
     def "knows when there are no affected classes since some other snapshot"() {
-        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes], info)
-        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "B".bytes], info)
+        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes], analysis)
+        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "B".bytes], analysis)
 
         expect:
         altered(s1, s2).dependentClasses.isEmpty()
     }
 
     def "knows when there are extra/missing classes since some other snapshot"() {
-        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], info)
-        JarSnapshot s2 = snapshot(["A": "A".bytes], info)
+        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], analysis)
+        JarSnapshot s2 = snapshot(["A": "A".bytes], analysis)
 
         expect:
         altered(s1, s2).dependentClasses.isEmpty() //ignore class additions
@@ -59,8 +59,8 @@ class JarSnapshotTest extends Specification {
     }
 
     def "knows when there are changed classes since other snapshot"() {
-        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], info)
-        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "BB".bytes], info)
+        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], analysis)
+        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "BB".bytes], analysis)
 
         expect:
         altered(s1, s2).dependentClasses == ["B"] as Set
@@ -68,11 +68,11 @@ class JarSnapshotTest extends Specification {
     }
 
     def "knows when transitive class is affected transitively via class change"() {
-        def info = Mock(ClassDependencyInfo)
-        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], info)
-        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "CC".bytes], info)
+        def analysis = Mock(ClassSetAnalysis)
+        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], analysis)
+        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "CC".bytes], analysis)
 
-        info.getRelevantDependents("C") >> dependents("B")
+        analysis.getRelevantDependents("C") >> dependents("B")
 
         expect:
         altered(s1, s2).dependentClasses == ["B", "C"] as Set
@@ -80,11 +80,11 @@ class JarSnapshotTest extends Specification {
     }
 
     def "knows when transitive class is affected transitively via class removal"() {
-        def info = Mock(ClassDependencyInfo)
-        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], info)
-        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "B".bytes], info)
+        def analysis = Mock(ClassSetAnalysis)
+        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], analysis)
+        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "B".bytes], analysis)
 
-        info.getRelevantDependents("C") >> dependents("B")
+        analysis.getRelevantDependents("C") >> dependents("B")
 
         expect:
         altered(s1, s2).dependentClasses.isEmpty()
@@ -92,11 +92,11 @@ class JarSnapshotTest extends Specification {
     }
 
     def "knows when class is dependency to all"() {
-        def info = Mock(ClassDependencyInfo)
-        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes], info)
-        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "BB".bytes], info)
+        def analysis = Mock(ClassSetAnalysis)
+        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes], analysis)
+        JarSnapshot s2 = snapshot(["A": "A".bytes, "B": "BB".bytes], analysis)
 
-        info.getRelevantDependents("B") >> new DependencyToAll()
+        analysis.getRelevantDependents("B") >> new DependencyToAll()
 
         expect:
         altered(s1, s2).isDependencyToAll()
@@ -104,9 +104,9 @@ class JarSnapshotTest extends Specification {
     }
 
     def "knows added classes"() {
-        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], info)
-        JarSnapshot s2 = snapshot(["A": "A".bytes], info)
-        JarSnapshot s3 = snapshot([:], info)
+        JarSnapshot s1 = snapshot(["A": "A".bytes, "B": "B".bytes, "C": "C".bytes], analysis)
+        JarSnapshot s2 = snapshot(["A": "A".bytes], analysis)
+        JarSnapshot s3 = snapshot([:], analysis)
 
         expect:
         s1.getAffectedClassesSince(s2).added == ["B", "C"] as Set

@@ -20,34 +20,34 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisExtractor;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisWriter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
 
-public class ClassDependencyInfoUpdater {
+public class ClassSetAnalysisUpdater {
 
-    private final static Logger LOG = Logging.getLogger(ClassDependencyInfoUpdater.class);
+    private final static Logger LOG = Logging.getLogger(ClassSetAnalysisUpdater.class);
 
-    private final ClassDependencyInfoWriter writer;
+    private final ClassSetAnalysisWriter writer;
     private final FileOperations fileOperations;
     private ClassDependenciesAnalyzer analyzer;
 
-    public ClassDependencyInfoUpdater(ClassDependencyInfoWriter writer, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer) {
+    public ClassSetAnalysisUpdater(ClassSetAnalysisWriter writer, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer) {
         this.writer = writer;
         this.fileOperations = fileOperations;
         this.analyzer = analyzer;
     }
 
-    public void updateInfo(JavaCompileSpec spec) {
+    public void updateAnalysis(JavaCompileSpec spec) {
         Clock clock = new Clock();
         FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
-        ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
+        ClassSetAnalysisExtractor extractor = new ClassSetAnalysisExtractor(analyzer);
         tree.visit(extractor);
-        ClassDependencyInfo info = extractor.getDependencyInfo();
-        writer.put(info);
+        ClassSetAnalysis a = extractor.getAnalysis();
+        writer.put(a);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getTime());
     }
 }
