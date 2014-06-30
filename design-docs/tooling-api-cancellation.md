@@ -19,6 +19,21 @@ This `CancallableToken` is produced by `CancellableTokenSource` and can be used 
         LongRunningOperation withCancellationToken(CancellationToken cancellationToken);
     }
 
+In the API `CancellationTokenSource` is client side part with a factory method to create (provided part of the contract) `CancellationToken`. 
+Client can pass this token to one or more operations and can call `cancel()` at any time.
+The method does 'best-effort' to request stop for the performed operation assuming that the provider side cooperates and the implementation returns immediately.
+To enable this cooperation operation implementation can query `CancellationToken.isCancellationRequested()`.
+When provider successfully cancels the operation during its processing the client will be notified using `BuildCancelledException` passed to `ResultHandler.onFailure()` callback (another addition to API).
+Provider ignores cancel requests after operation is finished.
+Last call to 'LongRunningOperation.withCancellationToken` wins and each operation can use only one token.
+
+Open questions:
+
+Calling `cancel()` when the provider does not support it can 
+
+- be a no-op (log that the request is ignored)
+- throw an exception
+- method can be changed to return boolean flag signaling if the cancel request was acknowledged.
 
 Note there there is an alternative proposal using a `Future` to perform cancellation differently:
 
