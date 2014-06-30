@@ -120,8 +120,6 @@ The generated POM file will contain the following content:
         </exclusions>
     </dependency>
 
-
-
 This feature addresses [GRADLE-2945] was contributed by [Biswa Dahal](https://github.com/ffos).
 
 ## Promoted features
@@ -172,6 +170,11 @@ language plugins was been introduced in Gradle 1.x. This development continues i
 
 The existing `java` plugin is unchanged: only users who explicitly applied the `jvm-lang` or `java-lang` plugins
 will be affected by this change.
+
+### Generated maven pom contains dependency exclusions
+
+The `maven-publish` plugin will now correctly add required 'exclusion' elements to the generated POM. If you have a build or plugin that
+applies these exclusions itself, the generated POM file may contain duplicate 'exclusion' elements.
 
 ### Internal methods removed
 
