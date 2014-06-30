@@ -92,7 +92,7 @@
         </section>
     </section>
     <section>
-        <para>The classes in the classes dir are analyzed regarding there package dependencies and the packages they expose.
+        <para>The classes in the classes dir are analyzed regarding their package dependencies and the packages they expose.
             Based on this the <emphasis>Import-Package</emphasis> and the <emphasis>Export-Package</emphasis> values of the
             OSGi Manifest are calculated. If the classpath contains jars with an OSGi bundle, the bundle
             information is used to specify version information for the <emphasis>Import-Package</emphasis>
