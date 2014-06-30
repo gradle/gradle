@@ -17,10 +17,21 @@ repositories {
     mavenCentral()
 }
 
+// In this section you declare the dependency configurations for your project
+configurations {
+    // To prevent an accidental usage of groovy-all.jar and groovy.jar in different versions
+    // all modularized Groovy jars are replaced with groovy-all.jar by default.
+    resolutionStrategy.eachDependency { dependency ->
+        if (dependency.requested.group == 'org.codehaus.groovy') {
+            useTarget("org.codehaus.groovy:groovy-all:${dependency.requested.version}")
+        }
+    }
+}
+
 // In this section you declare the dependencies for your production and test code
 dependencies {
     // We use the latest groovy 2.x version for building this library
-    compile 'org.codehaus.groovy:groovy:${groovyVersion.groovyString}'
+    compile 'org.codehaus.groovy:groovy-all:${groovyVersion.groovyString}'
 
     // We use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
