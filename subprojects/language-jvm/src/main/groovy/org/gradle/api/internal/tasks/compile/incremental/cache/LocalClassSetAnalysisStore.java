@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import org.gradle.api.internal.cache.Loader;
 import org.gradle.api.internal.cache.SingleOperationPersistentStore;
+import org.gradle.api.internal.cache.Stash;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisProvider;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisWriter;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
 //Keeps the class set analysis of the given JavaCompile task
-public class LocalClassSetAnalysisStore implements ClassSetAnalysisProvider, ClassSetAnalysisWriter {
+public class LocalClassSetAnalysisStore implements Loader<ClassSetAnalysisData>, Stash<ClassSetAnalysisData> {
 
     private SingleOperationPersistentStore<ClassSetAnalysisData> store;
 

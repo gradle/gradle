@@ -17,26 +17,26 @@
 package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.internal.cache.Stash
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisWriter
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ClassSetAnalysisUpdaterTest extends Specification {
 
-    def writer = Mock(ClassSetAnalysisWriter)
+    def stash = Mock(Stash)
     def operations = Mock(FileOperations)
     def analyzer = Mock(ClassDependenciesAnalyzer)
 
-    @Subject updater = new ClassSetAnalysisUpdater(writer, operations, analyzer)
+    @Subject updater = new ClassSetAnalysisUpdater(stash, operations, analyzer)
 
     def "updates"() {
         when: updater.updateAnalysis(Stub(JavaCompileSpec))
 
         then:
         1 * operations.fileTree(_) >> Mock(ConfigurableFileTree)
-        1 * writer.put(_)
+        1 * stash.put(_)
     }
 }

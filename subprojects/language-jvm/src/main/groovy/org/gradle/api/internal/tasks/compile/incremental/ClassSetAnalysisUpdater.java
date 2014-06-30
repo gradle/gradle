@@ -17,12 +17,12 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.cache.Stash;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassFilesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisWriter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
@@ -31,12 +31,12 @@ public class ClassSetAnalysisUpdater {
 
     private final static Logger LOG = Logging.getLogger(ClassSetAnalysisUpdater.class);
 
-    private final ClassSetAnalysisWriter writer;
+    private final Stash<ClassSetAnalysisData> stash;
     private final FileOperations fileOperations;
     private ClassDependenciesAnalyzer analyzer;
 
-    public ClassSetAnalysisUpdater(ClassSetAnalysisWriter writer, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer) {
-        this.writer = writer;
+    public ClassSetAnalysisUpdater(Stash<ClassSetAnalysisData> stash, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer) {
+        this.stash = stash;
         this.fileOperations = fileOperations;
         this.analyzer = analyzer;
     }
@@ -47,7 +47,7 @@ public class ClassSetAnalysisUpdater {
         ClassFilesAnalyzer analyzer = new ClassFilesAnalyzer(this.analyzer);
         tree.visit(analyzer);
         ClassSetAnalysisData data = analyzer.getAnalysis();
-        writer.put(data);
+        stash.put(data);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getTime());
     }
 }
