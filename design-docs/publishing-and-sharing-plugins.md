@@ -663,7 +663,16 @@ The detail of the error response differentiates the response from a generic 404.
 
 - What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level?
 
-## Story: User is notified that Gradle version is no longer supported by plugin portal
+## Story: User is notified that Gradle version is not supported by plugin portal
+
+The plugin portal may respond with a structured error response indicating that the Gradle version is unsupported. See plugin portal api-endpoints-general.md.
+
+All requests to the portal API can potentially respond in this manner.
+Implementation of handling this response should be cross cutting.
+
+### Test Coverage
+
+- Unsupported Gradle version response fails build, with message provided by portal forwarded to user.
 
 ## Story: User is notified of use of 'deprecated' plugin
 
