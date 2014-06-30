@@ -44,4 +44,11 @@ class SetSerializerTest extends SerializerSpec {
         serialize(["one", null, "three"] as Set, serializer) as List == ["one", null, "three"]
     }
 
+    def "serializes with HasSet"() {
+        when:
+        def serializer = new SetSerializer(stringSerializer, false)
+
+        then:
+        serialize(['1', '2'] as Set, serializer) instanceof HashSet
+    }
 }

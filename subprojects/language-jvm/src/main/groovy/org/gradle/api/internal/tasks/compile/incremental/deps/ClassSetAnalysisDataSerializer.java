@@ -40,7 +40,7 @@ public class ClassSetAnalysisDataSerializer implements Serializer<ClassSetAnalys
 
     private static class DependentsSetSerializer implements Serializer<DependentsSet> {
 
-        private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER);
+        private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
         public DependentsSet read(Decoder decoder) throws Exception {
             int control = decoder.readSmallInt();

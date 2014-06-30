@@ -16,17 +16,25 @@
 
 package org.gradle.messaging.serialize;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class SetSerializer<T> extends AbstractCollectionSerializer<T> implements Serializer<Set<T>> {
 
+    private final boolean linkedHashSet;
+
     public SetSerializer(Serializer<T> entrySerializer) {
+        this(entrySerializer, true);
+    }
+
+    public SetSerializer(Serializer<T> entrySerializer, boolean linkedHashSet) {
         super(entrySerializer);
+        this.linkedHashSet = linkedHashSet;
     }
 
     public Set<T> read(Decoder decoder) throws Exception {
-        Set<T> values = new LinkedHashSet<T>();
+        Set<T> values = linkedHashSet? new LinkedHashSet<T>() : new HashSet<T>();
         readValues(decoder, values);
         return values;
     }

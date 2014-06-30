@@ -27,7 +27,7 @@ import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIAL
 
 public class ClassAnalysisSerializer implements Serializer<ClassAnalysis> {
 
-    private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER); //TODO SF HashSetSerializer here and in other places
+    private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
     public ClassAnalysis read(Decoder decoder) throws Exception {
         boolean relatedToAll = decoder.readBoolean();
