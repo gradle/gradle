@@ -90,7 +90,7 @@ A mock up:
 - Creation rule declares input of unknown type.
 - Settings or init script configures model.
 
-## Story: Plugin configures tasks using model as input
+## Story: Plugin defines tasks using model as input
 
 Introduce some mechanism where a plugin can static declare a rule to define tasks using its model object as input.
 
