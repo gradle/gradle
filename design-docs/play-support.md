@@ -41,6 +41,17 @@ Developer uses the standard build lifecycle, such as `gradle assemble` or `gradl
     - need to include unmanaged dependencies from `lib/` as compile dependencies
     - sub-projects have a slightly different layout to root project
 
+### Implementation
+
+Play plugin:
+
+- Defines a Play application component and an associated Jar binary.
+- Wires in the main source set as input, and hooks up the appropriate dependencies.
+
+### Open issues
+
+- Should use the new language plugins instead. Will require test execution and joint Java - Scala compilation.
+
 ## Developer compiles route and template source for Play application
 
 Extend the standard build lifecycle to compile the route and template source files to bytecode.
@@ -48,6 +59,25 @@ Extend the standard build lifecycle to compile the route and template source fil
 - Compile routes and templates
 - Define source sets for each type of source file
 - Compilation should be incremental and remove stale outputs
+
+### Implementation
+
+Play plugin:
+
+- Defines Play template file source set type.
+- Invokes route source generator and includes the resulting Scala source for joint compilation.
+- Invokes template source generator and includes the resulting Scala source for joint compilation.
+- Cleans stale outputs.
+
+### Test cases
+
+- Route depends on Java class.
+- Template depends on Java class that depends on the template.
+- Template depends on Scala class that depends on the template.
+
+### Open issues
+
+- Can generate template source in parallel?
 
 ## Developer compiles assets for Play application
 
@@ -65,7 +95,40 @@ Extend the standard build lifecycle to compile the front end assets to CSS and J
 - Compilation should be incremental and remove stale outputs
 - Expose some compiler options
 
-TBD - integration with Gradle javascript plugins.
+### Implementation
+
+JavaScript language plugin:
+
+- Defines JavaScript library component and associated JavaScript bundle binary.
+- Defines JavaScript source set type (a JavaScript bundle and JavaScript source set should be usable in either role).
+- Defines transformation from JavaScript source set to JavaScript bundle.
+
+CSS language plugin:
+
+- Defines CSS library component and associated CSS bundle binary.
+- Defines CSS source set type (a CSS bundle and CSS source set should be usable in either role).
+- Defines transformation from CSS source set to CSS bundle.
+
+CoffeeScript plugin:
+
+- Defines CoffeeScript source set type and transformation to JavaScript bundle.
+
+LESSCSS plugin:
+
+- Defines LESSCSS source set type and transformation to CSS bundle.
+
+Google Closure plugin:
+
+- Defines transformation from JavaScript source set to JavaScript bundle.
+
+Play plugin:
+
+- Defines JavaScript and CSS components for the Play application.
+- Wires in the appropriate outputs to assemble the Jar.
+
+### Open issues
+
+- Integration with existing Gradle javascript plugins.
 
 ## Developer builds and runs Play application
 
@@ -78,6 +141,19 @@ developer may run `gradle run` to run the application or `gradle start` to start
 
 Note that this story does not address reloading the application when source files change. This is addressed by a later story.
 
+### Implementation
+
+Web application plugin:
+
+- Defines the concept of a web application.
+- Defines the concept of a server that can host a web application.
+- Defines lifecycle tasks for a given deployment.
+
+Play plugin:
+
+- Defines a Play application as-a web application
+- Provides a Play server implementation that can host a Play application.
+
 ## Developer builds Play application distribution
 
 Introduce some lifecycle tasks to allow the developer to package up the Play application. For example, the
@@ -86,11 +162,23 @@ developer may run `gradle stage` to stage the local application, or `gradle dist
 - Build distribution image and zips, as per `play stage` and `play dist`
 - Integrate with the distribution plugin.
 
+### Implementation
+
+Play plugin:
+
+- Defines a distribution that bundles a Play server and Play application.
+
 # Milestone 2
 
 ## Long running compiler daemon
 
 Reuse the compiler daemon across builds to keep the Scala compiler warmed up. This is also useful for the other compilers.
+
+### Implementation
+
+- Maintain a registry of compiler daemons in ~/.gradle
+- Daemons expire some time after build, with much shorter expiry than the build daemon.
+- Reuse infrastructure from build daemon.
 
 ## Keep running Play application up-to-date when source changes
 
@@ -118,6 +206,15 @@ So:
 
 Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
 For example, running `gradle --watch test run` would restart the application if a test source file changes.
+
+### Implementation
+
+- Uses Gradle daemon to run build.
+- Collect up all input files as build runs.
+- Monitor changes to these input files. On change:
+    - If previous build started any service, stop that service.
+    - Trigger build.
+- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 
 ## Developer triggers rebuild of running Play application
 
