@@ -40,7 +40,7 @@ public class ClassSetAnalysisDataSerializer implements Serializer<ClassSetAnalys
 
     private static class DependentsSetSerializer implements Serializer<DependentsSet> {
 
-        private SetSerializer<String> setSerializer;
+        private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER);
 
         public DependentsSet read(Decoder decoder) throws Exception {
             int control = decoder.readSmallInt();
@@ -59,7 +59,6 @@ public class ClassSetAnalysisDataSerializer implements Serializer<ClassSetAnalys
                 encoder.writeSmallInt(0);
             } else if (value instanceof DefaultDependentsSet) {
                 encoder.writeSmallInt(value.isDependencyToAll()? 1:2);
-                setSerializer = new SetSerializer<String>(STRING_SERIALIZER);
                 setSerializer.write(encoder, value.getDependentClasses());
             } else {
                 throw new IllegalArgumentException("Don't know how to serialize value of type: " + value.getClass() + ", value: " + value);

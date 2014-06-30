@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-public class JarClasspathSnapshotData implements Serializable {
+public class JarClasspathSnapshotData implements Serializable { //TODO SF hand craft
 
     private final Map<File, byte[]> jarHashes;
     private final Set<String> duplicateClasses;
