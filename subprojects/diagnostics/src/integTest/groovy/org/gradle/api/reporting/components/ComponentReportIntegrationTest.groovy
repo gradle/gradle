@@ -60,7 +60,15 @@ jvm {
 Root project
 ------------------------------------------------------------
 
-JVM library 'someLib'""")
+JVM library 'someLib'
+---------------------
+
+Source sets
+    Java source 'someLib:java'
+    Resources 'someLib:resources'
+
+No binaries
+""")
     }
 
     def "shows details of native C++ library"() {
@@ -85,7 +93,16 @@ nativeRuntime {
 Root project
 ------------------------------------------------------------
 
-Native library 'someLib'""")
+Native library 'someLib'
+------------------------
+
+Source sets
+    C++ source 'someLib:cpp'
+
+Binaries
+    Shared library 'someLib:sharedLibrary'
+    Static library 'someLib:staticLibrary'
+""")
     }
 
     def "shows details of native C executable with test suite"() {
@@ -111,6 +128,104 @@ nativeRuntime {
 Root project
 ------------------------------------------------------------
 
-Native executable 'someExe'""")
+Native executable 'someExe'
+---------------------------
+
+Source sets
+    C source 'someExe:c'
+
+Binaries
+    Executable 'someExe:executable'
+""")
+    }
+
+    def "shows details of polyglot native library with multiple variants"() {
+        given:
+        buildFile << """
+plugins {
+    id 'c'
+    id 'cpp'
+    id 'assembler'
+}
+
+model {
+    platforms {
+        i386 { architecture 'i386' }
+        amd64 { architecture 'amd64' }
+    }
+    flavors {
+        free
+        paid
+    }
+}
+
+nativeRuntime {
+    libraries {
+        someLib
+    }
+}
+"""
+        when:
+        succeeds "components"
+
+        then:
+        output.contains("""
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+Native library 'someLib'
+------------------------
+
+Source sets
+    Assembler source 'someLib:asm'
+    C source 'someLib:c'
+    C++ source 'someLib:cpp'
+
+Binaries
+    Shared library 'someLib:amd64:free:sharedLibrary'
+    Static library 'someLib:amd64:free:staticLibrary'
+    Shared library 'someLib:amd64:paid:sharedLibrary'
+    Static library 'someLib:amd64:paid:staticLibrary'
+    Shared library 'someLib:i386:free:sharedLibrary'
+    Static library 'someLib:i386:free:staticLibrary'
+    Shared library 'someLib:i386:paid:sharedLibrary'
+    Static library 'someLib:i386:paid:staticLibrary'
+""")
+    }
+
+    def "shows details of multiple components"() {
+        given:
+        buildFile << """
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+    id 'cpp'
+    id 'c'
+}
+
+jvm {
+    libraries {
+        jvmLib
+    }
+}
+nativeRuntime {
+    libraries {
+        nativeLib
+    }
+}
+"""
+        when:
+        succeeds "components"
+
+        then:
+        output.contains("""
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+JVM library 'jvmLib'""")
+
+        // TODO - flesh this out
     }
 }

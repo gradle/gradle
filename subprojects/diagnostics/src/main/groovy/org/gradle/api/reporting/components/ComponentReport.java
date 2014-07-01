@@ -21,8 +21,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
 
@@ -50,7 +53,20 @@ public class ComponentReport extends DefaultTask {
         ProjectComponentContainer components = project.getExtensions().findByType(ProjectComponentContainer.class);
         if (components != null) {
             for (ProjectComponent component : components) {
-                renderer.renderComponent(component);
+                renderer.startComponent(component);
+                for (LanguageSourceSet sourceSet : component.getSource()) {
+                    renderer.renderSourceSet(sourceSet);
+                }
+                renderer.completeSourceSets();
+
+                // TODO - hoist 'component with binaries' up and remove dependency on cpp project
+                if (component instanceof ProjectNativeComponent) {
+                    ProjectNativeComponent nativeComponent = (ProjectNativeComponent) component;
+                    for (NativeBinary binary : nativeComponent.getBinaries()) {
+                        renderer.renderBinary(binary);
+                    }
+                }
+                renderer.completeBinaries();
             }
         }
 

@@ -19,12 +19,16 @@ package org.gradle.api.reporting.components.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.runtime.base.Binary;
 import org.gradle.runtime.base.ProjectComponent;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
 public class ComponentReportRenderer extends TextReportRenderer {
     private boolean hasComponents;
+    private boolean hasSourceSets;
+    private boolean hasBinaries;
 
     @Override
     public void startProject(Project project) {
@@ -41,8 +45,41 @@ public class ComponentReportRenderer extends TextReportRenderer {
         super.completeProject(project);
     }
 
-    public void renderComponent(ProjectComponent component) {
-        getTextOutput().println(StringUtils.capitalize(component.getDisplayName()));
+    public void startComponent(ProjectComponent component) {
+        if (hasComponents) {
+            getTextOutput().println();
+        }
+        writeSubheading(StringUtils.capitalize(component.getDisplayName()));
         hasComponents = true;
+        hasSourceSets = false;
+        hasBinaries = false;
+    }
+
+    public void renderSourceSet(LanguageSourceSet sourceSet) {
+        if (!hasSourceSets) {
+            getTextOutput().println().println("Source sets");
+            hasSourceSets = true;
+        }
+        getTextOutput().formatln("    %s", StringUtils.capitalize(sourceSet.toString()));
+    }
+
+    public void completeSourceSets() {
+        if (!hasSourceSets) {
+            getTextOutput().println().withStyle(Info).println("No source sets");
+        }
+    }
+
+    public void renderBinary(Binary binary) {
+        if (!hasBinaries) {
+            getTextOutput().println().println("Binaries");
+            hasBinaries = true;
+        }
+        getTextOutput().formatln("    %s", StringUtils.capitalize(binary.getDisplayName()));
+    }
+
+    public void completeBinaries() {
+        if (!hasBinaries) {
+            getTextOutput().println().withStyle(Info).println("No binaries");
+        }
     }
 }

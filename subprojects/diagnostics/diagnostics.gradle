@@ -19,6 +19,7 @@ dependencies {
     compile project(':core')
     compile project(':reporting')
     compile project(':plugins')
+    compile project(':cpp')
     compile project(':coreImpl')
 }
 

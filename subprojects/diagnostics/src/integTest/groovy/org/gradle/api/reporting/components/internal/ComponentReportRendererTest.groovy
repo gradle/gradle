@@ -44,36 +44,67 @@ class ComponentReportRendererTest extends Specification {
 
     def "renders project with single component"() {
         def component = Stub(ProjectComponent) {
-            toString() >> "<component>"
+            getDisplayName() >> "<component>"
         }
 
         when:
         renderer.startProject(project)
-        renderer.renderComponent(component)
+        renderer.startComponent(component)
         renderer.completeProject(project)
         renderer.complete()
 
         then:
-        output.value.contains("<component>")
+        output.value.contains("\n{header}<component>\n")
     }
 
     def "renders project with multiple components"() {
         def component1 = Stub(ProjectComponent) {
-            toString() >> "<component 1>"
+            getDisplayName() >> "<component 1>"
         }
         def component2 = Stub(ProjectComponent) {
-            toString() >> "<component 2>"
+            getDisplayName() >> "<component 2>"
         }
 
         when:
         renderer.startProject(project)
-        renderer.renderComponent(component1)
-        renderer.renderComponent(component2)
+        renderer.startComponent(component1)
+        renderer.startComponent(component2)
         renderer.completeProject(project)
         renderer.complete()
 
         then:
-        output.value.contains("<component 1>")
-        output.value.contains("<component 2>")
+        output.value.contains("\n{header}<component 1>\n")
+        output.value.contains("\n{header}<component 2>\n")
     }
+
+    def "renders component with no source sets"() {
+        def component = Stub(ProjectComponent)
+
+        when:
+        renderer.startProject(project)
+        renderer.startComponent(component)
+        renderer.completeSourceSets()
+        renderer.completeBinaries()
+        renderer.completeProject(project)
+        renderer.complete()
+
+        then:
+        output.value.contains("No source sets")
+    }
+
+    def "renders component with no binaries"() {
+        def component = Stub(ProjectComponent)
+
+        when:
+        renderer.startProject(project)
+        renderer.startComponent(component)
+        renderer.completeSourceSets()
+        renderer.completeBinaries()
+        renderer.completeProject(project)
+        renderer.complete()
+
+        then:
+        output.value.contains("No binaries")
+    }
+
 }
