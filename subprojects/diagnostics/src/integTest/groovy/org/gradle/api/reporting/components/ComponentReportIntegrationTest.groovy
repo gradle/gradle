@@ -19,12 +19,22 @@ package org.gradle.api.reporting.components
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        settingsFile << "rootProject.name = 'test'"
+    }
+
     def "informs the user when project has no components defined"() {
         when:
         succeeds "components"
 
         then:
-        output.contains("No components.")
+        output.contains("""
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+No components
+""")
     }
 
     def "shows details of Java library"() {
@@ -45,7 +55,12 @@ jvm {
         succeeds "components"
 
         then:
-        output.contains("JVM library 'someLib'")
+        output.contains("""
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+JVM library 'someLib'""")
     }
 
     def "shows details of native C++ library"() {
@@ -65,7 +80,12 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains("library 'someLib'")
+        output.contains("""
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+library 'someLib'""")
     }
 
     def "shows details of native C++ executable"() {
@@ -85,6 +105,11 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains("executable 'someExe'")
+        output.contains("""
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+executable 'someExe'""")
     }
 }

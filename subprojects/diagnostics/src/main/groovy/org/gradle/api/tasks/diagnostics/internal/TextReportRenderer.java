@@ -16,11 +16,15 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.internal.StreamingStyledTextOutput;
 import org.gradle.util.GUtil;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import static org.gradle.logging.StyledTextOutput.Style.Header;
 import static org.gradle.logging.StyledTextOutput.Style.Normal;
@@ -63,7 +67,7 @@ public class TextReportRenderer implements ReportRenderer {
     public void completeProject(Project project) {
     }
 
-    public void complete() throws IOException {
+    public void complete() {
         cleanupWriter();
     }
 
@@ -72,10 +76,10 @@ public class TextReportRenderer implements ReportRenderer {
         this.close = close;
     }
 
-    private void cleanupWriter() throws IOException {
+    private void cleanupWriter() {
         try {
-            if (textOutput != null && close) {
-                ((Closeable) textOutput).close();
+            if (close) {
+                CompositeStoppable.stoppable(textOutput).stop();
             }
         } finally {
             textOutput = null;

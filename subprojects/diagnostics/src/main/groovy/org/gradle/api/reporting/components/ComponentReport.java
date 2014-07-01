@@ -19,27 +19,42 @@ package org.gradle.api.reporting.components;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
+
+import javax.inject.Inject;
 
 /**
  * Displays some details about the software components produced by the project.
  */
 @Incubating
 public class ComponentReport extends DefaultTask {
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void report() {
         Project project = getProject();
-        System.out.println("This is the component report for " + project);
+        StyledTextOutput textOutput = getTextOutputFactory().create(ComponentReport.class);
+        ComponentReportRenderer renderer = new ComponentReportRenderer();
+        renderer.setOutput(textOutput);
+
+        renderer.startProject(project);
 
         ProjectComponentContainer components = project.getExtensions().findByType(ProjectComponentContainer.class);
-        if (components == null || components.isEmpty()) {
-            System.out.println("No components.");
-            return;
+        if (components != null) {
+            for (ProjectComponent component : components) {
+                renderer.renderComponent(component);
+            }
         }
-        for (ProjectComponent component : components) {
-            System.out.println(component);
-        }
+
+        renderer.completeProject(project);
+        renderer.complete();
     }
 }
