@@ -806,6 +806,35 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 ## Feature: Build user views the dependencies for the native components of a project
 
+## Feature: User visualises project component model
+
+### Story: User views outline of component model from command line
+
+- User runs `gradle components`
+- Presents basic details of each project component
+    - JVM and native components
+    - Legacy JVM component
+    - War, Ear
+- Show component description
+
+#### Implementation
+
+- Add `displayName` property to `ProjectComponent` and remove from sub-types.
+- Tweak component display names.
+- Render the binaries and source sets for each component.
+- Add new task type to DSL guide.
+- Add basic implementation for legacy component types.
+- Add `description` to `ProjectComponent`.
+- Move rendering of specific component types to live with the type.
+- Add some general 'show properties' rendering.
+- Tweak report headers for single project builds.
+- Don't show chrome when report task is the only task scheduled to run.
+- Remove `Project.implicitTasks`.
+- Change help plugin so that it does not already create help tasks.
+
+### Story: User view component model as HTML report
+
+
 # Open issues and Later work
 
 ## Component model
