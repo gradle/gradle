@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.util.TestUtil
@@ -102,7 +103,7 @@ class DistributionPluginTest extends Specification {
         then:
         def task = project.tasks.assemblecustomDist
         task instanceof DefaultTask
-        task dependsOn ("customDistZip","customDistTar")
+        task TaskDependencyMatchers.dependsOn ("customDistZip","customDistTar")
     }
 
     def "distribution names include project version when specified"() {

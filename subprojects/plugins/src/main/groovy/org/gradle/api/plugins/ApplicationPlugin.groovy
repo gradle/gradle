@@ -17,18 +17,17 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.distribution.Distribution
+import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.GradleException
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
  *
- * @author Rene Groeschke
  */
 class ApplicationPlugin implements Plugin<Project> {
     static final String APPLICATION_PLUGIN_NAME = "application"
@@ -43,19 +42,20 @@ class ApplicationPlugin implements Plugin<Project> {
     private Project project
     private ApplicationPluginConvention pluginConvention
 
+
     void apply(final Project project) {
         this.project = project
         project.plugins.apply(JavaPlugin)
+        project.plugins.apply(DistributionPlugin)
 
         addPluginConvention()
         addRunTask()
         addCreateScriptsTask()
 
         configureDistSpec(pluginConvention.applicationDistribution)
-
-        addInstallTask()
-        addDistZipTask()
-        addDistTarTask()
+        def distribution = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
+        configureDistribution(distribution)
+        addInstallTask(distribution)
     }
 
     private void addPluginConvention() {
@@ -65,7 +65,7 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void addRunTask() {
-        def run = project.tasks.add(TASK_RUN_NAME, JavaExec)
+        def run = project.tasks.create(TASK_RUN_NAME, JavaExec)
         run.description = "Runs this project as a JVM application"
         run.group = APPLICATION_GROUP
         run.classpath = project.sourceSets.main.runtimeClasspath
@@ -74,7 +74,7 @@ class ApplicationPlugin implements Plugin<Project> {
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
     private void addCreateScriptsTask() {
-        def startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts)
+        def startScripts = project.tasks.create(TASK_START_SCRIPTS_NAME, CreateStartScripts)
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
         startScripts.classpath = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
         startScripts.conventionMapping.mainClassName = { pluginConvention.mainClassName }
@@ -82,11 +82,11 @@ class ApplicationPlugin implements Plugin<Project> {
         startScripts.conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
     }
 
-    private void addInstallTask() {
-        def installTask = project.tasks.add(TASK_INSTALL_NAME, Sync)
+    private void addInstallTask(Distribution distribution) {
+        def installTask = project.tasks.create(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
-        installTask.with pluginConvention.applicationDistribution
+        installTask.with distribution.contents
         installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
         installTask.doFirst {
             if (destinationDir.directory) {
@@ -103,7 +103,7 @@ class ApplicationPlugin implements Plugin<Project> {
         }
     }
 
-    private configureDistribution(){
+    private configureDistribution(Distribution distribution){
         distribution.configureBaseName { pluginConvention.applicationName }
 
         configureDistSpec(distribution.contents)
