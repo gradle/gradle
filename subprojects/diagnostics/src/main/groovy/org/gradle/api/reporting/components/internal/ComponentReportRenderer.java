@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.components.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.runtime.base.ProjectComponent;
@@ -41,7 +42,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
     }
 
     public void renderComponent(ProjectComponent component) {
-        getTextOutput().println(component);
+        getTextOutput().println(StringUtils.capitalize(component.getDisplayName()));
         hasComponents = true;
     }
 }
