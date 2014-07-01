@@ -36,6 +36,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     def setup() {
+        executer.requireOwnGradleUserHomeDir()
         service.start()
     }
 
