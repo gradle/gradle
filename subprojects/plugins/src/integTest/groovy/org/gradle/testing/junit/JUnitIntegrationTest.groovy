@@ -231,6 +231,15 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.TestsOnInner').assertTestPassed('ok')
         result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')
     }
+    
+    @Test
+	public void createsRunnerBeforeTests() {
+        executer.withTasks('test').run()
+        
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('org.gradle.ExecutionOrderTest')
+        result.testClass('org.gradle.ExecutionOrderTest').assertTestPassed('ok')
+	}
 
     @Test
     public void runsAllTestsInTheSameForkedJvm() {

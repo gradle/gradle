@@ -55,7 +55,7 @@ public class JUnitTestClassExecuter {
     }
 
     private void runTestClass(String testClassName) throws ClassNotFoundException {
-        final Class<?> testClass = Class.forName(testClassName, true, applicationClassLoader);
+        final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
         Request request = Request.aClass(testClass);
         if (options.hasCategoryConfiguration()) {
             Transformer<Class<?>, String> transformer = new Transformer<Class<?>, String>() {
