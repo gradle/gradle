@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -72,6 +73,10 @@ public abstract class AbstractLongRunningOperation<T extends LongRunningOperatio
 
     public T addProgressListener(ProgressListener listener) {
         operationParamsBuilder.addProgressListener(listener);
+        return getThis();
+    }
+
+    public LongRunningOperation withCancellationToken(CancellationToken cancellationToken) {
         return getThis();
     }
 }

@@ -90,6 +90,10 @@ subsequent story.
 - Client can cancel operation after operation has completed:
     - Successful operation
     - Failed operation
+- Client can cancel operation before its start and it won't be executed:
+    - Building model
+    - Running tasks
+    - Running build action
 
 ### Story: Daemon exits when operation is cancelled
 
