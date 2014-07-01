@@ -225,7 +225,7 @@ The plugin will need to depend on Play's [sbt-link](http://repo.typesafe.com/typ
 See [Play's BuildLink.java](https://github.com/playframework/playframework/blob/master/framework/src/build-link/src/main/java/play/core/BuildLink.java)
 for good documentation about interfacing between Play and the build system. Gradle must implement the BuildLink interface and provide
 it to Play's NettyServer. When a new request comes in, Play will call Gradle's implementation of BuildLink.reload and if any files have
-changed then gradle will have to recompile and return a new classloader to Play.
+changed then Gradle will have to recompile and return a new classloader to Play.
 
 ## Resources are built on demand when running Play application
 
