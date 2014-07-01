@@ -82,6 +82,8 @@ Note that due to an IDEA glitch, the first build of Gradle from IDEA will fail. 
 
 ### Eclipse
 
+#### Gradle Integration for Eclipse (by Pivotal)
+
 The Gradle project is not currently buildable in Eclipse. This is something that will be rectified in the future.
 
 You can try running:
@@ -89,3 +91,9 @@ You can try running:
     ./gradlew eclipse
 
 This command generates Eclipse metadata that allows importing the project into Eclipse. However, you will have to do some manual fixes to the project's setup to make it work.
+
+#### Gradle for Eclipse (by Nodeclipse/Enide)
+
+With [Gradle(Enide) Eclipse plugin](http://marketplace.eclipse.org/content/gradle), you can import as general plugin or prepare before with `./gradlew eclipse`. 
+
+Build is run via right-click on `build.gralde` <kbd>Run As -> gradle build Gradle Build</kbd>
