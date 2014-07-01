@@ -24,6 +24,6 @@ public class DefaultProjectNativeExecutable extends AbstractTargetedProjectNativ
     }
 
     public String getDisplayName() {
-        return String.format("executable '%s'", getName());
+        return String.format("native executable '%s'", getName());
     }
 }

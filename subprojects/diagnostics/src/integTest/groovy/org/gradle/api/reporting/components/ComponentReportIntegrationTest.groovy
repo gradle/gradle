@@ -85,14 +85,15 @@ nativeRuntime {
 Root project
 ------------------------------------------------------------
 
-library 'someLib'""")
+Native library 'someLib'""")
     }
 
-    def "shows details of native C++ executable"() {
+    def "shows details of native C executable with test suite"() {
         given:
         buildFile << """
 plugins {
-    id 'cpp'
+    id 'c'
+    id 'cunit'
 }
 
 nativeRuntime {
@@ -110,6 +111,6 @@ nativeRuntime {
 Root project
 ------------------------------------------------------------
 
-executable 'someExe'""")
+Native executable 'someExe'""")
     }
 }

@@ -26,7 +26,7 @@ public class DefaultProjectNativeLibrary extends AbstractTargetedProjectNativeCo
     }
 
     public String getDisplayName() {
-        return String.format("library '%s'", getName());
+        return String.format("native library '%s'", getName());
     }
 
     public NativeLibraryRequirement getShared() {

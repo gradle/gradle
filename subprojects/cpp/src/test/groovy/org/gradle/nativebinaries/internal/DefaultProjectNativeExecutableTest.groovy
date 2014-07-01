@@ -24,7 +24,7 @@ class DefaultProjectNativeExecutableTest extends Specification {
 
     def "has useful string representation"() {
         expect:
-        executable.toString() == "executable 'someExe'"
-        executable.displayName == "executable 'someExe'"
+        executable.toString() == "native executable 'someExe'"
+        executable.displayName == "native executable 'someExe'"
     }
 }

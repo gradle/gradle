@@ -24,8 +24,8 @@ class DefaultProjectNativeLibraryTest extends Specification {
 
     def "has useful string representation"() {
         expect:
-        library.toString() == "library 'someLib'"
-        library.displayName == "library 'someLib'"
+        library.toString() == "native library 'someLib'"
+        library.displayName == "native library 'someLib'"
     }
 
     def "can use shared variant as requirement"() {
