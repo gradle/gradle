@@ -79,6 +79,42 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !errorOutput
     }
 
+    def "compileBadTypeCheckedCode"() {
+        expect:
+        fails("compileGroovy")
+        // for some reasons, line breaks occur in different places when running this
+        // test in different environments; hence we only check for short snippets
+        if (versionLowerThan("2.1")) {
+            assert compileErrorOutput.contains("Groovy configuration script")
+            assert compileErrorOutput.contains("requires Groovy 2.1+ but found Groovy $version")
+        } else {
+            assert compileErrorOutput.contains('Cannot find matching method')
+        }
+    }
+
+    def "failsBecauseOfMissingConfigFile"() {
+        if (versionLowerThan("2.1")) {
+            return
+        }
+        expect:
+        fails("compileGroovy")
+        // for some reasons, line breaks occur in different places when running this
+        // test in different environments; hence we only check for short snippets
+        assert compileErrorOutput.contains('specified for property \'groovyOptions.configurationScript\' does not exist')
+    }
+
+    def "failsBecauseOfInvalidConfigFile"() {
+        if (versionLowerThan("2.1")) {
+            return
+        }
+        expect:
+        fails("compileGroovy")
+        // for some reasons, line breaks occur in different places when running this
+        // test in different environments; hence we only check for short snippets
+        assert compileErrorOutput.contains('Error while executing Groovy compiler configuration script')
+        assert compileErrorOutput.contains('No such property: TypeChecked for class: groovycompilerconfig')
+    }
+
     protected ExecutionResult run(String... tasks) {
         configureGroovy()
         super.run(tasks)

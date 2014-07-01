@@ -17,21 +17,29 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Iterables;
+import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyShell;
+import groovy.lang.GroovySystem;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +59,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setTargetBytecode(spec.getTargetCompatibility());
         configuration.setTargetDirectory(spec.getDestinationDir());
         canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
+        if (spec.getGroovyCompileOptions().getConfigurationScript()!=null) {
+            applyConfigurationScript(spec.getGroovyCompileOptions().getConfigurationScript(), configuration);
+        }
         try {
             configuration.setOptimizationOptions(spec.getGroovyCompileOptions().getOptimizationOptions());
         } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
@@ -116,6 +127,48 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         return new SimpleWorkResult(true);
+    }
+
+    private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {
+        VersionNumber version = parseGroovyVersion();
+        if (version.getMajor()<2 || (version.getMajor()>=2 && version.getMinor()<1)) {
+            throw new GradleException("Groovy configuration script '"+configScript+"' requires Groovy 2.1+ but found Groovy "+version+"");
+        }
+        Binding binding = new Binding();
+        binding.setVariable("configuration", configuration);
+
+        CompilerConfiguration configuratorConfig = new CompilerConfiguration();
+        ImportCustomizer customizer = new ImportCustomizer();
+        customizer.addStaticStars("org.codehaus.groovy.control.customizers.builder.CompilerCustomizationBuilder");
+        configuratorConfig.addCompilationCustomizers(customizer);
+
+        GroovyShell shell = new GroovyShell(binding, configuratorConfig);
+        try {
+            shell.evaluate(configScript);
+        } catch (IOException e) {
+            throw new GradleException("Unable to parse Groovy compiler configuration script: "+configScript.getAbsolutePath(), e);
+        } catch (Exception e) {
+            throw new GradleException("Error while executing Groovy compiler configuration script: "+configScript.getAbsolutePath(), e);
+        }
+    }
+
+    private VersionNumber parseGroovyVersion() {
+        String version = null;
+        try {
+            version = GroovySystem.getVersion();
+        } catch (Throwable e) {
+            if (NoSuchMethodError.class==e.getClass()) {
+                // for Groovy <1.6, we need to call org.codehaus.groovy.runtime.InvokerHelper#getVersion
+                try {
+                    Class<?> ih = Class.forName("org.codehaus.groovy.runtime.InvokerHelper");
+                    Method getVersion = ih.getDeclaredMethod("getVersion");
+                    version = (String) getVersion.invoke(ih);
+                } catch (Exception e1) {
+                    throw new GradleException("Unable to determine Groovy version number");
+                }
+            }
+        }
+        return VersionNumber.parse(version);
     }
 
     // Make sure that map only contains Boolean.TRUE and Boolean.FALSE values and no other Boolean instances.
