@@ -129,9 +129,42 @@ public class GroovyCompileOptions extends AbstractOptions {
         this.fork = fork;
     }
 
-
     /**
-     * Gets the path to an optional groovy configuration file passed to the compiler. Defaults to {@code null}
+     * A Groovy script file that configures the compiler, allowing extensive control over how the code is compiled.
+     * <p>
+     * The script is executed as Groovy code, with the following context:
+     * <ul>
+     * <li>The instance of <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a> available as the {@code configuration} variable.</li>
+     * <li>All static members of <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a> pre imported.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * This facilitates the following pattern:
+     * <pre>
+     * withConfig(configuration) {
+     *   // use compiler configuration DSL here
+     * }
+     * </pre>
+     * </p>
+     * <p>
+     * For example, to activate type checking for all Groovy classes…
+     * <pre>
+     * import groovy.transform.TypeChecked
+     *
+     * withConfig(configuration) {
+     *     ast(TypeChecked)
+     * }
+     * </pre>
+     * </p>
+     * <p>
+     * Please see <a href="http://groovy.codehaus.org/Advanced+compiler+configuration#Advancedcompilerconfiguration-Thecustomizationbuilder">the Groovy compiler customization builder documentation</a>
+     * for more information about the compiler configuration DSL.
+     * </p>
+     * <p>
+     * <b>This feature is only available if compiling with Groovy 2.1 or later.</b>
+     * </p>
+     * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
+     * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
     @InputFile
     @Incubating
@@ -141,25 +174,9 @@ public class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Sets the path to the groovy configuration file. Defaults to {@code null}.
-     * <p>
-     *     The configuration file should conform to the format that Groovy 2.1+ compiler
-     *     accepts. It consists of a script exposing a {@link org.codehaus.groovy.control.CompilerConfiguration}
-     *     instance named <pre>configuration</pre>, and a <pre>withConfig</pre> method to tweak the configuration.
-     * </p>
-     * <p>
-     *     For example, a compiler configuration file activating type checking by default for all Groovy classes
-     *     may be written like this:
-     *     <pre><code>import groovy.transform.TypeChecked
-     * withConfig(configuration) {
-     *     ast(TypeChecked)
-     * }</code></pre>
-     * </p>
-     * <p>
-     *     This feature is only available if Groovy 2.1+ is found on the classpath.
-     * </p>
-     * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
-     * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfigurationBuilder.html">CompilerConfigurationBuilder</a>
+     * Sets the path to the groovy configuration file.
+     *
+     * @see #getConfigurationScript()
      */
     @Incubating
     public void setConfigurationScript(@Nullable File configurationFile) {

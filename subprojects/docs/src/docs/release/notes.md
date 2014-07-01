@@ -42,6 +42,33 @@ The example output of `jps -m` command now also contains the function of the wor
     28649 GradleWorkerMain 'Gradle Test Executor 17'
     28630 GradleWorkerMain 'Gradle Compiler Daemon 1'
 
+### Groovy Compiler Configuration Script Support (i)
+
+It is now possible to perform advanced Groovy compilation configuration by way of the new 
+[`GroovyCompileOptions.configurationScript`](dsl/org.gradle.api.tasks.compile.GroovyCompileOptions.html#org.gradle.api.tasks.compile.GroovyCompileOptions:configurationScript) 
+property 
+(the `GroovyCompileOptions` instance is available as the 
+[`groovyOptions` property of the `GroovyCompile` task](dsl/org.gradle.api.tasks.compile.GroovyCompile.html#org.gradle.api.tasks.compile.GroovyCompile:groovyOptions)). 
+This makes it possible to impose global compiler transformations and other configuration.
+
+For example, to globally enable Groovy's strict type checking, a compiler config script can be created with…
+
+    import groovy.transform.TypeChecked
+    
+    withConfig(configuration) {
+        ast(TypeChecked)
+    }
+    
+And specified in the build script as…
+
+    compileGroovy {
+      groovyOptions.configurationScript = file("myConfigScript.groovy")
+    }
+
+Where `file("myConfigScript.groovy")` contains the Groovy code from above.
+ 
+This feature was contributed by [Cédric Champeau](https://github.com/melix).
+ 
 ### Java Gradle Plugin plugin
 
 This is a plugin to assist in developing gradle plugins.  It validates the plugin structure during the jar task and emits warnings
@@ -174,6 +201,7 @@ We would like to thank the following community members for making contributions 
 * [Marcin Zajączkowski](https://github.com/szpak) - Improvements to groovy-library build template.
 * [Chris Earle](https://github.com/pickypg) - Improvements to the distribution plugin.
 * [Curtis Mahieu](https://github.com/curtpm) - JUnit eager class initialization fix (GRADLE-3114)
+* [Cédric Champeau](https://github.com/melix) - Support for Groovy compiler configuration scripts.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

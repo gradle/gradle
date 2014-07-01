@@ -29,6 +29,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     String groovyDependency = "org.codehaus.groovy:groovy-all:$version"
 
+    String getGroovyVersionNumber() {
+        version.split(":", 2)[0]
+    }
+
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
@@ -86,7 +90,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // test in different environments; hence we only check for short snippets
         if (versionLowerThan("2.1")) {
             assert compileErrorOutput.contains("Groovy configuration script")
-            assert compileErrorOutput.contains("requires Groovy 2.1+ but found Groovy $version")
+            assert compileErrorOutput.contains("requires Groovy 2.1+ but found Groovy $groovyVersionNumber")
         } else {
             assert compileErrorOutput.contains('Cannot find matching method')
         }
@@ -160,7 +164,7 @@ ${compilerConfiguration()}
     }
 
     int compareToVersion(String other) {
-        def versionParts = version.split("\\.") as List
+        def versionParts = groovyVersionNumber.split("\\.") as List
         def otherParts = other.split("\\.") as List
         def ordering = Ordering.<Integer>natural().lexicographical()
         ordering.compare(versionParts, otherParts)
