@@ -19,6 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.reporting.components.ComponentReport
 import org.gradle.api.tasks.diagnostics.*
 import org.gradle.configuration.Help
 
@@ -62,6 +63,11 @@ class HelpTasksPlugin implements Plugin<ProjectInternal> {
 
         project.implicitTasks.create(name: DEPENDENCIES_TASK, type: DependencyReportTask) {
             description = "Displays all dependencies declared in $project."
+            group = HELP_GROUP
+        }
+
+        project.implicitTasks.create(name: COMPONENTS_TASK, type: ComponentReport) {
+            description = "Displays the components produced by $project."
             group = HELP_GROUP
         }
     }

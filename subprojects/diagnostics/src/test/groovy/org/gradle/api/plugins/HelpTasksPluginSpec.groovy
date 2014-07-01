@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.reporting.components.ComponentReport
 import org.gradle.api.tasks.diagnostics.*
 import org.gradle.configuration.Help
 import org.gradle.util.TestUtil
@@ -37,6 +38,7 @@ class HelpTasksPluginSpec extends Specification {
         hasHelpTask(PROJECTS_TASK, ProjectReportTask)
         hasHelpTask(TASKS_TASK, TaskReportTask)
         hasHelpTask(PROPERTIES_TASK, PropertyReportTask)
+        hasHelpTask(COMPONENTS_TASK, ComponentReport)
     }
 
     def "tasks description reflects whether project has sub-projects or not"() {
