@@ -203,7 +203,7 @@ class JUnitTestClassProcessorTest extends Specification {
         when: process([testClassName])
 
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.name == 'initializationError' && it.className == testClassName }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 2 && it.name == 'pass' && it.className == testClassName }, { it.parentId == 1 })
         then: 1 * processor.failure(2, _ as NoClassDefFoundError)
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })

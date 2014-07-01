@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
@@ -139,7 +140,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
         result.testClass('org.gradle.CustomException').assertTestFailed('custom', startsWith('Exception with a custom toString implementation'))
-        result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', equalTo('java.lang.NoClassDefFoundError: Could not initialize class org.gradle.Unloadable'))
         result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
     }
 
@@ -231,15 +233,16 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.TestsOnInner').assertTestPassed('ok')
         result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')
     }
-    
+
     @Test
-	public void createsRunnerBeforeTests() {
+    @Issue("http://issues.gradle.org//browse/GRADLE-3114")
+    public void createsRunnerBeforeTests() {
         executer.withTasks('test').run()
-        
+
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.ExecutionOrderTest')
-        result.testClass('org.gradle.ExecutionOrderTest').assertTestPassed('ok')
-	}
+        result.testClass('org.gradle.ExecutionOrderTest').assertTestPassed('classUnderTestIsLoadedOnlyByRunner')
+    }
 
     @Test
     public void runsAllTestsInTheSameForkedJvm() {

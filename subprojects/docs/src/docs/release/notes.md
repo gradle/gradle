@@ -150,6 +150,19 @@ will be affected by this change.
 
 - The internal method `Javadoc.setJavadocExecHandleBuilder()` has been removed. You should use `setToolChain()` instead.
 
+### Changes to JUnit class loading
+
+Previously, Gradle initialized test classes before trying to execute any individual test case.
+As of Gradle 2.1, classes are not initialized until the execution of the first test case (GRADLE-3114).
+This change was made for compatibility with the popular Android unit testing library, [Robolectric](http://robolectric.org).
+
+This change impacts how classes that fail to initialize are reported.
+Previously a single failure would be reported with a test case name of `initializerError` with the details of the failure.
+After this change, the first test case of the class that cannot be initialized will contain details of the failure, 
+while subsequent test cases of the class will fail with a `NoClassDefFoundError`.
+
+This change will not cause tests that previously passed to start failing.
+ 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -160,6 +173,7 @@ We would like to thank the following community members for making contributions 
 * [Biswa Dahal](https://github.com/ffos) - Dependency exclude support for `maven-publish`.
 * [Marcin Zajączkowski](https://github.com/szpak) - Improvements to groovy-library build template.
 * [Chris Earle](https://github.com/pickypg) - Improvements to the distribution plugin.
+* [Curtis Mahieu](https://github.com/curtpm) - JUnit eager class initialization fix (GRADLE-3114)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

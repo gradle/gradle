@@ -276,6 +276,8 @@ public class ATestClassWhichCannotBeLoaded {
     static {
         throw new NoClassDefFoundError()
     }
+
+    @Test public void pass() {}
 }
 
 public class ATestClassWithSeveralMethods {

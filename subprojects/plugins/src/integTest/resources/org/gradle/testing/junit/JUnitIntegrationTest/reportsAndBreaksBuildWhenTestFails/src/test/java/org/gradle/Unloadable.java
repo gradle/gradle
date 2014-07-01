@@ -12,4 +12,8 @@ public class Unloadable {
     @Test
     public void ok() {
     }
+
+    @Test
+    public void ok2() {
+    }
 }
