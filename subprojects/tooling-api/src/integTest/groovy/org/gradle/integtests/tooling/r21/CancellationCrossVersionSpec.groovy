@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r20
+package org.gradle.integtests.tooling.r21
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.exceptions.BuildCancelledException
 import spock.lang.Ignore
 
 import java.util.concurrent.CountDownLatch
@@ -74,12 +74,69 @@ task hang << {
         !output.toString().contains("finished")
     }
 
+    @TargetGradleVersion(">=2.1")
+    def "early cancel stops the build before beginning"() {
+        buildFile << """
+task hang << {
+    throw new GradleException("should not run")
+}
+"""
+        def cancel = new CancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+
+        when:
+        cancel.cancel()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.forTasks('hang')
+            build.withCancellationToken(cancel.token())
+            build.run(resultHandler)
+            resultHandler.finished()
+        }
+        then:
+        resultHandler.failure instanceof BuildCancelledException
+    }
+
     def "can cancel model retrieval"() {
         // TODO
     }
 
+    @TargetGradleVersion(">=2.1")
+    def "early cancel stops model retrieval before beginning"() {
+        def cancel = new CancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+
+        when:
+        cancel.cancel()
+        withConnection { ProjectConnection connection ->
+            def build = connection.model(SomeModel)
+            build.withCancellationToken(cancel.token())
+            build.get(resultHandler)
+            resultHandler.finished()
+        }
+        then:
+        resultHandler.failure instanceof BuildCancelledException
+    }
+
     def "can cancel action"() {
         // TODO
+    }
+
+    @TargetGradleVersion(">=2.1")
+    def "early cancel stops the action before beginning"() {
+        def cancel = new CancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+
+        when:
+        cancel.cancel()
+        withConnection { ProjectConnection connection ->
+            def build = connection.action(new HangingBuildAction())
+            build.withCancellationToken(cancel.token())
+            build.run(resultHandler)
+            resultHandler.finished()
+        }
+        then:
+        resultHandler.failure instanceof BuildCancelledException
     }
 
     class TestResultHandler implements ResultHandler<Object> {
@@ -120,4 +177,6 @@ task hang << {
             }
         }
     }
+
+    interface SomeModel extends Serializable {}
 }
