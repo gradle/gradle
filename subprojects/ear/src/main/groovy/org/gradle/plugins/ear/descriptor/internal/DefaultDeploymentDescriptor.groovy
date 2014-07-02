@@ -22,10 +22,13 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.internal.DomNode
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.EarWebModule
+
+import javax.inject.Inject
 
 class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
@@ -41,12 +44,16 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     Map<String, String> moduleTypeMappings = new HashMap<String, String>()
     private FileResolver fileResolver
     final XmlTransformer transformer = new XmlTransformer()
+    private final Instantiator instantiator
 
-    public DefaultDeploymentDescriptor(FileResolver fileResolver) {
-        this(new File("META-INF", "application.xml"), fileResolver)
+    @Inject
+    public DefaultDeploymentDescriptor(FileResolver fileResolver, Instantiator instantiator) {
+        this(new File("META-INF", "application.xml"), fileResolver, instantiator)
     }
 
-    public DefaultDeploymentDescriptor(Object descriptorPath, FileResolver fileResolver) {
+    @Inject
+    public DefaultDeploymentDescriptor(Object descriptorPath, FileResolver fileResolver, Instantiator instantiator) {
+        this.instantiator = instantiator
         this.fileResolver = fileResolver
         if (fileResolver) {
             File descriptorFile = fileResolver.resolve(descriptorPath)
@@ -88,6 +95,14 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     public DeploymentDescriptor securityRole(String role) {
         securityRoles.add(new DefaultEarSecurityRole(role))
+        return this
+    }
+
+    @Override
+    DeploymentDescriptor securityRole(Action<? extends EarSecurityRole> roleAction ) {
+        EarSecurityRole role = instantiator.newInstance(DefaultEarSecurityRole)
+        roleAction.execute(role)
+        securityRoles.add(role)
         return this
     }
 
@@ -175,7 +190,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         return this
     }
 
-    private String localNameOf(Node node) {
+    protected String localNameOf(Node node) {
         node.name() instanceof QName ? node.name().localPart : node.name() as String
     }
 
