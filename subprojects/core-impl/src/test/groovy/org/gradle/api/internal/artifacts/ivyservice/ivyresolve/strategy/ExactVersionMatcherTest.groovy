@@ -107,6 +107,7 @@ class ExactVersionMatcherTest extends Specification {
         "1.0-alpha" | "1.0"
         "1.0-alpha" | "1.0-beta"
         "1.0.alpha" | "1.0.b"
+        "1.0.a"     | "1.0.0"
     }
 
     def "gives some special treatment to 'dev', 'rc', and 'final' qualifiers"() {
@@ -122,6 +123,8 @@ class ExactVersionMatcherTest extends Specification {
         "1.0-dev-1" | "1.0-dev-2"
         "1.0-rc-1"  | "1.0"
         "1.0-rc-1"  | "1.0-rc-2"
+        "1.0-dev-1" | "1.0-xx-1"
+        "1.0-xx-1"  | "1.0-rc-1"
         "1.0-final" | "1.0"
         "1.0-dev-1" | "1.0-rc-1"
         "1.0-rc-1"  | "1.0-final"
