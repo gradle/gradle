@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -35,15 +36,15 @@ public class BuildInvocationsAdapterProducer extends AbstractModelProducer {
         this.delegate = delegate;
     }
 
-    public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+    public <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) {
         if (type.getName().equals(BuildInvocations.class.getName()) && !versionDetails.maySupportModel(type)) {
             if (!versionDetails.maySupportModel(GradleProject.class)) {
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
-            GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
+            GradleProject gradleProject = delegate.produceModel(GradleProject.class, cancellationToken, operationParameters);
             DefaultBuildInvocations<DefaultGradleTask> convert = new BuildInvocationsConverter().convert(gradleProject);
             return adapter.adapt(type, convert);
         }
-        return delegate.produceModel(type, operationParameters);
+        return delegate.produceModel(type, cancellationToken, operationParameters);
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer
 import com.google.common.collect.Sets
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
@@ -41,6 +42,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     def "requests consumer connection run build"() {
         ResultHandler<Void> handler = Mock()
         ResultHandlerVersion1<Void> adaptedHandler
+        CancellationToken cancellationToken = Mock()
+        launcher.withCancellationToken(cancellationToken)
 
         when:
         launcher.run(handler)
@@ -52,8 +55,10 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
-            ConsumerOperationParameters params = args[1]
+        1 * connection.run(Void, _, _) >> {args ->
+            CancellationToken cancelParam = args[1]
+            assert cancelParam == cancellationToken
+            ConsumerOperationParameters params = args[2]
             assert params.tasks == []
             assert params.standardOutput == null
             assert params.standardError == null
@@ -90,8 +95,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
-            ConsumerOperationParameters params = args[1]
+        1 * connection.run(Void, _, _) >> {args ->
+            ConsumerOperationParameters params = args[2]
             assert params.tasks == [':task1', ':task2']
             assert params.standardOutput == stdout
             assert params.standardError == stderr
@@ -124,8 +129,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
-            ConsumerOperationParameters params = args[1]
+        1 * connection.run(Void, _, _) >> {args ->
+            ConsumerOperationParameters params = args[2]
             assert params.tasks == [':a:myTask', ':b:myTask']
             assert params.standardOutput == stdout
             assert params.standardError == stderr
@@ -160,8 +165,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
-            ConsumerOperationParameters params = args[1]
+        1 * connection.run(Void, _, _) >> {args ->
+            ConsumerOperationParameters params = args[2]
             assert params.launchables == [ts]
             assert params.standardOutput == stdout
             assert params.standardError == stderr
@@ -200,8 +205,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
-            ConsumerOperationParameters params = args[1]
+        1 * connection.run(Void, _, _) >> {args ->
+            ConsumerOperationParameters params = args[2]
             assert params.tasks == [':firstTask', ':secondTask', ':thirdTask']
             assert params.standardOutput == stdout
             assert params.standardError == stderr

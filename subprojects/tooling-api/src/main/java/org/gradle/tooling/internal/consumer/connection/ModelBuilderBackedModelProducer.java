@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
@@ -39,7 +40,7 @@ public class ModelBuilderBackedModelProducer extends AbstractModelProducer {
         mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
     }
 
-    public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+    public <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) {
         if (!versionDetails.maySupportModel(type)) {
             throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
         }

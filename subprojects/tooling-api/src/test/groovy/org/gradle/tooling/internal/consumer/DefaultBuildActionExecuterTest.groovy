@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
@@ -36,7 +37,9 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
     def "delegates to connection to run action"() {
         ResultHandlerVersion1<GradleProject> adaptedHandler
         ResultHandler<GradleProject> handler = Mock()
+        CancellationToken cancellationToken = Mock()
         GradleProject result = Mock()
+        executer.withCancellationToken(cancellationToken)
 
         when:
         executer.run(handler)
@@ -47,7 +50,11 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
             action.run(connection)
             adaptedHandler = args[1]
         }
-        1 * connection.run(action, _) >> result
+        1 * connection.run(action, _, _) >> { args ->
+            CancellationToken cancelParam = args[1]
+            assert cancelParam == cancellationToken
+            return result
+        }
 
         when:
         adaptedHandler.onComplete(result)

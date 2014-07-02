@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 /**
@@ -28,7 +29,9 @@ public interface ConsumerConnection {
     
     String getDisplayName();
 
-    <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException;
 
-    <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    <T> T run(BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException;
 }

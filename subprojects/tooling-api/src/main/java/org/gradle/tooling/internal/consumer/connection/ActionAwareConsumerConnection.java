@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionFailureException;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -34,7 +35,8 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
     }
 
     @Override
-    public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(final BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
         BuildResult<T> result;
         try {
             result = executor.run(new BuildActionAdapter<T>(action, adapter), operationParameters);

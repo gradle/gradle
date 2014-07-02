@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.connection;
+package org.gradle.tooling.exceptions;
 
-import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.GradleConnectionException;
 
-public interface ModelProducer {
-    <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters);
+/**
+ * Thrown when the {@link org.gradle.tooling.LongRunningOperation} execution
+ * was cancelled.
+ */
+public class BuildCancelledException extends GradleConnectionException {
+    public BuildCancelledException(String message) {
+        super(message);
+    }
+
+    public BuildCancelledException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
@@ -37,7 +38,8 @@ public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerCo
         new CompatibleIntrospector(getDelegate()).callSafely("configureLogging", connectionParameters.getVerboseLogging());
     }
 
-    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
         if (type.equals(Void.class)) {
             doRunBuild(operationParameters);
             return null;

@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
@@ -48,7 +49,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
 
     @Override
     protected <T> T doGetModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
-        return modelProducer.produceModel(modelType, operationParameters);
+        return modelProducer.produceModel(modelType, null, operationParameters);
     }
 
     private static class R10M8VersionDetails extends VersionDetails {
@@ -83,7 +84,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
             this.mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
         }
 
-        public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+        public <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) {
             if (!versionDetails.maySupportModel(type)) {
                 //don't bother asking the provider for this model
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());

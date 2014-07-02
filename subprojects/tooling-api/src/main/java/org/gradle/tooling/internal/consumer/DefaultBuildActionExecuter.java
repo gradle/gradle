@@ -45,13 +45,18 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
 
     public void run(ResultHandler<? super T> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
+        final CancellationToken operationCancellationToken = cancellationToken;
         connection.run(new ConsumerAction<T>() {
+                           public CancellationToken getCancellationToken() {
+                               return operationCancellationToken;
+                           }
+
                            public ConsumerOperationParameters getParameters() {
                                return operationParameters;
                            }
 
                            public T run(ConsumerConnection connection) {
-                               return connection.run(buildAction, operationParameters);
+                               return connection.run(buildAction, operationCancellationToken, operationParameters);
                            }
                        }, new ResultHandlerAdapter<T>(handler) {
                            @Override

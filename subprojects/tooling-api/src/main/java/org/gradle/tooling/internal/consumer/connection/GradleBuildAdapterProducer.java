@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.GradleBuildConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -33,12 +34,12 @@ public class GradleBuildAdapterProducer extends AbstractModelProducer {
         this.delegate = delegate;
     }
 
-    public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+    public <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) {
         if (type.getName().equals(GradleBuild.class.getName()) && !versionDetails.maySupportModel(type)) {
-            GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
+            GradleProject gradleProject = delegate.produceModel(GradleProject.class, cancellationToken, operationParameters);
             final DefaultGradleBuild convert = new GradleBuildConverter().convert(gradleProject);
             return adapter.adapt(type, convert);
         }
-        return delegate.produceModel(type, operationParameters);
+        return delegate.produceModel(type, cancellationToken, operationParameters);
     }
 }
