@@ -1031,7 +1031,7 @@ from the same sources that link against different implementation libraries.
 - GCC 3
 - XCode on OS X
 
-## Feature: Flexible source sets
+## Feature: Improved native source sets
 
 A sequence of stories to make source sets much more flexible, and to improve the conventions of the source sets for a component:
 
@@ -1149,50 +1149,6 @@ This story introduces a set of headers that are visible to all source files in a
 - Default location for public headers.
 - Language specific public headers. Eg include these headers when compiling C in a consuming component, and these additional headers when compiling C++.
 - Update the generated Visual Studio project so that different header sets are grouped within distinct "filters".
-
-### Story: Configure the source sets of a component in the component definition
-
-This story moves definition and configuration of the source sets for a component to live with the other component configuration.
-
-1. Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
-    - This is simply a source set that contains other source sets.
-    - This step allows arbitrary source sets to be added to the `sources { ... }` container.
-1. Allow a component's source sets to be defined as part of the component definition:
-    - Replace `NativeComponent.getSource()` with a `getSources()` method return a `CompositeSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
-    - Add a `NativeComponent.source(Action<? super CompositeSourceSet>)` method.
-    - Change language plugins to add source sets via the component's source container rather than the project's source container.
-    - This step allows configuration via `component.source { ... }`.
-1. Review samples to make use of this.
-
-#### Example DSL
-
-    libraries {
-        mylib {
-            sources {
-                publicHeaders {
-                    srcDir = 'src/headers/api'
-                }
-                sharedHeaders {
-                    srcDir = 'src/headers/shared'
-                }
-                c {
-                    lib libraries.otherlib
-                }
-                cpp {
-                    include '**/*.CC'
-                }
-            }
-        }
-    }
-
-    // Can also reach source sets via project.sources
-    sources {
-        mylib { ... }
-    }
-
-#### Open issues
-
-- Flatten out all source sets into `project.sources`. Would need to use something other than a named domain object container.
 
 ## Feature: Objective-C support
 
