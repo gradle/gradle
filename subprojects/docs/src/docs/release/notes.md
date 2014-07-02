@@ -202,6 +202,7 @@ We would like to thank the following community members for making contributions 
 * [Chris Earle](https://github.com/pickypg) - Improvements to the distribution plugin.
 * [Curtis Mahieu](https://github.com/curtpm) - JUnit eager class initialization fix (GRADLE-3114)
 * [Cédric Champeau](https://github.com/melix) - Support for Groovy compiler configuration scripts.
+* [Martin](https://github.com/effrafax) - improvements to EAR plugin.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

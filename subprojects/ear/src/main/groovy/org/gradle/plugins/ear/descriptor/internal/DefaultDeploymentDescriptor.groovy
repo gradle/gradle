@@ -99,9 +99,9 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     @Override
-    DeploymentDescriptor securityRole(Action<? extends EarSecurityRole> roleAction ) {
+    DeploymentDescriptor securityRole(Action<? extends EarSecurityRole> action) {
         EarSecurityRole role = instantiator.newInstance(DefaultEarSecurityRole)
-        roleAction.execute(role)
+        action.execute(role)
         securityRoles.add(role)
         return this
     }

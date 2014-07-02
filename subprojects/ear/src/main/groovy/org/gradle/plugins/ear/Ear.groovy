@@ -29,6 +29,8 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule
 import org.gradle.util.ConfigureUtil
 
+import javax.inject.Inject
+
 /**
  * Assembles an EAR archive.
  */
@@ -89,6 +91,11 @@ class Ear extends Jar {
         }
     }
 
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Configures the deployment descriptor for this EAR archive.
      *
@@ -100,8 +107,7 @@ class Ear extends Jar {
      */
     Ear deploymentDescriptor(Closure configureClosure) {
         if (!deploymentDescriptor) {
-            def instantiator = getServices().get(Instantiator.class)
-            deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor,project.fileResolver,instantiator) // implied use of ProjectInternal
+            deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor, project.fileResolver, getInstantiator()) // implied use of ProjectInternal
         }
         ConfigureUtil.configure(configureClosure, deploymentDescriptor)
         this
