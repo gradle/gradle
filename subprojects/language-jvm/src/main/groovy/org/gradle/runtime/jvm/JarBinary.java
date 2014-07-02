@@ -17,11 +17,10 @@
 package org.gradle.runtime.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.Binary;
 
 /**
- * A JVM library binary.
+ * A Jar file binary that runs on the JVM.
  */
 @Incubating
-public interface JvmLibraryBinary extends Binary {
+public interface JarBinary extends JvmLibraryBinary {
 }

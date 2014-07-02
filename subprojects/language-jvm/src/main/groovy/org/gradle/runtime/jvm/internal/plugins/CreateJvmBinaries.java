@@ -23,7 +23,7 @@ import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.jvm.JvmLibrary;
-import org.gradle.runtime.jvm.internal.DefaultJvmLibraryBinary;
+import org.gradle.runtime.jvm.internal.DefaultJarBinary;
 
 import java.io.File;
 
@@ -45,14 +45,14 @@ public class CreateJvmBinaries extends ModelRule {
                     .withComponentName(jvmLibrary.getName())
                     .withTypeString("jar")
                     .build();
-            DefaultJvmLibraryBinary jvmLibraryBinary = new DefaultJvmLibraryBinary(jvmLibrary, namingScheme);
+            DefaultJarBinary jvmLibraryBinary = new DefaultJarBinary(jvmLibrary, namingScheme);
             jvmLibraryBinary.source(jvmLibrary.getSource());
             configureBinaryOutputLocations(jvmLibraryBinary);
             binaries.add(jvmLibraryBinary);
         }
     }
 
-    private void configureBinaryOutputLocations(DefaultJvmLibraryBinary jvmLibraryBinary) {
+    private void configureBinaryOutputLocations(DefaultJarBinary jvmLibraryBinary) {
         String outputBaseName = jvmLibraryBinary.getNamingScheme().getOutputDirectoryBase();
         jvmLibraryBinary.setClassesDir(new File(classesDir, outputBaseName));
         jvmLibraryBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jvmLibraryBinary.getLibrary().getName())));

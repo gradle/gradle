@@ -24,7 +24,7 @@ import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.runtime.jvm.JvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrary;
 import org.gradle.runtime.jvm.internal.plugins.CreateJvmBinaries;
-import org.gradle.runtime.jvm.internal.plugins.CreateTasksForJvmBinaries;
+import org.gradle.runtime.jvm.internal.plugins.CreateTasksForJarBinaries;
 import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
 
 import javax.inject.Inject;
@@ -59,6 +59,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
         modelRules.register("jvm.libraries", jvmLibraries);
 
         modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder(), project.getBuildDir()));
-        modelRules.rule(new CreateTasksForJvmBinaries());
+        modelRules.rule(new CreateTasksForJarBinaries());
     }
 }

@@ -150,10 +150,6 @@ Combining native and jvm libraries in single project
 - Can combine native and JVM libraries in the same project
   - `gradle assemble` executes lifecycle tasks for each native library and each jvm library
 
-#### Open issues
-
-- Come up with a better name for `JvmLibraryBinary`, or perhaps add a `JarBinary` subtype.
-
 ### Story: Build author creates JVM library jar from Java sources
 
 When a JVM library is defined with Java language support, then binary is built from conventional source set locations:
@@ -238,6 +234,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Clean up output files from components and binaries that have been removed or renamed.
 - How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
 - When to document and announce the new JVM plugins?
+- Rework the native & JVM component models for consistency and extensibility.
 
 ## Feature: Custom plugin defines a custom library type
 

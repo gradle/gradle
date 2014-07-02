@@ -21,11 +21,13 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.model.ModelRule;
 import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.jvm.JarBinary;
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
 
-public class CreateTasksForJvmBinaries extends ModelRule {
+public class CreateTasksForJarBinaries extends ModelRule {
     void createTasks(TaskContainer tasks, BinaryContainer binaries) {
-        for (JvmLibraryBinaryInternal binary : binaries.withType(JvmLibraryBinaryInternal.class)) {
+        for (JarBinary jarBinary : binaries.withType(JarBinary.class)) {
+            JvmLibraryBinaryInternal binary = (JvmLibraryBinaryInternal) jarBinary;
             Task jarTask = createJarTask(tasks, binary);
             binary.builtBy(jarTask);
             binary.getTasks().add(jarTask);

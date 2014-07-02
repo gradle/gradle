@@ -22,7 +22,7 @@ import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.runtime.jvm.JvmLibrary
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrary
-import org.gradle.runtime.jvm.internal.DefaultJvmLibraryBinary
+import org.gradle.runtime.jvm.internal.DefaultJarBinary
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -45,7 +45,7 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
         1 * namingScheme.outputDirectoryBase >> "jvmJarOutput"
-        1 * binaries.add({ DefaultJvmLibraryBinary binary ->
+        1 * binaries.add({ DefaultJarBinary binary ->
             binary.namingScheme == namingScheme
             binary.library == library
         } as Binary)
@@ -67,7 +67,7 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
         1 * namingScheme.outputDirectoryBase >> "jvmJarOutput"
-        1 * binaries.add({ DefaultJvmLibraryBinary binary ->
+        1 * binaries.add({ DefaultJarBinary binary ->
             binary.namingScheme == namingScheme
             binary.library == library
             binary.source == library.source

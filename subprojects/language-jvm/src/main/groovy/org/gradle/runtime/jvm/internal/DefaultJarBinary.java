@@ -21,12 +21,13 @@ import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.jvm.JarBinary;
 import org.gradle.runtime.jvm.JvmBinaryTasks;
 import org.gradle.runtime.jvm.JvmLibrary;
 
 import java.io.File;
 
-public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements JvmLibraryBinaryInternal {
+public class DefaultJarBinary extends AbstractBuildableModelElement implements JarBinary, JvmLibraryBinaryInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final JvmLibrary library;
     private final BinaryNamingScheme namingScheme;
@@ -34,7 +35,7 @@ public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement imple
     private File classesDir;
     private File jarFile;
 
-    public DefaultJvmLibraryBinary(JvmLibrary library, BinaryNamingScheme namingScheme) {
+    public DefaultJarBinary(JvmLibrary library, BinaryNamingScheme namingScheme) {
         this.library = library;
         this.namingScheme = namingScheme;
     }
