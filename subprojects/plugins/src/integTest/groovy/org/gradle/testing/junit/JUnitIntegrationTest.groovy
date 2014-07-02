@@ -141,7 +141,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
         result.testClass('org.gradle.CustomException').assertTestFailed('custom', startsWith('Exception with a custom toString implementation'))
         result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
-        result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', equalTo('java.lang.NoClassDefFoundError: Could not initialize class org.gradle.Unloadable'))
+        result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
         result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
     }
 
