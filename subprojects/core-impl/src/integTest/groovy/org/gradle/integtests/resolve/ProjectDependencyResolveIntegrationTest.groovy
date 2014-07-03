@@ -358,6 +358,15 @@ project('a') {
 
             jars = configurations.other.collect { it.name } as Set
             assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
+
+            // Check type of root component
+            def defaultResult = configurations.default.incoming.resolutionResult
+            def defaultRootId = defaultResult.root.id
+            assert defaultRootId instanceof ProjectComponentIdentifier
+
+            def otherResult = configurations.default.incoming.resolutionResult
+            def otherRootId = otherResult.root.id
+            assert otherRootId instanceof ProjectComponentIdentifier
         }
     }
 }
