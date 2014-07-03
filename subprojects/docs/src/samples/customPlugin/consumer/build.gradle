@@ -11,7 +11,7 @@ buildscript {
     }
 }
 // END SNIPPET use-task
-apply plugin: 'greeting'
+apply plugin: 'org.samples.greeting'
 // END SNIPPET use-plugin
 // START SNIPPET use-task
 

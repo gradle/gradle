@@ -148,19 +148,66 @@
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
 
-	<para>
-            So how does Gradle find the <apilink class="org.gradle.api.Plugin"/> implementation? The answer is you need to provide a properties file in the jar's
-	    <filename>META-INF/gradle-plugins</filename> directory that matches the name of your plugin.
-	</para>
+        <para>
+                So how does Gradle find the <apilink class="org.gradle.api.Plugin"/> implementation? The answer is you need to provide a properties file in the jar's
+            <filename>META-INF/gradle-plugins</filename> directory that matches the id of your plugin.
+        </para>
 
         <sample id="customPluginStandalone" dir="customPlugin/plugin" title="Wiring for a custom plugin">
-            <sourcefile file="src/main/resources/META-INF/gradle-plugins/greeting.properties"/>
+            <sourcefile file="src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties"/>
         </sample>	
 
-	<para>
-	    Notice that the properties filename matches the plugin's name and is placed in the resources folder, and
-	    that the <literal>implementation-class</literal> property identifies the <apilink class="org.gradle.api.Plugin"/> implementation class.
-	</para>
+        <para>
+            Notice that the properties filename matches the plugin id and is placed in the resources folder, and
+            that the <literal>implementation-class</literal> property identifies the <apilink class="org.gradle.api.Plugin"/> implementation class.
+        </para>
+
+        <section>
+            <title>Creating a plugin id</title>
+            <para>
+                Plugin ids are fully qualified in a manner similar to Java packages (i.e. a reverse domain name).  This helps to avoid
+                collisions and provides a way to group plugins with similar ownership.
+            </para>
+            <para>
+                Your plugin id should be a combination of components that reflect namespace (a reasonable pointer to you or your organization)
+                and the name of the plugin it provides.  For example if you had a github account named "foo" and your plugin named "bar",
+                a suitable plugin id might be <literal>com.github.foo.bar</literal>.  Similarly, if the plugin was developed at the baz organization,
+                the plugin id might be <literal>org.baz.bar</literal>.
+            </para>
+            <para>
+                Plugin ids should conform to the following:
+            </para>
+            <itemizedlist>
+                <listitem>May contain any alphanumeric character, '.', and '-'.</listitem>
+                <listitem>Must contain at least one '.' character separating the namespace from the name of the plugin.</listitem>
+                <listitem>Conventionally use a lowercase reverse domain name convention for the namespace.</listitem>
+                <listitem>Conventionally use only lowercase characters in the name.</listitem>
+                <listitem><literal>org.gradle</literal> and <literal>com.gradleware</literal> namespaces are reserved.</listitem>
+                <listitem>Cannot start or end with a '.' character.</listitem>
+                <listitem>Cannot contain consecutive '.' characters (i.e. '..').</listitem>
+            </itemizedlist>
+            <para>
+                Although there are conventional similarities between plugin ids and package names, package names are generally more detailed than is
+                necessary for a plugin id.  For instance, it might seem reasonable to add "gradle" as a component of your plugin id, but since plugin
+                ids are only used for Gradle plugins, this would be superfluous.  Generally, a namespace that identifies ownership and a name are all
+                that are needed for a good plugin id.
+            </para>
+        </section>
+
+        <section>
+            <title>Publishing your plugin</title>
+            <para>
+                If you are publishing your plugin internally for use within your organization, you can publish it like
+                any other code artifact.  See the <link linkend="publishing_ivy">ivy</link> and <link linkend="publishing_maven">maven</link>
+                chapters on publishing artifacts.
+            </para>
+            <para>
+                If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the
+                <ulink url="http://plugins.gradle.org">Gradle plugin portal</ulink>.  This site provides the ability search for and
+                gather information about plugins contributed by the Gradle community.  See the instructions
+                <ulink url="http://plugins.gradle.org/submit">here</ulink> on how to make your plugin available on this site.
+            </para>
+        </section>
 
         <section>
             <title>Using your plugin in another project</title>
@@ -175,6 +222,7 @@
                 <sourcefile file="build.gradle" snippet="use-plugin"/>
             </sample>
         </section>
+
         <section>
             <title>Writing tests for your plugin</title>
             <para>You can use the <apilink class="org.gradle.testfixtures.ProjectBuilder"/> class to create
@@ -184,6 +232,7 @@
                 <sourcefile file="src/test/groovy/org/gradle/GreetingPluginTest.groovy" snippet="test-plugin"/>
             </sample>
         </section>
+
         <section>
             <title>Using the Java Gradle Plugin development plugin</title>
             <para>You can use the incubating <link linkend="javaGradle_plugin">Java Gradle Plugin development plugin</link>

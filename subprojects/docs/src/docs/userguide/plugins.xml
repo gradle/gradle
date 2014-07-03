@@ -25,42 +25,85 @@
     <para>
         In this chapter we will discuss how to use plugins and the terminology and concepts surrounding plugins.
     </para>
+    <section id="sec:types_of_plugins">
+        <title>Types of plugins</title>
+        <para>
+            There are two general types of plugins in Gradle, <emphasis>script</emphasis> plugins and <emphasis>binary</emphasis> plugins.
+            Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to
+            manipulating the build.  They are typically used within a build although they can be externalized and accessed from a remote
+            location.  Binary plugins are classes that implement the <apilink class='org.gradle.api.Plugin'/> interface and adopt a programmatic
+            approach to manipulating the build.  Binary plugins can reside within a build script, within the project hierarchy or externally
+            in a plugin jar.
+        </para>
+    </section>
     <section id='sec:using_plugins'>
         <title>Applying plugins</title>
         <para>
             Plugins are said to be <emphasis>applied</emphasis>, which is done via the <apilink class="org.gradle.api.Project" method="apply(java.util.Map)" /> method.
         </para>
-        <sample id="useJavaPlugin" dir="java/quickstart" title="Applying a plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
+        <section>
+            <title>Script plugins</title>
+            <sample id="configureProjectUsingScript" dir="userguide/tutorial/configureProjectUsingScript" title="Applying a script plugin">
+                <sourcefile file="build.gradle"/>
+            </sample>
+            <para>
+                Script plugins can be applied from a script on the local filesystem or at a remote location.  Filesystem
+                locations are relative to the project directory, while remote script locations are specified with an HTTP URL.
+                Multiple script plugins (of either form) can be applied to a given build.
+            </para>
+        </section>
+        <section>
+            <title>Binary plugins</title>
+            <sample id="useJavaPlugin" dir="java/quickstart" title="Applying a binary plugin">
+                <sourcefile file="build.gradle" snippet="use-plugin"/>
+            </sample>
+            <para>
+                Core plugins advertise a short name for themselves. In the above case, we are using the short name ‘<literal>java</literal>’ to apply
+                the <apilink class="org.gradle.api.plugins.JavaPlugin" />.  Community plugins utilize a formal <emphasis>plugin id</emphasis> that
+                takes a fully qualified form (e.g. <literal>com.github.foo.bar</literal>) although some legacy plugins may still utilize the short,
+                unqualified form.
+            </para>
+            <para>
+                We could also have used the following syntax:
+            </para>
+            <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a binary plugin by type">
+                <sourcefile file="build.gradle" snippet="apply-by-type"/>
+            </sample>
+            <para>
+                Thanks to Gradle's default imports (see <xref linkend='ide_support'/>) you could also write:
+            </para>
+            <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a binary plugin by type">
+                <sourcefile file="build.gradle" snippet="apply-by-type-with-import"/>
+            </sample>
+            <para>
+                The application of plugins is <emphasis>idempotent</emphasis>. That is, a plugin can be applied multiple times. If the plugin
+                has previously been applied, any further applications will have no effect.
+            </para>
+            <section>
+                <title>Locations of binary plugins</title>
+                <para>
+                    A plugin is simply any class that implements the <apilink class="org.gradle.api.Plugin" /> interface. Gradle provides
+                    the core plugins as part of its distribution so simply applying the plugin as above is all you need to do.
+                    However, non-core binary plugins need to be available to the build classpath before they can be applied.  This can
+                    be achieved in a number of ways, including:
+                </para>
+                <itemizedlist>
+                    <listitem>Defining the plugin as an inline class declaration inside a build script.</listitem>
+                    <listitem>Defining the plugin as a source file under the buildSrc directory in the project.</listitem>
+                    <listitem>Including the plugin from an external jar defined as a buildscript dependency (see <xref linkend="sec:external_dependencies" />).</listitem>
+                </itemizedlist>
+                <para>
+                    For more on defining your own plugins, see <xref linkend="custom_plugins" />.
+                </para>
+            </section>
+        </section>
+    </section>
+    <section>
+        <title>Finding community plugins</title>
         <para>
-            Plugins advertise a short name for themselves. In the above case, we are using the short name ‘<literal>java</literal>’ to apply
-            the <apilink class="org.gradle.api.plugins.JavaPlugin" />.
-        </para>
-        <para>
-            We could also have used the following syntax:
-        </para>
-        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a plugin by type">
-            <sourcefile file="build.gradle" snippet="apply-by-type"/>
-        </sample>
-        <para>
-            Thanks to Gradle's default imports (see <xref linkend='ide_support'/>) you could also write:
-        </para>
-        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a plugin by type">
-            <sourcefile file="build.gradle" snippet="apply-by-type-with-import"/>
-        </sample>
-        <para>
-            The application of plugins is <emphasis>idempotent</emphasis>. That is, a plugin can be applied multiple times. If the plugin
-            has previously been applied, any further applications will have no effect.
-        </para>
-        <para>
-            A plugin is simply any class that implements the <apilink class="org.gradle.api.Plugin"/> interface. Gradle provides
-            the core plugins as part of its distribution so simply applying the plugin as above is all you need to do.
-            For 3rd party plugins however, you need to make the plugins available to the build classpath. For more information
-            on how to do this, see <xref linkend="sec:external_dependencies" />.
-        </para>
-        <para>
-            For more on writing your own plugins, see <xref linkend="custom_plugins" />.
+            Gradle has a vibrant community of plugin developers that contribute plugins for a wide variety of capabilities.
+            The Gradle <ulink url="http://plugins.gradle.org">plugin portal</ulink> provides an interface for searching and
+            exploring community plugins.
         </para>
     </section>
     <section>
