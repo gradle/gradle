@@ -221,6 +221,13 @@
                 <test args="hello"/>
                 <sourcefile file="build.gradle" snippet="use-plugin"/>
             </sample>
+            <para>
+                Alternatively, if your plugin is published to the plugin portal, you can use the incubating plugins DSL (see <xref linkend="sec:plugins_block" />)
+                to apply the plugin:
+            </para>
+            <sample id="useCommunityPluginDSL" dir="plugin-dsl" title="Applying a community plugin with the plugins DSL">
+                <sourcefile file="build.gradle" snippet="use-community-plugin"/>
+            </sample>
         </section>
 
         <section>

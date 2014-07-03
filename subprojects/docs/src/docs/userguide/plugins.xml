@@ -91,12 +91,43 @@
                     <listitem>Defining the plugin as an inline class declaration inside a build script.</listitem>
                     <listitem>Defining the plugin as a source file under the buildSrc directory in the project.</listitem>
                     <listitem>Including the plugin from an external jar defined as a buildscript dependency (see <xref linkend="sec:external_dependencies" />).</listitem>
+                    <listitem>Including the plugin from the plugin portal using the plugins DSL (see <xref linkend="sec:plugins_block" />).</listitem>
                 </itemizedlist>
                 <para>
                     For more on defining your own plugins, see <xref linkend="custom_plugins" />.
                 </para>
             </section>
         </section>
+    </section>
+    <section id="sec:plugins_block">
+        <title>Applying plugins with the plugins DSL</title>
+        <note>
+            <para>
+                The plugins DSL is currently <link linkend="feature_lifecycle">incubating</link>.
+                Please be aware that the DSL and other configuration may change in later Gradle versions.
+            </para>
+        </note>
+        <para>
+            The new plugins DSL provides a more succinct and convenient way to declare plugin dependencies.  It works with the
+            new <ulink url="http://plugins.gradle.org">Gradle plugin portal</ulink> to provide easy access to both core and community
+            plugins.
+        </para>
+        <para>
+            To apply a core plugin, the short name can be used:
+        </para>
+        <sample id="useJavaPluginDSL" dir="plugin-dsl" title="Applying a core plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>
+            To apply a community plugin from the portal, the fully qualified plugin id must be used:
+        </para>
+        <sample id="useCommunityPluginDSL" dir="plugin-dsl" title="Applying a community plugin">
+            <sourcefile file="build.gradle" snippet="use-community-plugin"/>
+        </sample>
+        <para>
+            No further configuration is necessary.  Specifically, there is no need to configure the buildscript classpath.
+            Gradle will resolve the plugin in the plugin portal, locate it, and make it available to the build.
+        </para>
     </section>
     <section>
         <title>Finding community plugins</title>
