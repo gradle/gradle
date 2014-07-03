@@ -89,6 +89,7 @@ A mock up:
 - Creation rule should be able to declare inputs, including (stateless) services.
 - Creation rule declares input of unknown type.
 - Settings or init script configures model.
+- How would a user verify that they got the signature/annotation correct in a unit test?
 
 ## Story: Plugin defines tasks using model as input
 
