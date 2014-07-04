@@ -52,7 +52,7 @@ task log << {
             build.standardOutput = output
             build.forTasks("log")
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { output.toString().contains("waiting") }
+            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             marker.text = 'go!'
             resultHandler.finished()
         }
