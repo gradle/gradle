@@ -836,6 +836,7 @@ Dependency resolution selects the best binary from each dependency for the targe
 - Java language support
     - Java language level.
     - Source encoding.
+    - Copy tests from `:plugins:org.gradle.java` and `:plugins:org.gradle.compile` into `:languageJvm` and convert to new component model
 - Groovy and Scala language support, including joint compilation.
     - Language level.
 - ANTLR language support.
