@@ -41,19 +41,20 @@ public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerCo
     public <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException {
         if (type.equals(Void.class)) {
-            doRunBuild(operationParameters);
+            doRunBuild(cancellationToken, operationParameters);
             return null;
         } else {
             if (operationParameters.getTasks() != null) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
             }
-            return doGetModel(type, operationParameters);
+            return doGetModel(type, cancellationToken, operationParameters);
         }
     }
 
-    protected abstract <T> T doGetModel(Class<T> modelType, ConsumerOperationParameters operationParameters);
+    protected abstract <T> T doGetModel(Class<T> modelType, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters);
 
-    protected void doRunBuild(ConsumerOperationParameters operationParameters) {
+    protected void doRunBuild(CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) {
+        handleCancellationPreOperation(cancellationToken, operationParameters);
         getDelegate().executeBuild(operationParameters, operationParameters);
     }
 }

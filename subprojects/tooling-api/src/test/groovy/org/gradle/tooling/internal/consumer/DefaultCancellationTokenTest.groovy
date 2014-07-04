@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling
+package org.gradle.tooling.internal.consumer
 
+import org.gradle.tooling.CancellationTokenSource
 import spock.lang.Specification
 
-class CancellationTokenTest extends Specification {
+class DefaultCancellationTokenTest extends Specification {
     def 'can cancel token'() {
         def source = new CancellationTokenSource()
 
@@ -33,5 +34,38 @@ class CancellationTokenTest extends Specification {
 
         then:
         token.cancellationRequested
+    }
+
+    def 'cancel notifies callbacks'() {
+        def source = new CancellationTokenSource()
+
+        def callback1 = Mock(Runnable)
+        def callback2 = Mock(Runnable)
+        def token = source.token()
+        token.addCallback(callback1)
+        token.addCallback(callback2)
+
+        when:
+        source.cancel()
+
+        then:
+        token.cancellationRequested
+        1 * callback1.run()
+        1 * callback2.run()
+    }
+
+    def 'addCallback after cancel notifies'() {
+        def source = new CancellationTokenSource()
+
+        def callback = Mock(Runnable)
+        def token = source.token()
+        source.cancel()
+
+        when:
+        token.addCallback(callback)
+
+        then:
+        token.cancellationRequested
+        1 * callback.run()
     }
 }

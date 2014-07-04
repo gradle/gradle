@@ -64,7 +64,7 @@ task hang << {
             build.forTasks('hang')
             build.withCancellationToken(cancel.token())
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { output.toString().contains("waiting") }
+            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             cancel.cancel()
             marker.text = 'go!'
             resultHandler.finished()
@@ -72,6 +72,43 @@ task hang << {
         then:
         output.toString().contains("waiting")
         !output.toString().contains("finished")
+    }
+
+    @TargetGradleVersion("<2.1 >=1.0-milestone-8")
+    def "cancel with older provider issues warning only"() {
+        def marker = file("warning.txt")
+        println "test" + marker.toURI().toString() + " @ " + System.currentTimeMillis() + " version " + targetDist.version.version
+        buildFile << """
+task t << {
+    println "waiting"
+    def marker = file('${marker.toURI()}')
+    long timeout = System.currentTimeMillis() + 10000
+    while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
+    if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+    println "finished"
+}
+"""
+        def cancel = new CancellationTokenSource()
+        def resultHandler = new TestResultHandler(false)
+        def output = new TestOutputStream()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.forTasks('t')
+                .withCancellationToken(cancel.token())
+                .setStandardOutput(output)
+            build.run(resultHandler)
+            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            cancel.cancel()
+            marker.text = 'go!'
+            resultHandler.finished()
+        }
+
+        then:
+        output.toString().contains("does not support cancellation")
+        resultHandler.failure == null
+        output.toString().contains("finished")
     }
 
     @TargetGradleVersion(">=2.1")
@@ -141,7 +178,16 @@ task hang << {
 
     class TestResultHandler implements ResultHandler<Object> {
         final latch = new CountDownLatch(1)
+        final boolean expectFailure
         def failure
+
+        TestResultHandler() {
+            this(true)
+        }
+
+        TestResultHandler(boolean expectFailure) {
+            this.expectFailure = expectFailure
+        }
 
         void onComplete(Object result) {
             latch.countDown()
@@ -154,9 +200,7 @@ task hang << {
 
         def finished() {
             latch.await(10, TimeUnit.SECONDS)
-            if (failure == null) {
-                assert false
-            }
+            assert (failure != null) == expectFailure
         }
     }
 

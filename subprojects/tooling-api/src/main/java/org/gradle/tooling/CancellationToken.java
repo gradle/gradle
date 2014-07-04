@@ -27,6 +27,19 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface CancellationToken {
     boolean canBeCancelled();
+
+    /**
+     * Gets whether cancellation has been requested for this token.
+     * @return Cancellation status.
+     */
     boolean isCancellationRequested();
-    // TODO register(observer)
+    /**
+     * Registers a callback notified synchronously when token is cancelled.
+     *
+     * <p>If the token is already</p>
+     *
+     * @param cancellationHandler
+     * @return current state of cancellation request before callback was added.
+     */
+    boolean addCallback(Runnable cancellationHandler);
 }

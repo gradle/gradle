@@ -35,10 +35,11 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
     }
 
     @Override
-    public <T> T run(final BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
+    public <T> T run(final BuildAction<T> action, CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException {
         BuildResult<T> result;
         try {
+            handleCancellationPreOperation(cancellationToken, operationParameters);
             result = executor.run(new BuildActionAdapter<T>(action, adapter), operationParameters);
         } catch (InternalBuildActionFailureException e) {
             throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());

@@ -29,15 +29,17 @@ import org.gradle.tooling.internal.consumer.DefaultCancellationToken;
  * @since 2.1
  */
 @Incubating
-public class CancellationTokenSource {
+public final class CancellationTokenSource {
     private DefaultCancellationToken token = new DefaultCancellationToken();
 
     public CancellationTokenSource() {
     }
 
+    // TODO exception handling from callbacks (aggregate into one exception and rethrow?)
     /**
      * Initiates cancel request that is passed to {@link org.gradle.tooling.CancellationToken}
      * where it will be handled.
+     * <p>Any callbacks registered with the token will be executed.</p>
      * <p>It is assumed that the implementation will do 'best-effort' attempt to perform cancellation.
      * This method returns immediately and if the cancellation is successful the cancelled operation
      * will notify its {@link org.gradle.tooling.ResultHandler#onFailure(GradleConnectionException)}

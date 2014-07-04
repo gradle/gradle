@@ -18,10 +18,22 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.CancellationToken;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DefaultCancellationToken implements CancellationToken {
     private boolean cancelled;
+    private List<Runnable> callbacks = new ArrayList<Runnable>();
 
     public synchronized boolean isCancellationRequested() {
+        return cancelled;
+    }
+
+    public synchronized boolean addCallback(Runnable cancellationHandler) {
+        callbacks.add(cancellationHandler);
+        if (cancelled) {
+            cancellationHandler.run();
+        }
         return cancelled;
     }
 
@@ -34,5 +46,8 @@ public class DefaultCancellationToken implements CancellationToken {
             return;
         }
         cancelled = true;
+        for (Runnable runnable : callbacks) {
+            runnable.run();
+        }
     }
 }
