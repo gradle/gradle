@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.language.fixtures
 
-class TestJavaLibrary {
+class BadJavaLibrary extends TestJavaLibrary {
     List<JvmSourceFile> sources = [
         new JvmSourceFile("compile/test", "Person.java", '''
 package compile.test;
@@ -28,26 +30,16 @@ public class Person {
     int age;
 
     void hello() {
-        Iterable<Integer> vars = Arrays.asList(3, 1, 2);
+        return nothing
     }
 }'''),
         new JvmSourceFile("compile/test", "Person2.java", '''
-package compile.test;
-
-class Person2 {
-}
+Not a java source file at all...
 ''')
     ]
 
-    List<JvmSourceFile> resources = [
-        new JvmSourceFile("", "one.txt", "Here is a resource"),
-        new JvmSourceFile("sub-dir", "two.txt", "Here is another resource")
-    ]
-
-    List<JvmSourceFile> expectedOutputs = [
-            sources[0].classFile,
-            sources[1].classFile,
-            resources[0],
-            resources[1]
+    List<String> compilerErrors = [
+            "Person.java:11: error: ';' expected",
+            "Person2.java:2: error: class, interface, or enum expected"
     ]
 }

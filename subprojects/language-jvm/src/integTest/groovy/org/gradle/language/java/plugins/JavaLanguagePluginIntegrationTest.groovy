@@ -16,6 +16,7 @@
 
 package org.gradle.language.java.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.language.fixtures.BadJavaLibrary
 import org.gradle.language.fixtures.TestJavaLibrary
 import org.gradle.test.fixtures.archive.JarTestFixture
 
@@ -145,6 +146,37 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         !file("build").exists()
     }
 
+    def "can build binary with sources in conventional location"() {
+        when:
+        app.sources*.writeToDir(file("src/myLib/java"))
+        app.resources*.writeToDir(file("src/myLib/resources"))
+        def expectedOutputs = app.expectedOutputs*.fullPath as String[]
+
+        and:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib
+        }
+    }
+"""
+        and:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped ":processMyLibJarMyLibResources", ":compileMyLibJarMyLibJava", ":createMyLibJar", ":myLibJar"
+
+        and:
+        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
+
+        and:
+        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+    }
+
     def "generated binary includes resources from all resource sets"() {
         when:
         def resource1 = app.resources[0]
@@ -229,7 +261,6 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         app.sources*.writeToDir(file("src/myLib/myJava"))
         app.resources*.writeToDir(file("src/myLib/myResources"))
-        String[] expectedOutputs = [app.sources[0].classFile.fullPath, app.sources[1].classFile.fullPath, app.resources[0].fullPath, app.resources[1].fullPath]
 
         // Conventional locations are ignore with explicit configuration
         file("src/myLib/java/Ignored.java") << "IGNORE ME"
@@ -260,8 +291,8 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
-        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+        file("build/classes/myLibJar").assertHasDescendants(app.expectedOutputs*.fullPath as String[])
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
     }
 
     def "can combine resources and sources in a single source directory"() {
@@ -321,6 +352,31 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         and:
         def jar = new JarTestFixture(file("build/jars/myLibJar/myLib.jar"))
         jar.hasDescendants()
+    }
+
+    def "reports failure to compile bad java sources"() {
+        when:
+        def badApp = new BadJavaLibrary()
+        badApp.sources*.writeToDir(file("src/myLib/java"))
+
+        and:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib
+        }
+    }
+"""
+        then:
+        fails "assemble"
+
+        and:
+        badApp.compilerErrors.each {
+            assert errorOutput.contains(it)
+        }
     }
 
     private JarTestFixture jarFile(String s) {
