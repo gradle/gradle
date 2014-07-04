@@ -24,7 +24,7 @@ class PreprocessingReaderTest extends Specification {
 
     def getOutput() {
         def reader = new PreprocessingReader(new StringReader(input))
-        return reader.text.trim()
+        return reader.text
     }
 
     def "removes line continuation characters"() {
@@ -46,7 +46,7 @@ here */that contains/**
 """
 
         then:
-        output == "Here is a string that contains several inline comments."
+        output == "\nHere is a string that contains several inline comments.\n"
     }
 
     def "replaces line comments with space"() {
@@ -60,7 +60,7 @@ line comments.
 """
 
         then:
-        output == "Here is a \nstring\n\nwith interspersed \nline comments."
+        output == "\nHere is a \nstring\n\nwith interspersed \nline comments.\n"
     }
 
     def "can cope with multiple unescaped and escaped \\r characters"() {

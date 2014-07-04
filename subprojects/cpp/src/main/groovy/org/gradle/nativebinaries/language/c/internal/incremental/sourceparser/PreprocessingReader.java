@@ -45,6 +45,8 @@ public class PreprocessingReader extends BaseFilterReader {
 
     public PreprocessingReader(Reader in) {
         super(in);
+        readAheadChars[0] = -1;
+        readAheadChars[1] = -1;
     }
 
     /**
