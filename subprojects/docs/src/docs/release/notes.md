@@ -192,6 +192,16 @@ After this change, the first test case of the class that cannot be initialized w
 while subsequent test cases of the class will fail with a `NoClassDefFoundError`.
 
 This change will not cause tests that previously passed to start failing.
+
+### configuration.exclude now validates the input
+
+Previously, a typo in configuration-level dependency exclude rule remained undetected and led to problems like [GRADLE-3124](http://issues.gradle.org/browse/GRADLE-3124).
+Now the build fails fast when exclude rule is configured with a wrong key.
+
+    //fails fast now, 'module' is the correct key
+    configurations.compile.exclude modue: "kafka"
+
+We suspect that the impact will be minimal to none hence we don't deprecate this behavior.
  
 ## External contributions
 
