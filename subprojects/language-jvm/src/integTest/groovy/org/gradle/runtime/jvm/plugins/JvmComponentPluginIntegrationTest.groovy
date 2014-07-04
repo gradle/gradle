@@ -77,7 +77,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "check"
     }
 
-    def "creates empty binary when binary has no sources"() {
+    def "creates empty jar when no language sources available"() {
         given:
         buildFile << """
     apply plugin: 'jvm-component'
