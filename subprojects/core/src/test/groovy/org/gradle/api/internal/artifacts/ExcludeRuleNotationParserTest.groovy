@@ -22,7 +22,7 @@ import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class ExcludeRuleNotationParserTest extends Specification {
-    def parser = new ExcludeRuleNotationParser<DefaultExcludeRule>();
+    def parser = new ExcludeRuleNotationParser();
 
     def "with group"() {
         when:
