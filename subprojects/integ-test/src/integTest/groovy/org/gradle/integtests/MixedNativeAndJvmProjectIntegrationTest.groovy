@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegrationSpec {
@@ -147,6 +148,7 @@ int main () {
 
         and:
         new JarTestFixture(file("build/jars/jvmLibJar/jvmLib.jar")).hasDescendants("org/gradle/test/Test.class", "test.txt");
-        file("build/binaries/nativeAppExecutable/nativeApp").assertExists()
+        def nativeExeName = OperatingSystem.current().getExecutableName("nativeApp")
+        file("build/binaries/nativeAppExecutable/${nativeExeName}").assertExists()
     }
 }
