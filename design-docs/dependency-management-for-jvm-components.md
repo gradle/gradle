@@ -213,9 +213,9 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - With sources but no resources
     - With resources but no sources
     - With both sources and resources
-- Reports failure to compile source
-- Reports failure to build java library with no sources or resources
+- Creates empty jar with no sources or resources (a later story will make this a failure)
 - Compiled sources and resources are available in a common directory
+- Reports failure to compile source
 - Incremental build for java library
     - Tasks skipped when all sources up-to-date
     - Class file is removed when source is removed
@@ -225,16 +225,10 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 #### Open issues
 
-- Don't build a jar when there is no source, mark the binary as not buildable.
-    - Should do a similar thing with native components.
 - Need to be able to navigate from a `JvmLibrary` to its binaries.
 - Need to be able to navigate from a `JvmLibraryBinary` to its tool chain.
-- All compiled classes are removed when all java source files are removed.
-- Clean up output files for source set that is removed.
-- Clean up output files from components and binaries that have been removed or renamed.
-- How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
-- When to document and announce the new JVM plugins?
 - Rework the native & JVM component models for consistency and extensibility.
+- When to document and announce the new JVM plugins?
 
 ## Feature: Custom plugin defines a custom library type
 
@@ -856,6 +850,14 @@ Dependency resolution selects the best binary from each dependency for the targe
       For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
       Or, if I'm building for Android, fail if the SDK is not installed.
     - Build everything. Fail if a certain binary cannot be built.
+- Lifecycle phase for binary to determine if binary can be built
+    - Replace current `ProjectBinary.buildable` flag
+    - Attach useful error message explaining why the binary can't be built: no sources, no available toolchain, etc
+    - Fail early when trying to build a binary that cannot be built
+- Better cleanup when components, binaries and source sets are removed or renamed.
+    - Clean up class files for binary when _all_ source files for a source set are removed.
+    - Clean up class files for binary when source set is removed or renamed.
+    - Clean up output files from components and binaries that have been removed or renamed.
 - Expose the source and javadoc artifacts for local binaries.
 - Deprecate and remove support for resolution via configurations.
 - Add a report that shows the details for the components and binaries produced by a project.
