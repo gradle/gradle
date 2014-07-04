@@ -17,9 +17,9 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
 import java.util.Map;
@@ -121,7 +121,7 @@ public interface Configuration extends FileCollection {
      * @param superConfigs The super configuration. Should not be null.
      * @return this configuration
      */
-    Configuration setExtendsFrom(Set<Configuration> superConfigs);
+    Configuration setExtendsFrom(Iterable<Configuration> superConfigs);
 
     /**
      * Adds the given configurations to the set of configuration which this configuration extends from.

@@ -126,7 +126,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Collections.unmodifiableSet(extendsFrom);
     }
 
-    public Configuration setExtendsFrom(Set<Configuration> extendsFrom) {
+    public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
         throwExceptionIfNotInUnresolvedState();
         for (Configuration configuration : this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
