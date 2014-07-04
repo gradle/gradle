@@ -41,6 +41,8 @@ public class InetAddressFactory {
     private List<InetAddress> localAddresses;
     private List<InetAddress> remoteAddresses;
     private List<NetworkInterface> multicastInterfaces;
+    private InetAddress localBindingAddress;
+
 
     /**
      * Determines the name of the local machine.
@@ -123,6 +125,32 @@ public class InetAddressFactory {
         }
     }
 
+    public InetAddress findLocalBindingAddress() {
+        try {
+            synchronized (lock) {
+                init();
+                return localBindingAddress;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not determine the a usable local IP for this machine.", e);
+        }
+    }
+
+    private InetAddress findOpenshiftAddresses() {
+        for (String key : System.getenv().keySet()) {
+            if (key.startsWith("OPENSHIFT_") && key.endsWith("_IP")) {
+                LOGGER.info("OPENSHIFT IP environment variable detected.");
+                try {
+                    return InetAddress.getByName(System.getenv(key));
+                } catch (Exception e) {
+                    LOGGER.debug("Unable to use OPENSHIFT IP - invalid IP");
+                    //ignore and default to local
+                }
+            }
+        }
+        return null;
+    }
+
     private void init() throws Exception {
         if (localAddresses != null) {
             return;
@@ -175,6 +203,14 @@ public class InetAddressFactory {
                             isRemote = true;
                         }
                     }
+                }
+
+                //Detect Openshift IP environment variable.
+                InetAddress openshiftEnvironment = findOpenshiftAddresses();
+                if (openshiftEnvironment != null) {
+                   localBindingAddress = openshiftEnvironment;
+                } else {
+                    localBindingAddress = InetAddress.getByName("0.0.0.0");
                 }
 
                 if (!Boolean.FALSE.equals(isMulticast)) {
