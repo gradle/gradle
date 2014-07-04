@@ -26,11 +26,9 @@ import java.util.Set;
 
 public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     private Set<ExcludeRule> addedRules = new LinkedHashSet<ExcludeRule>();
-    private NotationParser<Object, ExcludeRule> notationParser = new ExcludeRuleNotationParser();
-    //TODO has usage of NotationParserBuilder here any advantage?
+    private final NotationParser<Object, ExcludeRule> notationParser = new ExcludeRuleNotationParser();
 
-    public DefaultExcludeRuleContainer() {
-    }
+    public DefaultExcludeRuleContainer() {}
 
     public DefaultExcludeRuleContainer(Set<ExcludeRule> addedRules) {
         this.addedRules = new HashSet<ExcludeRule>(addedRules);
