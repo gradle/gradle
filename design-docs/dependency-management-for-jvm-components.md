@@ -815,22 +815,33 @@ Dependency resolution selects the best binary from each dependency for the targe
     - JVM and native components
     - Legacy JVM component
     - War, Ear
+    - Test suites
 - Show component description
 
 #### Implementation
 
-- Add `displayName` property to `ProjectComponent` and remove from sub-types.
-- Tweak component display names.
 - Render the binaries and source sets for each component.
+- Display 'build' task for binary
+- Display source directories for source set
+- Display output locations for binary
+- Display header directories
+- hoist 'component with binaries' up and remove dependency on cpp project
 - Add new task type to DSL guide.
 - Add basic implementation for legacy component types.
 - Add `description` to `ProjectComponent`.
+- Sort things by name
 - Move rendering of specific component types to live with the type.
 - Add some general 'show properties' rendering.
 - Tweak report headers for single project builds.
 - Don't show chrome when report task is the only task scheduled to run.
 - Remove `Project.implicitTasks`.
 - Change help plugin so that it does not already create help tasks.
+- Document in user guide.
+
+Issue: can't apply `cunit` plugin without `c` plugin also applied.
+Issue: language plugins add every language to every component, regardless of whether that language is supported for the component.
+Issue: Java lang plugin adds empty source sets.
+Issue: Java lang plugin does not declare any binaries.
 
 ### Story: User view component model as HTML report
 
