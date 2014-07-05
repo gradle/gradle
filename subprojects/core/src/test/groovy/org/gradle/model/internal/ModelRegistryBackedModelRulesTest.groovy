@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class ModelRegistryBackedModelRulesTest extends Specification {
 
-    static class ModelElement {
+    static class ModelThing {
         List<String> names = []
     }
 
@@ -36,19 +36,19 @@ class ModelRegistryBackedModelRulesTest extends Specification {
 
     def "can configure by rules"() {
         when:
-        rules.register("element", new ModelElement())
+        rules.register("element", new ModelThing())
         rules.register("things", [] as List<DerivedThing>)
 
         3.times { int i ->
             rules.rule(new ModelRule() {
-                void addName(ModelElement modelElement) {
-                    modelElement.names << "name$i"
+                void addName(ModelThing modelThing) {
+                    modelThing.names << "name$i"
                 }
             })
         }
 
         rules.rule(new ModelRule() {
-            public void registerThings(List<DerivedThing> things, ModelElement element) {
+            public void registerThings(List<DerivedThing> things, ModelThing element) {
                 element.names.each {
                     things << new DerivedThing(name: it)
                 }
@@ -62,16 +62,16 @@ class ModelRegistryBackedModelRulesTest extends Specification {
 
     def "can configure by action"() {
         when:
-        rules.register("element", new ModelElement())
+        rules.register("element", new ModelThing())
 
         3.times { int i ->
-            rules.config("element", { ModelElement it ->
+            rules.config("element", { ModelThing it ->
                     it.names << "name$i"
             } as Action)
         }
 
 
-        def element = modelRegistry.get("element", ModelElement)
+        def element = modelRegistry.get("element", ModelThing)
         then:
         element
         element.names == ["name0", "name1", "name2"]
@@ -79,22 +79,22 @@ class ModelRegistryBackedModelRulesTest extends Specification {
 
     def "can finalize"() {
         when:
-        rules.register("element", new ModelElement())
+        rules.register("element", new ModelThing())
 
         rules.rule(new ModelFinalizer() {
-            void addFinal(ModelElement modelElement) {
-                modelElement.names << "final"
+            void addFinal(ModelThing modelThing) {
+                modelThing.names << "final"
             }
         })
 
         3.times { int i ->
-            rules.config("element", { ModelElement it ->
+            rules.config("element", { ModelThing it ->
                 it.names << "name$i"
             } as Action)
         }
 
 
-        def element = modelRegistry.get("element", ModelElement)
+        def element = modelRegistry.get("element", ModelThing)
         then:
         element
         element.names == ["name0", "name1", "name2", "final"]

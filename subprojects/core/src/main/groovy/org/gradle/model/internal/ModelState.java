@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,28 @@
 
 package org.gradle.model.internal;
 
-public interface ModelMutator<T> {
+public class ModelState<T> {
 
-    ModelReference<T> getReference();
+    public enum Status {
+        // TODO probably need to capture iterim states (e.g. MUTATING)
+        PENDING,
+        FINALIZED
+    }
 
-    void mutate(T object, Inputs inputs);
+    private final ModelReference<T> reference;
+    private final Status status;
+
+    public ModelState(ModelReference<T> reference, Status status) {
+        this.reference = reference;
+        this.status = status;
+    }
+
+    public ModelReference<T> getReference() {
+        return reference;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
 
 }

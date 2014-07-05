@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.model.internal.rules.ReflectiveRule;
@@ -45,10 +46,10 @@ public class ModelRegistryBackedModelRules implements ModelRules {
         register(path, aClass, Factories.constant(model));
     }
 
-    public <T> void register(String path, final Class<T> type, final Factory<? extends T> model) {
+    public <T> void register(final String path, final Class<T> type, final Factory<? extends T> model) {
         modelRegistry.create(path, ImmutableList.<String>of(), new ModelCreator<T>() {
-            public Class<T> getType() {
-                return type;
+            public ModelReference<T> getReference() {
+                return new ModelReference<T>(new ModelPath(path), new ModelType<T>(type));
             }
 
             public T create(Inputs inputs) {
@@ -66,8 +67,9 @@ public class ModelRegistryBackedModelRules implements ModelRules {
     }
 
     public <T> void config(String path, Action<T> action) {
-        final Class<T> modelType = getActionObjectType(action);
-        modelRegistry.mutate(path, Collections.<String>emptyList(), ActionBackedModelMutator.<T>create(modelType, action));
+        Class<T> modelType = getActionObjectType(action);
+        ModelReference<T> reference = new ModelReference<T>(new ModelPath(path), new ModelType<T>(modelType));
+        modelRegistry.mutate(path, Collections.<String>emptyList(), ActionBackedModelMutator.create(reference, action));
     }
 
     private <T> Class<T> getActionObjectType(Action<T> action) {
@@ -92,7 +94,7 @@ public class ModelRegistryBackedModelRules implements ModelRules {
             } else if (tType instanceof ParameterizedType) {
                 modelType = (Class) ((ParameterizedType) tType).getRawType();
             } else if (tType instanceof TypeVariable) {
-                TypeVariable  typeVariable = (TypeVariable) tType;
+                TypeVariable typeVariable = (TypeVariable) tType;
                 Type[] bounds = typeVariable.getBounds();
                 return (Class<T>) bounds[0];
             } else {
@@ -105,20 +107,20 @@ public class ModelRegistryBackedModelRules implements ModelRules {
     }
 
     private static class ActionBackedModelMutator<T> implements ModelMutator<T> {
-        private final Class<T> modelType;
+        private final ModelReference<T> reference;
         private final Action<T> action;
 
-        public static <T> ModelMutator<T> create(Class<T> type, Action<T> action) {
-            return new ActionBackedModelMutator<T>(type, action);
+        public static <T> ModelMutator<T> create(ModelReference<T> reference, Action<T> action) {
+            return new ActionBackedModelMutator<T>(reference, action);
         }
 
-        public ActionBackedModelMutator(Class<T> modelType, Action<T> action) {
-            this.modelType = modelType;
+        public ActionBackedModelMutator(ModelReference<T> reference, Action<T> action) {
+            this.reference = reference;
             this.action = action;
         }
 
-        public Class<T> getType() {
-            return modelType;
+        public ModelReference<T> getReference() {
+            return reference;
         }
 
         public void mutate(T object, Inputs inputs) {

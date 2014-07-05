@@ -21,6 +21,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import com.google.common.reflect.TypeToken;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.model.ModelPath;
@@ -31,9 +33,9 @@ import static org.gradle.util.CollectionUtils.collect;
 
 public class DefaultModelRegistry implements ModelRegistry {
 
-    private final Map<ModelPath, Object> store = new HashMap<ModelPath, Object>();
+    private final Map<ModelPath, ModelElement<?>> store = new HashMap<ModelPath, ModelElement<?>>();
 
-    private final Map<ModelPath, ModelCreation> creations = new HashMap<ModelPath, ModelCreation>();
+    private final Map<ModelPath, ModelCreation<?>> creations = new HashMap<ModelPath, ModelCreation<?>>();
     private final Multimap<ModelPath, ModelMutation<?>> mutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, ImmutableList<ModelPath>> usedMutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, ModelMutation<?>> finalizers = ArrayListMultimap.create();
@@ -50,8 +52,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("model already created for '" + creationModelPath + "'");
         }
 
-        notifyCreationListeners(creationModelPath, creator);
-        creations.put(creationModelPath, new ModelCreation(creator, toModelPaths(inputPaths)));
+        notifyCreationListeners(creator);
+        creations.put(creationModelPath, new ModelCreation<T>(creator, toModelPaths(inputPaths)));
     }
 
     private static ImmutableList<ModelPath> toModelPaths(List<String> inputPaths) {
@@ -86,20 +88,34 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public <T> T get(String path, Class<T> type) {
         ModelPath modelPath = ModelPath.path(path);
-        Object model = getClosedModel(modelPath);
+        ModelElement<?> model = get(modelPath);
+        ModelElement<? extends T> typed = assertType(model, new ModelType<T>(type), "get(String, Class)");
+        return typed.getInstance();
+    }
 
-        if (type.isInstance(model)) {
-            return type.cast(model);
-        } else {
-            throw new RuntimeException("Can't convert model at path '" + path + "' with type '" + model.getClass() + "' to target type '" + type + "'");
+    public ModelState<?> state(ModelPath path) {
+        ModelElement<?> closed = store.get(path);
+        if (closed != null) {
+            return toState(closed.getReference(), ModelState.Status.FINALIZED);
         }
+
+        ModelCreation<?> creation = creations.get(path);
+        if (creation != null) {
+            return toState(creation.getCreator().getReference(), ModelState.Status.PENDING);
+        }
+
+        return null;
+    }
+
+    private <T> ModelState<T> toState(ModelReference<T> reference, ModelState.Status status) {
+        return new ModelState<T>(reference, status);
     }
 
     public void registerListener(ModelCreationListener listener) {
         boolean remove;
 
-        for (Map.Entry<ModelPath, ModelCreation> entry : creations.entrySet()) {
-            remove = listener.onCreate(entry.getKey(), entry.getValue().getCreator().getType());
+        for (Map.Entry<ModelPath, ModelCreation<?>> entry : creations.entrySet()) {
+            remove = listener.onCreate(entry.getValue().getCreator().getReference());
             if (remove) {
                 return;
             }
@@ -152,88 +168,135 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ImmutableSet.<ModelPath>builder().addAll(creations.keySet()).build();
     }
 
-    private Object getClosedModel(ModelPath path) {
+    private ModelElement<?> get(ModelPath path) {
         if (store.containsKey(path)) {
             return store.get(path);
         }
 
-        Object model = createModel(path);
-        Collection<ModelMutation<?>> modelMutations = mutators.removeAll(path);
-        for (ModelMutation<?> modelMutation : modelMutations) {
-            fireMutation(model, modelMutation);
-            @SuppressWarnings("unchecked") ImmutableList<ModelPath> inputPaths = modelMutation.getInputPaths();
-            usedMutators.put(path, inputPaths);
-        }
+        ModelCreation<?> creation = removeCreation(path);
+        return createAndClose(creation);
+    }
 
-        modelMutations = finalizers.removeAll(path);
-        for (ModelMutation modelMutation : modelMutations) {
-            fireMutation(model, modelMutation);
-            @SuppressWarnings("unchecked") ImmutableList<ModelPath> inputPaths = modelMutation.getInputPaths();
-            usedFinalizers.put(path, inputPaths);
-        }
+    private <T> ModelElement<T> createAndClose(ModelCreation<T> creation) {
+        ModelElement<T> element = create(creation);
+        close(element);
+        return element;
+    }
+
+    private <T> void close(ModelElement<T> model) {
+        ModelPath path = model.getReference().getPath();
+        fireMutations(model, mutators.removeAll(path), usedMutators);
+        fireMutations(model, finalizers.removeAll(path), usedFinalizers);
 
         // close all the child objects
         Set<ModelPath> promisedPaths = getPromisedPaths();
         for (ModelPath modelPath : promisedPaths) {
             if (path.isDirectChild(modelPath)) {
-                getClosedModel(modelPath);
+                get(modelPath);
             }
         }
-
-        store.put(path, model);
-
-        return model;
     }
 
-    private Object createModel(final ModelPath path) {
-        ModelCreation creation = creations.remove(path);
+    private <T> void fireMutations(ModelElement<T> model, Iterable<ModelMutation<?>> mutations, Multimap<ModelPath, ImmutableList<ModelPath>> used) {
+        for (ModelMutation<?> mutation : mutations) {
+            ModelType<?> mutationTargetType = mutation.getMutator().getReference().getType();
+
+            if (mutationTargetType.isAssignableFrom(model.getReference().getType())) {
+                @SuppressWarnings("unchecked") ModelMutation<? super T> castMutation = (ModelMutation<? super T>) mutation;
+                fireMutation(model, castMutation);
+                ImmutableList<ModelPath> inputPaths = mutation.getInputPaths();
+                used.put(model.getReference().getPath(), inputPaths);
+            } else {
+                // TODO better exception
+                throw new IllegalArgumentException("Cannot fire mutation rule " + mutation + " for " + model + " due to incompatible types");
+            }
+        }
+    }
+
+    @Nullable // if is not type compatible
+    private <T> ModelElement<? extends T> type(ModelElement<?> element, ModelType<T> targetType) {
+        ModelType<?> elementType = element.getReference().getType();
+
+        if (targetType.isAssignableFrom(elementType)) {
+            @SuppressWarnings("unchecked") ModelElement<? extends T> cast = (ModelElement<? extends T>) element;
+            return cast;
+        } else {
+            return null;
+        }
+    }
+
+    private <T> ModelElement<? extends T> assertType(ModelElement<?> element, ModelType<T> targetType, String msg, Object... msgArgs) {
+        ModelElement<? extends T> typed = type(element, targetType);
+        if (typed == null) {
+            // TODO better error reporting here
+            throw new IllegalArgumentException("Model element " + element + " is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
+        } else {
+            return typed;
+        }
+    }
+
+    private ModelCreation<?> removeCreation(ModelPath path) {
+        ModelCreation<?> creation = creations.remove(path);
         if (creation == null) {
             throw new IllegalStateException("No creator for '" + path + "'");
+        } else {
+            return creation;
         }
-
-        Inputs inputs = toInputs(creation.getInputPaths());
-        Object created = creation.getCreator().create(inputs);
-        store.put(path, created);
-        return created;
     }
 
-    private <T> void fireMutation(Object model, ModelMutation<T> modelMutation) {
-        ModelMutator<T> mutator = modelMutation.getMutator();
+    private <T> ModelElement<T> create(ModelCreation<T> creation) {
+        ModelCreator<T> creator = creation.getCreator();
+        ModelPath path = creator.getReference().getPath();
+        Inputs inputs = toInputs(creation.getInputPaths());
+        T created = creator.create(inputs);
+
+        ModelElement<T> element = toElement(path, created);
+        store.put(path, element);
+        return element;
+    }
+
+    private <T> ModelElement<T> toElement(ModelPath path, T model) {
+        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) model.getClass();
+        ModelReference<T> reference = new ModelReference<T>(path, new ModelType<T>(TypeToken.of(clazz)));
+        return new ModelElement<T>(reference, model);
+    }
+
+    private <T> void fireMutation(ModelElement<T> model, ModelMutation<? super T> modelMutation) {
+        ModelMutator<? super T> mutator = modelMutation.getMutator();
         Inputs inputs = toInputs(modelMutation.getInputPaths());
-        T cast = mutator.getType().cast(model);
-        mutator.mutate(cast, inputs);
+        mutator.mutate(model.getInstance(), inputs);
     }
 
     private Inputs toInputs(Iterable<ModelPath> inputPaths) {
         ImmutableList.Builder<Object> builder = ImmutableList.builder();
         for (ModelPath inputPath : inputPaths) {
-            builder.add(getClosedModel(inputPath));
+            builder.add(get(inputPath).getInstance());
         }
         return new DefaultInputs(builder.build());
     }
 
-    private <T> void notifyCreationListeners(ModelPath path, ModelCreator<T> creator) {
+    private <T> void notifyCreationListeners(ModelCreator<T> creator) {
         ListIterator<ModelCreationListener> modelCreationListenerListIterator = modelCreationListeners.listIterator();
         while (modelCreationListenerListIterator.hasNext()) {
             ModelCreationListener next = modelCreationListenerListIterator.next();
-            boolean remove = next.onCreate(path, creator.getType());
+            boolean remove = next.onCreate(creator.getReference());
             if (remove) {
                 modelCreationListenerListIterator.remove();
             }
         }
     }
 
-    private static class ModelCreation {
+    private static class ModelCreation<T> {
 
-        private final ModelCreator<?> creator;
+        private final ModelCreator<T> creator;
         private final ImmutableList<ModelPath> inputPaths;
 
-        public ModelCreation(ModelCreator<?> creator, ImmutableList<ModelPath> inputPaths) {
+        public ModelCreation(ModelCreator<T> creator, ImmutableList<ModelPath> inputPaths) {
             this.creator = creator;
             this.inputPaths = inputPaths;
         }
 
-        public ModelCreator<?> getCreator() {
+        public ModelCreator<T> getCreator() {
             return creator;
         }
 

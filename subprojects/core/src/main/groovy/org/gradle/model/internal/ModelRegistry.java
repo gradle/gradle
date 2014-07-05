@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal;
 
+import org.gradle.api.Nullable;
+import org.gradle.model.ModelPath;
+
 import java.util.List;
 
 public interface ModelRegistry {
@@ -31,6 +34,9 @@ public interface ModelRegistry {
     <T> void finalize(String path, ModelMutation<T> mutation);
 
     public <T> T get(String path, Class<T> type);
+
+    @Nullable // if not registered/known
+    public ModelState<?> state(ModelPath path);
 
     public void registerListener(ModelCreationListener listener);
 

@@ -90,6 +90,9 @@ A mock up:
 - Creation rule declares input of unknown type.
 - Settings or init script configures model.
 - How would a user verify that they got the signature/annotation correct in a unit test?
+- What are the rules for valid model element names?
+- Do we support generic types? including wildcard, covariant and contravariant types?
+- How much thread safety do we build in right now? e.g. could two plugins be registered concurrently? 
 
 ## Story: Plugin defines tasks using model as input
 

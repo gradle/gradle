@@ -16,10 +16,8 @@
 
 package org.gradle.model.internal;
 
-import org.gradle.model.ModelPath;
-
 public interface ModelCreationListener {
 
-    boolean onCreate(ModelPath path, Class<?> type);
+    boolean onCreate(ModelReference<?> reference);
 
 }

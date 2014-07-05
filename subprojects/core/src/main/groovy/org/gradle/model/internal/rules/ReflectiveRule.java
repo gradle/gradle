@@ -25,10 +25,7 @@ import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.Path;
-import org.gradle.model.internal.Inputs;
-import org.gradle.model.internal.ModelCreationListener;
-import org.gradle.model.internal.ModelMutator;
-import org.gradle.model.internal.ModelRegistry;
+import org.gradle.model.internal.*;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -58,15 +55,15 @@ public abstract class ReflectiveRule {
 
                 private List<BindableParameter<?>> bindings = initialBindings;
 
-                public boolean onCreate(ModelPath path, Class<?> type) {
+                public boolean onCreate(ModelReference<?> reference) {
                     ImmutableList.Builder<BindableParameter<?>> bindingsBuilder = ImmutableList.builder();
 
                     boolean unsatisfied = false;
 
                     for (BindableParameter<?> binding : bindings) {
                         if (binding.getPath() == null) {
-                            if (binding.getType().isAssignableFrom(type)) {
-                                bindingsBuilder.add(copyBindingWithPath(path, binding));
+                            if (binding.getType().isAssignableFrom(reference.getType().getRawClass())) {
+                                bindingsBuilder.add(copyBindingWithPath(reference.getPath(), binding));
                                 continue;
                             } else {
                                 unsatisfied = true;
@@ -112,8 +109,9 @@ public abstract class ReflectiveRule {
 
     private static <T> ModelMutator<T> toMutator(final ModelRule modelRule, final Method bindingMethod, final BindableParameter<T> first, final List<BindableParameter<?>> tail) {
         return new ModelMutator<T>() {
-            public Class<T> getType() {
-                return first.getType();
+
+            public ModelReference<T> getReference() {
+                return new ModelReference<T>(first.path, new ModelType<T>(first.type));
             }
 
             public void mutate(T object, Inputs inputs) {
@@ -133,7 +131,7 @@ public abstract class ReflectiveRule {
                         t = e.getCause();
                     }
 
-                    UncheckedException.throwAsUncheckedException(t);
+                    throw UncheckedException.throwAsUncheckedException(t);
                 }
             }
         };

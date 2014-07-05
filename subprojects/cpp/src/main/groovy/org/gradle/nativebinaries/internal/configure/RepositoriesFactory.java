@@ -22,18 +22,23 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.ModelPath;
 import org.gradle.model.internal.Inputs;
 import org.gradle.model.internal.ModelCreator;
+import org.gradle.model.internal.ModelReference;
+import org.gradle.model.internal.ModelType;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativebinaries.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 
 public class RepositoriesFactory implements ModelCreator<Repositories> {
+    private final ModelReference<Repositories> reference;
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
 
-    public RepositoriesFactory(Instantiator instantiator, FileResolver fileResolver) {
+    public RepositoriesFactory(String modelPath, Instantiator instantiator, FileResolver fileResolver) {
+        this.reference = new ModelReference<Repositories>(new ModelPath(modelPath), new ModelType<Repositories>(Repositories.class));
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
     }
@@ -46,8 +51,8 @@ public class RepositoriesFactory implements ModelCreator<Repositories> {
         return new DefaultRepositories(instantiator, fileResolver, initializer);
     }
 
-    public Class<Repositories> getType() {
-        return Repositories.class;
+    public ModelReference<Repositories> getReference() {
+        return reference;
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {

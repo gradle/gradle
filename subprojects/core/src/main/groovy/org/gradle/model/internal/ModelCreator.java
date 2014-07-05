@@ -18,7 +18,7 @@ package org.gradle.model.internal;
 
 public interface ModelCreator<T> {
 
-    Class<T> getType();
+    ModelReference<T> getReference();
 
     T create(Inputs inputs);
 

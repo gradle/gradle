@@ -75,7 +75,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         modelRules.register("buildTypes", BuildTypeContainer.class, factory(DefaultBuildTypeContainer.class));
         modelRules.register("flavors", FlavorContainer.class, factory(DefaultFlavorContainer.class));
 
-        project.getModelRegistry().create("repositories", Arrays.asList("flavors", "platforms", "buildTypes"), new RepositoriesFactory(instantiator, fileResolver));
+        project.getModelRegistry().create("repositories", Arrays.asList("flavors", "platforms", "buildTypes"), new RepositoriesFactory("repositories", instantiator, fileResolver));
 
         modelRules.rule(new CreateDefaultPlatform());
         modelRules.rule(new CreateDefaultBuildTypes());

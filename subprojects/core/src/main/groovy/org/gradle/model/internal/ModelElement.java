@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,26 @@
 
 package org.gradle.model.internal;
 
-public interface ModelMutator<T> {
+public class ModelElement<T> {
 
-    ModelReference<T> getReference();
+    private final ModelReference<T> reference;
+    private final T instance;
 
-    void mutate(T object, Inputs inputs);
+    public ModelElement(ModelReference<T> reference, T instance) {
+        this.reference = reference;
+        this.instance = instance;
+    }
 
+    public ModelReference<T> getReference() {
+        return reference;
+    }
+
+    public T getInstance() {
+        return instance;
+    }
+
+    @Override
+    public String toString() {
+        return "ModelElement{reference=" + reference + ", instance=" + instance + '}';
+    }
 }
