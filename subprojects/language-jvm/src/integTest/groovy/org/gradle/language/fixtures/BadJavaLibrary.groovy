@@ -39,7 +39,7 @@ Not a java source file at all...
     ]
 
     List<String> compilerErrors = [
-            "Person.java:11: error: ';' expected",
-            "Person2.java:2: error: class, interface, or enum expected"
+            "';' expected",
+            "class, interface, or enum expected"
     ]
 }
