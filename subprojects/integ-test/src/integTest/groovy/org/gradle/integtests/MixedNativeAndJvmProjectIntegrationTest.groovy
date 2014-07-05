@@ -87,7 +87,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         succeeds "check"
     }
 
-    def "can build jvm and native components in the same project"() {
+    def "build jvm and native components in one project"() {
         given:
         file("src/jvmLib/java/org/gradle/test/Test.java") << """
 package org.gradle.test;
