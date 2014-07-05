@@ -65,7 +65,9 @@ JVM library 'someLib'
 
 Source sets
     Java source 'someLib:java'
+        No source directories
     Resources 'someLib:resources'
+        No source directories
 
 No binaries
 """)
@@ -98,10 +100,13 @@ Native library 'someLib'
 
 Source sets
     C++ source 'someLib:cpp'
+        src/someLib/cpp
 
 Binaries
     Shared library 'someLib:sharedLibrary'
+        build task: :someLibSharedLibrary
     Static library 'someLib:staticLibrary'
+        build task: :someLibStaticLibrary
 """)
     }
 
@@ -133,9 +138,11 @@ Native executable 'someExe'
 
 Source sets
     C source 'someExe:c'
+        src/someExe/c
 
 Binaries
     Executable 'someExe:executable'
+        build task: :someExeExecutable
 """)
     }
 
@@ -179,18 +186,29 @@ Native library 'someLib'
 
 Source sets
     Assembler source 'someLib:asm'
+        src/someLib/asm
     C source 'someLib:c'
+        src/someLib/c
     C++ source 'someLib:cpp'
+        src/someLib/cpp
 
 Binaries
     Shared library 'someLib:amd64:free:sharedLibrary'
+        build task: :amd64FreeSomeLibSharedLibrary
     Static library 'someLib:amd64:free:staticLibrary'
+        build task: :amd64FreeSomeLibStaticLibrary
     Shared library 'someLib:amd64:paid:sharedLibrary'
+        build task: :amd64PaidSomeLibSharedLibrary
     Static library 'someLib:amd64:paid:staticLibrary'
+        build task: :amd64PaidSomeLibStaticLibrary
     Shared library 'someLib:i386:free:sharedLibrary'
+        build task: :i386FreeSomeLibSharedLibrary
     Static library 'someLib:i386:free:staticLibrary'
+        build task: :i386FreeSomeLibStaticLibrary
     Shared library 'someLib:i386:paid:sharedLibrary'
+        build task: :i386PaidSomeLibSharedLibrary
     Static library 'someLib:i386:paid:staticLibrary'
+        build task: :i386PaidSomeLibStaticLibrary
 """)
     }
 
@@ -226,6 +244,6 @@ Root project
 
 JVM library 'jvmLib'""")
 
-        // TODO - flesh this out
+        // TODO - flesh this out when languages are associated with correct component types
     }
 }

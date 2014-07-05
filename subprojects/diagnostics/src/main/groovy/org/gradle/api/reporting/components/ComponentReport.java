@@ -19,6 +19,7 @@ package org.gradle.api.reporting.components;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.LanguageSourceSet;
@@ -41,11 +42,16 @@ public class ComponentReport extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void report() {
         Project project = getProject();
         StyledTextOutput textOutput = getTextOutputFactory().create(ComponentReport.class);
-        ComponentReportRenderer renderer = new ComponentReportRenderer();
+        ComponentReportRenderer renderer = new ComponentReportRenderer(getFileResolver());
         renderer.setOutput(textOutput);
 
         renderer.startProject(project);

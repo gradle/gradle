@@ -18,10 +18,14 @@ package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.runtime.base.Binary;
 import org.gradle.runtime.base.ProjectComponent;
+
+import java.io.File;
+import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
@@ -29,6 +33,11 @@ public class ComponentReportRenderer extends TextReportRenderer {
     private boolean hasComponents;
     private boolean hasSourceSets;
     private boolean hasBinaries;
+    private final FileResolver fileResolver;
+
+    public ComponentReportRenderer(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
 
     @Override
     public void startProject(Project project) {
@@ -61,11 +70,19 @@ public class ComponentReportRenderer extends TextReportRenderer {
             hasSourceSets = true;
         }
         getTextOutput().formatln("    %s", StringUtils.capitalize(sourceSet.toString()));
+        Set<File> srcDirs = sourceSet.getSource().getSrcDirs();
+        if (srcDirs.isEmpty()) {
+            getTextOutput().println("        No source directories");
+        } else {
+            for (File file : srcDirs) {
+                getTextOutput().formatln("        %s", fileResolver.resolveAsRelativePath(file));
+            }
+        }
     }
 
     public void completeSourceSets() {
         if (!hasSourceSets) {
-            getTextOutput().println().withStyle(Info).println("No source sets");
+            getTextOutput().println().println("No source sets");
         }
     }
 
@@ -75,11 +92,12 @@ public class ComponentReportRenderer extends TextReportRenderer {
             hasBinaries = true;
         }
         getTextOutput().formatln("    %s", StringUtils.capitalize(binary.getDisplayName()));
+        getTextOutput().formatln("        build task: %s", binary.getBuildTask().getPath());
     }
 
     public void completeBinaries() {
         if (!hasBinaries) {
-            getTextOutput().println().withStyle(Info).println("No binaries");
+            getTextOutput().println().println("No binaries");
         }
     }
 }

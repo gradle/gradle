@@ -17,6 +17,7 @@
 package org.gradle.api.reporting.components.internal
 
 import org.gradle.api.Project
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.runtime.base.ProjectComponent
 import spock.lang.Specification
@@ -25,8 +26,9 @@ class ComponentReportRendererTest extends Specification {
     def project = Stub(Project) {
         toString() >> "<project>"
     }
+    def resolver = Stub(FileResolver)
     def output = new TestStyledTextOutput()
-    def renderer = new ComponentReportRenderer()
+    def renderer = new ComponentReportRenderer(resolver)
 
     def setup() {
         renderer.output = output
