@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Test
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
@@ -89,7 +88,6 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child1-2:b", ":child1-2-2:b", ":child2:b", ":a", ":child2:c");
     }
 
-    @Test
     def executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
         settingsFile << "include 'child1', 'child2'"
         buildFile << """
@@ -232,7 +230,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 (*) - details omitted (listed previously)"""
     }
 
-    def "placeolder actions not triggered when not requested"() {
+    def "placeholder actions not triggered when not requested"() {
         when:
         buildFile << """
         task a
@@ -244,7 +242,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'a'
     }
 
-    def "explicit tasks are preferred over placeholder actions"() {
+    def "explicit tasks are preferred over placeholder tasks"() {
         buildFile << """
         task someTask << {println "explicit sometask"}
         tasks.addPlaceholderAction("someTask"){
@@ -266,7 +264,6 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         output.contains("explicit sometask")
         !output.contains("placeholder action triggered")
     }
-
 
     def "honours mustRunAfter task ordering"() {
         buildFile << """
