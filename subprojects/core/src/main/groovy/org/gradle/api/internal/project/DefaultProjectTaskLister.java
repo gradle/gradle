@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -28,6 +27,6 @@ public class DefaultProjectTaskLister implements ProjectTaskLister {
         ProjectInternal projectInternal = (ProjectInternal) project;
         TaskContainerInternal tasks = projectInternal.getTasks();
         tasks.actualize();
-        return Sets.union(tasks, projectInternal.getImplicitTasks());
+        return tasks;
     }
 }

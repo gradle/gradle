@@ -94,6 +94,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskMutator taskMutator;
     private ObservableList observableActionList;
+    private boolean impliesSubProjects;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -270,6 +271,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 AbstractTask.this.enabled = enabled;
             }
         });
+    }
+
+    public boolean getImpliesSubProjects() {
+        return impliesSubProjects;
+    }
+
+    public void setImpliesSubProjects(boolean impliesSubProjects) {
+        this.impliesSubProjects = impliesSubProjects;
     }
 
     public String getPath() {

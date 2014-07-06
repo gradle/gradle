@@ -123,8 +123,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private TaskContainerInternal taskContainer;
 
-    private TaskContainerInternal implicitTasksContainer;
-
     private DependencyHandler dependencyHandler;
 
     private ConfigurationContainerInternal configurationContainer;
@@ -528,13 +526,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public TaskContainerInternal getTasks() {
         return taskContainer;
-    }
-
-    public TaskContainerInternal getImplicitTasks() {
-        if (implicitTasksContainer == null) {
-            implicitTasksContainer = services.newInstance(TaskContainerInternal.class);
-        }
-        return implicitTasksContainer;
     }
 
     public void defaultTasks(String... defaultTasks) {

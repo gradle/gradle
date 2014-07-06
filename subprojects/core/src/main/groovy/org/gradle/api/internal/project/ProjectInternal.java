@@ -48,8 +48,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     TaskContainerInternal getTasks();
 
-    TaskContainerInternal getImplicitTasks();
-
     ConfigurationContainerInternal getConfigurations();
 
     ScriptSource getBuildScriptSource();

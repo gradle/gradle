@@ -61,8 +61,6 @@ public class TaskReportTaskTest {
             will(returnValue(":path"));
             allowing(project).getTasks();
             will(returnValue(taskContainer));
-            allowing(project).getImplicitTasks();
-            will(returnValue(implicitTasks));
             allowing(project).getConvention();
             will(returnValue(null));
             allowing(project).getAllprojects();

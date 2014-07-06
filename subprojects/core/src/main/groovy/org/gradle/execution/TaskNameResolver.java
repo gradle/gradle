@@ -19,6 +19,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 
@@ -36,32 +37,25 @@ public class TaskNameResolver {
 
     private SetMultimap<String, TaskSelectionResult> select(String name, ProjectInternal project, Iterable<Project> additionalProjects) {
         SetMultimap<String, TaskSelectionResult> selected = LinkedHashMultimap.create();
-        Task task = project.getTasks().findByName(name);
+        TaskInternal task = (TaskInternal) project.getTasks().findByName(name);
         if (task != null) {
             selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), project.getTasks()));
-        } else {
-            task = project.getImplicitTasks().findByName(name);
-            if (task != null) {
-                selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), project.getImplicitTasks()));
+        }
+        if (task == null || !task.getImpliesSubProjects()) {
+            for (Project additionalProject : additionalProjects) {
+                task = (TaskInternal) additionalProject.getTasks().findByName(name);
+                if (task != null) {
+                    selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), additionalProject.getTasks()));
+                }
             }
         }
-        for (Project additionalProject : additionalProjects) {
-            task = additionalProject.getTasks().findByName(name);
-            if (task != null) {
-                selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), additionalProject.getTasks()));
-            }
-        }
+
         if (!selected.isEmpty()) {
             return selected;
         }
 
         for (String taskName : project.getTasks().getNames()) {
             selected.put(taskName, new LazyTaskSelectionResult(taskName, project.getTasks()));
-        }
-        for (String taskName : project.getImplicitTasks().getNames()) {
-            if (!selected.containsKey(taskName)) {
-                selected.put(taskName, new LazyTaskSelectionResult(taskName, project.getImplicitTasks()));
-            }
         }
 
         for (Project additionalProject : additionalProjects) {
