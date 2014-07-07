@@ -15,7 +15,6 @@
  */
 package org.gradle.nativebinaries.test.internal;
 
-import org.gradle.nativebinaries.test.TestSuiteExecutableBinary;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
@@ -28,7 +27,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
 
-public class DefaultNativeTestSuiteBinary extends AbstractProjectNativeBinary implements NativeTestSuiteBinary, TestSuiteExecutableBinary {
+public class DefaultNativeTestSuiteBinary extends AbstractProjectNativeBinary implements NativeTestSuiteBinary {
     private File executableFile;
 
     public DefaultNativeTestSuiteBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {

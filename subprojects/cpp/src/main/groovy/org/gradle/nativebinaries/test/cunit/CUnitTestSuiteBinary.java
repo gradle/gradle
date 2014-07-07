@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.test;
+
+package org.gradle.nativebinaries.test.cunit;
 
 import org.gradle.api.Incubating;
+import org.gradle.nativebinaries.test.NativeTestSuiteBinary;
 
 /**
- * An executable which runs a suite of tests.
+ * An executable which run a CUnit test suite.
  */
 @Incubating
-public interface TestSuiteExecutableBinary extends NativeTestSuiteBinary {
+public interface CUnitTestSuiteBinary extends NativeTestSuiteBinary {
 }

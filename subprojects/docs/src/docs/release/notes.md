@@ -168,6 +168,22 @@ compilation. Previously it would use the old Ant-based Java compiler integration
 
 This change should be backwards compatible for all users, and should improve compilation time when compiling Java and Scala together.
 
+### Changes to incubating native language plugins
+
+#### Native language plugins no longer apply the base plugin
+
+The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle.language.base.plugins.LifecycleBasePlugin) instead of the `BasePlugin`. This means
+that the default values defined by the `BasePlugin` are not available.
+
+TBD - make this more explicit re. what is actually not longer available.
+
+#### Domain model reorganisation
+
+- Merged NativeTestSuite and ProjectComponentNativeTestSuite
+- NativeTestSuiteBinary no longer extends NativeExecutableBinary
+- Merged TestSuiteExecutableBinary into NativeTestSuiteBinary
+- Renamed CUnitTestSuiteExecutableBinary -> CUnitTestSuiteBinary
+
 ### Changes to incubating Java language plugins
 
 To better support the production of multiple binary outputs for a single set of sources, a new set of Java

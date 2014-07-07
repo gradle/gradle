@@ -658,7 +658,7 @@
                 A <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuite"/> component has an associated
                 <apilink class="org.gradle.nativebinaries.NativeExecutable"/> or <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component.
                 For each <apilink class="org.gradle.nativebinaries.ProjectNativeBinary"/> configured for the main component, a matching
-                <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteExecutableBinary"/> will be configured on the test suite component.
+                <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinary"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>
             <sample id="cunitSources" dir="native-binaries/cunit" title="Registering CUnit tests">
@@ -666,14 +666,14 @@
             </sample>
             <note>
                 Both the CUnit sources provided by your project and the generated launcher require the core CUnit headers and libraries.
-                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteExecutableBinary"/>.
+                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinary"/>.
             </note>
         </section>
 
         <section>
             <title>Running CUnit tests</title>
             <para>
-                For each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteExecutableBinary"/>, Gradle will create a task to execute this binary,
+                For each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinary"/>, Gradle will create a task to execute this binary,
                 which will run all of the registered CUnit tests.
                 The generated test results will be located in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>

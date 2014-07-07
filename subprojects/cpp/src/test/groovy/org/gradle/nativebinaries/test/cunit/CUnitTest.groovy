@@ -35,6 +35,6 @@ class CUnitTest extends Specification {
 
         then:
         def binaries = project.getExtensions().getByType(TestSuiteContainer).getByName("mainTest").binaries
-        binaries.collect({it instanceof CUnitTestSuiteExecutableBinary}) == [true]*binaries.size()
+        binaries.collect({it instanceof CUnitTestSuiteBinary}) == [true]*binaries.size()
     }
 }

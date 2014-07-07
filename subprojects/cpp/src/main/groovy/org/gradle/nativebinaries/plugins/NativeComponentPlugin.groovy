@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
@@ -28,10 +27,10 @@ import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
+import org.gradle.nativebinaries.test.NativeTestSuiteBinary
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.runtime.base.BinaryContainer
-
 /**
  * A plugin that creates tasks used for constructing native binaries.
  */
@@ -56,9 +55,9 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
 
     def createTasks(ProjectInternal project, ProjectNativeBinaryInternal binary) {
         def builderTask
-        if (binary instanceof NativeExecutableBinary) {
-            builderTask = createLinkExecutableTask(project, binary as NativeExecutableBinary)
-            binary.tasks.add createInstallTask(project, binary as NativeExecutableBinary);
+        if (binary instanceof NativeExecutableBinary || binary instanceof NativeTestSuiteBinary) {
+            builderTask = createLinkExecutableTask(project, binary)
+            binary.tasks.add createInstallTask(project, binary);
         } else if (binary instanceof SharedLibraryBinary) {
             builderTask = createLinkSharedLibraryTask(project, binary)
         } else if (binary instanceof StaticLibraryBinary) {
@@ -70,7 +69,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         binary.builtBy builderTask
     }
 
-    private LinkExecutable createLinkExecutableTask(ProjectInternal project, NativeExecutableBinary executable) {
+    private LinkExecutable createLinkExecutableTask(ProjectInternal project, def executable) {
         def binary = executable as ProjectNativeBinaryInternal
         LinkExecutable linkTask = project.task(binary.namingScheme.getTaskName("link"), type: LinkExecutable) {
              description = "Links ${executable}"
@@ -116,7 +115,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         return task
     }
 
-    def createInstallTask(ProjectInternal project, NativeExecutableBinary executable) {
+    def createInstallTask(ProjectInternal project, def executable) {
         def binary = executable as ProjectNativeBinaryInternal
         InstallExecutable installTask = project.task(binary.namingScheme.getTaskName("install"), type: InstallExecutable) {
             description = "Installs a development image of $executable"

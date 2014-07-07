@@ -60,7 +60,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
             libraries {
                 hello {}
             }
-            binaries.withType(CUnitTestSuiteExecutableBinary) {
+            binaries.withType(CUnitTestSuiteBinary) {
                 lib library: "cunit", linkage: "static"
             }
 """
@@ -156,7 +156,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            binaries.withType(CUnitTestSuiteExecutableBinary) {
+            binaries.withType(CUnitTestSuiteBinary) {
                 cCompiler.define "ONE_TEST"
             }
 """
@@ -254,7 +254,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
                     }
                 }
             }
-            binaries.withType(CUnitTestSuiteExecutableBinary) {
+            binaries.withType(CUnitTestSuiteBinary) {
                 source sources.variantTest.cunit
             }
 """

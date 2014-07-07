@@ -16,12 +16,22 @@
 package org.gradle.nativebinaries.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.ExecutableBinary;
-import org.gradle.nativebinaries.NativeExecutableBinary;
+import org.gradle.nativebinaries.ProjectNativeBinary;
+
+import java.io.File;
 
 /**
  * An executable which runs a suite of tests.
  */
 @Incubating
-public interface NativeTestSuiteBinary extends NativeExecutableBinary, ExecutableBinary {
+public interface NativeTestSuiteBinary extends ProjectNativeBinary {
+    /**
+     * The executable file.
+     */
+    File getExecutableFile();
+
+    /**
+     * The executable file.
+     */
+    void setExecutableFile(File executableFile);
 }
