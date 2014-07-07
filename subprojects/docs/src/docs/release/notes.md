@@ -68,8 +68,21 @@ And specified in the build script as…
 Where `file("myConfigScript.groovy")` contains the Groovy code from above.
  
 This feature was contributed by [Cédric Champeau](https://github.com/melix).
- 
-### Java Gradle Plugin plugin
+
+### New Plugin Resolution Mechanism (i)
+
+There is a new plugin resolution mechanism that can be used to create more concise and convenient plugin dependency declarations.
+Instead of combining a `buildscript` script block and an `apply`, both statements can be replaced by a
+[plugins script block](dsl/org.gradle.plugin.use.PluginDependenciesSpec.html).
+
+    plugins {
+        id 'com.company.myplugin' version '1.3'
+    }
+
+The plugins block works in conjunction with the new [Gradle plugin portal](http://plugins.gradle.org) to search for, select and apply
+plugins to the build classpath.
+
+### Java Gradle Plugin plugin (i)
 
 This is a plugin to assist in developing gradle plugins.  It validates the plugin structure during the jar task and emits warnings
 if the plugin metadata is not valid.

@@ -110,7 +110,7 @@
         <para>
             The new plugins DSL provides a more succinct and convenient way to declare plugin dependencies.  It works with the
             new <ulink url="http://plugins.gradle.org">Gradle plugin portal</ulink> to provide easy access to both core and community
-            plugins.
+            plugins.  The plugins script block configures an instance of <apilink class="org.gradle.plugin.use.PluginDependenciesSpec" />.
         </para>
         <para>
             To apply a core plugin, the short name can be used:

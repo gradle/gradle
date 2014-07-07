@@ -24,8 +24,11 @@ import org.gradle.api.Incubating;
  * The <code>plugins { }</code> script block delegates to this type.
  * Moreover, the only code that is allowed during a <code>plugins { }</code> script block is <i>direct</i> usage of this API.
  * That is, only the methods of this type can be called on only with <i>literal</i> string arguments.
+ * </p>
+ * <p>
+ * See the <a href="../userguide/plugins.html#sec:plugins_block">Gradle user guide</a> for further information.
+ * </p>
  */
-// TODO expand on this Javadoc by pointing to userguide chapter on plugin mechanism when added
 @Incubating
 public interface PluginDependenciesSpec {
 
