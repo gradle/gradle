@@ -42,7 +42,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "can inspect class with no rules"() {
         when:
-        inspector.registerCreations(new EmptyClass(), registryMock)
+        inspector.inspect(EmptyClass, registryMock)
 
         then:
         0 * registryMock._
@@ -50,14 +50,14 @@ class ModelRuleInspectorTest extends Specification {
 
     static class SimpleModelCreationRuleInferredName {
         @Model
-        ModelThing modelPath() {
+        static ModelThing modelPath() {
             new ModelThing("foo")
         }
     }
 
     def "can inspect class with simple model creation rule"() {
         when:
-        inspector.registerCreations(new SimpleModelCreationRuleInferredName(), registry)
+        inspector.inspect(SimpleModelCreationRuleInferredName, registry)
 
         then:
         def state = registry.state(new ModelPath("modelPath"))

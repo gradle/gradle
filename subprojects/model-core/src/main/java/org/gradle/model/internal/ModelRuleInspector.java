@@ -17,20 +17,21 @@
 package org.gradle.model.internal;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.Model;
 import org.gradle.model.ModelPath;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 
 public class ModelRuleInspector {
 
     // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)
-    public <T> void registerCreations(T source, ModelRegistry modelRegistry) {
-        Class<?> clazz = source.getClass();
-        Method[] methods = clazz.getDeclaredMethods();
+    public <T> void inspect(Class<T> source, ModelRegistry modelRegistry) {
+        Method[] methods = source.getDeclaredMethods();
         for (Method method : methods) {
             Model modelAnnotation = method.getAnnotation(Model.class);
             if (modelAnnotation != null) {
@@ -51,10 +52,11 @@ public class ModelRuleInspector {
         }
     }
 
-    private <T, R> void doRegisterCreation(final T source, Method method, final TypeToken<R> returnType, final String modelName, ModelRegistry modelRegistry) {
+    private <T, R> void doRegisterCreation(final Class<T> source, final Method method, final TypeToken<R> returnType, final String modelName, ModelRegistry modelRegistry) {
         @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) source.getClass();
         @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
         final JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
+
         modelRegistry.create(modelName, Collections.<String>emptyList(), new ModelCreator<R>() {
 
             public ModelReference<R> getReference() {
@@ -62,10 +64,21 @@ public class ModelRuleInspector {
             }
 
             public R create(Inputs inputs) {
+                T instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(source);
                 // ignore inputs, we know they're empty
-                return methodWrapper.invoke(source);
+                return methodWrapper.invoke(instance);
             }
         });
+    }
+
+    private static <T> T toInstance(Class<T> source) {
+        try {
+            return source.newInstance();
+        } catch (InstantiationException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (IllegalAccessException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private String determineModelName(Model modelAnnotation, Method method) {
