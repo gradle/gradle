@@ -22,19 +22,19 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.model.ModelRule;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.JarBinary;
-import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
+import org.gradle.runtime.jvm.internal.ProjectJvmBinaryInternal;
 
 public class CreateTasksForJarBinaries extends ModelRule {
     void createTasks(TaskContainer tasks, BinaryContainer binaries) {
         for (JarBinary jarBinary : binaries.withType(JarBinary.class)) {
-            JvmLibraryBinaryInternal binary = (JvmLibraryBinaryInternal) jarBinary;
+            ProjectJvmBinaryInternal binary = (ProjectJvmBinaryInternal) jarBinary;
             Task jarTask = createJarTask(tasks, binary);
             binary.builtBy(jarTask);
             binary.getTasks().add(jarTask);
         }
     }
 
-    private Task createJarTask(TaskContainer tasks, JvmLibraryBinaryInternal binary) {
+    private Task createJarTask(TaskContainer tasks, ProjectJvmBinaryInternal binary) {
         Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
         jar.setDescription(String.format("Creates the binary file for %s.", binary.getDisplayName()));
         jar.from(binary.getClassesDir());

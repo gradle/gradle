@@ -16,8 +16,10 @@
 
 package org.gradle.runtime.base;
 
+import org.gradle.api.BuildableModelElement;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 
@@ -25,7 +27,7 @@ import org.gradle.language.base.LanguageSourceSet;
  * Represents a binary artifact that is the result of building a project component.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectBinary extends Binary {
+public interface ProjectBinary extends Binary, BuildableModelElement, Named {
     /**
      * Can this binary be built in the current environment?
      */

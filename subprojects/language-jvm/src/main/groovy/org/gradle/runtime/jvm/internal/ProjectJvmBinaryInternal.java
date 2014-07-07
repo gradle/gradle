@@ -18,9 +18,8 @@ package org.gradle.runtime.jvm.internal;
 
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 import org.gradle.runtime.jvm.JvmLibrary;
-import org.gradle.runtime.jvm.JvmLibraryBinary;
 import org.gradle.runtime.jvm.ProjectJvmBinary;
 
-public interface JvmLibraryBinaryInternal extends JvmLibraryBinary, ProjectJvmBinary, ProjectBinaryInternal {
+public interface ProjectJvmBinaryInternal extends ProjectJvmBinary, ProjectBinaryInternal {
     JvmLibrary getLibrary();
 }

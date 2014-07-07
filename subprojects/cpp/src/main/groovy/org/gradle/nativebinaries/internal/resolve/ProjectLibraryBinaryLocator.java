@@ -17,10 +17,12 @@ package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
-import org.gradle.runtime.base.ProjectComponentContainer;
-import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.nativebinaries.NativeLibrary;
+import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
+import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.runtime.base.ProjectComponentContainer;
 
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectLocator projectLocator;
@@ -29,13 +31,20 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         this.projectLocator = projectLocator;
     }
 
-    public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
+    // Converts the binaries of a project library into regular binary instances
+    public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
         Project project = findProject(requirement);
         ProjectComponentContainer projectComponentContainer = project.getExtensions().findByType(ProjectComponentContainer.class);
         if (projectComponentContainer == null) {
             throw new LibraryResolveException(String.format("Project does not have a libraries container: '%s'", project.getPath()));
         }
-        return projectComponentContainer.withType(NativeLibrary.class).getByName(requirement.getLibraryName()).getBinaries();
+        DomainObjectSet<ProjectNativeBinary> projectBinaries = projectComponentContainer.withType(NativeLibrary.class).getByName(requirement.getLibraryName()).getBinaries();
+        DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
+        // TODO:DAZ Convert, don't cast
+        for (ProjectNativeBinary projectNativeBinary : projectBinaries) {
+            binaries.add((NativeLibraryBinary) projectNativeBinary);
+        }
+        return binaries;
     }
 
     private Project findProject(NativeLibraryRequirement requirement) {

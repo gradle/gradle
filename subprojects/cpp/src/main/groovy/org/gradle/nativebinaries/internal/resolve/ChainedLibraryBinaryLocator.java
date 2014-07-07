@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
         this.locators.addAll(locators);
     }
 
-    public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
+    public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
         List<Exception> failures = new ArrayList<Exception>();
         for (LibraryBinaryLocator locator : locators) {
             try {

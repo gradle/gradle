@@ -27,7 +27,7 @@ import org.gradle.runtime.jvm.JvmLibrary;
 
 import java.io.File;
 
-public class DefaultJarBinary extends AbstractBuildableModelElement implements JarBinary, JvmLibraryBinaryInternal {
+public class DefaultJarBinary extends AbstractBuildableModelElement implements JarBinary, ProjectJvmBinaryInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final JvmLibrary library;
     private final BinaryNamingScheme namingScheme;

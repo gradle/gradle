@@ -22,5 +22,5 @@ import org.gradle.api.Incubating;
  * A Jar file binary that runs on the JVM.
  */
 @Incubating
-public interface JarBinary extends JvmLibraryBinary {
+public interface JarBinary extends JvmLibraryBinary, ProjectJvmBinary {
 }

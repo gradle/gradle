@@ -14,24 +14,30 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.internal.resolve
-import org.gradle.api.DomainObjectSet
+
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.runtime.base.ProjectComponentContainer
 import org.gradle.nativebinaries.NativeLibrary
+import org.gradle.nativebinaries.NativeLibraryBinary
 import org.gradle.nativebinaries.NativeLibraryRequirement
+import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
+import org.gradle.runtime.base.ProjectComponentContainer
 import spock.lang.Specification
 
+// TODO:DAZ Improve test names, at the very least
 class ProjectLibraryBinaryLocatorTest extends Specification {
     def project = Mock(ProjectInternal)
     def projectLocator = Mock(ProjectLocator)
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(NativeLibrary)
-    def binaries = Mock(DomainObjectSet)
+    def binary = Mock(ProjectNativeLibraryBinary)
+    def binaries = new DefaultDomainObjectSet(ProjectNativeBinary, [binary])
+    def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary, [binary])
     def locator = new ProjectLibraryBinaryLocator(projectLocator)
 
     def setup() {
@@ -47,7 +53,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         findLibraryInProject()
 
         then:
-        locator.getBinaries(requirement) == binaries
+        locator.getBinaries(requirement) == convertedBinaries
     }
 
     def "locates binaries for library in other project"() {
@@ -59,7 +65,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         findLibraryInProject()
 
         then:
-        locator.getBinaries(requirement) == binaries
+        locator.getBinaries(requirement) == convertedBinaries
     }
 
     def "parses map notation for library with static linkage"() {
@@ -71,7 +77,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         findLibraryInProject()
 
         then:
-        locator.getBinaries(requirement) == binaries
+        locator.getBinaries(requirement) == convertedBinaries
     }
 
     def "fails for unknown project"() {
@@ -137,4 +143,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         components.withType(NativeLibrary) >> libraryContainer
         return libraryContainer
     }
+
+    interface ProjectNativeLibraryBinary extends ProjectNativeBinary, NativeLibraryBinary {}
+
 }

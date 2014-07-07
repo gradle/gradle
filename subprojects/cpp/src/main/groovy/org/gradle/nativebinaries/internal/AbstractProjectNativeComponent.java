@@ -19,19 +19,19 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.util.GUtil;
 
 public abstract class AbstractProjectNativeComponent implements ProjectNativeComponentInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ProjectNativeComponentIdentifier id;
-    private final DefaultDomainObjectSet<NativeBinary> binaries;
+    private final DefaultDomainObjectSet<ProjectNativeBinary> binaries;
 
     private String baseName;
 
     public AbstractProjectNativeComponent(ProjectNativeComponentIdentifier id) {
         this.id = id;
-        binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
+        binaries = new DefaultDomainObjectSet<ProjectNativeBinary>(ProjectNativeBinary.class);
     }
 
     @Override
@@ -55,7 +55,7 @@ public abstract class AbstractProjectNativeComponent implements ProjectNativeCom
         sourceSets.source(sources);
     }
 
-    public DomainObjectSet<NativeBinary> getBinaries() {
+    public DomainObjectSet<ProjectNativeBinary> getBinaries() {
         return binaries;
     }
 

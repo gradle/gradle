@@ -21,7 +21,7 @@ import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.jvm.JarBinary
 import org.gradle.runtime.jvm.JvmBinaryTasks
-import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal
+import org.gradle.runtime.jvm.internal.ProjectJvmBinaryInternal
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -78,5 +78,5 @@ class CreateTasksForJarBinariesTest extends Specification {
         0 * _
     }
 
-    interface JarBinaryInternal extends JarBinary, JvmLibraryBinaryInternal {}
+    interface JarBinaryInternal extends JarBinary, ProjectJvmBinaryInternal {}
 }

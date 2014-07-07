@@ -16,15 +16,13 @@
 
 package org.gradle.runtime.base;
 
-import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 
 /**
  * A physical binary artifact, which can run on a particular platform or runtime.
  */
 @Incubating
-public interface Binary extends BuildableModelElement, Named {
+public interface Binary {
     /**
      * Returns a human-consumable display name for this binary.
      */
