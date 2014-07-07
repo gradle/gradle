@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.rules;
+package org.gradle.model.internal;
 
 import com.google.common.reflect.TypeToken;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.Model;
 import org.gradle.model.ModelPath;
-import org.gradle.model.internal.*;
 
 import java.lang.reflect.Method;
 import java.util.Collections;

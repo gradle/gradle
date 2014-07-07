@@ -24,7 +24,6 @@ import org.gradle.internal.Factory;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
-import org.gradle.model.internal.rules.ReflectiveRule;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

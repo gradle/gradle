@@ -26,4 +26,4 @@ dependencies {
 }
 
 useTestFixtures()
-//useClassycle()
+useClassycle()
