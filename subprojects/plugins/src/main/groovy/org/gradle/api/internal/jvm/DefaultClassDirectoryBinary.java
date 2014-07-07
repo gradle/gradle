@@ -15,19 +15,19 @@
  */
 package org.gradle.api.internal.jvm;
 
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.jvm.ClassDirectoryBinary;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.runtime.base.internal.BinaryInternal;
+import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 import java.io.File;
 
-public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement implements ClassDirectoryBinary, BinaryInternal {
+public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement implements ClassDirectoryBinary, ProjectBinaryInternal {
     private final BinaryNamingScheme namingScheme;
-    private final DomainObjectCollection<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private final LanguageSourceSetContainer source = new LanguageSourceSetContainer();
     private final String name;
     private File classesDir;
     private File resourcesDir;
@@ -42,6 +42,10 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
             return name.substring(0, name.length() - 7);
         }
         return name;
+    }
+
+    public boolean isBuildable() {
+        return true;
     }
 
     public BinaryNamingScheme getNamingScheme() {
@@ -68,8 +72,12 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
         this.resourcesDir = resourcesDir;
     }
 
-    public DomainObjectCollection<LanguageSourceSet> getSource() {
+    public DomainObjectSet<LanguageSourceSet> getSource() {
         return source;
+    }
+
+    public void source(Object sources) {
+        source.source(sources);
     }
 
     public String getDisplayName() {

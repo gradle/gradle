@@ -31,8 +31,8 @@ import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -81,7 +81,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
 
         binaryContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
-                final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();
+                final BinaryNamingScheme namingScheme = ((ProjectBinaryInternal) binary).getNamingScheme();
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {

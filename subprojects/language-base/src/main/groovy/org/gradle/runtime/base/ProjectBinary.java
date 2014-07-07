@@ -18,12 +18,13 @@ package org.gradle.runtime.base;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a binary artifact that is the result of building a project component.
  */
-@Incubating
+@Incubating @HasInternalProtocol
 public interface ProjectBinary extends Binary {
     /**
      * Can this binary be built in the current environment?

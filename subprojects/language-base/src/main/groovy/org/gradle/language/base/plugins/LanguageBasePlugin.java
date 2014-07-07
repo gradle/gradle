@@ -23,7 +23,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.*;
+import org.gradle.language.base.internal.DefaultLanguageRegistry;
+import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.language.base.internal.LanguageRegistration;
+import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.plugins.ApplyDefaultSourceLocations;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
@@ -31,9 +34,9 @@ import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
-import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.runtime.base.internal.DefaultBinaryContainer;
 import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
+import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 import javax.inject.Inject;
 
@@ -78,8 +81,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
         });
         modelRules.rule(new AttachBinariesToLifecycle());
 
-        binaries.withType(BinaryInternal.class).all(new Action<BinaryInternal>() {
-            public void execute(BinaryInternal binary) {
+        binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>() {
+            public void execute(ProjectBinaryInternal binary) {
                 Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
                 binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                 binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));

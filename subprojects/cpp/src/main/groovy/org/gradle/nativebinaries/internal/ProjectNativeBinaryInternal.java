@@ -17,15 +17,15 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.language.DependentSourceSet;
-import org.gradle.runtime.base.internal.BinaryInternal;
-import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
+import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 import java.io.File;
 import java.util.Collection;
 
-public interface ProjectNativeBinaryInternal extends ProjectNativeBinary, BinaryInternal {
+public interface ProjectNativeBinaryInternal extends ProjectNativeBinary, ProjectBinaryInternal {
     File getPrimaryOutput();
 
     Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);

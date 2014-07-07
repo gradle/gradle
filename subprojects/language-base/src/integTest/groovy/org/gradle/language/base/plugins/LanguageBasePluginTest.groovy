@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.language.base.plugins
-
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.runtime.base.BinaryContainer
-import org.gradle.runtime.base.internal.BinaryInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.ProjectBinaryInternal
 import org.gradle.util.TestUtil
 
 class LanguageBasePluginTest extends WellBehavedPluginTest {
@@ -46,7 +45,7 @@ class LanguageBasePluginTest extends WellBehavedPluginTest {
     }
 
     def "creates a lifecycle task for each binary"() {
-        def binary = Mock(BinaryInternal)
+        def binary = Mock(ProjectBinaryInternal)
         def namingScheme = Mock(BinaryNamingScheme)
 
         when:
