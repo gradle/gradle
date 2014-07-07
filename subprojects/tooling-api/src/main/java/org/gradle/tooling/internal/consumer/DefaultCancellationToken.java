@@ -17,11 +17,12 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultCancellationToken implements CancellationToken {
+public class DefaultCancellationToken implements CancellationToken, InternalCancellationToken {
     private boolean cancelled;
     private List<Runnable> callbacks = new ArrayList<Runnable>();
 

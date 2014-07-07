@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,23 +24,29 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 
-public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
-    private final InternalBuildActionExecutor executor;
+public class CancellableConsumerConnection extends ModelBuilderBackedConsumerConnection {
+    private final InternalCancellableConnection executor;
     private final ProtocolToModelAdapter adapter;
 
-    public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+    public CancellableConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
         this.adapter = adapter;
-        executor = (InternalBuildActionExecutor) delegate;
+        executor = (InternalCancellableConnection) delegate;
     }
 
     @Override
-    public <T> T run(final BuildAction<T> action, CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters)
+    protected ModelProducer realModelProducer(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+        InternalCancellableConnection builder = (InternalCancellableConnection) delegate;
+        return new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, builder);
+    }
+
+    @Override
+    public <T> T run(final BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException {
         BuildResult<T> result;
         try {
-            handleCancellationPreOperation(cancellationToken, operationParameters);
-            result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), operationParameters);
+            // TODO use adapt instead of casting?
+            result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), (InternalCancellationToken) cancellationToken, operationParameters);
         } catch (InternalBuildActionFailureException e) {
             throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
         }

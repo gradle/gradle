@@ -65,7 +65,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         where:
         connectionImplementation  | adapter
-        TestConnection.class      | ActionAwareConsumerConnection.class
+        TestConnection.class      | CancellableConsumerConnection.class
+        TestR18Connection.class   | ActionAwareConsumerConnection.class
         TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class
         TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class
         TestR10M8Connection.class | InternalConnectionBackedConsumerConnection.class
@@ -119,7 +120,21 @@ class TestMetaData implements ConnectionMetaDataVersion1 {
     }
 }
 
-class TestConnection extends TestR16Connection implements InternalBuildActionExecutor {
+class TestConnection extends TestR18Connection implements InternalCancellableConnection {
+    @Override
+    BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
+            throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    def <T> BuildResult<T> run(InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
+            throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, InternalBuildActionFailureException, IllegalStateException {
+        throw new UnsupportedOperationException();
+    }
+}
+
+class TestR18Connection extends TestR16Connection implements InternalBuildActionExecutor {
     def <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
