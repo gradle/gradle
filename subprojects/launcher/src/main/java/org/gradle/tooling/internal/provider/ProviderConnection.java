@@ -28,6 +28,7 @@ import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildCancellationToken;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -69,7 +70,7 @@ public class ProviderConnection {
         loggingManager.start();
     }
 
-    public Object run(String modelName, ProviderOperationParameters providerParameters) {
+    public Object run(String modelName, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         List<String> tasks = providerParameters.getTasks();
         if (modelName.equals(ModelIdentifier.NULL_MODEL) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
@@ -88,20 +89,20 @@ public class ProviderConnection {
         }
 
         BuildAction<BuildActionResult> action = new BuildModelAction(modelName, tasks != null);
-        return run(action, providerParameters, params.properties);
+        return run(action, cancellationToken, providerParameters, params.properties);
     }
 
-    public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
+    public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
         BuildAction<BuildActionResult> action = new ClientProvidedBuildAction(serializedAction);
-        return run(action, providerParameters, params.properties);
+        return run(action, cancellationToken, providerParameters, params.properties);
     }
 
-    private Object run(BuildAction<? extends BuildActionResult> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
+    private Object run(BuildAction<? extends BuildActionResult> action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Map<String, String> properties) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
         ConfiguringBuildAction<BuildActionResult> configuringAction = new ConfiguringBuildAction<BuildActionResult>(operationParameters, action, properties);
-        BuildActionResult result = executer.execute(configuringAction, operationParameters);
+        BuildActionResult result = executer.execute(configuringAction, /*cancellationToken,*/ operationParameters);
         if (result.failure != null) {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
         }
@@ -161,5 +162,4 @@ public class ProviderConnection {
             this.properties = properties;
         }
     }
-
 }

@@ -20,6 +20,8 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.launcher.exec.BuildCancellationToken;
+import org.gradle.launcher.exec.FixedBuildCancellationToken;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -31,7 +33,8 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor {
+public class DefaultConnection implements InternalConnection, BuildActionRunner,
+        ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ProtocolToModelAdapter adapter;
     private final ServiceRegistry services;
@@ -108,7 +111,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
 
     private <T> T run(Class<T> type, BuildOperationParametersVersion1 parameters) {
         String modelName = new ModelMapping().getModelNameFromProtocolType(type);
-        return (T) connection.run(modelName, new AdaptedOperationParameters(parameters));
+        return (T) connection.run(modelName, new FixedBuildCancellationToken(), new AdaptedOperationParameters(parameters));
     }
 
     /**
@@ -119,7 +122,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(buildParameters);
         String modelName = new ModelMapping().getModelNameFromProtocolType(type);
-        T result = (T) connection.run(modelName, providerParameters);
+        T result = (T) connection.run(modelName, new FixedBuildCancellationToken(), providerParameters);
         return new ProviderBuildResult<T>(result);
     }
 
@@ -129,7 +132,18 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
-        Object result = connection.run(modelIdentifier.getName(), providerParameters);
+        Object result = connection.run(modelIdentifier.getName(), new FixedBuildCancellationToken(), providerParameters);
+        return new ProviderBuildResult<Object>(result);
+    }
+
+    /**
+     * This is used by consumers 2.1-rc-1 and later
+     */
+    public BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        validateCanRun();
+        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        BuildCancellationToken buildCancellationToken = new BuildCancellationTokenAdapter(cancellationToken);
+        Object result = connection.run(modelIdentifier.getName(), buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(result);
     }
 
@@ -139,7 +153,19 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
-        Object results = connection.run(action, providerParameters);
+        Object results = connection.run(action, new FixedBuildCancellationToken(), providerParameters);
+        return new ProviderBuildResult<T>((T) results);
+    }
+
+    /**
+     * This is used by consumers 2.1-rc-1 and later.
+     */
+    public <T> BuildResult<T> run(InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
+            throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        validateCanRun();
+        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        BuildCancellationToken buildCancellationToken = new BuildCancellationTokenAdapter(cancellationToken);
+        Object results = connection.run(action, buildCancellationToken, providerParameters);
         return new ProviderBuildResult<T>((T) results);
     }
 
