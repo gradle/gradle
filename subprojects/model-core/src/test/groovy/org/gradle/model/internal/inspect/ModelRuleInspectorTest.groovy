@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.rules
+package org.gradle.model.internal.inspect
 
 import org.gradle.model.Model
 import org.gradle.model.ModelPath
 import org.gradle.model.internal.DefaultModelRegistry
 import org.gradle.model.internal.ModelRegistry
-import org.gradle.model.internal.ModelRuleInspector
+import org.gradle.model.internal.inspect.ModelRuleInspector
 import org.gradle.model.internal.ModelState
 import spock.lang.Specification
 

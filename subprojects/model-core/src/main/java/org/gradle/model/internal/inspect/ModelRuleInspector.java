@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.inspect;
 
 import com.google.common.reflect.TypeToken;
 import org.gradle.internal.UncheckedException;
@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.Model;
 import org.gradle.model.ModelPath;
+import org.gradle.model.internal.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
