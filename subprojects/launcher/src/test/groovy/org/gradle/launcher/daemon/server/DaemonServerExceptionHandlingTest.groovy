@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
 import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction
 import org.gradle.launcher.exec.DefaultBuildActionParameters
+import org.gradle.launcher.exec.FixedBuildCancellationToken
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -39,6 +40,7 @@ import spock.lang.Specification
 class DaemonServerExceptionHandlingTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    def cancellationToken = new FixedBuildCancellationToken()
     def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
@@ -58,7 +60,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def action = new DummyLauncherAction(someState: unloadableClass)
 
         when:
-        client.execute(action, parameters)
+        client.execute(action, cancellationToken, parameters)
 
         then:
         def ex = thrown(Exception)
@@ -93,7 +95,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), cancellationToken, parameters)
 
         then:
         def ex = thrown(Throwable)
@@ -109,7 +111,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), cancellationToken, parameters)
 
         then:
         def ex = thrown(RuntimeException)

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildAction;
 import org.gradle.internal.Factory;
 import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildCancellationToken;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
@@ -36,7 +37,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         this.loggingManagerFactory = loggingManagerFactory;
     }
 
-    public <T> T execute(BuildAction<T> action, ProviderOperationParameters actionParameters) {
+    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, ProviderOperationParameters actionParameters) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
         if (actionParameters.getStandardOutput() != null) {
             loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(actionParameters.getStandardOutput()));
@@ -50,7 +51,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         loggingManager.setLevel(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
-            return executer.execute(action, actionParameters);
+            return executer.execute(action, cancellationToken, actionParameters);
         } finally {
             loggingManager.stop();
         }

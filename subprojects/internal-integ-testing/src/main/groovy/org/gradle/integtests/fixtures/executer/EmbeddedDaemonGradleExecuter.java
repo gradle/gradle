@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.FixedBuildCancellationToken;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.StreamBackedStandardOutputListener;
@@ -67,7 +68,7 @@ class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
         Exception failure = null;
         try {
-            daemonClient.execute(buildAction, buildActionParameters);
+            daemonClient.execute(buildAction, new FixedBuildCancellationToken(), buildActionParameters);
         } catch (Exception e) {
             failure = e;
         } finally {

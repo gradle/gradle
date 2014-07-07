@@ -103,7 +103,7 @@ process simply exits. This behaviour will be improved later.
 #### Implementation plan
 
 1. Provider implementation forwards the cancellation request to the daemon.
-2. The daemon uses `DaemonStateControl.requestForcefulStop()` to terminate the build.
+2. The daemon uses `DaemonStateControl.requestForcefulStop()` to terminate the build. (This is achieved by calling `DaemonClient.stop()` from toolingApi provider/daemon client.)
 3. Forward a 'build cancelled' exception to the client.
 
 #### Test cases

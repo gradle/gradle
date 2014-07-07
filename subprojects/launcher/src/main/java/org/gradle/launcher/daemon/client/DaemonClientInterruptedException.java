@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec;
 
-import org.gradle.initialization.BuildAction;
+package org.gradle.launcher.daemon.client;
 
-public interface BuildActionExecuter<P> {
-    /**
-     * Executes the given action, and returns the result.
-     *
-     * @param action The action
-     * @param <T> The result type
-     * @return The result.
-     */
-    <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, P actionParameters);
+/**
+ * Thrown when there is some problem using a daemon connection.
+ */
+public class DaemonClientInterruptedException extends RuntimeException {
+    public DaemonClientInterruptedException(String message) {
+        super(message);
+    }
+
+    public DaemonClientInterruptedException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -18,9 +18,32 @@ package org.gradle.integtests.tooling.r21;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
+import java.io.File;
+import java.net.URI;
+
 public class HangingBuildAction implements BuildAction<Void> {
+    private final URI markerURI;
+
+    public HangingBuildAction(URI markerURI) {
+        this.markerURI = markerURI;
+    }
+
     public Void execute(BuildController controller) {
-        throw new RuntimeException("should not be executed");
+        System.out.println("waiting");
+        File marker = new File(markerURI);
+        long timeout = System.currentTimeMillis() + 10000L;
+        while (!marker.exists() && System.currentTimeMillis() < timeout) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Interrupted while waiting for marker file", e);
+            }
+        }
+        if (!marker.exists()) {
+            throw new RuntimeException("Timeout waiting for marker file");
+        }
+        System.out.println("finished");
+        return null;
     }
 
 }

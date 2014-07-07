@@ -19,13 +19,13 @@ package org.gradle.integtests.tooling.r21
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.exceptions.BuildCancelledException
-import spock.lang.Ignore
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -34,12 +34,13 @@ import java.util.concurrent.TimeUnit
 @TargetGradleVersion(">=1.0-milestone-8")
 class CancellationCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
+        // in-process call does not support cancelling (yet)
+        toolingApi.isEmbedded = false
         settingsFile << '''
 rootProject.name = 'cancelling'
 '''
     }
 
-    @Ignore
     @TargetGradleVersion(">=2.1")
     def "can cancel build"() {
         def marker = file("marker.txt")
@@ -51,6 +52,7 @@ task hang << {
     long timeout = System.currentTimeMillis() + 10000
     while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
     if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+    Thread.sleep(1000)
     println "finished"
 }
 """
@@ -62,7 +64,8 @@ task hang << {
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
             build.forTasks('hang')
-            build.withCancellationToken(cancel.token())
+                    .withCancellationToken(cancel.token())
+                    .setStandardOutput(output)
             build.run(resultHandler)
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             cancel.cancel()
@@ -72,6 +75,9 @@ task hang << {
         then:
         output.toString().contains("waiting")
         !output.toString().contains("finished")
+        // TODO be better to throw BuildCancelledException
+        resultHandler.failure.cause.class.name == DaemonDisappearedException.name
+        resultHandler.failure instanceof GradleConnectionException
     }
 
     @TargetGradleVersion("<2.1 >=1.0-milestone-8")
@@ -155,8 +161,31 @@ task hang << {
         resultHandler.failure instanceof BuildCancelledException
     }
 
+    @TargetGradleVersion(">=2.1")
     def "can cancel action"() {
-        // TODO
+        def marker = file("marker.txt")
+        def cancel = new CancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+        def output = new TestOutputStream()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.action(new HangingBuildAction(marker.toURI()))
+            build.withCancellationToken(cancel.token())
+                    .setStandardOutput(output)
+            build.run(resultHandler)
+            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            cancel.cancel()
+            marker.text = 'go!'
+            resultHandler.finished()
+        }
+
+        then:
+        output.toString().contains("waiting")
+        !output.toString().contains("finished")
+        // TODO be better to throw BuildCancelledException
+        resultHandler.failure.cause.class.name == DaemonDisappearedException.name
+        resultHandler.failure instanceof GradleConnectionException
     }
 
     @TargetGradleVersion(">=2.1")
@@ -167,7 +196,7 @@ task hang << {
         when:
         cancel.cancel()
         withConnection { ProjectConnection connection ->
-            def build = connection.action(new HangingBuildAction())
+            def build = connection.action(new HangingBuildAction(null))
             build.withCancellationToken(cancel.token())
             build.run(resultHandler)
             resultHandler.finished()

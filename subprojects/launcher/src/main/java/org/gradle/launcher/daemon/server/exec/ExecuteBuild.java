@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.exec.FixedBuildCancellationToken;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.launcher.exec.ReportedException;
 
@@ -42,7 +43,7 @@ public class ExecuteBuild extends BuildCommandOnly {
         LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
         InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(launcherFactory);
         try {
-            execution.setResult(executer.execute(build.getAction(), build.getParameters()));
+            execution.setResult(executer.execute(build.getAction(), new FixedBuildCancellationToken(), build.getParameters()));
         } catch (ReportedException e) {
             /*
                 We have to wrap in a ReportedException so the other side doesn't re-log this exception, because it's already

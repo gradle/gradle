@@ -39,7 +39,7 @@ public class DefaultCancellationToken implements CancellationToken, InternalCanc
     }
 
     public boolean canBeCancelled() {
-        throw new UnsupportedOperationException();
+        return true;
     }
 
     public synchronized void doCancel() {

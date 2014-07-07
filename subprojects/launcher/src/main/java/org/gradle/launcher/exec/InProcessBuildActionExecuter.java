@@ -33,7 +33,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         this.gradleLauncherFactory = gradleLauncherFactory;
     }
 
-    public <T> T execute(BuildAction<T> action, BuildActionParameters actionParameters) {
+    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, BuildActionParameters actionParameters) {
         DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, actionParameters);
         try {
             return action.run(buildController);

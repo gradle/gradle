@@ -19,6 +19,7 @@ import org.gradle.initialization.BuildAction
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.launcher.exec.BuildCancellationToken
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.util.ConcurrentSpecification
 import org.gradle.launcher.daemon.protocol.*
@@ -91,7 +92,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
     def executesAction() {
         when:
-        def result = client.execute(Stub(BuildAction), Stub(BuildActionParameters))
+        def result = client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
 
         then:
         result == '[result]'
@@ -108,7 +109,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
 
         then:
         RuntimeException e = thrown()
@@ -126,7 +127,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -140,7 +141,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -156,7 +157,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -173,7 +174,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         connection.receive() >> Mock(DaemonUnavailable)
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
 
         then:
         thrown(NoUsableDaemonFoundException)

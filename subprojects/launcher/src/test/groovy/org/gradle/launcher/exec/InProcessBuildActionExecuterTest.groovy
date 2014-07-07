@@ -25,6 +25,7 @@ import spock.lang.Specification
 class InProcessBuildActionExecuterTest extends Specification {
     final GradleLauncherFactory factory = Mock()
     final DefaultGradleLauncher launcher = Mock()
+    final BuildCancellationToken cancellationToken = Mock()
     final BuildActionParameters param = Mock()
     final BuildRequestMetaData metaData = Mock()
     final BuildResult buildResult = Mock()
@@ -39,7 +40,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
@@ -54,7 +55,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
@@ -73,7 +74,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         def startParam = new StartParameter()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
@@ -100,7 +101,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * factory.newInstance(!null, metaData) >> launcher
 
         when:
-        executer.execute(action, param)
+        executer.execute(action, cancellationToken, param)
 
         then:
         IllegalStateException e = thrown()
@@ -114,7 +115,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
@@ -133,7 +134,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
@@ -154,7 +155,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
@@ -181,7 +182,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         }
 
         when:
-        executer.execute(action, param)
+        executer.execute(action, cancellationToken, param)
 
         then:
         IllegalStateException e = thrown()
@@ -201,7 +202,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         buildResult.failure >> failure
 
         when:
-        executer.execute(action, param)
+        executer.execute(action, cancellationToken, param)
 
         then:
         ReportedException e = thrown()
