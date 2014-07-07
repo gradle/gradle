@@ -25,10 +25,10 @@ dependencies {
     publishCompile project(":baseServices")
     publishCompile project(":messaging")
     publishCompile project(":resources")
-    publishCompile project(":modelCore")
-    publishCompile project(":modelGroovy")
 
     compile project(":baseServicesGroovy")
+    compile project(":modelCore")
+    compile project(":modelGroovy")
     compile libraries.asm
     compile libraries.ant
     compile libraries.commons_collections
