@@ -20,10 +20,13 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.ModelPath;
 import org.gradle.model.internal.*;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
@@ -32,6 +35,7 @@ public class ModelRuleInspector {
 
     // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)
     public <T> void inspect(Class<T> source, ModelRegistry modelRegistry) {
+        validate(source);
         Method[] methods = source.getDeclaredMethods();
         for (Method method : methods) {
             Model modelAnnotation = method.getAnnotation(Model.class);
@@ -89,6 +93,63 @@ public class ModelRuleInspector {
         } else {
             return annotationValue;
         }
+    }
+
+    /**
+     * Validates that the given class is effectively static and has no instance state.
+     *
+     * @param source the class the validate
+     */
+    static void validate(Class<?> source) {
+
+        // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
+
+        int modifiers = source.getModifiers();
+
+        if (Modifier.isInterface(modifiers)) {
+            invalid(source, "must be a class, not an interface");
+        }
+        if (Modifier.isAbstract(modifiers)) {
+            invalid(source, "class cannot be abstract");
+        }
+
+        if (source.getEnclosingClass() != null) {
+            if (Modifier.isStatic(modifiers)) {
+                if (Modifier.isPrivate(modifiers)) {
+                    invalid(source, "class cannot be private");
+                }
+            } else {
+                invalid(source, "enclosed classes must be static and non private");
+            }
+        }
+
+        Class<?> superclass = source.getSuperclass();
+        if (!superclass.equals(Object.class)) {
+            invalid(source, "cannot have superclass");
+        }
+
+        Constructor<?>[] constructors = source.getDeclaredConstructors();
+        if (constructors.length > 1) {
+            invalid(source, "cannot have more than one constructor");
+        }
+
+        Constructor constructor = constructors[0];
+        if (constructor.getParameterTypes().length > 0) {
+            invalid(source, "constructor cannot take any arguments");
+        }
+
+        Field[] fields = source.getDeclaredFields();
+        for (Field field : fields) {
+            int fieldModifiers = field.getModifiers();
+            if (!field.isSynthetic() && !(Modifier.isStatic(fieldModifiers) && Modifier.isFinal(fieldModifiers))) {
+                invalid(source, "field " + field.getName() + " is not static final");
+            }
+        }
+
+    }
+
+    private static void invalid(Class<?> source, String reason) {
+        throw new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
     }
 
 }
