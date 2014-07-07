@@ -36,7 +36,7 @@ import java.util.Map;
  * <li>setBuildStarted</li>
  * <li>setSettingsEvaluated</li>
  * <li>setProjectsLoaded</li>
- * <li>setProjectsConfigured</li>
+ * <li>setProjectsEvaluated</li>
  * <li>setBuildFinished</li>
  * </ul>
  */
@@ -50,6 +50,7 @@ public class BuildProfile {
     private long buildStarted;
     private long settingsEvaluated;
     private long projectsLoaded;
+    private long projectsEvaluated;
     private long buildFinished;
     private StartParameter startParameter;
     private boolean successful;
@@ -171,6 +172,15 @@ public class BuildProfile {
     }
 
     /**
+     * Should be set with a timestamp from a {@link org.gradle.BuildListener#projectsEvaluated}
+     * callback.
+     * @param projectsEvaluated
+     */
+    public void setProjectsEvaluated(long projectsEvaluated) {
+        this.projectsEvaluated = projectsEvaluated;
+    }
+
+    /**
      * Should be set with a timestamp from a {@link org.gradle.BuildListener#buildFinished}
      * callback.
      * @param buildFinished
@@ -213,6 +223,14 @@ public class BuildProfile {
     }
 
     /**
+     * Get the elapsed time (in mSec) between the projectsLoaded event and the projectsEvaluated event.
+     * @return
+     */
+    public long getElapsedProjectsConfiguration() {
+        return projectsEvaluated - projectsLoaded;
+    }
+
+    /**
      * Get the total task execution time from all projects.
      * @return
      */
@@ -231,4 +249,6 @@ public class BuildProfile {
     public StartParameter getStartParameter() {
         return startParameter;
     }
+
+
 }
