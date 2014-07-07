@@ -25,6 +25,8 @@ dependencies {
     publishCompile project(":baseServices")
     publishCompile project(":messaging")
     publishCompile project(":resources")
+    publishCompile project(":modelCore")
+    publishCompile project(":modelGroovy")
 
     compile project(":baseServicesGroovy")
     compile libraries.asm

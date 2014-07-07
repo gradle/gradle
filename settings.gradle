@@ -58,6 +58,8 @@ include 'languageBase'
 include 'languageJvm'
 include 'pluginUse'
 include 'plugin-development'
+include 'modelCore'
+include 'modelGroovy'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
