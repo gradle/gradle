@@ -26,7 +26,8 @@ import org.gradle.api.Incubating;
  * That is, only the methods of this type can be called on only with <i>literal</i> string arguments.
  * </p>
  * <p>
- * See the <a href="../userguide/plugins.html#sec:plugins_block">Gradle user guide</a> for further information.
+ * See the <a href="http://gradle.org/docs/current/userguide/plugins.html#sec:plugins_block">Gradle user guide</a> for further information
+ * on setting up a <code>plugins { }</code> script block.
  * </p>
  */
 @Incubating

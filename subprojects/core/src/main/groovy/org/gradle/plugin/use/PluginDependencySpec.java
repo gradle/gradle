@@ -22,6 +22,10 @@ import org.gradle.api.Nullable;
 /**
  * A mutable specification of a dependency on a plugin.
  *
+ * <p>
+ * See the <a href="http://gradle.org/docs/current/userguide/plugins.html#sec:plugins_block">Gradle user guide</a> for further information
+ * on setting up a <code>plugins { }</code> script block.
+ * </p>
  * @see PluginDependenciesSpec
  */
 @Incubating
