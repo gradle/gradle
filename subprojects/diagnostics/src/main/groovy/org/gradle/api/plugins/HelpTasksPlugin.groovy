@@ -47,7 +47,7 @@ class HelpTasksPlugin implements Plugin<ProjectInternal> {
 
         project.tasks.addPlaceholderAction(TASKS_TASK) {
             project.tasks.create(name: TASKS_TASK, type: TaskReportTask) {
-                if (project.subprojects.empty) {
+                if (project.childProjects.isEmpty()) {
                     description = "Displays the tasks runnable from $project."
                 } else {
                     description = "Displays the tasks runnable from $project (some of the displayed tasks may belong to subprojects)."
