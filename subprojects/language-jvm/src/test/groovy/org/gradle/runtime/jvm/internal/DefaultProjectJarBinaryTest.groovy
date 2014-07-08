@@ -19,13 +19,13 @@ import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.jvm.JvmLibrary
 import spock.lang.Specification
 
-class DefaultJarBinaryTest extends Specification {
+class DefaultProjectJarBinaryTest extends Specification {
     def library = Mock(JvmLibrary)
     def namingScheme = Mock(BinaryNamingScheme)
 
     def "binary takes name and displayName from naming scheme"() {
         when:
-        def binary = new DefaultJarBinary(library, namingScheme)
+        def binary = new DefaultProjectJarBinary(library, namingScheme)
 
         and:
         namingScheme.lifecycleTaskName >> "jvm-lib-jar"
@@ -39,7 +39,7 @@ class DefaultJarBinaryTest extends Specification {
 
     def "binary has properties for classesDir and jar file"() {
         when:
-        def binary = new DefaultJarBinary(library, namingScheme)
+        def binary = new DefaultProjectJarBinary(library, namingScheme)
 
         then:
         binary.jarFile == null

@@ -16,13 +16,13 @@
 
 package org.gradle.runtime.jvm.internal.plugins
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.runtime.base.Binary
 import org.gradle.runtime.base.BinaryContainer
+import org.gradle.runtime.base.ProjectBinary
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.runtime.jvm.JvmLibrary
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrary
-import org.gradle.runtime.jvm.internal.DefaultJarBinary
+import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -41,14 +41,17 @@ class CreateJvmBinariesTest extends Specification {
         rule.createBinaries(binaries, toNamedDomainObjectSet(JvmLibrary, library))
 
         then:
+        _ * namingScheme.description >> "jvmLibJar"
+        _ * namingScheme.outputDirectoryBase >> "jvmJarOutput"
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * namingScheme.outputDirectoryBase >> "jvmJarOutput"
-        1 * binaries.add({ DefaultJarBinary binary ->
+        1 * binaries.add({ DefaultProjectJarBinary binary ->
             binary.namingScheme == namingScheme
             binary.library == library
-        } as Binary)
+            binary.classesDir == new File(buildDir, "jvmJarOutput")
+            binary.resourcesDir == binary.classesDir
+        } as ProjectBinary)
         0 * _
     }
 
@@ -63,15 +66,16 @@ class CreateJvmBinariesTest extends Specification {
         rule.createBinaries(binaries, toNamedDomainObjectSet(JvmLibrary, library))
 
         then:
+        _ * namingScheme.description >> "jvmLibJar"
+        _ * namingScheme.outputDirectoryBase >> "jvmJarOutput"
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * namingScheme.outputDirectoryBase >> "jvmJarOutput"
-        1 * binaries.add({ DefaultJarBinary binary ->
+        1 * binaries.add({ DefaultProjectJarBinary binary ->
             binary.namingScheme == namingScheme
             binary.library == library
             binary.source == library.source
-        } as Binary)
+        } as ProjectBinary)
         0 * _
     }
 }

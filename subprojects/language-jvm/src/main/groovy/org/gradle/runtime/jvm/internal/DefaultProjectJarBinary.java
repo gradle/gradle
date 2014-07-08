@@ -21,21 +21,21 @@ import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.jvm.JarBinary;
 import org.gradle.runtime.jvm.JvmBinaryTasks;
 import org.gradle.runtime.jvm.JvmLibrary;
 
 import java.io.File;
 
-public class DefaultJarBinary extends AbstractBuildableModelElement implements JarBinary, ProjectJvmBinaryInternal {
+public class DefaultProjectJarBinary extends AbstractBuildableModelElement implements ProjectJarBinaryInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final JvmLibrary library;
     private final BinaryNamingScheme namingScheme;
     private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
     private File classesDir;
+    private File resourcesDir;
     private File jarFile;
 
-    public DefaultJarBinary(JvmLibrary library, BinaryNamingScheme namingScheme) {
+    public DefaultProjectJarBinary(JvmLibrary library, BinaryNamingScheme namingScheme) {
         this.library = library;
         this.namingScheme = namingScheme;
     }
@@ -91,5 +91,13 @@ public class DefaultJarBinary extends AbstractBuildableModelElement implements J
 
     public void setClassesDir(File classesDir) {
         this.classesDir = classesDir;
+    }
+
+    public File getResourcesDir() {
+        return resourcesDir;
+    }
+
+    public void setResourcesDir(File resourcesDir) {
+        this.resourcesDir = resourcesDir;
     }
 }

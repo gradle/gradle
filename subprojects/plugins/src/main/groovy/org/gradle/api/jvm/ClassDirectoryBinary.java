@@ -16,9 +16,8 @@
 package org.gradle.api.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.ProjectBinary;
-
-import java.io.File;
+import org.gradle.internal.HasInternalProtocol;
+import org.gradle.runtime.jvm.ProjectJvmBinary;
 
 /**
  * An exploded binary containing resources and compiled class files.
@@ -29,10 +28,6 @@ import java.io.File;
 // between classes and resources dirs, instead of just maintaining a collection of dirs.
 // As far as generated resources are concerned, it might be better to model
 // them as an additional (Buildable) ResourceSet.
-@Incubating
-public interface ClassDirectoryBinary extends ProjectBinary {
-    File getClassesDir();
-    void setClassesDir(File dir);
-    File getResourcesDir();
-    void setResourcesDir(File dir);
+@Incubating @HasInternalProtocol
+public interface ClassDirectoryBinary extends ProjectJvmBinary {
 }

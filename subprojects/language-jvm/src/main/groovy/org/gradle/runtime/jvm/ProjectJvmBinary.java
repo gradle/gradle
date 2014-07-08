@@ -22,7 +22,7 @@ import org.gradle.runtime.base.ProjectBinary;
 import java.io.File;
 
 /**
- * A JVM binary that is built by Gradle.
+ * Definition of a JVM binary to be built by Gradle.
  */
 @Incubating
 public interface ProjectJvmBinary extends ProjectBinary {
@@ -30,16 +30,6 @@ public interface ProjectJvmBinary extends ProjectBinary {
      * The set of tasks associated with this binary.
      */
     JvmBinaryTasks getTasks();
-
-    /**
-     * The jar file output for this binary.
-     */
-    File getJarFile();
-
-    /**
-     * Sets the jar file output for this binary.
-     */
-    void setJarFile(File jarFile);
 
     /**
      * The classes directory for this binary.
@@ -50,4 +40,14 @@ public interface ProjectJvmBinary extends ProjectBinary {
      * Sets the classes directory for this binary.
      */
     void setClassesDir(File classesDir);
+
+    /**
+     * The resources directory for this binary.
+     */
+    File getResourcesDir();
+
+    /**
+     * Sets the resources directory for this binary.
+     */
+    void setResourcesDir(File dir);
 }

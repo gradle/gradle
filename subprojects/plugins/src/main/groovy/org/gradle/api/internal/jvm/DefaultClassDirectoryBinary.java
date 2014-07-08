@@ -17,15 +17,14 @@ package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.jvm.ClassDirectoryBinary;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.base.internal.ProjectBinaryInternal;
+import org.gradle.runtime.jvm.JvmBinaryTasks;
 
 import java.io.File;
 
-public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement implements ClassDirectoryBinary, ProjectBinaryInternal {
+public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement implements ClassDirectoryBinaryInternal {
     private final BinaryNamingScheme namingScheme;
     private final LanguageSourceSetContainer source = new LanguageSourceSetContainer();
     private final String name;
@@ -42,6 +41,10 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
             return name.substring(0, name.length() - 7);
         }
         return name;
+    }
+
+    public JvmBinaryTasks getTasks() {
+        throw new UnsupportedOperationException();
     }
 
     public boolean isBuildable() {

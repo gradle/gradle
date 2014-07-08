@@ -23,7 +23,8 @@ import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.jvm.JvmLibrary;
-import org.gradle.runtime.jvm.internal.DefaultJarBinary;
+import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
+import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
 import java.io.File;
 
@@ -45,16 +46,18 @@ public class CreateJvmBinaries extends ModelRule {
                     .withComponentName(jvmLibrary.getName())
                     .withTypeString("jar")
                     .build();
-            DefaultJarBinary jvmLibraryBinary = new DefaultJarBinary(jvmLibrary, namingScheme);
-            jvmLibraryBinary.source(jvmLibrary.getSource());
-            configureBinaryOutputLocations(jvmLibraryBinary);
-            binaries.add(jvmLibraryBinary);
+            ProjectJarBinaryInternal jarBinary = new DefaultProjectJarBinary(jvmLibrary, namingScheme);
+            jarBinary.source(jvmLibrary.getSource());
+            configureBinaryOutputLocations(jarBinary);
+            binaries.add(jarBinary);
         }
     }
 
-    private void configureBinaryOutputLocations(DefaultJarBinary jvmLibraryBinary) {
-        String outputBaseName = jvmLibraryBinary.getNamingScheme().getOutputDirectoryBase();
-        jvmLibraryBinary.setClassesDir(new File(classesDir, outputBaseName));
-        jvmLibraryBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jvmLibraryBinary.getLibrary().getName())));
+    private void configureBinaryOutputLocations(ProjectJarBinaryInternal jarBinary) {
+        String outputBaseName = jarBinary.getNamingScheme().getOutputDirectoryBase();
+        File outputDir = new File(classesDir, outputBaseName);
+        jarBinary.setClassesDir(outputDir);
+        jarBinary.setResourcesDir(outputDir);
+        jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName())));
     }
 }

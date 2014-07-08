@@ -17,10 +17,22 @@
 package org.gradle.runtime.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+
+import java.io.File;
 
 /**
- * A Jar file binary that runs on the JVM.
+ * Definition of a Jar file binary that is to be built by Gradle.
  */
-@Incubating
-public interface JarBinary extends JvmLibraryBinary, ProjectJvmBinary {
+@Incubating @HasInternalProtocol
+public interface ProjectJarBinary extends ProjectJvmBinary {
+    /**
+     * The jar file output for this binary.
+     */
+    File getJarFile();
+
+    /**
+     * Sets the jar file output for this binary.
+     */
+    void setJarFile(File jarFile);
 }

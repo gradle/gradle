@@ -28,7 +28,7 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.jvm.internal.ProjectJvmBinaryInternal;
+import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
 import javax.inject.Inject;
 
@@ -55,7 +55,8 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     private static class CreateProcessResourcesTasks extends ModelRule {
         @SuppressWarnings("UnusedDeclaration")
         void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
-            for (ProjectJvmBinaryInternal binary : binaries.withType(ProjectJvmBinaryInternal.class)) {
+            // TODO:DAZ Make this apply to all types of ProjectJvmBinary
+            for (ProjectJarBinaryInternal binary : binaries.withType(ProjectJarBinaryInternal.class)) {
                 for (ResourceSet resourceSet : binary.getSource().withType(ResourceSet.class)) {
 
                     String resourcesTaskName = binary.getNamingScheme().getTaskName("process", ((LanguageSourceSetInternal) resourceSet).getFullName());

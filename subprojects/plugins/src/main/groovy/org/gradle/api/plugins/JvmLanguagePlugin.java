@@ -19,6 +19,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.jvm.ClassDirectoryBinaryInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinary;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.jvm.ClassDirectoryBinary;
@@ -32,7 +33,6 @@ import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -76,12 +76,12 @@ public class JvmLanguagePlugin implements Plugin<Project> {
         binaryContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
             public ClassDirectoryBinary create(String name) {
                 return instantiator.newInstance(DefaultClassDirectoryBinary.class, name);
-            };
+            }
         });
 
-        binaryContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
-            public void execute(final ClassDirectoryBinary binary) {
-                final BinaryNamingScheme namingScheme = ((ProjectBinaryInternal) binary).getNamingScheme();
+        binaryContainer.withType(ClassDirectoryBinaryInternal.class).all(new Action<ClassDirectoryBinaryInternal>() {
+            public void execute(final ClassDirectoryBinaryInternal binary) {
+                final BinaryNamingScheme namingScheme = binary.getNamingScheme();
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {

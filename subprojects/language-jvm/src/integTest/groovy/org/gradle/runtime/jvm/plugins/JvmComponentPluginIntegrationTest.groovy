@@ -58,7 +58,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
         assert binaries.size() == 1
         def myLibJar = (binaries as List)[0]
-        assert myLibJar instanceof JvmLibraryBinary
+        assert myLibJar instanceof ProjectJarBinary
         assert myLibJar.name == 'myLibJar'
         assert myLibJar.displayName == "jar 'myLib:jar'"
 

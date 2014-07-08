@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm.internal;
+package org.gradle.api.internal.jvm;
 
+import org.gradle.api.jvm.ClassDirectoryBinary;
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
-import org.gradle.runtime.jvm.JvmLibrary;
-import org.gradle.runtime.jvm.ProjectJvmBinary;
 
-public interface ProjectJvmBinaryInternal extends ProjectJvmBinary, ProjectBinaryInternal {
-    JvmLibrary getLibrary();
+public interface ClassDirectoryBinaryInternal extends ClassDirectoryBinary, ProjectBinaryInternal {
 }

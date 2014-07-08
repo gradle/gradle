@@ -31,7 +31,7 @@ import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.jvm.internal.ProjectJvmBinaryInternal;
+import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 
 import javax.inject.Inject;
@@ -70,7 +70,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
 
         @SuppressWarnings("UnusedDeclaration")
         void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
-            for (ProjectJvmBinaryInternal binary : binaries.withType(ProjectJvmBinaryInternal.class)) {
+            for (ProjectJarBinaryInternal binary : binaries.withType(ProjectJarBinaryInternal.class)) {
                 for (JavaSourceSet javaSourceSet : binary.getSource().withType(JavaSourceSet.class)) {
 
                     String compileTaskName = binary.getNamingScheme().getTaskName("compile", ((LanguageSourceSetInternal) javaSourceSet).getFullName());

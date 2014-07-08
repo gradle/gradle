@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm;
+package org.gradle.runtime.jvm.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.runtime.base.Binary;
+import org.gradle.runtime.base.internal.ProjectBinaryInternal;
+import org.gradle.runtime.jvm.ProjectJarBinary;
+import org.gradle.runtime.jvm.JvmLibrary;
 
-/**
- * A JVM library binary.
- */
-@Incubating
-public interface JvmLibraryBinary extends Binary {
+public interface ProjectJarBinaryInternal extends ProjectJarBinary, ProjectBinaryInternal {
+    // TODO:DAZ Move this up
+    JvmLibrary getLibrary();
 }

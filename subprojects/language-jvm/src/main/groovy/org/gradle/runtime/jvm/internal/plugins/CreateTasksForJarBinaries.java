@@ -21,20 +21,18 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.model.ModelRule;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.jvm.JarBinary;
-import org.gradle.runtime.jvm.internal.ProjectJvmBinaryInternal;
+import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
 public class CreateTasksForJarBinaries extends ModelRule {
     void createTasks(TaskContainer tasks, BinaryContainer binaries) {
-        for (JarBinary jarBinary : binaries.withType(JarBinary.class)) {
-            ProjectJvmBinaryInternal binary = (ProjectJvmBinaryInternal) jarBinary;
-            Task jarTask = createJarTask(tasks, binary);
-            binary.builtBy(jarTask);
-            binary.getTasks().add(jarTask);
+        for (ProjectJarBinaryInternal projectJarBinary : binaries.withType(ProjectJarBinaryInternal.class)) {
+            Task jarTask = createJarTask(tasks, projectJarBinary);
+            projectJarBinary.builtBy(jarTask);
+            projectJarBinary.getTasks().add(jarTask);
         }
     }
 
-    private Task createJarTask(TaskContainer tasks, ProjectJvmBinaryInternal binary) {
+    private Task createJarTask(TaskContainer tasks, ProjectJarBinaryInternal binary) {
         Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
         jar.setDescription(String.format("Creates the binary file for %s.", binary.getNamingScheme().getDescription()));
         jar.from(binary.getClassesDir());
