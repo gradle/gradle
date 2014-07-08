@@ -15,27 +15,12 @@
  */
 package org.gradle.reporting;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
-
 import java.io.File;
-import java.io.Writer;
 
-public abstract class TextReportRenderer<T> {
-    /**
-     * Renders the report for the given model to a writer.
-     */
-    protected abstract void writeTo(T model, Writer out) throws Exception;
-
+public abstract class TextReportRenderer<T> extends ReportRenderer<T, File> {
     /**
      * Renders the report for the given model to a file.
      */
-    public void writeTo(final T model, File file) {
-        IoActions.writeTextFile(file, "utf-8", new ErroringAction<Writer>() {
-            @Override
-            protected void doExecute(Writer writer) throws Exception {
-                writeTo(model, writer);
-            }
-        });
-    }
+    @Override
+    abstract public void render(T model, File output);
 }

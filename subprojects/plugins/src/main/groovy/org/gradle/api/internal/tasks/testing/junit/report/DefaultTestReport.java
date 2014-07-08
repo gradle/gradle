@@ -88,6 +88,6 @@ public class DefaultTestReport implements TestReporter {
     }
 
     private <T extends CompositeTestResults> void generatePage(T model, PageRenderer<T> renderer, File outputFile) throws Exception {
-        htmlRenderer.renderer(renderer).writeTo(model, outputFile);
+        htmlRenderer.renderer(renderer).render(model, outputFile);
     }
 }

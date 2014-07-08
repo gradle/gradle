@@ -17,9 +17,12 @@ package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
 import java.util.HashSet;
@@ -33,9 +36,9 @@ public class HtmlReportRenderer {
     }
 
     public <T> TextReportRenderer<T> renderer(final ReportRenderer<T, SimpleHtmlWriter> renderer) {
-        return renderer(new TextReportRenderer<T>() {
+        return toFile(new ReportRenderer<T, Writer>() {
             @Override
-            protected void writeTo(T model, Writer writer) throws Exception {
+            public void render(T model, Writer writer) throws IOException {
                 SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
                 htmlWriter.startElement("html");
                 renderer.render(model, htmlWriter);
@@ -44,16 +47,15 @@ public class HtmlReportRenderer {
         });
     }
 
-    public <T> TextReportRenderer<T> renderer(final TextReportRenderer<T> renderer) {
+    private <T> TextReportRenderer<T> toFile(final ReportRenderer<T, Writer> renderer) {
         return new TextReportRenderer<T>() {
-            @Override
-            protected void writeTo(T model, Writer out) throws Exception {
-                renderer.writeTo(model, out);
-            }
-
-            @Override
-            public void writeTo(T model, File file) {
-                super.writeTo(model, file);
+            public void render(final T model, File file) {
+                IoActions.writeTextFile(file, "utf-8", new ErroringAction<Writer>() {
+                    @Override
+                    protected void doExecute(Writer writer) throws Exception {
+                        renderer.render(model, writer);
+                    }
+                });
                 for (URL resource : resources) {
                     String name = StringUtils.substringAfterLast(resource.getPath(), "/");
                     String type = StringUtils.substringAfterLast(resource.getPath(), ".");

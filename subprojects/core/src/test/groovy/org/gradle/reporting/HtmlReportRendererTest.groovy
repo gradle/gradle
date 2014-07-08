@@ -32,15 +32,16 @@ class HtmlReportRendererTest extends Specification {
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final HtmlReportRenderer renderer = new HtmlReportRenderer()
 
-    def "renders report to stream"() {
-        StringWriter writer = new StringWriter()
+    def "renders report to file encoded using UTF-8"() {
+        File destFile = tmpDir.file("out.html")
+
         when:
-        renderer.renderer(abstractHtmlReportRenderer).writeTo("test", writer)
+        renderer.renderer(abstractHtmlReportRenderer).render("test: \u03b1\u03b2", destFile)
 
         then:
-        writer.toString() == TextUtil.toPlatformLineSeparators('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+        destFile.getText("utf-8") == TextUtil.toPlatformLineSeparators('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-<pre>test</pre>
+<pre>test: \u03b1\u03b2</pre>
 </html>
 ''')
     }
@@ -52,7 +53,7 @@ class HtmlReportRendererTest extends Specification {
         renderer.requireResource(getClass().getResource("base-style.css"))
 
         when:
-        renderer.renderer(abstractHtmlReportRenderer).writeTo("test", destFile)
+        renderer.renderer(abstractHtmlReportRenderer).render("test", destFile)
 
         then:
         tmpDir.file("css/base-style.css").file

@@ -31,7 +31,7 @@ public class ProfileReportRenderer {
         renderer.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
         renderer.requireResource(getClass().getResource("/org/gradle/reporting/css3-pie-1.0beta3.htc"));
         renderer.requireResource(getClass().getResource("style.css"));
-        renderer.renderer(new ProfilePageRenderer()).writeTo(buildProfile, file);
+        renderer.renderer(new ProfilePageRenderer()).render(buildProfile, file);
     }
     private static final DurationFormatter DURATION_FORMAT = new DurationFormatter();
 
