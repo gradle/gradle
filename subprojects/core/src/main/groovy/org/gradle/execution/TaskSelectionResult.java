@@ -18,6 +18,8 @@ package org.gradle.execution;
 
 import org.gradle.api.Task;
 
+import java.util.Collection;
+
 public interface TaskSelectionResult {
-    Task getTask();
+    void collectTasks(Collection<? super Task> tasks);
 }
