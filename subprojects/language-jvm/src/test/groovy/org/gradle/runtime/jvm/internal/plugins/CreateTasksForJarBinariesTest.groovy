@@ -35,7 +35,8 @@ class CreateTasksForJarBinariesTest extends Specification {
         def namingScheme = Mock(BinaryNamingScheme)
         def jarTask = Mock(Jar)
         def binaryTasks = Mock(JvmBinaryTasks)
-        def classesDir = Mock(File)
+        def classesDir = new File("classes")
+        def resourcesDir = new File("resources")
         def jarFile = Mock(File)
 
         when:
@@ -49,6 +50,7 @@ class CreateTasksForJarBinariesTest extends Specification {
         2 * jarBinary.namingScheme >> namingScheme
         1 * namingScheme.description >> "binaryDisplayName"
         1 * jarBinary.classesDir >> classesDir
+        1 * jarBinary.resourcesDir >> resourcesDir
         2 * jarBinary.jarFile >> jarFile
         1 * jarFile.parentFile >> jarFile
         1 * jarFile.name >> "binary.jar"
@@ -57,6 +59,7 @@ class CreateTasksForJarBinariesTest extends Specification {
         1 * tasks.create("theTaskName", Jar) >> jarTask
         1 * jarTask.setDescription("Creates the binary file for binaryDisplayName.")
         1 * jarTask.from(classesDir)
+        1 * jarTask.from(resourcesDir)
         1 * jarTask.setDestinationDir(jarFile)
         1 * jarTask.setArchiveName("binary.jar")
 

@@ -36,6 +36,7 @@ public class CreateTasksForJarBinaries extends ModelRule {
         Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
         jar.setDescription(String.format("Creates the binary file for %s.", binary.getNamingScheme().getDescription()));
         jar.from(binary.getClassesDir());
+        jar.from(binary.getResourcesDir());
 
         jar.setDestinationDir(binary.getJarFile().getParentFile());
         jar.setArchiveName(binary.getJarFile().getName());

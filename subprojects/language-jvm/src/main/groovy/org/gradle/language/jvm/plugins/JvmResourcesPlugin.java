@@ -62,7 +62,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                     String resourcesTaskName = binary.getNamingScheme().getTaskName("process", ((LanguageSourceSetInternal) resourceSet).getFullName());
                     ProcessResources resourcesTask = tasks.create(resourcesTaskName, ProcessResources.class);
                     resourcesTask.from(resourceSet.getSource());
-                    resourcesTask.setDestinationDir(binary.getClassesDir());
+                    resourcesTask.setDestinationDir(binary.getResourcesDir());
 
                     binary.getTasks().add(resourcesTask);
                     binary.getTasks().getJar().dependsOn(resourcesTask);

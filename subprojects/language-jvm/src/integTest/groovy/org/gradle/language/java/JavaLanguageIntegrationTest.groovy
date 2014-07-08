@@ -48,9 +48,6 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
-
-        and:
-        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
@@ -62,8 +59,6 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         resource1.writeToDir(file("src/myLib/resources"))
         resource2.writeToDir(file("src/myLib/extraResources"))
 
-        // TODO:DAZ Need to configure the default source locations (move out of Native)
-        // Will currently have different behaviour if native-component plugin is applied!
         buildFile << """
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
@@ -205,6 +200,41 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+    }
+
+    def "can configure output directories for classes and resources"() {
+        when:
+        app.sources*.writeToDir(file("src/myLib/java"))
+        app.resources*.writeToDir(file("src/myLib/resources"))
+        def expectedOutputs = app.expectedOutputs*.fullPath as String[]
+
+        and:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib
+        }
+    }
+    binaries.withType(ProjectJarBinary) {
+        classesDir = file("\${project.buildDir}/custom-classes")
+        resourcesDir = file("\${project.buildDir}/custom-resources")
+    }
+"""
+        and:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped ":processMyLibJarMyLibResources", ":compileMyLibJarMyLibJava", ":createMyLibJar", ":myLibJar"
+
+        and:
+        file("build/custom-classes").assertHasDescendants(app.sources*.classFile.fullPath as String[])
+        file("build/custom-resources").assertHasDescendants(app.resources*.fullPath as String[])
+
+        and:
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
