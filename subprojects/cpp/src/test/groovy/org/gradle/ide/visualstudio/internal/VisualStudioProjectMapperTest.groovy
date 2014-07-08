@@ -27,8 +27,8 @@ import spock.lang.Specification
 class VisualStudioProjectMapperTest extends Specification {
     def mapper = new VisualStudioProjectMapper()
 
-    def executable = Mock(NativeExecutable)
-    def library = Mock(NativeLibrary)
+    def executable = Mock(ProjectNativeExecutable)
+    def library = Mock(ProjectNativeLibrary)
     def namingScheme = Mock(BinaryNamingScheme)
     ProjectNativeExecutableBinaryInternal executableBinary
 

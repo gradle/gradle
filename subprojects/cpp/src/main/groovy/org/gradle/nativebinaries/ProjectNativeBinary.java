@@ -60,7 +60,7 @@ public interface ProjectNativeBinary extends ProjectBinary {
      * This method accepts the following types:
      *
      * <ul>
-     *     <li>A {@link NativeLibrary}</li>
+     *     <li>A {@link ProjectNativeLibrary}</li>
      *     <li>A {@link NativeDependencySet}</li>
      *     <li>A {@link java.util.Map} containing the library selector.</li>
      * </ul>

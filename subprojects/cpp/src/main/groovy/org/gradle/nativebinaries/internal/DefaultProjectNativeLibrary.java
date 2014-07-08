@@ -16,12 +16,12 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.NativeLibrary;
+import org.gradle.nativebinaries.ProjectNativeLibrary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 
-public class DefaultNativeLibrary extends AbstractTargetedProjectNativeComponent implements NativeLibrary {
-    public DefaultNativeLibrary(NamedProjectComponentIdentifier id) {
+public class DefaultProjectNativeLibrary extends AbstractTargetedProjectNativeComponent implements ProjectNativeLibrary {
+    public DefaultProjectNativeLibrary(NamedProjectComponentIdentifier id) {
         super(id);
     }
 

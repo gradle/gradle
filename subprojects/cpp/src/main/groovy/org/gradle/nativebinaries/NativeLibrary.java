@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,5 @@ import org.gradle.runtime.base.Library;
  * A library component that is built by a gradle project.
  */
 @Incubating
-public interface NativeLibrary extends Library, ProjectNativeComponent, TargetedNativeComponent {
-    /**
-     * Converts this library to a native library requirement that uses the shared library variant. This is the default.
-     */
-    NativeLibraryRequirement getShared();
-
-    /**
-     * Converts this library to a native library requirement that uses the static library variant.
-     */
-    NativeLibraryRequirement getStatic();
-
-    /**
-     * Converts this library to a native library requirement that uses the api library linkage.
-     */
-    NativeLibraryRequirement getApi();
+public interface NativeLibrary extends Library {
 }

@@ -17,10 +17,11 @@
 package org.gradle.runtime.base;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.Component;
 
 /**
  * A software application.
  */
 @Incubating
-public interface Application {
+public interface Application extends Component {
 }

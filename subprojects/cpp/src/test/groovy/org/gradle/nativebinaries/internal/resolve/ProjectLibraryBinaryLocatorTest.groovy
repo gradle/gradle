@@ -21,10 +21,10 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.NativeLibraryBinary
 import org.gradle.nativebinaries.NativeLibraryRequirement
 import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeLibrary
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
 import org.gradle.runtime.base.ProjectComponentContainer
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def project = Mock(ProjectInternal)
     def projectLocator = Mock(ProjectLocator)
     def requirement = Mock(NativeLibraryRequirement)
-    def library = Mock(NativeLibrary)
+    def library = Mock(ProjectNativeLibrary)
     def binary = Mock(ProjectNativeLibraryBinary)
     def binaries = new DefaultDomainObjectSet(ProjectNativeBinary, [binary])
     def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary, [binary])
@@ -140,7 +140,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         def libraryContainer = Mock(NamedDomainObjectSet)
         project.getExtensions() >> extensions
         extensions.findByType(ProjectComponentContainer) >> components
-        components.withType(NativeLibrary) >> libraryContainer
+        components.withType(ProjectNativeLibrary) >> libraryContainer
         return libraryContainer
     }
 

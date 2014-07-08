@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.NativeLibrary;
+import org.gradle.nativebinaries.ProjectNativeLibrary;
 import org.gradle.nativebinaries.StaticLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
@@ -37,7 +37,7 @@ public class DefaultProjectStaticLibraryBinary extends AbstractProjectNativeLibr
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
     private File staticLibraryFile;
 
-    public DefaultProjectStaticLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public DefaultProjectStaticLibraryBinary(ProjectNativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                              BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }

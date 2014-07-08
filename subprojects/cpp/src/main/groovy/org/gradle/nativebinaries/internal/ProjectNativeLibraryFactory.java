@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,21 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.NativeExecutable;
+import org.gradle.nativebinaries.ProjectNativeLibrary;
 import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier;
 
-public class NativeExecutableFactory implements NamedDomainObjectFactory<NativeExecutable> {
+public class ProjectNativeLibraryFactory implements NamedDomainObjectFactory<ProjectNativeLibrary> {
     private final Instantiator instantiator;
     private final Project project;
 
-    public NativeExecutableFactory(Instantiator instantiator, Project project) {
+    public ProjectNativeLibraryFactory(Instantiator instantiator, Project project) {
         this.instantiator = instantiator;
         this.project = project;
     }
 
-    public NativeExecutable create(String name) {
+    public ProjectNativeLibrary create(String name) {
         NamedProjectComponentIdentifier id = new DefaultNamedProjectComponentIdentifier(project.getPath(), name);
-        return instantiator.newInstance(DefaultNativeExecutable.class, id);
+        return instantiator.newInstance(DefaultProjectNativeLibrary.class, id);
     }
 }

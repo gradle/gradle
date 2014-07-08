@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * A container of native executables.
+ * An executable native component that is built by Gradle.
  */
 @Incubating
-public interface ExecutableContainer extends NamedDomainObjectSet<NativeExecutable> {
+public interface ProjectNativeExecutable extends ProjectNativeComponent {
+    
 }

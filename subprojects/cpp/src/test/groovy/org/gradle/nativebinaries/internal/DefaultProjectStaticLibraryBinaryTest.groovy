@@ -21,7 +21,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.NativeLibrary
+import org.gradle.nativebinaries.ProjectNativeLibrary
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
@@ -33,7 +33,7 @@ import spock.lang.Specification
 class DefaultProjectStaticLibraryBinaryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
-    def library = Stub(NativeLibrary)
+    def library = Stub(ProjectNativeLibrary)
     def toolChain = Stub(ToolChainInternal)
     def platform = Stub(Platform)
     def buildType = Stub(BuildType)

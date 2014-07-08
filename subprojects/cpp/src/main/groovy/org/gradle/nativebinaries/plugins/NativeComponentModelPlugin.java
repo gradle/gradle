@@ -31,8 +31,8 @@ import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
-import org.gradle.nativebinaries.internal.NativeExecutableFactory;
-import org.gradle.nativebinaries.internal.NativeLibraryFactory;
+import org.gradle.nativebinaries.internal.ProjectNativeExecutableFactory;
+import org.gradle.nativebinaries.internal.ProjectNativeLibraryFactory;
 import org.gradle.nativebinaries.internal.configure.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
@@ -84,11 +84,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         modelRules.rule(new CreateNativeBinaries(instantiator, project, resolver));
 
         ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer.class);
-        components.registerFactory(NativeExecutable.class, new NativeExecutableFactory(instantiator, project));
-        NamedDomainObjectContainer<NativeExecutable> nativeExecutables = components.containerWithType(NativeExecutable.class);
+        components.registerFactory(ProjectNativeExecutable.class, new ProjectNativeExecutableFactory(instantiator, project));
+        NamedDomainObjectContainer<ProjectNativeExecutable> nativeExecutables = components.containerWithType(ProjectNativeExecutable.class);
 
-        components.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
-        NamedDomainObjectContainer<NativeLibrary> nativeLibraries = components.containerWithType(NativeLibrary.class);
+        components.registerFactory(ProjectNativeLibrary.class, new ProjectNativeLibraryFactory(instantiator, project));
+        NamedDomainObjectContainer<ProjectNativeLibrary> nativeLibraries = components.containerWithType(ProjectNativeLibrary.class);
 
         project.getExtensions().create("nativeRuntime", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
 

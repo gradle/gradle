@@ -36,7 +36,7 @@ import spock.lang.Specification
 class VisualStudioProjectConfigurationTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
-    def exe = Mock(NativeExecutable) {
+    def exe = Mock(ProjectNativeExecutable) {
         getFlavors() >> flavors
     }
     def extensions = Mock(ExtensionContainer)

@@ -18,32 +18,32 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.nativebinaries.NativeExecutable;
-import org.gradle.nativebinaries.NativeLibrary;
+import org.gradle.nativebinaries.ProjectNativeExecutable;
+import org.gradle.nativebinaries.ProjectNativeLibrary;
 import org.gradle.nativebinaries.NativeComponentExtension;
 
 public class DefaultNativeComponentExtension implements NativeComponentExtension {
-    private final NamedDomainObjectContainer<NativeExecutable> executables;
-    private final NamedDomainObjectContainer<NativeLibrary> libraries;
+    private final NamedDomainObjectContainer<ProjectNativeExecutable> executables;
+    private final NamedDomainObjectContainer<ProjectNativeLibrary> libraries;
 
-    public DefaultNativeComponentExtension(NamedDomainObjectContainer<NativeExecutable> executables, NamedDomainObjectContainer<NativeLibrary> libraries) {
+    public DefaultNativeComponentExtension(NamedDomainObjectContainer<ProjectNativeExecutable> executables, NamedDomainObjectContainer<ProjectNativeLibrary> libraries) {
         this.executables = executables;
         this.libraries = libraries;
     }
 
-    public NamedDomainObjectContainer<NativeExecutable> getExecutables() {
+    public NamedDomainObjectContainer<ProjectNativeExecutable> getExecutables() {
         return executables;
     }
 
-    public void executables(Action<? super NamedDomainObjectContainer<? super NativeExecutable>> action) {
+    public void executables(Action<? super NamedDomainObjectContainer<? super ProjectNativeExecutable>> action) {
         action.execute(executables);
     }
 
-    public NamedDomainObjectContainer<NativeLibrary> getLibraries() {
+    public NamedDomainObjectContainer<ProjectNativeLibrary> getLibraries() {
         return libraries;
     }
 
-    public void libraries(Action<? super NamedDomainObjectContainer<? super NativeLibrary>> action) {
+    public void libraries(Action<? super NamedDomainObjectContainer<? super ProjectNativeLibrary>> action) {
         action.execute(libraries);
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.NativeLibrary;
+import org.gradle.nativebinaries.ProjectNativeLibrary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -36,7 +36,7 @@ import java.util.Set;
 
 public abstract class AbstractProjectNativeLibraryBinary extends AbstractProjectNativeBinary {
 
-    protected AbstractProjectNativeLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+    protected AbstractProjectNativeLibraryBinary(ProjectNativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                                                  BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
     }

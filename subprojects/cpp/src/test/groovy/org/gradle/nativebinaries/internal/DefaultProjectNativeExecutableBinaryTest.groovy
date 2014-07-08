@@ -17,18 +17,18 @@
 package org.gradle.nativebinaries.internal
 import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.NativeExecutable
+import org.gradle.nativebinaries.ProjectNativeExecutable
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import spock.lang.Specification
 
-class DefaultNativeExecutableBinaryTest extends Specification {
+class DefaultProjectNativeExecutableBinaryTest extends Specification {
     def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
 
     def "has useful string representation"() {
         given:
-        def executable = Stub(NativeExecutable)
+        def executable = Stub(ProjectNativeExecutable)
 
         when:
         def binary = new DefaultProjectNativeExecutableBinary(executable, new DefaultFlavor("flavorOne"), Stub(ToolChainInternal), Stub(Platform), Stub(BuildType), namingScheme, Mock(NativeDependencyResolver))

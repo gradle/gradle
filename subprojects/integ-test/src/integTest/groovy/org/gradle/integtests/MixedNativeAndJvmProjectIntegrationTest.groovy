@@ -68,8 +68,8 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
     task check << {
         assert projectComponents.size() == 3
-        assert projectComponents.nativeExe instanceof NativeExecutable
-        assert projectComponents.nativeLib instanceof NativeLibrary
+        assert projectComponents.nativeExe instanceof ProjectNativeExecutable
+        assert projectComponents.nativeLib instanceof ProjectNativeLibrary
         assert projectComponents.jvmLib instanceof ProjectJvmLibrary
 
         assert nativeRuntime.executables as List == [projectComponents.nativeExe]
