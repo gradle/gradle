@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm;
+package org.gradle.runtime.jvm.internal
 
-import org.gradle.api.Incubating;
-import org.gradle.api.component.Component;
-import org.gradle.runtime.base.Library;
+import spock.lang.Specification
 
-/**
- * A Library component that runs on the Java Virtual Machine.
- */
-@Incubating
-public interface JvmLibrary extends Library, Component {
+class DefaultProjectJvmLibraryTest extends Specification {
+    def "library has name"() {
+        when:
+        def library = new DefaultProjectJvmLibrary("jvm-lib")
+
+        then:
+        library.name == "jvm-lib"
+    }
 }

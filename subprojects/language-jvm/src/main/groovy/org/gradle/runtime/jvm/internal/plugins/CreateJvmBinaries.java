@@ -22,7 +22,7 @@ import org.gradle.model.Path;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.runtime.jvm.JvmLibrary;
+import org.gradle.runtime.jvm.ProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
@@ -40,8 +40,8 @@ public class CreateJvmBinaries extends ModelRule {
         this.classesDir = new File(buildDir, "classes");
     }
 
-    void createBinaries(BinaryContainer binaries, @Path("jvm.libraries") NamedDomainObjectCollection<JvmLibrary> libraries) {
-        for (JvmLibrary jvmLibrary : libraries) {
+    void createBinaries(BinaryContainer binaries, @Path("jvm.libraries") NamedDomainObjectCollection<ProjectJvmLibrary> libraries) {
+        for (ProjectJvmLibrary jvmLibrary : libraries) {
             BinaryNamingScheme namingScheme = namingSchemeBuilder
                     .withComponentName(jvmLibrary.getName())
                     .withTypeString("jar")

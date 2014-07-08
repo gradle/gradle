@@ -27,6 +27,11 @@ import java.io.File;
 @Incubating @HasInternalProtocol
 public interface ProjectJarBinary extends ProjectJvmBinary {
     /**
+     * The ProjectJvmLibrary that this binary belongs to.
+     */
+    ProjectJvmLibrary getLibrary();
+
+    /**
      * The jar file output for this binary.
      */
     File getJarFile();

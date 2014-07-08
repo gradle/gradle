@@ -18,21 +18,21 @@ package org.gradle.runtime.jvm.internal.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.runtime.jvm.JvmLibrary;
 import org.gradle.runtime.jvm.JvmComponentExtension;
+import org.gradle.runtime.jvm.ProjectJvmLibrary;
 
 public class DefaultJvmComponentExtension implements JvmComponentExtension {
-    private final NamedDomainObjectContainer<JvmLibrary> libraries;
+    private final NamedDomainObjectContainer<ProjectJvmLibrary> libraries;
 
-    public DefaultJvmComponentExtension(NamedDomainObjectContainer<JvmLibrary> libraries) {
+    public DefaultJvmComponentExtension(NamedDomainObjectContainer<ProjectJvmLibrary> libraries) {
         this.libraries = libraries;
     }
 
-    public NamedDomainObjectContainer<JvmLibrary> getLibraries() {
+    public NamedDomainObjectContainer<ProjectJvmLibrary> getLibraries() {
         return libraries;
     }
 
-    public void libraries(Action<? super NamedDomainObjectContainer<? super JvmLibrary>> action) {
+    public void libraries(Action<? super NamedDomainObjectContainer<? super ProjectJvmLibrary>> action) {
         action.execute(libraries);
     }
 }

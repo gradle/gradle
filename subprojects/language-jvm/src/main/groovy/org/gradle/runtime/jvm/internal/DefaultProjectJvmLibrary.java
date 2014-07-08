@@ -20,13 +20,13 @@ package org.gradle.runtime.jvm.internal;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.runtime.jvm.JvmLibrary;
+import org.gradle.runtime.jvm.ProjectJvmLibrary;
 
-public class DefaultJvmLibrary implements JvmLibrary {
+public class DefaultProjectJvmLibrary implements ProjectJvmLibrary {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final String name;
 
-    public DefaultJvmLibrary(String name) {
+    public DefaultProjectJvmLibrary(String name) {
         this.name = name;
     }
 

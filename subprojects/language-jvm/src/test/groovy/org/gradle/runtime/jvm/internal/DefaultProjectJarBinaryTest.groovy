@@ -16,11 +16,11 @@
 
 package org.gradle.runtime.jvm.internal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
-import org.gradle.runtime.jvm.JvmLibrary
+import org.gradle.runtime.jvm.ProjectJvmLibrary
 import spock.lang.Specification
 
 class DefaultProjectJarBinaryTest extends Specification {
-    def library = Mock(JvmLibrary)
+    def library = Mock(ProjectJvmLibrary)
     def namingScheme = Mock(BinaryNamingScheme)
 
     def "binary takes name and displayName from naming scheme"() {

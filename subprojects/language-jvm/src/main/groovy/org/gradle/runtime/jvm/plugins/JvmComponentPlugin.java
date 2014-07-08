@@ -21,8 +21,8 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.runtime.jvm.JvmLibrary;
-import org.gradle.runtime.jvm.internal.DefaultJvmLibrary;
+import org.gradle.runtime.jvm.ProjectJvmLibrary;
+import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.plugins.CreateJvmBinaries;
 import org.gradle.runtime.jvm.internal.plugins.CreateTasksForJarBinaries;
 import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
@@ -31,7 +31,7 @@ import javax.inject.Inject;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.runtime.jvm.JvmLibrary} library type for the {@link org.gradle.runtime.base.ProjectComponentContainer}.
+ * Registers the {@link org.gradle.runtime.jvm.ProjectJvmLibrary} library type for the {@link org.gradle.runtime.base.ProjectComponentContainer}.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
@@ -47,13 +47,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
         ProjectComponentContainer projectComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
-        projectComponents.registerFactory(JvmLibrary.class, new NamedDomainObjectFactory<JvmLibrary>() {
-            public JvmLibrary create(String name) {
-                return new DefaultJvmLibrary(name);
+        projectComponents.registerFactory(ProjectJvmLibrary.class, new NamedDomainObjectFactory<ProjectJvmLibrary>() {
+            public ProjectJvmLibrary create(String name) {
+                return new DefaultProjectJvmLibrary(name);
             }
         });
 
-        NamedDomainObjectContainer<JvmLibrary> jvmLibraries = projectComponents.containerWithType(JvmLibrary.class);
+        NamedDomainObjectContainer<ProjectJvmLibrary> jvmLibraries = projectComponents.containerWithType(ProjectJvmLibrary.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
 
         modelRules.register("jvm.libraries", jvmLibraries);

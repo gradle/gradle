@@ -20,9 +20,9 @@ import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.ProjectBinary
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
-import org.gradle.runtime.jvm.JvmLibrary
-import org.gradle.runtime.jvm.internal.DefaultJvmLibrary
+import org.gradle.runtime.jvm.ProjectJvmLibrary
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary
+import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -34,11 +34,11 @@ class CreateJvmBinariesTest extends Specification {
     def binaries = Mock(BinaryContainer)
 
     def "adds a binary for each jvm library"() {
-        def library = new DefaultJvmLibrary("jvmLibOne")
+        def library = new DefaultProjectJvmLibrary("jvmLibOne")
         def namingScheme = Mock(BinaryNamingScheme)
 
         when:
-        rule.createBinaries(binaries, toNamedDomainObjectSet(JvmLibrary, library))
+        rule.createBinaries(binaries, toNamedDomainObjectSet(ProjectJvmLibrary, library))
 
         then:
         _ * namingScheme.description >> "jvmLibJar"
@@ -56,14 +56,14 @@ class CreateJvmBinariesTest extends Specification {
     }
 
     def "created binary has sources from jvm library"() {
-        def library = new DefaultJvmLibrary("jvmLibOne")
+        def library = new DefaultProjectJvmLibrary("jvmLibOne")
         def namingScheme = Mock(BinaryNamingScheme)
         def source1 = Mock(LanguageSourceSet)
         def source2 = Mock(LanguageSourceSet)
 
         when:
         library.source([source1, source2])
-        rule.createBinaries(binaries, toNamedDomainObjectSet(JvmLibrary, library))
+        rule.createBinaries(binaries, toNamedDomainObjectSet(ProjectJvmLibrary, library))
 
         then:
         _ * namingScheme.description >> "jvmLibJar"

@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm.internal
+package org.gradle.runtime.jvm;
 
-import spock.lang.Specification
+import org.gradle.api.Incubating;
+import org.gradle.runtime.base.ProjectComponent;
 
-class DefaultJvmLibraryTest extends Specification {
-    def "library has name"() {
-        when:
-        def library = new DefaultJvmLibrary("jvm-lib")
-
-        then:
-        library.name == "jvm-lib"
-    }
+/**
+ * Definition of a JVM library component that is to be built by Gradle.
+ */
+@Incubating
+public interface ProjectJvmLibrary extends ProjectComponent {
 }
