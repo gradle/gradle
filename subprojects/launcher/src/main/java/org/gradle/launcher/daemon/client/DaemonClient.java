@@ -33,6 +33,7 @@ import org.gradle.launcher.exec.BuildCancellationToken;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.tooling.exceptions.BuildCancelledException;
 
 import java.io.InputStream;
 import java.util.HashSet;
@@ -148,20 +149,15 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
+            final CancelCallback cancelCallback = new CancelCallback(connection);
             if (cancellationToken.canBeCancelled()) {
-                Runnable cancelHook = new Runnable() {
-                    public void run() {
-                        LOGGER.info("Request daemon stop to handle build cancellation...");
-                        connection.stop();
-                    }
-                };
-                boolean cancelled = cancellationToken.addCallback(cancelHook);
+                boolean cancelled = cancellationToken.addCallback(cancelCallback);
                 if (cancelled) {
                     throw new DaemonClientInterruptedException("Build interrupted");
                 }
             }
             try {
-                return (T) executeBuild(build, connection);
+                return (T) executeBuild(build, connection, cancelCallback);
             } catch (DaemonInitialConnectException e) {
                 //this exception means that we want to try again.
                 LOGGER.info(e.getMessage() + " Trying a different daemon...");
@@ -174,7 +170,26 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
-    protected Object executeBuild(Build build, DaemonClientConnection connection) throws DaemonInitialConnectException {
+    private static class CancelCallback implements Runnable {
+        private final DaemonClientConnection connection;
+        private volatile boolean wasCancelled;
+
+        public CancelCallback(DaemonClientConnection connection) {
+            this.connection = connection;
+        }
+
+        public void run() {
+            LOGGER.info("Request daemon stop to handle build cancellation...");
+            connection.stop();
+            wasCancelled = true;
+        }
+
+        public boolean wasCancelled() {
+            return wasCancelled;
+        }
+    }
+
+    protected Object executeBuild(Build build, DaemonClientConnection connection, CancelCallback cancelCallback) throws DaemonInitialConnectException {
         Object result;
         try {
             LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
@@ -192,7 +207,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
         if (result instanceof BuildStarted) {
             DaemonDiagnostics diagnostics = ((BuildStarted) result).getDiagnostics();
-            result = monitorBuild(build, diagnostics, connection);
+            result = monitorBuild(build, diagnostics, connection, cancelCallback);
         }
 
         connection.dispatch(new Finished());
@@ -209,7 +224,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
     }
 
-    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
+    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection, CancelCallback cancelCallback) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory, idGenerator);
         try {
             inputForwarder.start();
@@ -220,7 +235,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
 
                 if (object == null) {
-                    return handleDaemonDisappearance(build, diagnostics);
+                    return handleDaemonDisappearance(build, diagnostics, cancelCallback);
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
                 } else {
@@ -232,7 +247,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
     }
 
-    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
+    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics, CancelCallback cancelCallback) {
         //we can try sending something to the daemon and try out if he is really dead or use jps
         //if he's really dead we should deregister it if it is not already deregistered.
         //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
@@ -241,6 +256,10 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 + "\nAttempting to read last messages from the daemon log...");
 
         LOGGER.error(diagnostics.describe());
+        if (cancelCallback != null && cancelCallback.wasCancelled) {
+            LOGGER.error("Daemon was stopped to handle build cancel request.");
+            throw new BuildCancelledException("Build interrupted");
+        }
 
         throw new DaemonDisappearedException();
     }

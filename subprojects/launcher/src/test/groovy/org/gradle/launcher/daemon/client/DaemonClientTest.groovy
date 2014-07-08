@@ -18,11 +18,13 @@ package org.gradle.launcher.daemon.client
 import org.gradle.initialization.BuildAction
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
+import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.exec.BuildCancellationToken
 import org.gradle.logging.internal.OutputEventListener
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.exceptions.BuildCancelledException
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.launcher.daemon.protocol.*
 
 class DaemonClientTest extends ConcurrentSpecification {
     final DaemonConnector connector = Mock()
@@ -122,7 +124,30 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connection.stop()
         0 * _
     }
-    
+
+    def "throws an exception when build is cancelled"() {
+        BuildCancellationToken cancellationToken = Mock()
+
+        when:
+        client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
+
+        then:
+        GradleConnectionException gce = thrown()
+        gce instanceof BuildCancelledException
+        1 * connector.connect(compatibilitySpec) >> connection
+        1 * cancellationToken.canBeCancelled() >> true
+        1 * cancellationToken.addCallback(_) >> { Runnable callback ->
+            println 'register cancel callback ' + callback
+            callback.run()
+            return false
+        }
+        1 * connection.dispatch({it instanceof Build})
+        2 * connection.receive() >>> [ Stub(BuildStarted), null]
+        1 * connection.dispatch({it instanceof CloseInput})
+        2 * connection.stop()
+        0 * _
+    }
+
     def "tries to find a different daemon if connected to a stale daemon address"() {
         DaemonClientConnection connection2 = Mock()
 

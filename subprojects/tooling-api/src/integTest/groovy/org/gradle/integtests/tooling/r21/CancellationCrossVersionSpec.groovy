@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r21
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnectionException
@@ -75,8 +74,7 @@ task hang << {
         then:
         output.toString().contains("waiting")
         !output.toString().contains("finished")
-        // TODO be better to throw BuildCancelledException
-        resultHandler.failure.cause.class.name == DaemonDisappearedException.name
+        resultHandler.failure.cause.class.name == BuildCancelledException.name
         resultHandler.failure instanceof GradleConnectionException
     }
 
@@ -179,12 +177,12 @@ task hang << {
             marker.text = 'go!'
             resultHandler.finished()
         }
+        resultHandler.failure.printStackTrace()
 
         then:
         output.toString().contains("waiting")
         !output.toString().contains("finished")
-        // TODO be better to throw BuildCancelledException
-        resultHandler.failure.cause.class.name == DaemonDisappearedException.name
+        resultHandler.failure.cause.class.name == BuildCancelledException.name
         resultHandler.failure instanceof GradleConnectionException
     }
 
