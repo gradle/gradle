@@ -18,10 +18,10 @@ package org.gradle.api.internal.jvm
 
 import spock.lang.Specification
 
-public class DefaultClassDirectoryBinaryTest extends Specification {
+public class DefaultProjectClassDirectoryBinaryTest extends Specification {
     def "uses short task names for binary with name 'mainClasses'"() {
         when:
-        def binary = new DefaultClassDirectoryBinary("mainClasses")
+        def binary = new DefaultProjectClassDirectoryBinary("mainClasses")
 
         then:
         binary.name == 'mainClasses'
@@ -36,7 +36,7 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
     def "uses medium task names for binary with name 'otherClasses'"() {
         when:
-        def binary = new DefaultClassDirectoryBinary("otherClasses")
+        def binary = new DefaultProjectClassDirectoryBinary("otherClasses")
 
         then:
         binary.name == 'otherClasses'
@@ -51,7 +51,7 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
     def "uses long task names for binary with name 'otherBinary'"() {
         when:
-        def binary = new DefaultClassDirectoryBinary("otherBinary")
+        def binary = new DefaultProjectClassDirectoryBinary("otherBinary")
 
         then:
         binary.name == 'otherBinary'
@@ -66,7 +66,7 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
     def "has a useful toString() representation"() {
         expect:
-        def binary = new DefaultClassDirectoryBinary(name)
+        def binary = new DefaultProjectClassDirectoryBinary(name)
         binary.toString() == displayName
         binary.displayName == displayName
 

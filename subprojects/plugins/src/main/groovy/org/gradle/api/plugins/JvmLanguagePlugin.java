@@ -19,10 +19,10 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.jvm.ClassDirectoryBinaryInternal;
-import org.gradle.api.internal.jvm.DefaultClassDirectoryBinary;
+import org.gradle.api.internal.jvm.DefaultProjectClassDirectoryBinary;
+import org.gradle.api.internal.jvm.ProjectClassDirectoryBinaryInternal;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.jvm.ClassDirectoryBinary;
+import org.gradle.api.jvm.ProjectClassDirectoryBinary;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -41,10 +41,10 @@ import java.util.concurrent.Callable;
 // TODO:DAZ Replace with JvmComponentPlugin, or make this extend JvmComponentPlugin
 /**
  * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
- * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ClassDirectoryBinary}.
+ * Registers the {@link org.gradle.api.jvm.ProjectClassDirectoryBinary} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
+ * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ProjectClassDirectoryBinary}.
  * Registers the {@link org.gradle.language.jvm.ResourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
- * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinary}.
+ * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.api.jvm.ProjectClassDirectoryBinary}.
  */
 @Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {
@@ -73,14 +73,14 @@ public class JvmLanguagePlugin implements Plugin<Project> {
         });
 
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
-        binaryContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
-            public ClassDirectoryBinary create(String name) {
-                return instantiator.newInstance(DefaultClassDirectoryBinary.class, name);
+        binaryContainer.registerFactory(ProjectClassDirectoryBinary.class, new NamedDomainObjectFactory<ProjectClassDirectoryBinary>() {
+            public ProjectClassDirectoryBinary create(String name) {
+                return instantiator.newInstance(DefaultProjectClassDirectoryBinary.class, name);
             }
         });
 
-        binaryContainer.withType(ClassDirectoryBinaryInternal.class).all(new Action<ClassDirectoryBinaryInternal>() {
-            public void execute(final ClassDirectoryBinaryInternal binary) {
+        binaryContainer.withType(ProjectClassDirectoryBinaryInternal.class).all(new Action<ProjectClassDirectoryBinaryInternal>() {
+            public void execute(final ProjectClassDirectoryBinaryInternal binary) {
                 final BinaryNamingScheme namingScheme = binary.getNamingScheme();
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {

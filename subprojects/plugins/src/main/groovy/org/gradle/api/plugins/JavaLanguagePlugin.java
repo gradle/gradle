@@ -19,8 +19,8 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.jvm.ClassDirectoryBinaryInternal;
-import org.gradle.api.jvm.ClassDirectoryBinary;
+import org.gradle.api.internal.jvm.ProjectClassDirectoryBinaryInternal;
+import org.gradle.api.jvm.ProjectClassDirectoryBinary;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
@@ -38,7 +38,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Plugin for compiling Java code. Applies the {@link JvmLanguagePlugin}.
- * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinary}.
+ * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ProjectClassDirectoryBinary}.
  * Registers the {@link JavaSourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  */
 @Incubating
@@ -56,8 +56,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         target.getPlugins().apply(JvmLanguagePlugin.class);
 
         BinaryContainer jvmBinaryContainer = target.getExtensions().getByType(BinaryContainer.class);
-        jvmBinaryContainer.withType(ClassDirectoryBinaryInternal.class).all(new Action<ClassDirectoryBinaryInternal>() {
-            public void execute(final ClassDirectoryBinaryInternal binary) {
+        jvmBinaryContainer.withType(ProjectClassDirectoryBinaryInternal.class).all(new Action<ProjectClassDirectoryBinaryInternal>() {
+            public void execute(final ProjectClassDirectoryBinaryInternal binary) {
                 final BinaryNamingScheme namingScheme = binary.getNamingScheme();
                 binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
                     public void execute(JavaSourceSet javaSourceSet) {
@@ -93,7 +93,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
      * @param sourceSet the source set for the compile task
      * @param binary the binary for the compile task
      */
-    public void configureCompileTask(AbstractCompile compile, final JavaSourceSet sourceSet, final ClassDirectoryBinary binary) {
+    public void configureCompileTask(AbstractCompile compile, final JavaSourceSet sourceSet, final ProjectClassDirectoryBinary binary) {
         compile.setDescription(String.format("Compiles %s.", sourceSet));
         compile.setSource(sourceSet.getSource());
         compile.dependsOn(sourceSet);

@@ -18,7 +18,6 @@ package org.gradle.runtime.jvm.internal;
 
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 import org.gradle.runtime.jvm.ProjectJarBinary;
-import org.gradle.runtime.jvm.ProjectJvmLibrary;
 
 public interface ProjectJarBinaryInternal extends ProjectJarBinary, ProjectBinaryInternal {
 }

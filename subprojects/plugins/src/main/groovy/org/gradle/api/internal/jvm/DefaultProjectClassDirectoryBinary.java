@@ -24,14 +24,14 @@ import org.gradle.runtime.jvm.JvmBinaryTasks;
 
 import java.io.File;
 
-public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement implements ClassDirectoryBinaryInternal {
+public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelElement implements ProjectClassDirectoryBinaryInternal {
     private final BinaryNamingScheme namingScheme;
     private final LanguageSourceSetContainer source = new LanguageSourceSetContainer();
     private final String name;
     private File classesDir;
     private File resourcesDir;
 
-    public DefaultClassDirectoryBinary(String name) {
+    public DefaultProjectClassDirectoryBinary(String name) {
         this.name = name;
         this.namingScheme = new ClassDirectoryBinaryNamingScheme(removeClassesSuffix(name));
     }
@@ -44,6 +44,7 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
     }
 
     public JvmBinaryTasks getTasks() {
+        // TODO:DAZ Implement
         throw new UnsupportedOperationException();
     }
 

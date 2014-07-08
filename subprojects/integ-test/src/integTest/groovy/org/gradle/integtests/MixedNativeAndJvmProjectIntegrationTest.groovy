@@ -37,7 +37,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
             }
 
             task checkBinaries << {
-                assert binaries.mainClasses instanceof ClassDirectoryBinary
+                assert binaries.mainClasses instanceof ProjectClassDirectoryBinary
                 assert binaries.mainExeExecutable instanceof NativeExecutableBinary
                 assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinary
             }
