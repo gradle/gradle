@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Actions;
 import org.gradle.internal.os.OperatingSystem;
@@ -34,7 +33,6 @@ import org.gradle.nativebinaries.toolchain.internal.tools.GccCommandLineToolConf
 import org.gradle.nativebinaries.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.*;
@@ -94,37 +92,9 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             }
         }
     }
-    public void target(Platform platform) {
-        target(platform, Actions.<TargetedPlatformToolChain>doNothing());
-    }
-
-    public void target(Iterable<? extends Platform> platforms) {
-        target(platforms, Actions.<TargetedPlatformToolChain>doNothing());
-    }
 
     public void target(String platformName) {
         target(platformName, Actions.<TargetedPlatformToolChain>doNothing());
-    }
-
-    public void target(List<String> platformNames) {
-        target(platformNames, Actions.<TargetedPlatformToolChain>doNothing());
-    }
-
-    public void target(String... platformNames) {
-        target(Arrays.asList(platformNames), Actions.<TargetedPlatformToolChain>doNothing());
-    }
-
-    public void target(Platform platform, Action<? super TargetedPlatformToolChain> action) {
-        target(platform.getName(), action);
-    }
-
-    public void target(Iterable<? extends Platform> platforms, Action<? super TargetedPlatformToolChain> action) {
-        List<String> platformNames = CollectionUtils.collect(platforms, new Transformer<String, Platform>() {
-            public String transform(Platform original) {
-                return original.getName();
-            }
-        });
-        target(new DefaultTargetPlatformConfiguration(platformNames, action));
     }
 
     public void target(String platformName, Action<? super TargetedPlatformToolChain> action) {
@@ -201,6 +171,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                             args.add("-m32");
                         }
                     };
+                    // TODO use getByName
                     CommandLineToolConfiguration cppCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("cppCompiler");
                     if(cppCompiler!=null){
                         cppCompiler.withArguments(m32args);
@@ -261,6 +232,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                             args.add("-m64");
                         }
                     };
+                    // TODO use getByName
                     CommandLineToolConfiguration cppCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("cppCompiler");
                     if(cppCompiler!=null){
                         cppCompiler.withArguments(m64args);
@@ -288,7 +260,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
                     CommandLineToolConfiguration assembler = (CommandLineToolConfiguration) configurableToolChain.findByName("assembler");
                     if(assembler != null){
-                        assembler.withArguments(new Action<List<String>>() {
+                        assembler.withArguments(
+                        new Action<List<String>>() {
                             public void execute(List<String> args) {
                                 if (OperatingSystem.current().isMacOsX()) {
                                     args.addAll(asList("-arch", "x86_64"));

@@ -104,7 +104,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def "is available when any language tool can be found and platform configuration registered for platform"() {
         given:
         toolSearchPath.locate(_, _) >> tool
-        toolChain.target(platform, Mock(Action))
+        platform.name >> "SomePlatform"
+        toolChain.target("SomePlatform", Mock(Action))
 
         expect:
         toolChain.select(platform).available
@@ -154,7 +155,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         when:
         toolSearchPath.locate(_, _) >> tool
 
-        toolChain.target([platform1.getName(), platform2.getName()])
+        toolChain.target(platform1.getName())
+        toolChain.target(platform2.getName())
         PlatformToolChain selected = toolChain.select(platform1)
         then:
         selected.outputFileSuffix == ".obj"
@@ -290,7 +292,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
-        toolChain.target(platform, new Action<TargetedPlatformToolChain>() {
+        toolChain.target(platform.getName(), new Action<TargetedPlatformToolChain>() {
             void execute(TargetedPlatformToolChain configurableToolChain) {
                 configurationApplied = true;
             }

@@ -168,13 +168,6 @@ compilation. Previously it would use the old Ant-based Java compiler integration
 
 This change should be backwards compatible for all users, and should improve compilation time when compiling Java and Scala together.
 
-### Incubating native language plugins no longer apply the base plugin
-
-The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle.language.base.plugins.LifecycleBasePlugin) instead of the `BasePlugin`. This means
-that the default values defined by the `BasePlugin` are not available.
-
-TBD - make this more explicit re. what is actually not longer available.
-
 ### Changes to incubating Java language plugins
 
 To better support the production of multiple binary outputs for a single set of sources, a new set of Java
@@ -188,6 +181,24 @@ will be affected by this change.
 
 The `maven-publish` plugin will now correctly add required 'exclusion' elements to the generated POM. If you have a build or plugin that
 applies these exclusions itself, the generated POM file may contain duplicate 'exclusion' elements.
+
+### Incubating native language plugins no longer apply the base plugin
+
+The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle.language.base.plugins.LifecycleBasePlugin) instead of the `BasePlugin`. This means
+that the default values defined by the `BasePlugin` are not available.
+
+TBD - make this more explicit re. what is actually not longer available.
+
+### Changes to incubating native cross compilation and custom platforms support
+
+In [PlatformConfigurableToolChain](dsl/org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain.html) we removed
+
+* target(Platform, Action)
+* target(Platform)
+* target(Iterable<? extends Platform>)
+* target(List<String>)
+* target(String... platformNames)
+* target(Iterable<? extends Platform>, Action<? super TargetedPlatformToolChain>)
 
 ### Internal methods removed
 
