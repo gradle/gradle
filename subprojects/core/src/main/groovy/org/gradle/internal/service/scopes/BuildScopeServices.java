@@ -212,7 +212,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 get(Instantiator.class),
                 get(ScriptHandlerFactory.class),
                 get(PluginRequestApplicator.class),
-                get(FileLookup.class)
+                get(FileLookup.class),
+                get(DocumentationRegistry.class)
         );
     }
 

@@ -30,4 +30,14 @@ class DocumentationRegistryTest extends Specification {
         expect:
         registry.getDocumentationFor('gradle_daemon') == "http://gradle.org/docs/${gradleVersion.version}/userguide/gradle_daemon.html"
     }
+
+    def "points users at the gradle docs web site with section"() {
+        expect:
+        registry.getDocumentationFor('gradle_daemon', 'reusing_daemons') == "http://gradle.org/docs/${gradleVersion.version}/userguide/gradle_daemon.html#reusing_daemons"
+    }
+
+    def "points users at the gradle dsl web site"() {
+        expect:
+        registry.getDslRefForProperty(org.gradle.api.Project, 'name') == "http://gradle.org/docs/${gradleVersion.version}/dsl/org.gradle.api.Project.html#org.gradle.api.Project:name"
+    }
 }

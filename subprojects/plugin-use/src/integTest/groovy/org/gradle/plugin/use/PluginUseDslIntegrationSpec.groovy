@@ -17,6 +17,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import static org.gradle.plugin.internal.PluginId.*
@@ -63,6 +64,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 3
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString("all buildscript {} blocks must appear before any plugins {} blocks"))
+        failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
     }
 
     def "build logic cannot precede plugins block"() {
@@ -79,6 +81,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 3
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
+        failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
     }
 
     def "build logic cannot precede any plugins block"() {
@@ -96,6 +99,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 4
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
+        failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
     }
 
     def "settings scripts cannot plugin blocks"() {
@@ -165,6 +169,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber lineNumber
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(msg))
+        failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
 
         where:
         lineNumber | code                                   | msg
