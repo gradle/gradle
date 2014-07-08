@@ -312,6 +312,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     static class TestToolChain extends AbstractGccCompatibleToolChain {
         TestToolChain(String name, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, Instantiator instantiator) {
             super(name, org.gradle.internal.os.OperatingSystem.current(), fileResolver, execActionFactory, tools, instantiator)
+            add(new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "gcc"));
             add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
             add(new DefaultGccCommandLineToolConfiguration("objcCompiler", ToolType.OBJECTIVEC_COMPILER, "gcc"));
             add(new DefaultGccCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "g++"));
