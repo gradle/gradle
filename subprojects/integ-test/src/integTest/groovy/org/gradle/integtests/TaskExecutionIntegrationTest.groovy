@@ -103,16 +103,6 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run().assertTasksExecuted(":a", ":child1:a", ":child2:a", ":child1:b", ":child2:b");
     }
 
-    def executesProjectDefaultTasksWhenNoneSpecified() {
-        buildFile << """
-    task a
-    task b(dependsOn: a)
-    defaultTasks 'b'
-"""
-        expect:
-        run().assertTasksExecuted(":a", ":b");
-    }
-    
     def doesNotExecuteTaskActionsWhenDryRunSpecified() {
         buildFile << """
     task a << { fail() }
@@ -233,13 +223,17 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "placeholder actions not triggered when not requested"() {
         when:
         buildFile << """
-        task a
+        task thing
         tasks.addPlaceholderAction("b") {
             throw new RuntimeException()
         }
+        task otherThing { dependsOn tasks.thing }
 """
         then:
-        succeeds 'a'
+        succeeds 'thing'
+        succeeds 'th'
+        succeeds 'otherThing'
+        succeeds 'oTh'
     }
 
     def "explicit tasks are preferred over placeholder tasks"() {
@@ -254,15 +248,19 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'sometask'
 
         then:
-        output.contains("explicit sometask")
-        !output.contains("placeholder action triggered")
+        output.startsWith(""":someTask
+explicit sometask
+
+BUILD SUCCESSFUL""")
 
         when:
         succeeds 'someT'
 
         then:
-        output.contains("explicit sometask")
-        !output.contains("placeholder action triggered")
+        output.startsWith(""":someTask
+explicit sometask
+
+BUILD SUCCESSFUL""")
     }
 
     def "honours mustRunAfter task ordering"() {
