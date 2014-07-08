@@ -505,10 +505,25 @@
                 <td>org.gradle.nativebinaries.StaticLibraryBinary</td>
             </tr>
             <tr>
+                <td>org.gradle.nativebinaries.PrebuiltLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.PrebuiltSharedLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.PrebuiltStaticLibraryBinary</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativebinaries.ProjectNativeBinary</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.ProjectNativeExecutableBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ProjectSharedLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ProjectStaticLibraryBinary</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.BuildType</td>

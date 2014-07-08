@@ -17,21 +17,21 @@
 package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.PrebuiltLibrary;
-import org.gradle.nativebinaries.internal.NativeLibraryBinaryInternal;
 import org.gradle.nativebinaries.platform.Platform;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements NativeLibraryBinaryInternal {
+public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements NativeLibraryBinary {
     private final String name;
     private final PrebuiltLibrary library;
     private final BuildType buildType;

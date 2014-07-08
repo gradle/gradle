@@ -20,9 +20,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.NativeBinary
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.internal.StaticLibraryBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
@@ -59,7 +61,7 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
                         binary.tasks.add resourceCompileTask
                         final resourceOutputs = resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
                         binary.tasks.createOrLink.source resourceOutputs
-                        if (binary instanceof StaticLibraryBinaryInternal) {
+                        if (binary instanceof ProjectStaticLibraryBinaryInternal) {
                             binary.additionalLinkFiles resourceOutputs
                         }
                     }

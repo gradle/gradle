@@ -15,19 +15,17 @@
  */
 
 package org.gradle.nativebinaries.internal.configure
+
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder
-import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.Flavor
-import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.SharedLibraryBinary
+import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultNativeExecutable
 import org.gradle.nativebinaries.internal.DefaultNativeLibrary
 import org.gradle.nativebinaries.internal.ProjectNativeComponentIdentifier
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
+import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder
 import spock.lang.Specification
 
 class DefaultNativeBinariesFactoryTest extends Specification {
@@ -76,14 +74,14 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
         then:
         library.binaries.size() == 2
-        def sharedLibrary = (library.binaries.withType(SharedLibraryBinary) as List)[0] as ProjectNativeBinary
+        def sharedLibrary = (library.binaries.withType(ProjectSharedLibraryBinary) as List)[0] as ProjectNativeBinary
         sharedLibrary.name == "testSharedLibrary"
         sharedLibrary.toolChain == toolChain
         sharedLibrary.targetPlatform == platform
         sharedLibrary.buildType == buildType
         sharedLibrary.flavor == flavor
 
-        def staticLibrary = (library.binaries.withType(SharedLibraryBinary) as List)[0] as ProjectNativeBinary
+        def staticLibrary = (library.binaries.withType(ProjectSharedLibraryBinary) as List)[0] as ProjectNativeBinary
         staticLibrary.name == "testSharedLibrary"
         staticLibrary.toolChain == toolChain
         staticLibrary.targetPlatform == platform

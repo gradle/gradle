@@ -18,13 +18,14 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeLibrary;
+import org.gradle.nativebinaries.StaticLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,12 +33,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ProjectStaticLibraryBinary extends AbstractProjectNativeLibraryBinary implements StaticLibraryBinaryInternal {
+public class DefaultProjectStaticLibraryBinary extends AbstractProjectNativeLibraryBinary implements StaticLibraryBinary, ProjectStaticLibraryBinaryInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
     private File staticLibraryFile;
 
-    public ProjectStaticLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                      BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultProjectStaticLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                             BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
 

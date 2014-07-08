@@ -71,7 +71,7 @@ class NativeComponentModelPluginTest extends Specification {
 
         then:
         one(project.binaries.withType(ProjectNativeExecutableBinary)).flavor.name == DefaultFlavor.DEFAULT
-        one(project.binaries.withType(SharedLibraryBinary)).flavor.name == DefaultFlavor.DEFAULT
+        one(project.binaries.withType(ProjectSharedLibraryBinary)).flavor.name == DefaultFlavor.DEFAULT
     }
 
     def "does not add defaults when domain is explicitly configured"() {
@@ -157,7 +157,7 @@ class NativeComponentModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        SharedLibraryBinary sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinary
+        ProjectSharedLibraryBinary sharedLibraryBinary = project.binaries.testSharedLibrary as ProjectSharedLibraryBinary
         with (sharedLibraryBinary) {
             name == 'testSharedLibrary'
             component == library
@@ -169,7 +169,7 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        StaticLibraryBinary staticLibraryBinary = project.binaries.testStaticLibrary as StaticLibraryBinary
+        ProjectStaticLibraryBinary staticLibraryBinary = project.binaries.testStaticLibrary as ProjectStaticLibraryBinary
         with (staticLibraryBinary) {
             name == 'testStaticLibrary'
             component == library
@@ -198,12 +198,12 @@ class NativeComponentModelPluginTest extends Specification {
             name == executableBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }
-        SharedLibraryBinary sharedLibraryBinary = project.binaries.libSharedLibrary as SharedLibraryBinary
+        ProjectSharedLibraryBinary sharedLibraryBinary = project.binaries.libSharedLibrary as ProjectSharedLibraryBinary
         with (oneTask(sharedLibraryBinary.buildDependencies)) {
             name == sharedLibraryBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }
-        StaticLibraryBinary staticLibraryBinary = project.binaries.libStaticLibrary as StaticLibraryBinary
+        ProjectStaticLibraryBinary staticLibraryBinary = project.binaries.libStaticLibrary as ProjectStaticLibraryBinary
         with (oneTask(staticLibraryBinary.buildDependencies)) {
             name == staticLibraryBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP

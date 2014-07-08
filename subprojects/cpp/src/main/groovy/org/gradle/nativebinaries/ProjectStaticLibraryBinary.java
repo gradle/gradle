@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,26 @@
 
 package org.gradle.nativebinaries;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
+import java.io.File;
+
 /**
- * A physical representation of a {@link NativeLibrary} component.
+ * A static library binary built by Gradle for a native library.
  */
-@Incubating
-public interface NativeLibraryBinary extends NativeBinary {
+public interface ProjectStaticLibraryBinary extends ProjectNativeBinary {
+    /**
+     * The static library file.
+     */
+    File getStaticLibraryFile();
 
-    FileCollection getHeaderDirs();
+    /**
+     * The static library binary file.
+     */
+    void setStaticLibraryFile(File staticLibraryFile);
 
-    FileCollection getLinkFiles();
-
-    FileCollection getRuntimeFiles();
+    /**
+     * Add some additional files required at link time.
+     */
+    void additionalLinkFiles(FileCollection files);
 }

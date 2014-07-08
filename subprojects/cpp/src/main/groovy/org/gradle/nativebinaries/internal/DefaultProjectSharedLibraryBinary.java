@@ -18,26 +18,23 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.language.rc.WindowsResourceSet;
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.NativeLibrary;
-import org.gradle.nativebinaries.SharedLibraryBinary;
+import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class ProjectSharedLibraryBinary extends AbstractProjectNativeLibraryBinary implements SharedLibraryBinary {
+public class DefaultProjectSharedLibraryBinary extends AbstractProjectNativeLibraryBinary implements SharedLibraryBinary, ProjectSharedLibraryBinaryInternal {
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public ProjectSharedLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                      BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultProjectSharedLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                             BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
 

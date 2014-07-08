@@ -22,7 +22,7 @@ import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
 import org.gradle.language.objectivecpp.plugins.ObjectiveCppLangPlugin
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.SharedLibraryBinary
+import org.gradle.nativebinaries.ProjectSharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile
@@ -66,7 +66,7 @@ class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
 
         compileTask.toolChain = binary.toolChain
         compileTask.targetPlatform = binary.targetPlatform
-        compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
+        compileTask.positionIndependentCode = binary instanceof ProjectSharedLibraryBinary
 
         compileTask.includes {
             sourceSet.exportedHeaders.srcDirs

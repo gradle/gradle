@@ -21,7 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.plugins.CLangPlugin
 import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.SharedLibraryBinary
+import org.gradle.nativebinaries.ProjectSharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
@@ -65,7 +65,7 @@ class CPlugin implements Plugin<ProjectInternal> {
 
         compileTask.toolChain = binary.toolChain
         compileTask.targetPlatform = binary.targetPlatform
-        compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
+        compileTask.positionIndependentCode = binary instanceof ProjectSharedLibraryBinary
 
         compileTask.includes {
             sourceSet.exportedHeaders.srcDirs

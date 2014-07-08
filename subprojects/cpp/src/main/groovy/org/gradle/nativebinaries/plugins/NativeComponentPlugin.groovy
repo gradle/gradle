@@ -19,11 +19,8 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.StaticLibraryBinary
+import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.ProjectNativeExecutableBinary
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
@@ -60,7 +57,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         if (binary instanceof ProjectNativeExecutableBinary || binary instanceof NativeTestSuiteBinary) {
             builderTask = createLinkExecutableTask(project, binary)
             binary.tasks.add createInstallTask(project, binary);
-        } else if (binary instanceof SharedLibraryBinary) {
+        } else if (binary instanceof ProjectSharedLibraryBinary) {
             builderTask = createLinkSharedLibraryTask(project, binary)
         } else if (binary instanceof StaticLibraryBinary) {
             builderTask = createStaticLibraryTask(project, binary)
@@ -87,7 +84,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         return linkTask
     }
 
-    private LinkSharedLibrary createLinkSharedLibraryTask(ProjectInternal project, SharedLibraryBinary sharedLibrary) {
+    private LinkSharedLibrary createLinkSharedLibraryTask(ProjectInternal project, ProjectSharedLibraryBinary sharedLibrary) {
         def binary = sharedLibrary as ProjectNativeBinaryInternal
         LinkSharedLibrary linkTask = project.task(binary.namingScheme.getTaskName("link"), type: LinkSharedLibrary) {
              description = "Links ${sharedLibrary}"

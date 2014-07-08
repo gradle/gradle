@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,29 @@
 
 package org.gradle.nativebinaries;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
+import java.io.File;
 
 /**
- * A physical representation of a {@link NativeLibrary} component.
+ * A shared library binary built by Gradle for a native library.
  */
-@Incubating
-public interface NativeLibraryBinary extends NativeBinary {
+public interface ProjectSharedLibraryBinary extends ProjectNativeBinary {
+    /**
+     * The shared library file.
+     */
+    File getSharedLibraryFile();
 
-    FileCollection getHeaderDirs();
+    /**
+     * The shared library link file.
+     */
+    File getSharedLibraryLinkFile();
 
-    FileCollection getLinkFiles();
+    /**
+     * The shared library file.
+     */
+    void setSharedLibraryFile(File sharedLibraryFile);
 
-    FileCollection getRuntimeFiles();
+    /**
+     * The shared library link file.
+     */
+    void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
 }

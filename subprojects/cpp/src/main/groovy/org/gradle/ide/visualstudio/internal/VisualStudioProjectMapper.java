@@ -17,10 +17,10 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
-import org.gradle.nativebinaries.SharedLibraryBinary;
+import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
+import org.gradle.nativebinaries.ProjectStaticLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
 import org.gradle.nativebinaries.test.NativeTestSuiteBinary;
@@ -57,10 +57,9 @@ public class VisualStudioProjectMapper {
     }
 
     private String projectSuffix(ProjectNativeBinary nativeBinary) {
-        return nativeBinary instanceof SharedLibraryBinary ? "Dll"
-                : nativeBinary instanceof NativeLibraryBinary ? "Lib"
+        return nativeBinary instanceof ProjectSharedLibraryBinary ? "Dll"
+                : nativeBinary instanceof ProjectStaticLibraryBinary ? "Lib"
                 : nativeBinary instanceof ProjectNativeExecutableBinary ? "Exe"
-                : nativeBinary instanceof NativeTestSuiteBinary ? "Exe"
                 : "";
     }
 

@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * An binary built by Gradle for a native application.
  */
-public interface ProjectNativeExecutableBinary {
+public interface ProjectNativeExecutableBinary extends ProjectNativeBinary {
     /**
      * The executable file.
      */

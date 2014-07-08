@@ -27,14 +27,8 @@ import java.io.File;
 @Incubating
 @HasInternalProtocol
 public interface StaticLibraryBinary extends NativeLibraryBinary {
-
     /**
      * The static library file.
      */
     File getStaticLibraryFile();
-
-    /**
-     * The static library binary file.
-     */
-    void setStaticLibraryFile(File staticLibraryFile);
 }

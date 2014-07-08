@@ -17,11 +17,8 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.SharedLibraryBinary;
-import org.gradle.nativebinaries.StaticLibraryBinary;
+import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
-import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
@@ -42,11 +39,11 @@ class ProjectNativeBinaryInitializer implements Action<ProjectNativeBinary> {
 
         if (nativeBinary instanceof ProjectNativeExecutableBinary) {
             ((ProjectNativeExecutableBinary) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
-        } else if (nativeBinary instanceof SharedLibraryBinary) {
-            ((SharedLibraryBinary) nativeBinary).setSharedLibraryFile(new File(binaryOutputDir, tc.getSharedLibraryName(baseName)));
-            ((SharedLibraryBinary) nativeBinary).setSharedLibraryLinkFile(new File(binaryOutputDir, tc.getSharedLibraryLinkFileName(baseName)));
-        } else if (nativeBinary instanceof StaticLibraryBinary) {
-            ((StaticLibraryBinary) nativeBinary).setStaticLibraryFile(new File(binaryOutputDir, tc.getStaticLibraryName(baseName)));
+        } else if (nativeBinary instanceof ProjectSharedLibraryBinary) {
+            ((ProjectSharedLibraryBinary) nativeBinary).setSharedLibraryFile(new File(binaryOutputDir, tc.getSharedLibraryName(baseName)));
+            ((ProjectSharedLibraryBinary) nativeBinary).setSharedLibraryLinkFile(new File(binaryOutputDir, tc.getSharedLibraryLinkFileName(baseName)));
+        } else if (nativeBinary instanceof ProjectStaticLibraryBinary) {
+            ((ProjectStaticLibraryBinary) nativeBinary).setStaticLibraryFile(new File(binaryOutputDir, tc.getStaticLibraryName(baseName)));
         }
     }
 }

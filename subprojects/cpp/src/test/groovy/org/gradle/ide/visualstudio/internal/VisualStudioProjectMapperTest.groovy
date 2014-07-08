@@ -16,14 +16,12 @@
 
 package org.gradle.ide.visualstudio.internal
 
-import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
-import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
+import org.gradle.nativebinaries.internal.*
 import org.gradle.nativebinaries.platform.Architecture
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
+import org.gradle.runtime.base.internal.BinaryNamingScheme
 import spock.lang.Specification
 
 class VisualStudioProjectMapperTest extends Specification {
@@ -64,8 +62,8 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "maps library binary types to visual studio projects"() {
         when:
-        def sharedLibraryBinary = libraryBinary(SharedLibraryBinaryInternal)
-        def staticLibraryBinary = libraryBinary(StaticLibraryBinaryInternal)
+        def sharedLibraryBinary = libraryBinary(ProjectSharedLibraryBinaryInternal)
+        def staticLibraryBinary = libraryBinary(ProjectStaticLibraryBinaryInternal)
 
         library.projectPath >> ":"
         namingScheme.variantDimensions >> []
@@ -126,7 +124,7 @@ class VisualStudioProjectMapperTest extends Specification {
         return ArchitectureNotationParser.parser().parseNotation(name)
     }
 
-    private libraryBinary(Class<? extends NativeLibraryBinary> type) {
+    private libraryBinary(Class<? extends ProjectNativeBinaryInternal> type) {
         def binary = Mock(type)
         binary.component >> library
         binary.flavor >> flavorOne
@@ -138,6 +136,4 @@ class VisualStudioProjectMapperTest extends Specification {
 
     interface NativeExecutableInternal extends NativeExecutable, ProjectNativeComponentInternal {}
     interface NativeLibraryInternal extends NativeLibrary, ProjectNativeComponentInternal {}
-    interface SharedLibraryBinaryInternal extends SharedLibraryBinary, ProjectNativeBinaryInternal {}
-    interface StaticLibraryBinaryInternal extends StaticLibraryBinary, ProjectNativeBinaryInternal {}
 }

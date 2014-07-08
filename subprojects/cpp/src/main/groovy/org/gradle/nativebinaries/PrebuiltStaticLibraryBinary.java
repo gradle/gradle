@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.nativebinaries.NativeLibraryBinary;
+import java.io.File;
 
-public interface NativeLibraryBinaryInternal extends NativeLibraryBinary {
-
-    FileCollection getHeaderDirs();
-
-    FileCollection getLinkFiles();
-
-    FileCollection getRuntimeFiles();
+/**
+ * A static library that exists at a known location on the filesystem.
+ */
+public interface PrebuiltStaticLibraryBinary extends StaticLibraryBinary {
+    /**
+     * The static library binary file.
+     */
+    void setStaticLibraryFile(File staticLibraryFile);
 }

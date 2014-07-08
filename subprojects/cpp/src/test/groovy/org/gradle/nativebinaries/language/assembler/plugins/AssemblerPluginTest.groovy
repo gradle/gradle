@@ -19,10 +19,7 @@ package org.gradle.nativebinaries.language.assembler.plugins
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.ProjectNativeExecutableBinary
-import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.StaticLibraryBinary
+import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.toolchain.ToolChainRegistry
 import org.gradle.util.GFileUtils
@@ -153,7 +150,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         then:
-        SharedLibraryBinary sharedLib = project.binaries.testSharedLibrary
+        ProjectSharedLibraryBinary sharedLib = project.binaries.testSharedLibrary
         sharedLib.tasks.withType(Assemble)*.name == ["assembleTestSharedLibraryTestAnotherOne", "assembleTestSharedLibraryTestAsm"]
         sharedLib.tasks.withType(Assemble).each { compile ->
             compile.toolChain == sharedLib.toolChain
@@ -163,7 +160,7 @@ class AssemblerPluginTest extends Specification {
         sharedLinkTask TaskDependencyMatchers.dependsOn("assembleTestSharedLibraryTestAnotherOne", "assembleTestSharedLibraryTestAsm")
 
         and:
-        StaticLibraryBinary staticLib = project.binaries.testStaticLibrary
+        ProjectStaticLibraryBinary staticLib = project.binaries.testStaticLibrary
         staticLib.tasks.withType(Assemble)*.name == ["assembleTestStaticLibraryTestAnotherOne", "assembleTestStaticLibraryTestAsm"]
         staticLib.tasks.withType(Assemble).each { compile ->
             compile.toolChain == sharedLib.toolChain

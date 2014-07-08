@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
+import org.gradle.nativebinaries.ProjectStaticLibraryBinary;
 
-/**
- * A physical representation of a {@link NativeLibrary} component.
- */
-@Incubating
-public interface NativeLibraryBinary extends NativeBinary {
-
-    FileCollection getHeaderDirs();
-
-    FileCollection getLinkFiles();
-
-    FileCollection getRuntimeFiles();
+public interface ProjectStaticLibraryBinaryInternal extends ProjectStaticLibraryBinary, ProjectNativeBinaryInternal {
 }

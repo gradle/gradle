@@ -18,7 +18,6 @@ package org.gradle.nativebinaries.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.NativeLibraryBinaryInternal;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.util.GUtil;
 
@@ -35,7 +34,7 @@ class DefaultLibraryResolver {
         this.libraryBinaryLocator = libraryBinaryLocator;
     }
 
-    public NativeLibraryBinaryInternal resolveLibraryBinary() {
+    public NativeLibraryBinary resolveLibraryBinary() {
         return new LibraryResolution()
                 .withFlavor(context.getFlavor())
                 .withPlatform(context.getTargetPlatform())
@@ -64,11 +63,11 @@ class DefaultLibraryResolver {
         }
 
         public NativeDependencySet resolve(DomainObjectSet<NativeLibraryBinary> allBinaries) {
-            NativeLibraryBinaryInternal resolve = resolveLibrary(allBinaries);
+            NativeLibraryBinary resolve = resolveLibrary(allBinaries);
             return new DefaultNativeDependencySet(resolve);
         }
 
-        public NativeLibraryBinaryInternal resolveLibrary(DomainObjectSet<NativeLibraryBinary> allBinaries) {
+        public NativeLibraryBinary resolveLibrary(DomainObjectSet<NativeLibraryBinary> allBinaries) {
             Class<? extends NativeLibraryBinary> type = getTypeForLinkage(requirement.getLinkage());
             DomainObjectSet<? extends NativeLibraryBinary> candidateBinaries = allBinaries.withType(type);
             return resolve(candidateBinaries);
@@ -84,7 +83,7 @@ class DefaultLibraryResolver {
             throw new InvalidUserDataException("Not a valid linkage: " + linkage);
         }
 
-        private NativeLibraryBinaryInternal resolve(Set<? extends NativeLibraryBinary> candidates) {
+        private NativeLibraryBinary resolve(Set<? extends NativeLibraryBinary> candidates) {
             for (NativeLibraryBinary candidate : candidates) {
                 if (flavor != null && !flavor.getName().equals(candidate.getFlavor().getName())) {
                     continue;
@@ -96,7 +95,7 @@ class DefaultLibraryResolver {
                     continue;
                 }
 
-                return (NativeLibraryBinaryInternal) candidate;
+                return candidate;
             }
 
             String typeName = GUtil.elvis(requirement.getLinkage(), "shared");

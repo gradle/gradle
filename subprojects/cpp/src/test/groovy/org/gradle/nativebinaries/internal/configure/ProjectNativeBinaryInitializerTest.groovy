@@ -15,13 +15,12 @@
  */
 
 package org.gradle.nativebinaries.internal.configure
-
 import org.gradle.api.Project
 import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.ProjectNativeExecutableBinary
+import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -44,7 +43,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
     }
 
     def "test executable"() {
-        def binary = initBinary(ProjectNativeExecutableBinary)
+        def binary = initBinary(ProjectNativeExecutableBinaryInternal)
 
         when:
         toolChain.getExecutableName("base_name") >> "exe_name"
@@ -57,7 +56,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
     }
 
     def "test shared library"() {
-        def binary = initBinary(SharedLibraryBinaryInternal)
+        def binary = initBinary(ProjectSharedLibraryBinaryInternal)
 
         when:
         toolChain.getSharedLibraryName("base_name") >> "shared_library_name"
@@ -72,7 +71,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
     }
 
     def "test static library"() {
-        def binary = initBinary(StaticLibraryBinaryInternal)
+        def binary = initBinary(ProjectStaticLibraryBinaryInternal)
 
         when:
         toolChain.getStaticLibraryName("base_name") >> "static_library_name"
@@ -94,8 +93,4 @@ class ProjectNativeBinaryInitializerTest extends Specification {
         component.baseName >> "base_name"
         return binary
     }
-
-    interface SharedLibraryBinaryInternal extends SharedLibraryBinary, ProjectNativeBinaryInternal {}
-    interface StaticLibraryBinaryInternal extends StaticLibraryBinary, ProjectNativeBinaryInternal {}
-
 }

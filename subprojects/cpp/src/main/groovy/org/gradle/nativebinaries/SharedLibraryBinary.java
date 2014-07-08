@@ -34,14 +34,4 @@ public interface SharedLibraryBinary extends NativeLibraryBinary {
      * The shared library link file.
      */
     File getSharedLibraryLinkFile();
-
-    /**
-     * The shared library file.
-     */
-    void setSharedLibraryFile(File sharedLibraryFile);
-
-    /**
-     * The shared library link file.
-     */
-    void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
 }

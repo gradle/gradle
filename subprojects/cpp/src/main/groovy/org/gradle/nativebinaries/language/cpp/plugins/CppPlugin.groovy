@@ -22,7 +22,7 @@ import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppLangPlugin
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.SharedLibraryBinary
+import org.gradle.nativebinaries.ProjectSharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
@@ -66,7 +66,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         compileTask.toolChain = binary.toolChain
         compileTask.targetPlatform = binary.targetPlatform
-        compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
+        compileTask.positionIndependentCode = binary instanceof ProjectSharedLibraryBinary
 
         compileTask.includes {
             sourceSet.exportedHeaders.srcDirs

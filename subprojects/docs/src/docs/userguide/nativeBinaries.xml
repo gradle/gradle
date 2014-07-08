@@ -99,7 +99,7 @@
         <para>
             To build either a static or shared native library binary,
             a <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component is added to the <literal>libraries</literal> container.
-            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/>
+            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.ProjectSharedLibraryBinary"/>
             and at least one <apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/>.
         </para>
         <sample id="cppLibraries" dir="native-binaries/c" title="Defining a library component">
@@ -133,10 +133,10 @@
                 <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
             </thread>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.ExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.ProjectNativeExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.ProjectSharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
