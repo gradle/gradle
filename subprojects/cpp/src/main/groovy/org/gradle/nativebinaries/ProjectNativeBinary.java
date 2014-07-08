@@ -18,6 +18,7 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 import org.gradle.runtime.base.ProjectBinary;
 
@@ -27,11 +28,26 @@ import java.util.Collection;
  * Represents a particular binary artifact that is the result of building a native component.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectNativeBinary extends ProjectBinary, NativeBinary {
+public interface ProjectNativeBinary extends ProjectBinary {
     /**
      * The component that this binary was built from.
      */
     ProjectNativeComponent getComponent();
+
+    /**
+     * The flavor that this binary was built with.
+     */
+    Flavor getFlavor();
+
+    /**
+     * Returns the {@link org.gradle.nativebinaries.platform.Platform} that this binary is targeted to run on.
+     */
+    Platform getTargetPlatform();
+
+    /**
+     * Returns the {@link BuildType} used to construct this binary.
+     */
+    BuildType getBuildType();
 
     /**
      * The libraries that should be linked into this binary.

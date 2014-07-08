@@ -36,7 +36,7 @@ public class CreateTasksForJarBinaries extends ModelRule {
 
     private Task createJarTask(TaskContainer tasks, ProjectJvmBinaryInternal binary) {
         Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
-        jar.setDescription(String.format("Creates the binary file for %s.", binary.getDisplayName()));
+        jar.setDescription(String.format("Creates the binary file for %s.", binary.getNamingScheme().getDescription()));
         jar.from(binary.getClassesDir());
 
         jar.setDestinationDir(binary.getJarFile().getParentFile());

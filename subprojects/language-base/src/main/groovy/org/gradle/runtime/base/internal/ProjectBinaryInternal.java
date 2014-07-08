@@ -16,9 +16,8 @@
 
 package org.gradle.runtime.base.internal;
 
-import org.gradle.runtime.base.Binary;
 import org.gradle.runtime.base.ProjectBinary;
 
-public interface ProjectBinaryInternal extends ProjectBinary, Binary {
+public interface ProjectBinaryInternal extends ProjectBinary {
     BinaryNamingScheme getNamingScheme();
 }

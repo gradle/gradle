@@ -47,8 +47,8 @@ class CreateTasksForJarBinariesTest extends Specification {
 
         then:
         _ * jvmLibraryBinary.name >> "binaryName"
-        _ * jvmLibraryBinary.displayName >> "binaryDisplayName"
-        1 * jvmLibraryBinary.namingScheme >> namingScheme
+        2 * jvmLibraryBinary.namingScheme >> namingScheme
+        1 * namingScheme.description >> "binaryDisplayName"
         1 * jvmLibraryBinary.classesDir >> classesDir
         2 * jvmLibraryBinary.jarFile >> jarFile
         1 * jarFile.parentFile >> jarFile
