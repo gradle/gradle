@@ -10,7 +10,7 @@ This way not only the compiler does less work, but also fewer output class files
 The latter feature is extremely important for scenarios involving JRebel - the less output files are touched the quicker the jvm gets refreshed classes.
 
 We will improve the speed and capability of the incremental java compiler. Please give use feedback how does it work for your scenarios.
-For more detailss please see the user guide section on “[Incremental compilation](userguide/java_plugin.html#sec:incremental_compile)”.
+For more details please see the user guide section on “[Incremental compilation](userguide/java_plugin.html#sec:incremental_compile)”.
 To enable the feature, configure the [JavaCompile](dsl/org.gradle.api.tasks.compile.JavaCompile.html) task accordingly:
 
     //configuring a single task:
