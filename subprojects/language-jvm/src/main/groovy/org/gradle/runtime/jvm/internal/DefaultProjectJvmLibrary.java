@@ -20,18 +20,23 @@ package org.gradle.runtime.jvm.internal;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
 
 public class DefaultProjectJvmLibrary implements ProjectJvmLibrary {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
-    private final String name;
+    private final NamedProjectComponentIdentifier identifier;
 
-    public DefaultProjectJvmLibrary(String name) {
-        this.name = name;
+    public DefaultProjectJvmLibrary(NamedProjectComponentIdentifier identifier) {
+        this.identifier = identifier;
     }
 
     public String getName() {
-        return name;
+        return identifier.getName();
+    }
+
+    public String getProjectPath() {
+        return identifier.getProjectPath();
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {

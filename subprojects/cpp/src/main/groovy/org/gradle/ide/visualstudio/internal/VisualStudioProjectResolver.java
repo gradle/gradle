@@ -18,7 +18,6 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
 import org.gradle.nativebinaries.internal.resolve.ProjectLocator;
 
 public class VisualStudioProjectResolver {
@@ -37,7 +36,7 @@ public class VisualStudioProjectResolver {
     }
 
     private ProjectInternal getComponentProject(ProjectNativeBinary nativeBinary) {
-        String projectPath = ((ProjectNativeComponentInternal) nativeBinary.getComponent()).getProjectPath();
+        String projectPath = nativeBinary.getComponent().getProjectPath();
         return projectLocator.locateProject(projectPath);
     }
 }

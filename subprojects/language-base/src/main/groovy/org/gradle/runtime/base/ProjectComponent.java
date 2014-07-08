@@ -30,6 +30,11 @@ import org.gradle.language.base.LanguageSourceSet;
 @Incubating
 public interface ProjectComponent extends Named {
     /**
+     * The path the the project containing this component.
+     */
+    String getProjectPath();
+
+    /**
      * The source sets that are used to build this component.
      */
     DomainObjectSet<LanguageSourceSet> getSource();

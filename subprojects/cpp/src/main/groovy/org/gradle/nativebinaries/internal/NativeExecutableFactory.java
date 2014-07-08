@@ -20,6 +20,8 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.NativeExecutable;
+import org.gradle.runtime.base.NamedProjectComponentIdentifier;
+import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier;
 
 public class NativeExecutableFactory implements NamedDomainObjectFactory<NativeExecutable> {
     private final Instantiator instantiator;
@@ -31,7 +33,7 @@ public class NativeExecutableFactory implements NamedDomainObjectFactory<NativeE
     }
 
     public NativeExecutable create(String name) {
-        ProjectNativeComponentIdentifier id = new ProjectNativeComponentIdentifier(project.getPath(), name);
+        NamedProjectComponentIdentifier id = new DefaultNamedProjectComponentIdentifier(project.getPath(), name);
         return instantiator.newInstance(DefaultNativeExecutable.class, id);
     }
 }

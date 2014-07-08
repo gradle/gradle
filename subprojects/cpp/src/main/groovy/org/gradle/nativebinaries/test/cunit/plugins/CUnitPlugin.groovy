@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.test.cunit.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.internal.ProjectNativeComponentIdentifier
-import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.test.TestSuiteContainer
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuite
@@ -29,8 +28,11 @@ import org.gradle.nativebinaries.test.cunit.internal.CreateCUnitBinaries
 import org.gradle.nativebinaries.test.cunit.internal.DefaultCUnitTestSuite
 import org.gradle.nativebinaries.test.plugins.NativeBinariesTestPlugin
 import org.gradle.runtime.base.BinaryContainer
+import org.gradle.runtime.base.NamedProjectComponentIdentifier
+import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier
 
 import javax.inject.Inject
+
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
@@ -58,8 +60,8 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
 
     private CUnitTestSuite createCUnitTestSuite(ProjectNativeComponent testedComponent, BinaryContainer binaries, ProjectInternal project) {
         String suiteName = "${testedComponent.name}Test"
-        String path = (testedComponent as ProjectNativeComponentInternal).projectPath
-        ProjectNativeComponentIdentifier id = new ProjectNativeComponentIdentifier(path, suiteName);
+        String path = testedComponent.projectPath
+        NamedProjectComponentIdentifier id = new DefaultNamedProjectComponentIdentifier(path, suiteName);
         CUnitTestSuite cUnitTestSuite = instantiator.newInstance(DefaultCUnitTestSuite, id, testedComponent);
 
         new ConfigureCUnitTestSources(project).apply(cUnitTestSuite)

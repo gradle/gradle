@@ -17,15 +17,14 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.runtime.base.ProjectComponent;
 
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
-@Incubating @HasInternalProtocol
-public interface ProjectNativeComponent extends ProjectComponent, Named {
+@Incubating
+public interface ProjectNativeComponent extends ProjectComponent {
+
     /**
      * Returns a human-consumable display name for this component.
      */

@@ -19,8 +19,10 @@ import org.gradle.api.*;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.ModelRules;
+import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.plugins.CreateJvmBinaries;
@@ -49,7 +51,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         ProjectComponentContainer projectComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
         projectComponents.registerFactory(ProjectJvmLibrary.class, new NamedDomainObjectFactory<ProjectJvmLibrary>() {
             public ProjectJvmLibrary create(String name) {
-                return new DefaultProjectJvmLibrary(name);
+                NamedProjectComponentIdentifier id = new DefaultNamedProjectComponentIdentifier(project.getPath(), name);
+                return new DefaultProjectJvmLibrary(id);
             }
         });
 

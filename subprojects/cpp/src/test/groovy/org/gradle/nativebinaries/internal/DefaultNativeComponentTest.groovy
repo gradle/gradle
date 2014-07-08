@@ -21,11 +21,13 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.runtime.base.NamedProjectComponentIdentifier
+import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier
 import spock.lang.Specification
 
 class DefaultNativeComponentTest extends Specification {
     def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    def id = new ProjectNativeComponentIdentifier("project", "name")
+    def id = new DefaultNamedProjectComponentIdentifier("project", "name")
     def component = new TestProjectNativeComponent(id)
 
     def "uses all source sets from a functional source set"() {
@@ -62,7 +64,7 @@ class DefaultNativeComponentTest extends Specification {
     }
 
     class TestProjectNativeComponent extends AbstractTargetedProjectNativeComponent {
-        TestProjectNativeComponent(ProjectNativeComponentIdentifier id) {
+        TestProjectNativeComponent(NamedProjectComponentIdentifier id) {
             super(id)
         }
 

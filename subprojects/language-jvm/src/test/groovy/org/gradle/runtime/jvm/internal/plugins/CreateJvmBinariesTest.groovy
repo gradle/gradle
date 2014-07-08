@@ -17,6 +17,7 @@
 package org.gradle.runtime.jvm.internal.plugins
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.runtime.base.BinaryContainer
+import org.gradle.runtime.base.NamedProjectComponentIdentifier
 import org.gradle.runtime.base.ProjectBinary
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
@@ -34,7 +35,7 @@ class CreateJvmBinariesTest extends Specification {
     def binaries = Mock(BinaryContainer)
 
     def "adds a binary for each jvm library"() {
-        def library = new DefaultProjectJvmLibrary("jvmLibOne")
+        def library = new DefaultProjectJvmLibrary(componentId("jvmLibOne", ":project-path"))
         def namingScheme = Mock(BinaryNamingScheme)
 
         when:
@@ -56,7 +57,7 @@ class CreateJvmBinariesTest extends Specification {
     }
 
     def "created binary has sources from jvm library"() {
-        def library = new DefaultProjectJvmLibrary("jvmLibOne")
+        def library = new DefaultProjectJvmLibrary(componentId("jvmLibOne", ":project-path"))
         def namingScheme = Mock(BinaryNamingScheme)
         def source1 = Mock(LanguageSourceSet)
         def source2 = Mock(LanguageSourceSet)
@@ -77,5 +78,12 @@ class CreateJvmBinariesTest extends Specification {
             binary.source == library.source
         } as ProjectBinary)
         0 * _
+    }
+
+    def componentId(def name, def path) {
+        Stub(NamedProjectComponentIdentifier) {
+            getName() >> name
+            getProjectPath() >> path
+        }
     }
 }

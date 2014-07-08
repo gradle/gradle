@@ -22,7 +22,6 @@ import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
 import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
 import org.gradle.nativebinaries.ProjectStaticLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
-import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
 
 import java.util.List;
 
@@ -43,8 +42,7 @@ public class VisualStudioProjectMapper {
     }
 
     private String projectPrefix(ProjectNativeBinary nativeBinary) {
-        ProjectNativeComponentInternal component = (ProjectNativeComponentInternal) nativeBinary.getComponent();
-        String projectPath = component.getProjectPath();
+        String projectPath = nativeBinary.getComponent().getProjectPath();
         if (":".equals(projectPath)) {
             return "";
         }

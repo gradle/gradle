@@ -20,12 +20,12 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
+import org.gradle.nativebinaries.ProjectNativeComponent
 import spock.lang.Specification
 
 class DefaultVisualStudioProjectTest extends Specification {
     private DirectInstantiator instantiator = new DirectInstantiator()
-    def component = Mock(ProjectNativeComponentInternal)
+    def component = Mock(ProjectNativeComponent)
     def fileResolver = Mock(FileResolver)
     def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, instantiator)
 
@@ -71,8 +71,8 @@ class DefaultVisualStudioProjectTest extends Specification {
 
     def "has consistent uuid for same mapped component"() {
         when:
-        def sameComponent = Mock(ProjectNativeComponentInternal)
-        def otherComponent = Mock(ProjectNativeComponentInternal)
+        def sameComponent = Mock(ProjectNativeComponent)
+        def otherComponent = Mock(ProjectNativeComponent)
 
         def sameProject = new DefaultVisualStudioProject("projectName", component, fileResolver, instantiator)
         def samePath = new DefaultVisualStudioProject("projectName", sameComponent, fileResolver, instantiator)

@@ -17,18 +17,17 @@
 package org.gradle.ide.visualstudio.internal
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
+import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.XmlConfigFile
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.util.CollectionUtils
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
@@ -70,7 +69,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     }
 
     String getUuid() {
-        String projectPath = (component as ProjectNativeComponentInternal).projectPath
+        String projectPath = component.projectPath
         String vsComponentPath = "${projectPath}:${name}"
         return '{' + UUID.nameUUIDFromBytes(vsComponentPath.bytes).toString().toUpperCase() + '}'
     }

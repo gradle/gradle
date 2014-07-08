@@ -27,10 +27,10 @@ import spock.lang.Specification
 class VisualStudioProjectMapperTest extends Specification {
     def mapper = new VisualStudioProjectMapper()
 
-    def executable = Mock(NativeExecutableInternal)
-    ProjectNativeExecutableBinaryInternal executableBinary
-    def library = Mock(NativeLibraryInternal)
+    def executable = Mock(NativeExecutable)
+    def library = Mock(NativeLibrary)
     def namingScheme = Mock(BinaryNamingScheme)
+    ProjectNativeExecutableBinaryInternal executableBinary
 
     def flavorOne = Mock(Flavor)
     def buildTypeOne = Mock(BuildType)
@@ -133,7 +133,4 @@ class VisualStudioProjectMapperTest extends Specification {
         binary.namingScheme >> namingScheme
         return binary
     }
-
-    interface NativeExecutableInternal extends NativeExecutable, ProjectNativeComponentInternal {}
-    interface NativeLibraryInternal extends NativeLibrary, ProjectNativeComponentInternal {}
 }

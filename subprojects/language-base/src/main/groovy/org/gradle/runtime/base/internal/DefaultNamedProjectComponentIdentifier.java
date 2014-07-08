@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
+package org.gradle.runtime.base.internal;
+
+import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 
 /**
  * An identifier for a native component that is built as part of the current build.
  */
-public class ProjectNativeComponentIdentifier {
+public class DefaultNamedProjectComponentIdentifier implements NamedProjectComponentIdentifier {
     private final String projectPath;
     private final String name;
+    private final String displayName;
 
-    public ProjectNativeComponentIdentifier(String projectPath, String name) {
+    public DefaultNamedProjectComponentIdentifier(String projectPath, String name) {
         this.projectPath = projectPath;
         this.name = name;
+        displayName = String.format("%s:%s", projectPath, name);
     }
 
     public String getName() {
@@ -35,16 +39,20 @@ public class ProjectNativeComponentIdentifier {
         return projectPath;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ProjectNativeComponentIdentifier)) {
+        if (!(o instanceof DefaultNamedProjectComponentIdentifier)) {
             return false;
         }
 
-        ProjectNativeComponentIdentifier that = (ProjectNativeComponentIdentifier) o;
+        DefaultNamedProjectComponentIdentifier that = (DefaultNamedProjectComponentIdentifier) o;
         return name.equals(that.name) && projectPath.equals(that.projectPath);
 
     }
