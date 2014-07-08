@@ -123,7 +123,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                 cCompiler.args "CUSTOM"
                 linker.args "CUSTOM"
             }
-            binaries.withType(StaticLibraryBinary) {
+            binaries.withType(ProjectStaticLibraryBinary) {
                 staticLibArchiver.args "CUSTOM"
             }
 """

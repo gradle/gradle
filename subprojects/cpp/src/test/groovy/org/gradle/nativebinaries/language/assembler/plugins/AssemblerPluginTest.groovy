@@ -139,10 +139,10 @@ class AssemblerPluginTest extends Specification {
                     binaries.all {
                         assembler.args "ARG1", "ARG2"
                     }
-                    binaries.withType(SharedLibraryBinary) {
+                    binaries.withType(ProjectSharedLibraryBinary) {
                         assembler.args "SHARED1", "SHARED2"
                     }
-                    binaries.withType(StaticLibraryBinary) {
+                    binaries.withType(ProjectStaticLibraryBinary) {
                         assembler.args "STATIC1", "STATIC2"
                     }
                 }

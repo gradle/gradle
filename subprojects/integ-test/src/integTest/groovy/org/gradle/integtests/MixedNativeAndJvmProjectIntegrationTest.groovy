@@ -38,8 +38,8 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
             task checkBinaries << {
                 assert binaries.mainClasses instanceof ProjectClassDirectoryBinary
-                assert binaries.mainExeExecutable instanceof NativeExecutableBinary
-                assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinary
+                assert binaries.mainExeExecutable instanceof ProjectNativeExecutableBinary
+                assert binaries.mainLibSharedLibrary instanceof ProjectSharedLibraryBinary
             }
 """
         expect:
@@ -70,7 +70,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         assert projectComponents.size() == 3
         assert projectComponents.nativeExe instanceof NativeExecutable
         assert projectComponents.nativeLib instanceof NativeLibrary
-        assert projectComponents.jvmLib instanceof JvmLibrary
+        assert projectComponents.jvmLib instanceof ProjectJvmLibrary
 
         assert nativeRuntime.executables as List == [projectComponents.nativeExe]
         assert nativeRuntime.libraries as List == [projectComponents.nativeLib]
@@ -78,9 +78,9 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
         assert binaries.size() == 4
         binaries.jvmLibJar instanceof ProjectJarBinary
-        binaries.nativeExeExecutable instanceof NativeExecutableBinary
-        binaries.nativeLibStaticLibrary instanceof StaticLibraryBinary
-        binaries.nativeLibSharedLibrary instanceof SharedLibraryBinary
+        binaries.nativeExeExecutable instanceof ProjectNativeExecutableBinary
+        binaries.nativeLibStaticLibrary instanceof ProjectStaticLibraryBinary
+        binaries.nativeLibSharedLibrary instanceof ProjectSharedLibraryBinary
     }
 """
         expect:

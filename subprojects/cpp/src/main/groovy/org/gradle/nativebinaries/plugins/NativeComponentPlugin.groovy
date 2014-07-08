@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeExecutableBinary
+import org.gradle.nativebinaries.ProjectSharedLibraryBinary
+import org.gradle.nativebinaries.ProjectStaticLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
@@ -29,7 +31,6 @@ import org.gradle.nativebinaries.test.NativeTestSuiteBinary
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.runtime.base.BinaryContainer
-
 /**
  * A plugin that creates tasks used for constructing native binaries.
  */
@@ -59,7 +60,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
             binary.tasks.add createInstallTask(project, binary);
         } else if (binary instanceof ProjectSharedLibraryBinary) {
             builderTask = createLinkSharedLibraryTask(project, binary)
-        } else if (binary instanceof StaticLibraryBinary) {
+        } else if (binary instanceof ProjectStaticLibraryBinary) {
             builderTask = createStaticLibraryTask(project, binary)
         } else {
             throw new RuntimeException("Not a valid binary type for building: " + binary)
@@ -101,7 +102,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         return linkTask
     }
 
-    private CreateStaticLibrary createStaticLibraryTask(ProjectInternal project, StaticLibraryBinary staticLibrary) {
+    private CreateStaticLibrary createStaticLibraryTask(ProjectInternal project, ProjectStaticLibraryBinary staticLibrary) {
         def binary = staticLibrary as ProjectNativeBinaryInternal
         CreateStaticLibrary task = project.task(binary.namingScheme.getTaskName("create"), type: CreateStaticLibrary) {
              description = "Creates ${staticLibrary}"

@@ -141,7 +141,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             }
             libraries {
                 hello {
-                    binaries.withType(StaticLibraryBinary) {
+                    binaries.withType(ProjectStaticLibraryBinary) {
                         ${helloWorldApp.compilerDefine("FRENCH")}
                     }
                 }

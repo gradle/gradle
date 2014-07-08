@@ -23,7 +23,6 @@ import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
 import org.gradle.nativebinaries.ProjectStaticLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
-import org.gradle.nativebinaries.test.NativeTestSuiteBinary;
 
 import java.util.List;
 

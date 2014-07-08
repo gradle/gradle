@@ -301,11 +301,11 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
             }
             libraries {
                 hello {
-                    binaries.withType(SharedLibraryBinary) {
+                    binaries.withType(ProjectSharedLibraryBinary) {
                         sharedLibraryFile = modPath(sharedLibraryFile)
                         sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
                     }
-                    binaries.withType(StaticLibraryBinary) {
+                    binaries.withType(ProjectStaticLibraryBinary) {
                         staticLibraryFile = modPath(staticLibraryFile)
                     }
                 }
@@ -343,11 +343,11 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
             }
             libraries {
                 hello {
-                    binaries.withType(SharedLibraryBinary) {
+                    binaries.withType(ProjectSharedLibraryBinary) {
                         sharedLibraryFile = modPath(sharedLibraryFile)
                         sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
                     }
-                    binaries.withType(StaticLibraryBinary) {
+                    binaries.withType(ProjectStaticLibraryBinary) {
                         staticLibraryFile = modPath(staticLibraryFile)
                     }
                 }

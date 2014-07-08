@@ -152,7 +152,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     libraries {
         both {}
         staticOnly {
-            binaries.withType(SharedLibraryBinary) {
+            binaries.withType(ProjectSharedLibraryBinary) {
                 buildable false
             }
         }
@@ -175,7 +175,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         main {
-            binaries.withType(SharedLibraryBinary) {
+            binaries.withType(ProjectSharedLibraryBinary) {
                 buildable = false
             }
         }

@@ -31,7 +31,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             allprojects {
                 apply plugin: "cpp"
                 // Allow static libraries to be linked into shared
-                binaries.withType(StaticLibraryBinary) {
+                binaries.withType(ProjectStaticLibraryBinary) {
                     if (toolChain in Gcc || toolChain in Clang) {
                         cppCompiler.args '-fPIC'
                     }

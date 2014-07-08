@@ -100,7 +100,7 @@
             To build either a static or shared native library binary,
             a <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component is added to the <literal>libraries</literal> container.
             Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.ProjectSharedLibraryBinary"/>
-            and at least one <apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/>.
+            and at least one <apilink class="org.gradle.nativebinaries.ProjectStaticLibraryBinary"/>.
         </para>
         <sample id="cppLibraries" dir="native-binaries/c" title="Defining a library component">
             <sourcefile file="build.gradle" snippet="libraries"/>
@@ -139,7 +139,7 @@
                 <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.ProjectSharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.ProjectStaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
             </tr>
         </table>
 

@@ -38,7 +38,7 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
             binaries.all {
                 linker.args "user32.lib"
             }
-            binaries.withType(SharedLibraryBinary) {
+            binaries.withType(ProjectSharedLibraryBinary) {
                 cppCompiler.define "DLL_EXPORT"
             }
 """
