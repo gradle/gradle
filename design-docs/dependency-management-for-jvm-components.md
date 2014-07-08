@@ -391,6 +391,7 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 #### Open issues
 
 - Expose through the DSL, or just through the APIs?
+- Change `gradle dependencyInsight` to use the JVM library component to decide the default dependencies to report on.
 
 ### Story: Build author declares a dependency on another Java library
 
@@ -813,19 +814,17 @@ Dependency resolution selects the best binary from each dependency for the targe
 - User runs `gradle components`
 - Presents basic details of each project component
     - JVM and native components
-    - Legacy JVM component
+    - Legacy JVM library and application
     - War, Ear
     - Test suites
-- Show component description
+    - Distribution
+- Show source sets and binaries for each component
 
 #### Implementation
 
-- Render the binaries and source sets for each component.
-- Display 'build' task for binary
-- Display source directories for source set
 - Display output locations for binary
-- Display header directories
-- hoist 'component with binaries' up and remove dependency on cpp project
+- Display native language header directories
+- Hoist 'component with binaries' up and remove dependency on cpp project
 - Add new task type to DSL guide.
 - Add basic implementation for legacy component types.
 - Add `description` to `ProjectComponent`.
@@ -834,8 +833,7 @@ Dependency resolution selects the best binary from each dependency for the targe
 - Add some general 'show properties' rendering.
 - Tweak report headers for single project builds.
 - Don't show chrome when report task is the only task scheduled to run.
-- Remove `Project.implicitTasks`.
-- Change help plugin so that it does not already create help tasks.
+- Port HelpTasksPlugin and WrapperPluginAutoApplyAction to Java.
 - Document in user guide.
 
 Issue: can't apply `cunit` plugin without `c` plugin also applied.
@@ -845,6 +843,7 @@ Issue: Java lang plugin does not declare any binaries.
 
 ### Story: User view component model as HTML report
 
+TBD
 
 # Open issues and Later work
 
