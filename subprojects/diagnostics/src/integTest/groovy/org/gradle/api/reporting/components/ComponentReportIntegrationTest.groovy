@@ -65,9 +65,9 @@ JVM library 'someLib'
 
 Source sets
     Java source 'someLib:java'
-        No source directories
+        src/someLib/java
     Resources 'someLib:resources'
-        No source directories
+        src/someLib/resources
 
 No binaries
 """)
