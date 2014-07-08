@@ -17,13 +17,13 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.nativebinaries.NativeExecutableBinary;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.SharedLibraryBinary;
 import org.gradle.nativebinaries.StaticLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
+import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
@@ -40,8 +40,8 @@ class ProjectNativeBinaryInitializer implements Action<ProjectNativeBinary> {
         File binaryOutputDir = new File(binariesOutputDir, namingScheme.getOutputDirectoryBase());
         String baseName = nativeBinary.getComponent().getBaseName();
 
-        if (nativeBinary instanceof NativeExecutableBinary) {
-            ((NativeExecutableBinary) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
+        if (nativeBinary instanceof ProjectNativeExecutableBinary) {
+            ((ProjectNativeExecutableBinary) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
         } else if (nativeBinary instanceof SharedLibraryBinary) {
             ((SharedLibraryBinary) nativeBinary).setSharedLibraryFile(new File(binaryOutputDir, tc.getSharedLibraryName(baseName)));
             ((SharedLibraryBinary) nativeBinary).setSharedLibraryLinkFile(new File(binaryOutputDir, tc.getSharedLibraryLinkFileName(baseName)));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries;
 
-import org.gradle.api.Incubating;
+package org.gradle.nativebinaries;
 
 import java.io.File;
 
 /**
- * A binary artifact for a {@link NativeExecutable}, targeted at a particular platform with specific configuration.
+ * An binary built by Gradle for a native application.
  */
-@Incubating
-public interface NativeExecutableBinary extends NativeBinary {
+public interface ProjectNativeExecutableBinary {
     /**
      * The executable file.
      */
     File getExecutableFile();
+
+    /**
+     * The executable file.
+     */
+    void setExecutableFile(File executableFile);
 }

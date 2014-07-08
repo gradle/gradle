@@ -17,15 +17,15 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinary;
+import org.gradle.nativebinaries.internal.DefaultProjectNativeExecutableBinary;
 import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 
 class DefaultNativeBinariesFactory implements NativeBinariesFactory {
     private final Instantiator instantiator;
@@ -43,7 +43,7 @@ class DefaultNativeBinariesFactory implements NativeBinariesFactory {
             createNativeBinary(ProjectSharedLibraryBinary.class, component, namingScheme.withTypeString("SharedLibrary").build(), toolChain, platform, buildType, flavor);
             createNativeBinary(ProjectStaticLibraryBinary.class, component, namingScheme.withTypeString("StaticLibrary").build(), toolChain, platform, buildType, flavor);
         } else {
-            createNativeBinary(ProjectNativeExecutableBinary.class, component, namingScheme.withTypeString("Executable").build(), toolChain, platform, buildType, flavor);
+            createNativeBinary(DefaultProjectNativeExecutableBinary.class, component, namingScheme.withTypeString("Executable").build(), toolChain, platform, buildType, flavor);
         }
     }
 

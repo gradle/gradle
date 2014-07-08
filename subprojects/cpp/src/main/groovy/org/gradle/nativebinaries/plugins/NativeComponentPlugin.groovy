@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.nativebinaries.NativeExecutableBinary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.ProjectNativeExecutableBinary
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
@@ -31,6 +32,7 @@ import org.gradle.nativebinaries.test.NativeTestSuiteBinary
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.runtime.base.BinaryContainer
+
 /**
  * A plugin that creates tasks used for constructing native binaries.
  */
@@ -55,7 +57,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
 
     def createTasks(ProjectInternal project, ProjectNativeBinaryInternal binary) {
         def builderTask
-        if (binary instanceof NativeExecutableBinary || binary instanceof NativeTestSuiteBinary) {
+        if (binary instanceof ProjectNativeExecutableBinary || binary instanceof NativeTestSuiteBinary) {
             builderTask = createLinkExecutableTask(project, binary)
             binary.tasks.add createInstallTask(project, binary);
         } else if (binary instanceof SharedLibraryBinary) {

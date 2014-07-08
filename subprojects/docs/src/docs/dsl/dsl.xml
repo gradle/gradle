@@ -496,9 +496,6 @@
                 <td>org.gradle.nativebinaries.NativeBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectNativeBinary</td>
-            </tr>
-            <tr>
                 <td>org.gradle.nativebinaries.NativeExecutableBinary</td>
             </tr>
             <tr>
@@ -506,6 +503,12 @@
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.StaticLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ProjectNativeBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ProjectNativeExecutableBinary</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.BuildType</td>

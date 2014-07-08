@@ -15,7 +15,6 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
@@ -25,14 +24,11 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.NativeBinaryTasks
-import org.gradle.nativebinaries.NativeDependencySet
-import org.gradle.nativebinaries.NativeExecutable
-import org.gradle.nativebinaries.NativeExecutableBinary
+import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
+import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.platform.Platform
 import spock.lang.Specification
@@ -197,6 +193,6 @@ class VisualStudioProjectConfigurationTest extends Specification {
     }
 
     interface NativeExecutableInternal extends NativeExecutable, ProjectNativeComponentInternal {}
-    interface TestExecutableBinary extends ProjectNativeBinaryInternal, NativeExecutableBinary, ExtensionAware {}
+    interface TestExecutableBinary extends ProjectNativeExecutableBinaryInternal, ExtensionAware {}
 
 }

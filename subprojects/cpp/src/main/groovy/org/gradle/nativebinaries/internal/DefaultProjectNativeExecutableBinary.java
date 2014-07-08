@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,17 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.nativebinaries.*;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
-public class ProjectNativeExecutableBinary extends AbstractProjectNativeBinary implements NativeExecutableBinary, ExecutableBinary {
+public class DefaultProjectNativeExecutableBinary extends AbstractProjectNativeBinary implements NativeExecutableBinary, ExecutableBinary, ProjectNativeExecutableBinaryInternal {
     private File executableFile;
 
-    public ProjectNativeExecutableBinary(NativeExecutable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public DefaultProjectNativeExecutableBinary(NativeExecutable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                          BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(executable, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }

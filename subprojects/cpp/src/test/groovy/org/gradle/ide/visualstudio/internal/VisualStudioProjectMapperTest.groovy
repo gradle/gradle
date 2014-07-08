@@ -15,6 +15,8 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
+import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
@@ -28,7 +30,7 @@ class VisualStudioProjectMapperTest extends Specification {
     def mapper = new VisualStudioProjectMapper()
 
     def executable = Mock(NativeExecutableInternal)
-    NativeExecutableBinaryInternal executableBinary
+    ProjectNativeExecutableBinaryInternal executableBinary
     def library = Mock(NativeLibraryInternal)
     def namingScheme = Mock(BinaryNamingScheme)
 
@@ -103,7 +105,7 @@ class VisualStudioProjectMapperTest extends Specification {
     }
 
     private def createExecutableBinary(String binaryName, def buildType, def platform) {
-        def binary = Mock(NativeExecutableBinaryInternal)
+        def binary = Mock(ProjectNativeExecutableBinaryInternal)
         binary.name >> binaryName
         binary.component >> executable
         binary.buildType >> buildType
@@ -136,7 +138,6 @@ class VisualStudioProjectMapperTest extends Specification {
 
     interface NativeExecutableInternal extends NativeExecutable, ProjectNativeComponentInternal {}
     interface NativeLibraryInternal extends NativeLibrary, ProjectNativeComponentInternal {}
-    interface NativeExecutableBinaryInternal extends NativeExecutableBinary, ProjectNativeBinaryInternal {}
     interface SharedLibraryBinaryInternal extends SharedLibraryBinary, ProjectNativeBinaryInternal {}
     interface StaticLibraryBinaryInternal extends StaticLibraryBinary, ProjectNativeBinaryInternal {}
 }
