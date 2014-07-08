@@ -78,9 +78,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     /**
      * <p>Subclass hook for implementations wanting to throw an exception when an attempt is made to add
      * an item with the same name as an existing item.</p>
-     * 
+     *
      * <p>This implementation does not thrown an exception, meaning that {@code add(T)} will simply return {@code false}.
-     * 
+     *
      * @param o The item that is being attempted to add.
      */
     protected void handleAttemptToAddItemWithNonUniqueName(T o) {
@@ -106,7 +106,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     public Namer<T> getNamer() {
         return (Namer)this.namer;
     }
-    
+
     protected Instantiator getInstantiator() {
         return instantiator;
     }

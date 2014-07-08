@@ -226,6 +226,28 @@ Now the build fails fast when exclude rule is configured with a wrong key.
     configurations.compile.exclude modue: "kafka"
 
 We suspect that the impact will be minimal to none hence we don't deprecate this behavior.
+
+### Container creation methods now take precedence over other methods with the same signature
+
+In response to the Gradle 2.0 regression GRADLE-3126, a change has been made to how container element configuration methods are dispatched.
+This is unlikely to impact builds as the actual implementation now matches what is usually the intended behavior.
+
+Prior to Gradle 2.1, the following build script would fail:
+
+    apply plugin: "java"
+    
+    task integrationTest {}
+    
+    sourceSets {
+      integrationTest {}
+    }
+    
+    assert sourceSets.findByName("integrationTest") != null
+    
+The `integrationTest` source set would not be created because there is already a viable `integrationTest {}` method.
+
+As of Gradle 2.1 the above script will not fail because it is interpreted that the intent is to create a new source set named `integrationTest`.
+This applies to all named domain object containers in Gradle.
  
 ## External contributions
 
