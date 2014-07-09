@@ -24,6 +24,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.PluginContainer;
@@ -198,28 +199,13 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         return plugins;
     }
 
-
     @Override
-    protected FileResolver getFileResolver() {
-        return fileResolver;
-    }
-
-    @Override
-    protected ScriptPluginFactory getScriptPluginFactory() {
-        return scriptPluginFactory;
-    }
-
-    @Override
-    protected ScriptHandlerFactory getScriptHandlerFactory() {
-        return scriptHandlerFactory;
+    protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
+        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getClassLoaderScope(), this);
     }
 
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
     }
 
-    @Override
-    protected ClassLoaderScope getBaseClassLoaderScope() {
-        return getClassLoaderScope();
-    }
 }

@@ -36,6 +36,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
@@ -856,14 +857,18 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
+
     @Override
+    protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
+    }
+
     @Inject
     protected ScriptPluginFactory getScriptPluginFactory() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
 
-    @Override
     @Inject
     protected ScriptHandlerFactory getScriptHandlerFactory() {
         // Decoration takes care of the implementation
@@ -874,7 +879,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return classLoaderScope;
     }
 
-    @Override
     public ClassLoaderScope getBaseClassLoaderScope() {
         return baseClassLoaderScope;
     }

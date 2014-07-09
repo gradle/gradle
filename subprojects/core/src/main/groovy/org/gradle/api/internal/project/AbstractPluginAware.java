@@ -17,12 +17,8 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Map;
@@ -41,16 +37,6 @@ abstract public class AbstractPluginAware implements PluginAware {
         action.execute();
     }
 
-    private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
-    }
-
-    protected abstract FileResolver getFileResolver();
-
-    protected abstract ScriptPluginFactory getScriptPluginFactory();
-
-    protected abstract ScriptHandlerFactory getScriptHandlerFactory();
-
-    protected abstract ClassLoaderScope getBaseClassLoaderScope();
+    abstract protected DefaultObjectConfigurationAction createObjectConfigurationAction();
 
 }
