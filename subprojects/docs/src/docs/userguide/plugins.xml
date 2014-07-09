@@ -64,16 +64,10 @@
                 unqualified form.
             </para>
             <para>
-                We could also have used the following syntax:
+                This method can also accept a class to identify the plugin:
             </para>
             <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a binary plugin by type">
                 <sourcefile file="build.gradle" snippet="apply-by-type"/>
-            </sample>
-            <para>
-                Thanks to Gradle's default imports (see <xref linkend='ide_support'/>) you could also write:
-            </para>
-            <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a binary plugin by type">
-                <sourcefile file="build.gradle" snippet="apply-by-type-with-import"/>
             </sample>
             <para>
                 The application of plugins is <emphasis>idempotent</emphasis>. That is, a plugin can be applied multiple times. If the plugin
@@ -135,7 +129,7 @@
             <listitem>Only <literal>id</literal> method calls may appear.</listitem>
             <listitem><literal>id</literal> calls may only be followed by a <literal>version</literal> method call on the resulting object.</listitem>
             <listitem><literal>id</literal> and <literal>version</literal> methods must be called with a string literal argument (i.e. not a variable).</listitem>
-            <listitem>The <literal>plugins</literal> script block must follow any <literal>buildscript</literal> script block, but must precede any other logic in the script.</listitem>
+            <listitem>The <literal>plugins</literal> script block must follow any <literal>buildscript</literal> script block, but must precede all other logic in the script.</listitem>
         </itemizedlist>
         <para>
             Only project build scripts may contain plugins script blocks.  They cannot be used in settings scripts, init scripts or script plugins.

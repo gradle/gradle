@@ -149,7 +149,7 @@
         </sample>
 
         <para>
-                So how does Gradle find the <apilink class="org.gradle.api.Plugin"/> implementation? The answer is you need to provide a properties file in the jar's
+            So how does Gradle find the <apilink class="org.gradle.api.Plugin"/> implementation? The answer is you need to provide a properties file in the jar's
             <filename>META-INF/gradle-plugins</filename> directory that matches the id of your plugin.
         </para>
 
@@ -158,8 +158,9 @@
         </sample>	
 
         <para>
-            Notice that the properties filename matches the plugin id and is placed in the resources folder, and
-            that the <literal>implementation-class</literal> property identifies the <apilink class="org.gradle.api.Plugin"/> implementation class.
+            Now, when another build uses this plugin, it will refer to it by its id: <literal>org.samples.greeting</literal>.  Notice that
+            the properties filename matches the plugin id and is placed in the resources folder, and that the <literal>implementation-class</literal>
+            property identifies the <apilink class="org.gradle.api.Plugin"/> implementation class.
         </para>
 
         <section>
@@ -182,7 +183,7 @@
                 <listitem>Must contain at least one '.' character separating the namespace from the name of the plugin.</listitem>
                 <listitem>Conventionally use a lowercase reverse domain name convention for the namespace.</listitem>
                 <listitem>Conventionally use only lowercase characters in the name.</listitem>
-                <listitem><literal>org.gradle</literal> and <literal>com.gradleware</literal> namespaces are reserved.</listitem>
+                <listitem><literal>org.gradle</literal> and <literal>com.gradleware</literal> namespaces may not be used.</listitem>
                 <listitem>Cannot start or end with a '.' character.</listitem>
                 <listitem>Cannot contain consecutive '.' characters (i.e. '..').</listitem>
             </itemizedlist>
@@ -203,7 +204,7 @@
             </para>
             <para>
                 If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the
-                <ulink url="http://plugins.gradle.org">Gradle plugin portal</ulink>.  This site provides the ability search for and
+                <ulink url="http://plugins.gradle.org">Gradle plugin portal</ulink>.  This site provides the ability to search for and
                 gather information about plugins contributed by the Gradle community.  See the instructions
                 <ulink url="http://plugins.gradle.org/submit">here</ulink> on how to make your plugin available on this site.
             </para>
