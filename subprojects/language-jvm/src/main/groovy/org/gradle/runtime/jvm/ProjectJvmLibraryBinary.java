@@ -25,7 +25,7 @@ import java.io.File;
  * Definition of a JVM binary to be built by Gradle.
  */
 @Incubating
-public interface ProjectJvmBinary extends ProjectBinary {
+public interface ProjectJvmLibraryBinary extends ProjectBinary {
     /**
      * The set of tasks associated with this binary.
      */

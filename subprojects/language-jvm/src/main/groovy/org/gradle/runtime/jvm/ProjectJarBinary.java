@@ -25,7 +25,7 @@ import java.io.File;
  * Definition of a Jar file binary that is to be built by Gradle.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectJarBinary extends ProjectJvmBinary {
+public interface ProjectJarBinary extends ProjectJvmLibraryBinary {
     /**
      * The ProjectJvmLibrary that this binary belongs to.
      */

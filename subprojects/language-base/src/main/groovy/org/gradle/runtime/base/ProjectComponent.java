@@ -24,7 +24,6 @@ import org.gradle.language.base.LanguageSourceSet;
 /**
  * A software component that is built by a Gradle project.
  *
- * TODO:DAZ Better name/package. Need to decide what a 'component' is.
  * TODO:DAZ Maybe add a generic type for the Component type produced by this ProjectComponent
  */
 @Incubating

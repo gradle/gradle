@@ -19,11 +19,11 @@ package org.gradle.runtime.jvm.internal
 import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.runtime.jvm.ProjectJvmBinary
+import org.gradle.runtime.jvm.ProjectJvmLibraryBinary
 import spock.lang.Specification
 
 class DefaultJvmBinaryTasksTest extends Specification {
-    def binary = Mock(ProjectJvmBinary)
+    def binary = Mock(ProjectJvmLibraryBinary)
     def tasks = new DefaultJvmBinaryTasks(binary)
 
     def "provides access to build task"() {

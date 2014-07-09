@@ -55,7 +55,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     private static class CreateProcessResourcesTasks extends ModelRule {
         @SuppressWarnings("UnusedDeclaration")
         void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
-            // TODO:DAZ Make this apply to all types of ProjectJvmBinary
+            // TODO:DAZ Make this apply to all types of ProjectJvmLibraryBinary
             for (ProjectJarBinaryInternal binary : binaries.withType(ProjectJarBinaryInternal.class)) {
                 for (ResourceSet resourceSet : binary.getSource().withType(ResourceSet.class)) {
 
