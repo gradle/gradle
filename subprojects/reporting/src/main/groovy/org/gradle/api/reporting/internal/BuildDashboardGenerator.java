@@ -20,19 +20,22 @@ import com.googlecode.jatl.Html;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
+import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class BuildDashboardGenerator {
+public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, File> {
     private Set<Report> reports;
     private File outputFile;
 
-    public BuildDashboardGenerator(Set<Report> reports, File outputFile) {
+    @Override
+    public void render(Collection<Report> reports, File outputFile) {
         this.reports = new TreeSet<Report>(new Comparator<Report>() {
             public int compare(Report o1, Report o2) {
                 return o1.getDisplayName().compareTo(o2.getDisplayName());
@@ -40,9 +43,7 @@ public class BuildDashboardGenerator {
         });
         this.reports.addAll(reports);
         this.outputFile = outputFile;
-    }
 
-    public void generate() {
         try {
             GFileUtils.parentMkdirs(outputFile);
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
