@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Project;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
@@ -115,7 +116,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginContainer createPluginContainer() {
-        return new DefaultPluginContainer(get(PluginRegistry.class), project);
+        return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
