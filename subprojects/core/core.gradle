@@ -23,10 +23,12 @@ dependencies {
 
     publishCompile libraries.slf4j_api
     publishCompile project(":baseServices")
+    publishCompile project(":baseServicesGroovy"), {
+        exclude group: "org.codehaus.groovy", module: "groovy-all"
+    }
     publishCompile project(":messaging")
     publishCompile project(":resources")
 
-    compile project(":baseServicesGroovy")
     compile project(":modelCore")
     compile project(":modelGroovy")
     compile libraries.asm
