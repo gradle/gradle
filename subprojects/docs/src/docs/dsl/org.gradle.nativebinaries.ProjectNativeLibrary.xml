@@ -23,6 +23,15 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>api</td>
+            </tr>
+            <tr>
+                <td>shared</td>
+            </tr>
+            <tr>
+                <td>static</td>
+            </tr>
         </table>
     </section>
     <section>

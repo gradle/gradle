@@ -484,9 +484,6 @@
         <table>
             <title>Native component core types</title>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectNativeComponent</td>
-            </tr>
-            <tr>
                 <td>org.gradle.nativebinaries.NativeExecutable</td>
             </tr>
             <tr>
@@ -512,6 +509,15 @@
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.PrebuiltStaticLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ProjectNativeComponent</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ProjectNativeExecutable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ProjectNativeLibrary</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.ProjectNativeBinary</td>
@@ -547,6 +553,15 @@
                 <td>org.gradle.nativebinaries.toolchain.VisualCpp</td>
             </tr>
             <tr>
+                <td>org.gradle.nativebinaries.test.ProjectNativeTestSuite</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.test.cunit.CUnitTestSuite</td>
+            </tr>
+            <tr>
                 <td>org.gradle.language.assembler.AssemblerSourceSet</td>
             </tr>
             <tr>
@@ -569,9 +584,6 @@
             </tr>
             <tr>
                 <td>org.gradle.ide.visualstudio.VisualStudioSolution</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativebinaries.test.cunit.CUnitTestSuite</td>
             </tr>
         </table>
     </section>

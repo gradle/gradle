@@ -183,6 +183,7 @@ TBD - make this more explicit re. what is actually not longer available.
 - NativeTestSuiteBinary no longer extends NativeExecutableBinary
 - Merged TestSuiteExecutableBinary into NativeTestSuiteBinary
 - Renamed CUnitTestSuiteExecutableBinary -> CUnitTestSuiteBinary
+- TODO: document all of the changes once they are finalised
 
 ### Changes to incubating Java language plugins
 
@@ -192,6 +193,10 @@ language plugins was been introduced in Gradle 1.x. This development continues i
 
 The existing `java` plugin is unchanged: only users who explicitly applied the `jvm-lang` or `java-lang` plugins
 will be affected by this change.
+
+#### Domain model reorganisation
+
+- TODO: document all of the changes once they are finalised
 
 ### Generated maven pom contains dependency exclusions
 
