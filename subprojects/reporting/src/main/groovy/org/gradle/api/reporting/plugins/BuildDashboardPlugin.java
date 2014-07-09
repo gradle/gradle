@@ -29,7 +29,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import java.util.concurrent.Callable;
 
 /**
- * Adds a task, "buildDashboard", that aggregates the output of all tasks executed during the build that produce reports.
+ * Adds a task, "buildDashboard", that aggregates the output of all tasks that produce reports.
  */
 @Incubating
 public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
@@ -40,6 +40,8 @@ public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().apply(ReportingBasePlugin.class);
 
         final GenerateBuildDashboard buildDashboardTask = project.getTasks().create(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard.class);
+        buildDashboardTask.setDescription("Generates a dashboard of all the reports produced by this build.");
+        buildDashboardTask.setGroup("reporting");
 
         DirectoryReport htmlReport = buildDashboardTask.getReports().getHtml();
         ConventionMapping htmlReportConventionMapping = new DslObject(htmlReport).getConventionMapping();
