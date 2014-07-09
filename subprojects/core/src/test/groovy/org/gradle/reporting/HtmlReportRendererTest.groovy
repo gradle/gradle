@@ -22,23 +22,28 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class HtmlReportRendererTest extends Specification {
-    ReportRenderer<String, SimpleHtmlWriter> abstractHtmlReportRenderer = new ReportRenderer<String, SimpleHtmlWriter>() {
-        @Override
-        void render(String model, SimpleHtmlWriter htmlWriter) {
-            htmlWriter.startElement("pre").characters(model).endElement()
-        }
-    }
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final HtmlReportRenderer renderer = new HtmlReportRenderer()
 
-    def "renders report to file encoded using UTF-8"() {
-        File destFile = tmpDir.file("out.html")
+    def "renders HTML to file encoded using UTF-8"() {
+        def destDir = tmpDir.file("out")
+        def destFile = destDir.file("index.html")
+        def reportRenderer = Mock(ReportRenderer)
+        def pageRenderer = Mock(ReportRenderer)
 
         when:
-        renderer.renderer(abstractHtmlReportRenderer).render("test: \u03b1\u03b2", destFile)
+        renderer.render("test: \u03b1\u03b2", reportRenderer, destDir)
 
         then:
+        1 * reportRenderer.render(_, _) >> { String model, HtmlReportContext context ->
+            context.renderPage("index.html", model, pageRenderer)
+        }
+        1 * pageRenderer.render(_, _) >> { String model, SimpleHtmlWriter htmlWriter ->
+            htmlWriter.startElement("pre").characters(model).endElement()
+        }
+
+        and:
         destFile.getText("utf-8") == TextUtil.toPlatformLineSeparators('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <pre>test: \u03b1\u03b2</pre>
@@ -47,15 +52,18 @@ class HtmlReportRendererTest extends Specification {
     }
 
     def "copies resources into output directory"() {
-        File destFile = tmpDir.file('report.txt')
-
-        given:
-        renderer.requireResource(getClass().getResource("base-style.css"))
+        def destDir = tmpDir.file("out")
+        def reportRenderer = Mock(ReportRenderer)
 
         when:
-        renderer.renderer(abstractHtmlReportRenderer).render("test", destFile)
+        renderer.render("model", reportRenderer, destDir)
 
         then:
-        tmpDir.file("css/base-style.css").file
+        1 * reportRenderer.render(_, _) >> { String model, HtmlReportContext context ->
+            context.requireResource(getClass().getResource("base-style.css"))
+        }
+
+        and:
+        destDir.file("css/base-style.css").file
     }
 }

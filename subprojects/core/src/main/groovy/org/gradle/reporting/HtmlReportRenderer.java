@@ -16,6 +16,7 @@
 package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
@@ -29,43 +30,58 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class HtmlReportRenderer {
-    private final Set<URL> resources = new HashSet<URL>();
-
-    public void requireResource(URL resource) {
-        resources.add(resource);
-    }
-
-    public <T> TextReportRenderer<T> renderer(final ReportRenderer<T, SimpleHtmlWriter> renderer) {
-        return toFile(new ReportRenderer<T, Writer>() {
-            @Override
-            public void render(T model, Writer writer) throws IOException {
-                SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
-                htmlWriter.startElement("html");
-                renderer.render(model, htmlWriter);
-                htmlWriter.endElement();
-            }
-        });
-    }
-
-    private <T> TextReportRenderer<T> toFile(final ReportRenderer<T, Writer> renderer) {
-        return new TextReportRenderer<T>() {
-            public void render(final T model, File file) {
-                IoActions.writeTextFile(file, "utf-8", new ErroringAction<Writer>() {
-                    @Override
-                    protected void doExecute(Writer writer) throws Exception {
-                        renderer.render(model, writer);
-                    }
-                });
-                for (URL resource : resources) {
-                    String name = StringUtils.substringAfterLast(resource.getPath(), "/");
-                    String type = StringUtils.substringAfterLast(resource.getPath(), ".");
-                    File destFile = new File(file.getParentFile(), String.format("%s/%s", type, name));
-                    if (!destFile.exists()) {
-                        destFile.getParentFile().mkdirs();
-                        GFileUtils.copyURLToFile(resource, destFile);
-                    }
+    public <T> void render(T model, ReportRenderer<T, HtmlReportContext<SimpleHtmlWriter>> renderer, final File outputDirectory) {
+        try {
+            outputDirectory.mkdirs();
+            DefaultHtmlReportContext context = new DefaultHtmlReportContext(outputDirectory);
+            renderer.render(model, context);
+            for (URL resource : context.resources) {
+                String name = StringUtils.substringAfterLast(resource.getPath(), "/");
+                String type = StringUtils.substringAfterLast(resource.getPath(), ".");
+                File destFile = new File(outputDirectory, String.format("%s/%s", type, name));
+                if (!destFile.exists()) {
+                    GFileUtils.copyURLToFile(resource, destFile);
                 }
             }
-        };
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static class DefaultHtmlReportContext extends HtmlReportContext<SimpleHtmlWriter> {
+        private final File outputDirectory;
+        private final Set<URL> resources = new HashSet<URL>();
+
+        public DefaultHtmlReportContext(File outputDirectory) {
+            this.outputDirectory = outputDirectory;
+        }
+
+        @Override
+        public void requireResource(URL resource) {
+            resources.add(resource);
+        }
+
+        @Override
+        public <T> void renderPage(String name, final T model, final ReportRenderer<T, SimpleHtmlWriter> renderer) {
+            File outputFile = new File(outputDirectory, name);
+            IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
+                @Override
+                protected void doExecute(Writer writer) throws Exception {
+                    renderer(renderer).render(model, writer);
+                }
+            });
+        }
+
+        private <T> ReportRenderer<T, Writer> renderer(final ReportRenderer<T, SimpleHtmlWriter> renderer) {
+            return new ReportRenderer<T, Writer>() {
+                @Override
+                public void render(T model, Writer writer) throws IOException {
+                    SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
+                    htmlWriter.startElement("html");
+                    renderer.render(model, htmlWriter);
+                    htmlWriter.endElement();
+                }
+            };
+        }
     }
 }

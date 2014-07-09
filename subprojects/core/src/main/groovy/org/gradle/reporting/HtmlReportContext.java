@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.reporting;
 
-import java.io.File;
+import java.net.URL;
 
-public abstract class TextReportRenderer<T> extends ReportRenderer<T, File> {
-    /**
-     * Renders the report for the given model to a file.
-     */
-    @Override
-    abstract public void render(T model, File output);
+public abstract class HtmlReportContext<D> {
+    public abstract void requireResource(URL resource);
+
+    public abstract <T> void renderPage(String name, T model, ReportRenderer<T, D> renderer);
 }
