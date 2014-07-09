@@ -29,7 +29,7 @@ public class ProfileReportRenderer {
         renderer.render(buildProfile, new ProfileRenderer(file.getName()), file.getParentFile());
     }
 
-    private static class ProfileRenderer extends ReportRenderer<BuildProfile, HtmlReportContext<SimpleHtmlWriter>> {
+    private static class ProfileRenderer extends ReportRenderer<BuildProfile, HtmlReportBuilder<SimpleHtmlWriter>> {
         private final String name;
 
         public ProfileRenderer(String name) {
@@ -37,12 +37,8 @@ public class ProfileReportRenderer {
         }
 
         @Override
-        public void render(BuildProfile model, HtmlReportContext<SimpleHtmlWriter> output) throws IOException {
-            output.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
-            output.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
-            output.requireResource(getClass().getResource("/org/gradle/reporting/css3-pie-1.0beta3.htc"));
-            output.requireResource(getClass().getResource("style.css"));
-            output.renderPage(name, model, new ProfilePageRenderer());
+        public void render(BuildProfile model, HtmlReportBuilder<SimpleHtmlWriter> output) throws IOException {
+            output.render(name, model, new ProfilePageRenderer());
         }
     }
 

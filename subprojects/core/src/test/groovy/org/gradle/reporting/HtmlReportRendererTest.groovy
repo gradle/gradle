@@ -28,7 +28,6 @@ class HtmlReportRendererTest extends Specification {
 
     def "renders HTML to file encoded using UTF-8"() {
         def destDir = tmpDir.file("out")
-        def destFile = destDir.file("index.html")
         def reportRenderer = Mock(ReportRenderer)
         def pageRenderer = Mock(ReportRenderer)
 
@@ -36,15 +35,15 @@ class HtmlReportRendererTest extends Specification {
         renderer.render("test: \u03b1\u03b2", reportRenderer, destDir)
 
         then:
-        1 * reportRenderer.render(_, _) >> { String model, HtmlReportContext context ->
-            context.renderPage("index.html", model, pageRenderer)
+        1 * reportRenderer.render(_, _) >> { String model, HtmlReportBuilder builder ->
+            builder.renderPage("index.html", model, pageRenderer)
         }
         1 * pageRenderer.render(_, _) >> { String model, SimpleHtmlWriter htmlWriter ->
             htmlWriter.startElement("pre").characters(model).endElement()
         }
 
         and:
-        destFile.getText("utf-8") == TextUtil.toPlatformLineSeparators('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+        destDir.file("index.html").getText("utf-8") == TextUtil.toPlatformLineSeparators('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <pre>test: \u03b1\u03b2</pre>
 </html>
@@ -59,11 +58,33 @@ class HtmlReportRendererTest extends Specification {
         renderer.render("model", reportRenderer, destDir)
 
         then:
-        1 * reportRenderer.render(_, _) >> { String model, HtmlReportContext context ->
-            context.requireResource(getClass().getResource("base-style.css"))
+        1 * reportRenderer.render(_, _) >> { String model, HtmlReportBuilder builder ->
+            builder.requireResource(getClass().getResource("base-style.css"))
         }
 
         and:
+        destDir.file("css/base-style.css").file
+    }
+
+    def "copies page resources into output directory"() {
+        def destDir = tmpDir.file("out")
+        def reportRenderer = Mock(ReportRenderer)
+        def pageRenderer = Mock(ReportRenderer)
+
+        when:
+        renderer.render("model", reportRenderer, destDir)
+
+        then:
+        1 * reportRenderer.render(_, _) >> { String model, HtmlReportBuilder builder ->
+            builder.render("child/page.html", model, pageRenderer)
+        }
+        1 * pageRenderer.render(_, _) >> { String model, HtmlPageBuilder<SimpleHtmlWriter> builder ->
+            def link = builder.requireResource(getClass().getResource("base-style.css"))
+            builder.output.startElement("pre").characters(link).endElement()
+        }
+
+        and:
+        destDir.file("child/page.html").getText("utf-8").contains("<pre>../css/base-style.css</pre>")
         destDir.file("css/base-style.css").file
     }
 }

@@ -18,8 +18,10 @@ package org.gradle.reporting;
 
 import java.net.URL;
 
-public abstract class HtmlReportContext<D> {
-    public abstract void requireResource(URL resource);
+public interface HtmlReportBuilder<D> {
+    void requireResource(URL resource);
 
-    public abstract <T> void renderPage(String name, T model, ReportRenderer<T, D> renderer);
+    <T> void renderPage(String name, T model, ReportRenderer<T, D> renderer);
+
+    <T> void render(String name, T model, ReportRenderer<T, HtmlPageBuilder<D>> renderer);
 }

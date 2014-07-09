@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.reporting.HtmlReportContext;
+import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.Clock;
@@ -72,18 +72,14 @@ public class DefaultTestReport implements TestReporter {
     private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, File reportDir) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-            htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportContext<SimpleHtmlWriter>>() {
+            htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder<SimpleHtmlWriter>>() {
                 @Override
-                public void render(AllTestResults model, HtmlReportContext<SimpleHtmlWriter> output) throws IOException {
-                    output.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
-                    output.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
-                    output.requireResource(getClass().getResource("/org/gradle/reporting/css3-pie-1.0beta3.htc"));
-                    output.requireResource(getClass().getResource("style.css"));
-                    output.renderPage("index.html", model, new OverviewPageRenderer());
+                public void render(AllTestResults model, HtmlReportBuilder<SimpleHtmlWriter> output) throws IOException {
+                    output.render("index.html", model, new OverviewPageRenderer());
                     for (PackageTestResults packageResults : model.getPackages()) {
-                        output.renderPage(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer());
+                        output.render(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer());
                         for (ClassTestResults classResults : packageResults.getClasses()) {
-                            output.renderPage(classResults.getBaseUrl(), classResults, new ClassPageRenderer(classResults.getId(), resultsProvider));
+                            output.render(classResults.getBaseUrl(), classResults, new ClassPageRenderer(classResults.getId(), resultsProvider));
                         }
                     }
                 }
