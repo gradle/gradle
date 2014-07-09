@@ -45,15 +45,15 @@ class DistributionPlugin implements Plugin<Project> {
     /**
      * Name of the main distribution
      */
-    static final String MAIN_DISTRIBUTION_NAME = "main"
+    private static final String MAIN_DISTRIBUTION_NAME = "main"
 
-    static final String DISTRIBUTION_GROUP = "distribution"
-    static final String TASK_DIST_ZIP_NAME = "distZip"
-    static final String TASK_DIST_TAR_NAME = "distTar"
-    static final String TASK_INSTALL_NAME = "installDist"
+    private static final String DISTRIBUTION_GROUP = "distribution"
+    private static final String TASK_DIST_ZIP_NAME = "distZip"
+    private static final String TASK_DIST_TAR_NAME = "distTar"
+    private static final String TASK_INSTALL_NAME = "installDist"
 
-    private Instantiator instantiator
-    private FileOperations fileOperations
+    private final Instantiator instantiator
+    private final FileOperations fileOperations
 
     @Inject
     public DistributionPlugin(Instantiator instantiator,FileOperations fileOperations) {
@@ -64,7 +64,7 @@ class DistributionPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.plugins.apply(BasePlugin)
 
-        def distributions = project.extensions.create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations)
+        def distributions = project.extensions.create("distributions", DefaultDistributionContainer, Distribution, instantiator, fileOperations)
 
         // TODO - refactor this action out so it can be unit tested
         distributions.all { dist ->
