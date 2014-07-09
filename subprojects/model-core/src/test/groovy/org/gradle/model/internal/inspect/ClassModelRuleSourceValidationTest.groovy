@@ -55,7 +55,7 @@ class ClassModelRuleSourceValidationTest extends Specification {
     @Unroll
     def "invalid #type - #reason"() {
         when:
-        ModelRuleInspector.validate(type)
+        new ModelRuleInspector().validate(type)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -90,7 +90,7 @@ class ClassModelRuleSourceValidationTest extends Specification {
     @Unroll
     def "valid #type"() {
         when:
-        ModelRuleInspector.validate(type)
+        new ModelRuleInspector().validate(type)
 
         then:
         noExceptionThrown()

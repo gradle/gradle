@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
@@ -23,6 +24,7 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.ModelPath;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.*;
 
 import java.lang.reflect.Constructor;
@@ -30,8 +32,26 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
+import java.util.Set;
 
 public class ModelRuleInspector {
+
+    // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
+    public Set<Class<?>> getDeclaredSources(Class<?> container) {
+        Class<?>[] declaredClasses = container.getDeclaredClasses();
+        if (declaredClasses.length == 0) {
+            return Collections.emptySet();
+        } else {
+            ImmutableSet.Builder<Class<?>> found = ImmutableSet.builder();
+            for (Class<?> declaredClass : declaredClasses) {
+                if (declaredClass.isAnnotationPresent(RuleSource.class)) {
+                    found.add(declaredClass);
+                }
+            }
+
+            return found.build();
+        }
+    }
 
     // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)
     public <T> void inspect(Class<T> source, ModelRegistry modelRegistry) {
@@ -100,7 +120,7 @@ public class ModelRuleInspector {
      *
      * @param source the class the validate
      */
-    static void validate(Class<?> source) {
+    public void validate(Class<?> source) throws InvalidModelRuleDeclarationException {
 
         // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
 

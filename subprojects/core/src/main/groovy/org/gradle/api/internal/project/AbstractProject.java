@@ -38,6 +38,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
+import org.gradle.api.internal.plugins.PluginModelRuleExtractor;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -62,6 +63,7 @@ import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.ModelRegistry;
+import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.process.ExecResult;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
@@ -860,7 +862,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), new PluginModelRuleExtractor(new ModelRuleInspector()), getBaseClassLoaderScope(), this);
     }
 
     @Inject

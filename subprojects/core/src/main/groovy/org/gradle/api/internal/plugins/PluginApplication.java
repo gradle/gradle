@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,27 @@
  * limitations under the License.
  */
 
-/*
- * The model management core.
- */
-apply plugin: "groovy"
+package org.gradle.api.internal.plugins;
 
-dependencies {
-    compile libraries.slf4j_api
-    compile project(':baseServices')
-    testCompile libraries.groovy
-    integTestCompile project(":core")
+import org.gradle.api.Plugin;
+import org.gradle.api.plugins.PluginAware;
+
+public class PluginApplication {
+
+    private final Plugin plugin;
+    private final PluginAware target;
+
+    public PluginApplication(Plugin plugin, PluginAware target) {
+        this.plugin = plugin;
+        this.target = target;
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
+    }
+
+    public PluginAware getTarget() {
+        return target;
+    }
+
 }
-
-useTestFixtures()
-useClassycle()

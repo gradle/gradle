@@ -18,10 +18,12 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.model.Model
 import org.gradle.model.ModelPath
+import org.gradle.model.RuleSource
 import org.gradle.model.internal.DefaultModelRegistry
 import org.gradle.model.internal.ModelRegistry
 import org.gradle.model.internal.ModelState
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ModelRuleInspectorTest extends Specification {
 
@@ -66,5 +68,32 @@ class ModelRuleInspectorTest extends Specification {
         element.name == "foo"
     }
 
+    static class HasOneSource {
+        @RuleSource
+        static class Source {}
+
+        static class NotSource {}
+    }
+
+    static class HasTwoSources {
+        @RuleSource
+        static class SourceOne {}
+        @RuleSource
+        static class SourceTwo {}
+
+        static class NotSource {}
+    }
+
+    @Unroll
+    def "find model rule sources - #clazz"() {
+        expect:
+        new ModelRuleInspector().getDeclaredSources(clazz) == expected.toSet()
+
+        where:
+        clazz         | expected
+        String        | []
+        HasOneSource  | [HasOneSource.Source]
+        HasTwoSources | [HasTwoSources.SourceOne, HasTwoSources.SourceTwo]
+    }
 
 }

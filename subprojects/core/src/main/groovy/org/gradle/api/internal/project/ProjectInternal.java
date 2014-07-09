@@ -37,8 +37,9 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.internal.ModelRegistry;
+import org.gradle.model.internal.ModelRegistryScope;
 
-public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider {
+public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope {
     ProjectInternal getParent();
 
     ProjectInternal getRootProject();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-/*
- * The model management core.
- */
-apply plugin: "groovy"
+package org.gradle.api.internal.plugins;
 
-dependencies {
-    compile libraries.slf4j_api
-    compile project(':baseServices')
-    testCompile libraries.groovy
-    integTestCompile project(":core")
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
+
+@Contextual
+public class PluginApplicationException extends GradleException {
+
+    public PluginApplicationException(String pluginIdentity, Throwable cause) {
+        super(String.format("Failed to apply plugin [" + pluginIdentity + "]"), cause);
+    }
 }
-
-useTestFixtures()
-useClassycle()

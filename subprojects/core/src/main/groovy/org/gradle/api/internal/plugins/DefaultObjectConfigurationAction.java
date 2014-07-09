@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileResolver;
@@ -27,6 +28,7 @@ import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.internal.Actions;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -34,11 +36,13 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultObjectConfigurationAction implements ObjectConfigurationAction {
+
     private final FileResolver resolver;
     private final ScriptPluginFactory configurerFactory;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
+    private final Action<? super PluginApplication> postApplyAction;
     private final ClassLoaderScope classLoaderScope;
     private final Object[] defaultTargets;
 
@@ -49,9 +53,14 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             ClassLoaderScope classLoaderScope,
             Object... defaultTargets
     ) {
+        this(resolver, configurerFactory, scriptHandlerFactory, Actions.doNothing(), classLoaderScope, defaultTargets);
+    }
+
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, Action<? super PluginApplication> postApplyAction, ClassLoaderScope classLoaderScope, Object... defaultTargets) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
+        this.postApplyAction = postApplyAction;
         this.classLoaderScope = classLoaderScope;
         this.defaultTargets = defaultTargets;
     }
@@ -103,7 +112,12 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         for (Object target : targets) {
             if (target instanceof PluginAware) {
                 PluginAware pluginAware = (PluginAware) target;
-                pluginAware.getPlugins().apply(pluginClass);
+                try {
+                    Plugin plugin = pluginAware.getPlugins().apply(pluginClass);
+                    postApplyAction.execute(new PluginApplication(plugin, pluginAware));
+                } catch (Exception e) {
+                    throw new PluginApplicationException("class '" + pluginClass.getName() + "'", e);
+                }
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
             }
@@ -114,7 +128,12 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         for (Object target : targets) {
             if (target instanceof PluginAware) {
                 PluginAware pluginAware = (PluginAware) target;
-                pluginAware.getPlugins().apply(pluginId);
+                try {
+                    Plugin plugin = pluginAware.getPlugins().apply(pluginId);
+                    postApplyAction.execute(new PluginApplication(plugin, pluginAware));
+                } catch (Exception e) {
+                    throw new PluginApplicationException("id '" + pluginId + "'", e);
+                }
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
             }

@@ -50,11 +50,13 @@ Introduce some mechanism where a plugin can statically declare that a model obje
 
 A mock up:
 
-    public class SomePlugin { // Does not implement Plugin<?>
-
-        @Model("something")
-        public MyModel createSomething() {
-            ...
+    public class SomePlugin implements Plugin<Project>
+        @RuleSource
+        static class Rules {
+            @Model("something")
+            MyModel createSomething() {
+                ...
+            }
         }
     }
 
@@ -68,11 +70,11 @@ A mock up:
 
 ### Test cases
 
-- Build script configuration closure receives the model instance created by the plugin.
-- Build script configuration closure is executed only when the model is used as input to some rule.
+- ~~Build script configuration closure receives the model instance created by the plugin.~~
+- ~~Build script configuration closure is executed only when the model is used as input to some rule.~~
 - Reasonable error message when two rules create models with same name.
 - Reasonable error messages when creation rule or configuration closure fail.
-- Reasonable error messages when plugin does not correctly follow static pattern.
+- ~~Reasonable error messages when plugin does not correctly follow static pattern.~~
 
 ### Open issues
 
@@ -82,7 +84,6 @@ A mock up:
 - Exact pattern to use to determine which model(s) a plugin exposes
     - Alternative pattern that declares only the type and name and Gradle takes care of decoration, instantiation and dependency injection
 - Should assert that every model object is decorated, however it happens to be created.
-- Force rule methods to be static? Plugins to be stateless (eg no fields)?
 - Also add an API where a plugin can declare models dynamically?
 - DSL reference documents the model.
 - Another plugin or build script configures model.
