@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
@@ -23,6 +24,7 @@ import java.io.File;
 /**
  * A static library binary built by Gradle for a native library.
  */
+@Incubating
 public interface ProjectStaticLibraryBinary extends ProjectNativeBinary {
     /**
      * The static library file.

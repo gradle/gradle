@@ -16,11 +16,14 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
 /**
  * An binary built by Gradle for a native application.
  */
+@Incubating
 public interface ProjectNativeExecutableBinary extends ProjectNativeBinary {
     /**
      * The executable file.
