@@ -24,13 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>binaries</td>
-            </tr>
-            <tr>
                 <td>baseName</td>
-            </tr>
-            <tr>
-                <td>displayName</td>
             </tr>
         </table>
     </section>

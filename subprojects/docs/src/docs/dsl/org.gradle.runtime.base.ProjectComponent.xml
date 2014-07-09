@@ -26,6 +26,12 @@
             <tr>
                 <td>source</td>
             </tr>
+            <tr>
+                <td>binaries</td>
+            </tr>
+            <tr>
+                <td>displayName</td>
+            </tr>
         </table>
     </section>
     <section>

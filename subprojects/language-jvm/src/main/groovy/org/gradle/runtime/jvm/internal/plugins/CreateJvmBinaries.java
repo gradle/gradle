@@ -49,6 +49,7 @@ public class CreateJvmBinaries extends ModelRule {
             ProjectJarBinaryInternal jarBinary = new DefaultProjectJarBinary(jvmLibrary, namingScheme);
             jarBinary.source(jvmLibrary.getSource());
             configureBinaryOutputLocations(jarBinary);
+            jvmLibrary.getBinaries().add(jarBinary);
             binaries.add(jarBinary);
         }
     }

@@ -18,14 +18,17 @@ package org.gradle.runtime.jvm.internal;
 
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
+import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
 
 public class DefaultProjectJvmLibrary implements ProjectJvmLibrary {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final NamedProjectComponentIdentifier identifier;
+    private final DomainObjectSet<ProjectJvmLibraryBinary> binaries = new DefaultDomainObjectSet<ProjectJvmLibraryBinary>(ProjectJvmLibraryBinary.class);
 
     public DefaultProjectJvmLibrary(NamedProjectComponentIdentifier identifier) {
         this.identifier = identifier;
@@ -39,11 +42,24 @@ public class DefaultProjectJvmLibrary implements ProjectJvmLibrary {
         return identifier.getProjectPath();
     }
 
+    public String getDisplayName() {
+        return String.format("jvm library '%s'", getName());
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
     public DomainObjectSet<LanguageSourceSet> getSource() {
         return sourceSets;
     }
 
     public void source(Object sources) {
         sourceSets.source(sources);
+    }
+
+    public DomainObjectSet<ProjectJvmLibraryBinary> getBinaries() {
+        return binaries;
     }
 }

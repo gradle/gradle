@@ -57,6 +57,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert sources.myLib instanceof FunctionalSourceSet
 
         assert binaries.size() == 1
+        assert myLib.binaries as Set == binaries as Set
+
         def myLibJar = (binaries as List)[0]
         assert myLibJar instanceof ProjectJarBinary
         assert myLibJar.name == 'myLibJar'
@@ -97,6 +99,51 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         and:
         def jar = new JarTestFixture(file("build/jars/myJvmLibJar/myJvmLib.jar"))
         jar.hasDescendants()
+    }
+
+    def "can configure jvm binary"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+
+    jvm {
+        libraries {
+            myJvmLib
+        }
+    }
+    binaries.withType(ProjectJarBinary) { jar ->
+        jar.jarFile = file("\${project.buildDir}/bin/\${jar.name}.bin")
+    }
+"""
+        when:
+        succeeds "myJvmLibJar"
+
+        then:
+        file("build/bin/myJvmLibJar.bin").assertExists()
+    }
+
+    def "can configure jvm binary for component"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+
+    jvm {
+        libraries {
+            myJvmLib {
+                binaries.all { jar ->
+                    jar.jarFile = file("\${project.buildDir}/bin/\${jar.name}.bin")
+                }
+            }
+        }
+    }
+    binaries.withType(ProjectJarBinary) { jar ->
+    }
+"""
+        when:
+        succeeds "myJvmLibJar"
+
+        then:
+        file("build/bin/myJvmLibJar.bin").assertExists()
     }
 
     def "can specify additional builder tasks for binary"() {

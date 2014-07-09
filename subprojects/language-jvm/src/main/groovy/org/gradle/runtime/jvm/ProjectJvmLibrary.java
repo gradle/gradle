@@ -16,6 +16,7 @@
 
 package org.gradle.runtime.jvm;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.runtime.base.ProjectComponent;
 
@@ -24,4 +25,8 @@ import org.gradle.runtime.base.ProjectComponent;
  */
 @Incubating
 public interface ProjectJvmLibrary extends ProjectComponent {
+    /**
+     * The binaries that are built for this component. You can use this to configure the binaries for this component.
+     */
+    DomainObjectSet<ProjectJvmLibraryBinary> getBinaries();
 }

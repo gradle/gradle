@@ -34,6 +34,11 @@ public interface ProjectComponent extends Named {
     String getProjectPath();
 
     /**
+     * Returns a human-consumable display name for this component.
+     */
+    String getDisplayName();
+
+    /**
      * The source sets that are used to build this component.
      */
     DomainObjectSet<LanguageSourceSet> getSource();
@@ -50,4 +55,9 @@ public interface ProjectComponent extends Named {
      * </ul>
      */
     void source(Object source);
+
+    /**
+     * The binaries that are built for this component. You can use this to configure the binaries for this component.
+     */
+    DomainObjectSet<? extends ProjectBinary> getBinaries();
 }
