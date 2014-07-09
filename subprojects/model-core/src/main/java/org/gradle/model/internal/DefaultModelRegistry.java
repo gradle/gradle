@@ -272,7 +272,14 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelCreator<T> creator = creation.getCreator();
         ModelPath path = creator.getReference().getPath();
         Inputs inputs = toInputs(creation.getInputPaths());
-        T created = creator.create(inputs);
+
+        T created;
+        try {
+            created = creator.create(inputs);
+        } catch (Exception e) {
+            // TODO some representation of state of the inputs
+            throw new ModelRuleExecutionException(creator.getSourceDescriptor(), e);
+        }
 
         ModelElement<T> element = toElement(path, created, creator.getSourceDescriptor());
         store.put(path, element);
@@ -288,7 +295,11 @@ public class DefaultModelRegistry implements ModelRegistry {
     private <T> void fireMutation(ModelElement<T> model, ModelMutation<? super T> modelMutation) {
         ModelMutator<? super T> mutator = modelMutation.getMutator();
         Inputs inputs = toInputs(modelMutation.getInputPaths());
-        mutator.mutate(model.getInstance(), inputs);
+        try {
+            mutator.mutate(model.getInstance(), inputs);
+        } catch (Exception e) {
+            throw new ModelRuleExecutionException(mutator.getSourceDescriptor(), e);
+        }
     }
 
     private Inputs toInputs(Iterable<ModelPath> inputPaths) {

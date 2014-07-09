@@ -73,7 +73,7 @@ A mock up:
 - ~~Build script configuration closure receives the model instance created by the plugin.~~
 - ~~Build script configuration closure is executed only when the model is used as input to some rule.~~
 - ~~Reasonable error message when two rules create models with same name.~~
-- Reasonable error messages when creation rule or configuration closure fail.
+- ~~Reasonable error messages when creation rule or configuration closure fail.~~
 - ~~Reasonable error messages when plugin does not correctly follow static pattern.~~
 
 ### Open issues

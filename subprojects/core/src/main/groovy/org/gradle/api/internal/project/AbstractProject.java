@@ -914,7 +914,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     // This is here temporarily as a quick way to expose it in the build script
     // Longer term it will not be available via Project, but be only available in a build script
     public void model(Closure action) {
-        new GroovyModelDsl(modelRules).configure(action);
+        new GroovyModelDsl(modelRules, getModelRegistry()).configure(action);
     }
 
 }

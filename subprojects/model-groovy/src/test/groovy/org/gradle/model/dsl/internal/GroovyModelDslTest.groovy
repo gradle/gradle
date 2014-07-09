@@ -18,13 +18,14 @@ package org.gradle.model.dsl.internal
 
 import org.gradle.model.internal.DefaultModelRegistry
 import org.gradle.model.internal.ModelRegistryBackedModelRules
+import org.gradle.model.internal.ModelRuleExecutionException
 import spock.lang.Specification
 
 class GroovyModelDslTest extends Specification {
 
     def modelRegistry = new DefaultModelRegistry()
     def modelRules = new ModelRegistryBackedModelRules(modelRegistry)
-    def modelDsl = new GroovyModelDsl(modelRules)
+    def modelDsl = new GroovyModelDsl(modelRules, getModelRegistry())
 
     def "can add rules via dsl"() {
         given:
@@ -72,7 +73,9 @@ class GroovyModelDslTest extends Specification {
         modelRegistry.get("foo", Object)
 
         then:
-        MissingPropertyException missingProp = thrown()
+        def e = thrown(ModelRuleExecutionException)
+        def missingProp = e.cause
+        missingProp instanceof MissingPropertyException
         missingProp.property == 'unknown'
 
         when:
@@ -86,7 +89,9 @@ class GroovyModelDslTest extends Specification {
         modelRegistry.get("bah", Object)
 
         then:
-        MissingMethodException missingMethod = thrown()
+        e = thrown(ModelRuleExecutionException)
+        def missingMethod = e.cause
+        assert missingMethod instanceof MissingMethodException
         missingMethod.method == 'unknown'
     }
 }

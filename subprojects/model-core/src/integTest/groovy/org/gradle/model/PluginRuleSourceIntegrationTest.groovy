@@ -209,4 +209,68 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot register model creation rule 'MyOtherPlugin\$Rules#string()' for path 'string' as the rule 'MyPlugin\$Rules#string()' is already registered (and the model element has been created)")
     }
 
+    def "informative error message when creation rule throws"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String string() { throw new RuntimeException("oh no!") }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            assert modelRegistry.get("string", String) == "foo"
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#string()")
+        failure.assertHasCause("oh no!")
+    }
+
+    def "informative error message when dsl mutation rule throws"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String string() { "foo" }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                string {
+                    throw new RuntimeException("oh no!")
+                }
+            }
+
+            modelRegistry.get("string", String)
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: model.string")
+        failure.assertHasCause("oh no!")
+    }
+
 }

@@ -24,31 +24,47 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.ModelDsl;
+import org.gradle.model.internal.*;
 
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
     private final ModelPath modelPath;
     private final ModelRules modelRules;
+    private final ModelRegistry modelRegistry;
     private AtomicBoolean executingDsl;
 
-    public GroovyModelDsl(ModelRules modelRules) {
-        this(new AtomicBoolean(), null, modelRules);
+    public GroovyModelDsl(ModelRules modelRules, ModelRegistry modelRegistry) {
+        this(new AtomicBoolean(), null, modelRules, modelRegistry);
     }
 
-    private GroovyModelDsl(AtomicBoolean executingDsl, ModelPath modelPath, ModelRules modelRules) {
+    private GroovyModelDsl(AtomicBoolean executingDsl, ModelPath modelPath, ModelRules modelRules, ModelRegistry modelRegistry) {
         this.executingDsl = executingDsl;
         this.modelPath = modelPath;
         this.modelRules = modelRules;
+        this.modelRegistry = modelRegistry;
     }
 
     private GroovyModelDsl getChildPath(String name) {
         ModelPath path = modelPath == null ? ModelPath.path(name) : modelPath.child(name);
-        return new GroovyModelDsl(executingDsl, path, modelRules);
+        return new GroovyModelDsl(executingDsl, path, modelRules, modelRegistry);
     }
 
-    private void registerConfigurationAction(Closure<?> action) {
-        modelRules.config(modelPath.toString(), new ClosureBackedAction<Object>(action));
+    private void registerConfigurationAction(final Closure<?> action) {
+        modelRegistry.mutate(modelPath.toString(), Collections.<String>emptyList(), new ModelMutator<Object>() {
+            public ModelReference<Object> getReference() {
+                return new ModelReference<Object>(modelPath, new ModelType<Object>(Object.class));
+            }
+
+            public void mutate(Object object, Inputs inputs) {
+                new ClosureBackedAction<Object>(action).execute(object);
+            }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleSourceDescriptor("model." + modelPath);
+            }
+        });
     }
 
     public void configure(Closure<?> action) {
