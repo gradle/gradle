@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Matchers
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -100,7 +100,7 @@ class ExternalResourceNameTest extends Specification {
         "file:/a/b/c"                | "file:/a/b/c"
     }
 
-    @IgnoreIf({!OperatingSystem.current().windows})
+    @Requires(TestPrecondition.WINDOWS)
     def "can handle UNC paths"(){
         expect:
         def name = new ExternalResourceName(URI.create(uri))
