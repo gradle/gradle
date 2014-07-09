@@ -49,7 +49,7 @@ public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelEl
     }
 
     public boolean isBuildable() {
-        return true;
+        return false;
     }
 
     public BinaryNamingScheme getNamingScheme() {
