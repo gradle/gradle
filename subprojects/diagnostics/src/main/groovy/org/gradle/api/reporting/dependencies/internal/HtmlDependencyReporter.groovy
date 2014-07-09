@@ -19,6 +19,7 @@ package org.gradle.api.reporting.dependencies.internal
 import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.reporting.ReportRenderer
 import org.gradle.util.GFileUtils
 
 /**
@@ -38,28 +39,19 @@ import org.gradle.util.GFileUtils
  * @see JsonDependencyReportIndexRenderer
  * @see JsonProjectDependencyRenderer
  */
-class HtmlDependencyReporter {
-
-    File outputDirectory;
-    JsonProjectDependencyRenderer renderer
-    JsonDependencyReportIndexRenderer indexRenderer = new JsonDependencyReportIndexRenderer()
+class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
+    private File outputDirectory;
+    private final JsonProjectDependencyRenderer renderer
+    private final JsonDependencyReportIndexRenderer indexRenderer = new JsonDependencyReportIndexRenderer()
 
     HtmlDependencyReporter(VersionMatcher versionMatcher) {
         renderer = new JsonProjectDependencyRenderer(versionMatcher)
     }
 
-    /**
-     * Sets the output directory of the report. This directory contains the generated HTML file,
-     * but also JS and CSS files. This method must be called before generating the report.
-     */
-    void setOutputDirectory(File outputDirectory) {
+    @Override
+    void render(Set<Project> projects, File outputDirectory) {
         this.outputDirectory = outputDirectory
-    }
 
-    /**
-     * Generates a report for each of the given projects, and generates the index report
-     */
-    void generate(Set<Project> projects) throws IOException {
         GFileUtils.copyURLToFile(getClass().getResource("/org/gradle/reporting/base-style.css"), new File(outputDirectory, "base-style.css"))
         copyReportFile("d.gif")
         copyReportFile("d.png")
@@ -111,7 +103,7 @@ class HtmlDependencyReporter {
     }
 
     private String readHtmlTemplate() {
-        getClass().getResourceAsStream(getReportResourcePath("template.html")).getText("UTF8")
+        getClass().getResourceAsStream(getReportResourcePath("template.html")).getText("utf-8")
     }
 
     private String getReportResourcePath(String fileName) {
