@@ -22,6 +22,7 @@ import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
 import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
 import org.gradle.nativebinaries.ProjectStaticLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
+import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary;
 
 import java.util.List;
 
@@ -57,6 +58,7 @@ public class VisualStudioProjectMapper {
         return nativeBinary instanceof ProjectSharedLibraryBinary ? "Dll"
                 : nativeBinary instanceof ProjectStaticLibraryBinary ? "Lib"
                 : nativeBinary instanceof ProjectNativeExecutableBinary ? "Exe"
+                : nativeBinary instanceof ProjectNativeTestSuiteBinary ? "Exe"
                 : "";
     }
 

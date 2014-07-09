@@ -22,11 +22,11 @@ import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinary;
-import org.gradle.nativebinaries.test.internal.DefaultNativeTestSuiteBinary;
+import org.gradle.nativebinaries.test.internal.DefaultProjectNativeTestSuiteBinary;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
-public class DefaultCUnitTestSuiteBinary extends DefaultNativeTestSuiteBinary implements CUnitTestSuiteBinary {
+public class DefaultCUnitTestSuiteBinary extends DefaultProjectNativeTestSuiteBinary implements CUnitTestSuiteBinary {
     public DefaultCUnitTestSuiteBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
     }

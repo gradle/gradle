@@ -18,13 +18,13 @@ package org.gradle.nativebinaries.test.internal;
 
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.test.NativeTestSuite;
+import org.gradle.nativebinaries.test.ProjectNativeTestSuite;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
 
 // TODO:DAZ Add a 'components' container (polymorphic), and then a writable container filtered by type that looks like a non-polymorphic container
 // Then 'executables', 'libraries' and 'testSuites' would all be filtered containers, not separate.
-public class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<NativeTestSuite> implements TestSuiteContainer {
+public class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<ProjectNativeTestSuite> implements TestSuiteContainer {
     public DefaultTestSuiteContainer(Instantiator instantiator) {
-        super(NativeTestSuite.class, instantiator);
+        super(ProjectNativeTestSuite.class, instantiator);
     }
 }

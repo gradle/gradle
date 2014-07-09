@@ -15,12 +15,19 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
-import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.*
+import org.gradle.nativebinaries.BuildType
+import org.gradle.nativebinaries.Flavor
+import org.gradle.nativebinaries.ProjectNativeExecutable
+import org.gradle.nativebinaries.ProjectNativeLibrary
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
 import org.gradle.nativebinaries.platform.Architecture
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
+import org.gradle.nativebinaries.test.ProjectNativeTestSuite
+import org.gradle.nativebinaries.test.internal.ProjectNativeTestSuiteBinaryInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import spock.lang.Specification
 
@@ -71,6 +78,24 @@ class VisualStudioProjectMapperTest extends Specification {
         then:
         checkNames sharedLibraryBinary, "libNameDll", 'buildTypeOne', 'Win32'
         checkNames staticLibraryBinary, "libNameLib", 'buildTypeOne', 'Win32'
+    }
+
+    def "maps test binary to visual studio project"() {
+        def testExecutable = Mock(ProjectNativeTestSuite)
+        def binary = Mock(ProjectNativeTestSuiteBinaryInternal)
+
+        when:
+        testExecutable.name >> "testSuiteName"
+        testExecutable.projectPath >> ":"
+        binary.component >> testExecutable
+        binary.buildType >> buildTypeOne
+        binary.flavor >> flavorOne
+        binary.targetPlatform >> platformOne
+        binary.namingScheme >> namingScheme
+        namingScheme.variantDimensions >> []
+
+        then:
+        checkNames binary, "testSuiteNameExe", 'buildTypeOne', 'Win32'
     }
 
     def "includes project path in visual studio project name"() {

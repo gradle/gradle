@@ -27,7 +27,7 @@ import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
-import org.gradle.nativebinaries.test.NativeTestSuiteBinary
+import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.runtime.base.BinaryContainer
@@ -55,7 +55,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
 
     def createTasks(ProjectInternal project, ProjectNativeBinaryInternal binary) {
         def builderTask
-        if (binary instanceof ProjectNativeExecutableBinary || binary instanceof NativeTestSuiteBinary) {
+        if (binary instanceof ProjectNativeExecutableBinary || binary instanceof ProjectNativeTestSuiteBinary) {
             builderTask = createLinkExecutableTask(project, binary)
             binary.tasks.add createInstallTask(project, binary);
         } else if (binary instanceof ProjectSharedLibraryBinary) {
