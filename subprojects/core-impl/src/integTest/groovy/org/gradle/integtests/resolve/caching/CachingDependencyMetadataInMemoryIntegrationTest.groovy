@@ -174,11 +174,9 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependenc
         ivyRepo.module("org", "lib").publish()
 
         file("build.gradle") << """
-            configurations {
-                configurations { conf }
-                repositories { ivy { url "${ivyRepo.uri}" } }
-                dependencies { conf 'org:lib:1.0' }
-            }
+            configurations { conf }
+            repositories { ivy { url "${ivyRepo.uri}" } }
+            dependencies { conf 'org:lib:1.0' }
         """
 
         when:
