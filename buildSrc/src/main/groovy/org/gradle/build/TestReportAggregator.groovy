@@ -45,7 +45,7 @@ class TestReportAggregator extends Copy {
     }
 
     def getInputTestResultDirs() {
-        testTasks*.testResultsDir
+        testTasks*.reports.junitXml.destination
     }
 
 }
