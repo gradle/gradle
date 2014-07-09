@@ -16,8 +16,6 @@
 
 import org.gradle.build.Install
 import org.gradle.build.BuildTypes
-import org.gradle.build.TestReportAggregator
-
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
@@ -181,12 +179,6 @@ task waitForDaemonsToDie {
             sleep mins * 60 * 1000
         }
     }
-}
-
-task aggregateTestReports(type: TestReportAggregator) {
-    testReportDir = reporting.file("tests")
-    testResultsDir = file("${buildDir}/test-results")
-    projects = subprojects
 }
 
 evaluationDependsOn ":distributions"
