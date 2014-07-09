@@ -447,7 +447,7 @@ See below how to resolve this problem:
 ### Changes to Groovy and Scala plugins
 
 - The Groovy plugin no longer defines the `groovy` configuration.
-- The Groovy plugin no longer defines the `scalaTools` configuration.
+- The Scala plugin no longer defines the `scalaTools` configuration.
 
 ### Removed deprecated command line options
 
