@@ -109,6 +109,12 @@ public abstract class ReflectiveRule {
     private static <T> ModelMutator<T> toMutator(final ModelRule modelRule, final Method bindingMethod, final BindableParameter<T> first, final List<BindableParameter<?>> tail) {
         return new ModelMutator<T>() {
 
+            private final MethodModelRuleSourceDescriptor methodModelRuleSourceDescriptor = new MethodModelRuleSourceDescriptor(bindingMethod);
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return methodModelRuleSourceDescriptor;
+            }
+
             public ModelReference<T> getReference() {
                 return new ModelReference<T>(first.path, new ModelType<T>(first.type));
             }

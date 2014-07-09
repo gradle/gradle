@@ -20,10 +20,12 @@ public class ModelElement<T> {
 
     private final ModelReference<T> reference;
     private final T instance;
+    private final ModelRuleSourceDescriptor creatorDescriptor;
 
-    public ModelElement(ModelReference<T> reference, T instance) {
+    public ModelElement(ModelReference<T> reference, T instance, ModelRuleSourceDescriptor creatorDescriptor) {
         this.reference = reference;
         this.instance = instance;
+        this.creatorDescriptor = creatorDescriptor;
     }
 
     public ModelReference<T> getReference() {
@@ -34,8 +36,12 @@ public class ModelElement<T> {
         return instance;
     }
 
+    public ModelRuleSourceDescriptor getCreatorDescriptor() {
+        return creatorDescriptor;
+    }
+
     @Override
     public String toString() {
-        return "ModelElement{reference=" + reference + ", instance=" + instance + '}';
+        return "ModelElement{reference=" + reference + ", instance=" + instance + ", creatorDescriptor=" + creatorDescriptor + "}";
     }
 }

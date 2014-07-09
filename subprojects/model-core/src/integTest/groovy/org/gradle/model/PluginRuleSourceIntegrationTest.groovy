@@ -23,6 +23,8 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "plugin class can expose model rules"() {
         when:
         buildScript """
+            import org.gradle.model.*
+
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
                 }
@@ -60,6 +62,8 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "configuration in script is not executed if not needed"() {
         when:
         buildScript """
+            import org.gradle.model.*
+
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
                 }
@@ -101,6 +105,8 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "informative error message when rules are invalid"() {
         when:
         buildScript """
+            import org.gradle.model.*
+
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
                 }
@@ -119,6 +125,88 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
         failure.assertHasCause("Type MyPlugin\$Rules is not a valid model rule source: enclosed classes must be static and non private")
+    }
+
+    def "informative error message when two plugins declare model at the same path"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String string() { "foo" }
+                }
+            }
+
+            class MyOtherPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String string() { "foo" }
+                }
+            }
+
+            apply plugin: MyPlugin
+            apply plugin: MyOtherPlugin
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
+        failure.assertHasCause("Cannot register model creation rule 'MyOtherPlugin\$Rules#string()' for path 'string' as the rule 'MyPlugin\$Rules#string()' is already registered to create a model element at this path")
+    }
+
+    def "informative error message when two plugins declare model at the same path and model is already created"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String string() { "foo" }
+                }
+            }
+
+            class MyOtherPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String string() { "bar" }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            // reaching into internals
+            assert modelRegistry.get("string", String) == "foo"
+
+            apply plugin: MyOtherPlugin
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
+        failure.assertHasCause("Cannot register model creation rule 'MyOtherPlugin\$Rules#string()' for path 'string' as the rule 'MyPlugin\$Rules#string()' is already registered (and the model element has been created)")
     }
 
 }

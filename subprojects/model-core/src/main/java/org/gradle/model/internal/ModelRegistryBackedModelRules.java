@@ -54,6 +54,10 @@ public class ModelRegistryBackedModelRules implements ModelRules {
             public T create(Inputs inputs) {
                 return model.create();
             }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new UnknownModelRuleSourceDescriptor();
+            }
         });
     }
 
@@ -124,6 +128,10 @@ public class ModelRegistryBackedModelRules implements ModelRules {
 
         public void mutate(T object, Inputs inputs) {
             action.execute(object);
+        }
+
+        public ModelRuleSourceDescriptor getSourceDescriptor() {
+            return new UnknownModelRuleSourceDescriptor();
         }
     }
 

@@ -45,15 +45,39 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public <T> void create(String path, List<String> inputPaths, ModelCreator<T> creator) {
         ModelPath creationModelPath = ModelPath.path(path);
-        if (creations.containsKey(creationModelPath)) {
-            throw new IllegalStateException("creator already registered for '" + creationModelPath + "'");
+        ModelCreation<?> existingCreation = creations.get(creationModelPath);
+
+        if (existingCreation != null) {
+            throw new DuplicateModelException(
+                    String.format(
+                            "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",
+                            toString(creator.getSourceDescriptor()),
+                            path,
+                            toString(existingCreation.getCreator().getSourceDescriptor())
+                    )
+            );
         }
-        if (store.containsKey(creationModelPath)) {
-            throw new IllegalStateException("model already created for '" + creationModelPath + "'");
+
+        ModelElement<?> existing = store.get(creationModelPath);
+        if (existing != null) {
+            throw new DuplicateModelException(
+                    String.format(
+                            "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",
+                            toString(creator.getSourceDescriptor()),
+                            path,
+                            toString(existing.getCreatorDescriptor())
+                    )
+            );
         }
 
         notifyCreationListeners(creator);
         creations.put(creationModelPath, new ModelCreation<T>(creator, toModelPaths(inputPaths)));
+    }
+
+    private static String toString(ModelRuleSourceDescriptor descriptor) {
+        StringBuilder stringBuilder = new StringBuilder();
+        descriptor.describeTo(stringBuilder);
+        return stringBuilder.toString();
     }
 
     private static ImmutableList<ModelPath> toModelPaths(List<String> inputPaths) {
@@ -250,15 +274,15 @@ public class DefaultModelRegistry implements ModelRegistry {
         Inputs inputs = toInputs(creation.getInputPaths());
         T created = creator.create(inputs);
 
-        ModelElement<T> element = toElement(path, created);
+        ModelElement<T> element = toElement(path, created, creator.getSourceDescriptor());
         store.put(path, element);
         return element;
     }
 
-    private <T> ModelElement<T> toElement(ModelPath path, T model) {
+    private <T> ModelElement<T> toElement(ModelPath path, T model, ModelRuleSourceDescriptor descriptor) {
         @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) model.getClass();
         ModelReference<T> reference = new ModelReference<T>(path, new ModelType<T>(TypeToken.of(clazz)));
-        return new ModelElement<T>(reference, model);
+        return new ModelElement<T>(reference, model, descriptor);
     }
 
     private <T> void fireMutation(ModelElement<T> model, ModelMutation<? super T> modelMutation) {

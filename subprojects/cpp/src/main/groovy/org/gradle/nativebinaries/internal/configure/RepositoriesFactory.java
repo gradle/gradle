@@ -21,16 +21,16 @@ import org.gradle.api.Namer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelPath;
-import org.gradle.model.internal.Inputs;
-import org.gradle.model.internal.ModelCreator;
-import org.gradle.model.internal.ModelReference;
-import org.gradle.model.internal.ModelType;
+import org.gradle.model.internal.*;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativebinaries.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativebinaries.platform.PlatformContainer;
+
+import java.lang.reflect.Method;
 
 public class RepositoriesFactory implements ModelCreator<Repositories> {
     private final ModelReference<Repositories> reference;
@@ -41,6 +41,20 @@ public class RepositoriesFactory implements ModelCreator<Repositories> {
         this.reference = new ModelReference<Repositories>(new ModelPath(modelPath), new ModelType<Repositories>(Repositories.class));
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
+    }
+
+    private final ModelRuleSourceDescriptor descriptor = new MethodModelRuleSourceDescriptor(findCreateMethod());
+
+    private static Method findCreateMethod() {
+        try {
+            return RepositoriesFactory.class.getDeclaredMethod("create", Inputs.class);
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    public ModelRuleSourceDescriptor getSourceDescriptor() {
+        return descriptor;
     }
 
     public Repositories create(Inputs inputs) {

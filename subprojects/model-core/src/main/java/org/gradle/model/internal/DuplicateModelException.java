@@ -16,12 +16,13 @@
 
 package org.gradle.model.internal;
 
-public interface ModelMutator<T> {
+import org.gradle.api.GradleException;
 
-    ModelReference<T> getReference();
+// TODO generic model related super exception?
+public class DuplicateModelException extends GradleException {
 
-    void mutate(T object, Inputs inputs);
-
-    ModelRuleSourceDescriptor getSourceDescriptor();
+    public DuplicateModelException(String message) {
+        super(message);
+    }
 
 }

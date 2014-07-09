@@ -22,4 +22,6 @@ public interface ModelCreator<T> {
 
     T create(Inputs inputs);
 
+    ModelRuleSourceDescriptor getSourceDescriptor();
+
 }

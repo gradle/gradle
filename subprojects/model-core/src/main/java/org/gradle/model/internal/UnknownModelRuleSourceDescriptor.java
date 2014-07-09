@@ -16,12 +16,19 @@
 
 package org.gradle.model.internal;
 
-public interface ModelMutator<T> {
+import org.gradle.api.UncheckedIOException;
 
-    ModelReference<T> getReference();
+import java.io.IOException;
 
-    void mutate(T object, Inputs inputs);
+// TODO remove this - it's a temporary measure until we change existing rules to be in a more descriptive form
+public class UnknownModelRuleSourceDescriptor implements ModelRuleSourceDescriptor {
 
-    ModelRuleSourceDescriptor getSourceDescriptor();
+    public void describeTo(Appendable appendable) {
+        try {
+            appendable.append("«unknown»");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
 }

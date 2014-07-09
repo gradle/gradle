@@ -93,6 +93,10 @@ public class ModelRuleInspector {
                 // ignore inputs, we know they're empty
                 return methodWrapper.invoke(instance);
             }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new MethodModelRuleSourceDescriptor(method);
+            }
         });
     }
 
