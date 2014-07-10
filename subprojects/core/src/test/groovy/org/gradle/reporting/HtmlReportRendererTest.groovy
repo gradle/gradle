@@ -26,7 +26,7 @@ class HtmlReportRendererTest extends Specification {
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final HtmlReportRenderer renderer = new HtmlReportRenderer()
 
-    def "renders HTML to file encoded using UTF-8"() {
+    def "renders HTML to file encoded with UTF-8"() {
         def destDir = tmpDir.file("out")
         def reportRenderer = Mock(ReportRenderer)
         def pageRenderer = Mock(ReportRenderer)
@@ -36,14 +36,72 @@ class HtmlReportRendererTest extends Specification {
 
         then:
         1 * reportRenderer.render(_, _) >> { String model, HtmlReportBuilder builder ->
-            builder.renderPage("index.html", model, pageRenderer)
+            builder.renderHtmlPage("index.html", model, pageRenderer)
         }
-        1 * pageRenderer.render(_, _) >> { String model, SimpleHtmlWriter htmlWriter ->
-            htmlWriter.startElement("pre").characters(model).endElement()
+        1 * pageRenderer.render(_, _) >> { String model, HtmlPageBuilder<SimpleHtmlWriter> builder ->
+            builder.output.startElement("pre").characters(model).endElement()
         }
 
         and:
-        destDir.file("index.html").getText("utf-8") == TextUtil.toPlatformLineSeparators('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+        destDir.file("index.html").getText("utf-8") == TextUtil.toPlatformLineSeparators('''<!DOCTYPE html>
+<html>
+<pre>test: \u03b1\u03b2</pre>
+</html>
+''')
+    }
+
+    def "can use writer to render multi-page HTML report"() {
+        def destDir = tmpDir.file("out")
+        def reportRenderer = Mock(ReportRenderer)
+        def pageRenderer = Mock(ReportRenderer)
+
+        when:
+        renderer.render("test: \u03b1\u03b2", reportRenderer, destDir)
+
+        then:
+        1 * reportRenderer.render(_, _) >> { String model, HtmlReportBuilder builder ->
+            builder.renderRawHtmlPage("index.html", model, pageRenderer)
+            builder.renderRawHtmlPage("child/other.html", "[${model}]" as String, pageRenderer)
+        }
+        2 * pageRenderer.render(_, _) >> { String model, HtmlPageBuilder<Writer> builder ->
+            builder.output.write("<html>" + model + "</html>")
+        }
+
+        and:
+        destDir.file("index.html").getText("utf-8") == TextUtil.toPlatformLineSeparators("<html>test: \u03b1\u03b2</html>")
+        destDir.file("child/other.html").getText("utf-8") == TextUtil.toPlatformLineSeparators("<html>[test: \u03b1\u03b2]</html>")
+    }
+
+    def "can use writer to render single page HTML report"() {
+        def destFile = tmpDir.file("out")
+        def pageRenderer = Mock(ReportRenderer)
+
+        when:
+        renderer.renderRawSinglePage("test: \u03b1\u03b2", pageRenderer, destFile)
+
+        then:
+        1 * pageRenderer.render(_, _) >> { String model, HtmlPageBuilder<Writer> builder ->
+            builder.output.write("<html>" + model + "</html>")
+        }
+
+        and:
+        destFile.getText("utf-8") == TextUtil.toPlatformLineSeparators("<html>test: \u03b1\u03b2</html>")
+    }
+
+    def "renders single page HTML to file"() {
+        def destFile = tmpDir.file("out.html")
+        def pageRenderer = Mock(ReportRenderer)
+
+        when:
+        renderer.renderSinglePage("test: \u03b1\u03b2", pageRenderer, destFile)
+
+        then:
+        1 * pageRenderer.render(_, _) >> { String model, HtmlPageBuilder<SimpleHtmlWriter> builder ->
+            builder.output.startElement("pre").characters(model).endElement()
+        }
+
+        and:
+        destFile.getText("utf-8") == TextUtil.toPlatformLineSeparators('''<!DOCTYPE html>
 <html>
 <pre>test: \u03b1\u03b2</pre>
 </html>
@@ -76,7 +134,7 @@ class HtmlReportRendererTest extends Specification {
 
         then:
         1 * reportRenderer.render(_, _) >> { String model, HtmlReportBuilder builder ->
-            builder.render("child/page.html", model, pageRenderer)
+            builder.renderHtmlPage("child/page.html", model, pageRenderer)
         }
         1 * pageRenderer.render(_, _) >> { String model, HtmlPageBuilder<SimpleHtmlWriter> builder ->
             def link = builder.requireResource(getClass().getResource("base-style.css"))

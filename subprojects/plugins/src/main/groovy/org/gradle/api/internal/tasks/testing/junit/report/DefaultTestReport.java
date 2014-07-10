@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
@@ -72,14 +71,14 @@ public class DefaultTestReport implements TestReporter {
     private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, File reportDir) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-            htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder<SimpleHtmlWriter>>() {
+            htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
                 @Override
-                public void render(AllTestResults model, HtmlReportBuilder<SimpleHtmlWriter> output) throws IOException {
-                    output.render("index.html", model, new OverviewPageRenderer());
+                public void render(AllTestResults model, HtmlReportBuilder output) throws IOException {
+                    output.renderHtmlPage("index.html", model, new OverviewPageRenderer());
                     for (PackageTestResults packageResults : model.getPackages()) {
-                        output.render(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer());
+                        output.renderHtmlPage(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer());
                         for (ClassTestResults classResults : packageResults.getClasses()) {
-                            output.render(classResults.getBaseUrl(), classResults, new ClassPageRenderer(classResults.getId(), resultsProvider));
+                            output.renderHtmlPage(classResults.getBaseUrl(), classResults, new ClassPageRenderer(classResults.getId(), resultsProvider));
                         }
                     }
                 }

@@ -30,7 +30,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HtmlReportRenderer {
-    public <T> void render(T model, ReportRenderer<T, HtmlReportBuilder<SimpleHtmlWriter>> renderer, File outputDirectory) {
+    /**
+     * Renders a multi-page HTML report from the given model, into the given directory.
+     */
+    public <T> void render(T model, ReportRenderer<T, HtmlReportBuilder> renderer, File outputDirectory) {
         try {
             outputDirectory.mkdirs();
             DefaultHtmlReportContext context = new DefaultHtmlReportContext(outputDirectory);
@@ -46,6 +49,30 @@ public class HtmlReportRenderer {
         }
     }
 
+    /**
+     * Renders a single page HTML report from the given model, into the given output file.
+     */
+    public <T> void renderSinglePage(T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer, final File outputFile) {
+        render(model, new ReportRenderer<T, HtmlReportBuilder>() {
+            @Override
+            public void render(T model, HtmlReportBuilder output) throws IOException {
+                output.renderHtmlPage(outputFile.getName(), model, renderer);
+            }
+        }, outputFile.getParentFile());
+    }
+
+    /**
+     * Renders a single page HTML report from the given model, into the given output file.
+     */
+    public <T> void renderRawSinglePage(T model, final ReportRenderer<T, HtmlPageBuilder<Writer>> renderer, final File outputFile) {
+        render(model, new ReportRenderer<T, HtmlReportBuilder>() {
+            @Override
+            public void render(T model, HtmlReportBuilder output) throws IOException {
+                output.renderRawHtmlPage(outputFile.getName(), model, renderer);
+            }
+        }, outputFile.getParentFile());
+    }
+
     private static class Resource {
         final URL source;
         final String path;
@@ -56,7 +83,7 @@ public class HtmlReportRenderer {
         }
     }
 
-    private static class DefaultHtmlReportContext implements HtmlReportBuilder<SimpleHtmlWriter> {
+    private static class DefaultHtmlReportContext implements HtmlReportBuilder {
         private final File outputDirectory;
         private final Map<String, Resource> resources = new HashMap<String, Resource>();
 
@@ -80,21 +107,25 @@ public class HtmlReportRenderer {
             addResource(source);
         }
 
-        public <T> void renderPage(String name, final T model, final ReportRenderer<T, SimpleHtmlWriter> renderer) {
+        public <T> void renderHtmlPage(final String name, final T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer) {
             File outputFile = new File(outputDirectory, name);
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
                 protected void doExecute(Writer writer) throws Exception {
-                    renderer(renderer).render(model, writer);
+                    SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
+                    htmlWriter.startElement("html");
+                    renderer.render(model, new DefaultHtmlPageBuilder<SimpleHtmlWriter>(prefix(name), htmlWriter));
+                    htmlWriter.endElement();
                 }
             });
         }
 
-        public <T> void render(final String name, T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer) {
-            renderPage(name, model, new ReportRenderer<T, SimpleHtmlWriter>() {
+        public <T> void renderRawHtmlPage(final String name, final T model, final ReportRenderer<T, HtmlPageBuilder<Writer>> renderer) {
+            File outputFile = new File(outputDirectory, name);
+            IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
-                public void render(T model, SimpleHtmlWriter output) throws IOException {
-                    renderer.render(model, new DefaultHtmlPageBuilder(prefix(name), output));
+                protected void doExecute(Writer writer) throws Exception {
+                    renderer.render(model, new DefaultHtmlPageBuilder<Writer>(prefix(name), writer));
                 }
             });
         }
@@ -113,23 +144,11 @@ public class HtmlReportRenderer {
             return builder.toString();
         }
 
-        private <T> ReportRenderer<T, Writer> renderer(final ReportRenderer<T, SimpleHtmlWriter> renderer) {
-            return new ReportRenderer<T, Writer>() {
-                @Override
-                public void render(T model, Writer writer) throws IOException {
-                    SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
-                    htmlWriter.startElement("html");
-                    renderer.render(model, htmlWriter);
-                    htmlWriter.endElement();
-                }
-            };
-        }
-
-        private class DefaultHtmlPageBuilder implements HtmlPageBuilder<SimpleHtmlWriter> {
+        private class DefaultHtmlPageBuilder<OUT> implements HtmlPageBuilder<OUT> {
             private final String prefix;
-            private final SimpleHtmlWriter output;
+            private final OUT output;
 
-            public DefaultHtmlPageBuilder(String prefix, SimpleHtmlWriter output) {
+            public DefaultHtmlPageBuilder(String prefix, OUT output) {
                 this.prefix = prefix;
                 this.output = output;
             }
@@ -139,7 +158,7 @@ public class HtmlReportRenderer {
                 return prefix + resource.path;
             }
 
-            public SimpleHtmlWriter getOutput() {
+            public OUT getOutput() {
                 return output;
             }
         }

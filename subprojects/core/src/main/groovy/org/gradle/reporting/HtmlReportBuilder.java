@@ -16,12 +16,15 @@
 
 package org.gradle.reporting;
 
+import org.gradle.api.internal.html.SimpleHtmlWriter;
+
+import java.io.Writer;
 import java.net.URL;
 
-public interface HtmlReportBuilder<D> {
+public interface HtmlReportBuilder {
     void requireResource(URL resource);
 
-    <T> void renderPage(String name, T model, ReportRenderer<T, D> renderer);
+    <T> void renderHtmlPage(String name, T model, ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer);
 
-    <T> void render(String name, T model, ReportRenderer<T, HtmlPageBuilder<D>> renderer);
+    <T> void renderRawHtmlPage(String name, T model, ReportRenderer<T, HtmlPageBuilder<Writer>> renderer);
 }

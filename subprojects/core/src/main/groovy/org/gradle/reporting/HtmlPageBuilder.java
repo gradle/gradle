@@ -18,7 +18,7 @@ package org.gradle.reporting;
 
 import java.net.URL;
 
-public interface HtmlPageBuilder<D> {
+public interface HtmlPageBuilder<T> {
     /**
      * Registers a resource that is required by this page.
      *
@@ -26,5 +26,5 @@ public interface HtmlPageBuilder<D> {
      */
     String requireResource(URL resource);
 
-    D getOutput();
+    T getOutput();
 }

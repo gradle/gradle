@@ -16,7 +16,10 @@
 package org.gradle.profile;
 
 import org.gradle.api.internal.html.SimpleHtmlWriter;
-import org.gradle.reporting.*;
+import org.gradle.reporting.DurationFormatter;
+import org.gradle.reporting.HtmlReportRenderer;
+import org.gradle.reporting.ReportRenderer;
+import org.gradle.reporting.TabbedPageRenderer;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,20 +29,7 @@ public class ProfileReportRenderer {
 
     public void writeTo(BuildProfile buildProfile, File file) {
         HtmlReportRenderer renderer = new HtmlReportRenderer();
-        renderer.render(buildProfile, new ProfileRenderer(file.getName()), file.getParentFile());
-    }
-
-    private static class ProfileRenderer extends ReportRenderer<BuildProfile, HtmlReportBuilder<SimpleHtmlWriter>> {
-        private final String name;
-
-        public ProfileRenderer(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public void render(BuildProfile model, HtmlReportBuilder<SimpleHtmlWriter> output) throws IOException {
-            output.render(name, model, new ProfilePageRenderer());
-        }
+        renderer.renderSinglePage(buildProfile, new ProfilePageRenderer(), file);
     }
 
     private static class ProfilePageRenderer extends TabbedPageRenderer<BuildProfile> {
