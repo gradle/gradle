@@ -21,6 +21,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.jvm.JvmBinaryTasks;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 
@@ -28,11 +29,13 @@ public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelEl
     private final BinaryNamingScheme namingScheme;
     private final LanguageSourceSetContainer source = new LanguageSourceSetContainer();
     private final String name;
+    private final JavaToolChain toolChain;
     private File classesDir;
     private File resourcesDir;
 
-    public DefaultProjectClassDirectoryBinary(String name) {
+    public DefaultProjectClassDirectoryBinary(String name, JavaToolChain toolChain) {
         this.name = name;
+        this.toolChain = toolChain;
         this.namingScheme = new ClassDirectoryBinaryNamingScheme(removeClassesSuffix(name));
     }
 
@@ -46,6 +49,10 @@ public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelEl
     public JvmBinaryTasks getTasks() {
         // TODO:DAZ Implement
         throw new UnsupportedOperationException();
+    }
+
+    public JavaToolChain getToolChain() {
+        return toolChain;
     }
 
     public boolean isBuildable() {

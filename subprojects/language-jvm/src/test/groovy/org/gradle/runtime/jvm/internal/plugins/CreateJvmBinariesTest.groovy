@@ -24,6 +24,7 @@ import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.runtime.jvm.ProjectJvmLibrary
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary
 import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary
+import org.gradle.runtime.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -31,7 +32,8 @@ import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
 class CreateJvmBinariesTest extends Specification {
     def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
-    def rule = new CreateJvmBinaries(namingSchemeBuilder, buildDir)
+    def toolChain = Mock(JavaToolChain)
+    def rule = new CreateJvmBinaries(namingSchemeBuilder, toolChain, buildDir)
     def binaries = Mock(BinaryContainer)
 
     def "adds a binary for each jvm library"() {
@@ -52,6 +54,7 @@ class CreateJvmBinariesTest extends Specification {
             binary.library == library
             binary.classesDir == new File(buildDir, "jvmJarOutput")
             binary.resourcesDir == binary.classesDir
+            binary.toolChain == toolChain
         } as ProjectBinary)
         0 * _
     }
@@ -76,6 +79,7 @@ class CreateJvmBinariesTest extends Specification {
             binary.namingScheme == namingScheme
             binary.library == library
             binary.source == library.source
+            binary.toolChain == toolChain
         } as ProjectBinary)
         0 * _
     }

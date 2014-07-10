@@ -18,6 +18,7 @@ package org.gradle.runtime.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 
@@ -30,6 +31,11 @@ public interface ProjectJvmLibraryBinary extends ProjectBinary {
      * The set of tasks associated with this binary.
      */
     JvmBinaryTasks getTasks();
+
+    /**
+     * Returns the {@link JavaToolChain} that will be used to build this binary.
+     */
+    JavaToolChain getToolChain();
 
     /**
      * The classes directory for this binary.

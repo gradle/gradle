@@ -25,17 +25,20 @@ import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 
 public class CreateJvmBinaries extends ModelRule {
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
+    private final JavaToolChain toolChain;
     private final File binariesDir;
     private final File classesDir;
 
     // TODO:DAZ Add a ProjectLayout model that can be input to a rule
-    public CreateJvmBinaries(BinaryNamingSchemeBuilder namingSchemeBuilder, File buildDir) {
+    public CreateJvmBinaries(BinaryNamingSchemeBuilder namingSchemeBuilder, JavaToolChain toolChain, File buildDir) {
         this.namingSchemeBuilder = namingSchemeBuilder;
+        this.toolChain = toolChain;
         this.binariesDir = new File(buildDir, "jars");
         this.classesDir = new File(buildDir, "classes");
     }
@@ -46,7 +49,7 @@ public class CreateJvmBinaries extends ModelRule {
                     .withComponentName(jvmLibrary.getName())
                     .withTypeString("jar")
                     .build();
-            ProjectJarBinaryInternal jarBinary = new DefaultProjectJarBinary(jvmLibrary, namingScheme);
+            ProjectJarBinaryInternal jarBinary = new DefaultProjectJarBinary(jvmLibrary, namingScheme, toolChain);
             jarBinary.source(jvmLibrary.getSource());
             configureBinaryOutputLocations(jarBinary);
             jvmLibrary.getBinaries().add(jarBinary);

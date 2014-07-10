@@ -23,6 +23,7 @@ import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.jvm.JvmBinaryTasks;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 
@@ -30,14 +31,16 @@ public class DefaultProjectJarBinary extends AbstractBuildableModelElement imple
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ProjectJvmLibrary library;
     private final BinaryNamingScheme namingScheme;
+    private final JavaToolChain toolChain;
     private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
 
-    public DefaultProjectJarBinary(ProjectJvmLibrary library, BinaryNamingScheme namingScheme) {
+    public DefaultProjectJarBinary(ProjectJvmLibrary library, BinaryNamingScheme namingScheme, JavaToolChain toolChain) {
         this.library = library;
         this.namingScheme = namingScheme;
+        this.toolChain = toolChain;
     }
 
     public boolean isBuildable() {
@@ -59,6 +62,10 @@ public class DefaultProjectJarBinary extends AbstractBuildableModelElement imple
 
     public ProjectJvmLibrary getLibrary() {
         return library;
+    }
+
+    public JavaToolChain getToolChain() {
+        return toolChain;
     }
 
     public BinaryNamingScheme getNamingScheme() {

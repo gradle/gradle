@@ -32,7 +32,6 @@ import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -43,12 +42,10 @@ import java.io.File;
  */
 public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
     private final ModelRules modelRules;
-    private final JavaToolChainInternal toolChain;
 
     @Inject
-    public JavaLanguagePlugin(ModelRules modelRules, JavaToolChainInternal toolChain) {
+    public JavaLanguagePlugin(ModelRules modelRules) {
         this.modelRules = modelRules;
-        this.toolChain = toolChain;
     }
 
     public void apply(ProjectInternal project) {
@@ -77,13 +74,13 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
                     JavaCompile compile = tasks.create(compileTaskName, JavaCompile.class);
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
+                    compile.setToolChain(binary.getToolChain());
 
                     compile.setSource(javaSourceSet.getSource());
                     compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
                     compile.setSourceCompatibility(JavaVersion.current().toString());
                     compile.setTargetCompatibility(JavaVersion.current().toString());
                     compile.setDependencyCacheDir(depCacheDir);
-                    compile.setToolChain(toolChain);
                     compile.dependsOn(javaSourceSet);
 
                     binary.getTasks().add(compile);

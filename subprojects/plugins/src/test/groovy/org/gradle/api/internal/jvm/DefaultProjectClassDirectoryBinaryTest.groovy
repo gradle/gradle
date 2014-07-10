@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.jvm
 
+import org.gradle.runtime.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
 public class DefaultProjectClassDirectoryBinaryTest extends Specification {
+    def toolChain = Mock(JavaToolChain)
+
     def "uses short task names for binary with name 'mainClasses'"() {
         when:
-        def binary = new DefaultProjectClassDirectoryBinary("mainClasses")
+        def binary = binary("mainClasses")
 
         then:
         binary.name == 'mainClasses'
@@ -36,7 +39,7 @@ public class DefaultProjectClassDirectoryBinaryTest extends Specification {
 
     def "uses medium task names for binary with name 'otherClasses'"() {
         when:
-        def binary = new DefaultProjectClassDirectoryBinary("otherClasses")
+        def binary = binary("otherClasses")
 
         then:
         binary.name == 'otherClasses'
@@ -51,7 +54,7 @@ public class DefaultProjectClassDirectoryBinaryTest extends Specification {
 
     def "uses long task names for binary with name 'otherBinary'"() {
         when:
-        def binary = new DefaultProjectClassDirectoryBinary("otherBinary")
+        def binary = binary("otherBinary")
 
         then:
         binary.name == 'otherBinary'
@@ -66,7 +69,7 @@ public class DefaultProjectClassDirectoryBinaryTest extends Specification {
 
     def "has a useful toString() representation"() {
         expect:
-        def binary = new DefaultProjectClassDirectoryBinary(name)
+        def binary = binary(name)
         binary.toString() == displayName
         binary.displayName == displayName
 
@@ -75,5 +78,9 @@ public class DefaultProjectClassDirectoryBinaryTest extends Specification {
         'mainClasses'  | 'classes \'main\''
         'otherClasses' | 'classes \'other\''
         'otherBinary' | 'classes \'otherBinary\''
+    }
+
+    private DefaultProjectClassDirectoryBinary binary(String name) {
+        new DefaultProjectClassDirectoryBinary(name, toolChain)
     }
 }

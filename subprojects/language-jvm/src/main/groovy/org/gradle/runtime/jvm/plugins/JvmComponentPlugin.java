@@ -28,6 +28,7 @@ import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.plugins.CreateJvmBinaries;
 import org.gradle.runtime.jvm.internal.plugins.CreateTasksForJarBinaries;
 import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import javax.inject.Inject;
 
@@ -38,10 +39,12 @@ import javax.inject.Inject;
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
     private final ModelRules modelRules;
+    private final JavaToolChain toolChain;
 
     @Inject
-    public JvmComponentPlugin(ModelRules modelRules) {
+    public JvmComponentPlugin(ModelRules modelRules, JavaToolChain toolChain) {
         this.modelRules = modelRules;
+        this.toolChain = toolChain;
     }
 
     public void apply(final Project project) {
@@ -61,7 +64,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         modelRules.register("jvm.libraries", jvmLibraries);
 
-        modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder(), project.getBuildDir()));
+        modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder(), toolChain, project.getBuildDir()));
         modelRules.rule(new CreateTasksForJarBinaries());
     }
 }

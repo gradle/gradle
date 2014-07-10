@@ -33,6 +33,7 @@ import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -50,11 +51,13 @@ import java.util.concurrent.Callable;
 public class JvmLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
+    private final JavaToolChain toolChain;
 
     @Inject
-    public JvmLanguagePlugin(Instantiator instantiator, FileResolver fileResolver) {
+    public JvmLanguagePlugin(Instantiator instantiator, FileResolver fileResolver, JavaToolChain toolChain) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
+        this.toolChain = toolChain;
     }
 
     public void apply(final Project target) {
@@ -75,7 +78,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ProjectClassDirectoryBinary.class, new NamedDomainObjectFactory<ProjectClassDirectoryBinary>() {
             public ProjectClassDirectoryBinary create(String name) {
-                return instantiator.newInstance(DefaultProjectClassDirectoryBinary.class, name);
+                return instantiator.newInstance(DefaultProjectClassDirectoryBinary.class, name, toolChain);
             }
         });
 

@@ -17,15 +17,17 @@
 package org.gradle.runtime.jvm.internal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.jvm.ProjectJvmLibrary
+import org.gradle.runtime.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
 class DefaultProjectJarBinaryTest extends Specification {
     def library = Mock(ProjectJvmLibrary)
     def namingScheme = Mock(BinaryNamingScheme)
+    def toolChain = Mock(JavaToolChain)
 
     def "binary takes name and displayName from naming scheme"() {
         when:
-        def binary = new DefaultProjectJarBinary(library, namingScheme)
+        def binary = binary()
 
         and:
         namingScheme.lifecycleTaskName >> "jvm-lib-jar"
@@ -39,7 +41,7 @@ class DefaultProjectJarBinaryTest extends Specification {
 
     def "binary has properties for classesDir and jar file"() {
         when:
-        def binary = new DefaultProjectJarBinary(library, namingScheme)
+        def binary = binary()
 
         then:
         binary.jarFile == null
@@ -56,5 +58,17 @@ class DefaultProjectJarBinaryTest extends Specification {
         then:
         binary.jarFile == jarFile
         binary.classesDir == classesDir
+    }
+
+    def "binary has tool chain"() {
+        when:
+        def binary = binary()
+
+        then:
+        binary.toolChain == toolChain
+    }
+
+    private DefaultProjectJarBinary binary() {
+        new DefaultProjectJarBinary(library, namingScheme, toolChain)
     }
 }
