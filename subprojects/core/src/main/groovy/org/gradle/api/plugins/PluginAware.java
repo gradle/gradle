@@ -40,7 +40,7 @@ public interface PluginAware {
      * <p>Configures this object using plugins or scripts. The given closure is used to configure an {@link
      * ObjectConfigurationAction} which is then used to configure this object.</p>
      *
-     * @param closure The closure to configure the {@code ObjectConfigurationAction}.
+     * @param closure The closure to configure the {@link ObjectConfigurationAction}.
      */
     void apply(Closure closure);
 
@@ -56,7 +56,7 @@ public interface PluginAware {
      *
      * <p>For more detail, see {@link ObjectConfigurationAction}.</p>
      *
-     * @param options The options to use to configure the {@code ObjectConfigurationAction}.
+     * @param options The options to use to configure the {@link ObjectConfigurationAction}.
      */
     void apply(Map<String, ?> options);
 }
