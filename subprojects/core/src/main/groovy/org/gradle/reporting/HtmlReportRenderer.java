@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,6 +96,9 @@ public class HtmlReportRenderer {
         Resource addResource(URL source) {
             String name = StringUtils.substringAfterLast(source.getPath(), "/");
             String type = StringUtils.substringAfterLast(source.getPath(), ".");
+            if (type.equalsIgnoreCase("png") || type.equalsIgnoreCase("gif")) {
+                type = "images";
+            }
             String path = String.format("%s/%s", type, name);
             Resource resource = resources.get(path);
             if (resource == null) {
@@ -144,11 +149,11 @@ public class HtmlReportRenderer {
             return builder.toString();
         }
 
-        private class DefaultHtmlPageBuilder<OUT> implements HtmlPageBuilder<OUT> {
+        private class DefaultHtmlPageBuilder<D> implements HtmlPageBuilder<D> {
             private final String prefix;
-            private final OUT output;
+            private final D output;
 
-            public DefaultHtmlPageBuilder(String prefix, OUT output) {
+            public DefaultHtmlPageBuilder(String prefix, D output) {
                 this.prefix = prefix;
                 this.output = output;
             }
@@ -158,7 +163,11 @@ public class HtmlReportRenderer {
                 return prefix + resource.path;
             }
 
-            public OUT getOutput() {
+            public String formatDate(Date date) {
+                return DateFormat.getDateTimeInstance().format(date);
+            }
+
+            public D getOutput() {
                 return output;
             }
         }

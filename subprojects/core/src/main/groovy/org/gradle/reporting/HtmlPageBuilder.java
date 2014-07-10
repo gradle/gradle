@@ -17,6 +17,7 @@
 package org.gradle.reporting;
 
 import java.net.URL;
+import java.util.Date;
 
 public interface HtmlPageBuilder<T> {
     /**
@@ -25,6 +26,8 @@ public interface HtmlPageBuilder<T> {
      * @return A relative URL that refers to the resource's output location.
      */
     String requireResource(URL resource);
+
+    String formatDate(Date date);
 
     T getOutput();
 }

@@ -117,11 +117,17 @@ class HtmlReportRendererTest extends Specification {
 
         then:
         1 * reportRenderer.render(_, _) >> { String model, HtmlReportBuilder builder ->
-            builder.requireResource(getClass().getResource("base-style.css"))
+            builder.requireResource(resource("base-style.css"))
+            builder.requireResource(resource("script.js"))
+            builder.requireResource(resource("thing.png"))
+            builder.requireResource(resource("thing.gif"))
         }
 
         and:
         destDir.file("css/base-style.css").file
+        destDir.file("js/script.js").file
+        destDir.file("images/thing.png").file
+        destDir.file("images/thing.gif").file
     }
 
     def "copies page resources into output directory"() {
@@ -144,5 +150,12 @@ class HtmlReportRendererTest extends Specification {
         and:
         destDir.file("child/page.html").getText("utf-8").contains("<pre>../css/base-style.css</pre>")
         destDir.file("css/base-style.css").file
+    }
+
+    def resource(String name) {
+        def file = tmpDir.file("tmp", name)
+        file.parentFile.mkdirs()
+        file.text = "not empty"
+        file.toURI().toURL()
     }
 }
