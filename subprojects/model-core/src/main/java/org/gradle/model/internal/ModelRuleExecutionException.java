@@ -27,9 +27,21 @@ public class ModelRuleExecutionException extends GradleException {
         super(toMessage(descriptor), cause);
     }
 
+    public ModelRuleExecutionException(ModelRuleSourceDescriptor descriptor, String error) {
+        super(toMessage(descriptor, error));
+    }
+
     private static String toMessage(ModelRuleSourceDescriptor descriptor) {
         StringBuilder builder = new StringBuilder("Exception thrown while executing model rule: ");
         descriptor.describeTo(builder);
+        return builder.toString();
+    }
+
+    private static String toMessage(ModelRuleSourceDescriptor descriptor, String error) {
+        StringBuilder builder = new StringBuilder("error executing model rule: ");
+        descriptor.describeTo(builder);
+        builder.append(" - ");
+        builder.append(error);
         return builder.toString();
     }
 

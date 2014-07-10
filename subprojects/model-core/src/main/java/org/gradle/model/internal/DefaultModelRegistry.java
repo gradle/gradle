@@ -281,6 +281,10 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new ModelRuleExecutionException(creator.getSourceDescriptor(), e);
         }
 
+        if (created == null) {
+            throw new ModelRuleExecutionException(creator.getSourceDescriptor(), "rule returned null");
+        }
+
         ModelElement<T> element = toElement(path, created, creator.getSourceDescriptor());
         store.put(path, element);
         return element;

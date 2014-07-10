@@ -273,4 +273,35 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("oh no!")
     }
 
+    def "model creator must provide instance"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String string() {
+                      null
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            modelRegistry.get("string", String)
+
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("error executing model rule: MyPlugin\$Rules#string() - rule returned null")
+    }
+
 }
