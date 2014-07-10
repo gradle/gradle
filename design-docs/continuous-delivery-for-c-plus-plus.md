@@ -2028,3 +2028,4 @@ TBD
 * Clean task for a binary
 * Update CDT support to match Visual Studio support
 * Rename 'install' task to indicate that it's installing a developer image
+* Detangle knowledge about dealing with multiple source files from NativeCompiler
