@@ -168,7 +168,23 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         wrapperTool(binDir, "linker", toolChain.linker)
 
         when:
+        file("src/execTest/c/execTest.c") <<"""
+            #include <stdio.h>
+
+            int main () {
+                #if defined(__cplusplus)
+                printf("C++ compiler used");
+                #else
+                printf("C compiler used");
+                #endif
+                return 0;
+            }
+        """
+        and:
         buildFile << """
+            executables{
+                execTest
+            }
             model {
                 toolChains {
                     ${toolChain.id} {
@@ -181,6 +197,12 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                         target("i386"){
                             if(cCompiler.executable.equals('gcc')){
                                 cCompiler.executable = 'g++'
+                            }
+                            if(cCompiler.executable.equals('clang')){
+                                cCompiler.executable = 'clang++'
+                            }
+                            cCompiler.withArguments { args ->
+                                args.removeAll(["-x", "c"])
                             }
                         }
                     }
@@ -195,12 +217,15 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                     }
                 }
             }
-"""
-        succeeds "armMainExecutable", "i386MainExecutable"
 
+"""
+        executer.withDeprecationChecksDisabled()
+        succeeds "armMainExecutable", "i386MainExecutable", "i386execTest", "armExecTest"
         then:
         executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.frenchOutput
         executable("build/binaries/mainExecutable/i386/main").exec().out == helloWorldApp.englishOutput
+        executable("build/binaries/execTestExecutable/i386/execTest").exec().out == "C++ compiler used"
+        executable("build/binaries/execTestExecutable/arm/execTest").exec().out == "C compiler used"
     }
 
     def wrapperTool(TestFile binDir, String wrapperName, String executable, String... additionalArgs) {
