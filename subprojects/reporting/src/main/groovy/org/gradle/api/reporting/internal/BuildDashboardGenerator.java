@@ -17,14 +17,17 @@
 package org.gradle.api.reporting.internal;
 
 import com.googlecode.jatl.Html;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
+import org.gradle.reporting.HtmlPageBuilder;
+import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
@@ -35,7 +38,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
     private File outputFile;
 
     @Override
-    public void render(Collection<Report> reports, File outputFile) {
+    public void render(Collection<Report> reports, final File outputFile) {
         this.reports = new TreeSet<Report>(new Comparator<Report>() {
             public int compare(Report o1, Report o2) {
                 return o1.getDisplayName().compareTo(o2.getDisplayName());
@@ -44,32 +47,24 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
         this.reports.addAll(reports);
         this.outputFile = outputFile;
 
-        try {
-            GFileUtils.parentMkdirs(outputFile);
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
-            try {
-                generate(writer);
-            } finally {
-                writer.close();
+        HtmlReportRenderer renderer = new HtmlReportRenderer();
+        renderer.renderRawSinglePage(reports, new ReportRenderer<Collection<Report>, HtmlPageBuilder<Writer>>() {
+            @Override
+            public void render(Collection<Report> model, HtmlPageBuilder<Writer> builder) throws IOException {
+                generate(builder);
             }
-            copyCss();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        }, outputFile);
     }
 
-    private void copyCss() {
-        GFileUtils.copyURLToFile(getClass().getResource("/org/gradle/reporting/base-style.css"), new File(outputFile.getParent(), "base-style.css"));
-        GFileUtils.copyURLToFile(getClass().getResource("style.css"), new File(outputFile.getParent(), "style.css"));
-    }
-
-    private void generate(Writer writer) {
-        new Html(writer) {{
+    private void generate(HtmlPageBuilder<Writer> builder) {
+        final String baseCssLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
+        final String cssLink = builder.requireResource(getClass().getResource("style.css"));
+        new Html(builder.getOutput()) {{
             html();
                 head();
                     meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
-                    link().rel("stylesheet").type("text/css").href("base-style.css").end();
-                    link().rel("stylesheet").type("text/css").href("style.css").end();
+                    link().rel("stylesheet").type("text/css").href(baseCssLink).end();
+                    link().rel("stylesheet").type("text/css").href(cssLink).end();
                     title().text("Build dashboard").end();
                 end();
                 body();
@@ -97,9 +92,9 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
     }
 
     private File getHtmlLinkedFileFromReport(Report report) {
-        if(report instanceof DirectoryReport){
+        if (report instanceof DirectoryReport) {
             return ((DirectoryReport) report).getEntryPoint();
-        } else{
+        } else {
             return report.getDestination();
         }
     }

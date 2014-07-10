@@ -110,7 +110,7 @@ class BuildDashboardGeneratorSpec extends Specification {
         generator.render([], outputFile)
 
         then:
-        outputHtml.select('head link[type=text/css]').attr('href') == 'base-style.css'
-        tmpDir.file('base-style.css').text == getClass().getResource('/org/gradle/reporting/base-style.css').text
+        outputHtml.select('head link[type=text/css]').attr('href') == 'css/base-style.css'
+        tmpDir.file('css/base-style.css').text == getClass().getResource('/org/gradle/reporting/base-style.css').text
     }
 }
