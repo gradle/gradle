@@ -81,19 +81,61 @@ A mock up:
 - Expose models as extensions as well:
     - Have to handle creation rules that take inputs: defer creation until the convention is used, and close the inputs at this point.
     - Once closed, cannot mutate an object.
+    
+> Not planning on doing this. Model elements will likely be subject to restrictions to facilitate persistence.
+> For backwards compatibility, plugin authors can include a mutation rule for the model element and copy data from the extension to the model.
+> Some stories (not fleshed out) have been added to the backlog to allow extensions as rule inputs.
+    
 - Exact pattern to use to determine which model(s) a plugin exposes
     - Alternative pattern that declares only the type and name and Gradle takes care of decoration, instantiation and dependency injection
+    
+> The pattern we've implemented is good enough for now.
+> An alternative pattern that allows Gradle to take care of the instantiation could be added later if needed. (perhaps if the method is abstract).
+> There may be persistence implications here. We may have to own construction for hydration to work.
+    
 - Should assert that every model object is decorated, however it happens to be created.
+
+> UNANSWERED.
+
 - Also add an API where a plugin can declare models dynamically?
+
+> Later, if the use case arises.
+
 - DSL reference documents the model.
+
+> Later story.
+
 - Another plugin or build script configures model.
+
+> Later story.
+
 - Creation rule should be able to declare inputs, including (stateless) services.
+
+> Later story.
+
 - Creation rule declares input of unknown type.
+
+> Later story.
+
 - Settings or init script configures model.
+
+> Later story.
+
 - How would a user verify that they got the signature/annotation correct in a unit test?
+
+> UNANSWERED.
+
 - What are the rules for valid model element names?
+
+> UNANSWERED.
+
 - Do we support generic types? including wildcard, covariant and contravariant types?
+
+> UNANSWERED
+
 - How much thread safety do we build in right now? e.g. could two plugins be registered concurrently? 
+
+> UNANSWERED.
 
 ## Story: Plugin defines tasks using model as input
 
@@ -199,6 +241,16 @@ A mock up:
 - Change closure resolution strategy to delegate-only.
 - Move `Project.afterEvaluate()` to fire after the build script has been executed.
 - Include rule execution time in the profile report.
+
+## Story: Plugin model rule uses extension as rule input 
+
+- Creation and mutation rule
+
+### Open issues
+
+- Prevent access to extension after used as rule input?
+
+## Story: DSL model rule uses extension as rule input 
 
 ## Story: Make public the Model DSL and plugin rules mechanism
 
