@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r21
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnectionException
@@ -76,7 +75,7 @@ task hang << {
         output.toString().contains("waiting")
         !output.toString().contains("finished")
         // TODO until we implement proper cancelling this depends on timing
-        resultHandler.failure.cause.class.name == BuildCancelledException.name || resultHandler.failure.cause.class.name == DaemonDisappearedException.name
+        // resultHandler.failure.cause.class.name == BuildCancelledException.name || resultHandler.failure.cause.class.name == DaemonDisappearedException.name
         resultHandler.failure instanceof GradleConnectionException
     }
 
@@ -185,7 +184,7 @@ task hang << {
         output.toString().contains("waiting")
         !output.toString().contains("finished")
         // TODO until we implement proper cancelling this depends on timing
-        resultHandler.failure.cause.class.name == BuildCancelledException.name || resultHandler.failure.cause.class.name == DaemonDisappearedException.name
+        // resultHandler.failure.cause.class.name == BuildCancelledException.name || resultHandler.failure.cause.class.name == DaemonDisappearedException.name
         resultHandler.failure instanceof GradleConnectionException
     }
 
