@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.registry;
 
 
 import com.google.common.collect.ArrayListMultimap;
@@ -26,6 +26,9 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
 import java.util.*;
 
@@ -323,26 +326,6 @@ public class DefaultModelRegistry implements ModelRegistry {
                 modelCreationListenerListIterator.remove();
             }
         }
-    }
-
-    private static class ModelCreation<T> {
-
-        private final ModelCreator<T> creator;
-        private final ImmutableList<ModelPath> inputPaths;
-
-        public ModelCreation(ModelCreator<T> creator, ImmutableList<ModelPath> inputPaths) {
-            this.creator = creator;
-            this.inputPaths = inputPaths;
-        }
-
-        public ModelCreator<T> getCreator() {
-            return creator;
-        }
-
-        public ImmutableList<ModelPath> getInputPaths() {
-            return inputPaths;
-        }
-
     }
 
     private static class ToModelPath implements Transformer<ModelPath, String> {

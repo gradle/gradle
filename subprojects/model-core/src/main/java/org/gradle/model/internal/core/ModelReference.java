@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core;
 
 import org.gradle.model.ModelPath;
 

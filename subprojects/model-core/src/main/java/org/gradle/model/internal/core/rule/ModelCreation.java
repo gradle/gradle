@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule;
 
-import org.gradle.api.UncheckedIOException;
+import com.google.common.collect.ImmutableList;
+import org.gradle.model.ModelPath;
 
-import java.io.IOException;
+public class ModelCreation<T> {
 
-// TODO remove this - it's a temporary measure until we change existing rules to be in a more descriptive form
-public class UnknownModelRuleSourceDescriptor implements ModelRuleSourceDescriptor {
+    private final ModelCreator<T> creator;
+    private final ImmutableList<ModelPath> inputPaths;
 
-    public void describeTo(Appendable appendable) {
-        try {
-            appendable.append("«unknown»");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public ModelCreation(ModelCreator<T> creator, ImmutableList<ModelPath> inputPaths) {
+        this.creator = creator;
+        this.inputPaths = inputPaths;
+    }
+
+    public ModelCreator<T> getCreator() {
+        return creator;
+    }
+
+    public ImmutableList<ModelPath> getInputPaths() {
+        return inputPaths;
     }
 
 }

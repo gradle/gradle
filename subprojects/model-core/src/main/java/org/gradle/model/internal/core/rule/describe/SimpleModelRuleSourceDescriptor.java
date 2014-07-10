@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule.describe;
 
 import org.gradle.api.UncheckedIOException;
 

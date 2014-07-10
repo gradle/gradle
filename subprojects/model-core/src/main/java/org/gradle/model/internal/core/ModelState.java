@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core;
 
-import com.google.common.reflect.TypeToken;
+public class ModelState<T> {
 
-public class ModelType<T> {
-
-    private final TypeToken<T> typeToken;
-
-    public ModelType(TypeToken<T> typeToken) {
-        this.typeToken = typeToken;
+    public enum Status {
+        // TODO probably need to capture iterim states (e.g. MUTATING)
+        PENDING,
+        FINALIZED
     }
 
-    public ModelType(Class<T> clazz) {
-        this(TypeToken.of(clazz));
+    private final ModelReference<T> reference;
+    private final Status status;
+
+    public ModelState(ModelReference<T> reference, Status status) {
+        this.reference = reference;
+        this.status = status;
     }
 
-    public Class<? super T> getRawClass() {
-        return typeToken.getRawType();
+    public ModelReference<T> getReference() {
+        return reference;
     }
 
-    public boolean isAssignableFrom(ModelType<?> modelType) {
-        return typeToken.isAssignableFrom(modelType.typeToken);
+    public Status getStatus() {
+        return status;
     }
 
-    @Override
-    public String toString() {
-        return "ModelType{" + typeToken + '}';
-    }
 }

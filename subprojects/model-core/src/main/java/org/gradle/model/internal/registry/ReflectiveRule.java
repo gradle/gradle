@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
@@ -25,6 +25,12 @@ import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.Path;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.Inputs;
+import org.gradle.model.internal.core.rule.ModelCreationListener;
+import org.gradle.model.internal.core.rule.ModelMutator;
+import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;

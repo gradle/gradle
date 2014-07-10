@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule;
 
-public interface ModelCreationListener {
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
-    boolean onCreate(ModelReference<?> reference);
+public interface ModelCreator<T> {
+
+    ModelReference<T> getReference();
+
+    T create(Inputs inputs);
+
+    ModelRuleSourceDescriptor getSourceDescriptor();
 
 }

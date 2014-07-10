@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
 import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.ModelCreationListener;
+import org.gradle.model.internal.core.rule.ModelCreator;
+import org.gradle.model.internal.core.rule.ModelMutation;
+import org.gradle.model.internal.core.rule.ModelMutator;
 
 import java.util.List;
 

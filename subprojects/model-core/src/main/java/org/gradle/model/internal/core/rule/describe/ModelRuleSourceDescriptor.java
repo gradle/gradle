@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule.describe;
 
-public interface ModelMutator<T> {
+public interface ModelRuleSourceDescriptor {
 
-    ModelReference<T> getReference();
-
-    void mutate(T object, Inputs inputs);
-
-    ModelRuleSourceDescriptor getSourceDescriptor();
+    /**
+     * This method is expected to be idempotent.
+     *
+     * @param appendable where to write the description to.
+     */
+    void describeTo(Appendable appendable);
 
 }

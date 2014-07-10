@@ -62,7 +62,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
-import org.gradle.model.internal.ModelRegistry;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.process.ExecResult;
 import org.gradle.util.Configurable;

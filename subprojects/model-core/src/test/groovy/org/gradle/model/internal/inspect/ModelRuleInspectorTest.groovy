@@ -19,9 +19,9 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.Model
 import org.gradle.model.ModelPath
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.DefaultModelRegistry
-import org.gradle.model.internal.ModelRegistry
-import org.gradle.model.internal.ModelState
+import org.gradle.model.internal.registry.DefaultModelRegistry
+import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.core.ModelState
 import spock.lang.Specification
 import spock.lang.Unroll
 

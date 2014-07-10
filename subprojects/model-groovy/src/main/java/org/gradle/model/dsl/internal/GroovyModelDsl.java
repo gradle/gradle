@@ -24,7 +24,12 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.ModelDsl;
-import org.gradle.model.internal.*;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.Inputs;
+import org.gradle.model.internal.core.rule.ModelMutator;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor;
+import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;

@@ -49,8 +49,8 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.model.ModelRules
-import org.gradle.model.internal.ModelRegistry
-import org.gradle.model.internal.ModelRegistryBackedModelRules
+import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.registry.ModelRegistryBackedModelRules
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil

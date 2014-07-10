@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule.describe;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 
-// TODO generic model related super exception?
-public class DuplicateModelException extends GradleException {
+import java.io.IOException;
 
-    public DuplicateModelException(String message) {
-        super(message);
+// TODO remove this - it's a temporary measure until we change existing rules to be in a more descriptive form
+public class UnknownModelRuleSourceDescriptor implements ModelRuleSourceDescriptor {
+
+    public void describeTo(Appendable appendable) {
+        try {
+            appendable.append("«unknown»");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
 }

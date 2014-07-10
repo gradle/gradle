@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
 
-class ModelMutation<T> {
+public interface ModelCreationListener {
 
-    private final ModelMutator<T> mutator;
-    private final ImmutableList<ModelPath> inputPaths;
+    boolean onCreate(ModelReference<?> reference);
 
-    public ModelMutation(ModelMutator<T> mutator, ImmutableList<ModelPath> inputPaths) {
-        this.mutator = mutator;
-        this.inputPaths = inputPaths;
-    }
-
-    public ModelMutator<T> getMutator() {
-        return mutator;
-    }
-
-    public ImmutableList<ModelPath> getInputPaths() {
-        return inputPaths;
-    }
 }

@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.registry;
 
-public interface ModelCreator<T> {
+import org.gradle.api.GradleException;
 
-    ModelReference<T> getReference();
+// TODO generic model related super exception?
+public class DuplicateModelException extends GradleException {
 
-    T create(Inputs inputs);
-
-    ModelRuleSourceDescriptor getSourceDescriptor();
+    public DuplicateModelException(String message) {
+        super(message);
+    }
 
 }

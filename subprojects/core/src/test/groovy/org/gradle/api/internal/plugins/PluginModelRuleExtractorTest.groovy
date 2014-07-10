@@ -23,8 +23,8 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.ModelRegistry
-import org.gradle.model.internal.ModelRegistryScope
+import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.registry.ModelRegistryScope
 import org.gradle.model.internal.inspect.ModelRuleInspector
 import spock.lang.Specification
 

@@ -51,9 +51,9 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.ModelRules;
-import org.gradle.model.internal.DefaultModelRegistry;
-import org.gradle.model.internal.ModelRegistry;
-import org.gradle.model.internal.ModelRegistryBackedModelRules;
+import org.gradle.model.internal.registry.DefaultModelRegistry;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.registry.ModelRegistryBackedModelRules;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 

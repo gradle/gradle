@@ -19,6 +19,8 @@ package org.gradle.model.internal
 import org.gradle.api.Action
 import org.gradle.model.ModelFinalizer
 import org.gradle.model.ModelRule
+import org.gradle.model.internal.registry.DefaultModelRegistry
+import org.gradle.model.internal.registry.ModelRegistryBackedModelRules
 import spock.lang.Specification
 
 class ModelRegistryBackedModelRulesTest extends Specification {

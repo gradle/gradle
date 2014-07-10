@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule;
 
-public interface Inputs {
+import com.google.common.collect.ImmutableList;
+import org.gradle.model.ModelPath;
 
-    <T> T get(int i, Class<T> type);
+public class ModelMutation<T> {
 
-    int size();
+    private final ModelMutator<T> mutator;
+    private final ImmutableList<ModelPath> inputPaths;
 
+    public ModelMutation(ModelMutator<T> mutator, ImmutableList<ModelPath> inputPaths) {
+        this.mutator = mutator;
+        this.inputPaths = inputPaths;
+    }
+
+    public ModelMutator<T> getMutator() {
+        return mutator;
+    }
+
+    public ImmutableList<ModelPath> getInputPaths() {
+        return inputPaths;
+    }
 }

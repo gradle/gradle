@@ -16,9 +16,9 @@
 
 package org.gradle.model.dsl.internal
 
-import org.gradle.model.internal.DefaultModelRegistry
-import org.gradle.model.internal.ModelRegistryBackedModelRules
-import org.gradle.model.internal.ModelRuleExecutionException
+import org.gradle.model.internal.registry.DefaultModelRegistry
+import org.gradle.model.internal.registry.ModelRegistryBackedModelRules
+import org.gradle.model.internal.core.rule.ModelRuleExecutionException
 import spock.lang.Specification
 
 class GroovyModelDslTest extends Specification {

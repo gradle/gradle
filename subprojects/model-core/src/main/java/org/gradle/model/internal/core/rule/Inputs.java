@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule;
 
-public interface ModelRuleSourceDescriptor {
+public interface Inputs {
 
-    /**
-     * This method is expected to be idempotent.
-     *
-     * @param appendable where to write the description to.
-     */
-    void describeTo(Appendable appendable);
+    <T> T get(int i, Class<T> type);
+
+    int size();
 
 }

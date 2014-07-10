@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
 @Contextual
 // TODO should include some context on what the rule was trying to do (create vs. mutate)

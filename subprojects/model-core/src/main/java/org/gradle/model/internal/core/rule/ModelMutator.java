@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.core.rule;
 
-public interface ModelRegistryScope {
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
-    ModelRegistry getModelRegistry();
+public interface ModelMutator<T> {
+
+    ModelReference<T> getReference();
+
+    void mutate(T object, Inputs inputs);
+
+    ModelRuleSourceDescriptor getSourceDescriptor();
 
 }

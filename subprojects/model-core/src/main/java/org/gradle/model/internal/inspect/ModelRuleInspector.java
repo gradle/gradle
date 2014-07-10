@@ -25,7 +25,12 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.ModelPath;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.*;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.Inputs;
+import org.gradle.model.internal.core.rule.ModelCreator;
+import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
