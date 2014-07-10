@@ -17,20 +17,23 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.model.internal.core.ModelElement;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
 
 public class DefaultInputs implements Inputs {
 
-    private final ImmutableList<?> inputs;
+    private final ImmutableList<ModelElement<?>> inputs;
 
-    public DefaultInputs(ImmutableList<?> inputs) {
+    public DefaultInputs(ImmutableList<ModelElement<?>> inputs) {
         this.inputs = inputs;
     }
 
-    public <T> T get(int i, Class<T> type) {
-        Object input = inputs.get(i);
-        if (type.isInstance(input)) {
-            return type.cast(input);
+    public <T> ModelElement<? extends T> get(int i, Class<T> type) {
+        ModelElement<?> input = inputs.get(i);
+        if (new ModelType<T>(type).isAssignableFrom(input.getReference().getType())) {
+            @SuppressWarnings("unchecked") ModelElement<? extends T> cast = (ModelElement<? extends T>) input;
+            return cast;
         } else {
             throw new RuntimeException("Can't convert input '" + i + "' with type '" + input.getClass() + "' to type '" + type + "'");
         }

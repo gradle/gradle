@@ -16,9 +16,11 @@
 
 package org.gradle.model.internal.core.rule;
 
+import org.gradle.model.internal.core.ModelElement;
+
 public interface Inputs {
 
-    <T> T get(int i, Class<T> type);
+    <T> ModelElement<? extends T> get(int i, Class<T> type);
 
     int size();
 

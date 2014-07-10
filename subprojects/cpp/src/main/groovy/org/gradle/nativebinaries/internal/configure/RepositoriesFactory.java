@@ -24,7 +24,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelPath;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
 import org.gradle.model.internal.core.rule.ModelCreator;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
@@ -62,9 +63,9 @@ public class RepositoriesFactory implements ModelCreator<Repositories> {
     }
 
     public Repositories create(Inputs inputs) {
-        FlavorContainer flavors = inputs.get(0, FlavorContainer.class);
-        PlatformContainer platforms = inputs.get(1, PlatformContainer.class);
-        BuildTypeContainer buildTypes = inputs.get(2, BuildTypeContainer.class);
+        FlavorContainer flavors = inputs.get(0, FlavorContainer.class).getInstance();
+        PlatformContainer platforms = inputs.get(1, PlatformContainer.class).getInstance();
+        BuildTypeContainer buildTypes = inputs.get(2, BuildTypeContainer.class).getInstance();
         Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, platforms, buildTypes, flavors);
         return new DefaultRepositories(instantiator, fileResolver, initializer);
     }

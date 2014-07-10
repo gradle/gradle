@@ -26,7 +26,10 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.model.ModelPath;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelElement;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelState;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
@@ -310,9 +313,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private Inputs toInputs(Iterable<ModelPath> inputPaths) {
-        ImmutableList.Builder<Object> builder = ImmutableList.builder();
+        ImmutableList.Builder<ModelElement<?>> builder = ImmutableList.builder();
         for (ModelPath inputPath : inputPaths) {
-            builder.add(get(inputPath).getInstance());
+            builder.add(get(inputPath));
         }
         return new DefaultInputs(builder.build());
     }

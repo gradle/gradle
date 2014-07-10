@@ -129,7 +129,7 @@ public abstract class ReflectiveRule {
                 Object[] args = new Object[1 + tail.size()];
                 args[0] = object;
                 for (int i = 0; i < inputs.size(); ++i) {
-                    args[i + 1] = inputs.get(i, tail.get(i).getType());
+                    args[i + 1] = inputs.get(i, tail.get(i).getType()).getInstance();
                 }
 
                 bindingMethod.setAccessible(true);
