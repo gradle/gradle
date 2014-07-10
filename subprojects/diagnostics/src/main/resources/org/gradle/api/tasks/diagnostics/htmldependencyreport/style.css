@@ -44,7 +44,7 @@
     cursor: pointer;
 }
 .configuration h3 ins {
-    background-image: url(d.png); background-repeat:no-repeat; background-color:white;
+    background-image: url(../images/d.png); background-repeat:no-repeat; background-color:white;
     background-position: -18px 0;
     display: inline-block;
     width: 18px;
@@ -68,7 +68,7 @@
 }
 #dismissInsight {
     float: right;
-    background:url("d.png") -18px -53px no-repeat !important;
+    background:url("../images/d.png") -18px -53px no-repeat !important;
     width: 20px;
     height: 20px;
     cursor: pointer;

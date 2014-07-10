@@ -116,7 +116,7 @@ function initializeProjectPage(report) {
                     data : nodes
                 },
                 themes : {
-                    url : 'tree.css',
+                    url : 'css/tree.css',
                     icons : false
                 },
                 plugins : ['json_data', 'themes']
@@ -163,7 +163,7 @@ function initializeProjectPage(report) {
                         data : nodes
                     },
                     themes : {
-                        url : 'tree.css',
+                        url : 'css/tree.css',
                         icons : false
                     },
                     plugins : ['json_data', 'themes']

@@ -235,14 +235,14 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "htmlDependencyReport"
 
         then:
-        file("build/reports/project/dependencies/d.gif").assertExists()
-        file("build/reports/project/dependencies/d.png").assertExists()
-        file("build/reports/project/dependencies/jquery.jstree.js").assertExists()
-        file("build/reports/project/dependencies/jquery-1.10.1.min.js").assertExists()
-        file("build/reports/project/dependencies/script.js").assertExists()
-        file("build/reports/project/dependencies/style.css").assertExists()
-        file("build/reports/project/dependencies/throbber.gif").assertExists()
-        file("build/reports/project/dependencies/tree.css").assertExists()
+        file("build/reports/project/dependencies/images/d.gif").assertExists()
+        file("build/reports/project/dependencies/images/d.png").assertExists()
+        file("build/reports/project/dependencies/js/jquery.jstree.js").assertExists()
+        file("build/reports/project/dependencies/js/jquery.min-1.11.0.js").assertExists()
+        file("build/reports/project/dependencies/js/script.js").assertExists()
+        file("build/reports/project/dependencies/css/style.css").assertExists()
+        file("build/reports/project/dependencies/images/throbber.gif").assertExists()
+        file("build/reports/project/dependencies/css/tree.css").assertExists()
 
         file("build/reports/project/dependencies/root.html").getText().contains('<script src="root.js" charset="utf-8"></script>');
         file("build/reports/project/dependencies/root.js").assertExists();

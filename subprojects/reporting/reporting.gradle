@@ -1,3 +1,13 @@
+apply plugin: 'javascript-base'
+
+configurations {
+    reports
+}
+
+repositories {
+    javaScript.googleApis()
+}
+
 dependencies {
     compile libraries.groovy
     compile project(':core')
@@ -6,6 +16,14 @@ dependencies {
     testCompile libraries.jsoup
     integTestRuntime project(':codeQuality')
     integTestRuntime project(':jacoco')
+
+    reports "jquery:jquery.min:1.11.0@js"
 }
+
+task reportResources(type: Copy) {
+    from configurations.reports
+    into "$generatedResourcesDir/org/gradle/reporting"
+}
+sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
 useTestFixtures()

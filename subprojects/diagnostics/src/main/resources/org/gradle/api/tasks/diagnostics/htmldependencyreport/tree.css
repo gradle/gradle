@@ -21,7 +21,7 @@
  */
 
 .jstree-default li, 
-.jstree-default ins { background-image:url("d.png"); background-repeat:no-repeat; background-color:transparent; }
+.jstree-default ins { background-image:url("../images/d.png"); background-repeat:no-repeat; background-color:transparent; }
 .jstree-default li { background-position:-90px 0; background-repeat:repeat-y; }
 .jstree-default li.jstree-last { background:transparent; }
 .jstree-default .jstree-open > ins { background-position:-72px 0; }
@@ -54,9 +54,9 @@
 .jstree-default .jstree-undetermined > a > .jstree-checkbox:hover { background-position:-20px -37px; }
 
 #vakata-dragged.jstree-default ins { background:transparent !important; }
-#vakata-dragged.jstree-default .jstree-ok { background:url("d.png") -2px -53px no-repeat !important; }
-#vakata-dragged.jstree-default .jstree-invalid { background:url("d.png") -18px -53px no-repeat !important; }
-#jstree-marker.jstree-default { background:url("d.png") -41px -57px no-repeat !important; text-indent:-100px; }
+#vakata-dragged.jstree-default .jstree-ok { background:url("../images/d.png") -2px -53px no-repeat !important; }
+#vakata-dragged.jstree-default .jstree-invalid { background:url("../images/d.png") -18px -53px no-repeat !important; }
+#jstree-marker.jstree-default { background:url("../images/d.png") -41px -57px no-repeat !important; text-indent:-100px; }
 
 .jstree-default a.jstree-search { color:aqua; }
 .jstree-default .jstree-locked a { color:silver; cursor:default; }
@@ -77,7 +77,7 @@
 .jstree-default ins,
 #vakata-dragged.jstree-default .jstree-invalid, 
 #vakata-dragged.jstree-default .jstree-ok, 
-#jstree-marker.jstree-default { _background-image:url("d.gif"); }
+#jstree-marker.jstree-default { _background-image:url("../images/d.gif"); }
 .jstree-default .jstree-open ins { _background-position:-72px 0; }
 .jstree-default .jstree-closed ins { _background-position:-54px 0; }
 .jstree-default .jstree-leaf ins { _background-position:-36px 0; }

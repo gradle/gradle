@@ -19,6 +19,8 @@ package org.gradle.api.reporting.dependencies.internal
 import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.reporting.HtmlReportBuilder
+import org.gradle.reporting.HtmlReportRenderer
 import org.gradle.reporting.ReportRenderer
 import org.gradle.util.GFileUtils
 
@@ -52,16 +54,23 @@ class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
     void render(Set<Project> projects, File outputDirectory) {
         this.outputDirectory = outputDirectory
 
-        GFileUtils.copyURLToFile(getClass().getResource("/org/gradle/reporting/base-style.css"), new File(outputDirectory, "base-style.css"))
-        copyReportFile("d.gif")
-        copyReportFile("d.png")
-        copyReportFile("jquery.jstree.js")
-        copyReportFile("jquery-1.10.1.min.js")
-        copyReportFile("script.js")
-        copyReportFile("style.css")
-        copyReportFile("throbber.gif")
-        copyReportFile("tree.css")
         copyReportFile("index.html")
+
+        def renderer = new HtmlReportRenderer()
+        renderer.render(projects, new ReportRenderer<Set<Project>, HtmlReportBuilder>() {
+            @Override
+            void render(Set<Project> model, HtmlReportBuilder builder) {
+                builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"))
+                builder.requireResource(getClass().getResource("/org/gradle/reporting/jquery.min-1.11.0.js"))
+                builder.requireResource(getClass().getResource(getReportResourcePath("jquery.jstree.js")))
+                builder.requireResource(getClass().getResource(getReportResourcePath("script.js")))
+                builder.requireResource(getClass().getResource(getReportResourcePath("style.css")))
+                builder.requireResource(getClass().getResource(getReportResourcePath("tree.css")))
+                builder.requireResource(getClass().getResource(getReportResourcePath("d.gif")))
+                builder.requireResource(getClass().getResource(getReportResourcePath("d.png")))
+                builder.requireResource(getClass().getResource(getReportResourcePath("throbber.gif")))
+            }
+        }, outputDirectory)
 
         String template = readHtmlTemplate();
         for (Project project : projects) {
