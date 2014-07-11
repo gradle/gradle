@@ -18,7 +18,6 @@ package org.gradle.api.plugins.devel
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
-import spock.lang.Ignore
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
@@ -136,7 +135,6 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.count(INVALID_DESCRIPTOR_WARNING_PREFIX) == 1
     }
 
-    @Ignore
     def buildFile() {
         buildFile << """
 apply plugin: 'java-gradle-plugin'
@@ -147,14 +145,12 @@ jar {
 """
     }
 
-    @Ignore
     def goodPluginDescriptor() {
         file('src/main/resources/META-INF/gradle-plugins/test-plugin.properties') << """
 implementation-class=com.xxx.TestPlugin
 """
     }
 
-    @Ignore
     def goodPlugin() {
         file('src/main/java/com/xxx/TestPlugin.java') << """
 package com.xxx;
@@ -166,12 +162,10 @@ public class TestPlugin implements Plugin<Project> {
 """
     }
 
-    @Ignore
     def badPluginDescriptor(String descriptorId, String descriptorContents) {
         file("src/main/resources/META-INF/gradle-plugins/${descriptorId}.properties") << descriptorContents
     }
 
-    @Ignore
     def badPluginDescriptor(String descriptorContents) {
         badPluginDescriptor('test-plugin', descriptorContents)
     }

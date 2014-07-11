@@ -29,7 +29,6 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.logging.ConfigureLogging
 import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class JavaGradlePluginPluginTest extends Specification {
@@ -169,7 +168,6 @@ class JavaGradlePluginPluginTest extends Specification {
         1 * mockJarTask.doLast({ it instanceof JavaGradlePluginPlugin.PluginValidationAction})
     }
 
-    @Ignore
     def Jar mockJar(project) {
         def Jar mockJar = Mock(Jar) {
             _ * getName() >> { JavaGradlePluginPlugin.JAR_TASK }
