@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.model.internal.core.*;

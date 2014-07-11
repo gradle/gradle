@@ -28,7 +28,7 @@ import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 

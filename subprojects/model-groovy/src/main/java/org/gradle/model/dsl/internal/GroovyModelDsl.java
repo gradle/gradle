@@ -21,7 +21,7 @@ import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.ModelDsl;
 import org.gradle.model.internal.core.*;

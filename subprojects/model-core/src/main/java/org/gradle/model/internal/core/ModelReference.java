@@ -16,8 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.ModelPath;
-
 public class ModelReference<T> {
 
     private final ModelPath path;

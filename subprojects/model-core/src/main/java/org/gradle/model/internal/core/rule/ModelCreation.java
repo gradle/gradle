@@ -17,7 +17,7 @@
 package org.gradle.model.internal.core.rule;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 
 public class ModelCreation<T> {
 

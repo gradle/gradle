@@ -22,7 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.ModelFinalizer;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.*;

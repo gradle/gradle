@@ -17,7 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.ModelCreationListener;
 import org.gradle.model.internal.core.rule.ModelCreator;

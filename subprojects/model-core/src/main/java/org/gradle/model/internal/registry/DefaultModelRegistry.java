@@ -24,7 +24,7 @@ import com.google.common.collect.Multimap;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelState;

@@ -18,7 +18,7 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
-import org.gradle.model.ModelPath
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelState

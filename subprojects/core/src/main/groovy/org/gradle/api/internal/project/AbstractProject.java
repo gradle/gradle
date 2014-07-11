@@ -59,7 +59,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.registry.ModelRegistry;

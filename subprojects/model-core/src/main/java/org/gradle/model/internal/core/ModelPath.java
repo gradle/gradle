@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model;
+package org.gradle.model.internal.core;
 
 import org.gradle.api.Incubating;
 

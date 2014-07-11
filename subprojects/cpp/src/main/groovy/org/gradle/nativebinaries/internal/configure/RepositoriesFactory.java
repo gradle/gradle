@@ -23,7 +23,7 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.ModelPath;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
