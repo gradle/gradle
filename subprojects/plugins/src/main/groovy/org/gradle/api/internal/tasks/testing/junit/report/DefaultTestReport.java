@@ -74,11 +74,14 @@ public class DefaultTestReport implements TestReporter {
             htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
                 @Override
                 public void render(AllTestResults model, HtmlReportBuilder output) throws IOException {
+                    PackagePageRenderer packagePageRenderer = new PackagePageRenderer();
+                    ClassPageRenderer classPageRenderer = new ClassPageRenderer(resultsProvider);
+
                     output.renderHtmlPage("index.html", model, new OverviewPageRenderer());
                     for (PackageTestResults packageResults : model.getPackages()) {
-                        output.renderHtmlPage(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer());
+                        output.renderHtmlPage(packageResults.getBaseUrl(), packageResults, packagePageRenderer);
                         for (ClassTestResults classResults : packageResults.getClasses()) {
-                            output.renderHtmlPage(classResults.getBaseUrl(), classResults, new ClassPageRenderer(classResults.getId(), resultsProvider));
+                            output.renderHtmlPage(classResults.getBaseUrl(), classResults, classPageRenderer);
                         }
                     }
                 }

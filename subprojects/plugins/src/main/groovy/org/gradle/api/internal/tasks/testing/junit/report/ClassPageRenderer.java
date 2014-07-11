@@ -29,10 +29,8 @@ import java.io.IOException;
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
     private final TestResultsProvider resultsProvider;
-    private final long classId;
 
-    public ClassPageRenderer(long classId, TestResultsProvider provider) {
-        this.classId = classId;
+    public ClassPageRenderer(TestResultsProvider provider) {
         this.resultsProvider = provider;
     }
 
@@ -93,6 +91,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 renderTests(writer);
             }
         });
+        final long classId = getModel().getId();
         if (resultsProvider.hasOutput(classId, TestOutputEvent.Destination.StdOut)) {
             addTab("Standard output", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
