@@ -16,7 +16,16 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class ModelType<T> {
 
@@ -34,6 +43,24 @@ public class ModelType<T> {
         return typeToken.getRawType();
     }
 
+    public boolean isParameterized() {
+        return typeToken.getType() instanceof ParameterizedType;
+    }
+
+    public List<ModelType<?>> getTypeVariables() {
+        if (isParameterized()) {
+            List<Type> types = Arrays.asList(((ParameterizedType) typeToken.getType()).getActualTypeArguments());
+            return ImmutableList.<ModelType<?>>builder().addAll(Iterables.transform(types, new Function<Type, ModelType<?>>() {
+                public ModelType<?> apply(Type input) {
+                    @SuppressWarnings("unchecked") ModelType raw = new ModelType(TypeToken.of(input));
+                    return raw;
+                }
+            })).build();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
     public boolean isAssignableFrom(ModelType<?> modelType) {
         return typeToken.isAssignableFrom(modelType.typeToken);
     }
@@ -41,5 +68,24 @@ public class ModelType<T> {
     @Override
     public String toString() {
         return "ModelType{" + typeToken + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ModelType modelType = (ModelType) o;
+
+        return typeToken.equals(modelType.typeToken);
+    }
+
+    @Override
+    public int hashCode() {
+        return typeToken.hashCode();
     }
 }

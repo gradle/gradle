@@ -40,6 +40,8 @@ public interface ModelRegistry {
 
     public <T> T get(String path, Class<T> type);
 
+    public <T> ModelElement<? extends T> element(ModelReference<T> reference);
+
     @Nullable // if not registered/known
     public ModelState<?> state(ModelPath path);
 

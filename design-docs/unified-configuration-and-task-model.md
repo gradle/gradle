@@ -76,6 +76,8 @@ A mock up:
 - ~~Reasonable error messages when creation rule or configuration closure fail.~~
 - ~~Reasonable error messages when plugin does not correctly follow static pattern.~~
 - ~~Creation rule returns null.~~
+- ~~Rule can declare parameterized type with concrete type vars~~
+- ~~Model type cannot be generic~~
 
 ### Open issues
 
@@ -132,7 +134,8 @@ A mock up:
 
 - Do we support generic types? including wildcard, covariant and contravariant types?
 
-> UNANSWERED
+We support parameterized types where all variables are concrete. 
+The method rule can't be generic so the only other possible cases are bounded types and the wildcard.
 
 - How much thread safety do we build in right now? e.g. could two plugins be registered concurrently? 
 

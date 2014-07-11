@@ -21,7 +21,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.common.reflect.TypeToken;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
@@ -121,6 +120,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelElement<?> model = get(modelPath);
         ModelElement<? extends T> typed = assertType(model, new ModelType<T>(type), "get(String, Class)");
         return typed.getInstance();
+    }
+
+    public <T> ModelElement<? extends T> element(ModelReference<T> reference) {
+        ModelElement<?> model = get(reference.getPath());
+        return assertType(model, reference.getType(), "element(ModelReference)");
     }
 
     public ModelState<?> state(ModelPath path) {
@@ -291,15 +295,13 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new ModelRuleExecutionException(creator.getSourceDescriptor(), "rule returned null");
         }
 
-        ModelElement<T> element = toElement(path, created, creator.getSourceDescriptor());
+        ModelElement<T> element = toElement(created, creator);
         store.put(path, element);
         return element;
     }
 
-    private <T> ModelElement<T> toElement(ModelPath path, T model, ModelRuleSourceDescriptor descriptor) {
-        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) model.getClass();
-        ModelReference<T> reference = new ModelReference<T>(path, new ModelType<T>(TypeToken.of(clazz)));
-        return new ModelElement<T>(reference, model, descriptor);
+    private <T> ModelElement<T> toElement(T model, ModelCreator<T> creator) {
+        return new ModelElement<T>(creator.getReference(), model, creator.getSourceDescriptor());
     }
 
     private <T> void fireMutation(ModelElement<T> model, ModelMutation<? super T> modelMutation) {

@@ -16,12 +16,15 @@
 
 package org.gradle.model.internal.inspect
 
+import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.ModelPath
 import org.gradle.model.RuleSource
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelState
+import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.model.internal.core.ModelState
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -78,6 +81,7 @@ class ModelRuleInspectorTest extends Specification {
     static class HasTwoSources {
         @RuleSource
         static class SourceOne {}
+
         @RuleSource
         static class SourceTwo {}
 
@@ -94,6 +98,63 @@ class ModelRuleInspectorTest extends Specification {
         String        | []
         HasOneSource  | [HasOneSource.Source]
         HasTwoSources | [HasTwoSources.SourceOne, HasTwoSources.SourceTwo]
+    }
+
+    static class HasGenericModelRule {
+        @Model
+        static <T> List<T> thing() {
+            []
+        }
+    }
+
+    def "model creation rule cannot be generic"() {
+        when:
+        inspector.inspect(HasGenericModelRule, registry)
+
+        then:
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "$HasGenericModelRule.name#thing() is not a valid model creation rule: cannot have type variables (i.e. cannot be a generic method)"
+    }
+
+    static class ConcreteGenericModelType {
+        @Model
+        static List<String> strings() {
+            []
+        }
+    }
+
+    def "type variables of model type are captured"() {
+        when:
+        inspector.inspect(ConcreteGenericModelType, registry)
+        def element = registry.element(new ModelReference("strings", new ModelType(List)))
+        def type = element.reference.type
+
+
+        then:
+        type.parameterized
+        type.typeVariables[0] == new ModelType(String)
+    }
+
+    static interface HasStrings<T> {
+        List<T> strings()
+    }
+
+    static class ConcreteGenericModelTypeImplementingGenericInterface implements HasStrings<String> {
+        @Model
+        List<String> strings() {
+            []
+        }
+    }
+
+    def "type variables of model type are captured when method is generic in interface"() {
+        when:
+        inspector.inspect(ConcreteGenericModelTypeImplementingGenericInterface, registry)
+        def element = registry.element(new ModelReference("strings", new ModelType(List)))
+        def type = element.reference.type
+
+        then:
+        type.parameterized
+        type.typeVariables[0] == new ModelType(String)
     }
 
 }

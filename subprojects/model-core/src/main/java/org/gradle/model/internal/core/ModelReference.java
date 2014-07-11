@@ -28,6 +28,10 @@ public class ModelReference<T> {
         this.type = type;
     }
 
+    public ModelReference(String modelPath, ModelType<T> type) {
+        this(new ModelPath(modelPath), type);
+    }
+
     public ModelPath getPath() {
         return path;
     }

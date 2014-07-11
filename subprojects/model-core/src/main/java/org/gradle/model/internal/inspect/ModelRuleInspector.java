@@ -25,7 +25,8 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.ModelPath;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
 import org.gradle.model.internal.core.rule.ModelCreator;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
@@ -74,7 +75,12 @@ public class ModelRuleInspector {
                 // TODO validate model name
                 String modelName = determineModelName(modelAnnotation, method);
 
+                if (method.getTypeParameters().length > 0) {
+                    invalid("model creation rule", method, "cannot have type variables (i.e. cannot be a generic method)");
+                }
+
                 // TODO validate the return type (generics?)
+
                 TypeToken<?> returnType = TypeToken.of(method.getGenericReturnType());
 
                 doRegisterCreation(source, method, returnType, modelName, modelRegistry);
@@ -179,6 +185,13 @@ public class ModelRuleInspector {
 
     private static void invalid(Class<?> source, String reason) {
         throw new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
+    }
+
+    private static void invalid(String description, Method method, String reason) {
+        StringBuilder sb = new StringBuilder();
+        new MethodModelRuleSourceDescriptor(method).describeTo(sb);
+        sb.append(" is not a valid ").append(description).append(": ").append(reason);
+        throw new InvalidModelRuleDeclarationException(sb.toString());
     }
 
 }
