@@ -107,7 +107,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     /**
      * Adds a repository which looks in Bintray's JCenter repository for dependencies.
      * <p>
-     * The URL used to access this repository is {@literal "http://jcenter.bintray.com/"}.
+     * The URL used to access this repository is {@literal "https://jcenter.bintray.com/"}.
      * The behavior of this resolver is otherwise the same as the ones added by {@link #mavenCentral()}.
      * <p>
      * Examples:
@@ -125,6 +125,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}.
+     * Consider that this URL is HTTP and not HTTPS as the central maven repository does not support HTTPS.
      *
      * The following parameter are accepted as keys for the map:
      *

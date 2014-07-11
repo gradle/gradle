@@ -168,6 +168,18 @@ compilation. Previously it would use the old Ant-based Java compiler integration
 
 This change should be backwards compatible for all users, and should improve compilation time when compiling Java and Scala together.
 
+### jcenter now uses HTTPS instead of HTTP
+
+The `jcenter()` repository definition now uses HTTPS instead of HTTP. This should be backwards compatible for all users. If for any reason you want 
+to use explicitly HTTP for connecting the Bintray's JCenter repository you can simply reconfigure the URL:
+ 
+    repositories {
+        jcenter(){
+            name = "jcenter over http"
+            url = "http://jcenter.bintray.com/"
+        }
+    }
+ 
 ### Changes to incubating native language plugins
 
 #### Native language plugins no longer apply the base plugin
