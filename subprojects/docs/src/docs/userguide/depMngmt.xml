@@ -734,8 +734,10 @@
             <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
                 <sourcefile file="build.gradle" snippet="maven-central"/>
             </sample>
-            <para>Now Gradle will look for your dependencies in this repository. Be aware that the central Maven 2 repository is HTTP only and
-                HTTPS is not supported.
+            <para>Now Gradle will look for your dependencies in this repository.</para>
+            <para>
+                <emphasis>Warning:</emphasis> Be aware that the central Maven 2 repository is HTTP only and
+                HTTPS is not supported. If you need a public HTTPS enabled central repository, you can use the <ulink url='http://jcenter.bintray.com'>JCenter</ulink> public repository (see <xref linkend="sub:maven_jcenter"/>).
             </para>
         </section>
 
@@ -749,7 +751,7 @@
                 <sourcefile file="build.gradle" snippet="maven-jcenter"/>
             </sample>
             <para>Now Gradle will look for your dependencies in the JCenter repository. <emphasis>jcenter()</emphasis> uses HTTPS to connect to the repository.
-                If you want to use HTTP you can configure <emphasis>jcenter()</emphasis>:
+                If you want to use HTTP you can configure <literal>jcenter()</literal>:
             </para>
             <sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Using Bintrays's JCenter with HTTP">
                 <sourcefile file="build.gradle" snippet="maven-jcenter-http"/>
