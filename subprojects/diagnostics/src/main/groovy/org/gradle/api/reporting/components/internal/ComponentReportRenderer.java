@@ -40,6 +40,13 @@ public class ComponentReportRenderer extends TextReportRenderer {
     }
 
     @Override
+    public void complete() {
+        getTextOutput().println();
+        getTextOutput().println("Note: currently not all plugins register their components, so some components may not be visible here.");
+        super.complete();
+    }
+
+    @Override
     public void startProject(Project project) {
         super.startProject(project);
         hasComponents = false;
@@ -58,7 +65,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
         if (hasComponents) {
             getTextOutput().println();
         }
-        writeSubheading(StringUtils.capitalize(component.getDisplayName()));
+        getBuilder().writeSubheading(StringUtils.capitalize(component.getDisplayName()));
         hasComponents = true;
         hasSourceSets = false;
         hasBinaries = false;

@@ -16,6 +16,8 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.internal.StreamingStyledTextOutput;
@@ -26,15 +28,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import static org.gradle.logging.StyledTextOutput.Style.Header;
-import static org.gradle.logging.StyledTextOutput.Style.Normal;
-
 /**
  * <p>A basic {@link ReportRenderer} which writes out a text report.
  */
 public class TextReportRenderer implements ReportRenderer {
-    public static final String SEPARATOR = "------------------------------------------------------------";
     private StyledTextOutput textOutput;
+    private TextReportBuilder builder;
     private boolean close;
 
     public void setOutput(StyledTextOutput textOutput) {
@@ -48,7 +47,7 @@ public class TextReportRenderer implements ReportRenderer {
 
     public void startProject(Project project) {
         String header = createHeader(project);
-        writeHeading(header);
+        builder.writeHeading(header);
     }
 
     protected String createHeader(Project project) {
@@ -73,6 +72,7 @@ public class TextReportRenderer implements ReportRenderer {
 
     private void setWriter(StyledTextOutput styledTextOutput, boolean close) {
         this.textOutput = styledTextOutput;
+        this.builder = new DefaultTextReportBuilder(textOutput);
         this.close = close;
     }
 
@@ -86,24 +86,11 @@ public class TextReportRenderer implements ReportRenderer {
         }
     }
 
+    public TextReportBuilder getBuilder() {
+        return builder;
+    }
+
     public StyledTextOutput getTextOutput() {
         return textOutput;
-    }
-
-    public void writeHeading(String heading) {
-        textOutput.println().style(Header);
-        textOutput.println(SEPARATOR);
-        textOutput.println(heading);
-        textOutput.text(SEPARATOR);
-        textOutput.style(Normal);
-        textOutput.println().println();
-    }
-
-    public void writeSubheading(String heading) {
-        getTextOutput().style(Header).println(heading);
-        for (int i = 0; i < heading.length(); i++) {
-            getTextOutput().text("-");
-        }
-        getTextOutput().style(Normal).println();
     }
 }
