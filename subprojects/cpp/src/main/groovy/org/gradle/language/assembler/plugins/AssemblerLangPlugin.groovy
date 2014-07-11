@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.language.assembler.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.internal.LanguageRegistry
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.plugins.LanguageBasePlugin
+import org.gradle.language.base.internal.LanguageRegistry
+import org.gradle.language.base.plugins.ComponentModelBasePlugin
 
 import javax.inject.Inject
 /**
@@ -45,7 +44,7 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
     }
 
     void apply(ProjectInternal project) {
-        project.getPlugins().apply(LanguageBasePlugin.class);
+        project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getExtensions().getByType(LanguageRegistry).registerLanguage("asm", AssemblerSourceSet, DefaultAssemblerSourceSet)
     }
 }

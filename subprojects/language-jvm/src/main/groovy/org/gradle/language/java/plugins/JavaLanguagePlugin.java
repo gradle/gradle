@@ -24,7 +24,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
@@ -37,7 +37,7 @@ import javax.inject.Inject;
 import java.io.File;
 
 /**
- * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
+ * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
  * Registers "java" language support with the {@link JavaSourceSet}.
  */
 public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
@@ -49,7 +49,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(ProjectInternal project) {
-        project.getPlugins().apply(LanguageBasePlugin.class);
+        project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getPlugins().apply(JvmResourcesPlugin.class);
 
         project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("java", JavaSourceSet.class, DefaultJavaSourceSet.class);

@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
@@ -33,7 +33,7 @@ import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 import javax.inject.Inject;
 
 /**
- * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
+ * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
  * Registers "resources" language support with the {@link org.gradle.language.jvm.ResourceSet}.
  */
 public class JvmResourcesPlugin implements Plugin<Project> {
@@ -45,7 +45,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.getPlugins().apply(LanguageBasePlugin.class);
+        project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("resources", ResourceSet.class, DefaultResourceSet.class);
 
         modelRules.rule(new CreateProcessResourcesTasks());

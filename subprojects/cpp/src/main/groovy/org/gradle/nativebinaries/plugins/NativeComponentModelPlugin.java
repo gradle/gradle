@@ -24,8 +24,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.*;
@@ -67,8 +66,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(LifecycleBasePlugin.class);
-        project.getPlugins().apply(LanguageBasePlugin.class);
+        project.getPlugins().apply(ComponentModelBasePlugin.class);
 
         modelRules.register("toolChains", ToolChainRegistryInternal.class, factory(DefaultToolChainRegistry.class));
         modelRules.register("platforms", PlatformContainer.class, factory(DefaultPlatformContainer.class));

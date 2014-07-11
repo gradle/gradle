@@ -16,8 +16,7 @@
 package org.gradle.runtime.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 import org.gradle.runtime.base.ProjectComponentContainer;
@@ -33,7 +32,7 @@ import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 import javax.inject.Inject;
 
 /**
- * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
+ * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
  * Registers the {@link org.gradle.runtime.jvm.ProjectJvmLibrary} library type for the {@link org.gradle.runtime.base.ProjectComponentContainer}.
  */
 @Incubating
@@ -48,8 +47,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.getPlugins().apply(LifecycleBasePlugin.class);
-        project.getPlugins().apply(LanguageBasePlugin.class);
+        project.getPlugins().apply(ComponentModelBasePlugin.class);
 
         ProjectComponentContainer projectComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
         projectComponents.registerFactory(ProjectJvmLibrary.class, new NamedDomainObjectFactory<ProjectJvmLibrary>() {
