@@ -67,21 +67,21 @@ class AntlrPluginTest extends Specification {
     def assignsAntlr2WhenSet() {
         when:
         project.apply plugin: AntlrPlugin
-        project.tasks.generateGrammarSource.ext.antlrVersion = '2'
+        project.tasks.generateGrammarSource.antlrVersion = '2'
 
         then:
         def main = project.tasks.generateGrammarSource
-        main.getAssignedAntlrVersion() == 2
+        main.antlrVersion == '2'
     }
 
     def assignsAntlr3WhenSet() {
         when:
         project.apply plugin: AntlrPlugin
-        project.tasks.generateGrammarSource.ext.antlrVersion = '3'
+        project.tasks.generateGrammarSource.antlrVersion = '3'
 
         then:
         def main = project.tasks.generateGrammarSource
-        main.getAssignedAntlrVersion() == 3
+        main.antlrVersion == '3'
     }
 
     def assignsAntlr2WhenNotSet() {
@@ -90,6 +90,6 @@ class AntlrPluginTest extends Specification {
 
         then:
         def main = project.tasks.generateGrammarSource
-        main.getAssignedAntlrVersion() == 2
+        main.antlrVersion == '2'
     }
 }

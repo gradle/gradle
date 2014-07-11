@@ -54,10 +54,16 @@ public class AntlrTask extends SourceTask {
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
+    private String antlrVersion;
 
     private FileCollection antlrClasspath;
 
     private File outputDirectory;
+
+    public AntlrTask() {
+        // Default to ANTLR major version 2
+        antlrVersion = "2";
+    }
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -142,51 +148,45 @@ public class AntlrTask extends SourceTask {
     }
 
     /**
-     * Gets the version of ANTLR associated with this task.
-     * As of now, this method returns one of two possible values:
-     * 2 - Use ANTLR major version 2.  This is returned as the default
-     *   if no value is specified in the Gradle build script.
-     * 3 - Use ANTLR major version 3.
-     *
-     * @throws GradleException Thrown if ANTLR version specified in config
-     *   was invalid.
+     * Specifies the major version of ANTLR to use.  As of now, only
+     * two versions are supported (2 and 3).
+     * @param antlrVersion The ANTLR major version to use.
+     * @throws GradleException Thrown if ANTLR version is not valid.
      */
-    int getAssignedAntlrVersion() {
-        if (hasProperty("antlrVersion")) {
-            String version = property("antlrVersion").toString();
-            if ("2".equals(version)) {
-                return 2;
-            } else if ("3".equals(version)) {
-                return 3;
-            } else {
-                throw new GradleException("Invalid ANTLR version: " + version);
-            }
+    public void setAntlrVersion(String antlrVersion) {
+        if ("2".equals(antlrVersion) || "3".equals(antlrVersion)) {
+            this.antlrVersion = antlrVersion;
         } else {
-            // No property explicitly set, default to 2
-            LOGGER.info("No antlrVersion specified, defaulting to 2.");
-            return 2;
+            throw new GradleException("Invalid ANTLR version: " + antlrVersion);
         }
+    }
+
+    /**
+     * Returns the major version of ANTLR for this task.
+     */
+    public String getAntlrVersion() {
+        return antlrVersion;
     }
 
     /**
      * Generates Java code using ANTLR v3.
      */
     private void generateUsingAntlr3() {
-            List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(getSource().getFiles());
+        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(getSource().getFiles());
 
-            LOGGER.debug("using ANTLR v3");
-            boolean error = false;
-            for (GenerationPlan generationPlan : generationPlans) {
-                String[] args = new String[] {"-o", generationPlan.getGenerationDirectory().getAbsolutePath(), generationPlan.getId()};
-                Tool tool = new Tool(args);
-                tool.process();
-                if (ErrorManager.getNumErrors() > 0) {
-                    error = true;
-                }
+        LOGGER.debug("using ANTLR v3");
+        boolean error = false;
+        for (GenerationPlan generationPlan : generationPlans) {
+            String[] args = new String[] {"-o", generationPlan.getGenerationDirectory().getAbsolutePath(), generationPlan.getId()};
+            Tool tool = new Tool(args);
+            tool.process();
+            if (ErrorManager.getNumErrors() > 0) {
+                error = true;
             }
-            if (error) {
-                throw new GradleException("errors encountered while compiling ANTLR grammar");
-            }
+        }
+        if (error) {
+            throw new GradleException("errors encountered while compiling ANTLR grammar");
+        }
     }
 
     /**
@@ -223,9 +223,9 @@ public class AntlrTask extends SourceTask {
     @TaskAction
     public void generate() {
         // Determine ANTLR version
-        int antlrVersion = getAssignedAntlrVersion();
+        String antlrVersion = getAntlrVersion();
 
-        if (antlrVersion == 2) {
+        if (antlrVersion.equals("2")) {
             generateUsingAntlr2();            
         } else {
             generateUsingAntlr3();
