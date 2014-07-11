@@ -57,8 +57,9 @@ class GroovyRuntimeTest extends Specification {
         with(classpath.delegate) {
             it instanceof Configuration
             state == Configuration.State.UNRESOLVED
-            dependencies.size() == 1
+            dependencies.size() == 2
             dependencies.any { it.group == "org.codehaus.groovy" && it.name == "groovy" && it.version == "2.1.2" } // not sure how to check classifier
+            dependencies.any { it.group == "org.codehaus.groovy" && it.name == "groovy-ant" && it.version == "2.1.2" } // not sure how to check classifier
         }
 
         where:
