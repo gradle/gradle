@@ -47,7 +47,7 @@ public class TextReportRenderer implements ReportRenderer {
 
     public void startProject(Project project) {
         String header = createHeader(project);
-        builder.writeHeading(header);
+        builder.heading(header);
     }
 
     protected String createHeader(Project project) {

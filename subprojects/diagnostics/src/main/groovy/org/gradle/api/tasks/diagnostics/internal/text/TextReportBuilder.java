@@ -17,11 +17,16 @@
 package org.gradle.api.tasks.diagnostics.internal.text;
 
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.reporting.ReportRenderer;
+
+import java.util.Collection;
 
 public interface TextReportBuilder {
-    void writeHeading(String heading);
+    void heading(String heading);
 
-    void writeSubheading(String heading);
+    void subheading(String heading);
+
+    <T> void collection(String title, Collection<? extends T> collection, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural);
 
     StyledTextOutput getOutput();
 }

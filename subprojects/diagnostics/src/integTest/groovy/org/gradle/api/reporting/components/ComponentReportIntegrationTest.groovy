@@ -72,7 +72,8 @@ Source sets
     Resources 'someLib:resources'
         src/someLib/resources
 
-No binaries
+Binaries
+    No binaries.
 """)
     }
 

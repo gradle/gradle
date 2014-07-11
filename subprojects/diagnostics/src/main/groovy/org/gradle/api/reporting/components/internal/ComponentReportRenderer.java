@@ -20,19 +20,22 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.reporting.ReportRenderer;
 import org.gradle.runtime.base.Binary;
 import org.gradle.runtime.base.ProjectComponent;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
 public class ComponentReportRenderer extends TextReportRenderer {
     private boolean hasComponents;
-    private boolean hasSourceSets;
-    private boolean hasBinaries;
     private final FileResolver fileResolver;
 
     public ComponentReportRenderer(FileResolver fileResolver) {
@@ -65,46 +68,42 @@ public class ComponentReportRenderer extends TextReportRenderer {
         if (hasComponents) {
             getTextOutput().println();
         }
-        getBuilder().writeSubheading(StringUtils.capitalize(component.getDisplayName()));
+        getBuilder().subheading(StringUtils.capitalize(component.getDisplayName()));
         hasComponents = true;
-        hasSourceSets = false;
-        hasBinaries = false;
     }
 
-    public void renderSourceSet(LanguageSourceSet sourceSet) {
-        if (!hasSourceSets) {
-            getTextOutput().println().println("Source sets");
-            hasSourceSets = true;
+    public void renderSourceSets(Collection<? extends LanguageSourceSet> sourceSets) {
+        getBuilder().getOutput().println();
+        getBuilder().collection("Source sets", sourceSets, new SourceSetRenderer(), "source sets");
+    }
+
+    public void renderBinaries(Collection<? extends Binary> binaries) {
+        getBuilder().getOutput().println();
+        getBuilder().collection("Binaries", binaries, new BinaryRenderer(), "binaries");
+    }
+
+    private static class BinaryRenderer extends ReportRenderer<Binary, TextReportBuilder> {
+        @Override
+        public void render(Binary binary, TextReportBuilder builder) throws IOException {
+            StyledTextOutput textOutput = builder.getOutput();
+            textOutput.println(StringUtils.capitalize(binary.getDisplayName()));
+            textOutput.formatln("    build task: %s", binary.getBuildTask().getPath());
         }
-        getTextOutput().formatln("    %s", StringUtils.capitalize(sourceSet.toString()));
-        Set<File> srcDirs = sourceSet.getSource().getSrcDirs();
-        if (srcDirs.isEmpty()) {
-            getTextOutput().println("        No source directories");
-        } else {
-            for (File file : srcDirs) {
-                getTextOutput().formatln("        %s", fileResolver.resolveAsRelativePath(file));
+    }
+
+    private class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuilder> {
+        @Override
+        public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) throws IOException {
+            StyledTextOutput textOutput = builder.getOutput();
+            textOutput.println(StringUtils.capitalize(sourceSet.toString()));
+            Set<File> srcDirs = sourceSet.getSource().getSrcDirs();
+            if (srcDirs.isEmpty()) {
+                textOutput.println("    No source directories");
+            } else {
+                for (File file : srcDirs) {
+                    textOutput.formatln("    %s", fileResolver.resolveAsRelativePath(file));
+                }
             }
-        }
-    }
-
-    public void completeSourceSets() {
-        if (!hasSourceSets) {
-            getTextOutput().println().println("No source sets");
-        }
-    }
-
-    public void renderBinary(Binary binary) {
-        if (!hasBinaries) {
-            getTextOutput().println().println("Binaries");
-            hasBinaries = true;
-        }
-        getTextOutput().formatln("    %s", StringUtils.capitalize(binary.getDisplayName()));
-        getTextOutput().formatln("        build task: %s", binary.getBuildTask().getPath());
-    }
-
-    public void completeBinaries() {
-        if (!hasBinaries) {
-            getTextOutput().println().println("No binaries");
         }
     }
 }

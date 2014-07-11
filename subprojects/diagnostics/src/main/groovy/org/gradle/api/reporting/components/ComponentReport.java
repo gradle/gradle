@@ -22,15 +22,15 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.ProjectNativeComponent;
+import org.gradle.runtime.base.Binary;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 /**
  * Displays some details about the software components produced by the project.
@@ -50,6 +50,7 @@ public class ComponentReport extends DefaultTask {
     @TaskAction
     public void report() {
         Project project = getProject();
+
         StyledTextOutput textOutput = getTextOutputFactory().create(ComponentReport.class);
         ComponentReportRenderer renderer = new ComponentReportRenderer(getFileResolver());
         renderer.setOutput(textOutput);
@@ -60,19 +61,16 @@ public class ComponentReport extends DefaultTask {
         if (components != null) {
             for (ProjectComponent component : components) {
                 renderer.startComponent(component);
-                for (LanguageSourceSet sourceSet : component.getSource()) {
-                    renderer.renderSourceSet(sourceSet);
-                }
-                renderer.completeSourceSets();
+
+                renderer.renderSourceSets(component.getSource());
 
                 // TODO - hoist 'component with binaries' up and remove dependency on cpp project
                 if (component instanceof ProjectNativeComponent) {
                     ProjectNativeComponent nativeComponent = (ProjectNativeComponent) component;
-                    for (NativeBinary binary : nativeComponent.getBinaries()) {
-                        renderer.renderBinary(binary);
-                    }
+                    renderer.renderBinaries(nativeComponent.getBinaries());
+                } else {
+                    renderer.renderBinaries(Collections.<Binary>emptyList());
                 }
-                renderer.completeBinaries();
             }
         }
 

@@ -85,8 +85,7 @@ class ComponentReportRendererTest extends Specification {
         when:
         renderer.startProject(project)
         renderer.startComponent(component)
-        renderer.completeSourceSets()
-        renderer.completeBinaries()
+        renderer.renderSourceSets([])
         renderer.completeProject(project)
         renderer.complete()
 
@@ -100,8 +99,7 @@ class ComponentReportRendererTest extends Specification {
         when:
         renderer.startProject(project)
         renderer.startComponent(component)
-        renderer.completeSourceSets()
-        renderer.completeBinaries()
+        renderer.renderBinaries([])
         renderer.completeProject(project)
         renderer.complete()
 

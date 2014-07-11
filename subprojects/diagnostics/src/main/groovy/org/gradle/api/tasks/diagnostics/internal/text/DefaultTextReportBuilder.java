@@ -16,20 +16,26 @@
 
 package org.gradle.api.tasks.diagnostics.internal.text;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.internal.LinePrefixingStyledTextOutput;
+import org.gradle.reporting.ReportRenderer;
+
+import java.io.IOException;
+import java.util.Collection;
 
 import static org.gradle.logging.StyledTextOutput.Style.Header;
 import static org.gradle.logging.StyledTextOutput.Style.Normal;
 
 public class DefaultTextReportBuilder implements TextReportBuilder {
     public static final String SEPARATOR = "------------------------------------------------------------";
-    private final StyledTextOutput textOutput;
+    private StyledTextOutput textOutput;
 
     public DefaultTextReportBuilder(StyledTextOutput textOutput) {
         this.textOutput = textOutput;
     }
 
-    public void writeHeading(String heading) {
+    public void heading(String heading) {
         textOutput.println().style(Header);
         textOutput.println(SEPARATOR);
         textOutput.println(heading);
@@ -38,12 +44,35 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         textOutput.println().println();
     }
 
-    public void writeSubheading(String heading) {
+    public void subheading(String heading) {
         textOutput.style(Header).println(heading);
         for (int i = 0; i < heading.length(); i++) {
             textOutput.text("-");
         }
         textOutput.style(Normal).println();
+    }
+
+    public <T> void collection(String title, Collection<? extends T> collection, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
+        textOutput.println(title);
+        if (collection.isEmpty()) {
+            textOutput.formatln("    No %s.", elementsPlural);
+            return;
+        }
+        StyledTextOutput original = textOutput;
+        try {
+            textOutput = new LinePrefixingStyledTextOutput(original, "    ");
+            // TODO - change LinePrefixingStyledTextOutput to prefix every line
+            textOutput.append("    ");
+            for (T t : collection) {
+                try {
+                    renderer.render(t, this);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        } finally {
+            textOutput = original;
+        }
     }
 
     public StyledTextOutput getOutput() {

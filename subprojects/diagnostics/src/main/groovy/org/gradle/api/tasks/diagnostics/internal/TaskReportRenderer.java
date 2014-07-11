@@ -116,7 +116,7 @@ public class TaskReportRenderer extends TextReportRenderer {
             getTextOutput().println();
         }
         hasContent = true;
-        getBuilder().writeSubheading(header);
+        getBuilder().subheading(header);
     }
 
     /**

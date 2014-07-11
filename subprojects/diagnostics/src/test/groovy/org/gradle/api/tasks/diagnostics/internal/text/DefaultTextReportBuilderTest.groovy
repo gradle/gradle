@@ -17,7 +17,10 @@
 package org.gradle.api.tasks.diagnostics.internal.text
 
 import org.gradle.logging.TestStyledTextOutput
+import org.gradle.reporting.ReportRenderer
 import spock.lang.Specification
+
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultTextReportBuilderTest extends Specification {
     def output = new TestStyledTextOutput()
@@ -25,24 +28,54 @@ class DefaultTextReportBuilderTest extends Specification {
 
     def "formats heading"() {
         given:
-        builder.writeHeading("heading")
+        builder.heading("heading")
 
         expect:
-        output.value == """
+        output.value == toPlatformLineSeparators("""
 {header}------------------------------------------------------------
 heading
 ------------------------------------------------------------{normal}
 
-"""
+""")
     }
 
     def "formats subheading"() {
         given:
-        builder.writeSubheading("heading")
+        builder.subheading("heading")
 
         expect:
-        output.value == """{header}heading
+        output.value == toPlatformLineSeparators("""{header}heading
 -------{normal}
-"""
+""")
+    }
+
+    def "formats collection"() {
+        def renderer = Mock(ReportRenderer)
+
+        given:
+        renderer.render(_, _) >> { Number number, TextReportBuilder builder ->
+            builder.output.println("[$number]")
+        }
+
+        when:
+        builder.collection("Things", [1, 2], renderer, "things")
+
+        then:
+        output.value == toPlatformLineSeparators("""Things
+    [1]
+    [2]
+""")
+    }
+
+    def "formats empty collection"() {
+        def renderer = Mock(ReportRenderer)
+
+        when:
+        builder.collection("Things", [], renderer, "things")
+
+        then:
+        output.value == toPlatformLineSeparators("""Things
+    No things.
+""")
     }
 }
