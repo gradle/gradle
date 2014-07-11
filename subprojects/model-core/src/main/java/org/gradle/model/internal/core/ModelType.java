@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+// TODO restrict this to concrete types, validated recursively
 public class ModelType<T> {
 
     private final TypeToken<T> typeToken;
