@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.language.c.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.internal.LanguageRegistry
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.internal.LanguageRegistry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
-import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.internal.DefaultCSourceSet
 
 import javax.inject.Inject
+
 /**
  * Adds core C language support.
  *
