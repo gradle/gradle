@@ -16,16 +16,36 @@
 
 package org.gradle.launcher.exec;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DefaultBuildCancellationToken implements BuildCancellationToken {
+    private boolean cancelled;
+    private List<Runnable> callbacks = new ArrayList<Runnable>();
+
+    public synchronized boolean isCancellationRequested() {
+        return cancelled;
+    }
+
+    public synchronized boolean addCallback(Runnable cancellationHandler) {
+        callbacks.add(cancellationHandler);
+        if (cancelled) {
+            cancellationHandler.run();
+        }
+        return cancelled;
+    }
+
     public boolean canBeCancelled() {
-        return false;
+        return true;
     }
 
-    public boolean isCancellationRequested() {
-        return false;
-    }
-
-    public boolean addCallback(Runnable cancellationHandler) {
-        return false;
+    public synchronized void doCancel() {
+        if (cancelled) {
+            return;
+        }
+        cancelled = true;
+        for (Runnable runnable : callbacks) {
+            runnable.run();
+        }
     }
 }

@@ -17,11 +17,13 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
+import org.gradle.launcher.exec.BuildCancellationToken;
+import org.gradle.launcher.exec.DefaultBuildCancellationToken;
 import org.slf4j.Logger;
 
 import java.util.Date;
@@ -44,19 +46,27 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final long cancelTimeoutMs;
 
     private State state = State.Running;
     private long lastActivityAt = -1;
     private String currentCommandExecution;
+    private DefaultBuildCancellationToken cancellationToken;
 
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
     private Runnable onDisconnect;
 
     public DaemonStateCoordinator(Runnable onStartCommand, Runnable onFinishCommand) {
+        this(onStartCommand, onFinishCommand, 10 * 1000L);
+    }
+
+    DaemonStateCoordinator(Runnable onStartCommand, Runnable onFinishCommand, long cancelTimeoutMs) {
         this.onStartCommand = onStartCommand;
         this.onFinishCommand = onFinishCommand;
+        this.cancelTimeoutMs = cancelTimeoutMs;
         updateActivityTimestamp();
+        cancellationToken = new DefaultBuildCancellationToken();
     }
 
     private void setState(State state) {
@@ -178,6 +188,45 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
+    public BuildCancellationToken getCancellationToken() {
+        // TODO under lock?
+        return cancellationToken;
+    }
+
+    public void cancelBuild() {
+        lock.lock();
+        try {
+            long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
+            LOGGER.debug("Cancel requested: waiting for daemon to become idle");
+            cancellationToken.doCancel();
+            while (System.currentTimeMillis() < waitUntil) {
+                try {
+                    switch (state) {
+                        case Running:
+                            if (isIdle()) {
+                                return;
+                            }
+                            // fall-through
+                        case Broken:
+                            // fall-through
+                        case StopRequested:
+                            LOGGER.debug("Daemon is busy, sleeping until state changes.");
+                            condition.await(500, TimeUnit.MILLISECONDS);
+                            break;
+                        case Stopped:
+                            LOGGER.debug("Daemon has stopped.");
+                            return;
+                    }
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+            requestForcefulStop();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public void runCommand(Runnable command, String commandDisplayName, Runnable onCommandAbandoned) throws DaemonUnavailableException {
         onStartCommand(commandDisplayName, onCommandAbandoned);
         try {
@@ -208,6 +257,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 currentCommandExecution = commandDisplayName;
                 this.onDisconnect = onDisconnect;
                 updateActivityTimestamp();
+                cancellationToken = new DefaultBuildCancellationToken();
                 condition.signalAll();
             } catch (Throwable throwable) {
                 setState(State.Broken);
