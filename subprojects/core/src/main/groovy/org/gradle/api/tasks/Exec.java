@@ -15,18 +15,10 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
-import org.gradle.process.internal.ExecAction;
-import org.gradle.process.internal.ExecActionFactory;
 
-import javax.inject.Inject;
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,37 +43,12 @@ import java.util.Map;
  * }
  * </pre>
  */
-public class Exec extends ConventionTask implements ExecSpec {
-    private ExecAction execAction;
-    private ExecResult execResult;
-
-    public Exec() {
-        execAction = getExecActionFactory().newExecAction();
-    }
-
-    @Inject
-    protected ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @TaskAction
-    void exec() {
-        execResult = execAction.execute();
-    }
-
+public class Exec extends AbstractExecTask {
     /**
      * {@inheritDoc}
      */
     public Exec commandLine(Object... arguments) {
-        execAction.commandLine(arguments);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public ExecSpec commandLine(Iterable<?> args) {
-        execAction.commandLine(args);
+        super.commandLine(arguments);
         return this;
     }
 
@@ -89,15 +56,7 @@ public class Exec extends ConventionTask implements ExecSpec {
      * {@inheritDoc}
      */
     public Exec args(Object... args) {
-        execAction.args(args);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public ExecSpec args(Iterable<?> args) {
-        execAction.args(args);
+        super.args(args);
         return this;
     }
 
@@ -105,101 +64,31 @@ public class Exec extends ConventionTask implements ExecSpec {
      * {@inheritDoc}
      */
     public Exec setArgs(Iterable<?> arguments) {
-        execAction.setArgs(arguments);
+        super.setArgs(arguments);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public List<String> getArgs() {
-        return execAction.getArgs();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public List<String> getCommandLine() {
-        return execAction.getCommandLine();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setCommandLine(Iterable<?> args) {
-        execAction.setCommandLine(args);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setCommandLine(Object... args) {
-        execAction.setCommandLine(args);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getExecutable() {
-        return execAction.getExecutable();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setExecutable(Object executable) {
-        execAction.setExecutable(executable);
     }
 
     /**
      * {@inheritDoc}
      */
     public Exec executable(Object executable) {
-        execAction.executable(executable);
+        super.executable(executable);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public File getWorkingDir() {
-        return execAction.getWorkingDir();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setWorkingDir(Object dir) {
-        execAction.setWorkingDir(dir);
     }
 
     /**
      * {@inheritDoc}
      */
     public Exec workingDir(Object dir) {
-        execAction.workingDir(dir);
+        super.workingDir(dir);
         return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public Map<String, Object> getEnvironment() {
-        return execAction.getEnvironment();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        execAction.setEnvironment(environmentVariables);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public Exec environment(String name, Object value) {
-        execAction.environment(name, value);
+        super.environment(name, value);
         return this;
     }
 
@@ -207,7 +96,7 @@ public class Exec extends ConventionTask implements ExecSpec {
      * {@inheritDoc}
      */
     public Exec environment(Map<String, ?> environmentVariables) {
-        execAction.environment(environmentVariables);
+        super.environment(environmentVariables);
         return this;
     }
 
@@ -215,7 +104,7 @@ public class Exec extends ConventionTask implements ExecSpec {
      * {@inheritDoc}
      */
     public Exec copyTo(ProcessForkOptions target) {
-        execAction.copyTo(target);
+        super.copyTo(target);
         return this;
     }
 
@@ -223,72 +112,23 @@ public class Exec extends ConventionTask implements ExecSpec {
      * {@inheritDoc}
      */
     public Exec setStandardInput(InputStream inputStream) {
-        execAction.setStandardInput(inputStream);
+        super.setStandardInput(inputStream);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public InputStream getStandardInput() {
-        return execAction.getStandardInput();
     }
 
     /**
      * {@inheritDoc}
      */
     public Exec setStandardOutput(OutputStream outputStream) {
-        execAction.setStandardOutput(outputStream);
+        super.setStandardOutput(outputStream);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public OutputStream getStandardOutput() {
-        return execAction.getStandardOutput();
     }
 
     /**
      * {@inheritDoc}
      */
     public Exec setErrorOutput(OutputStream outputStream) {
-        execAction.setErrorOutput(outputStream);
+        super.setErrorOutput(outputStream);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public OutputStream getErrorOutput() {
-        return execAction.getErrorOutput();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public ExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        execAction.setIgnoreExitValue(ignoreExitValue);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isIgnoreExitValue() {
-        return execAction.isIgnoreExitValue();
-    }
-
-    void setExecAction(ExecAction execAction) {
-        this.execAction = execAction;
-    }
-
-    /**
-     * Returns the result for the command run by this task. Returns {@code null} if this task has not been executed yet.
-     *
-     * @return The result. Returns {@code null} if this task has not been executed yet.
-     */
-    public ExecResult getExecResult() {
-        return execResult;
     }
 }

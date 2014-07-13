@@ -18,25 +18,25 @@ package org.gradle.nativebinaries.test.tasks
 
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
-import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.AbstractExecTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.process.internal.ExecActionFactory
-
-import javax.inject.Inject
+import org.gradle.process.ProcessForkOptions
 
 /**
  * Runs a compiled and installed test executable.
  */
 @Incubating
-public class RunTestExecutable extends ConventionTask {
+public class RunTestExecutable extends AbstractExecTask {
     /**
-     * The executable binary to run.
+     * {@inheritDoc}
      */
-    @InputFile File testExecutable
+    @Input
+    public String getExecutable() {
+        return super.getExecutable();
+    }
 
     /**
      * The directory where the results should be generated.
@@ -48,18 +48,103 @@ public class RunTestExecutable extends ConventionTask {
      */
     @Input boolean ignoreFailures
 
-    @Inject
-    ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException()
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable commandLine(Object... arguments) {
+        super.commandLine(arguments);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable args(Object... args) {
+        super.args(args);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable setArgs(Iterable<?> arguments) {
+        super.setArgs(arguments);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable executable(Object executable) {
+        super.executable(executable);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable workingDir(Object dir) {
+        super.workingDir(dir);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable environment(String name, Object value) {
+        super.environment(name, value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable environment(Map<String, ?> environmentVariables) {
+        super.environment(environmentVariables);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable copyTo(ProcessForkOptions target) {
+        super.copyTo(target);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable setStandardInput(InputStream inputStream) {
+        super.setStandardInput(inputStream);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable setStandardOutput(OutputStream outputStream) {
+        super.setStandardOutput(outputStream);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public RunTestExecutable setErrorOutput(OutputStream outputStream) {
+        super.setErrorOutput(outputStream);
+        return this;
     }
 
     @TaskAction
-    void exec() {
-        def execAction = getExecActionFactory().newExecAction();
-        execAction.setExecutable(getTestExecutable())
-        execAction.setWorkingDir(getOutputDir())
+    @Override
+    protected void exec() {
+        // Make convention mapping work
+        setExecutable(getExecutable());
+        setWorkingDir(getOutputDir());
+
         try {
-            execAction.execute();
+            super.exec();
         } catch (Exception e) {
             handleTestFailures(e);
         }
@@ -76,5 +161,4 @@ public class RunTestExecutable extends ConventionTask {
             throw new GradleException(message, e);
         }
     }
-
 }

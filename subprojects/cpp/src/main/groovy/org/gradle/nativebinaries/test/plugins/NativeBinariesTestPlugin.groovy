@@ -67,7 +67,7 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
             runTask.setDescription("Runs the " + binary.getDisplayName())
             runTask.inputs.files(installTask.outputs.files)
 
-            runTask.conventionMapping.testExecutable = { installTask.runScript }
+            runTask.conventionMapping.executable = { installTask.runScript.path }
             runTask.conventionMapping.outputDir = { project.file("${project.buildDir}/test-results/${namingScheme.outputDirectoryBase}") }
         }
     }
