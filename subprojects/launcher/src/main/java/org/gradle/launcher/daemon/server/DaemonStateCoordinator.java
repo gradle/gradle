@@ -197,24 +197,25 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         lock.lock();
         try {
             long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
-            LOGGER.debug("Cancel requested: waiting for daemon to become idle");
+            LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
             cancellationToken.doCancel();
             while (System.currentTimeMillis() < waitUntil) {
                 try {
                     switch (state) {
                         case Running:
                             if (isIdle()) {
+                                LOGGER.debug("Cancel processed: daemon is idle now.");
                                 return;
                             }
                             // fall-through
                         case Broken:
                             // fall-through
                         case StopRequested:
-                            LOGGER.debug("Daemon is busy, sleeping until state changes.");
+                            LOGGER.debug("Cancel processing: daemon is busy, sleeping until state changes.");
                             condition.await(500, TimeUnit.MILLISECONDS);
                             break;
                         case Stopped:
-                            LOGGER.debug("Daemon has stopped.");
+                            LOGGER.info("Cancel processing: daemon has stopped.");
                             return;
                     }
                 } catch (InterruptedException e) {

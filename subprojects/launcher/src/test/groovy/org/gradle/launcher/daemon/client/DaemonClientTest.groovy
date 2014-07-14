@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client
 
+import ch.qos.logback.classic.Level
 import org.gradle.initialization.BuildAction
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
@@ -92,6 +93,64 @@ class DaemonClientTest extends ConcurrentSpecification {
         0 * _
     }
 
+    def cancelsTheDaemonBuildWhenRunning() {
+        when:
+        client.cancel()
+
+        then:
+        _ * connection.uid >> '1'
+        2 * connector.maybeConnect(compatibilitySpec) >>> [connection, null]
+        1 * connection.dispatch({it instanceof Cancel})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.stop()
+        0 * _
+    }
+
+    def cancelsTheDaemonBuildWhenNotRunning() {
+        when:
+        client.cancel()
+
+        then:
+        1 * connector.maybeConnect(compatibilitySpec) >> null
+        0 * _
+    }
+
+    def "cancels all compatible daemons"() {
+        DaemonClientConnection connection2 = Mock()
+
+        when:
+        client.cancel()
+
+        then:
+        _ * connection.uid >> '1'
+        _ * connection2.uid >> '2'
+        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection2, null]
+        1 * connection.dispatch({it instanceof Cancel})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.stop()
+        1 * connection2.dispatch({it instanceof Cancel})
+        1 * connection2.receive() >> new Success(null)
+        1 * connection2.dispatch({it instanceof Finished})
+        1 * connection2.stop()
+        0 * _
+    }
+
+    def "cancels build in each connection at most once"() {
+        when:
+        client.cancel()
+
+        then:
+        _ * connection.uid >> '1'
+        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection, null]
+        1 * connection.dispatch({it instanceof Cancel})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.dispatch({it instanceof Finished})
+        2 * connection.stop()
+        0 * _
+    }
+
     def executesAction() {
         when:
         def result = client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
@@ -125,7 +184,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         0 * _
     }
 
-    def "throws an exception when build is cancelled"() {
+    def "throws an exception when build is cancelled and breaks connection"() {
         BuildCancellationToken cancellationToken = Mock()
 
         when:
@@ -135,15 +194,51 @@ class DaemonClientTest extends ConcurrentSpecification {
         GradleConnectionException gce = thrown()
         gce instanceof BuildCancelledException
         1 * connector.connect(compatibilitySpec) >> connection
+        1 * connector.maybeConnect(compatibilitySpec) >> connection
         1 * cancellationToken.canBeCancelled() >> true
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
-            println 'register cancel callback ' + callback
             callback.run()
             return false
         }
+        1 * connection.dispatch({it instanceof Cancel})
+        1 * connection.receive() >>> [ new Success('[cancelled]')]
+        1 * connection.dispatch({it instanceof Finished})
+
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [ Stub(BuildStarted), null]
         1 * connection.dispatch({it instanceof CloseInput})
+        2 * connection.stop()
+        0 * _
+    }
+
+    def "throws an exception when build is cancelled and correctly finishes build"() {
+        DaemonClient.LOGGER.logger.setLevel(Level.DEBUG)
+        BuildCancellationToken cancellationToken = Mock()
+        BuildCancelledException cancelledException = Mock()
+
+        when:
+        client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
+
+        then:
+        GradleConnectionException gce = thrown()
+        gce instanceof BuildCancelledException
+        gce == cancelledException
+        1 * connector.connect(compatibilitySpec) >> connection
+        1 * connector.maybeConnect(compatibilitySpec) >> connection
+        1 * cancellationToken.canBeCancelled() >> true
+        1 * cancellationToken.addCallback(_) >> { Runnable callback ->
+            // println 'register cancel callback ' + callback
+            callback.run()
+            return false
+        }
+        1 * connection.dispatch({it instanceof Cancel})
+        1 * connection.receive() >>> [ new Success('[cancelled]')]
+        1 * connection.dispatch({it instanceof Finished})
+
+        1 * connection.dispatch({it instanceof Build})
+        2 * connection.receive() >>> [ Stub(BuildStarted), new CommandFailure(cancelledException)]
+        1 * connection.dispatch({it instanceof CloseInput})
+        1 * connection.dispatch({it instanceof Finished})
         2 * connection.stop()
         0 * _
     }

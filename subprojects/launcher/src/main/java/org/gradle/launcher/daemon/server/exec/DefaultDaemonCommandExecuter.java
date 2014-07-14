@@ -64,6 +64,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new CatchAndForwardDaemonFailure(),
             hygieneAction,
             new HandleStop(),
+            new HandleCancel(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics),
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingOutput, daemonDiagnostics), // from this point down, logging is sent back to the client

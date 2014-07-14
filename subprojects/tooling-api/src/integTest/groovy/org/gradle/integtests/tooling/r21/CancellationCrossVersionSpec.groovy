@@ -46,13 +46,52 @@ rootProject.name = 'cancelling'
 
         buildFile << """
 task hang << {
-    println "waiting"
+    println "__waiting__"
     def marker = file('${marker.toURI()}')
     long timeout = System.currentTimeMillis() + 10000
     while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
     if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
     Thread.sleep(1000)
-    println "finished"
+    println "__finished__"
+}
+"""
+        def cancel = new CancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+        def output = new TestOutputStream()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.forTasks('hang')
+                    .withCancellationToken(cancel.token())
+                    .setStandardOutput(output)
+            build.run(resultHandler)
+            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            marker.text = 'go!'
+            cancel.cancel()
+            resultHandler.finished()
+        }
+        then:
+        output.toString().contains("__waiting__")
+        output.toString().contains("__finished__")
+        // TODO until we implement proper cancelling this depends on timing
+        resultHandler.failure.cause.class.name == BuildCancelledException.name
+        resultHandler.failure instanceof GradleConnectionException
+    }
+
+    @TargetGradleVersion(">=2.1")
+    def "can cancel build through forced stop"() {
+        def marker = file("marker.txt")
+
+        buildFile << """
+task hang << {
+    println "__waiting__"
+    def marker = file('${marker.toURI()}')
+    long timeout = System.currentTimeMillis() + 12000
+    while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
+    if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+    Thread.sleep(1000)
+    println "__finished__"
 }
 """
         def cancel = new CancellationTokenSource()
@@ -72,8 +111,8 @@ task hang << {
             resultHandler.finished()
         }
         then:
-        output.toString().contains("waiting")
-        !output.toString().contains("finished")
+        output.toString().contains("__waiting__")
+        !output.toString().contains("__finished__")
         // TODO until we implement proper cancelling this depends on timing
         // resultHandler.failure.cause.class.name == BuildCancelledException.name || resultHandler.failure.cause.class.name == DaemonDisappearedException.name
         resultHandler.failure instanceof GradleConnectionException
@@ -82,7 +121,6 @@ task hang << {
     @TargetGradleVersion("<2.1 >=1.0-milestone-8")
     def "cancel with older provider issues warning only"() {
         def marker = file("warning.txt")
-        println "test" + marker.toURI().toString() + " @ " + System.currentTimeMillis() + " version " + targetDist.version.version
         buildFile << """
 task t << {
     println "waiting"

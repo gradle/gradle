@@ -139,6 +139,41 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     /**
+     * Cancels all running builds in daemon(s), if any is running.
+     */
+    public void cancel() {
+        long start = System.currentTimeMillis();
+        long expiry = start + STOP_TIMEOUT_SECONDS * 1000;
+        Set<String> cancelled = new HashSet<String>();
+
+        // TODO - only connect to daemons that we have not yet sent a stop request to
+        DaemonClientConnection connection = connector.maybeConnect(compatibilitySpec);
+        if (connection == null) {
+            LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
+            return;
+        }
+
+        LOGGER.lifecycle("Cancelling daemon build(s).");
+
+        //iterate and stop all daemons
+        while (connection != null && System.currentTimeMillis() < expiry) {
+            try {
+                if (cancelled.add(connection.getUid())) {
+                    new CancelDispatcher(idGenerator).dispatch(connection);
+                    LOGGER.lifecycle("Gradle build stopped.");
+                }
+            } finally {
+                connection.stop();
+            }
+            connection = connector.maybeConnect(compatibilitySpec);
+        }
+
+        if (connection != null) {
+            throw new GradleException(String.format("Timeout waiting for all daemons to cancel their builds. Waited %s seconds.", (System.currentTimeMillis() - start) / 1000));
+        }
+    }
+
+    /**
      * Executes the given action in the daemon. The action and parameters must be serializable.
      *
      * @param action The action
@@ -149,7 +184,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
-            final CancelCallback cancelCallback = new CancelCallback(connection);
+            final CancelCallback cancelCallback = new CancelCallback();
             if (cancellationToken.canBeCancelled()) {
                 boolean cancelled = cancellationToken.addCallback(cancelCallback);
                 if (cancelled) {
@@ -170,18 +205,22 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
-    private static class CancelCallback implements Runnable {
-        private final DaemonClientConnection connection;
+    // TODO this should use compatibilitySpec to match exact UID of a daemon processing the build
+    // TODO handle connectivity problems
+    // TODO disable this callback when the build is finished
+    private class CancelCallback implements Runnable {
         private volatile boolean wasCancelled;
 
-        public CancelCallback(DaemonClientConnection connection) {
-            this.connection = connection;
+        public CancelCallback() {
         }
 
         public void run() {
             LOGGER.info("Request daemon stop to handle build cancellation...");
-            connection.stop();
+            DaemonClientConnection connection = connector.maybeConnect(compatibilitySpec);
+            new CancelDispatcher(idGenerator).dispatch(connection);
+            LOGGER.lifecycle("Gradle build stopped.");
             wasCancelled = true;
+            connection.stop();
         }
 
         public boolean wasCancelled() {
@@ -256,7 +295,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 + "\nAttempting to read last messages from the daemon log...");
 
         LOGGER.error(diagnostics.describe());
-        if (cancelCallback != null && cancelCallback.wasCancelled) {
+        if (cancelCallback != null && cancelCallback.wasCancelled()) {
             LOGGER.error("Daemon was stopped to handle build cancel request.");
             throw new BuildCancelledException("Build interrupted");
         }

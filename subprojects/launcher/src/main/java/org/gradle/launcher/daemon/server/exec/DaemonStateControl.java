@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.launcher.exec.BuildCancellationToken;
+
 public interface DaemonStateControl {
     /**
      * <p>Requests that the daemon stop, but wait until the daemon is idle. The stop will happen asynchronously, and this method does not block.
@@ -40,6 +42,14 @@ public interface DaemonStateControl {
      * doesn't finnish in a timely manner a request for forceful stop will be issued ({@link #requestForcefulStop()}.</p>
      */
     void cancelBuild();
+
+    /**
+     * Returns a cancellation token used to communicate cancel requests to commands processed in this daemon.
+     * <p>The lifecycle of cancellation token is the duration of a command processing.</p>
+     *
+     * @return Cancellation token associated with currently running command or an arbitrary instance if no command is running.
+     */
+    BuildCancellationToken getCancellationToken();
 
     /**
      * Runs the given long running command. No more than 1 command may be running at any given time.
