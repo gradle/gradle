@@ -304,4 +304,51 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("error executing model rule: MyPlugin\$Rules#string() - rule returned null")
     }
 
+    def "plugin applied by plugin can contribute rules"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyBasePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void strings(List strings) {
+                      strings << "foo"
+                    }
+                }
+            }
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.plugins.apply(MyBasePlugin)
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    List strings() {
+                      []
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            // internal API here
+            task value {
+                doFirst { println "value: " + modelRegistry.get("strings", List) }
+            }
+        """
+
+        then:
+        succeeds "value"
+
+        and:
+        output.contains "value: [foo]"
+    }
+
 }

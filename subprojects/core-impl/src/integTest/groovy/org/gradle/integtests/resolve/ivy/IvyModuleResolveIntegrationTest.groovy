@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.model.internal.registry.ReflectiveRule
 import spock.lang.Unroll
 
 class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -137,14 +136,14 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants(* (['projectA-1.2.jar'] + jars))
+        file('libs').assertHasDescendants(*(['projectA-1.2.jar'] + jars))
 
         when:
         server.resetExpectations()
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants(* (['projectA-1.2.jar'] + jars))
+        file('libs').assertHasDescendants(*(['projectA-1.2.jar'] + jars))
 
         where:
         rule                    | jars

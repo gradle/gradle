@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileResolver;
@@ -28,7 +27,6 @@ import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.groovy.scripts.UriScriptSource;
-import org.gradle.internal.Actions;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -42,25 +40,13 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
-    private final Action<? super PluginApplication> postApplyAction;
     private final ClassLoaderScope classLoaderScope;
     private final Object[] defaultTargets;
 
-    public DefaultObjectConfigurationAction(
-            FileResolver resolver,
-            ScriptPluginFactory configurerFactory,
-            ScriptHandlerFactory scriptHandlerFactory,
-            ClassLoaderScope classLoaderScope,
-            Object... defaultTargets
-    ) {
-        this(resolver, configurerFactory, scriptHandlerFactory, Actions.doNothing(), classLoaderScope, defaultTargets);
-    }
-
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, Action<? super PluginApplication> postApplyAction, ClassLoaderScope classLoaderScope, Object... defaultTargets) {
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope, Object... defaultTargets) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
-        this.postApplyAction = postApplyAction;
         this.classLoaderScope = classLoaderScope;
         this.defaultTargets = defaultTargets;
     }
@@ -111,10 +97,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private void applyPlugin(Class<? extends Plugin> pluginClass) {
         for (Object target : targets) {
             if (target instanceof PluginAware) {
-                PluginAware pluginAware = (PluginAware) target;
                 try {
-                    Plugin plugin = pluginAware.getPlugins().apply(pluginClass);
-                    postApplyAction.execute(new PluginApplication(plugin, pluginAware));
+                    ((PluginAware) target).getPlugins().apply(pluginClass);
                 } catch (Exception e) {
                     throw new PluginApplicationException("class '" + pluginClass.getName() + "'", e);
                 }
@@ -127,10 +111,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private void applyPlugin(String pluginId) {
         for (Object target : targets) {
             if (target instanceof PluginAware) {
-                PluginAware pluginAware = (PluginAware) target;
                 try {
-                    Plugin plugin = pluginAware.getPlugins().apply(pluginId);
-                    postApplyAction.execute(new PluginApplication(plugin, pluginAware));
+                    ((PluginAware) target).getPlugins().apply(pluginId);
                 } catch (Exception e) {
                     throw new PluginApplicationException("id '" + pluginId + "'", e);
                 }
