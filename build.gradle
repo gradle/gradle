@@ -99,6 +99,7 @@ ext {
                 project(':toolingApi'),
                 project(':wrapper'),
                 project(':baseServices'),
+                project(':baseServicesGroovy'),
                 project(':messaging'),
                 project(':resources')
         ]
