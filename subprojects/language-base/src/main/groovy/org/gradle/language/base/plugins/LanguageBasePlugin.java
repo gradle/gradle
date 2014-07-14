@@ -17,24 +17,15 @@ package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.model.ModelRules;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.base.ProjectComponent;
-import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.DefaultBinaryContainer;
-import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 import javax.inject.Inject;
@@ -63,58 +54,18 @@ public class LanguageBasePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
-        LanguageRegistry languageRegistry = target.getExtensions().create("languages", DefaultLanguageRegistry.class);
-
-        // TODO:DAZ Rename to 'components' and merge with Project.components
-        ProjectComponentContainer components = target.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
         ProjectSourceSet sources = target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
+        modelRules.register("sources", sources);
         final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
+        modelRules.register("binaries", binaries);
 
-        modelRules.register("binaries", BinaryContainer.class, new Factory<BinaryContainer>() {
-            public BinaryContainer create() {
-                return binaries;
-            }
-        });
-
+        // TODO:DAZ Make this a rule: will break integration with legacy plugins
         binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>() {
             public void execute(ProjectBinaryInternal binary) {
                 Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
                 binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                 binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                 binary.setBuildTask(binaryLifecycleTask);
-            }
-        });
-        createProjectSourceSetForEachComponent(sources, components);
-        createLanguageSourceSets(target, languageRegistry, sources);
-    }
-
-    private void createLanguageSourceSets(final Project project, final LanguageRegistry languageRegistry, final ProjectSourceSet sources) {
-        languageRegistry.all(new Action<LanguageRegistration>() {
-            public void execute(final LanguageRegistration languageRegistration) {
-                sources.all(new Action<FunctionalSourceSet>() {
-                    public void execute(final FunctionalSourceSet functionalSourceSet) {
-                        NamedDomainObjectFactory<? extends LanguageSourceSet> namedDomainObjectFactory = new NamedDomainObjectFactory<LanguageSourceSet>() {
-                            public LanguageSourceSet create(String name) {
-                                Class<? extends LanguageSourceSet> sourceSetImplementation = languageRegistration.getSourceSetImplementation();
-                                return instantiator.newInstance(sourceSetImplementation, name, functionalSourceSet, project);
-                            }
-                        };
-                        Class<? extends LanguageSourceSet> sourceSetType = languageRegistration.getSourceSetType();
-                        functionalSourceSet.registerFactory((Class<LanguageSourceSet>) sourceSetType, namedDomainObjectFactory);
-
-                        // Create a default language source set
-                        functionalSourceSet.maybeCreate(languageRegistration.getName(), sourceSetType);
-                    }
-                });
-            }
-        });
-    }
-
-    private void createProjectSourceSetForEachComponent(final ProjectSourceSet sources, ProjectComponentContainer components) {
-        // Create a functionalSourceSet for each native component, with the same name
-        components.withType(ProjectComponent.class).all(new Action<ProjectComponent>() {
-            public void execute(ProjectComponent component) {
-                component.source(sources.maybeCreate(component.getName()));
             }
         });
     }
