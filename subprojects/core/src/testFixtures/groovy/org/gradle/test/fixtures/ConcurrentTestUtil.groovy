@@ -67,6 +67,7 @@ class ConcurrentTestUtil extends ExternalResource {
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
     static void poll(int timeout = 10, Closure assertion) {
         def expiry = System.currentTimeMillis() + timeout * 1000 // convert to ms
+        long sleepTime = 100
         while(true) {
             try {
                 assertion()
@@ -75,6 +76,7 @@ class ConcurrentTestUtil extends ExternalResource {
                 if (System.currentTimeMillis() > expiry) {
                     throw t
                 }
+                sleepTime = Math.min(250, (long) (sleepTime * 1.2))
                 Thread.sleep(100);
             }
         }
