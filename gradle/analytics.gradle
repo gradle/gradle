@@ -21,7 +21,7 @@ buildscript {
     }
 
     dependencies {
-        classpath group: 'com.gradleware', name: 'analytics-plugin', version: '+'
+        classpath group: 'com.gradleware', name: 'analytics-plugin', version: '0.1-20140714021653'
     }
 }
 
