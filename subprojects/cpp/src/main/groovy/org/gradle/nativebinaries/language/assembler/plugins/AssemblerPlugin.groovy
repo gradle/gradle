@@ -19,8 +19,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.plugins.AssemblerLangPlugin
-import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 /**
@@ -36,33 +34,5 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(AssemblerLangPlugin)
-
-        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
-            binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
-                if (sourceSet.mayHaveSources) {
-                    def assembleTask = createAssembleTask(project, binary, sourceSet)
-                    assembleTask.dependsOn sourceSet
-                    binary.tasks.add assembleTask
-                    binary.tasks.createOrLink.source assembleTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
-                }
-            }
-        }
-    }
-
-
-    private def createAssembleTask(ProjectInternal project, ProjectNativeBinaryInternal binary, def sourceSet) {
-        def assembleTask = project.task(binary.namingScheme.getTaskName("assemble", sourceSet.fullName), type: Assemble) {
-            description = "Assembles the $sourceSet of $binary"
-        }
-
-        assembleTask.toolChain = binary.toolChain
-        assembleTask.targetPlatform = binary.targetPlatform
-
-        assembleTask.source sourceSet.source
-
-        assembleTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
-        assembleTask.assemblerArgs = binary.assembler.args
-
-        assembleTask
     }
 }

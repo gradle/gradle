@@ -21,9 +21,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
+import org.gradle.nativebinaries.language.cpp.tasks.CppCompile;
+import org.gradle.nativebinaries.language.internal.CompileTaskConfig;
+import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 
 import java.util.Map;
@@ -33,9 +37,14 @@ import java.util.Map;
  */
 @Incubating
 public class CppLangPlugin implements Plugin<ProjectInternal> {
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
+        Cpp language = new Cpp();
+
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(new Cpp());
+        project.getExtensions().getByType(LanguageRegistry.class).add(language);
+
+        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
+        createRule.init(project);
     }
 
     private static class Cpp implements LanguageRegistration<CppSourceSet> {
@@ -56,5 +65,10 @@ public class CppLangPlugin implements Plugin<ProjectInternal> {
             tools.put("cppCompiler", DefaultPreprocessingTool.class);
             return tools;
         }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new CompileTaskConfig(this, CppCompile.class);
+        }
+
     }
 }

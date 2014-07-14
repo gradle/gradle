@@ -16,38 +16,13 @@
 
 package org.gradle.language.base.internal;
 
-
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.runtime.base.ProjectBinary;
 
-import java.util.Map;
-
-/**
- * A registered language.
- */
-public interface LanguageRegistration<U extends LanguageSourceSet> {
-    /**
-     * The name.
-     */
-    String getName();
-
-    /**
-     * The interface type of the language source set.
-     */
-    Class<U> getSourceSetType();
-
-    /**
-     * The implementation type of the language source set.
-     */
-    Class<? extends U> getSourceSetImplementation();
-
-    /**
-     * The tool extensions that should be added to any binary with these language sources.
-     */
-    Map<String, Class<?>> getBinaryTools();
-
-    /**
-     * The task used to transform sources into code for the target runtime.
-     */
-    SourceTransformTaskConfig getTransformTask();
-
+public interface SourceTransformTaskConfig {
+    String getTaskPrefix();
+    Class<? extends DefaultTask> getTaskType();
+    void configureTask(Task task, ProjectBinary binary, LanguageSourceSet sourceSet);
 }

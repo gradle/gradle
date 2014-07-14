@@ -26,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
@@ -98,5 +99,10 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return null;
+        }
+
     }
 }

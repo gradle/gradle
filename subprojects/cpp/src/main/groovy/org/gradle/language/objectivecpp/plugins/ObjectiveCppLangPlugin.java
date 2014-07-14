@@ -21,10 +21,14 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppSourceSet;
+import org.gradle.nativebinaries.language.internal.CompileTaskConfig;
+import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
+import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile;
 
 import java.util.Map;
 
@@ -33,9 +37,14 @@ import java.util.Map;
  */
 @Incubating
 public class ObjectiveCppLangPlugin implements Plugin<ProjectInternal> {
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
+        ObjectiveCpp language = new ObjectiveCpp();
+
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(new ObjectiveCpp());
+        project.getExtensions().getByType(LanguageRegistry.class).add(language);
+
+        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
+        createRule.init(project);
     }
 
     private static class ObjectiveCpp implements LanguageRegistration<ObjectiveCppSourceSet> {
@@ -56,5 +65,10 @@ public class ObjectiveCppLangPlugin implements Plugin<ProjectInternal> {
             tools.put("objcppCompiler", DefaultPreprocessingTool.class);
             return tools;
         }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new CompileTaskConfig(this, ObjectiveCppCompile.class);
+        }
+
     }
 }

@@ -19,10 +19,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 /**
@@ -39,46 +35,5 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(WindowsResourceScriptPlugin)
-
-        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
-            if (shouldProcessResources(binary)) {
-                binary.source.withType(WindowsResourceSet).all { WindowsResourceSet resources ->
-                    if (resources.mayHaveSources) {
-                        def resourceCompileTask = createResourceCompileTask(project, binary, resources)
-                        resourceCompileTask.dependsOn resources
-                        binary.tasks.add resourceCompileTask
-                        final resourceOutputs = resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
-                        binary.tasks.createOrLink.source resourceOutputs
-                        if (binary instanceof ProjectStaticLibraryBinaryInternal) {
-                            binary.additionalLinkFiles resourceOutputs
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private boolean shouldProcessResources(NativeBinary binary) {
-        binary.targetPlatform.operatingSystem.windows
-    }
-
-    private def createResourceCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, WindowsResourceSet sourceSet) {
-        WindowsResourceCompile compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: WindowsResourceCompile) {
-            description = "Compiles resources of the $sourceSet of $binary"
-        }
-
-        compileTask.toolChain = binary.toolChain
-        compileTask.targetPlatform = binary.targetPlatform
-
-        compileTask.includes {
-            sourceSet.exportedHeaders.srcDirs
-        }
-        compileTask.source sourceSet.source
-
-        compileTask.outputDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
-        compileTask.macros = binary.rcCompiler.macros
-        compileTask.compilerArgs = binary.rcCompiler.args
-
-        compileTask
     }
 }

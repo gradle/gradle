@@ -22,6 +22,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
@@ -85,6 +86,11 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return null;
+        }
+
     }
 
 }

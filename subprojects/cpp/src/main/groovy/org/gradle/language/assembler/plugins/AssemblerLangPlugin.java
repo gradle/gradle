@@ -23,8 +23,11 @@ import org.gradle.language.assembler.AssemblerSourceSet;
 import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.nativebinaries.internal.DefaultTool;
+import org.gradle.nativebinaries.language.internal.AssembleTaskConfig;
+import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
 
 import java.util.Map;
 
@@ -36,7 +39,11 @@ public class AssemblerLangPlugin implements Plugin<ProjectInternal> {
 
     public void apply(ProjectInternal project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(new Assembler());
+        Assembler language = new Assembler();
+        project.getExtensions().getByType(LanguageRegistry.class).add(language);
+
+        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
+        createRule.init(project);
     }
 
     private static class Assembler implements LanguageRegistration<AssemblerSourceSet> {
@@ -57,5 +64,10 @@ public class AssemblerLangPlugin implements Plugin<ProjectInternal> {
             tools.put("assembler", DefaultTool.class);
             return tools;
         }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new AssembleTaskConfig();
+        }
+
     }
 }

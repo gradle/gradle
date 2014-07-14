@@ -19,9 +19,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppLangPlugin
-import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.ProjectSharedLibraryBinary
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 /**
@@ -36,40 +33,5 @@ class CppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(CppLangPlugin)
-
-        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
-            binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-                if (sourceSet.mayHaveSources) {
-                    def compileTask = createCompileTask(project, binary, sourceSet)
-                    compileTask.dependsOn sourceSet
-                    binary.tasks.add compileTask
-                    binary.tasks.createOrLink.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
-                }
-            }
-        }
-    }
-
-    private def createCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, CppSourceSet sourceSet) {
-        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
-            description = "Compiles the $sourceSet of $binary"
-        }
-
-        compileTask.toolChain = binary.toolChain
-        compileTask.targetPlatform = binary.targetPlatform
-        compileTask.positionIndependentCode = binary instanceof ProjectSharedLibraryBinary
-
-        compileTask.includes {
-            sourceSet.exportedHeaders.srcDirs
-        }
-        compileTask.includes {
-            binary.getLibs(sourceSet)*.includeRoots
-        }
-        compileTask.source sourceSet.source
-
-        compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
-        compileTask.macros = binary.cppCompiler.macros
-        compileTask.compilerArgs = binary.cppCompiler.args
-
-        compileTask
     }
 }

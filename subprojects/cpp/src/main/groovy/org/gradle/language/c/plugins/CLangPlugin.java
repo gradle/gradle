@@ -21,9 +21,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
+import org.gradle.nativebinaries.language.c.tasks.CCompile;
+import org.gradle.nativebinaries.language.internal.CompileTaskConfig;
+import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 
 import java.util.Map;
@@ -34,9 +38,14 @@ import java.util.Map;
 @Incubating
 public class CLangPlugin implements Plugin<ProjectInternal> {
 
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
+        LanguageRegistration<CSourceSet> language = new C();
+
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(new C());
+        project.getExtensions().getByType(LanguageRegistry.class).add(language);
+
+        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
+        createRule.init(project);
     }
 
     private static class C implements LanguageRegistration<CSourceSet> {
@@ -57,5 +66,10 @@ public class CLangPlugin implements Plugin<ProjectInternal> {
             tools.put("cCompiler", DefaultPreprocessingTool.class);
             return tools;
         }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new CompileTaskConfig(this, CCompile.class);
+        }
+
     }
 }

@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.objectivecpp.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
 import org.gradle.language.objectivecpp.plugins.ObjectiveCppLangPlugin
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.ProjectSharedLibraryBinary
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
-
 /**
  * A plugin for projects wishing to build native binary components from Objective-C++ sources.
  *
@@ -39,41 +34,5 @@ class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(ObjectiveCppLangPlugin)
-
-        project.binaries.withType(NativeBinary) { ProjectNativeBinaryInternal binary ->
-            binary.source.withType(ObjectiveCppSourceSet).all { ObjectiveCppSourceSet sourceSet ->
-                if (sourceSet.mayHaveSources) {
-                    def compileTask = createCompileTask(project, binary, sourceSet)
-                    binary.tasks.add compileTask
-                    binary.tasks.createOrLink.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
-                }
-            }
-        }
     }
-
-    private def createCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, ObjectiveCppSourceSet sourceSet) {
-        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: ObjectiveCppCompile) {
-            description = "Compiles the $sourceSet of $binary"
-        }
-
-        compileTask.toolChain = binary.toolChain
-        compileTask.targetPlatform = binary.targetPlatform
-        compileTask.positionIndependentCode = binary instanceof ProjectSharedLibraryBinary
-
-        compileTask.includes {
-            sourceSet.exportedHeaders.srcDirs
-        }
-
-        compileTask.source sourceSet.source
-        binary.getLibs(sourceSet).each { deps ->
-            compileTask.includes deps.includeRoots
-        }
-
-        compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
-        compileTask.macros = binary.objcppCompiler.macros
-        compileTask.compilerArgs = binary.objcppCompiler.args
-
-        compileTask
-    }
-
 }
