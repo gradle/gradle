@@ -94,7 +94,14 @@ ext {
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageBase',
         'plugin-development'
     ].collect {
-        publishedProjects = [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging'), project(':resources')]
+        publishedProjects = [
+                project(':core'),
+                project(':toolingApi'),
+                project(':wrapper'),
+                project(':baseServices'),
+                project(':messaging'),
+                project(':resources')
+        ]
         project(it)
     }
 }
