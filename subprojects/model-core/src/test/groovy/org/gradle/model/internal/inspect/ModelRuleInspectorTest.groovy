@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect
 
 import com.google.common.reflect.TypeToken
+import org.gradle.model.Finalize
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.Mutate
@@ -207,7 +208,7 @@ class ModelRuleInspectorTest extends Specification {
         }
     }
 
-    // Not an exhaustive test of the mechanics of mutation rules, just testing the extraction and registration]
+    // Not an exhaustive test of the mechanics of mutation rules, just testing the extraction and registration
     def "mutation rules are registered"() {
         given:
         def reference = ModelReference.of(new ModelPath("string"), ModelType.of(new TypeToken<List<String>>() {}))
@@ -236,6 +237,53 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         registry.element(reference).instance.sort() == ["1", "2"]
+    }
+    static class MutationAndFinalizeRules {
+        @Finalize
+        static void finalize1(List<String> strings) {
+            strings << "2"
+        }
+
+        @Mutate
+        static void mutate1(List<String> strings) {
+            strings << "1"
+        }
+
+        @Mutate
+        static void mutate3(List<Integer> strings) {
+            strings << 3
+        }
+    }
+
+    // Not an exhaustive test of the mechanics of finalize rules, just testing the extraction and registration
+    def "finalize rules are registered"() {
+        given:
+        def reference = ModelReference.of(new ModelPath("string"), ModelType.of(new TypeToken<List<String>>() {}))
+
+        // Have to make the inputs exist so the binding can be inferred by type
+        // or, the inputs could be annotated with @Path
+        registry.create("string", [], new ModelCreator<List<String>>() {
+            @Override
+            ModelReference getReference() {
+                reference
+            }
+
+            @Override
+            List<String> create(Inputs inputs) {
+                []
+            }
+
+            @Override
+            ModelRuleSourceDescriptor getSourceDescriptor() {
+                new SimpleModelRuleSourceDescriptor("strings")
+            }
+        })
+
+        when:
+        inspector.inspect(MutationAndFinalizeRules, registry)
+
+        then:
+        registry.element(reference).instance == ["1", "2"]
     }
 
 }

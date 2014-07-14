@@ -25,10 +25,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
@@ -49,7 +46,7 @@ import java.util.Set;
 
 public class ModelRuleInspector {
 
-    private final static Set<Class<? extends Annotation>> TYPE_ANNOTATIONS = ImmutableSet.of(Model.class, Mutate.class);
+    private final static Set<Class<? extends Annotation>> TYPE_ANNOTATIONS = ImmutableSet.of(Model.class, Mutate.class, Finalize.class);
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
     public Set<Class<?>> getDeclaredSources(Class<?> container) {
@@ -78,7 +75,9 @@ public class ModelRuleInspector {
                 if (annotation instanceof Model) {
                     creationMethod(modelRegistry, method, (Model) annotation);
                 } else if (annotation instanceof Mutate) {
-                    mutationMethod(modelRegistry, method);
+                    mutationMethod(modelRegistry, method, false);
+                } else if (annotation instanceof Finalize) {
+                    mutationMethod(modelRegistry, method, true);
                 } else {
                     throw new IllegalStateException("Unhandled rule type annotation: " + annotation);
                 }
@@ -86,12 +85,12 @@ public class ModelRuleInspector {
         }
     }
 
-    private void mutationMethod(ModelRegistry modelRegistry, final Method method) {
+    private void mutationMethod(ModelRegistry modelRegistry, final Method method, boolean finalize) {
         if (method.getTypeParameters().length > 0) {
-            throw invalid("model mutation rule", method, "cannot have type variables (i.e. cannot be a generic method)");
+            throw invalid("model rule", method, "cannot have type variables (i.e. cannot be a generic method)");
         }
 
-        ReflectiveRule.rule(modelRegistry, method, false, new Factory<Object>() {
+        ReflectiveRule.rule(modelRegistry, method, finalize, new Factory<Object>() {
             public Object create() {
                 return toInstance(method.getDeclaringClass());
             }
