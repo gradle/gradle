@@ -15,6 +15,7 @@
  */
 package org.gradle.language.objectivec.plugins;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,6 +24,9 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.objectivec.ObjectiveCSourceSet;
 import org.gradle.language.objectivec.internal.DefaultObjectiveCSourceSet;
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
+
+import java.util.Map;
 
 /**
  * Adds core Objective-C language support.
@@ -47,5 +51,10 @@ public class ObjectiveCLangPlugin implements Plugin<ProjectInternal> {
             return DefaultObjectiveCSourceSet.class;
         }
 
+        public Map<String, Class<?>> getBinaryTools() {
+            Map<String, Class<?>> tools = Maps.newLinkedHashMap();
+            tools.put("objcCompiler", DefaultPreprocessingTool.class);
+            return tools;
+        }
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.language.assembler.plugins;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,6 +24,9 @@ import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.nativebinaries.internal.DefaultTool;
+
+import java.util.Map;
 
 /**
  * Adds core Assembler language support.
@@ -46,6 +50,12 @@ public class AssemblerLangPlugin implements Plugin<ProjectInternal> {
 
         public Class<? extends AssemblerSourceSet> getSourceSetImplementation() {
             return DefaultAssemblerSourceSet.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            Map<String, Class<?>> tools = Maps.newLinkedHashMap();
+            tools.put("assembler", DefaultTool.class);
+            return tools;
         }
     }
 }

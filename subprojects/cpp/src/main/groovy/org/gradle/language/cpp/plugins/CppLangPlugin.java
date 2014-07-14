@@ -15,6 +15,7 @@
  */
 package org.gradle.language.cpp.plugins;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,6 +24,9 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
+
+import java.util.Map;
 
 /**
  * Adds core C++ language support.
@@ -45,6 +49,12 @@ public class CppLangPlugin implements Plugin<ProjectInternal> {
 
         public Class<? extends CppSourceSet> getSourceSetImplementation() {
             return DefaultCppSourceSet.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            Map<String, Class<?>> tools = Maps.newLinkedHashMap();
+            tools.put("cppCompiler", DefaultPreprocessingTool.class);
+            return tools;
         }
     }
 }

@@ -18,7 +18,9 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.FlavorContainer;
@@ -50,7 +52,9 @@ public class CreateNativeBinaries extends ModelRule {
         project.getExtensions().add("flavors", flavors);
 
         Action<ProjectNativeBinary> configureBinaryAction = new ProjectNativeBinaryInitializer(project);
-        NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, configureBinaryAction, resolver);
+        Action<ProjectNativeBinary> setToolsAction = new ToolSettingNativeBinaryInitializer(project.getExtensions().getByType(LanguageRegistry.class));
+        Action<ProjectNativeBinary> initAction = Actions.composite(configureBinaryAction, setToolsAction);
+        NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
         BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
         Action<ProjectNativeComponent> createBinariesAction =
                 new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);

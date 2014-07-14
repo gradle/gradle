@@ -17,7 +17,10 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
+import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
+import org.gradle.nativebinaries.ProjectStaticLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;

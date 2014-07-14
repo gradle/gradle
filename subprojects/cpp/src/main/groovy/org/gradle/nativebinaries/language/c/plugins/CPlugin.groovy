@@ -24,7 +24,6 @@ import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectSharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
-import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 
 /**
@@ -39,12 +38,6 @@ class CPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(CLangPlugin)
-
-        project.nativeComponents.all { component ->
-            component.binaries.all { binary ->
-                binary.extensions.create("cCompiler", DefaultPreprocessingTool)
-            }
-        }
 
         project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->

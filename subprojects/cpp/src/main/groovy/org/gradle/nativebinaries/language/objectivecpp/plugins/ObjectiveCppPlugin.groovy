@@ -21,10 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
 import org.gradle.language.objectivecpp.plugins.ObjectiveCppLangPlugin
 import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.ProjectSharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 
@@ -41,12 +39,6 @@ class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(ObjectiveCppLangPlugin)
-
-        project.nativeComponents.all { ProjectNativeComponent component ->
-            component.binaries.all { binary ->
-                binary.extensions.create("objcppCompiler", DefaultPreprocessingTool)
-            }
-        }
 
         project.binaries.withType(NativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(ObjectiveCppSourceSet).all { ObjectiveCppSourceSet sourceSet ->

@@ -15,6 +15,7 @@
  */
 package org.gradle.language.c.plugins;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,6 +24,9 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
+
+import java.util.Map;
 
 /**
  * Adds core C language support.
@@ -46,6 +50,12 @@ public class CLangPlugin implements Plugin<ProjectInternal> {
 
         public Class<? extends CSourceSet> getSourceSetImplementation() {
             return DefaultCSourceSet.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            Map<String, Class<?>> tools = Maps.newLinkedHashMap();
+            tools.put("cCompiler", DefaultPreprocessingTool.class);
+            return tools;
         }
     }
 }

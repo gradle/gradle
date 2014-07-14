@@ -15,6 +15,7 @@
  */
 package org.gradle.language.objectivecpp.plugins;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,6 +24,9 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppSourceSet;
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
+
+import java.util.Map;
 
 /**
  * Adds core Objective-Cpp language support.
@@ -47,5 +51,10 @@ public class ObjectiveCppLangPlugin implements Plugin<ProjectInternal> {
             return DefaultObjectiveCppSourceSet.class;
         }
 
+        public Map<String, Class<?>> getBinaryTools() {
+            Map<String, Class<?>> tools = Maps.newLinkedHashMap();
+            tools.put("objcppCompiler", DefaultPreprocessingTool.class);
+            return tools;
+        }
     }
 }

@@ -31,6 +31,9 @@ import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
  * org.gradle.language.jvm.ResourceSet}.
@@ -77,6 +80,10 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
         public Class<? extends ResourceSet> getSourceSetImplementation() {
             return DefaultResourceSet.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            return Collections.emptyMap();
         }
     }
 

@@ -19,6 +19,8 @@ package org.gradle.language.base.internal;
 
 import org.gradle.language.base.LanguageSourceSet;
 
+import java.util.Map;
+
 /**
  * A registered language.
  */
@@ -37,4 +39,9 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
      * The implementation type of the language source set.
      */
     Class<? extends U> getSourceSetImplementation();
+
+    /**
+     * The tool extensions that should be added to any binary with these language sources.
+     */
+    Map<String, Class<?>> getBinaryTools();
 }

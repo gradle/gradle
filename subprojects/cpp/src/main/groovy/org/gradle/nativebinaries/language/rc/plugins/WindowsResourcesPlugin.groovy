@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.rc.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
@@ -22,13 +21,10 @@ import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
-import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
-
 /**
  * A plugin for projects wishing to build native binary components from Windows Resource sources.
  *
@@ -43,14 +39,6 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(WindowsResourceScriptPlugin)
-
-        project.nativeComponents.all { ProjectNativeComponent component ->
-            component.binaries.all { NativeBinary binary ->
-                if (shouldProcessResources(binary)) {
-                    binary.extensions.create("rcCompiler", DefaultPreprocessingTool)
-                }
-            }
-        }
 
         project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             if (shouldProcessResources(binary)) {

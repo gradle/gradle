@@ -15,6 +15,7 @@
  */
 package org.gradle.language.rc.plugins;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,6 +24,9 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
+
+import java.util.Map;
 
 /**
  * Adds core language support for Windows resource script files.
@@ -46,6 +50,12 @@ public class WindowsResourceScriptPlugin implements Plugin<ProjectInternal> {
 
         public Class<? extends WindowsResourceSet> getSourceSetImplementation() {
             return DefaultWindowsResourceSet.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            Map<String, Class<?>> tools = Maps.newLinkedHashMap();
+            tools.put("rcCompiler", DefaultPreprocessingTool.class);
+            return tools;
         }
     }
 }

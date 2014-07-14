@@ -20,8 +20,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.plugins.AssemblerLangPlugin
 import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.internal.DefaultTool
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
@@ -38,11 +36,6 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(AssemblerLangPlugin)
-        project.nativeComponents.all { ProjectNativeComponent component ->
-            component.binaries.all { binary ->
-                binary.extensions.create("assembler", DefaultTool)
-            }
-        }
 
         project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->

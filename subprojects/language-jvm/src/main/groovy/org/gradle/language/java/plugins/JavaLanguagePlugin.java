@@ -35,6 +35,9 @@ import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
  * language support with the {@link JavaSourceSet}.
@@ -90,6 +93,10 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
 
         public Class<? extends JavaSourceSet> getSourceSetImplementation() {
             return DefaultJavaSourceSet.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            return Collections.emptyMap();
         }
     }
 }
