@@ -17,15 +17,20 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.ModelFinalizer;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.Path;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
 import org.gradle.model.internal.core.rule.ModelCreationListener;
 import org.gradle.model.internal.core.rule.ModelMutator;
@@ -36,6 +41,7 @@ import org.gradle.util.CollectionUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,6 +53,22 @@ public abstract class ReflectiveRule {
 
     public static void rule(final ModelRegistry modelRegistry, final ModelRule modelRule) {
         final Method bindingMethod = findBindingMethod(modelRule);
+        bind(modelRegistry, bindingMethod, new Action<List<BindableParameter<?>>>() {
+            public void execute(List<BindableParameter<?>> bindableParameters) {
+                registerMutator(modelRegistry, bindingMethod, bindableParameters, modelRule instanceof ModelFinalizer, Factories.constant(modelRule));
+            }
+        });
+    }
+
+    public static void rule(final ModelRegistry modelRegistry, final Method method, final boolean isFinalizer, final Factory<?> instance) {
+        bind(modelRegistry, method, new Action<List<BindableParameter<?>>>() {
+            public void execute(List<BindableParameter<?>> bindableParameters) {
+                registerMutator(modelRegistry, method, bindableParameters, isFinalizer, instance);
+            }
+        });
+    }
+
+    private static void bind(final ModelRegistry modelRegistry, final Method bindingMethod, final Action<? super List<BindableParameter<?>>> onBound) {
         final List<BindableParameter<?>> initialBindings = bindings(bindingMethod);
 
         boolean unsatisfied = CollectionUtils.any(initialBindings, new Spec<BindableParameter<?>>() {
@@ -67,7 +89,7 @@ public abstract class ReflectiveRule {
 
                     for (BindableParameter<?> binding : bindings) {
                         if (binding.getPath() == null) {
-                            if (binding.getType().isAssignableFrom(reference.getType().getRawClass())) {
+                            if (binding.getType().isAssignableFrom(reference.getType())) {
                                 bindingsBuilder.add(copyBindingWithPath(reference.getPath(), binding));
                                 continue;
                             } else {
@@ -83,20 +105,20 @@ public abstract class ReflectiveRule {
                     if (unsatisfied) {
                         return false;
                     } else {
-                        registerMutator(modelRegistry, modelRule, bindingMethod, bindings);
+                        onBound.execute(bindings);
                         return true;
                     }
                 }
             });
         } else {
-            registerMutator(modelRegistry, modelRule, bindingMethod, initialBindings);
+            onBound.execute(initialBindings);
         }
     }
 
-    private static void registerMutator(ModelRegistry modelRegistry, ModelRule modelRule, final Method bindingMethod, final List<BindableParameter<?>> bindings) {
+    private static void registerMutator(ModelRegistry modelRegistry, final Method bindingMethod, final List<BindableParameter<?>> bindings, boolean isFinalizer, Factory<?> instance) {
         BindableParameter<?> first = bindings.get(0);
         List<BindableParameter<?>> tail = bindings.subList(1, bindings.size());
-        ModelMutator<?> modelMutator = toMutator(modelRule, bindingMethod, first, tail);
+        ModelMutator<?> modelMutator = toMutator(bindingMethod, first, tail, instance);
 
         String path = first.getPath().toString();
         List<String> bindingPaths = CollectionUtils.collect(tail, new Transformer<String, BindableParameter<?>>() {
@@ -105,14 +127,14 @@ public abstract class ReflectiveRule {
             }
         });
 
-        if (modelRule instanceof ModelFinalizer) {
+        if (isFinalizer) {
             modelRegistry.finalize(path, bindingPaths, modelMutator);
         } else {
             modelRegistry.mutate(path, bindingPaths, modelMutator);
         }
     }
 
-    private static <T> ModelMutator<T> toMutator(final ModelRule modelRule, final Method bindingMethod, final BindableParameter<T> first, final List<BindableParameter<?>> tail) {
+    private static <T> ModelMutator<T> toMutator(final Method bindingMethod, final BindableParameter<T> first, final List<BindableParameter<?>> tail, final Factory<?> instance) {
         return new ModelMutator<T>() {
 
             private final MethodModelRuleSourceDescriptor methodModelRuleSourceDescriptor = new MethodModelRuleSourceDescriptor(bindingMethod);
@@ -122,7 +144,7 @@ public abstract class ReflectiveRule {
             }
 
             public ModelReference<T> getReference() {
-                return new ModelReference<T>(first.path, new ModelType<T>(first.type));
+                return new ModelReference<T>(first.path, first.type);
             }
 
             public void mutate(T object, Inputs inputs) {
@@ -135,7 +157,7 @@ public abstract class ReflectiveRule {
                 bindingMethod.setAccessible(true);
 
                 try {
-                    bindingMethod.invoke(modelRule, args);
+                    bindingMethod.invoke(instance.create(), args);
                 } catch (Exception e) {
                     Throwable t = e;
                     if (t instanceof InvocationTargetException) {
@@ -168,14 +190,14 @@ public abstract class ReflectiveRule {
     }
 
     private static List<BindableParameter<?>> bindings(Method method) {
-        return bindings(method.getParameterTypes(), method.getParameterAnnotations());
+        return bindings(method.getGenericParameterTypes(), method.getParameterAnnotations());
     }
 
-    static List<BindableParameter<?>> bindings(Class[] types, Annotation[][] annotations) {
+    static List<BindableParameter<?>> bindings(Type[] types, Annotation[][] annotations) {
         ImmutableList.Builder<BindableParameter<?>> inputBindingBuilder = ImmutableList.builder();
 
         for (int i = 0; i < types.length; i++) {
-            Class<?> paramType = types[i];
+            Type paramType = types[i];
             Annotation[] paramAnnotations = annotations[i];
 
             inputBindingBuilder.add(binding(paramType, paramAnnotations));
@@ -184,23 +206,24 @@ public abstract class ReflectiveRule {
         return inputBindingBuilder.build();
     }
 
-    private static <T> BindableParameter binding(Class<T> type, Annotation[] annotations) {
+    private static <T> BindableParameter binding(Type type, Annotation[] annotations) {
         Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
             public boolean isSatisfiedBy(Annotation element) {
                 return element.annotationType().equals(Path.class);
             }
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
-        return new BindableParameter<T>(path == null ? null : ModelPath.path(path), type);
+        @SuppressWarnings("unchecked") TypeToken<T> cast = (TypeToken<T>) TypeToken.of(type);
+        return new BindableParameter<T>(path == null ? null : ModelPath.path(path), new ModelType<T>(cast));
     }
 
 
     public static class BindableParameter<T> {
 
         private final ModelPath path;
-        private final Class<T> type;
+        private final ModelType<T> type;
 
-        public BindableParameter(@Nullable ModelPath path, Class<T> type) {
+        public BindableParameter(@Nullable ModelPath path, ModelType<T> type) {
             this.path = path;
             this.type = type;
         }
@@ -209,7 +232,7 @@ public abstract class ReflectiveRule {
             return path;
         }
 
-        public Class<T> getType() {
+        public ModelType<T> getType() {
             return type;
         }
     }

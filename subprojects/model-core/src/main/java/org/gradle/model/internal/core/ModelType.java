@@ -40,6 +40,14 @@ public class ModelType<T> {
         this(TypeToken.of(clazz));
     }
 
+    public static <T> ModelType<T> of(Class<T> clazz) {
+        return new ModelType<T>(clazz);
+    }
+
+    public static <T> ModelType<T> of(TypeToken<T> type) {
+        return new ModelType<T>(type);
+    }
+
     public Class<? super T> getRawClass() {
         return typeToken.getRawType();
     }

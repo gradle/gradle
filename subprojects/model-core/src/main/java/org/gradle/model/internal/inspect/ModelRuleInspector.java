@@ -16,15 +16,20 @@
 
 package org.gradle.model.internal.inspect;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
@@ -32,7 +37,9 @@ import org.gradle.model.internal.core.rule.ModelCreator;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.registry.ReflectiveRule;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -41,6 +48,8 @@ import java.util.Collections;
 import java.util.Set;
 
 public class ModelRuleInspector {
+
+    private final static Set<Class<? extends Annotation>> TYPE_ANNOTATIONS = ImmutableSet.of(Model.class, Mutate.class);
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
     public Set<Class<?>> getDeclaredSources(Class<?> container) {
@@ -64,32 +73,79 @@ public class ModelRuleInspector {
         validate(source);
         Method[] methods = source.getDeclaredMethods();
         for (Method method : methods) {
-            Model modelAnnotation = method.getAnnotation(Model.class);
-            if (modelAnnotation != null) {
-                if (method.getParameterTypes().length > 0) {
-                    throw new IllegalArgumentException("@Model rules cannot take arguments");
+            Annotation annotation = getTypeAnnotation(method);
+            if (annotation != null) {
+                if (annotation instanceof Model) {
+                    creationMethod(modelRegistry, method, (Model) annotation);
+                } else if (annotation instanceof Mutate) {
+                    mutationMethod(modelRegistry, method);
+                } else {
+                    throw new IllegalStateException("Unhandled rule type annotation: " + annotation);
                 }
-
-                // TODO other validations on method: synthetic, bridge methods, varargs, abstract, native
-
-                // TODO validate model name
-                String modelName = determineModelName(modelAnnotation, method);
-
-                if (method.getTypeParameters().length > 0) {
-                    invalid("model creation rule", method, "cannot have type variables (i.e. cannot be a generic method)");
-                }
-
-                // TODO validate the return type (generics?)
-
-                TypeToken<?> returnType = TypeToken.of(method.getGenericReturnType());
-
-                doRegisterCreation(source, method, returnType, modelName, modelRegistry);
             }
         }
     }
 
-    private <T, R> void doRegisterCreation(final Class<T> source, final Method method, final TypeToken<R> returnType, final String modelName, ModelRegistry modelRegistry) {
-        @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) source.getClass();
+    private void mutationMethod(ModelRegistry modelRegistry, final Method method) {
+        if (method.getTypeParameters().length > 0) {
+            throw invalid("model mutation rule", method, "cannot have type variables (i.e. cannot be a generic method)");
+        }
+
+        ReflectiveRule.rule(modelRegistry, method, false, new Factory<Object>() {
+            public Object create() {
+                return toInstance(method.getDeclaringClass());
+            }
+        });
+    }
+
+    private Annotation getTypeAnnotation(Method method) {
+        Annotation annotation = null;
+        for (Annotation declaredAnnotation : method.getDeclaredAnnotations()) {
+            if (TYPE_ANNOTATIONS.contains(declaredAnnotation.annotationType())) {
+                if (annotation == null) {
+                    annotation = declaredAnnotation;
+                } else {
+                    throw invalid("model rule", method, "can only be annotated with one of " + typeAnnotationsDescription());
+                }
+            }
+        }
+
+        return annotation;
+    }
+
+    private static String typeAnnotationsDescription() {
+        String desc = Joiner.on(", ").join(Iterables.transform(TYPE_ANNOTATIONS, new Function<Class<? extends Annotation>, String>() {
+            public String apply(Class<? extends Annotation> input) {
+                return input.getName();
+            }
+        }));
+
+        return "[" + desc + "]";
+    }
+
+    private void creationMethod(ModelRegistry modelRegistry, Method method, Model modelAnnotation) {
+        if (method.getParameterTypes().length > 0) {
+            throw new IllegalArgumentException("@Model rules cannot take arguments");
+        }
+
+        // TODO other validations on method: synthetic, bridge methods, varargs, abstract, native
+
+        // TODO validate model name
+        String modelName = determineModelName(modelAnnotation, method);
+
+        if (method.getTypeParameters().length > 0) {
+            throw invalid("model creation rule", method, "cannot have type variables (i.e. cannot be a generic method)");
+        }
+
+        // TODO validate the return type (generics?)
+
+        TypeToken<?> returnType = TypeToken.of(method.getGenericReturnType());
+
+        doRegisterCreation(method, returnType, modelName, modelRegistry);
+    }
+
+    private <T, R> void doRegisterCreation(final Method method, final TypeToken<R> returnType, final String modelName, ModelRegistry modelRegistry) {
+        @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) method.getDeclaringClass();
         @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
         final JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
 
@@ -100,7 +156,7 @@ public class ModelRuleInspector {
             }
 
             public R create(Inputs inputs) {
-                T instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(source);
+                T instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(clazz);
                 // ignore inputs, we know they're empty
                 return methodWrapper.invoke(instance);
             }
@@ -142,56 +198,56 @@ public class ModelRuleInspector {
         int modifiers = source.getModifiers();
 
         if (Modifier.isInterface(modifiers)) {
-            invalid(source, "must be a class, not an interface");
+            throw invalid(source, "must be a class, not an interface");
         }
         if (Modifier.isAbstract(modifiers)) {
-            invalid(source, "class cannot be abstract");
+            throw invalid(source, "class cannot be abstract");
         }
 
         if (source.getEnclosingClass() != null) {
             if (Modifier.isStatic(modifiers)) {
                 if (Modifier.isPrivate(modifiers)) {
-                    invalid(source, "class cannot be private");
+                    throw invalid(source, "class cannot be private");
                 }
             } else {
-                invalid(source, "enclosed classes must be static and non private");
+                throw invalid(source, "enclosed classes must be static and non private");
             }
         }
 
         Class<?> superclass = source.getSuperclass();
         if (!superclass.equals(Object.class)) {
-            invalid(source, "cannot have superclass");
+            throw invalid(source, "cannot have superclass");
         }
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
         if (constructors.length > 1) {
-            invalid(source, "cannot have more than one constructor");
+            throw invalid(source, "cannot have more than one constructor");
         }
 
         Constructor constructor = constructors[0];
         if (constructor.getParameterTypes().length > 0) {
-            invalid(source, "constructor cannot take any arguments");
+            throw invalid(source, "constructor cannot take any arguments");
         }
 
         Field[] fields = source.getDeclaredFields();
         for (Field field : fields) {
             int fieldModifiers = field.getModifiers();
             if (!field.isSynthetic() && !(Modifier.isStatic(fieldModifiers) && Modifier.isFinal(fieldModifiers))) {
-                invalid(source, "field " + field.getName() + " is not static final");
+                throw invalid(source, "field " + field.getName() + " is not static final");
             }
         }
 
     }
 
-    private static void invalid(Class<?> source, String reason) {
-        throw new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
+    private static RuntimeException invalid(Class<?> source, String reason) {
+        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
     }
 
-    private static void invalid(String description, Method method, String reason) {
+    private static RuntimeException invalid(String description, Method method, String reason) {
         StringBuilder sb = new StringBuilder();
         new MethodModelRuleSourceDescriptor(method).describeTo(sb);
         sb.append(" is not a valid ").append(description).append(": ").append(reason);
-        throw new InvalidModelRuleDeclarationException(sb.toString());
+        return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
 }

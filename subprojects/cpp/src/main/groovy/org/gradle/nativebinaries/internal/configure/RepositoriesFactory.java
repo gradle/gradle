@@ -63,9 +63,9 @@ public class RepositoriesFactory implements ModelCreator<Repositories> {
     }
 
     public Repositories create(Inputs inputs) {
-        FlavorContainer flavors = inputs.get(0, FlavorContainer.class).getInstance();
-        PlatformContainer platforms = inputs.get(1, PlatformContainer.class).getInstance();
-        BuildTypeContainer buildTypes = inputs.get(2, BuildTypeContainer.class).getInstance();
+        FlavorContainer flavors = inputs.get(0, ModelType.of(FlavorContainer.class)).getInstance();
+        PlatformContainer platforms = inputs.get(1, ModelType.of(PlatformContainer.class)).getInstance();
+        BuildTypeContainer buildTypes = inputs.get(2, ModelType.of(BuildTypeContainer.class)).getInstance();
         Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, platforms, buildTypes, flavors);
         return new DefaultRepositories(instantiator, fileResolver, initializer);
     }

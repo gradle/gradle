@@ -50,7 +50,7 @@ class ModelRegistryBackedModelRulesTest extends Specification {
         }
 
         rules.rule(new ModelRule() {
-            public void registerThings(List<DerivedThing> things, ModelThing element) {
+            public void registerThings(List things, ModelThing element) {
                 element.names.each {
                     things << new DerivedThing(name: it)
                 }

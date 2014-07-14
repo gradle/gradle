@@ -16,13 +16,19 @@
 
 package org.gradle.model.internal.inspect
 
+import com.google.common.reflect.TypeToken
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
-import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelState
 import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.core.rule.Inputs
+import org.gradle.model.internal.core.rule.ModelCreator
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
@@ -155,6 +161,81 @@ class ModelRuleInspectorTest extends Specification {
         then:
         type.parameterized
         type.typeVariables[0] == new ModelType(String)
+    }
+
+    static class HasRuleWithIdentityCrisis {
+        @Mutate
+        @Model
+        void foo() {}
+    }
+
+    def "rule cannot be of more than one type"() {
+        when:
+        inspector.inspect(HasRuleWithIdentityCrisis, registry)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
+    static class GenericMutationRule {
+        @Mutate
+        <T> void mutate(T thing) {}
+    }
+
+    def "mutation rule cannot be generic"() {
+        when:
+        inspector.inspect(GenericMutationRule, registry)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
+    static class MutationRules {
+        @Mutate
+        static void mutate1(List<String> strings) {
+            strings << "1"
+        }
+
+        @Mutate
+        static void mutate2(List<String> strings) {
+            strings << "2"
+        }
+
+        @Mutate
+        static void mutate3(List<Integer> strings) {
+            strings << 3
+        }
+    }
+
+    // Not an exhaustive test of the mechanics of mutation rules, just testing the extraction and registration]
+    def "mutation rules are registered"() {
+        given:
+        def reference = ModelReference.of(new ModelPath("string"), ModelType.of(new TypeToken<List<String>>() {}))
+
+        // Have to make the inputs exist so the binding can be inferred by type
+        // or, the inputs could be annotated with @Path
+        registry.create("string", [], new ModelCreator<List<String>>() {
+            @Override
+            ModelReference getReference() {
+                reference
+            }
+
+            @Override
+            List<String> create(Inputs inputs) {
+                []
+            }
+
+            @Override
+            ModelRuleSourceDescriptor getSourceDescriptor() {
+                new SimpleModelRuleSourceDescriptor("strings")
+            }
+        })
+
+        when:
+        inspector.inspect(MutationRules, registry)
+
+        then:
+        registry.element(reference).instance.sort() == ["1", "2"]
     }
 
 }

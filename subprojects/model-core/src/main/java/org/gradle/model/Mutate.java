@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model;
 
-import org.gradle.model.internal.core.ModelElement;
-import org.gradle.model.internal.core.ModelType;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface Inputs {
-
-    <T> ModelElement<? extends T> get(int i, ModelType<T> type);
-
-    int size();
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Mutate {
 }

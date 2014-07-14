@@ -29,9 +29,9 @@ public class DefaultInputs implements Inputs {
         this.inputs = inputs;
     }
 
-    public <T> ModelElement<? extends T> get(int i, Class<T> type) {
+    public <T> ModelElement<? extends T> get(int i, ModelType<T> type) {
         ModelElement<?> input = inputs.get(i);
-        if (new ModelType<T>(type).isAssignableFrom(input.getReference().getType())) {
+        if (type.isAssignableFrom(input.getReference().getType())) {
             @SuppressWarnings("unchecked") ModelElement<? extends T> cast = (ModelElement<? extends T>) input;
             return cast;
         } else {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.model.internal.registry.ReflectiveRule
 import spock.lang.Unroll
 
 class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {

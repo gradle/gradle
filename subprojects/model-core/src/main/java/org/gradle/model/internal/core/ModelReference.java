@@ -26,6 +26,10 @@ public class ModelReference<T> {
         this.type = type;
     }
 
+    public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type) {
+        return new ModelReference<T>(path, type);
+    }
+
     public ModelReference(String modelPath, ModelType<T> type) {
         this(new ModelPath(modelPath), type);
     }
