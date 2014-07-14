@@ -67,12 +67,21 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
                 tasks.remove(foo)
             }
 
-            // No DSL for rules dependent on other model yet
-            project.services.get(ModelRules).rule(new $ruleClass() {
-                void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
-                    // do nothing
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+
                 }
-            })
+
+                @RuleSource
+                static class Rules {
+                    @$annotationClass
+                    void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
+                       // do nothing
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
         """
 
         when:
@@ -82,7 +91,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
 
         where:
-        ruleClass << ["ModelRule", "ModelFinalizer"]
+        annotationClass << ["Mutate", "Finalize"]
     }
 
 }
