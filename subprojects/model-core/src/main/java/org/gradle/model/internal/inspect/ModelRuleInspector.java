@@ -20,12 +20,15 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.*;
+import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
@@ -37,11 +40,9 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ReflectiveRule;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class ModelRuleInspector {
@@ -123,11 +124,7 @@ public class ModelRuleInspector {
     }
 
     private void creationMethod(ModelRegistry modelRegistry, Method method, Model modelAnnotation) {
-        if (method.getParameterTypes().length > 0) {
-            throw new IllegalArgumentException("@Model rules cannot take arguments");
-        }
-
-        // TODO other validations on method: synthetic, bridge methods, varargs, abstract, native
+        // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
 
         // TODO validate model name
         String modelName = determineModelName(modelAnnotation, method);
@@ -143,36 +140,60 @@ public class ModelRuleInspector {
         doRegisterCreation(method, returnType, modelName, modelRegistry);
     }
 
-    private <T, R> void doRegisterCreation(final Method method, final TypeToken<R> returnType, final String modelName, ModelRegistry modelRegistry) {
-        @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) method.getDeclaringClass();
-        @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
-        final JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
+    private <T, R> void doRegisterCreation(final Method method, final TypeToken<R> returnType, final String modelName, final ModelRegistry modelRegistry) {
+        ReflectiveRule.bind(modelRegistry, method, new Action<List<ReflectiveRule.BindableParameter<?>>>() {
+            public void execute(List<ReflectiveRule.BindableParameter<?>> bindableParameters) {
+                @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) method.getDeclaringClass();
+                @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
+                final JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
 
-        modelRegistry.create(modelName, Collections.<String>emptyList(), new ModelCreator<R>() {
+                List<String> inputPaths = Lists.transform(bindableParameters, new Function<ReflectiveRule.BindableParameter<?>, String>() {
+                    public String apply(ReflectiveRule.BindableParameter<?> input) {
+                        return input.getPath().toString();
+                    }
+                });
 
-            public ModelReference<R> getReference() {
-                return new ModelReference<R>(new ModelPath(modelName), new ModelType<R>(returnType));
-            }
+                modelRegistry.create(modelName, inputPaths, new ModelCreator<R>() {
 
-            public R create(Inputs inputs) {
-                T instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(clazz);
-                // ignore inputs, we know they're empty
-                return methodWrapper.invoke(instance);
-            }
+                    public ModelReference<R> getReference() {
+                        return new ModelReference<R>(new ModelPath(modelName), new ModelType<R>(returnType));
+                    }
 
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new MethodModelRuleSourceDescriptor(method);
+                    public R create(Inputs inputs) {
+                        T instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(clazz);
+                        if (inputs.size() == 0) {
+                            return methodWrapper.invoke(instance);
+                        } else {
+                            Object[] args = new Object[inputs.size()];
+                            int i = 0;
+                            for (ModelElement<?> input : inputs) {
+                                args[i++] = input.getInstance();
+                            }
+                            return methodWrapper.invoke(instance, args);
+                        }
+                    }
+
+                    public ModelRuleSourceDescriptor getSourceDescriptor() {
+                        return new MethodModelRuleSourceDescriptor(method);
+                    }
+                });
             }
         });
     }
 
     private static <T> T toInstance(Class<T> source) {
         try {
-            return source.newInstance();
+            Constructor<T> declaredConstructor = source.getDeclaredConstructor();
+            declaredConstructor.setAccessible(true);
+            return declaredConstructor.newInstance();
         } catch (InstantiationException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (IllegalAccessException e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getTargetException());
         }
     }
 

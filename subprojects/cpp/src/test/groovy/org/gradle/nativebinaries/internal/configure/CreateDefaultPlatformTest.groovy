@@ -17,11 +17,12 @@
 package org.gradle.nativebinaries.internal.configure
 
 import org.gradle.nativebinaries.platform.PlatformContainer
+import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import spock.lang.Specification
 
 class CreateDefaultPlatformTest extends Specification {
     def platforms = Mock(PlatformContainer)
-    def action = new CreateDefaultPlatform()
+    def action = new NativeComponentModelPlugin.Rules()
 
     def "adds a default platform when none configured"() {
         when:

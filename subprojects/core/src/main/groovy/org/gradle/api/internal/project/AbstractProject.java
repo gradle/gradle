@@ -61,6 +61,12 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.rule.Inputs;
+import org.gradle.model.internal.core.rule.ModelCreator;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.util.Configurable;
@@ -170,6 +176,36 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.newInstance(TaskContainerInternal.class);
         modelRules = services.get(ModelRules.class);
+
+        ModelRegistry modelRegistry = services.get(ModelRegistry.class);
+
+        modelRegistry.create("serviceRegistry", Collections.<String>emptyList(), new ModelCreator<ServiceRegistry>() {
+            public ModelReference<ServiceRegistry> getReference() {
+                return ModelReference.of(new ModelPath("serviceRegistry"), ModelType.of(ServiceRegistry.class));
+            }
+
+            public ServiceRegistry create(Inputs inputs) {
+                return services;
+            }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleSourceDescriptor("Project.<init>.serviceRegistry()");
+            }
+        });
+
+        modelRegistry.create("buildDir", Collections.<String>emptyList(), new ModelCreator<File>() {
+            public ModelReference<File> getReference() {
+                return ModelReference.of(new ModelPath("buildDir"), ModelType.of(File.class));
+            }
+
+            public File create(Inputs inputs) {
+                return getBuildDir();
+            }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleSourceDescriptor("Project.<init>.buildDir()");
+            }
+        });
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {

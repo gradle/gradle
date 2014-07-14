@@ -25,13 +25,11 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.ModelFinalizer;
+import org.gradle.model.Finalize;
 import org.gradle.model.ModelRules;
+import org.gradle.model.RuleSource;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
-import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
-import org.gradle.nativebinaries.internal.ProjectNativeExecutableFactory;
-import org.gradle.nativebinaries.internal.ProjectNativeLibraryFactory;
+import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
@@ -75,10 +73,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         project.getModelRegistry().create("repositories", Arrays.asList("flavors", "platforms", "buildTypes"), new RepositoriesFactory("repositories", instantiator, fileResolver));
 
-        modelRules.rule(new CreateDefaultPlatform());
-        modelRules.rule(new CreateDefaultBuildTypes());
-        modelRules.rule(new CreateDefaultFlavors());
-        modelRules.rule(new AddDefaultToolChainsIfRequired());
         modelRules.rule(new CreateNativeBinaries(instantiator, project, resolver));
 
         ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer.class);
@@ -101,11 +95,37 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         ));
     }
 
-    private static class AddDefaultToolChainsIfRequired extends ModelFinalizer {
-        @SuppressWarnings("UnusedDeclaration")
-        void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
+
+    /**
+     * Model rules.
+     */
+    @RuleSource
+    public static class Rules {
+        @Finalize
+        public void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
             if (toolChains.isEmpty()) {
                 toolChains.addDefaultToolChains();
+            }
+        }
+
+        @Finalize
+        public void createDefaultPlatforms(PlatformContainer platforms) {
+            if (platforms.isEmpty()) {
+                platforms.create("current");
+            }
+        }
+
+        @Finalize
+        public void createDefaultPlatforms(BuildTypeContainer buildTypes) {
+            if (buildTypes.isEmpty()) {
+                buildTypes.create("debug");
+            }
+        }
+
+        @Finalize
+        public void createDefaultFlavor(FlavorContainer flavors) {
+            if (flavors.isEmpty()) {
+                flavors.create(DefaultFlavor.DEFAULT);
             }
         }
     }

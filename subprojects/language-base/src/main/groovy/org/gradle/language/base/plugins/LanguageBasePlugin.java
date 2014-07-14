@@ -26,8 +26,9 @@ import org.gradle.language.base.internal.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
-import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.ProjectComponent;
@@ -74,7 +75,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 return binaries;
             }
         });
-        modelRules.rule(new AttachBinariesToLifecycle());
 
         binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>() {
             public void execute(ProjectBinaryInternal binary) {
@@ -120,9 +120,14 @@ public class LanguageBasePlugin implements Plugin<Project> {
         });
     }
 
-    private static class AttachBinariesToLifecycle extends ModelRule {
+    /**
+     * Model rules.
+     */
+    @RuleSource
+    static class Rules {
+        @Mutate
         @SuppressWarnings("UnusedDeclaration")
-        void attach(TaskContainer tasks, BinaryContainer binaries) {
+        void attachBinariesToLifecycle(TaskContainer tasks, BinaryContainer binaries) {
             Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
             for (ProjectBinary binary : binaries.withType(ProjectBinary.class)) {
                 if (binary.isBuildable()) {

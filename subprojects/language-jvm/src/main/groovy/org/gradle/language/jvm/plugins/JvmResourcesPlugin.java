@@ -25,35 +25,29 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.model.ModelRule;
-import org.gradle.model.ModelRules;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
-import javax.inject.Inject;
-
 /**
- * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
- * Registers "resources" language support with the {@link org.gradle.language.jvm.ResourceSet}.
+ * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
+ * org.gradle.language.jvm.ResourceSet}.
  */
 public class JvmResourcesPlugin implements Plugin<Project> {
-    private final ModelRules modelRules;
-
-    @Inject
-    public JvmResourcesPlugin(ModelRules modelRules) {
-        this.modelRules = modelRules;
-    }
 
     public void apply(final Project project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("resources", ResourceSet.class, DefaultResourceSet.class);
-
-        modelRules.rule(new CreateProcessResourcesTasks());
-
     }
 
-    private static class CreateProcessResourcesTasks extends ModelRule {
+    /**
+     * Model rules.
+     */
+    @RuleSource
+    static class CreateProcessResourcesTasks {
         @SuppressWarnings("UnusedDeclaration")
+        @Mutate
         void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
             // TODO:DAZ Make this apply to all types of ProjectJvmLibraryBinary
             for (ProjectJarBinaryInternal binary : binaries.withType(ProjectJarBinaryInternal.class)) {

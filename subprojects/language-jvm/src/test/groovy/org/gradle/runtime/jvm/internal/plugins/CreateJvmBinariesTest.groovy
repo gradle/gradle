@@ -15,6 +15,8 @@
  */
 
 package org.gradle.runtime.jvm.internal.plugins
+
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.NamedProjectComponentIdentifier
@@ -24,6 +26,7 @@ import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.runtime.jvm.ProjectJvmLibrary
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary
 import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary
+import org.gradle.runtime.jvm.plugins.JvmComponentPlugin
 import org.gradle.runtime.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
@@ -33,15 +36,20 @@ class CreateJvmBinariesTest extends Specification {
     def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChain)
-    def rule = new CreateJvmBinaries(namingSchemeBuilder, toolChain, buildDir)
+    def rule = new JvmComponentPlugin.Rules()
     def binaries = Mock(BinaryContainer)
+    def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
+        JavaToolChain createToolChain() {
+            toolChain
+        }
+    }).build()
 
     def "adds a binary for each jvm library"() {
         def library = new DefaultProjectJvmLibrary(componentId("jvmLibOne", ":project-path"))
         def namingScheme = Mock(BinaryNamingScheme)
 
         when:
-        rule.createBinaries(binaries, toNamedDomainObjectSet(ProjectJvmLibrary, library))
+        rule.createBinaries(binaries, namingSchemeBuilder, toNamedDomainObjectSet(ProjectJvmLibrary, library), buildDir, serviceRegistry)
 
         then:
         _ * namingScheme.description >> "jvmLibJar"
@@ -67,7 +75,7 @@ class CreateJvmBinariesTest extends Specification {
 
         when:
         library.source([source1, source2])
-        rule.createBinaries(binaries, toNamedDomainObjectSet(ProjectJvmLibrary, library))
+        rule.createBinaries(binaries, namingSchemeBuilder, toNamedDomainObjectSet(ProjectJvmLibrary, library), buildDir, serviceRegistry)
 
         then:
         _ * namingScheme.description >> "jvmLibJar"

@@ -21,12 +21,13 @@ import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.jvm.JvmBinaryTasks
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal
+import org.gradle.runtime.jvm.plugins.JvmComponentPlugin
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
 
 class CreateTasksForJarBinariesTest extends Specification {
-    def rule = new CreateTasksForJarBinaries()
+    def rule = new JvmComponentPlugin.Rules()
     def tasks = Mock(TaskContainer)
     def binaries = Mock(BinaryContainer)
 

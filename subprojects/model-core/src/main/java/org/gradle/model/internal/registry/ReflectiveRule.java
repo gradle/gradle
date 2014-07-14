@@ -25,7 +25,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRule;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
@@ -55,7 +54,7 @@ public abstract class ReflectiveRule {
         final Method bindingMethod = findBindingMethod(modelRule);
         bind(modelRegistry, bindingMethod, new Action<List<BindableParameter<?>>>() {
             public void execute(List<BindableParameter<?>> bindableParameters) {
-                registerMutator(modelRegistry, bindingMethod, bindableParameters, modelRule instanceof ModelFinalizer, Factories.constant(modelRule));
+                registerMutator(modelRegistry, bindingMethod, bindableParameters, false, Factories.constant(modelRule));
             }
         });
     }
@@ -68,7 +67,7 @@ public abstract class ReflectiveRule {
         });
     }
 
-    private static void bind(final ModelRegistry modelRegistry, final Method bindingMethod, final Action<? super List<BindableParameter<?>>> onBound) {
+    public static void bind(final ModelRegistry modelRegistry, final Method bindingMethod, final Action<? super List<BindableParameter<?>>> onBound) {
         final List<BindableParameter<?>> initialBindings = bindings(bindingMethod);
 
         boolean unsatisfied = CollectionUtils.any(initialBindings, new Spec<BindableParameter<?>>() {

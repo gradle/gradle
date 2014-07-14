@@ -19,7 +19,7 @@ package org.gradle.model.internal.core.rule;
 import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelType;
 
-public interface Inputs {
+public interface Inputs extends Iterable<ModelElement<?>> {
 
     <T> ModelElement<? extends T> get(int i, ModelType<T> type);
 

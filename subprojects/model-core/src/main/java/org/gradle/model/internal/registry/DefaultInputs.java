@@ -21,6 +21,8 @@ import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
 
+import java.util.Iterator;
+
 public class DefaultInputs implements Inputs {
 
     private final ImmutableList<ModelElement<?>> inputs;
@@ -31,11 +33,12 @@ public class DefaultInputs implements Inputs {
 
     public <T> ModelElement<? extends T> get(int i, ModelType<T> type) {
         ModelElement<?> input = inputs.get(i);
-        if (type.isAssignableFrom(input.getReference().getType())) {
+        ModelType<?> inputType = input.getReference().getType();
+        if (type.isAssignableFrom(inputType)) {
             @SuppressWarnings("unchecked") ModelElement<? extends T> cast = (ModelElement<? extends T>) input;
             return cast;
         } else {
-            throw new RuntimeException("Can't convert input '" + i + "' with type '" + input.getClass() + "' to type '" + type + "'");
+            throw new RuntimeException("Can't convert input '" + i + "' with type '" + inputType + "' to type '" + type + "'");
         }
     }
 
@@ -43,4 +46,7 @@ public class DefaultInputs implements Inputs {
         return inputs.size();
     }
 
+    public Iterator<ModelElement<?>> iterator() {
+        return inputs.iterator();
+    }
 }

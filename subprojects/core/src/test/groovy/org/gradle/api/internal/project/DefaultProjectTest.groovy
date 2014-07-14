@@ -160,6 +160,7 @@ class DefaultProjectTest {
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)
             allowing(serviceRegistryMock).get((Type)ModelRegistry); will(returnValue(modelRegistry))
+            allowing(serviceRegistryMock).get(ModelRegistry); will(returnValue(modelRegistry))
             allowing(serviceRegistryMock).get(ModelRules); will(returnValue(new ModelRegistryBackedModelRules(modelRegistry)))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)

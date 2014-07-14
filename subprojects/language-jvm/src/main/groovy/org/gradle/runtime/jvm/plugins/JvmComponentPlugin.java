@@ -15,35 +15,53 @@
  */
 package org.gradle.runtime.jvm.plugins;
 
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.*;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.ModelRules;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.rule.Inputs;
+import org.gradle.model.internal.core.rule.ModelCreator;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 import org.gradle.runtime.base.ProjectComponentContainer;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
+import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary;
-import org.gradle.runtime.jvm.internal.plugins.CreateJvmBinaries;
-import org.gradle.runtime.jvm.internal.plugins.CreateTasksForJarBinaries;
+import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.Collections;
 
 /**
- * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
- * Registers the {@link org.gradle.runtime.jvm.ProjectJvmLibrary} library type for the {@link org.gradle.runtime.base.ProjectComponentContainer}.
+ * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.runtime.jvm.ProjectJvmLibrary} library type for
+ * the {@link org.gradle.runtime.base.ProjectComponentContainer}.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
-    private final ModelRules modelRules;
-    private final JavaToolChain toolChain;
+    private final ModelRegistry modelRegistry;
 
     @Inject
-    public JvmComponentPlugin(ModelRules modelRules, JavaToolChain toolChain) {
-        this.modelRules = modelRules;
-        this.toolChain = toolChain;
+    public JvmComponentPlugin(ModelRegistry modelRegistry) {
+        this.modelRegistry = modelRegistry;
     }
 
     public void apply(final Project project) {
@@ -57,12 +75,84 @@ public class JvmComponentPlugin implements Plugin<Project> {
             }
         });
 
-        NamedDomainObjectContainer<ProjectJvmLibrary> jvmLibraries = projectComponents.containerWithType(ProjectJvmLibrary.class);
+        final NamedDomainObjectContainer<ProjectJvmLibrary> jvmLibraries = projectComponents.containerWithType(ProjectJvmLibrary.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
 
-        modelRules.register("jvm.libraries", jvmLibraries);
+        modelRegistry.create("jvm.libraries", Collections.<String>emptyList(), new ModelCreator<NamedDomainObjectCollection<ProjectJvmLibrary>>() {
+            public ModelReference<NamedDomainObjectCollection<ProjectJvmLibrary>> getReference() {
+                return ModelReference.of(new ModelPath("jvm.libraries"), ModelType.of(new TypeToken<NamedDomainObjectCollection<ProjectJvmLibrary>>() {
+                }));
+            }
 
-        modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder(), toolChain, project.getBuildDir()));
-        modelRules.rule(new CreateTasksForJarBinaries());
+            public NamedDomainObjectCollection<ProjectJvmLibrary> create(Inputs inputs) {
+                return jvmLibraries;
+            }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleSourceDescriptor(JvmComponentPlugin.class.getName() + ".apply");
+            }
+        });
+    }
+
+    /**
+     * Model rules.
+     */
+    @RuleSource
+    public static class Rules {
+
+        @Model
+        BinaryNamingSchemeBuilder binaryNamingSchemeBuilder() {
+            return new DefaultBinaryNamingSchemeBuilder();
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        @Mutate
+        public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<ProjectJvmLibrary> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
+            JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
+            for (ProjectJvmLibrary jvmLibrary : libraries) {
+                BinaryNamingScheme namingScheme = namingSchemeBuilder
+                        .withComponentName(jvmLibrary.getName())
+                        .withTypeString("jar")
+                        .build();
+                ProjectJarBinaryInternal jarBinary = new DefaultProjectJarBinary(jvmLibrary, namingScheme, toolChain);
+                jarBinary.source(jvmLibrary.getSource());
+                configureBinaryOutputLocations(jarBinary, buildDir);
+                jvmLibrary.getBinaries().add(jarBinary);
+                binaries.add(jarBinary);
+            }
+        }
+
+        private void configureBinaryOutputLocations(ProjectJarBinaryInternal jarBinary, File buildDir) {
+            File binariesDir = new File(buildDir, "jars");
+            File classesDir = new File(buildDir, "classes");
+
+            String outputBaseName = jarBinary.getNamingScheme().getOutputDirectoryBase();
+            File outputDir = new File(classesDir, outputBaseName);
+            jarBinary.setClassesDir(outputDir);
+            jarBinary.setResourcesDir(outputDir);
+            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName())));
+        }
+
+
+        @Mutate
+        public void createTasks(TaskContainer tasks, BinaryContainer binaries) {
+            for (ProjectJarBinaryInternal projectJarBinary : binaries.withType(ProjectJarBinaryInternal.class)) {
+                Task jarTask = createJarTask(tasks, projectJarBinary);
+                projectJarBinary.builtBy(jarTask);
+                projectJarBinary.getTasks().add(jarTask);
+            }
+        }
+
+        private Task createJarTask(TaskContainer tasks, ProjectJarBinaryInternal binary) {
+            Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
+            jar.setDescription(String.format("Creates the binary file for %s.", binary.getNamingScheme().getDescription()));
+            jar.from(binary.getClassesDir());
+            jar.from(binary.getResourcesDir());
+
+            jar.setDestinationDir(binary.getJarFile().getParentFile());
+            jar.setArchiveName(binary.getJarFile().getName());
+
+            return jar;
+        }
     }
 }

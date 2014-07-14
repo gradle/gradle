@@ -63,4 +63,8 @@ public class ModelReference<T> {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "ModelReference{path=" + path + ", type=" + type + '}';
+    }
 }

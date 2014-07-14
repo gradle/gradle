@@ -18,11 +18,12 @@ package org.gradle.nativebinaries.internal.configure
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
+import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import spock.lang.Specification
 
 class CreateDefaultFlavorsTest extends Specification {
     def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
-    def rule = new CreateDefaultFlavors()
+    def rule = new NativeComponentModelPlugin.Rules()
 
     def "has a single default flavor when not configured"() {
         when:

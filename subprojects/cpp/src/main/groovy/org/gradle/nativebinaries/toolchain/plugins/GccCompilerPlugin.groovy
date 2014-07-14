@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.toolchain.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.model.ModelRule
-import org.gradle.model.ModelRules
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.model.Mutate
+import org.gradle.model.RuleSource
 import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
@@ -29,6 +31,7 @@ import org.gradle.nativebinaries.toolchain.internal.gcc.GccToolChain
 import org.gradle.process.internal.ExecActionFactory
 
 import javax.inject.Inject
+
 /**
  * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU GCC/G++ compiler</a> available for compiling C/C++ code.
  */
@@ -37,27 +40,31 @@ class GccCompilerPlugin implements Plugin<Project> {
     private final FileResolver fileResolver
     private final ExecActionFactory execActionFactory
     private final Instantiator instantiator
-    private final ModelRules modelRules;
 
     @Inject
-    GccCompilerPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, ModelRules modelRules, Instantiator instantiator) {
+    GccCompilerPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
         this.execActionFactory = execActionFactory
         this.fileResolver = fileResolver
-        this.modelRules = modelRules
         this.instantiator = instantiator
     }
 
     void apply(Project project) {
         project.plugins.apply(NativeComponentModelPlugin);
+    }
 
-        modelRules.rule(new ModelRule() {
-            void addGccToolChain(ToolChainRegistryInternal toolChainRegistry) {
-                toolChainRegistry.registerFactory(Gcc, { String name ->
-                    return instantiator.newInstance(GccToolChain, instantiator, name, OperatingSystem.current(), fileResolver, execActionFactory)
-                })
-                toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc)
-            }
-        })
+    @RuleSource
+    static class Rules {
+        @Mutate
+        static void addGccToolChain(ToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
+            def fileResolver = serviceRegistry.get(FileResolver)
+            def execActionFactory = serviceRegistry.get(ExecActionFactory)
+            def instantiator = serviceRegistry.get(Instantiator)
+
+            toolChainRegistry.registerFactory(Gcc, { String name ->
+                return instantiator.newInstance(GccToolChain, instantiator, name, OperatingSystem.current(), fileResolver, execActionFactory)
+            })
+            toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc)
+        }
     }
 
 }

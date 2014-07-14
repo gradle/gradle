@@ -22,51 +22,39 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
-import org.gradle.model.ModelRule;
-import org.gradle.model.ModelRules;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
-import javax.inject.Inject;
-import java.io.File;
-
 /**
- * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
- * Registers "java" language support with the {@link JavaSourceSet}.
+ * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
+ * language support with the {@link JavaSourceSet}.
  */
 public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
-    private final ModelRules modelRules;
-
-    @Inject
-    public JavaLanguagePlugin(ModelRules modelRules) {
-        this.modelRules = modelRules;
-    }
 
     public void apply(ProjectInternal project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getPlugins().apply(JvmResourcesPlugin.class);
-
         project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("java", JavaSourceSet.class, DefaultJavaSourceSet.class);
-
-        File depCacheDir = project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve("jvm-dep-cache");
-        modelRules.rule(new CreateJavaCompileTasks(depCacheDir));
     }
 
-    private class CreateJavaCompileTasks extends ModelRule {
-        private final File depCacheDir;
-
-        public CreateJavaCompileTasks(File depCacheDir) {
-            this.depCacheDir = depCacheDir;
-        }
-
+    /**
+     * Model rules.
+     */
+    @RuleSource
+    static class Rules {
+        @Mutate
         @SuppressWarnings("UnusedDeclaration")
-        void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
+        void createTasks(final TaskContainer tasks, BinaryContainer binaries, ServiceRegistry serviceRegistry) {
+            FileLookup fileLookup = serviceRegistry.get(FileLookup.class);
             for (ProjectJarBinaryInternal binary : binaries.withType(ProjectJarBinaryInternal.class)) {
                 for (JavaSourceSet javaSourceSet : binary.getSource().withType(JavaSourceSet.class)) {
 
@@ -80,7 +68,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
                     compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
                     compile.setSourceCompatibility(JavaVersion.current().toString());
                     compile.setTargetCompatibility(JavaVersion.current().toString());
-                    compile.setDependencyCacheDir(depCacheDir);
+                    compile.setDependencyCacheDir(fileLookup.getFileResolver(compile.getProject().getBuildDir()).resolve("jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
 
                     binary.getTasks().add(compile);

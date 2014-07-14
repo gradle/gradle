@@ -31,8 +31,7 @@ import org.gradle.api.Incubating;
  * modify these objects. Rules are ordered so that the input to a rule is completely configured before the rule is invoked.
  *
  * <p>The ordering of rules with the same target object is currently undefined and rules are executed in some arbitrary but
- * fixed order. There is some basic support for controlling the ordering, where all rules that extend {@link ModelFinalizer}
- * are executed after all rules that extend {@link ModelRule}.
+ * fixed order.
  */
 @Incubating
 public abstract class ModelRule {

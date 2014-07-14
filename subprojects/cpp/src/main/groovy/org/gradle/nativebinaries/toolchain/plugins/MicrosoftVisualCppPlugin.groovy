@@ -15,16 +15,17 @@
  */
 
 
-
 package org.gradle.nativebinaries.toolchain.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.model.ModelRule
-import org.gradle.model.ModelRules
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.model.Mutate
+import org.gradle.model.RuleSource
 import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
@@ -33,42 +34,32 @@ import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.WindowsSdkLocator
 import org.gradle.process.internal.ExecActionFactory
 
-import javax.inject.Inject
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
 @Incubating
 class MicrosoftVisualCppPlugin implements Plugin<Project> {
-    private final FileResolver fileResolver;
-    private final ExecActionFactory execActionFactory
-    private final Instantiator instantiator
-    private final ModelRules modelRules
-    private final OperatingSystem operatingSystem
-    private final VisualStudioLocator visualStudioLocator
-    private final WindowsSdkLocator windowsSdkLocator
-
-    @Inject
-    MicrosoftVisualCppPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, ModelRules modelRules, Instantiator instantiator, OperatingSystem operatingSystem,
-                             VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
-        this.windowsSdkLocator = windowsSdkLocator
-        this.visualStudioLocator = visualStudioLocator
-        this.operatingSystem = operatingSystem
-        this.execActionFactory = execActionFactory
-        this.fileResolver = fileResolver
-        this.instantiator = instantiator
-        this.modelRules = modelRules
-    }
 
     void apply(Project project) {
         project.plugins.apply(NativeComponentModelPlugin);
-
-        modelRules.rule(new ModelRule() {
-            void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
-                toolChainRegistry.registerFactory(VisualCpp, { String name ->
-                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
-                })
-                toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
-            }
-        })
     }
+
+    @RuleSource
+    static class Rules {
+        @Mutate
+        static void addGccToolChain(ToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
+            def fileResolver = serviceRegistry.get(FileResolver)
+            def execActionFactory = serviceRegistry.get(ExecActionFactory)
+            def instantiator = serviceRegistry.get(Instantiator)
+            def operatingSystem = serviceRegistry.get(OperatingSystem)
+            def visualStudioLocator = serviceRegistry.get(VisualStudioLocator)
+            def windowsSdkLocator = serviceRegistry.get(WindowsSdkLocator)
+
+            toolChainRegistry.registerFactory(VisualCpp, { String name ->
+                return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+            })
+            toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
+        }
+    }
+
 }

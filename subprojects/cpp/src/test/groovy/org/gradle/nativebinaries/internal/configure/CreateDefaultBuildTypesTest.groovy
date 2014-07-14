@@ -17,11 +17,12 @@
 package org.gradle.nativebinaries.internal.configure
 
 import org.gradle.nativebinaries.BuildTypeContainer
+import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import spock.lang.Specification
 
 class CreateDefaultBuildTypesTest extends Specification {
     def buildTypes = Mock(BuildTypeContainer)
-    def rule = new CreateDefaultBuildTypes()
+    def rule = new NativeComponentModelPlugin.Rules()
 
     def "adds a default build type when none configured"() {
         when:
