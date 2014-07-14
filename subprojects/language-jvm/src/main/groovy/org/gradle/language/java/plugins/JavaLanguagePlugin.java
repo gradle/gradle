@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -43,7 +44,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getPlugins().apply(JvmResourcesPlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("java", JavaSourceSet.class, DefaultJavaSourceSet.class);
+        project.getExtensions().getByType(LanguageRegistry.class).add(new Java());
     }
 
     /**
@@ -75,6 +76,20 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
                     binary.getTasks().getJar().dependsOn(compile);
                 }
             }
+        }
+    }
+
+    private static class Java implements LanguageRegistration<JavaSourceSet> {
+        public String getName() {
+            return "java";
+        }
+
+        public Class<JavaSourceSet> getSourceSetType() {
+            return JavaSourceSet.class;
+        }
+
+        public Class<? extends JavaSourceSet> getSourceSetImplementation() {
+            return DefaultJavaSourceSet.class;
         }
     }
 }

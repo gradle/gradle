@@ -14,27 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
-
-
-import org.gradle.language.base.LanguageSourceSet;
-
 /**
- * A registered language.
+ * Plugins for building from Objective-C language sources.
  */
-public interface LanguageRegistration<U extends LanguageSourceSet> {
-    /**
-     * The name.
-     */
-    String getName();
-
-    /**
-     * The interface type of the language source set.
-     */
-    Class<U> getSourceSetType();
-
-    /**
-     * The implementation type of the language source set.
-     */
-    Class<? extends U> getSourceSetImplementation();
-}
+package org.gradle.language.objectivec.plugins;

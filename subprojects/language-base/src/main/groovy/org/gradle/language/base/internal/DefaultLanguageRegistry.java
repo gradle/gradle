@@ -16,18 +16,10 @@
 
 package org.gradle.language.base.internal;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.language.base.LanguageSourceSet;
 
-public class DefaultLanguageRegistry implements LanguageRegistry {
-    private final DomainObjectSet<LanguageRegistration> languages = new DefaultDomainObjectSet<LanguageRegistration>(LanguageRegistration.class);
-    public <U extends LanguageSourceSet, V extends U> void registerLanguage(String name, Class<U> sourceType, Class<V> sourceImplementation) {
-        LanguageRegistration<U, V> registration = new DefaultLanguageRegistration<U, V>(name, sourceType, sourceImplementation);
-        languages.add(registration);
-    }
-
-    public DomainObjectSet<LanguageRegistration> getLanguages() {
-        return languages;
+public class DefaultLanguageRegistry extends DefaultDomainObjectSet<LanguageRegistration> implements LanguageRegistry {
+    public DefaultLanguageRegistry() {
+        super(LanguageRegistration.class);
     }
 }

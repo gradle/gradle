@@ -17,20 +17,10 @@
 package org.gradle.language.base.internal;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A registry of domains.
  * TODO:DAZ This should be done by inspecting the plugin, rather than having the plugin register explicitly.
  */
-public interface LanguageRegistry {
-    /**
-     * Register a supported language.
-     */
-    <U extends LanguageSourceSet, V extends U>  void registerLanguage(String name, Class<U> sourceType, Class<V> sourceImplementation);
-
-    /**
-     * Get the registered languages.
-     */
-    DomainObjectSet<LanguageRegistration> getLanguages();
+public interface LanguageRegistry extends DomainObjectSet<LanguageRegistration> {
 }

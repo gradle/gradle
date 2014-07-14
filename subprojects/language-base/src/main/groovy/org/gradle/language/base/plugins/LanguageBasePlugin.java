@@ -63,7 +63,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
-        LanguageRegistry domainRegistry = target.getExtensions().create("languages", DefaultLanguageRegistry.class);
+        LanguageRegistry languageRegistry = target.getExtensions().create("languages", DefaultLanguageRegistry.class);
 
         // TODO:DAZ Rename to 'components' and merge with Project.components
         ProjectComponentContainer components = target.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
@@ -85,12 +85,11 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         });
         createProjectSourceSetForEachComponent(sources, components);
-        createLanguageSourceSets(target, domainRegistry, sources);
+        createLanguageSourceSets(target, languageRegistry, sources);
     }
 
-    private void createLanguageSourceSets(final Project project, final LanguageRegistry domainRegistry, final ProjectSourceSet sources) {
-        DomainObjectSet<LanguageRegistration> languages = domainRegistry.getLanguages();
-        languages.all(new Action<LanguageRegistration>() {
+    private void createLanguageSourceSets(final Project project, final LanguageRegistry languageRegistry, final ProjectSourceSet sources) {
+        languageRegistry.all(new Action<LanguageRegistration>() {
             public void execute(final LanguageRegistration languageRegistration) {
                 sources.all(new Action<FunctionalSourceSet>() {
                     public void execute(final FunctionalSourceSet functionalSourceSet) {

@@ -19,6 +19,7 @@ package org.gradle.language.jvm.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -38,7 +39,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("resources", ResourceSet.class, DefaultResourceSet.class);
+        project.getExtensions().getByType(LanguageRegistry.class).add(new JvmResources());
     }
 
     /**
@@ -64,4 +65,19 @@ public class JvmResourcesPlugin implements Plugin<Project> {
             }
         }
     }
+
+    private static class JvmResources implements LanguageRegistration<ResourceSet> {
+        public String getName() {
+            return "resources";
+        }
+
+        public Class<ResourceSet> getSourceSetType() {
+            return ResourceSet.class;
+        }
+
+        public Class<? extends ResourceSet> getSourceSetImplementation() {
+            return DefaultResourceSet.class;
+        }
+    }
+
 }
