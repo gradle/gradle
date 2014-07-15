@@ -24,6 +24,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             import org.gradle.model.*
+            import org.gradle.model.internal.core.*
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
@@ -48,7 +49,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             // internal API here
             task value {
-                doFirst { println "value: " + modelRegistry.get("strings", List) }
+                doFirst { println "value: " + modelRegistry.get(ModelReference.of("strings", List)) }
             }
         """
 
@@ -170,6 +171,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             import org.gradle.model.*
+            import org.gradle.model.internal.core.*
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
@@ -196,7 +198,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: MyPlugin
 
             // reaching into internals
-            assert modelRegistry.get("string", String) == "foo"
+            assert modelRegistry.get(ModelReference.of("string", String)) == "foo"
 
             apply plugin: MyOtherPlugin
         """
@@ -213,6 +215,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             import org.gradle.model.*
+            import org.gradle.model.internal.core.*
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
@@ -227,7 +230,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             apply plugin: MyPlugin
 
-            assert modelRegistry.get("string", String) == "foo"
+            assert modelRegistry.get(ModelReference.of("string", String)) == "foo"
         """
 
         then:
@@ -242,6 +245,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             import org.gradle.model.*
+            import org.gradle.model.internal.core.*
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
@@ -262,7 +266,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            modelRegistry.get("string", String)
+            modelRegistry.get(ModelReference.of("string", String))
         """
 
         then:
@@ -277,6 +281,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             import org.gradle.model.*
+            import org.gradle.model.internal.core.*
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
@@ -293,7 +298,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             apply plugin: MyPlugin
 
-            modelRegistry.get("string", String)
+            modelRegistry.get(ModelReference.of("string", String))
 
         """
 
@@ -308,6 +313,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             import org.gradle.model.*
+            import org.gradle.model.internal.core.*
 
             class MyBasePlugin implements Plugin<Project> {
                 void apply(Project project) {
@@ -340,7 +346,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             // internal API here
             task value {
-                doFirst { println "value: " + modelRegistry.get("strings", List) }
+                doFirst { println "value: " + modelRegistry.get(ModelReference.of("strings", List)) }
             }
         """
 
