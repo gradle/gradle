@@ -282,6 +282,10 @@ The `integrationTest` source set would not be created because there is already a
 As of Gradle 2.1 the above script will not fail because it is interpreted that the intent is to create a new source set named `integrationTest`.
 This applies to all named domain object containers in Gradle.
  
+### ModelRule, ModelFinalizer, ModelRules removed
+
+TODO - replacement (@RuleSource) detail
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

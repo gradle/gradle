@@ -59,7 +59,6 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
@@ -140,8 +139,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
-    private final ModelRules modelRules;
-
     private String description;
 
     private final Path path;
@@ -176,9 +173,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.newInstance(TaskContainerInternal.class);
-        modelRules = services.get(ModelRules.class);
 
-        ModelRegistry modelRegistry = services.get(ModelRegistry.class);
+        final ModelRegistry modelRegistry = services.get(ModelRegistry.class);
 
         modelRegistry.create("serviceRegistry", Collections.<String>emptyList(), new ModelCreator<ServiceRegistry>() {
             public ModelReference<ServiceRegistry> getReference() {
@@ -208,6 +204,20 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             }
         });
 
+        modelRegistry.create("projectIdentifier", Collections.<String>emptyList(), new ModelCreator<ProjectIdentifier>() {
+            public ModelReference<ProjectIdentifier> getReference() {
+                return ModelReference.of(new ModelPath("projectIdentifier"), ModelType.of(ProjectIdentifier.class));
+            }
+
+            public ProjectIdentifier create(Inputs inputs) {
+                return AbstractProject.this;
+            }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleSourceDescriptor("Project.<init>.projectIdentifier()");
+            }
+        });
+
         modelRegistry.create("extensions", Collections.<String>emptyList(), new ModelCreator<ExtensionContainer>() {
             public ModelReference<ExtensionContainer> getReference() {
                 return ModelReference.of(new ModelPath("extensions"), ModelType.of(ExtensionContainer.class));
@@ -222,6 +232,49 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             }
         });
 
+        final ModelPath tasksModelPath = ModelPath.path(TaskContainerInternal.MODEL_PATH);
+
+        modelRegistry.create(tasksModelPath.toString(), Collections.<String>emptyList(), new ModelCreator<TaskContainerInternal>() {
+            public ModelReference<TaskContainerInternal> getReference() {
+                return ModelReference.of(tasksModelPath, ModelType.of(TaskContainerInternal.class));
+            }
+
+            public TaskContainerInternal create(Inputs inputs) {
+                return getTasks();
+            }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleSourceDescriptor("Project.<init>.tasks()");
+            }
+        });
+
+        taskContainer.all(new Action<Task>() {
+            public void execute(final Task task) {
+                final String name = task.getName();
+                final ModelPath modelPath = tasksModelPath.child(name);
+                modelRegistry.create(modelPath.toString(), Collections.<String>emptyList(), new ModelCreator<Task>() {
+                    public ModelReference<Task> getReference() {
+                        return ModelReference.of(modelPath, ModelType.of(Task.class));
+                    }
+
+                    public Task create(Inputs inputs) {
+                        return task;
+                    }
+
+                    public ModelRuleSourceDescriptor getSourceDescriptor() {
+                        return new SimpleModelRuleSourceDescriptor("Project.<init>.tasks." + name + "()");
+                    }
+                });
+
+            }
+        });
+
+        taskContainer.whenObjectRemoved(new Action<Task>() {
+            public void execute(Task task) {
+                modelRegistry.remove(tasksModelPath.child(task.getName()).toString());
+            }
+        });
+
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
             extensibleDynamicObject.setParent(parent.getInheritedScope());
@@ -229,20 +282,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
-
-        final ModelPath tasksModelPath = ModelPath.path(TaskContainerInternal.MODEL_PATH);
-        modelRules.register(tasksModelPath.toString(), taskContainer);
-        taskContainer.all(new Action<Task>() {
-            public void execute(Task task) {
-                String name = task.getName();
-                modelRules.register(tasksModelPath.child(name).toString(), Task.class, new TaskFactory(taskContainer, name));
-            }
-        });
-        taskContainer.whenObjectRemoved(new Action<Task>() {
-            public void execute(Task task) {
-                modelRules.remove(tasksModelPath.child(task.getName()).toString());
-            }
-        });
     }
 
     private static class TaskFactory implements Factory<Task> {
@@ -963,7 +1002,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     // This is here temporarily as a quick way to expose it in the build script
     // Longer term it will not be available via Project, but be only available in a build script
     public void model(Closure action) {
-        new GroovyModelDsl(modelRules, getModelRegistry()).configure(action);
+        new GroovyModelDsl(getModelRegistry()).configure(action);
     }
 
 }

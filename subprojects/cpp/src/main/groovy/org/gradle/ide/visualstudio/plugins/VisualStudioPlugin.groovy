@@ -20,6 +20,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Task
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskContainer
@@ -35,7 +36,6 @@ import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.Model
-import org.gradle.model.ModelRules
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 import org.gradle.nativebinaries.ProjectNativeBinary
@@ -49,21 +49,18 @@ import javax.inject.Inject
 @Incubating
 class VisualStudioPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator
-    private final ModelRules modelRules
     private final ProjectLocator projectLocator
     private final FileResolver fileResolver
 
     @Inject
-    VisualStudioPlugin(Instantiator instantiator, ModelRules modelRules, ProjectLocator projectLocator, FileResolver fileResolver) {
+    VisualStudioPlugin(Instantiator instantiator, ProjectLocator projectLocator, FileResolver fileResolver) {
         this.instantiator = instantiator
-        this.modelRules = modelRules
         this.projectLocator = projectLocator
         this.fileResolver = fileResolver
     }
 
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeComponentModelPlugin)
-        modelRules.config("visualStudio", new IncludeBuildFileInProject(project))
     }
 
     @RuleSource
@@ -76,6 +73,15 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
             def fileResolver = serviceRegistry.get(FileResolver)
 
             return instantiator.newInstance(DefaultVisualStudioExtension, instantiator, projectLocator, fileResolver)
+        }
+
+        @Mutate
+        static void includeBuildFileInProject(DefaultVisualStudioExtension visualStudio, ProjectIdentifier projectIdentifier) {
+            visualStudio.projects.each {
+                if (projectIdentifier.buildFile != null) {
+                    ((DefaultVisualStudioProject) it).addSourceFile(projectIdentifier.buildFile)
+                }
+            }
         }
 
         @Mutate

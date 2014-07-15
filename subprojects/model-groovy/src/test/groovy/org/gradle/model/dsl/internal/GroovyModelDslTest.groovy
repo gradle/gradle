@@ -16,20 +16,45 @@
 
 package org.gradle.model.dsl.internal
 
-import org.gradle.model.internal.registry.DefaultModelRegistry
-import org.gradle.model.internal.registry.ModelRegistryBackedModelRules
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.core.rule.Inputs
+import org.gradle.model.internal.core.rule.ModelCreator
 import org.gradle.model.internal.core.rule.ModelRuleExecutionException
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
+import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
 class GroovyModelDslTest extends Specification {
 
     def modelRegistry = new DefaultModelRegistry()
-    def modelRules = new ModelRegistryBackedModelRules(modelRegistry)
-    def modelDsl = new GroovyModelDsl(modelRules, getModelRegistry())
+    def modelDsl = new GroovyModelDsl(getModelRegistry())
+
+    void register(String path, Object element) {
+        def reference = new ModelReference(new ModelPath(path), ModelType.of(element.class))
+        modelRegistry.create(path, [], new ModelCreator() {
+            @Override
+            ModelReference getReference() {
+                reference
+            }
+
+            @Override
+            Object create(Inputs inputs) {
+                return element
+            }
+
+            @Override
+            ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleSourceDescriptor("register")
+            }
+        })
+    }
 
     def "can add rules via dsl"() {
         given:
-        modelRules.register("foo", [])
+        register("foo", [])
 
         when:
         modelDsl.configure {
@@ -44,7 +69,7 @@ class GroovyModelDslTest extends Specification {
 
     def "can use property accessors in DSL to build model object path"() {
         given:
-        modelRules.register("foo.bar", [])
+        register("foo.bar", [])
 
         when:
         modelDsl.configure {
@@ -59,8 +84,8 @@ class GroovyModelDslTest extends Specification {
 
     def "does not add rules when not configuring"() {
         given:
-        modelRules.register("foo", new TestObject())
-        modelRules.register("bah", new TestObject())
+        register("foo", new TestObject())
+        register("bah", new TestObject())
 
         when:
         modelDsl.configure {
@@ -82,7 +107,7 @@ class GroovyModelDslTest extends Specification {
         modelDsl.configure {
             bah {
                 defineSomeThing {
-                    unknown { }
+                    unknown {}
                 }
             }
         }

@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.test.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.runtime.base.BinaryContainer
-import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
@@ -27,6 +26,7 @@ import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary
 import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer
 import org.gradle.nativebinaries.test.tasks.RunTestExecutable
+import org.gradle.runtime.base.BinaryContainer
 
 import javax.inject.Inject
 
@@ -37,13 +37,11 @@ import javax.inject.Inject
 public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator
-    private final ModelRules modelRules
     private final NativeDependencyResolver resolver
 
     @Inject
-    public NativeBinariesTestPlugin(Instantiator instantiator, ModelRules modelRules, NativeDependencyResolver resolver) {
+    public NativeBinariesTestPlugin(Instantiator instantiator, NativeDependencyResolver resolver) {
         this.instantiator = instantiator
-        this.modelRules = modelRules
         this.resolver = resolver
     }
 

@@ -16,11 +16,12 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.model.ModelRules;
+import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
@@ -33,9 +34,8 @@ import javax.inject.Inject;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.runtime.base.ProjectComponentContainer} named {@code projectComponents} to the project.
- * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
- * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
+ * Adds a {@link org.gradle.runtime.base.ProjectComponentContainer} named {@code projectComponents} to the project. Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the
+ * project. Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
@@ -43,21 +43,17 @@ import javax.inject.Inject;
 public class LanguageBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
-    private final ModelRules modelRules;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRules modelRules) {
+    public LanguageBasePlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.modelRules = modelRules;
     }
 
     public void apply(final Project target) {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
         ProjectSourceSet sources = target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
-        modelRules.register("sources", sources);
         final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
-        modelRules.register("binaries", binaries);
 
         // TODO:DAZ Make this a rule: will break integration with legacy plugins
         binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>() {
@@ -75,6 +71,17 @@ public class LanguageBasePlugin implements Plugin<Project> {
      */
     @RuleSource
     static class Rules {
+
+        @Model
+        ProjectSourceSet sources(ExtensionContainer extensions) {
+            return extensions.getByType(ProjectSourceSet.class);
+        }
+
+        @Model
+        BinaryContainer binaries(ExtensionContainer extensions) {
+            return extensions.getByType(BinaryContainer.class);
+        }
+
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
         void attachBinariesToLifecycle(TaskContainer tasks, BinaryContainer binaries) {

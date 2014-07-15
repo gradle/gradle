@@ -48,9 +48,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.model.ModelRules
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.model.internal.registry.ModelRegistryBackedModelRules
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil
@@ -137,31 +135,30 @@ class DefaultProjectTest {
             allowing(taskContainerMock).getTasksAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(taskContainerMock).all(withParam(notNullValue()))
             allowing(taskContainerMock).whenObjectRemoved(withParam(notNullValue()))
-            allowing(serviceRegistryMock).get((Type)RepositoryHandler); will(returnValue(repositoryHandlerMock))
+            allowing(serviceRegistryMock).get((Type) RepositoryHandler); will(returnValue(repositoryHandlerMock))
             allowing(serviceRegistryMock).get(ConfigurationContainerInternal); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
-            allowing(serviceRegistryMock).get((Type)ComponentMetadataHandler); will(returnValue(moduleHandlerMock))
-            allowing(serviceRegistryMock).get((Type)SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
+            allowing(serviceRegistryMock).get((Type) ComponentMetadataHandler); will(returnValue(moduleHandlerMock))
+            allowing(serviceRegistryMock).get((Type) SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))
-            allowing(serviceRegistryMock).get((Type)PluginContainer); will(returnValue(pluginContainerMock))
-            allowing(serviceRegistryMock).get((Type)ScriptHandler); will(returnValue(scriptHandlerMock))
-            allowing(serviceRegistryMock).get((Type)LoggingManagerInternal); will(returnValue(loggingManagerMock))
+            allowing(serviceRegistryMock).get((Type) PluginContainer); will(returnValue(pluginContainerMock))
+            allowing(serviceRegistryMock).get((Type) ScriptHandler); will(returnValue(scriptHandlerMock))
+            allowing(serviceRegistryMock).get((Type) LoggingManagerInternal); will(returnValue(loggingManagerMock))
             allowing(serviceRegistryMock).get(projectRegistryType); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
-            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: {-> "file resolver" }] as FileResolver))
+            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))
-            allowing(serviceRegistryMock).get((Type)FileOperations); will(returnValue(fileOperationsMock))
-            allowing(serviceRegistryMock).get((Type)ProcessOperations); will(returnValue(processOperationsMock))
-            allowing(serviceRegistryMock).get((Type)ScriptPluginFactory); will(returnValue([toString: {-> "script plugin factory" }] as ScriptPluginFactory))
-            allowing(serviceRegistryMock).get((Type)ScriptHandlerFactory); will(returnValue([toString: {-> "script plugin factory" }] as ScriptHandlerFactory))
-            allowing(serviceRegistryMock).get((Type)ProjectConfigurationActionContainer); will(returnValue(configureActions))
+            allowing(serviceRegistryMock).get((Type) FileOperations); will(returnValue(fileOperationsMock))
+            allowing(serviceRegistryMock).get((Type) ProcessOperations); will(returnValue(processOperationsMock))
+            allowing(serviceRegistryMock).get((Type) ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
+            allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)
-            allowing(serviceRegistryMock).get((Type)ModelRegistry); will(returnValue(modelRegistry))
+            allowing(serviceRegistryMock).get((Type) ModelRegistry); will(returnValue(modelRegistry))
             allowing(serviceRegistryMock).get(ModelRegistry); will(returnValue(modelRegistry))
-            allowing(serviceRegistryMock).get(ModelRules); will(returnValue(new ModelRegistryBackedModelRules(modelRegistry)))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();
@@ -397,8 +394,8 @@ class DefaultProjectTest {
 
     @Test
     void testAddAndGetChildProject() {
-        ProjectInternal child1 = ['getName': {-> 'child1' }] as ProjectInternal
-        ProjectInternal child2 = ['getName': {-> 'child2' }] as ProjectInternal
+        ProjectInternal child1 = ['getName': { -> 'child1' }] as ProjectInternal
+        ProjectInternal child2 = ['getName': { -> 'child2' }] as ProjectInternal
 
         project.addChildProject(child1)
         assertEquals(2, project.childProjects.size())

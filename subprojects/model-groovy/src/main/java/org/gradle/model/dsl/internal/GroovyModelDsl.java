@@ -21,10 +21,10 @@ import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.ModelDsl;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
 import org.gradle.model.internal.core.rule.ModelMutator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
@@ -36,24 +36,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
     private final ModelPath modelPath;
-    private final ModelRules modelRules;
     private final ModelRegistry modelRegistry;
     private AtomicBoolean executingDsl;
 
-    public GroovyModelDsl(ModelRules modelRules, ModelRegistry modelRegistry) {
-        this(new AtomicBoolean(), null, modelRules, modelRegistry);
+    public GroovyModelDsl(ModelRegistry modelRegistry) {
+        this(new AtomicBoolean(), null, modelRegistry);
     }
 
-    private GroovyModelDsl(AtomicBoolean executingDsl, ModelPath modelPath, ModelRules modelRules, ModelRegistry modelRegistry) {
+    private GroovyModelDsl(AtomicBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry) {
         this.executingDsl = executingDsl;
         this.modelPath = modelPath;
-        this.modelRules = modelRules;
         this.modelRegistry = modelRegistry;
     }
 
     private GroovyModelDsl getChildPath(String name) {
         ModelPath path = modelPath == null ? ModelPath.path(name) : modelPath.child(name);
-        return new GroovyModelDsl(executingDsl, path, modelRules, modelRegistry);
+        return new GroovyModelDsl(executingDsl, path, modelRegistry);
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
