@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.test.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.model.Finalize
+import org.gradle.model.RuleSource
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
@@ -29,7 +31,6 @@ import org.gradle.nativebinaries.test.tasks.RunTestExecutable
 import org.gradle.runtime.base.BinaryContainer
 
 import javax.inject.Inject
-
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
@@ -53,20 +54,34 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
                 DefaultTestSuiteContainer.class,
                 instantiator
         );
+    }
 
-        final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        binaries.withType(ProjectNativeTestSuiteBinary).all { testBinary ->
-            def binary = testBinary as ProjectNativeBinaryInternal
-            def namingScheme = binary.namingScheme
 
-            def installTask = binary.tasks.withType(InstallExecutable).find()
+    /**
+     * Model rules.
+     */
+    @RuleSource
+    public static class Rules {
 
-            def runTask = project.tasks.create(namingScheme.getTaskName("run"), RunTestExecutable)
-            runTask.setDescription("Runs the " + binary.getDisplayName())
-            runTask.inputs.files(installTask.outputs.files)
+        // TODO:DAZ Find a better way to link to the install task than using Finalize
+        @Finalize
+        void createTestTasks(TaskContainer tasks, BinaryContainer binaries) {
+            // TODO:DAZ Use simple iteration
+            binaries.withType(ProjectNativeTestSuiteBinary).all { testBinary ->
+                def binary = testBinary as ProjectNativeBinaryInternal
+                def namingScheme = binary.namingScheme
+                def installTask = binary.tasks.withType(InstallExecutable).find()
 
-            runTask.conventionMapping.testExecutable = { installTask.runScript }
-            runTask.conventionMapping.outputDir = { project.file("${project.buildDir}/test-results/${namingScheme.outputDirectoryBase}") }
+                def runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable)
+                def project = runTask.project
+                runTask.setDescription("Runs the " + binary.getDisplayName())
+                runTask.inputs.files(installTask.outputs.files)
+
+                runTask.conventionMapping.testExecutable = { installTask.runScript }
+                runTask.conventionMapping.outputDir = { project.file("${project.buildDir}/test-results/${namingScheme.outputDirectoryBase}") }
+            }
         }
     }
+
+
 }
