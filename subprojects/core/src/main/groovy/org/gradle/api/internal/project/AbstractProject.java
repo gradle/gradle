@@ -42,6 +42,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
@@ -204,6 +205,20 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
             public ModelRuleSourceDescriptor getSourceDescriptor() {
                 return new SimpleModelRuleSourceDescriptor("Project.<init>.buildDir()");
+            }
+        });
+
+        modelRegistry.create("extensions", Collections.<String>emptyList(), new ModelCreator<ExtensionContainer>() {
+            public ModelReference<ExtensionContainer> getReference() {
+                return ModelReference.of(new ModelPath("extensions"), ModelType.of(ExtensionContainer.class));
+            }
+
+            public ExtensionContainer create(Inputs inputs) {
+                return getExtensions();
+            }
+
+            public ModelRuleSourceDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleSourceDescriptor("Project.<init>.extensions()");
             }
         });
 
