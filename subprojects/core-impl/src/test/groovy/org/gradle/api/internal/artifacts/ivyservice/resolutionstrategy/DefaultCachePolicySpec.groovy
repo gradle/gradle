@@ -46,7 +46,6 @@ public class DefaultCachePolicySpec extends Specification {
         hasChangingModuleTimeout(DAY)
         hasModuleTimeout(FOREVER)
         hasMissingArtifactTimeout(DAY)
-        hasMissingModuleTimeout(DAY)
     }
 
     def "uses changing module timeout for changing modules"() {
@@ -57,7 +56,6 @@ public class DefaultCachePolicySpec extends Specification {
         hasDynamicVersionTimeout(DAY);
         hasChangingModuleTimeout(10 * SECOND)
         hasModuleTimeout(FOREVER)
-        hasMissingModuleTimeout(DAY)
         hasChangingArtifactTimeout(DAY)
     }
 
@@ -68,7 +66,6 @@ public class DefaultCachePolicySpec extends Specification {
         then:
         hasDynamicVersionTimeout(10 * SECOND)
         hasChangingModuleTimeout(DAY)
-        hasMissingModuleTimeout(DAY)
         hasMissingArtifactTimeout(DAY)
         hasModuleTimeout(FOREVER)
     }

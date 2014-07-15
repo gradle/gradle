@@ -153,10 +153,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
             if (cachedMetaData.isMissing()) {
-                if (cachePolicy.mustRefreshMissingModule(moduleComponentIdentifier, cachedMetaData.getAgeMillis())) {
-                    LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
-                    return;
-                }
                 LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'", moduleComponentIdentifier, delegate.getName());
                 if (cachedMetaData.getAgeMillis() == 0) {
                     // Verified since the start of this build, assume still missing
@@ -241,7 +237,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         private void resolveArtifactFromCache(ComponentArtifactMetaData artifact, CachingModuleSource moduleSource, BuildableArtifactResolveResult result) {
             CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(artifactCacheKey(artifact));
             final BigInteger descriptorHash = moduleSource.getDescriptorHash();
-           if (cached != null) {
+            if (cached != null) {
                long age = timeProvider.getCurrentTime() - cached.getCachedAt();
                final boolean isChangingModule = moduleSource.isChangingModule();
                ArtifactIdentifier artifactIdentifier = ((ModuleVersionArtifactMetaData) artifact).toArtifactIdentifier();
