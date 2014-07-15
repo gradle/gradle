@@ -51,7 +51,7 @@ public class WindowsResourceScriptPlugin implements Plugin<ProjectInternal> {
         binaries.withType(ProjectNativeBinaryInternal.class).all(new Action<ProjectNativeBinaryInternal>() {
             public void execute(ProjectNativeBinaryInternal binary) {
                 if (shouldProcessResources(binary)) {
-                    createRule.createCompileTasks(project.getTasks(), binary);
+                    createRule.createCompileTasksForBinary(project.getTasks(), binary);
                 }
             }
         });

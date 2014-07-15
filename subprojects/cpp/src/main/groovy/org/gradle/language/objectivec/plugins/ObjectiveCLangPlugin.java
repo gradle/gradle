@@ -29,6 +29,7 @@ import org.gradle.nativebinaries.language.internal.CompileTaskConfig;
 import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile;
+import org.gradle.runtime.base.BinaryContainer;
 
 import java.util.Map;
 
@@ -43,8 +44,9 @@ public class ObjectiveCLangPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getExtensions().getByType(LanguageRegistry.class).add(language);
 
+        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
         final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-        createRule.init(project);
+        createRule.createCompileTasksForAllBinaries(project.getTasks(), binaries);
     }
 
     private static class ObjectiveC implements LanguageRegistration<ObjectiveCSourceSet> {

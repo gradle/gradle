@@ -28,6 +28,7 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.nativebinaries.internal.DefaultTool;
 import org.gradle.nativebinaries.language.internal.AssembleTaskConfig;
 import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
+import org.gradle.runtime.base.BinaryContainer;
 
 import java.util.Map;
 
@@ -42,8 +43,9 @@ public class AssemblerLangPlugin implements Plugin<ProjectInternal> {
         Assembler language = new Assembler();
         project.getExtensions().getByType(LanguageRegistry.class).add(language);
 
+        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
         final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-        createRule.init(project);
+        createRule.createCompileTasksForAllBinaries(project.getTasks(), binaries);
     }
 
     private static class Assembler implements LanguageRegistration<AssemblerSourceSet> {

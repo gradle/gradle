@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.language.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.LanguageSourceSet;
@@ -33,16 +32,15 @@ public class CreateSourceTransformTask {
         this.language = languageRegistration;
     }
 
-    public void init(final Project project) {
-        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
+    public void createCompileTasksForAllBinaries(final TaskContainer tasks, BinaryContainer binaries) {
         binaries.withType(ProjectNativeBinaryInternal.class).all(new Action<ProjectNativeBinaryInternal>() {
             public void execute(ProjectNativeBinaryInternal binary) {
-                createCompileTasks(project.getTasks(), binary);
+                createCompileTasksForBinary(tasks, binary);
             }
         });
     }
 
-    public void createCompileTasks(final TaskContainer tasks, ProjectNativeBinary projectNativeBinary) {
+    public void createCompileTasksForBinary(final TaskContainer tasks, ProjectNativeBinary projectNativeBinary) {
         final ProjectNativeBinaryInternal binary = (ProjectNativeBinaryInternal) projectNativeBinary;
         final SourceTransformTaskConfig taskConfig = language.getTransformTask();
         binary.getSource().withType(language.getSourceSetType(), new Action<LanguageSourceSet>() {
