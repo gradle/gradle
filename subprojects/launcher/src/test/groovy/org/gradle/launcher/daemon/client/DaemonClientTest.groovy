@@ -15,10 +15,10 @@
  */
 package org.gradle.launcher.daemon.client
 
-import ch.qos.logback.classic.Level
 import org.gradle.initialization.BuildAction
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
+import org.gradle.launcher.daemon.context.DaemonUidCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.exec.BuildCancellationToken
@@ -158,6 +158,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         result == '[result]'
         1 * connector.connect(compatibilitySpec) >> connection
+        1 * connection.getUid() >> '1'
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [Stub(BuildStarted), new Success('[result]')]
         1 * connection.dispatch({it instanceof CloseInput})
@@ -176,6 +177,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         RuntimeException e = thrown()
         e == failure
         1 * connector.connect(compatibilitySpec) >> connection
+        1 * connection.getUid() >> '1'
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [Stub(BuildStarted), new CommandFailure(failure)]
         1 * connection.dispatch({it instanceof CloseInput})
@@ -194,7 +196,12 @@ class DaemonClientTest extends ConcurrentSpecification {
         GradleConnectionException gce = thrown()
         gce instanceof BuildCancelledException
         1 * connector.connect(compatibilitySpec) >> connection
-        1 * connector.maybeConnect(compatibilitySpec) >> connection
+        1 * connection.getUid() >> '1'
+        1 * connector.maybeConnect(_) >> { args ->
+            assert args[0] instanceof DaemonUidCompatibilitySpec
+            args[0].desiredUid == '1'
+            return connection
+        }
         1 * cancellationToken.canBeCancelled() >> true
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             callback.run()
@@ -212,7 +219,6 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "throws an exception when build is cancelled and correctly finishes build"() {
-        DaemonClient.LOGGER.logger.setLevel(Level.DEBUG)
         BuildCancellationToken cancellationToken = Mock()
         BuildCancelledException cancelledException = Mock()
 
@@ -224,7 +230,12 @@ class DaemonClientTest extends ConcurrentSpecification {
         gce instanceof BuildCancelledException
         gce == cancelledException
         1 * connector.connect(compatibilitySpec) >> connection
-        1 * connector.maybeConnect(compatibilitySpec) >> connection
+        1 * connection.getUid() >> '1'
+        1 * connector.maybeConnect(_) >> { args ->
+            assert args[0] instanceof DaemonUidCompatibilitySpec
+            args[0].desiredUid == '1'
+            return connection
+        }
         1 * cancellationToken.canBeCancelled() >> true
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             // println 'register cancel callback ' + callback
@@ -251,6 +262,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        1 * connection.getUid() >> '1'
         1 * connection.dispatch({it instanceof Build}) >> { throw new StaleDaemonAddressException("broken", new RuntimeException())}
         1 * connection.stop()
         2 * connection2.receive() >>> [Stub(BuildStarted), new Success('')]
@@ -265,6 +277,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        1 * connection.getUid() >> '1'
         1 * connection.dispatch({it instanceof Build})
         1 * connection.receive() >> Stub(DaemonUnavailable)
         1 * connection.dispatch({it instanceof Finished})
@@ -281,6 +294,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        1 * connection.getUid() >> '1'
         1 * connection.dispatch({it instanceof Build})
         1 * connection.receive() >> null
         1 * connection.stop()
