@@ -156,4 +156,8 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     public void setBuildable(boolean buildable) {
         this.buildable = buildable;
     }
+
+    public boolean isLegacyBinary() {
+        return false;
+    }
 }

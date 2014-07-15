@@ -47,6 +47,10 @@ public class DefaultProjectJarBinary extends AbstractBuildableModelElement imple
         return true;
     }
 
+    public boolean isLegacyBinary() {
+        return false;
+    }
+
     public String getDisplayName() {
         return namingScheme.getDescription();
     }

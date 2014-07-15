@@ -25,7 +25,6 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.internal.DefaultBinaryContainer;
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
@@ -52,18 +51,9 @@ public class LanguageBasePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
-        ProjectSourceSet sources = target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
-        final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
-
-        // TODO:DAZ Make this a rule: will break integration with legacy plugins
-        binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>() {
-            public void execute(ProjectBinaryInternal binary) {
-                Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
-                binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-                binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
-                binary.setBuildTask(binaryLifecycleTask);
-            }
-        });
+        // TODO:DAZ Split the legacy extensions from the new model: the legacy plugins cannot share the same instances
+        target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
+        target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
     }
 
     /**
@@ -83,12 +73,19 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        @SuppressWarnings("UnusedDeclaration")
-        void attachBinariesToLifecycle(TaskContainer tasks, BinaryContainer binaries) {
+        void createLifecycleTaskForBinary(TaskContainer tasks, BinaryContainer binaries) {
+
             Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
-            for (ProjectBinary binary : binaries.withType(ProjectBinary.class)) {
-                if (binary.isBuildable()) {
-                    assembleTask.dependsOn(binary);
+            for (ProjectBinaryInternal binary : binaries.withType(ProjectBinaryInternal.class)) {
+                if (!binary.isLegacyBinary()) {
+                    Task binaryLifecycleTask = tasks.create(binary.getNamingScheme().getLifecycleTaskName());
+                    binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                    binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
+                    binary.setBuildTask(binaryLifecycleTask);
+
+                    if (binary.isBuildable()) {
+                        assembleTask.dependsOn(binary);
+                    }
                 }
             }
         }

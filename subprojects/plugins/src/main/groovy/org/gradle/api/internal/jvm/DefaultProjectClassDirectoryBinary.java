@@ -59,6 +59,10 @@ public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelEl
         return false;
     }
 
+    public boolean isLegacyBinary() {
+        return true;
+    }
+
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
     }

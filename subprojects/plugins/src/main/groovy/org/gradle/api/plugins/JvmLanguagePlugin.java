@@ -28,6 +28,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
@@ -79,6 +80,15 @@ public class JvmLanguagePlugin implements Plugin<Project> {
         binaryContainer.registerFactory(ProjectClassDirectoryBinary.class, new NamedDomainObjectFactory<ProjectClassDirectoryBinary>() {
             public ProjectClassDirectoryBinary create(String name) {
                 return instantiator.newInstance(DefaultProjectClassDirectoryBinary.class, name, toolChain);
+            }
+        });
+
+        binaryContainer.withType(ProjectClassDirectoryBinaryInternal.class).all(new Action<ProjectClassDirectoryBinaryInternal>() {
+            public void execute(ProjectClassDirectoryBinaryInternal binary) {
+                Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
+                binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
+                binary.setBuildTask(binaryLifecycleTask);
             }
         });
 
