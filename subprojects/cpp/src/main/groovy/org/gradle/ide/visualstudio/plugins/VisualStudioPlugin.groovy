@@ -77,7 +77,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         static void includeBuildFileInProject(DefaultVisualStudioExtension visualStudio, ProjectIdentifier projectIdentifier) {
-            visualStudio.projects.each {
+            visualStudio.projects.all {
                 if (projectIdentifier.buildFile != null) {
                     ((DefaultVisualStudioProject) it).addSourceFile(projectIdentifier.buildFile)
                 }
