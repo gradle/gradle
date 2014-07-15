@@ -16,6 +16,7 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -25,10 +26,12 @@ import org.gradle.language.base.internal.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.plugins.ApplyDefaultSourceLocations;
+import org.gradle.language.base.internal.plugins.CreateSourceTransformTask;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
+import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 import javax.inject.Inject;
 
@@ -59,12 +62,28 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
         LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
         ProjectComponentContainer components = project.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
+        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
+        // TODO:DAZ Convert to model rules
+        createSourceTransformTasks(project.getTasks(), binaries, languageRegistry);
         createProjectSourceSetForEachComponent(sources, components);
         createLanguageSourceSets(project, languageRegistry, sources);
 
         configurationActions.add(new ApplyDefaultSourceLocations());
+    }
+
+    private void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageRegistry languageRegistry) {
+        languageRegistry.all(new Action<LanguageRegistration>() {
+            public void execute(final LanguageRegistration language) {
+                binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>() {
+                    public void execute(ProjectBinaryInternal binary) {
+                        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
+                        createRule.createCompileTasksForBinary(tasks, binary);
+                    }
+                });
+            }
+        });
     }
 
     private void createLanguageSourceSets(final Project project, final LanguageRegistry languageRegistry, final ProjectSourceSet sources) {

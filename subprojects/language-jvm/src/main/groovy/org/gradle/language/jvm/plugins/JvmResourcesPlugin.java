@@ -16,22 +16,20 @@
 
 package org.gradle.language.jvm.plugins;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.Task;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
-import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
+import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
 
 import java.util.Collections;
 import java.util.Map;
@@ -45,30 +43,6 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getExtensions().getByType(LanguageRegistry.class).add(new JvmResources());
-    }
-
-    /**
-     * Model rules.
-     */
-    @RuleSource
-    static class CreateProcessResourcesTasks {
-        @SuppressWarnings("UnusedDeclaration")
-        @Mutate
-        void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
-            // TODO:DAZ Make this apply to all types of ProjectJvmLibraryBinary
-            for (ProjectJarBinaryInternal binary : binaries.withType(ProjectJarBinaryInternal.class)) {
-                for (ResourceSet resourceSet : binary.getSource().withType(ResourceSet.class)) {
-
-                    String resourcesTaskName = binary.getNamingScheme().getTaskName("process", ((LanguageSourceSetInternal) resourceSet).getFullName());
-                    ProcessResources resourcesTask = tasks.create(resourcesTaskName, ProcessResources.class);
-                    resourcesTask.from(resourceSet.getSource());
-                    resourcesTask.setDestinationDir(binary.getResourcesDir());
-
-                    binary.getTasks().add(resourcesTask);
-                    binary.getTasks().getJar().dependsOn(resourcesTask);
-                }
-            }
-        }
     }
 
     private static class JvmResources implements LanguageRegistration<ResourceSet> {
@@ -89,11 +63,28 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         }
 
         public SourceTransformTaskConfig getTransformTask() {
-            return null;
+            return new SourceTransformTaskConfig() {
+                public String getTaskPrefix() {
+                    return "process";
+                }
+
+                public Class<? extends DefaultTask> getTaskType() {
+                    return ProcessResources.class;
+                }
+
+                public void configureTask(Task task, ProjectBinary binary, LanguageSourceSet sourceSet) {
+                    ProcessResources resourcesTask = (ProcessResources) task;
+                    ResourceSet resourceSet = (ResourceSet) sourceSet;
+                    ProjectJvmLibraryBinary jvmBinary = (ProjectJvmLibraryBinary) binary;
+                    resourcesTask.from(resourceSet.getSource());
+                    resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
+                    jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
+                }
+            };
         }
 
         public boolean applyToBinary(ProjectBinary binary) {
-            return false;
+            return binary instanceof ProjectJvmLibraryBinary;
         }
     }
 

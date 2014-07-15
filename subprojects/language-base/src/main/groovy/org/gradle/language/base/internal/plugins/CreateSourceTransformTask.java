@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.internal;
+package org.gradle.language.base.internal.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -23,29 +23,22 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
-import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 public class CreateSourceTransformTask {
+    private final LanguageRegistration<? extends LanguageSourceSet> language;
+
     public CreateSourceTransformTask(LanguageRegistration<? extends LanguageSourceSet> languageRegistration) {
         this.language = languageRegistration;
     }
 
-    public void createCompileTasksForAllBinaries(final TaskContainer tasks, BinaryContainer binaries) {
-        binaries.withType(ProjectNativeBinaryInternal.class).all(new Action<ProjectNativeBinaryInternal>() {
-            public void execute(ProjectNativeBinaryInternal binary) {
-                createCompileTasksForBinary(tasks, binary);
-            }
-        });
-    }
-
-    public void createCompileTasksForBinary(final TaskContainer tasks, ProjectNativeBinary projectNativeBinary) {
-        if (!language.applyToBinary(projectNativeBinary)) {
+    public void createCompileTasksForBinary(final TaskContainer tasks, ProjectBinary projectBinary) {
+        final ProjectBinaryInternal binary = (ProjectBinaryInternal) projectBinary;
+        if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
             return;
         }
 
-        final ProjectNativeBinaryInternal binary = (ProjectNativeBinaryInternal) projectNativeBinary;
         final SourceTransformTaskConfig taskConfig = language.getTransformTask();
         binary.getSource().withType(language.getSourceSetType(), new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet languageSourceSet) {
@@ -63,5 +56,4 @@ public class CreateSourceTransformTask {
         });
     }
 
-    private final LanguageRegistration<? extends LanguageSourceSet> language;
 }

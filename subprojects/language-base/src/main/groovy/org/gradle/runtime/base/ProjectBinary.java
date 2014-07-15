@@ -16,10 +16,7 @@
 
 package org.gradle.runtime.base;
 
-import org.gradle.api.BuildableModelElement;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.*;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 
@@ -50,4 +47,9 @@ public interface ProjectBinary extends BuildableModelElement, Named {
      * </ul>
      */
     void source(Object source);
+
+    /**
+     * The set of tasks associated with this binary.
+     */
+    DomainObjectSet<Task> getTasks();
 }

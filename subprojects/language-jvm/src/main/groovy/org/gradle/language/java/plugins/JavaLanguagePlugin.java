@@ -16,27 +16,24 @@
 
 package org.gradle.language.java.plugins;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
-import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
+import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
@@ -50,38 +47,6 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getPlugins().apply(JvmResourcesPlugin.class);
         project.getExtensions().getByType(LanguageRegistry.class).add(new Java());
-    }
-
-    /**
-     * Model rules.
-     */
-    @RuleSource
-    static class Rules {
-        @Mutate
-        @SuppressWarnings("UnusedDeclaration")
-        void createTasks(final TaskContainer tasks, BinaryContainer binaries, ServiceRegistry serviceRegistry) {
-            FileLookup fileLookup = serviceRegistry.get(FileLookup.class);
-            for (ProjectJarBinaryInternal binary : binaries.withType(ProjectJarBinaryInternal.class)) {
-                for (JavaSourceSet javaSourceSet : binary.getSource().withType(JavaSourceSet.class)) {
-
-                    String compileTaskName = binary.getNamingScheme().getTaskName("compile", ((LanguageSourceSetInternal) javaSourceSet).getFullName());
-                    JavaCompile compile = tasks.create(compileTaskName, JavaCompile.class);
-                    compile.setDescription(String.format("Compiles %s.", javaSourceSet));
-                    compile.setDestinationDir(binary.getClassesDir());
-                    compile.setToolChain(binary.getToolChain());
-
-                    compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
-                    compile.setSourceCompatibility(JavaVersion.current().toString());
-                    compile.setTargetCompatibility(JavaVersion.current().toString());
-                    compile.setDependencyCacheDir(fileLookup.getFileResolver(compile.getProject().getBuildDir()).resolve("jvm-dep-cache"));
-                    compile.dependsOn(javaSourceSet);
-
-                    binary.getTasks().add(compile);
-                    binary.getTasks().getJar().dependsOn(compile);
-                }
-            }
-        }
     }
 
     private static class Java implements LanguageRegistration<JavaSourceSet> {
@@ -102,11 +67,38 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
         }
 
         public SourceTransformTaskConfig getTransformTask() {
-            return null;
+            return new SourceTransformTaskConfig() {
+                public String getTaskPrefix() {
+                    return "compile";
+                }
+
+                public Class<? extends DefaultTask> getTaskType() {
+                    return JavaCompile.class;
+                }
+
+                public void configureTask(Task task, ProjectBinary projectBinary, LanguageSourceSet sourceSet) {
+                    JavaCompile compile = (JavaCompile) task;
+                    JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
+                    ProjectJvmLibraryBinary binary = (ProjectJvmLibraryBinary) projectBinary;
+
+                    compile.setDescription(String.format("Compiles %s.", javaSourceSet));
+                    compile.setDestinationDir(binary.getClassesDir());
+                    compile.setToolChain(binary.getToolChain());
+
+                    compile.setSource(javaSourceSet.getSource());
+                    compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
+                    compile.setSourceCompatibility(JavaVersion.current().toString());
+                    compile.setTargetCompatibility(JavaVersion.current().toString());
+                    compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
+                    compile.dependsOn(javaSourceSet);
+
+                    binary.getTasks().getJar().dependsOn(compile);
+                }
+            };
         }
 
         public boolean applyToBinary(ProjectBinary binary) {
-            return false;
+            return binary instanceof ProjectJvmLibraryBinary;
         }
     }
 }
