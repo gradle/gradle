@@ -284,20 +284,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
     }
 
-    private static class TaskFactory implements Factory<Task> {
-        private final TaskContainer tasks;
-        private final String name;
-
-        private TaskFactory(TaskContainer tasks, String name) {
-            this.tasks = tasks;
-            this.name = name;
-        }
-
-        public Task create() {
-            return tasks.getByName(name);
-        }
-    }
-
     public ProjectInternal getRootProject() {
         return rootProject;
     }
