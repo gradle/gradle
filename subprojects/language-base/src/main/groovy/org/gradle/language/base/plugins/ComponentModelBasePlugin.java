@@ -120,6 +120,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         // TODO: find a better way
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageRegistry languageRegistry) {
+            // TODO:DAZ Use simple iteration here
             languageRegistry.all(new Action<LanguageRegistration>() {
                 public void execute(final LanguageRegistration language) {
                     binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>() {
