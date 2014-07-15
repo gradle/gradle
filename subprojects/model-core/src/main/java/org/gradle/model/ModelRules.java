@@ -44,13 +44,6 @@ public interface ModelRules {
     <T> void config(String path, Action<T> action);
 
     /**
-     * Registers a rule. The rule is inspected to determine its inputs and outputs.
-     *
-     * @see ModelRule For details.
-     */
-    void rule(ModelRule rule);
-
-    /**
      * Removes the model object from the given path.
      */
     void remove(String path);

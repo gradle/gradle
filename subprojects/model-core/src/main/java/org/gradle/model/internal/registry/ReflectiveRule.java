@@ -22,10 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.model.ModelRule;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
@@ -41,23 +39,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
 
-import static java.lang.reflect.Modifier.isPrivate;
-import static java.lang.reflect.Modifier.isStatic;
-import static org.gradle.util.CollectionUtils.*;
+import static org.gradle.util.CollectionUtils.findFirst;
 
 public abstract class ReflectiveRule {
-
-    public static void rule(final ModelRegistry modelRegistry, final ModelRule modelRule) {
-        final Method bindingMethod = findBindingMethod(modelRule);
-        bind(modelRegistry, bindingMethod, new Action<List<BindableParameter<?>>>() {
-            public void execute(List<BindableParameter<?>> bindableParameters) {
-                registerMutator(modelRegistry, bindingMethod, bindableParameters, false, Factories.constant(modelRule));
-            }
-        });
-    }
 
     public static void rule(final ModelRegistry modelRegistry, final Method method, final boolean isFinalizer, final Factory<?> instance) {
         bind(modelRegistry, method, new Action<List<BindableParameter<?>>>() {
@@ -171,21 +157,6 @@ public abstract class ReflectiveRule {
 
     private static <T> BindableParameter<T> copyBindingWithPath(ModelPath path, BindableParameter<T> binding) {
         return new BindableParameter<T>(path, binding.getType());
-    }
-
-    public static Method findBindingMethod(Object object) {
-        Class<?> objectClass = object.getClass();
-        List<Method> declaredMethods = filter(Arrays.asList(objectClass.getDeclaredMethods()), new Spec<Method>() {
-            public boolean isSatisfiedBy(Method element) {
-                int modifiers = element.getModifiers();
-                return !isPrivate(modifiers) && !isStatic(modifiers) && !element.isSynthetic();
-            }
-        });
-        if (declaredMethods.size() != 1) {
-            throw new IllegalArgumentException(objectClass + " rule must have exactly 1 public method, has: " + join(", ", toStringList(declaredMethods)));
-        }
-
-        return declaredMethods.get(0);
     }
 
     private static List<BindableParameter<?>> bindings(Method method) {

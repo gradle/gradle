@@ -21,10 +21,10 @@ import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
 import org.gradle.model.internal.core.rule.ModelCreator;
 import org.gradle.model.internal.core.rule.ModelMutator;
@@ -69,10 +69,6 @@ public class ModelRegistryBackedModelRules implements ModelRules {
 
     public void remove(String path) {
         modelRegistry.remove(path);
-    }
-
-    public void rule(ModelRule rule) {
-        ReflectiveRule.rule(modelRegistry, rule);
     }
 
     public <T> void config(String path, Action<T> action) {
