@@ -17,12 +17,14 @@ package org.gradle.nativebinaries.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.language.base.internal.LanguageRegistry
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeExecutableBinary
 import org.gradle.nativebinaries.ProjectSharedLibraryBinary
 import org.gradle.nativebinaries.ProjectStaticLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
@@ -41,7 +43,18 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeComponentModelPlugin.class);
         project.plugins.apply(StandardToolChainsPlugin)
 
+        final LanguageRegistry languages = project.getExtensions().getByType(LanguageRegistry.class);
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
+
+        // TODO:DAZ Make a model rule
+        // TODO:DAZ Apply to jvm binaries/languages too
+        languages.all { language ->
+            binaries.withType(ProjectNativeBinary) { binary ->
+                final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
+                createRule.createCompileTasksForBinary(project.getTasks(), binary);
+            }
+        }
+
         binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.conventionMapping.buildable = { isBuildableBinary(binary) }
             createTasks(project, binary)

@@ -41,6 +41,10 @@ public class CreateSourceTransformTask {
     }
 
     public void createCompileTasksForBinary(final TaskContainer tasks, ProjectNativeBinary projectNativeBinary) {
+        if (!language.applyToBinary(projectNativeBinary)) {
+            return;
+        }
+
         final ProjectNativeBinaryInternal binary = (ProjectNativeBinaryInternal) projectNativeBinary;
         final SourceTransformTaskConfig taskConfig = language.getTransformTask();
         binary.getSource().withType(language.getSourceSetType(), new Action<LanguageSourceSet>() {
@@ -55,9 +59,7 @@ public class CreateSourceTransformTask {
                     task.dependsOn(sourceSet);
                     binary.getTasks().add(task);
                 }
-
             }
-
         });
     }
 

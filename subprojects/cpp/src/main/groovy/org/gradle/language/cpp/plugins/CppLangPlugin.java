@@ -19,17 +19,15 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
+import org.gradle.language.internal.NativeLanguageRegistration;
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile;
 import org.gradle.nativebinaries.language.internal.CompileTaskConfig;
-import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
-import org.gradle.runtime.base.BinaryContainer;
 
 import java.util.Map;
 
@@ -39,17 +37,12 @@ import java.util.Map;
 @Incubating
 public class CppLangPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
-        Cpp language = new Cpp();
 
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(language);
+        project.getExtensions().getByType(LanguageRegistry.class).add(new Cpp());
+   }
 
-        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-        createRule.createCompileTasksForAllBinaries(project.getTasks(), binaries);
-    }
-
-    private static class Cpp implements LanguageRegistration<CppSourceSet> {
+    private static class Cpp extends NativeLanguageRegistration<CppSourceSet> {
         public String getName() {
             return "cpp";
         }

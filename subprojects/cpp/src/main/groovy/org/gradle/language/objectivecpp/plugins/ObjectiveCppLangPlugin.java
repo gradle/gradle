@@ -19,17 +19,15 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.internal.NativeLanguageRegistration;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppSourceSet;
 import org.gradle.nativebinaries.language.internal.CompileTaskConfig;
-import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile;
-import org.gradle.runtime.base.BinaryContainer;
 
 import java.util.Map;
 
@@ -39,17 +37,12 @@ import java.util.Map;
 @Incubating
 public class ObjectiveCppLangPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
-        ObjectiveCpp language = new ObjectiveCpp();
 
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(language);
-
-        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-        createRule.createCompileTasksForAllBinaries(project.getTasks(), binaries);
+        project.getExtensions().getByType(LanguageRegistry.class).add(new ObjectiveCpp());
     }
 
-    private static class ObjectiveCpp implements LanguageRegistration<ObjectiveCppSourceSet> {
+    private static class ObjectiveCpp extends NativeLanguageRegistration<ObjectiveCppSourceSet> {
         public String getName() {
             return "objcpp";
         }

@@ -34,6 +34,7 @@ import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
 import java.util.Collections;
@@ -104,5 +105,8 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
             return null;
         }
 
+        public boolean applyToBinary(ProjectBinary binary) {
+            return false;
+        }
     }
 }

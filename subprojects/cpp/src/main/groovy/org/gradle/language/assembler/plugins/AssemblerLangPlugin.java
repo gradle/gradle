@@ -21,14 +21,12 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.assembler.AssemblerSourceSet;
 import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
-import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.internal.NativeLanguageRegistration;
 import org.gradle.nativebinaries.internal.DefaultTool;
 import org.gradle.nativebinaries.language.internal.AssembleTaskConfig;
-import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
-import org.gradle.runtime.base.BinaryContainer;
 
 import java.util.Map;
 
@@ -40,15 +38,10 @@ public class AssemblerLangPlugin implements Plugin<ProjectInternal> {
 
     public void apply(ProjectInternal project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        Assembler language = new Assembler();
-        project.getExtensions().getByType(LanguageRegistry.class).add(language);
-
-        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-        createRule.createCompileTasksForAllBinaries(project.getTasks(), binaries);
+        project.getExtensions().getByType(LanguageRegistry.class).add(new Assembler());
     }
 
-    private static class Assembler implements LanguageRegistration<AssemblerSourceSet> {
+    private static class Assembler extends NativeLanguageRegistration<AssemblerSourceSet> {
         public String getName() {
             return "asm";
         }
@@ -70,6 +63,5 @@ public class AssemblerLangPlugin implements Plugin<ProjectInternal> {
         public SourceTransformTaskConfig getTransformTask() {
             return new AssembleTaskConfig();
         }
-
     }
 }

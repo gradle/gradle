@@ -19,17 +19,15 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
+import org.gradle.language.internal.NativeLanguageRegistration;
 import org.gradle.nativebinaries.language.c.tasks.CCompile;
 import org.gradle.nativebinaries.language.internal.CompileTaskConfig;
-import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
-import org.gradle.runtime.base.BinaryContainer;
 
 import java.util.Map;
 
@@ -40,17 +38,12 @@ import java.util.Map;
 public class CLangPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
-        LanguageRegistration<CSourceSet> language = new C();
 
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(language);
-
-        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-        createRule.createCompileTasksForAllBinaries(project.getTasks(), binaries);
+        project.getExtensions().getByType(LanguageRegistry.class).add(new C());
     }
 
-    private static class C implements LanguageRegistration<CSourceSet> {
+    private static class C extends NativeLanguageRegistration<CSourceSet> {
         public String getName() {
             return "c";
         }

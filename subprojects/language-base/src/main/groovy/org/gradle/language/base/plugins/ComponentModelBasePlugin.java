@@ -25,6 +25,7 @@ import org.gradle.language.base.internal.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.plugins.ApplyDefaultSourceLocations;
+import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
@@ -53,15 +54,15 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         this.configurationActions = configurationActions;
     }
 
-    public void apply(final Project target) {
-        target.getPlugins().apply(LanguageBasePlugin.class);
+    public void apply(final Project project) {
+        project.getPlugins().apply(LanguageBasePlugin.class);
 
-        LanguageRegistry languageRegistry = target.getExtensions().create("languages", DefaultLanguageRegistry.class);
-        ProjectComponentContainer components = target.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
-        ProjectSourceSet sources = target.getExtensions().getByType(ProjectSourceSet.class);
+        LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
+        ProjectComponentContainer components = project.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
+        ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         createProjectSourceSetForEachComponent(sources, components);
-        createLanguageSourceSets(target, languageRegistry, sources);
+        createLanguageSourceSets(project, languageRegistry, sources);
 
         configurationActions.add(new ApplyDefaultSourceLocations());
     }

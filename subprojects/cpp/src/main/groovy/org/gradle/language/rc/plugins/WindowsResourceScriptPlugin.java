@@ -16,21 +16,19 @@
 package org.gradle.language.rc.plugins;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.internal.NativeLanguageRegistration;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
-import org.gradle.nativebinaries.language.internal.CreateSourceTransformTask;
+import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 import org.gradle.nativebinaries.language.internal.WindowsResourcesCompileTaskConfig;
-import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.ProjectBinary;
 
 import java.util.Map;
 
@@ -41,27 +39,11 @@ import java.util.Map;
 public class WindowsResourceScriptPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
-        WindowsResources language = new WindowsResources();
-
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(language);
-
-        final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        binaries.withType(ProjectNativeBinaryInternal.class).all(new Action<ProjectNativeBinaryInternal>() {
-            public void execute(ProjectNativeBinaryInternal binary) {
-                if (shouldProcessResources(binary)) {
-                    createRule.createCompileTasksForBinary(project.getTasks(), binary);
-                }
-            }
-        });
+        project.getExtensions().getByType(LanguageRegistry.class).add(new WindowsResources());
     }
 
-    private boolean shouldProcessResources(ProjectNativeBinaryInternal binary) {
-        return binary.getTargetPlatform().getOperatingSystem().isWindows();
-    }
-
-    private static class WindowsResources implements LanguageRegistration<WindowsResourceSet> {
+    private static class WindowsResources extends NativeLanguageRegistration<WindowsResourceSet> {
         public String getName() {
             return "rc";
         }
@@ -82,6 +64,15 @@ public class WindowsResourceScriptPlugin implements Plugin<ProjectInternal> {
 
         public SourceTransformTaskConfig getTransformTask() {
             return new WindowsResourcesCompileTaskConfig();
+        }
+
+        @Override
+        public boolean applyToBinary(ProjectBinary binary) {
+            return binary instanceof ProjectNativeBinary && shouldProcessResources((ProjectNativeBinary) binary);
+        }
+
+        private boolean shouldProcessResources(ProjectNativeBinary binary) {
+            return binary.getTargetPlatform().getOperatingSystem().isWindows();
         }
     }
 }

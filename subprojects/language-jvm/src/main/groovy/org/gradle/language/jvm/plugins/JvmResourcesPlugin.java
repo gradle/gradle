@@ -30,6 +30,7 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 
 import java.util.Collections;
@@ -91,6 +92,9 @@ public class JvmResourcesPlugin implements Plugin<Project> {
             return null;
         }
 
+        public boolean applyToBinary(ProjectBinary binary) {
+            return false;
+        }
     }
 
 }
