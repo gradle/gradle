@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language.rc.plugins
 
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.ToolChainRegistry
@@ -32,7 +33,7 @@ class WindowsResourcesPluginTest extends Specification {
 
     def "registers rcCompiler tool to visualcpp"() {
         when:
-        project.configure(project){
+        project.configure(project) {
             apply plugin: WindowsResourcesPlugin
             executables {
                 exe {}
@@ -42,14 +43,14 @@ class WindowsResourcesPluginTest extends Specification {
             }
         }
         then:
-        ToolChainRegistry toolChains = project.modelRegistry.get("toolChains", ToolChainRegistry)
-        toolChains.withType(VisualCpp){ VisualCpp visualCpp ->
+        ToolChainRegistry toolChains = project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry))
+        toolChains.withType(VisualCpp) { VisualCpp visualCpp ->
             visualCpp.getByName("rcCompiler") != null
         }
-        toolChains.withType(Gcc){ Gcc gcc ->
+        toolChains.withType(Gcc) { Gcc gcc ->
             gcc.findByName("rcCompiler") == null
         }
-        toolChains.withType(Clang){ Clang clang ->
+        toolChains.withType(Clang) { Clang clang ->
             clang.findByName("rcCompiler") == null
         }
     }

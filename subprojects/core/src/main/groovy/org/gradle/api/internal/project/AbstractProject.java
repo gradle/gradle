@@ -176,7 +176,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         final ModelRegistry modelRegistry = services.get(ModelRegistry.class);
 
-        modelRegistry.create("serviceRegistry", Collections.<String>emptyList(), new ModelCreator<ServiceRegistry>() {
+        modelRegistry.create(Collections.<String>emptyList(), new ModelCreator<ServiceRegistry>() {
             public ModelReference<ServiceRegistry> getReference() {
                 return ModelReference.of(new ModelPath("serviceRegistry"), ModelType.of(ServiceRegistry.class));
             }
@@ -190,7 +190,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             }
         });
 
-        modelRegistry.create("buildDir", Collections.<String>emptyList(), new ModelCreator<File>() {
+        modelRegistry.create(Collections.<String>emptyList(), new ModelCreator<File>() {
             public ModelReference<File> getReference() {
                 return ModelReference.of(new ModelPath("buildDir"), ModelType.of(File.class));
             }
@@ -204,7 +204,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             }
         });
 
-        modelRegistry.create("projectIdentifier", Collections.<String>emptyList(), new ModelCreator<ProjectIdentifier>() {
+        modelRegistry.create(Collections.<String>emptyList(), new ModelCreator<ProjectIdentifier>() {
             public ModelReference<ProjectIdentifier> getReference() {
                 return ModelReference.of(new ModelPath("projectIdentifier"), ModelType.of(ProjectIdentifier.class));
             }
@@ -218,7 +218,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             }
         });
 
-        modelRegistry.create("extensions", Collections.<String>emptyList(), new ModelCreator<ExtensionContainer>() {
+        modelRegistry.create(Collections.<String>emptyList(), new ModelCreator<ExtensionContainer>() {
             public ModelReference<ExtensionContainer> getReference() {
                 return ModelReference.of(new ModelPath("extensions"), ModelType.of(ExtensionContainer.class));
             }
@@ -234,7 +234,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         final ModelPath tasksModelPath = ModelPath.path(TaskContainerInternal.MODEL_PATH);
 
-        modelRegistry.create(tasksModelPath.toString(), Collections.<String>emptyList(), new ModelCreator<TaskContainerInternal>() {
+        modelRegistry.create(Collections.<String>emptyList(), new ModelCreator<TaskContainerInternal>() {
             public ModelReference<TaskContainerInternal> getReference() {
                 return ModelReference.of(tasksModelPath, ModelType.of(TaskContainerInternal.class));
             }
@@ -252,7 +252,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             public void execute(final Task task) {
                 final String name = task.getName();
                 final ModelPath modelPath = tasksModelPath.child(name);
-                modelRegistry.create(modelPath.toString(), Collections.<String>emptyList(), new ModelCreator<Task>() {
+                modelRegistry.create(Collections.<String>emptyList(), new ModelCreator<Task>() {
                     public ModelReference<Task> getReference() {
                         return ModelReference.of(modelPath, ModelType.of(Task.class));
                     }
@@ -271,7 +271,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         taskContainer.whenObjectRemoved(new Action<Task>() {
             public void execute(Task task) {
-                modelRegistry.remove(tasksModelPath.child(task.getName()).toString());
+                modelRegistry.remove(tasksModelPath.child(task.getName()));
             }
         });
 

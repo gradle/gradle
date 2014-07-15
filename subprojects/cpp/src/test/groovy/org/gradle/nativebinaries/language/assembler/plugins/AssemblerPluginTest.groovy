@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.language.assembler.plugins
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.toolchain.ToolChainRegistry
@@ -182,7 +183,7 @@ class AssemblerPluginTest extends Specification {
             }
         }
         then:
-        ToolChainRegistry toolChains = project.modelRegistry.get("toolChains", ToolChainRegistry)
+        ToolChainRegistry toolChains = project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry))
         toolChains.each { def toolChain ->
             toolChain.getByName("assembler")  != null
         }

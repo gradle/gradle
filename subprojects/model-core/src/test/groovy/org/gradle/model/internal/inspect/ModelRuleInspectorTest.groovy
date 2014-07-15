@@ -74,7 +74,7 @@ class ModelRuleInspectorTest extends Specification {
         def state = registry.state(new ModelPath("modelPath"))
         state.status == ModelState.Status.PENDING
 
-        def element = registry.get("modelPath", ModelThing)
+        def element = registry.get(ModelReference.of("modelPath", ModelThing))
         element.name == "foo"
     }
 
@@ -215,7 +215,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create("string", [], new ModelCreator<List<String>>() {
+        registry.create([], new ModelCreator<List<String>>() {
             @Override
             ModelReference getReference() {
                 reference
@@ -262,7 +262,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create("string", [], new ModelCreator<List<String>>() {
+        registry.create([], new ModelCreator<List<String>>() {
             @Override
             ModelReference getReference() {
                 reference

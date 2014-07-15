@@ -78,7 +78,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         final NamedDomainObjectContainer<ProjectJvmLibrary> jvmLibraries = projectComponents.containerWithType(ProjectJvmLibrary.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
 
-        modelRegistry.create("jvm.libraries", Collections.<String>emptyList(), new ModelCreator<NamedDomainObjectCollection<ProjectJvmLibrary>>() {
+        modelRegistry.create(Collections.<String>emptyList(), new ModelCreator<NamedDomainObjectCollection<ProjectJvmLibrary>>() {
             public ModelReference<NamedDomainObjectCollection<ProjectJvmLibrary>> getReference() {
                 return ModelReference.of(new ModelPath("jvm.libraries"), ModelType.of(new TypeToken<NamedDomainObjectCollection<ProjectJvmLibrary>>() {
                 }));

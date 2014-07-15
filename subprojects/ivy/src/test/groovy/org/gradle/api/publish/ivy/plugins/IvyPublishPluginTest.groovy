@@ -23,6 +23,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -54,7 +55,7 @@ class IvyPublishPluginTest extends Specification {
         when:
         publishing.publications.create("test", IvyPublication)
         publishing.repositories { ivy { url = "http://foo.com" } }
-        project.modelRegistry.get(TaskContainerInternal.MODEL_PATH, Object)
+        project.modelRegistry.get(ModelReference.of(TaskContainerInternal.MODEL_PATH, Object))
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
         then:

@@ -55,7 +55,7 @@ public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
-        modelRegistry.mutate(modelPath.toString(), Collections.<String>emptyList(), new ModelMutator<Object>() {
+        modelRegistry.mutate(Collections.<String>emptyList(), new ModelMutator<Object>() {
             public ModelReference<Object> getReference() {
                 return new ModelReference<Object>(modelPath, new ModelType<Object>(Object.class));
             }

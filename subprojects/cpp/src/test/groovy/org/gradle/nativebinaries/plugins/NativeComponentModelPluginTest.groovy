@@ -20,6 +20,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.platform.Platform
@@ -42,25 +43,25 @@ class NativeComponentModelPluginTest extends Specification {
         expect:
         project.nativeRuntime.executables instanceof NamedDomainObjectContainer
         project.nativeRuntime.libraries instanceof NamedDomainObjectContainer
-        project.modelRegistry.get("toolChains", ToolChainRegistry) != null
-        project.modelRegistry.get("platforms", PlatformContainer) != null
-        project.modelRegistry.get("buildTypes", BuildTypeContainer) != null
-        project.modelRegistry.get("flavors", FlavorContainer) != null
+        project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry)) != null
+        project.modelRegistry.get(ModelReference.of("platforms", PlatformContainer)) != null
+        project.modelRegistry.get(ModelReference.of("buildTypes", BuildTypeContainer)) != null
+        project.modelRegistry.get(ModelReference.of("flavors", FlavorContainer)) != null
     }
 
     def "adds default target platform, build type and flavor"() {
         expect:
-        with (one(project.modelRegistry.get("platforms", PlatformContainer))) {
+        with(one(project.modelRegistry.get(ModelReference.of("platforms", PlatformContainer)))) {
             name == 'current'
             architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
         }
-        one(project.modelRegistry.get("buildTypes", BuildTypeContainer)).name == 'debug'
-        one(project.modelRegistry.get("flavors", FlavorContainer)).name == 'default'
+        one(project.modelRegistry.get(ModelReference.of("buildTypes", BuildTypeContainer))).name == 'debug'
+        one(project.modelRegistry.get(ModelReference.of("flavors", FlavorContainer))).name == 'default'
     }
 
     def "does not provide a default tool chain"() {
         expect:
-        project.modelRegistry.get("toolChains", ToolChainRegistry).isEmpty()
+        project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry)).isEmpty()
     }
 
     def "adds default flavor to every binary"() {
@@ -95,10 +96,10 @@ class NativeComponentModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'tc'
-        one(project.modelRegistry.get("platforms", PlatformContainer)).name == 'platform'
-        one(project.modelRegistry.get("buildTypes", BuildTypeContainer)).name == 'bt'
-        one(project.modelRegistry.get("flavors", FlavorContainer)).name == 'flavor1'
+        one(project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry))).name == 'tc'
+        one(project.modelRegistry.get(ModelReference.of("platforms", PlatformContainer))).name == 'platform'
+        one(project.modelRegistry.get(ModelReference.of("buildTypes", BuildTypeContainer))).name == 'bt'
+        one(project.modelRegistry.get(ModelReference.of("flavors", FlavorContainer))).name == 'flavor1'
     }
 
     def "creates binaries for executable"() {
@@ -123,7 +124,7 @@ class NativeComponentModelPluginTest extends Specification {
 
         then:
         ProjectNativeExecutableBinary executableBinary = one(project.binaries) as ProjectNativeExecutableBinary
-        with (executableBinary) {
+        with(executableBinary) {
             name == 'testExecutable'
             component == executable
             toolChain.name == "tc"
@@ -158,7 +159,7 @@ class NativeComponentModelPluginTest extends Specification {
 
         then:
         ProjectSharedLibraryBinary sharedLibraryBinary = project.binaries.testSharedLibrary as ProjectSharedLibraryBinary
-        with (sharedLibraryBinary) {
+        with(sharedLibraryBinary) {
             name == 'testSharedLibrary'
             component == library
 
@@ -170,7 +171,7 @@ class NativeComponentModelPluginTest extends Specification {
 
         and:
         ProjectStaticLibraryBinary staticLibraryBinary = project.binaries.testStaticLibrary as ProjectStaticLibraryBinary
-        with (staticLibraryBinary) {
+        with(staticLibraryBinary) {
             name == 'testStaticLibrary'
             component == library
 
@@ -194,17 +195,17 @@ class NativeComponentModelPluginTest extends Specification {
 
         then:
         ProjectNativeExecutableBinary executableBinary = project.binaries.exeExecutable as ProjectNativeExecutableBinary
-        with (oneTask(executableBinary.buildDependencies)) {
+        with(oneTask(executableBinary.buildDependencies)) {
             name == executableBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }
         ProjectSharedLibraryBinary sharedLibraryBinary = project.binaries.libSharedLibrary as ProjectSharedLibraryBinary
-        with (oneTask(sharedLibraryBinary.buildDependencies)) {
+        with(oneTask(sharedLibraryBinary.buildDependencies)) {
             name == sharedLibraryBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }
         ProjectStaticLibraryBinary staticLibraryBinary = project.binaries.libStaticLibrary as ProjectStaticLibraryBinary
-        with (oneTask(staticLibraryBinary.buildDependencies)) {
+        with(oneTask(staticLibraryBinary.buildDependencies)) {
             name == staticLibraryBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }

@@ -113,9 +113,9 @@ public abstract class ReflectiveRule {
         });
 
         if (isFinalizer) {
-            modelRegistry.finalize(path, bindingPaths, modelMutator);
+            modelRegistry.finalize(bindingPaths, modelMutator);
         } else {
-            modelRegistry.mutate(path, bindingPaths, modelMutator);
+            modelRegistry.mutate(bindingPaths, modelMutator);
         }
     }
 

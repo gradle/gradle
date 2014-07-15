@@ -66,7 +66,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
 
-        project.getModelRegistry().create("repositories", Arrays.asList("flavors", "platforms", "buildTypes"), new RepositoriesFactory("repositories", instantiator, fileResolver));
+        project.getModelRegistry().create(Arrays.asList("flavors", "platforms", "buildTypes"), new RepositoriesFactory("repositories", instantiator, fileResolver));
 
         ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer.class);
         components.registerFactory(ProjectNativeExecutable.class, new ProjectNativeExecutableFactory(instantiator, project));

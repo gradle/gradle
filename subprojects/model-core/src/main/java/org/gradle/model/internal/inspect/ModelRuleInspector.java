@@ -153,7 +153,7 @@ public class ModelRuleInspector {
                     }
                 });
 
-                modelRegistry.create(modelName, inputPaths, new ModelCreator<R>() {
+                modelRegistry.create(inputPaths, new ModelCreator<R>() {
 
                     public ModelReference<R> getReference() {
                         return new ModelReference<R>(new ModelPath(modelName), new ModelType<R>(returnType));

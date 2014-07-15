@@ -17,26 +17,25 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelState;
 import org.gradle.model.internal.core.rule.ModelCreationListener;
 import org.gradle.model.internal.core.rule.ModelCreator;
-import org.gradle.model.internal.core.rule.ModelMutation;
 import org.gradle.model.internal.core.rule.ModelMutator;
 
 import java.util.List;
 
 public interface ModelRegistry {
 
-    public <T> void create(String path, List<String> inputPaths, ModelCreator<T> creator);
+    public <T> void create(List<String> inputPaths, ModelCreator<T> creator);
 
-    public <T> void mutate(String path, List<String> inputPaths, ModelMutator<T> mutator);
+    public <T> void mutate(List<String> inputPaths, ModelMutator<T> mutator);
 
-    <T> void mutate(String path, ModelMutation<T> mutation);
+    public <T> void finalize(List<String> inputPaths, ModelMutator<T> mutator);
 
-    public <T> void finalize(String path, List<String> inputPaths, ModelMutator<T> mutator);
-
-    public <T> T get(String path, Class<T> type);
+    public <T> T get(ModelReference<T> reference);
 
     public <T> ModelElement<? extends T> element(ModelReference<T> reference);
 
@@ -45,5 +44,5 @@ public interface ModelRegistry {
 
     public void registerListener(ModelCreationListener listener);
 
-    void remove(String path);
+    void remove(ModelPath path);
 }

@@ -24,11 +24,7 @@ import com.google.common.collect.Multimap;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelElement;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelState;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
@@ -48,9 +44,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
-    public <T> void create(String path, List<String> inputPaths, ModelCreator<T> creator) {
-        ModelPath creationModelPath = ModelPath.path(path);
-        ModelCreation<?> existingCreation = creations.get(creationModelPath);
+    public <T> void create(List<String> inputPaths, ModelCreator<T> creator) {
+        ModelPath path = creator.getReference().getPath();
+        ModelCreation<?> existingCreation = creations.get(path);
 
         if (existingCreation != null) {
             throw new DuplicateModelException(
@@ -63,7 +59,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             );
         }
 
-        ModelElement<?> existing = store.get(creationModelPath);
+        ModelElement<?> existing = store.get(path);
         if (existing != null) {
             throw new DuplicateModelException(
                     String.format(
@@ -76,7 +72,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         notifyCreationListeners(creator);
-        creations.put(creationModelPath, new ModelCreation<T>(creator, toModelPaths(inputPaths)));
+        creations.put(path, new ModelCreation<T>(creator, toModelPaths(inputPaths)));
     }
 
     private static String toString(ModelRuleSourceDescriptor descriptor) {
@@ -89,36 +85,35 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ImmutableList.copyOf(collect(inputPaths, new ToModelPath()));
     }
 
-    public <T> void mutate(String path, List<String> inputPaths, ModelMutator<T> mutator) {
-        mutate(path, new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
+    public <T> void mutate(List<String> inputPaths, ModelMutator<T> mutator) {
+        mutate(new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
     }
 
-    public <T> void mutate(String path, ModelMutation<T> mutation) {
-        ModelPath mutationModelPath = assertNotFinalized(path);
-        mutators.put(mutationModelPath, mutation);
+    public <T> void mutate(ModelMutation<T> mutation) {
+        ModelPath path = mutation.getMutator().getReference().getPath();
+        assertNotFinalized(path);
+        mutators.put(path, mutation);
     }
 
-    public <T> void finalize(String path, List<String> inputPaths, ModelMutator<T> mutator) {
-        finalize(path, new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
+    public <T> void finalize(List<String> inputPaths, ModelMutator<T> mutator) {
+        finalize(new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
     }
 
-    public <T> void finalize(String path, ModelMutation<T> mutation) {
-        ModelPath mutationModelPath = assertNotFinalized(path);
-        finalizers.put(mutationModelPath, mutation);
+    public <T> void finalize(ModelMutation<T> mutation) {
+        ModelPath path = mutation.getMutator().getReference().getPath();
+        assertNotFinalized(path);
+        finalizers.put(path, mutation);
     }
 
-    private ModelPath assertNotFinalized(String path) {
-        ModelPath mutationModelPath = ModelPath.path(path);
-        if (store.containsKey(mutationModelPath)) {
-            throw new IllegalStateException("model '" + mutationModelPath + "' is finalized");
+    private void assertNotFinalized(ModelPath path) {
+        if (store.containsKey(path)) {
+            throw new IllegalStateException("model '" + path + "' is finalized");
         }
-        return mutationModelPath;
     }
 
-    public <T> T get(String path, Class<T> type) {
-        ModelPath modelPath = ModelPath.path(path);
-        ModelElement<?> model = get(modelPath);
-        ModelElement<? extends T> typed = assertType(model, new ModelType<T>(type), "get(String, Class)");
+    public <T> T get(ModelReference<T> reference) {
+        ModelElement<?> model = get(reference.getPath());
+        ModelElement<? extends T> typed = assertType(model, reference.getType(), "get(ModelReference)");
         return typed.getInstance();
     }
 
@@ -158,13 +153,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelCreationListeners.add(listener);
     }
 
-    public void remove(String path) {
-        ModelPath modelPath = ModelPath.path(path);
-        if (creations.remove(modelPath) == null) {
-            if (store.remove(modelPath) == null) {
+    public void remove(ModelPath path) {
+        if (creations.remove(path) == null) {
+            if (store.remove(path) == null) {
                 throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
             } else {
-                if (isDependedOn(modelPath)) {
+                if (isDependedOn(path)) {
                     throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
                 }
             }
