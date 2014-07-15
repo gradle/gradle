@@ -17,7 +17,6 @@ package org.gradle.nativebinaries.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.language.base.internal.LanguageRegistry
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeExecutableBinary
@@ -29,7 +28,6 @@ import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
 import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary
-import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.runtime.base.BinaryContainer
 /**
@@ -45,14 +43,8 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
 
         binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
-            binary.conventionMapping.buildable = { isBuildableBinary(binary) }
             createTasks(project, binary)
         }
-    }
-
-    static boolean isBuildableBinary(ProjectNativeBinaryInternal binary) {
-        final chain = binary.toolChain as ToolChainInternal
-        chain.select(binary.getTargetPlatform()).available
     }
 
     def createTasks(ProjectInternal project, ProjectNativeBinaryInternal binary) {

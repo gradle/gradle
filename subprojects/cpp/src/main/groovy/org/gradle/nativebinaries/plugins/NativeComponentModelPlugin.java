@@ -36,6 +36,7 @@ import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectComponentContainer;
@@ -130,7 +131,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
             Action<ProjectNativeBinary> configureBinaryAction = new ProjectNativeBinaryInitializer(buildDir);
             Action<ProjectNativeBinary> setToolsAction = new ToolSettingNativeBinaryInitializer(extensions.getByType(LanguageRegistry.class));
-            Action<ProjectNativeBinary> initAction = Actions.composite(configureBinaryAction, setToolsAction);
+            Action<ProjectNativeBinary> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<ProjectNativeComponent> createBinariesAction =
@@ -172,4 +173,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
     }
 
+    private static class MarkBinariesBuildable implements Action<ProjectNativeBinary> {
+        public void execute(ProjectNativeBinary projectNativeBinary) {
+            ToolChainInternal toolChainInternal = (ToolChainInternal) projectNativeBinary.getToolChain();
+            boolean canBuild = toolChainInternal.select(projectNativeBinary.getTargetPlatform()).isAvailable();
+            ((ProjectNativeBinaryInternal) projectNativeBinary).setBuildable(canBuild);
+        }
+    }
 }
