@@ -22,6 +22,7 @@ import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.FlavorContainer;
 
 public class DefaultFlavorContainer extends AbstractNamedDomainObjectContainer<Flavor> implements FlavorContainer {
+
     public DefaultFlavorContainer(Instantiator instantiator) {
         super(Flavor.class, instantiator);
     }

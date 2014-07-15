@@ -24,10 +24,10 @@ import org.gradle.nativebinaries.ProjectNativeBinary;
 
 import java.util.Map;
 
-class ToolSettingNativeBinaryInitializer implements Action<ProjectNativeBinary> {
+public class ToolSettingNativeBinaryInitializer implements Action<ProjectNativeBinary> {
     private final LanguageRegistry languageRegistry;
 
-    ToolSettingNativeBinaryInitializer(LanguageRegistry languageRegistry) {
+    public ToolSettingNativeBinaryInitializer(LanguageRegistry languageRegistry) {
         this.languageRegistry = languageRegistry;
     }
 

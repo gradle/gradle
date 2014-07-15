@@ -27,12 +27,12 @@ import org.gradle.nativebinaries.toolchain.ToolChain;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 
-class DefaultNativeBinariesFactory implements NativeBinariesFactory {
+public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
     private final Instantiator instantiator;
     private final Action<ProjectNativeBinary> configureAction;
     private final NativeDependencyResolver resolver;
 
-    DefaultNativeBinariesFactory(Instantiator instantiator, Action<ProjectNativeBinary> configureAction, NativeDependencyResolver resolver) {
+    public DefaultNativeBinariesFactory(Instantiator instantiator, Action<ProjectNativeBinary> configureAction, NativeDependencyResolver resolver) {
         this.configureAction = configureAction;
         this.instantiator = instantiator;
         this.resolver = resolver;

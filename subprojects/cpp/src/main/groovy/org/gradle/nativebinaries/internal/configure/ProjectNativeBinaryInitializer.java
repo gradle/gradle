@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
 import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
@@ -27,11 +26,11 @@ import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
-class ProjectNativeBinaryInitializer implements Action<ProjectNativeBinary> {
+public class ProjectNativeBinaryInitializer implements Action<ProjectNativeBinary> {
     private final File binariesOutputDir;
 
-    ProjectNativeBinaryInitializer(Project project) {
-        binariesOutputDir = new File(project.getBuildDir(), "binaries");
+    public ProjectNativeBinaryInitializer(File buildDir) {
+        binariesOutputDir = new File(buildDir, "binaries");
     }
 
     public void execute(ProjectNativeBinary nativeBinary) {

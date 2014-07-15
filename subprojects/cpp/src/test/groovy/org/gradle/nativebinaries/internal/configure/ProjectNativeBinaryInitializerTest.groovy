@@ -39,7 +39,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
 
     def setup() {
         project.buildDir >> tmpDir.testDirectory
-        configAction = new ProjectNativeBinaryInitializer(project)
+        configAction = new ProjectNativeBinaryInitializer(project.buildDir)
     }
 
     def "test executable"() {

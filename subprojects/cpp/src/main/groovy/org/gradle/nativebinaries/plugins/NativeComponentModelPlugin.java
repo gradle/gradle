@@ -15,19 +15,20 @@
  */
 package org.gradle.nativebinaries.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.Finalize;
-import org.gradle.model.ModelRules;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
@@ -36,9 +37,13 @@ import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
+import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectComponentContainer;
+import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -49,31 +54,19 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final ProjectConfigurationActionContainer configurationActions;
-    private final ModelRules modelRules;
-    private final NativeDependencyResolver resolver;
     private final FileResolver fileResolver;
 
     @Inject
-    public NativeComponentModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, ModelRules modelRules,
-                                      NativeDependencyResolver resolver, FileResolver fileResolver) {
+    public NativeComponentModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.configurationActions = configurationActions;
-        this.modelRules = modelRules;
-        this.resolver = resolver;
         this.fileResolver = fileResolver;
     }
 
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
 
-        modelRules.register("toolChains", ToolChainRegistryInternal.class, factory(DefaultToolChainRegistry.class));
-        modelRules.register("platforms", PlatformContainer.class, factory(DefaultPlatformContainer.class));
-        modelRules.register("buildTypes", BuildTypeContainer.class, factory(DefaultBuildTypeContainer.class));
-        modelRules.register("flavors", FlavorContainer.class, factory(DefaultFlavorContainer.class));
-
         project.getModelRegistry().create("repositories", Arrays.asList("flavors", "platforms", "buildTypes"), new RepositoriesFactory("repositories", instantiator, fileResolver));
-
-        modelRules.rule(new CreateNativeBinaries(instantiator, project, resolver));
 
         ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer.class);
         components.registerFactory(ProjectNativeExecutable.class, new ProjectNativeExecutableFactory(instantiator, project));
@@ -95,12 +88,62 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         ));
     }
 
-
     /**
      * Model rules.
      */
     @RuleSource
     public static class Rules {
+
+        @Model
+        ToolChainRegistryInternal toolChains(ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultToolChainRegistry.class, instantiator);
+        }
+
+        @Model
+        PlatformContainer platforms(ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
+        }
+
+        @Model
+        BuildTypeContainer buildTypes(ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultBuildTypeContainer.class, instantiator);
+        }
+
+        @Model
+        FlavorContainer flavors(ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
+        }
+
+        @Mutate
+        public void registerExtensions(ExtensionContainer extensions, PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors) {
+            extensions.add("platforms", platforms);
+            extensions.add("buildTypes", buildTypes);
+            extensions.add("flavors", flavors);
+        }
+
+        @Mutate
+        public void createNativeBinaries(BinaryContainer binaries, ExtensionContainer extensions, ToolChainRegistryInternal toolChains, PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors, ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
+            Action<ProjectNativeBinary> configureBinaryAction = new ProjectNativeBinaryInitializer(buildDir);
+            Action<ProjectNativeBinary> setToolsAction = new ToolSettingNativeBinaryInitializer(extensions.getByType(LanguageRegistry.class));
+            Action<ProjectNativeBinary> initAction = Actions.composite(configureBinaryAction, setToolsAction);
+            NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
+            BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
+            Action<ProjectNativeComponent> createBinariesAction =
+                    new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
+
+            ProjectComponentContainer projectComponents = extensions.getByType(ProjectComponentContainer.class);
+            for (ProjectNativeComponent component : projectComponents.withType(ProjectNativeComponent.class)) {
+                createBinariesAction.execute(component);
+                binaries.addAll(component.getBinaries());
+            }
+        }
+
         @Finalize
         public void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
             if (toolChains.isEmpty()) {
@@ -130,21 +173,4 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private <T> Factory<T> factory(Class<T> type) {
-        return new InstantiatingFactory<T>(type, instantiator);
-    }
-
-    private static class InstantiatingFactory<T> implements Factory<T> {
-        private final Class<T> type;
-        private final Instantiator instantiator;
-
-        public InstantiatingFactory(Class<T> type, Instantiator instantiator) {
-            this.type = type;
-            this.instantiator = instantiator;
-        }
-
-        public T create() {
-            return instantiator.newInstance(type, instantiator);
-        }
-    }
 }

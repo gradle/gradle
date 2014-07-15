@@ -106,6 +106,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             visitor.endChildren();
         }
     }
+
     private static class UnavailableToolChain implements ToolChainInternal {
         private final OperatingSystem operatingSystem = OperatingSystem.current();
         private final ToolSearchResult failure;

@@ -22,6 +22,7 @@ import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.BuildTypeContainer;
 
 public class DefaultBuildTypeContainer extends AbstractNamedDomainObjectContainer<BuildType> implements BuildTypeContainer {
+
     public DefaultBuildTypeContainer(Instantiator instantiator) {
         super(BuildType.class, instantiator);
     }
