@@ -77,6 +77,7 @@ import java.util.Set;
 public class DaemonClient implements BuildActionExecuter<BuildActionParameters> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private static final int STOP_TIMEOUT_SECONDS = 30;
+    private static final int CANCEL_TIMEOUT_SECONDS = 15; // cancel in server wait 10s before it calls forcefulStop
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
@@ -140,14 +141,13 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     /**
-     * Cancels all running builds in daemon(s), if any is running.
+     * Cancels build running in daemon, if it is running.
      */
-    public void cancel() {
+    public void cancelBuild(Object cancelledBuildId) {
         long start = System.currentTimeMillis();
-        long expiry = start + STOP_TIMEOUT_SECONDS * 1000;
+        long expiry = start + CANCEL_TIMEOUT_SECONDS * 1000;
         Set<String> cancelled = new HashSet<String>();
 
-        // TODO - only connect to daemons that we have not yet sent a stop request to
         DaemonClientConnection connection = connector.maybeConnect(compatibilitySpec);
         if (connection == null) {
             LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
@@ -160,13 +160,13 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         while (connection != null && System.currentTimeMillis() < expiry) {
             try {
                 if (cancelled.add(connection.getUid())) {
-                    new CancelDispatcher(idGenerator).dispatch(connection);
+                    new CancelDispatcher(idGenerator).dispatch(connection, cancelledBuildId);
                     LOGGER.lifecycle("Gradle build stopped.");
                 }
             } finally {
                 connection.stop();
             }
-            connection = connector.maybeConnect(compatibilitySpec);
+            connection = connector.maybeConnect(DaemonUidCompatibilitySpec.createSpecRejectingUids(compatibilitySpec, cancelled));
         }
 
         if (connection != null) {
@@ -181,11 +181,12 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * @throws org.gradle.launcher.exec.ReportedException On failure, when the failure has already been logged/reported.
      */
     public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, BuildActionParameters parameters) {
-        Build build = new Build(idGenerator.generateId(), action, parameters);
+        Object buildId = idGenerator.generateId();
+        Build build = new Build(buildId, action, parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
-            final CancelCallback cancelCallback = new CancelCallback(connection.getUid());
+            final CancelCallback cancelCallback = new CancelCallback(connection.getUid(), buildId);
             if (cancellationToken.canBeCancelled()) {
                 boolean cancelled = cancellationToken.addCallback(cancelCallback);
                 if (cancelled) {
@@ -210,16 +211,18 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     // TODO disable this callback when the build is finished
     private class CancelCallback implements Runnable {
         private final ExplainingSpec<DaemonContext> executingCompatibilitySpec;
+        private final Object buildId;
         private volatile boolean wasCancelled;
 
-        public CancelCallback(String connectionUid) {
-            executingCompatibilitySpec = new DaemonUidCompatibilitySpec(compatibilitySpec, connectionUid);
+        public CancelCallback(String connectionUid, Object buildId) {
+            executingCompatibilitySpec = DaemonUidCompatibilitySpec.createSpecRequiringUid(compatibilitySpec, connectionUid);
+            this.buildId = buildId;
         }
 
         public void run() {
             LOGGER.info("Request daemon stop to handle build cancellation...");
             DaemonClientConnection connection = connector.maybeConnect(executingCompatibilitySpec);
-            new CancelDispatcher(idGenerator).dispatch(connection);
+            new CancelDispatcher(idGenerator).dispatch(connection, buildId);
             LOGGER.lifecycle("Gradle build stopped.");
             wasCancelled = true;
             connection.stop();

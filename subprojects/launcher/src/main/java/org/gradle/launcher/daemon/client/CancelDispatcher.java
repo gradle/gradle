@@ -33,16 +33,10 @@ public class CancelDispatcher {
         this.idGenerator = idGenerator;
     }
 
-    public void dispatch(Connection<Object> connection) {
+    public void dispatch(Connection<Object> connection, Object toCancelId) {
         Throwable failure = null;
         try {
-            connection.dispatch(new Cancel(idGenerator.generateId()));
-//            Object receivedResult = connection.receive();
-//            while ((receivedResult != null) && !(receivedResult instanceof Result)) {
-//                LOGGER.debug("Received {}", receivedResult);
-//                receivedResult = connection.receive();
-//            }
-//            Result result = (Result) receivedResult;
+            connection.dispatch(new Cancel(idGenerator.generateId(), toCancelId));
             Result result = (Result) connection.receive();
             if (result instanceof Failure) {
                 failure = ((Failure) result).getValue();

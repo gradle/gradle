@@ -16,7 +16,22 @@
 package org.gradle.launcher.daemon.protocol;
 
 public class Cancel extends Command {
-    public Cancel(Object identifier) {
+    private final Object toCancelIdentifier;
+
+    public Cancel(Object identifier, Object toCancelIdentifier) {
         super(identifier);
+        this.toCancelIdentifier = toCancelIdentifier;
+    }
+
+    public Object getToCancelIdentifier() {
+        return toCancelIdentifier;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{"
+                + "id=" + getIdentifier()
+                + ",cancelId=" + toCancelIdentifier
+                + '}';
     }
 }

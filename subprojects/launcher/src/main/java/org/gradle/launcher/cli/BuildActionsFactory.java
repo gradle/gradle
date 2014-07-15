@@ -100,7 +100,7 @@ class BuildActionsFactory implements CommandLineAction {
 
         parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").incubating();
         parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.");
-        parser.option(CANCEL).hasDescription("Cancels the build in Gradle daemon if it is running.");
+        parser.option(CANCEL).hasArgument().hasDescription("Cancels the build in Gradle daemon if it is running.").incubating();
     }
 
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
@@ -123,7 +123,7 @@ class BuildActionsFactory implements CommandLineAction {
             return stopAllDaemons(daemonParameters, loggingServices);
         }
         if (commandLine.hasOption(CANCEL)) {
-            return cancelAllDaemons(daemonParameters, loggingServices);
+            return cancelDaemonBuild(daemonParameters, loggingServices, commandLine.option(CANCEL).getValue());
         }
         if (commandLine.hasOption(FOREGROUND)) {
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
@@ -145,10 +145,10 @@ class BuildActionsFactory implements CommandLineAction {
         return new StopDaemonAction(stopClient);
     }
 
-    private Runnable cancelAllDaemons(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+    private Runnable cancelDaemonBuild(DaemonParameters daemonParameters, ServiceRegistry loggingServices, String cancelledBuildId) {
         DaemonClientServices clientServices = new StopDaemonClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient stopClient = clientServices.get(DaemonClient.class);
-        return new CancelDaemonAction(stopClient);
+        return new CancelDaemonAction(stopClient, cancelledBuildId);
     }
 
     private Runnable runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {

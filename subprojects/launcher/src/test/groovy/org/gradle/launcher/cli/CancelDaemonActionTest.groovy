@@ -20,14 +20,15 @@ import spock.lang.Specification
 
 class CancelDaemonActionTest extends Specification {
     final DaemonClient client = Mock()
-    final CancelDaemonAction action = new CancelDaemonAction(client)
+    final Object toCancel = Mock()
+    final CancelDaemonAction action = new CancelDaemonAction(client, toCancel)
 
     def executesCancelCommand() {
         when:
         action.run()
 
         then:
-        1 * client.cancel()
+        1 * client.cancelBuild(toCancel)
         0 * _._
     }
 }

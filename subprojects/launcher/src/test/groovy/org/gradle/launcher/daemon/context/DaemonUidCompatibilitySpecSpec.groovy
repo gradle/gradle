@@ -51,25 +51,31 @@ class DaemonUidCompatibilitySpecSpec extends Specification {
         createContext(serverConfigure)
     }
 
-    private boolean isCompatible() {
-        new DaemonUidCompatibilitySpec(new DaemonCompatibilitySpec(clientContext), 'a').isSatisfiedBy(serverContext)
+    private requiringSpec() {
+        DaemonUidCompatibilitySpec.createSpecRequiringUid(new DaemonCompatibilitySpec(clientContext), 'a')
     }
 
-    private String getUnsatisfiedReason() {
-        new DaemonUidCompatibilitySpec(new DaemonCompatibilitySpec(clientContext), 'a').whyUnsatisfied(serverContext)
+    private rejectingSpec() {
+        DaemonUidCompatibilitySpec.createSpecRejectingUids(new DaemonCompatibilitySpec(clientContext), ['a'])
     }
 
     def "default contexts are compatible"() {
         expect:
-        compatible
-        !unsatisfiedReason
+        requiringSpec().isSatisfiedBy(serverContext)
+        !requiringSpec().whyUnsatisfied(serverContext)
+
+        !rejectingSpec().isSatisfiedBy(serverContext)
+        rejectingSpec().whyUnsatisfied(serverContext).contains "Different daemon instance"
     }
 
     def "contexts with different uids incompatible"() {
         server { uid = 'b' }
 
         expect:
-        !compatible
-        unsatisfiedReason.contains "Different daemon instance"
+        !requiringSpec().isSatisfiedBy(serverContext)
+        requiringSpec().whyUnsatisfied(serverContext).contains "Different daemon instance"
+
+        rejectingSpec().isSatisfiedBy(serverContext)
+        !rejectingSpec().whyUnsatisfied(serverContext)
     }
 }

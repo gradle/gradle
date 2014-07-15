@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server;
 
+import com.google.common.base.Objects;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
@@ -42,6 +43,15 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
+    private static class ScopedBuildCancellationToken {
+        final Object cancellationId;
+        final DefaultBuildCancellationToken token;
+
+        public ScopedBuildCancellationToken(Object cancellationId, DefaultBuildCancellationToken token) {
+            this.cancellationId = cancellationId;
+            this.token = token;
+        }
+    }
     private enum State {Running, StopRequested, Stopped, Broken}
 
     private final Lock lock = new ReentrantLock();
@@ -51,7 +61,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private State state = State.Running;
     private long lastActivityAt = -1;
     private String currentCommandExecution;
-    private DefaultBuildCancellationToken cancellationToken;
+    private volatile ScopedBuildCancellationToken cancellationToken;
 
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
@@ -66,7 +76,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         this.onFinishCommand = onFinishCommand;
         this.cancelTimeoutMs = cancelTimeoutMs;
         updateActivityTimestamp();
-        cancellationToken = new DefaultBuildCancellationToken();
+        cancellationToken = new ScopedBuildCancellationToken(new Object(), new DefaultBuildCancellationToken());
     }
 
     private void setState(State state) {
@@ -188,23 +198,31 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public BuildCancellationToken getCancellationToken() {
+    public BuildCancellationToken updateCancellationToken(Object cancellationTokenId) {
         // TODO under lock?
-        return cancellationToken;
+        DefaultBuildCancellationToken token = new DefaultBuildCancellationToken();
+        cancellationToken = new ScopedBuildCancellationToken(cancellationTokenId, token);
+        return token;
     }
 
-    public void cancelBuild() {
+    public void cancelBuild(Object cancellationTokenId) {
         lock.lock();
         try {
+            ScopedBuildCancellationToken currentToken = cancellationToken;
+            if (!Objects.equal(currentToken.cancellationId, cancellationTokenId)
+                    && !Objects.equal(currentToken.cancellationId.toString(), cancellationTokenId)) {
+                LOGGER.info("Cancel request does not match current build ({}). Ignoring", currentToken.cancellationId);
+                return;
+            }
             long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
             LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
-            cancellationToken.doCancel();
+            currentToken.token.doCancel();
             while (System.currentTimeMillis() < waitUntil) {
                 try {
                     switch (state) {
                         case Running:
                             if (isIdle()) {
-                                LOGGER.debug("Cancel processed: daemon is idle now.");
+                                LOGGER.info("Cancel processed: daemon is idle now.");
                                 return;
                             }
                             // fall-through
@@ -222,6 +240,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
+            LOGGER.info("Cancel request not processed: will force stop.");
             requestForcefulStop();
         } finally {
             lock.unlock();
@@ -258,7 +277,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 currentCommandExecution = commandDisplayName;
                 this.onDisconnect = onDisconnect;
                 updateActivityTimestamp();
-                cancellationToken = new DefaultBuildCancellationToken();
                 condition.signalAll();
             } catch (Throwable throwable) {
                 setState(State.Broken);

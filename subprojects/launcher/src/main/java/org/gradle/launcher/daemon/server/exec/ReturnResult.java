@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.CommandFailure;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Success;
-import org.gradle.tooling.exceptions.BuildCancelledException;
 
 /**
  * Handles sending the result of the execution back to the client.
@@ -39,11 +38,7 @@ public class ReturnResult implements DaemonCommandAction {
         if (commandException != null) {
             result = new CommandFailure(commandException);
         } else {
-            if (execution.getDaemonStateControl().getCancellationToken().isCancellationRequested()) {
-                result = new CommandFailure(new BuildCancelledException("Build was cancelled"));
-            } else {
-                result = new Success(execution.getResult());
-            }
+            result = new Success(execution.getResult());
         }
 
         LOGGER.debug("Daemon is dispatching the build result: {}", result);

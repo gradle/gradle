@@ -20,9 +20,10 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.exec.FixedBuildCancellationToken;
+import org.gradle.launcher.exec.BuildCancellationToken;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.launcher.exec.ReportedException;
+import org.gradle.tooling.exceptions.BuildCancelledException;
 
 /**
  * Actually executes the build.
@@ -43,7 +44,13 @@ public class ExecuteBuild extends BuildCommandOnly {
         LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
         InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(launcherFactory);
         try {
-            execution.setResult(executer.execute(build.getAction(), new FixedBuildCancellationToken(), build.getParameters()));
+            BuildCancellationToken cancellationToken = execution.getDaemonStateControl().updateCancellationToken(build.getIdentifier());
+            Object result = executer.execute(build.getAction(), cancellationToken, build.getParameters());
+            if (cancellationToken.isCancellationRequested()) {
+                execution.setException(new BuildCancelledException("Build cancelled."));
+            } else {
+                execution.setResult(result);
+            }
         } catch (ReportedException e) {
             /*
                 We have to wrap in a ReportedException so the other side doesn't re-log this exception, because it's already

@@ -15,49 +15,69 @@
  */
 package org.gradle.launcher.daemon.context;
 
-import com.google.common.base.Objects;
 import org.gradle.api.internal.specs.ExplainingSpec;
+
+import java.util.Collection;
+import java.util.Collections;
 
 public class DaemonUidCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     private final ExplainingSpec<DaemonContext> delegateSpec;
-    private final String desiredUid;
+    private final ExplainingSpec<String> uidSpec;
 
-    public DaemonUidCompatibilitySpec(ExplainingSpec<DaemonContext> delegateSpec, String desiredUid) {
+    public static ExplainingSpec<DaemonContext> createSpecRequiringUid(ExplainingSpec<DaemonContext> delegateSpec, String desiredUid) {
+        return new DaemonUidCompatibilitySpec(delegateSpec, new UidRestrictionSpec(true, Collections.singleton(desiredUid)));
+    }
+
+    public static ExplainingSpec<DaemonContext> createSpecRejectingUids(ExplainingSpec<DaemonContext> delegateSpec, Collection<String> desiredUids) {
+        return new DaemonUidCompatibilitySpec(delegateSpec, new UidRestrictionSpec(false, desiredUids));
+    }
+
+    private static class UidRestrictionSpec implements ExplainingSpec<String> {
+        private final boolean required;
+        private final Collection<String> uids;
+
+        public UidRestrictionSpec(boolean required, Collection<String> uids) {
+            this.required = required;
+            this.uids = uids;
+        }
+
+        public String whyUnsatisfied(String uid) {
+            if (!isSatisfiedBy(uid)) {
+                return "UID restriction does not hold.\n" + description(uid);
+            }
+            return null;
+        }
+
+        private String description(String uid) {
+            return (required ? "Required: " : "Rejected: ") + uids + "\n"
+                    + "Actual: " + uid + "\n";
+        }
+
+        public boolean isSatisfiedBy(String uid) {
+            return uids.contains(uid) == required;
+        }
+    }
+
+    public DaemonUidCompatibilitySpec(ExplainingSpec<DaemonContext> delegateSpec, ExplainingSpec<String> uidSpec) {
         this.delegateSpec = delegateSpec;
-        this.desiredUid = desiredUid;
+        this.uidSpec = uidSpec;
     }
 
     public boolean isSatisfiedBy(DaemonContext potentialContext) {
-        return delegateSpec.isSatisfiedBy(potentialContext) && whyUnsatisfiedImpl(potentialContext) == null;
+        return delegateSpec.isSatisfiedBy(potentialContext) && uidSpec.isSatisfiedBy(potentialContext.getUid());
     }
 
     public String whyUnsatisfied(DaemonContext context) {
-        String unsatisfiedDesc = whyUnsatisfiedImpl(context);
+        String unsatisfiedDesc = uidSpec.whyUnsatisfied(context.getUid());
         if (unsatisfiedDesc != null) {
-            return unsatisfiedDesc;
+            return "Different daemon instance. " + unsatisfiedDesc;
         }
         return delegateSpec.whyUnsatisfied(context);
     }
 
-    public String whyUnsatisfiedImpl(DaemonContext context) {
-        if (!uidMatches(context)) {
-            return "Different daemon instance.\n" + description(context);
-        }
-        return null;
-    }
-
-    private String description(DaemonContext context) {
-        return "Wanted: " + this + "\n"
-                + "Actual: " + context + "\n";
-    }
-
-    private boolean uidMatches(DaemonContext potentialContext) {
-        return Objects.equal(potentialContext.getUid(), desiredUid);
-    }
-
     @Override
     public String toString() {
-        return delegateSpec.toString() + ",desiredUid=" + desiredUid;
+        return getClass().getSimpleName() + "{" + delegateSpec.toString() + "," + uidSpec.toString() + "}";
     }
 }

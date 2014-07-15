@@ -19,12 +19,14 @@ import org.gradle.launcher.daemon.client.DaemonClient;
 
 public class CancelDaemonAction implements Runnable {
     private final DaemonClient client;
+    private final Object cancelledBuildId;
 
-    public CancelDaemonAction(DaemonClient client) {
+    public CancelDaemonAction(DaemonClient client, Object cancelledBuildId) {
         this.client = client;
+        this.cancelledBuildId = cancelledBuildId;
     }
 
     public void run() {
-        client.cancel();
+        client.cancelBuild(cancelledBuildId);
     }
 }

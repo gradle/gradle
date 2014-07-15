@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.Cancel;
 import org.gradle.launcher.daemon.protocol.Success;
 
@@ -22,13 +24,15 @@ import org.gradle.launcher.daemon.protocol.Success;
  * If the command is a Stop, asks the daemon to stop asynchronously and does not proceed with execution.
  */
 public class HandleCancel implements DaemonCommandAction {
+    private static final Logger LOGGER = Logging.getLogger(HandleCancel.class);
+
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof Cancel) {
-            System.out.println("HandelCancel processing");
-            execution.getDaemonStateControl().cancelBuild();
+            LOGGER.info("HandleCancel processing {}", execution.getCommand());
+            Object toCancel = ((Cancel) execution.getCommand()).getToCancelIdentifier();
+            execution.getDaemonStateControl().cancelBuild(toCancel);
             execution.getConnection().completed(new Success(null));
         } else {
-            System.out.println("HandelCancel calls proceed");
             execution.proceed();
         }
     }

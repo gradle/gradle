@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client
 
+import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.initialization.BuildAction
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
@@ -94,13 +95,14 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def cancelsTheDaemonBuildWhenRunning() {
+        Object toCancel = Mock()
         when:
-        client.cancel()
+        client.cancelBuild(toCancel)
 
         then:
         _ * connection.uid >> '1'
-        2 * connector.maybeConnect(compatibilitySpec) >>> [connection, null]
-        1 * connection.dispatch({it instanceof Cancel})
+        2 * connector.maybeConnect({ it instanceof ExplainingSpec}) >>> [connection, null]
+        1 * connection.dispatch({it instanceof Cancel && ((Cancel) it).toCancelIdentifier == toCancel})
         1 * connection.receive() >> new Success(null)
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
@@ -108,8 +110,9 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def cancelsTheDaemonBuildWhenNotRunning() {
+        Object toCancel = Mock()
         when:
-        client.cancel()
+        client.cancelBuild(toCancel)
 
         then:
         1 * connector.maybeConnect(compatibilitySpec) >> null
@@ -119,14 +122,15 @@ class DaemonClientTest extends ConcurrentSpecification {
     def "cancels all compatible daemons"() {
         DaemonClientConnection connection2 = Mock()
 
+        Object toCancel = Mock()
         when:
-        client.cancel()
+        client.cancelBuild(toCancel)
 
         then:
         _ * connection.uid >> '1'
         _ * connection2.uid >> '2'
-        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection2, null]
-        1 * connection.dispatch({it instanceof Cancel})
+        3 * connector.maybeConnect({ it instanceof ExplainingSpec}) >>> [connection, connection2, null]
+        1 * connection.dispatch({it instanceof Cancel && ((Cancel) it).toCancelIdentifier == toCancel})
         1 * connection.receive() >> new Success(null)
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
@@ -138,13 +142,14 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "cancels build in each connection at most once"() {
+        Object toCancel = Mock()
         when:
-        client.cancel()
+        client.cancelBuild(toCancel)
 
         then:
         _ * connection.uid >> '1'
-        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection, null]
-        1 * connection.dispatch({it instanceof Cancel})
+        3 * connector.maybeConnect({ it instanceof ExplainingSpec}) >>> [connection, connection, null]
+        1 * connection.dispatch({it instanceof Cancel && ((Cancel) it).toCancelIdentifier == toCancel})
         1 * connection.receive() >> new Success(null)
         1 * connection.dispatch({it instanceof Finished})
         2 * connection.stop()
@@ -199,7 +204,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connection.getUid() >> '1'
         1 * connector.maybeConnect(_) >> { args ->
             assert args[0] instanceof DaemonUidCompatibilitySpec
-            args[0].desiredUid == '1'
+            assert args[0].uidSpec.isSatisfiedBy('1')
             return connection
         }
         1 * cancellationToken.canBeCancelled() >> true
@@ -233,12 +238,12 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connection.getUid() >> '1'
         1 * connector.maybeConnect(_) >> { args ->
             assert args[0] instanceof DaemonUidCompatibilitySpec
-            args[0].desiredUid == '1'
+            assert args[0].uidSpec.isSatisfiedBy('1')
             return connection
         }
         1 * cancellationToken.canBeCancelled() >> true
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
-            // println 'register cancel callback ' + callback
+            // simulate cancel request processing
             callback.run()
             return false
         }
