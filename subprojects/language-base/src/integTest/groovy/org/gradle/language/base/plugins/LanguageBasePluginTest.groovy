@@ -15,10 +15,14 @@
  */
 package org.gradle.language.base.plugins
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.DefaultBinaryContainer
 import org.gradle.runtime.base.internal.ProjectBinaryInternal
 import org.gradle.util.TestUtil
 
@@ -45,16 +49,27 @@ class LanguageBasePluginTest extends WellBehavedPluginTest {
     }
 
     def "creates a lifecycle task for each binary"() {
+        def tasks = Mock(TaskContainer)
+        def binaries = new DefaultBinaryContainer(new DirectInstantiator())
         def binary = Mock(ProjectBinaryInternal)
         def namingScheme = Mock(BinaryNamingScheme)
+        def task = Mock(Task)
 
         when:
-        project.extensions.findByType(BinaryContainer).add(binary)
+        binaries.add(binary)
+        def rules = new LanguageBasePlugin.Rules()
+        rules.createLifecycleTaskForBinary(tasks, binaries)
 
         then:
-        _ * binary.name >> "binaryName"
-        1 * binary.namingScheme >> namingScheme
-        1 * namingScheme.lifecycleTaskName >> "lifecycle"
-        1 * binary.setBuildTask({it == project.tasks.findByName("lifecycle")})
+        binary.name >> "binaryName"
+        binary.toString() >> "binary foo"
+        binary.namingScheme >> namingScheme
+        namingScheme.lifecycleTaskName >> "lifecycle"
+
+        and:
+        1 * tasks.create("lifecycle") >> task
+        1 * task.setGroup("build")
+        1 * task.setDescription("Assembles binary foo.")
+        1 * binary.setBuildTask(task)
     }
 }
