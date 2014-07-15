@@ -25,15 +25,13 @@ import org.gradle.model.internal.core.rule.ModelCreationListener;
 import org.gradle.model.internal.core.rule.ModelCreator;
 import org.gradle.model.internal.core.rule.ModelMutator;
 
-import java.util.List;
-
 public interface ModelRegistry {
 
-    public <T> void create(List<String> inputPaths, ModelCreator<T> creator);
+    public <T> void create(ModelCreator<T> creator);
 
-    public <T> void mutate(List<String> inputPaths, ModelMutator<T> mutator);
+    public <T> void mutate(ModelMutator<T> mutator);
 
-    public <T> void finalize(List<String> inputPaths, ModelMutator<T> mutator);
+    public <T> void finalize(ModelMutator<T> mutator);
 
     public <T> T get(ModelReference<T> reference);
 

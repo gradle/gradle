@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.internal.configure;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
@@ -36,6 +37,7 @@ import org.gradle.nativebinaries.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 public class RepositoriesFactory implements ModelCreator<Repositories> {
     private final ModelReference<Repositories> reference;
@@ -46,6 +48,14 @@ public class RepositoriesFactory implements ModelCreator<Repositories> {
         this.reference = new ModelReference<Repositories>(new ModelPath(modelPath), new ModelType<Repositories>(Repositories.class));
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
+    }
+
+    public List<? extends ModelReference<?>> getInputBindings() {
+        return ImmutableList.of(
+                ModelReference.of("flavors", FlavorContainer.class),
+                ModelReference.of("platforms", PlatformContainer.class),
+                ModelReference.of("buildTypes", BuildTypeContainer.class)
+        );
     }
 
     private final ModelRuleSourceDescriptor descriptor = new MethodModelRuleSourceDescriptor(findCreateMethod());

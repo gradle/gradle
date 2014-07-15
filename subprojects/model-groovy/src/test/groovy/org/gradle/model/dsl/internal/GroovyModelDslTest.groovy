@@ -34,7 +34,12 @@ class GroovyModelDslTest extends Specification {
 
     void register(String path, Object element) {
         def reference = new ModelReference(new ModelPath(path), ModelType.of(element.class))
-        modelRegistry.create([], new ModelCreator() {
+        modelRegistry.create(new ModelCreator() {
+            @Override
+            List<? extends ModelReference<?>> getInputBindings() {
+                []
+            }
+
             @Override
             ModelReference getReference() {
                 reference

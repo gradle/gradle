@@ -15,8 +15,8 @@
  */
 package org.gradle.runtime.jvm.plugins;
 
-import com.google.common.reflect.TypeToken;
 import org.gradle.api.*;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.service.ServiceRegistry;
@@ -25,14 +25,6 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.Inputs;
-import org.gradle.model.internal.core.rule.ModelCreator;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.NamedProjectComponentIdentifier;
 import org.gradle.runtime.base.ProjectComponentContainer;
@@ -40,6 +32,7 @@ import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier;
+import org.gradle.runtime.jvm.JvmComponentExtension;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary;
@@ -47,9 +40,7 @@ import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
-import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.runtime.jvm.ProjectJvmLibrary} library type for
@@ -57,12 +48,6 @@ import java.util.Collections;
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public JvmComponentPlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
 
     public void apply(final Project project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
@@ -77,21 +62,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         final NamedDomainObjectContainer<ProjectJvmLibrary> jvmLibraries = projectComponents.containerWithType(ProjectJvmLibrary.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
-
-        modelRegistry.create(Collections.<String>emptyList(), new ModelCreator<NamedDomainObjectCollection<ProjectJvmLibrary>>() {
-            public ModelReference<NamedDomainObjectCollection<ProjectJvmLibrary>> getReference() {
-                return ModelReference.of(new ModelPath("jvm.libraries"), ModelType.of(new TypeToken<NamedDomainObjectCollection<ProjectJvmLibrary>>() {
-                }));
-            }
-
-            public NamedDomainObjectCollection<ProjectJvmLibrary> create(Inputs inputs) {
-                return jvmLibraries;
-            }
-
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor(JvmComponentPlugin.class.getName() + ".apply");
-            }
-        });
     }
 
     /**
@@ -99,6 +69,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
      */
     @RuleSource
     public static class Rules {
+
+        @Model("jvm.libraries")
+        NamedDomainObjectCollection<ProjectJvmLibrary> jvmLibraries(ExtensionContainer extensions) {
+            return extensions.getByType(JvmComponentExtension.class).getLibraries();
+        }
 
         @Model
         BinaryNamingSchemeBuilder binaryNamingSchemeBuilder() {

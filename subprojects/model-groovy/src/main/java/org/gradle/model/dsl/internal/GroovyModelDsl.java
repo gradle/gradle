@@ -32,6 +32,7 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescrip
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
@@ -55,7 +56,7 @@ public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
-        modelRegistry.mutate(Collections.<String>emptyList(), new ModelMutator<Object>() {
+        modelRegistry.mutate(new ModelMutator<Object>() {
             public ModelReference<Object> getReference() {
                 return new ModelReference<Object>(modelPath, new ModelType<Object>(Object.class));
             }
@@ -66,6 +67,10 @@ public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
 
             public ModelRuleSourceDescriptor getSourceDescriptor() {
                 return new SimpleModelRuleSourceDescriptor("model." + modelPath);
+            }
+
+            public List<? extends ModelReference<?>> getInputBindings() {
+                return Collections.emptyList();
             }
         });
     }

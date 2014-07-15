@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
@@ -142,7 +143,7 @@ public class ModelRuleInspector {
 
     private <T, R> void doRegisterCreation(final Method method, final TypeToken<R> returnType, final String modelName, final ModelRegistry modelRegistry) {
         ReflectiveRule.bind(modelRegistry, method, new Action<List<ReflectiveRule.BindableParameter<?>>>() {
-            public void execute(List<ReflectiveRule.BindableParameter<?>> bindableParameters) {
+            public void execute(final List<ReflectiveRule.BindableParameter<?>> bindableParameters) {
                 @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) method.getDeclaringClass();
                 @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
                 final JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
@@ -153,7 +154,15 @@ public class ModelRuleInspector {
                     }
                 });
 
-                modelRegistry.create(inputPaths, new ModelCreator<R>() {
+                modelRegistry.create(new ModelCreator<R>() {
+                    public List<? extends ModelReference<?>> getInputBindings() {
+                        return Lists.transform(bindableParameters, new Function<ReflectiveRule.BindableParameter<?>, ModelReference<?>>() {
+                            @Nullable
+                            public ModelReference<?> apply(ReflectiveRule.BindableParameter<?> input) {
+                                return ModelReference.of(input.getPath(), input.getType());
+                            }
+                        });
+                    }
 
                     public ModelReference<R> getReference() {
                         return new ModelReference<R>(new ModelPath(modelName), new ModelType<R>(returnType));

@@ -44,7 +44,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
-    public <T> void create(List<String> inputPaths, ModelCreator<T> creator) {
+    public <T> void create(ModelCreator<T> creator) {
         ModelPath path = creator.getReference().getPath();
         ModelCreation<?> existingCreation = creations.get(path);
 
@@ -72,7 +72,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         notifyCreationListeners(creator);
-        creations.put(path, new ModelCreation<T>(creator, toModelPaths(inputPaths)));
+        creations.put(path, new ModelCreation<T>(creator, toModelPaths(creator.getInputBindings())));
     }
 
     private static String toString(ModelRuleSourceDescriptor descriptor) {
@@ -81,12 +81,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         return stringBuilder.toString();
     }
 
-    private static ImmutableList<ModelPath> toModelPaths(List<String> inputPaths) {
+    private static ImmutableList<ModelPath> toModelPaths(List<? extends ModelReference<?>> inputPaths) {
         return ImmutableList.copyOf(collect(inputPaths, new ToModelPath()));
     }
 
-    public <T> void mutate(List<String> inputPaths, ModelMutator<T> mutator) {
-        mutate(new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
+    public <T> void mutate(ModelMutator<T> mutator) {
+        mutate(new ModelMutation<T>(mutator, toModelPaths(mutator.getInputBindings())));
     }
 
     public <T> void mutate(ModelMutation<T> mutation) {
@@ -95,8 +95,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         mutators.put(path, mutation);
     }
 
-    public <T> void finalize(List<String> inputPaths, ModelMutator<T> mutator) {
-        finalize(new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
+    public <T> void finalize(ModelMutator<T> mutator) {
+        finalize(new ModelMutation<T>(mutator, toModelPaths(mutator.getInputBindings())));
     }
 
     public <T> void finalize(ModelMutation<T> mutation) {
@@ -327,9 +327,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private static class ToModelPath implements Transformer<ModelPath, String> {
-        public ModelPath transform(String string) {
-            return ModelPath.path(string);
+    private static class ToModelPath implements Transformer<ModelPath, ModelReference<?>> {
+        public ModelPath transform(ModelReference<?> reference) {
+            return reference.getPath();
         }
     }
 

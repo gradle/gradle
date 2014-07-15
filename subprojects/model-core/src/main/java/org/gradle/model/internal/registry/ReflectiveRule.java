@@ -113,9 +113,9 @@ public abstract class ReflectiveRule {
         });
 
         if (isFinalizer) {
-            modelRegistry.finalize(bindingPaths, modelMutator);
+            modelRegistry.finalize(modelMutator);
         } else {
-            modelRegistry.mutate(bindingPaths, modelMutator);
+            modelRegistry.mutate(modelMutator);
         }
     }
 
@@ -130,6 +130,14 @@ public abstract class ReflectiveRule {
 
             public ModelReference<T> getReference() {
                 return new ModelReference<T>(first.path, first.type);
+            }
+
+            public List<? extends ModelReference<?>> getInputBindings() {
+                ImmutableList.Builder<ModelReference<?>> builder = ImmutableList.builder();
+                for (BindableParameter<?> bindableParameter : tail) {
+                    builder.add(bindableParameter.getReference());
+                }
+                return builder.build();
             }
 
             public void mutate(T object, Inputs inputs) {
@@ -204,6 +212,14 @@ public abstract class ReflectiveRule {
 
         public ModelType<T> getType() {
             return type;
+        }
+
+        public ModelReference<T> getReference() {
+            if (path == null) {
+                throw new NullPointerException("path cannot be null");
+            }
+
+            return ModelReference.of(path, type);
         }
     }
 }

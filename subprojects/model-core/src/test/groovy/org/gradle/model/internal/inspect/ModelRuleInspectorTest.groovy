@@ -17,11 +17,7 @@
 package org.gradle.model.internal.inspect
 
 import com.google.common.reflect.TypeToken
-import org.gradle.model.Finalize
-import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.Model
-import org.gradle.model.Mutate
-import org.gradle.model.RuleSource
+import org.gradle.model.*
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelState
@@ -215,7 +211,12 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create([], new ModelCreator<List<String>>() {
+        registry.create(new ModelCreator<List<String>>() {
+            @Override
+            List<? extends ModelReference<?>> getInputBindings() {
+                []
+            }
+
             @Override
             ModelReference getReference() {
                 reference
@@ -238,6 +239,7 @@ class ModelRuleInspectorTest extends Specification {
         then:
         registry.element(reference).instance.sort() == ["1", "2"]
     }
+
     static class MutationAndFinalizeRules {
         @Finalize
         static void finalize1(List<String> strings) {
@@ -262,7 +264,12 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create([], new ModelCreator<List<String>>() {
+        registry.create(new ModelCreator<List<String>>() {
+            @Override
+            List<? extends ModelReference<?>> getInputBindings() {
+                []
+            }
+
             @Override
             ModelReference getReference() {
                 reference

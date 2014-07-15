@@ -113,7 +113,7 @@ class PluginModelRuleExtractorTest extends Specification {
         extractor.execute(application(new HasSource(), new ModelAwareTarget()))
 
         then:
-        1 * registry.create([], { it.reference.type.rawClass == Thing })
+        1 * registry.create({ it.reference.type.rawClass == Thing })
     }
 
     def "target is not model capable"() {

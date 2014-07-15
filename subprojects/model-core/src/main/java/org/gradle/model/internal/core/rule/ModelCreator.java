@@ -19,11 +19,15 @@ package org.gradle.model.internal.core.rule;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
+import java.util.List;
+
 public interface ModelCreator<T> {
 
     ModelReference<T> getReference();
 
     T create(Inputs inputs);
+
+    List<? extends ModelReference<?>> getInputBindings();
 
     ModelRuleSourceDescriptor getSourceDescriptor();
 
