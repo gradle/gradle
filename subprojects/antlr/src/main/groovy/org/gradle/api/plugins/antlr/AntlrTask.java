@@ -28,11 +28,15 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GFileUtils;
+import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
+
+import org.antlr.Tool;
+import org.antlr.tool.ErrorManager;
 
 /**
  * <p>Generates parsers from Antlr grammars.</p>
@@ -50,10 +54,16 @@ public class AntlrTask extends SourceTask {
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
+    private String antlrVersion;
 
     private FileCollection antlrClasspath;
 
     private File outputDirectory;
+
+    public AntlrTask() {
+        // Default to ANTLR major version 2
+        antlrVersion = "2";
+    }
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -130,44 +140,95 @@ public class AntlrTask extends SourceTask {
 
     /**
      * Specifies the classpath containing the Ant ANTLR task implementation.
-     *
+     *
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
      */
     public void setAntlrClasspath(FileCollection antlrClasspath) {
         this.antlrClasspath = antlrClasspath;
     }
 
-    @TaskAction
-    public void generate() {
+    /**
+     * Specifies the major version of ANTLR to use.  As of now, only
+     * two versions are supported (2 and 3).
+     * @param antlrVersion The ANTLR major version to use.
+     * @throws GradleException Thrown if ANTLR version is not valid.
+     */
+    public void setAntlrVersion(String antlrVersion) {
+        if ("2".equals(antlrVersion) || "3".equals(antlrVersion)) {
+            this.antlrVersion = antlrVersion;
+        } else {
+            throw new GradleException("Invalid ANTLR version: " + antlrVersion);
+        }
+    }
+
+    /**
+     * Returns the major version of ANTLR for this task.
+     */
+    public String getAntlrVersion() {
+        return antlrVersion;
+    }
+
+    /**
+     * Generates Java code using ANTLR v3.
+     */
+    private void generateUsingAntlr3() {
+        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(getSource().getFiles());
+
+        LOGGER.debug("using ANTLR v3");
+        boolean error = false;
+        for (GenerationPlan generationPlan : generationPlans) {
+            String[] args = new String[] {"-o", generationPlan.getGenerationDirectory().getAbsolutePath(), generationPlan.getId()};
+            Tool tool = new Tool(args);
+            tool.process();
+            if (ErrorManager.getNumErrors() > 0) {
+                error = true;
+            }
+        }
+        if (error) {
+            throw new GradleException("errors encountered while compiling ANTLR grammar");
+        }
+    }
+
+    /**
+     * Generates Java code using ANTLR v2.
+     */
+    private void generateUsingAntlr2() {
+        LOGGER.debug("using ANTLR v2");
         // Determine the grammar files and the proper ordering amongst them
         XRef xref = new MetadataExtracter().extractMetadata(getSource());
         List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
-
         for (GenerationPlan generationPlan : generationPlans) {
-            if (!generationPlan.isOutOfDate()) {
-                LOGGER.info("grammar [" + generationPlan.getId() + "] was up-to-date; skipping");
-                continue;
+                LOGGER.info("performing grammar generation [" + generationPlan.getId() + "]");
+
+                //noinspection ResultOfMethodCallIgnored
+                GFileUtils.mkdirs(generationPlan.getGenerationDirectory());
+            
+                ANTLR antlr = new ANTLR();
+                antlr.setProject(getAnt().getAntProject());
+                Path antlrTaskClasspath = antlr.createClasspath();
+                for (File dep : getAntlrClasspath()) {
+                    antlrTaskClasspath.createPathElement().setLocation(dep);
+                }
+                antlr.setTrace(trace);
+                antlr.setTraceLexer(traceLexer);
+                antlr.setTraceParser(traceParser);
+                antlr.setTraceTreeWalker(traceTreeWalker);
+                antlr.setOutputdirectory(generationPlan.getGenerationDirectory());
+                antlr.setTarget(generationPlan.getSource());
+
+                antlr.execute();
             }
+    }
 
-            LOGGER.info("performing grammar generation [" + generationPlan.getId() + "]");
+    @TaskAction
+    public void generate() {
+        // Determine ANTLR version
+        String antlrVersion = getAntlrVersion();
 
-            //noinspection ResultOfMethodCallIgnored
-            GFileUtils.mkdirs(generationPlan.getGenerationDirectory());
-
-            ANTLR antlr = new ANTLR();
-            antlr.setProject(getAnt().getAntProject());
-            Path antlrTaskClasspath = antlr.createClasspath();
-            for (File dep : getAntlrClasspath()) {
-                antlrTaskClasspath.createPathElement().setLocation(dep);
-            }
-            antlr.setTrace(trace);
-            antlr.setTraceLexer(traceLexer);
-            antlr.setTraceParser(traceParser);
-            antlr.setTraceTreeWalker(traceTreeWalker);
-            antlr.setOutputdirectory(generationPlan.getGenerationDirectory());
-            antlr.setTarget(generationPlan.getSource());
-
-            antlr.execute();
+        if (antlrVersion.equals("2")) {
+            generateUsingAntlr2();            
+        } else {
+            generateUsingAntlr3();
         }
     }
 }
