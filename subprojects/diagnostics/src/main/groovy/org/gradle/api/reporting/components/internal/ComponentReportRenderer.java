@@ -16,19 +16,31 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.ProjectComponent;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
 public class ComponentReportRenderer extends TextReportRenderer {
-    private boolean hasComponents;
     private final ComponentRenderer componentRenderer;
+    private final SourceSetRenderer sourceSetRenderer;
+    private final BinaryRenderer binaryRenderer;
+    private final Set<LanguageSourceSet> componentSourceSets = new HashSet<LanguageSourceSet>();
+    private final Set<ProjectBinary> componentBinaries = new HashSet<ProjectBinary>();
 
     public ComponentReportRenderer(FileResolver fileResolver) {
         componentRenderer = new ComponentRenderer(fileResolver);
+        sourceSetRenderer = new SourceSetRenderer(fileResolver);
+        binaryRenderer = new BinaryRenderer();
     }
 
     @Override
@@ -38,26 +50,55 @@ public class ComponentReportRenderer extends TextReportRenderer {
         super.complete();
     }
 
-    @Override
-    public void startProject(Project project) {
-        super.startProject(project);
-        hasComponents = false;
-    }
-
-    @Override
-    public void completeProject(Project project) {
-        if (!hasComponents) {
+    public void renderComponents(Collection<ProjectComponent> components) {
+        if (components.isEmpty()) {
             getTextOutput().withStyle(Info).println("No components defined for this project.");
+            return;
         }
-
-        super.completeProject(project);
+        boolean seen = false;
+        for (ProjectComponent component : components) {
+            if (seen) {
+                getBuilder().getOutput().println();
+            } else {
+                seen = true;
+            }
+            componentRenderer.render(component, getBuilder());
+            componentSourceSets.addAll(component.getSource());
+            componentBinaries.addAll(component.getBinaries());
+        }
     }
 
-    public void startComponent(ProjectComponent component) {
-        if (hasComponents) {
-            getTextOutput().println();
+    public void renderSourceSets(Collection<FunctionalSourceSet> sourceSets) {
+        Set<LanguageSourceSet> additionalSourceSets = new LinkedHashSet<LanguageSourceSet>();
+        for (FunctionalSourceSet functionalSourceSet : sourceSets) {
+            for (LanguageSourceSet sourceSet : functionalSourceSet) {
+                if (!componentSourceSets.contains(sourceSet)) {
+                    additionalSourceSets.add(sourceSet);
+                }
+            }
         }
-        componentRenderer.render(component, getBuilder());
-        hasComponents = true;
+        if (!additionalSourceSets.isEmpty()) {
+            getBuilder().getOutput().println();
+            getBuilder().subheading("Additional source sets");
+            for (LanguageSourceSet sourceSet : additionalSourceSets) {
+                sourceSetRenderer.render(sourceSet, getBuilder());
+            }
+        }
+    }
+
+    public void renderBinaries(Collection<ProjectBinary> binaries) {
+        Set<ProjectBinary> additionalBinaries = new LinkedHashSet<ProjectBinary>();
+        for (ProjectBinary binary : binaries) {
+            if (!componentBinaries.contains(binary)) {
+                additionalBinaries.add(binary);
+            }
+        }
+        if (!additionalBinaries.isEmpty()) {
+            getBuilder().getOutput().println();
+            getBuilder().subheading("Additional binaries");
+            for (ProjectBinary binary : additionalBinaries) {
+                binaryRenderer.render(binary, getBuilder());
+            }
+        }
     }
 }

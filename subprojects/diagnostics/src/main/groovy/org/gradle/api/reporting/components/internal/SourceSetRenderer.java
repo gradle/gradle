@@ -19,23 +19,31 @@ package org.gradle.api.reporting.components.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.logging.StyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.runtime.base.ProjectComponent;
 
-public class ComponentRenderer extends ReportRenderer<ProjectComponent, TextReportBuilder> {
-    private final SourceSetRenderer sourceSetRenderer;
-    private final BinaryRenderer renderer = new BinaryRenderer();
+import java.io.File;
+import java.util.Set;
 
-    public ComponentRenderer(FileResolver fileResolver) {
-        sourceSetRenderer = new SourceSetRenderer(fileResolver);
+class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuilder> {
+    private final FileResolver fileResolver;
+
+    SourceSetRenderer(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
     }
 
     @Override
-    public void render(ProjectComponent component, TextReportBuilder builder) {
-        builder.subheading(StringUtils.capitalize(component.getDisplayName()));
-        builder.getOutput().println();
-        builder.collection("Source sets", component.getSource(), sourceSetRenderer, "source sets");
-        builder.getOutput().println();
-        builder.collection("Binaries", component.getBinaries(), renderer, "binaries");
+    public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) {
+        StyledTextOutput textOutput = builder.getOutput();
+        textOutput.println(StringUtils.capitalize(sourceSet.toString()));
+        Set<File> srcDirs = sourceSet.getSource().getSrcDirs();
+        if (srcDirs.isEmpty()) {
+            textOutput.println("    No source directories");
+        } else {
+            for (File file : srcDirs) {
+                textOutput.formatln("    %s", fileResolver.resolveAsRelativePath(file));
+            }
+        }
     }
 }

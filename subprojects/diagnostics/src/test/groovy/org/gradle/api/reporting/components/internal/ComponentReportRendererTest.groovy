@@ -17,8 +17,12 @@
 package org.gradle.api.reporting.components.internal
 
 import org.gradle.api.Project
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
+import org.gradle.runtime.base.ProjectBinary
 import org.gradle.runtime.base.ProjectComponent
 import spock.lang.Specification
 
@@ -37,6 +41,7 @@ class ComponentReportRendererTest extends Specification {
     def "renders project with no components"() {
         when:
         renderer.startProject(project)
+        renderer.renderComponents([])
         renderer.completeProject(project)
         renderer.complete()
 
@@ -51,7 +56,7 @@ class ComponentReportRendererTest extends Specification {
 
         when:
         renderer.startProject(project)
-        renderer.startComponent(component)
+        renderer.renderComponents([component])
         renderer.completeProject(project)
         renderer.complete()
 
@@ -69,13 +74,73 @@ class ComponentReportRendererTest extends Specification {
 
         when:
         renderer.startProject(project)
-        renderer.startComponent(component1)
-        renderer.startComponent(component2)
+        renderer.renderComponents([component1, component2])
         renderer.completeProject(project)
         renderer.complete()
 
         then:
-        output.value.contains("\n{header}<component 1>\n")
-        output.value.contains("\n{header}<component 2>\n")
+        output.value.contains("""
+{header}<component 1>
+""")
+        output.value.contains("""
+{header}<component 2>
+""")
+    }
+
+    def "renders additional source sets"() {
+        def sourceSet1 = Stub(LanguageSourceSet)
+        def sourceSet2 = Stub(LanguageSourceSet) {
+            toString() >> "<source set>"
+        }
+        def component = Stub(ProjectComponent) {
+            getSource() >> set(LanguageSourceSet, sourceSet1)
+        }
+        def functionalSourceSet = Stub(FunctionalSourceSet) {
+            iterator() >> [sourceSet1, sourceSet2].iterator()
+        }
+
+        when:
+        renderer.startProject(project)
+        renderer.renderComponents([component])
+        renderer.renderSourceSets([functionalSourceSet])
+        renderer.completeProject(project)
+        renderer.complete()
+
+        then:
+        output.value.contains("""{header}Additional source sets
+----------------------{normal}
+<source set>
+    No source directories
+
+""")
+    }
+
+    def "renders additional binaries"() {
+        def binary1 = Stub(ProjectBinary)
+        def binary2 = Stub(ProjectBinary) {
+            getDisplayName() >> "<binary>"
+        }
+        def component = Stub(ProjectComponent) {
+            getBinaries() >> set(ProjectBinary, binary1)
+        }
+
+        when:
+        renderer.startProject(project)
+        renderer.renderComponents([component])
+        renderer.renderBinaries([binary2])
+        renderer.completeProject(project)
+        renderer.complete()
+
+        then:
+        output.value.contains("""{header}Additional binaries
+-------------------{normal}
+<binary>
+""")
+    }
+
+    def set(Class type, Object... values) {
+        def collection = new DefaultDomainObjectSet(type)
+        collection.addAll(values)
+        return collection
     }
 }

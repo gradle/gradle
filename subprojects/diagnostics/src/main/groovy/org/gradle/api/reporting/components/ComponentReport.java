@@ -22,12 +22,15 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 /**
  * Displays some details about the software components produced by the project.
@@ -56,9 +59,18 @@ public class ComponentReport extends DefaultTask {
 
         ProjectComponentContainer components = project.getExtensions().findByType(ProjectComponentContainer.class);
         if (components != null) {
-            for (ProjectComponent component : components) {
-                renderer.startComponent(component);
-            }
+            renderer.renderComponents(components);
+        } else {
+            renderer.renderComponents(Collections.<ProjectComponent>emptyList());
+        }
+
+        ProjectSourceSet sourceSets = project.getExtensions().findByType(ProjectSourceSet.class);
+        if (sourceSets != null) {
+            renderer.renderSourceSets(sourceSets);
+        }
+        BinaryContainer binaries = project.getExtensions().findByType(BinaryContainer.class);
+        if (binaries != null) {
+            renderer.renderBinaries(binaries);
         }
 
         renderer.completeProject(project);

@@ -40,6 +40,42 @@ Note: currently not all plugins register their components, so some components ma
 """)
     }
 
+    def "shows details of legacy Java project"() {
+        given:
+        buildFile << """
+plugins {
+    id 'java'
+}
+"""
+        when:
+        succeeds "components"
+
+        then:
+        output.contains("""
+No components defined for this project.
+
+Additional source sets
+----------------------
+Java source 'main:java'
+    src/main/java
+Resources 'main:resources'
+    src/main/resources
+Java source 'test:java'
+    src/test/java
+Resources 'test:resources'
+    src/test/resources
+
+Additional binaries
+-------------------
+Classes 'main'
+    build task: :classes
+Classes 'test'
+    build task: :testClasses
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+""")
+    }
+
     def "shows details of Java library"() {
         given:
         buildFile << """
@@ -75,6 +111,10 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build task: :someLibJar
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
 """)
     }
 
@@ -118,6 +158,10 @@ Binaries
         build type: debug
         flavor: default
         build task: :someLibStaticLibrary
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
 """)
     }
 
@@ -157,6 +201,25 @@ Binaries
         build type: debug
         flavor: default
         build task: :someExeExecutable
+
+Additional source sets
+----------------------
+C source 'someExeTest:c'
+    src/someExeTest/c
+C source 'someExeTest:cunit'
+    src/someExeTest/cunit
+C source 'someExeTest:cunitLauncher'
+    src/someExeTest/cunitLauncher
+    build/src/someExeTestCUnitLauncher/cunit
+
+Additional binaries
+-------------------
+C unit exe 'someExeTest:cUnitExe'
+    build task: :someExeTestCUnitExe
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
 """)
     }
 
@@ -247,6 +310,10 @@ Binaries
         build type: debug
         flavor: paid
         build task: :i386PaidSomeLibStaticLibrary
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
 """)
     }
 
@@ -275,13 +342,19 @@ nativeRuntime {
         succeeds "components"
 
         then:
+        // TODO - flesh this out when languages are associated with correct component types
         output.contains("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
 
-JVM library 'jvmLib'""")
+JVM library 'jvmLib'
+--------------------
+""")
+        output.contains("""
 
-        // TODO - flesh this out when languages are associated with correct component types
+Native library 'nativeLib'
+--------------------------
+""")
     }
 }
