@@ -300,6 +300,7 @@ We would like to thank the following community members for making contributions 
 * [Cédric Champeau](https://github.com/melix) - Support for Groovy compiler configuration scripts.
 * [Martin](https://github.com/effrafax) - improvements to EAR plugin.
 * [Stevo Slavić](https://github.com/sslavic) - updates to wrapper sample.
+* [Björn Kautler](https://github.com/Vampire) - Changing rootProject projectDir from settings.gradle does not work (GRADLE-3086)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
