@@ -812,13 +812,15 @@ Dependency resolution selects the best binary from each dependency for the targe
 ### Story: User views outline of component model from command line
 
 - User runs `gradle components`
-- Presents basic details of each project component
+- Presents basic details of each project component:
     - JVM and native components
     - Legacy JVM library and application
     - War, Ear
+    - Custom components
     - Test suites
     - Distribution
-- Show source sets and binaries for each component
+- Show source sets and binaries for each component.
+- Show target platforms, flavors and build types for each component, where applicable.
 
 #### Implementation
 
@@ -840,7 +842,7 @@ Issue: can't apply `cunit` plugin without `c` plugin also applied.
 Issue: language plugins add every language to every component, regardless of whether that language is supported for the component.
 Issue: Java lang plugin does not declare any binaries.
 
-### Story: User view component model as HTML report
+### Story: User views component model as HTML report
 
 TBD
 
