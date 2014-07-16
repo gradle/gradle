@@ -30,6 +30,7 @@ import java.util.List;
 
 @ThreadSafe
 public class SftpClientFactory implements Stoppable {
+    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(SftpClientFactory.class);
     private SftpClientCreator sftpClientCreator = new SftpClientCreator();
     private final Object lock = new Object();
     private final ListMultimap<SftpHost, LockableSftpClient> clients = ArrayListMultimap.create();
@@ -66,7 +67,7 @@ public class SftpClientFactory implements Stoppable {
                 return new DefaultLockableSftpClient(sftpHost, (ChannelSftp) channel, session);
             } catch (JSchException e) {
                 if (e.getMessage().equals("Auth fail")) {
-                    throw new SftpException(String.format("Invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
+                    throw new SftpException(String.format("Password authentication not supported or invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
                 }
                 throw new SftpException(String.format("Could not connect to SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
             }
@@ -75,6 +76,18 @@ public class SftpClientFactory implements Stoppable {
         private JSch createJsch() {
             if (jsch == null) {
                 jsch = new JSch();
+                jsch.setConfig("PreferredAuthentications", "password");
+                jsch.setConfig("MaxAuthTries", "1");
+                if(LOGGER.isDebugEnabled()) {
+                    JSch.setLogger(new Logger() {
+                        public boolean isEnabled(int level) {
+                            return true;
+                        }
+                        public void log(int level, String message) {
+                            LOGGER.debug(message);
+                        }
+                    });
+                }
                 jsch.setHostKeyRepository(new HostKeyRepository() {
                     public int check(String host, byte[] key) {
                         return OK;

@@ -106,7 +106,7 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
-                .assertHasCause("Invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
+                .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
     void "resolve dependencies from an unreachable SFTP Ivy repository"() {
