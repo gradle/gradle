@@ -17,10 +17,8 @@
 package org.gradle.model.internal.registry;
 
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
+import com.google.common.base.Function;
+import com.google.common.collect.*;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
@@ -30,23 +28,21 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
 import java.util.*;
 
-import static org.gradle.util.CollectionUtils.collect;
-
 public class DefaultModelRegistry implements ModelRegistry {
 
     private final Map<ModelPath, ModelElement<?>> store = new HashMap<ModelPath, ModelElement<?>>();
 
-    private final Map<ModelPath, ModelCreation<?>> creations = new HashMap<ModelPath, ModelCreation<?>>();
-    private final Multimap<ModelPath, ModelMutation<?>> mutators = ArrayListMultimap.create();
-    private final Multimap<ModelPath, ImmutableList<ModelPath>> usedMutators = ArrayListMultimap.create();
-    private final Multimap<ModelPath, ModelMutation<?>> finalizers = ArrayListMultimap.create();
-    private final Multimap<ModelPath, ImmutableList<ModelPath>> usedFinalizers = ArrayListMultimap.create();
+    private final Map<ModelPath, ModelCreator<?>> creations = new HashMap<ModelPath, ModelCreator<?>>();
+    private final Multimap<ModelPath, ModelMutator<?>> mutators = ArrayListMultimap.create();
+    private final Multimap<ModelPath, List<ModelPath>> usedMutators = ArrayListMultimap.create();
+    private final Multimap<ModelPath, ModelMutator<?>> finalizers = ArrayListMultimap.create();
+    private final Multimap<ModelPath, List<ModelPath>> usedFinalizers = ArrayListMultimap.create();
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
     public <T> void create(ModelCreator<T> creator) {
         ModelPath path = creator.getReference().getPath();
-        ModelCreation<?> existingCreation = creations.get(path);
+        ModelCreator<?> existingCreation = creations.get(path);
 
         if (existingCreation != null) {
             throw new DuplicateModelException(
@@ -54,7 +50,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                             "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",
                             toString(creator.getSourceDescriptor()),
                             path,
-                            toString(existingCreation.getCreator().getSourceDescriptor())
+                            toString(existingCreation.getSourceDescriptor())
                     )
             );
         }
@@ -72,7 +68,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         notifyCreationListeners(creator);
-        creations.put(path, new ModelCreation<T>(creator, toModelPaths(creator.getInputBindings())));
+        creations.put(path, creator);
     }
 
     private static String toString(ModelRuleSourceDescriptor descriptor) {
@@ -81,28 +77,16 @@ public class DefaultModelRegistry implements ModelRegistry {
         return stringBuilder.toString();
     }
 
-    private static ImmutableList<ModelPath> toModelPaths(List<? extends ModelReference<?>> inputPaths) {
-        return ImmutableList.copyOf(collect(inputPaths, new ToModelPath()));
-    }
-
     public <T> void mutate(ModelMutator<T> mutator) {
-        mutate(new ModelMutation<T>(mutator, toModelPaths(mutator.getInputBindings())));
-    }
-
-    public <T> void mutate(ModelMutation<T> mutation) {
-        ModelPath path = mutation.getMutator().getReference().getPath();
+        ModelPath path = mutator.getReference().getPath();
         assertNotFinalized(path);
-        mutators.put(path, mutation);
+        mutators.put(path, mutator);
     }
 
     public <T> void finalize(ModelMutator<T> mutator) {
-        finalize(new ModelMutation<T>(mutator, toModelPaths(mutator.getInputBindings())));
-    }
-
-    public <T> void finalize(ModelMutation<T> mutation) {
-        ModelPath path = mutation.getMutator().getReference().getPath();
+        ModelPath path = mutator.getReference().getPath();
         assertNotFinalized(path);
-        finalizers.put(path, mutation);
+        finalizers.put(path, mutator);
     }
 
     private void assertNotFinalized(ModelPath path) {
@@ -128,9 +112,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             return toState(closed.getReference(), ModelState.Status.FINALIZED);
         }
 
-        ModelCreation<?> creation = creations.get(path);
-        if (creation != null) {
-            return toState(creation.getCreator().getReference(), ModelState.Status.PENDING);
+        ModelCreator<?> creator = creations.get(path);
+        if (creator != null) {
+            return toState(creator.getReference(), ModelState.Status.PENDING);
         }
 
         return null;
@@ -143,8 +127,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     public void registerListener(ModelCreationListener listener) {
         boolean remove;
 
-        for (Map.Entry<ModelPath, ModelCreation<?>> entry : creations.entrySet()) {
-            remove = listener.onCreate(entry.getValue().getCreator().getReference());
+        for (Map.Entry<ModelPath, ModelCreator<?>> entry : creations.entrySet()) {
+            remove = listener.onCreate(entry.getValue().getReference());
             if (remove) {
                 return;
             }
@@ -166,13 +150,18 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private boolean isDependedOn(ModelPath candidate) {
-        Transformer<Iterable<ModelPath>, ModelMutation<?>> extractInputPaths = new Transformer<Iterable<ModelPath>, ModelMutation<?>>() {
-            public Iterable<ModelPath> transform(ModelMutation<?> original) {
-                return original.getInputPaths();
+        Transformer<Iterable<ModelPath>, ModelMutator<?>> extractInputPaths = new Transformer<Iterable<ModelPath>, ModelMutator<?>>() {
+            public Iterable<ModelPath> transform(ModelMutator<?> original) {
+                return Iterables.transform(original.getInputBindings(), new Function<ModelReference<?>, ModelPath>() {
+                    @Nullable
+                    public ModelPath apply(ModelReference<?> input) {
+                        return input.getPath();
+                    }
+                });
             }
         };
 
-        Transformer<ImmutableList<ModelPath>, ImmutableList<ModelPath>> passThrough = Transformers.noOpTransformer();
+        Transformer<List<ModelPath>, List<ModelPath>> passThrough = Transformers.noOpTransformer();
 
         return hasModelPath(candidate, mutators.values(), extractInputPaths)
                 || hasModelPath(candidate, usedMutators.values(), passThrough)
@@ -201,12 +190,12 @@ public class DefaultModelRegistry implements ModelRegistry {
             return store.get(path);
         }
 
-        ModelCreation<?> creation = removeCreation(path);
+        ModelCreator<?> creation = removeCreator(path);
         return createAndClose(creation);
     }
 
-    private <T> ModelElement<T> createAndClose(ModelCreation<T> creation) {
-        ModelElement<T> element = create(creation);
+    private <T> ModelElement<T> createAndClose(ModelCreator<T> creation) {
+        ModelElement<T> element = doCreate(creation);
         close(element);
         return element;
     }
@@ -225,18 +214,23 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> void fireMutations(ModelElement<T> model, Iterable<ModelMutation<?>> mutations, Multimap<ModelPath, ImmutableList<ModelPath>> used) {
-        for (ModelMutation<?> mutation : mutations) {
-            ModelType<?> mutationTargetType = mutation.getMutator().getReference().getType();
+    private <T> void fireMutations(ModelElement<T> model, Iterable<ModelMutator<?>> mutators, Multimap<ModelPath, List<ModelPath>> used) {
+        for (ModelMutator<?> mutator : mutators) {
+            ModelType<?> mutationTargetType = mutator.getReference().getType();
 
             if (mutationTargetType.isAssignableFrom(model.getReference().getType())) {
-                @SuppressWarnings("unchecked") ModelMutation<? super T> castMutation = (ModelMutation<? super T>) mutation;
-                fireMutation(model, castMutation);
-                ImmutableList<ModelPath> inputPaths = mutation.getInputPaths();
+                @SuppressWarnings("unchecked") ModelMutator<? super T> castMutator = (ModelMutator<? super T>) mutator;
+                fireMutation(model, castMutator);
+                List<ModelPath> inputPaths = Lists.transform(mutator.getInputBindings(), new Function<ModelReference<?>, ModelPath>() {
+                    @Nullable
+                    public ModelPath apply(ModelReference<?> input) {
+                        return input.getPath();
+                    }
+                });
                 used.put(model.getReference().getPath(), inputPaths);
             } else {
                 // TODO better exception
-                throw new IllegalArgumentException("Cannot fire mutation rule " + mutation + " for " + model + " due to incompatible types");
+                throw new IllegalArgumentException("Cannot fire mutation rule " + mutator + " for " + model + " due to incompatible types");
             }
         }
     }
@@ -263,19 +257,18 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelCreation<?> removeCreation(ModelPath path) {
-        ModelCreation<?> creation = creations.remove(path);
-        if (creation == null) {
+    private ModelCreator<?> removeCreator(ModelPath path) {
+        ModelCreator<?> creator = creations.remove(path);
+        if (creator == null) {
             throw new IllegalStateException("No creator for '" + path + "'");
         } else {
-            return creation;
+            return creator;
         }
     }
 
-    private <T> ModelElement<T> create(ModelCreation<T> creation) {
-        ModelCreator<T> creator = creation.getCreator();
+    private <T> ModelElement<T> doCreate(ModelCreator<T> creator) {
         ModelPath path = creator.getReference().getPath();
-        Inputs inputs = toInputs(creation.getInputPaths());
+        Inputs inputs = toInputs(creator.getInputBindings());
 
         T created;
         try {
@@ -298,9 +291,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         return new ModelElement<T>(creator.getReference(), model, creator.getSourceDescriptor());
     }
 
-    private <T> void fireMutation(ModelElement<T> model, ModelMutation<? super T> modelMutation) {
-        ModelMutator<? super T> mutator = modelMutation.getMutator();
-        Inputs inputs = toInputs(modelMutation.getInputPaths());
+    private <T> void fireMutation(ModelElement<T> model, ModelMutator<? super T> mutator) {
+        Inputs inputs = toInputs(mutator.getInputBindings());
         try {
             mutator.mutate(model.getInstance(), inputs);
         } catch (Exception e) {
@@ -308,10 +300,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private Inputs toInputs(Iterable<ModelPath> inputPaths) {
+    private Inputs toInputs(Iterable<? extends ModelReference<?>> references) {
         ImmutableList.Builder<ModelElement<?>> builder = ImmutableList.builder();
-        for (ModelPath inputPath : inputPaths) {
-            builder.add(get(inputPath));
+        for (ModelReference<?> reference : references) {
+            builder.add(get(reference.getPath()));
         }
         return new DefaultInputs(builder.build());
     }
@@ -326,12 +318,5 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
         }
     }
-
-    private static class ToModelPath implements Transformer<ModelPath, ModelReference<?>> {
-        public ModelPath transform(ModelReference<?> reference) {
-            return reference.getPath();
-        }
-    }
-
 
 }
