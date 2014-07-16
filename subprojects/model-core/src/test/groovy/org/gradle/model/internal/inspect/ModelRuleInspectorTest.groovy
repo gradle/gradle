@@ -26,9 +26,12 @@ import org.gradle.model.internal.core.rule.InstanceBackedModelCreator
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Requires(TestPrecondition.NOT_JDK_IBM)
 class ModelRuleInspectorTest extends Specification {
 
     ModelRegistry registry = new DefaultModelRegistry()

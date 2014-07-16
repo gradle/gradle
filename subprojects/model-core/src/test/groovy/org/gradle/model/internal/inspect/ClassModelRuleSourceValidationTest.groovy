@@ -17,9 +17,12 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.InvalidModelRuleDeclarationException
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Requires(TestPrecondition.NOT_JDK_IBM)
 class ClassModelRuleSourceValidationTest extends Specification {
 
     @Unroll
