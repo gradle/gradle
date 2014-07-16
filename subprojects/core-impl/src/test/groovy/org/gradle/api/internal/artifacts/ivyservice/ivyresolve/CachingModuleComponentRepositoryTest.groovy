@@ -18,20 +18,22 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
+import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
@@ -39,6 +41,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class CachingModuleComponentRepositoryTest extends Specification {
+    final long TWO_DAYS = 1000 * 3600 * 48
     def realLocalAccess = Mock(ModuleComponentRepositoryAccess)
     def realRemoteAccess = Mock(ModuleComponentRepositoryAccess)
     def realRepo = Stub(ModuleComponentRepository) {
@@ -150,6 +153,27 @@ class CachingModuleComponentRepositoryTest extends Specification {
         realLocalAccess.resolveModuleArtifacts(component, componentUsage, result) >> {
             result.resolved([Mock(ComponentArtifactMetaData)])
         }
+        0 * _
+    }
+
+    def "uses cached missing module information for local access requests even if it is ancient"() {
+        def dependency = Mock(DependencyMetaData)
+        def componentId = new DefaultModuleComponentIdentifier("group", "module", "version")
+        def result = Mock(DefaultBuildableModuleVersionMetaDataResolveResult)
+        def cachedMetaData = Mock(ModuleMetaDataCache.CachedMetaData)
+        def repo = new CachingModuleComponentRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache,
+                new DefaultCachePolicy(), new BuildCommencedTimeProvider(), metadataProcessor)
+
+        when:
+        repo.localAccess.resolveComponentMetaData(dependency, componentId, result)
+
+        then:
+        1 * realLocalAccess.resolveComponentMetaData(dependency, componentId, result)
+        1 * moduleDescriptorCache.getCachedModuleDescriptor(realRepo, componentId) >> cachedMetaData
+        1 * cachedMetaData.isMissing() >> true
+        (1.._) * cachedMetaData.getAgeMillis() >> TWO_DAYS
+        1 * result.probablyMissing()
+        _ * result.hasResult()
         0 * _
     }
 }

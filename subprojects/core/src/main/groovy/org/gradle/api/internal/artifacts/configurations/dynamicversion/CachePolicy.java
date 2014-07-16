@@ -27,8 +27,6 @@ import java.util.Set;
 public interface CachePolicy {
     boolean mustRefreshVersionList(ModuleIdentifier selector, Set<ModuleVersionIdentifier> moduleVersions, long ageMillis);
 
-    boolean mustRefreshMissingModule(ModuleComponentIdentifier component, long ageMillis);
-
     boolean mustRefreshModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis);
 
     boolean mustRefreshChangingModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis);
