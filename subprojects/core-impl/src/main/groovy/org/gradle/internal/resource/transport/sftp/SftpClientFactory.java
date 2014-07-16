@@ -23,6 +23,8 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resource.PasswordCredentials;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -30,7 +32,8 @@ import java.util.List;
 
 @ThreadSafe
 public class SftpClientFactory implements Stoppable {
-    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(SftpClientFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SftpClientFactory.class);
+
     private SftpClientCreator sftpClientCreator = new SftpClientCreator();
     private final Object lock = new Object();
     private final ListMultimap<SftpHost, LockableSftpClient> clients = ArrayListMultimap.create();
@@ -75,11 +78,11 @@ public class SftpClientFactory implements Stoppable {
 
         private JSch createJsch() {
             if (jsch == null) {
+                JSch.setConfig("PreferredAuthentications", "password");
+                JSch.setConfig("MaxAuthTries", "1");
                 jsch = new JSch();
-                jsch.setConfig("PreferredAuthentications", "password");
-                jsch.setConfig("MaxAuthTries", "1");
                 if(LOGGER.isDebugEnabled()) {
-                    JSch.setLogger(new Logger() {
+                    JSch.setLogger(new com.jcraft.jsch.Logger() {
                         public boolean isEnabled(int level) {
                             return true;
                         }
