@@ -43,7 +43,7 @@ public class DefaultProjectJvmLibrary implements ProjectJvmLibrary {
     }
 
     public String getDisplayName() {
-        return String.format("jvm library '%s'", getName());
+        return String.format("JVM library '%s'", getName());
     }
 
     @Override
