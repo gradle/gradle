@@ -17,13 +17,12 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.internal.resolve.ProjectLocator;
 
-public class DefaultVisualStudioExtension implements VisualStudioExtension {
+public class DefaultVisualStudioExtension implements VisualStudioExtensionInternal {
     private final VisualStudioProjectRegistry projectRegistry;
     private final VisualStudioSolutionRegistry solutionRegistry;
 
