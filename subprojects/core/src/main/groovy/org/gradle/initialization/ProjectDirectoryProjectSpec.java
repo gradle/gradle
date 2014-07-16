@@ -35,6 +35,10 @@ public class ProjectDirectoryProjectSpec extends AbstractProjectSpec implements 
         return String.format("with project directory '%s'", dir);
     }
 
+    public boolean isCorresponding(File file) {
+        return dir.equals(file);
+    }
+
     protected String formatNoMatchesMessage() {
         return String.format("No projects in this build have project directory '%s'.", dir);
     }

@@ -19,6 +19,8 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.InvalidUserDataException;
 
+import java.io.File;
+
 public interface ProjectSpec {
     /**
      * Determines whether the given registry contains at least 1 project which meets this spec.
@@ -37,4 +39,6 @@ public interface ProjectSpec {
      * Returns the display name of this spec. Used for logging and error messages.
      */
     String getDisplayName();
+
+    boolean isCorresponding(File file);
 }
