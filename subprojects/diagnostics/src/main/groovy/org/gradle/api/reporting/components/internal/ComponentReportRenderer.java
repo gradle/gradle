@@ -16,30 +16,19 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.reporting.ReportRenderer;
-import org.gradle.runtime.base.Binary;
 import org.gradle.runtime.base.ProjectComponent;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
 public class ComponentReportRenderer extends TextReportRenderer {
     private boolean hasComponents;
-    private final FileResolver fileResolver;
+    private final ComponentRenderer componentRenderer;
 
     public ComponentReportRenderer(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
+        componentRenderer = new ComponentRenderer(fileResolver);
     }
 
     @Override
@@ -58,7 +47,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
     @Override
     public void completeProject(Project project) {
         if (!hasComponents) {
-            getTextOutput().withStyle(Info).println("No components");
+            getTextOutput().withStyle(Info).println("No components defined for this project.");
         }
 
         super.completeProject(project);
@@ -68,42 +57,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
         if (hasComponents) {
             getTextOutput().println();
         }
-        getBuilder().subheading(StringUtils.capitalize(component.getDisplayName()));
+        componentRenderer.render(component, getBuilder());
         hasComponents = true;
-    }
-
-    public void renderSourceSets(Collection<? extends LanguageSourceSet> sourceSets) {
-        getBuilder().getOutput().println();
-        getBuilder().collection("Source sets", sourceSets, new SourceSetRenderer(), "source sets");
-    }
-
-    public void renderBinaries(Collection<? extends Binary> binaries) {
-        getBuilder().getOutput().println();
-        getBuilder().collection("Binaries", binaries, new BinaryRenderer(), "binaries");
-    }
-
-    private static class BinaryRenderer extends ReportRenderer<Binary, TextReportBuilder> {
-        @Override
-        public void render(Binary binary, TextReportBuilder builder) throws IOException {
-            StyledTextOutput textOutput = builder.getOutput();
-            textOutput.println(StringUtils.capitalize(binary.getDisplayName()));
-            textOutput.formatln("    build task: %s", binary.getBuildTask().getPath());
-        }
-    }
-
-    private class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuilder> {
-        @Override
-        public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) throws IOException {
-            StyledTextOutput textOutput = builder.getOutput();
-            textOutput.println(StringUtils.capitalize(sourceSet.toString()));
-            Set<File> srcDirs = sourceSet.getSource().getSrcDirs();
-            if (srcDirs.isEmpty()) {
-                textOutput.println("    No source directories");
-            } else {
-                for (File file : srcDirs) {
-                    textOutput.formatln("    %s", fileResolver.resolveAsRelativePath(file));
-                }
-            }
-        }
     }
 }

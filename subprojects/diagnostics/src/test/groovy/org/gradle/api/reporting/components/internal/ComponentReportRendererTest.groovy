@@ -41,7 +41,7 @@ class ComponentReportRendererTest extends Specification {
         renderer.complete()
 
         then:
-        output.value.contains("{info}No components{normal}")
+        output.value.contains("{info}No components defined for this project.{normal}")
     }
 
     def "renders project with single component"() {
@@ -78,33 +78,4 @@ class ComponentReportRendererTest extends Specification {
         output.value.contains("\n{header}<component 1>\n")
         output.value.contains("\n{header}<component 2>\n")
     }
-
-    def "renders component with no source sets"() {
-        def component = Stub(ProjectComponent)
-
-        when:
-        renderer.startProject(project)
-        renderer.startComponent(component)
-        renderer.renderSourceSets([])
-        renderer.completeProject(project)
-        renderer.complete()
-
-        then:
-        output.value.contains("No source sets")
-    }
-
-    def "renders component with no binaries"() {
-        def component = Stub(ProjectComponent)
-
-        when:
-        renderer.startProject(project)
-        renderer.startComponent(component)
-        renderer.renderBinaries([])
-        renderer.completeProject(project)
-        renderer.complete()
-
-        then:
-        output.value.contains("No binaries")
-    }
-
 }

@@ -24,13 +24,10 @@ import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.runtime.base.Binary;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 /**
  * Displays some details about the software components produced by the project.
@@ -61,16 +58,6 @@ public class ComponentReport extends DefaultTask {
         if (components != null) {
             for (ProjectComponent component : components) {
                 renderer.startComponent(component);
-
-                renderer.renderSourceSets(component.getSource());
-
-                // TODO - hoist 'component with binaries' up and remove dependency on cpp project
-                if (component instanceof ProjectNativeComponent) {
-                    ProjectNativeComponent nativeComponent = (ProjectNativeComponent) component;
-                    renderer.renderBinaries(nativeComponent.getBinaries());
-                } else {
-                    renderer.renderBinaries(Collections.<Binary>emptyList());
-                }
             }
         }
 

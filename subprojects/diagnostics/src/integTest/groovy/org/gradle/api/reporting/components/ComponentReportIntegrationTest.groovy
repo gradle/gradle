@@ -33,7 +33,7 @@ class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
 Root project
 ------------------------------------------------------------
 
-No components
+No components defined for this project.
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -108,8 +108,14 @@ Source sets
 
 Binaries
     Shared library 'someLib:sharedLibrary'
+        platform: current
+        build type: debug
+        flavor: default
         build task: :someLibSharedLibrary
     Static library 'someLib:staticLibrary'
+        platform: current
+        build type: debug
+        flavor: default
         build task: :someLibStaticLibrary
 """)
     }
@@ -146,6 +152,9 @@ Source sets
 
 Binaries
     Executable 'someExe:executable'
+        platform: current
+        build type: debug
+        flavor: default
         build task: :someExeExecutable
 """)
     }
@@ -198,20 +207,44 @@ Source sets
 
 Binaries
     Shared library 'someLib:amd64:free:sharedLibrary'
+        platform: amd64
+        build type: debug
+        flavor: free
         build task: :amd64FreeSomeLibSharedLibrary
     Static library 'someLib:amd64:free:staticLibrary'
+        platform: amd64
+        build type: debug
+        flavor: free
         build task: :amd64FreeSomeLibStaticLibrary
     Shared library 'someLib:amd64:paid:sharedLibrary'
+        platform: amd64
+        build type: debug
+        flavor: paid
         build task: :amd64PaidSomeLibSharedLibrary
     Static library 'someLib:amd64:paid:staticLibrary'
+        platform: amd64
+        build type: debug
+        flavor: paid
         build task: :amd64PaidSomeLibStaticLibrary
     Shared library 'someLib:i386:free:sharedLibrary'
+        platform: i386
+        build type: debug
+        flavor: free
         build task: :i386FreeSomeLibSharedLibrary
     Static library 'someLib:i386:free:staticLibrary'
+        platform: i386
+        build type: debug
+        flavor: free
         build task: :i386FreeSomeLibStaticLibrary
     Shared library 'someLib:i386:paid:sharedLibrary'
+        platform: i386
+        build type: debug
+        flavor: paid
         build task: :i386PaidSomeLibSharedLibrary
     Static library 'someLib:i386:paid:staticLibrary'
+        platform: i386
+        build type: debug
+        flavor: paid
         build task: :i386PaidSomeLibStaticLibrary
 """)
     }
