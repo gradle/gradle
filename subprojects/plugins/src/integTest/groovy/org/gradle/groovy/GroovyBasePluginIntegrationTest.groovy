@@ -113,34 +113,4 @@ task verify << {
         failure.assertHasDescription "Cannot infer Groovy class path because no Groovy Jar was found on class path: configuration ':compile'"
     }
 
-    def "can run groovydoc with groovy dependency only"() {
-        when:
-        buildFile << """
-            apply plugin: "groovy-base"
-
-            sourceSets {
-                main {}
-            }
-
-            repositories {
-                mavenCentral()
-            }
-
-            dependencies {
-                compile "org.codehaus.groovy:groovy:2.3.3"
-            }
-
-            task groovydoc(type: Groovydoc){
-                source = sourceSets.main.allSource
-                classpath = sourceSets.main.compileClasspath
-            }
-        """
-
-        file("src/main/groovy/Thing.groovy") << """
-            class Thing {}
-        """
-
-        then:
-        succeeds "groovydoc"
-    }
 }
