@@ -183,10 +183,10 @@ public class ModelRuleInspector {
                             return methodWrapper.invoke(instance);
                         } else {
                             Object[] args = new Object[inputs.size()];
-                            int i = 0;
-                            for (ModelElement input : inputs) {
-                                args[i] = input.getAdapter().asReadOnly(bindings.get(i++).getType()).getInstance();
+                            for (int i = 0; i < inputs.size(); i++) {
+                                args[i] = inputs.get(i, bindings.get(i).getType()).getInstance();
                             }
+
                             return methodWrapper.invoke(instance, args);
                         }
                     }

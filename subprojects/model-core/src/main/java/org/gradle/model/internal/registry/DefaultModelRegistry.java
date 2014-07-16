@@ -281,9 +281,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private Inputs toInputs(Iterable<? extends ModelReference<?>> references) {
-        ImmutableList.Builder<ModelElement> builder = ImmutableList.builder();
+        ImmutableList.Builder<ModelRuleInput<?>> builder = ImmutableList.builder();
         for (ModelReference<?> reference : references) {
-            builder.add(get(reference.getPath()));
+            ModelPath path = reference.getPath();
+            ModelElement element = element(path);
+            ModelView<?> view = assertView(element, reference.getType(), true, "toInputs");
+            builder.add(ModelRuleInput.of(path, view));
         }
         return new DefaultInputs(builder.build());
     }

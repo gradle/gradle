@@ -16,13 +16,34 @@
 
 package org.gradle.model.internal.core.rule;
 
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelView;
 
-public interface Inputs extends Iterable<ModelRuleInput<?>> {
+public class ModelRuleInput<T> {
 
-    <T> ModelView<? extends T> get(int i, ModelType<T> type);
+    private final ModelPath path;
+    private final ModelView<T> view;
 
-    int size();
+    public ModelRuleInput(ModelPath path, ModelView<T> view) {
+        this.path = path;
+        this.view = view;
+    }
+
+    public static <T> ModelRuleInput<T> of(ModelPath path, ModelView<T> view) {
+        return new ModelRuleInput<T>(path, view);
+    }
+
+    public ModelPath getPath() {
+        return path;
+    }
+
+    public ModelView<T> getView() {
+        return view;
+    }
+
+    @Override
+    public String toString() {
+        return "ModelRuleInput{path=" + path + ", view=" + view + '}';
+    }
 
 }

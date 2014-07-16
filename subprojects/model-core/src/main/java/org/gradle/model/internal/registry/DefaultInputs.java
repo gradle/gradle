@@ -16,29 +16,30 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.Inputs;
+import org.gradle.model.internal.core.rule.ModelRuleInput;
 
 import java.util.Iterator;
+import java.util.List;
 
 public class DefaultInputs implements Inputs {
 
-    private final ImmutableList<ModelElement> inputs;
+    private final List<ModelRuleInput<?>> inputs;
 
-    public DefaultInputs(ImmutableList<ModelElement> inputs) {
+    public DefaultInputs(List<ModelRuleInput<?>> inputs) {
         this.inputs = inputs;
     }
 
     public <T> ModelView<? extends T> get(int i, ModelType<T> type) {
-        ModelElement element = inputs.get(i);
-        ModelView<? extends T> view = element.getAdapter().asReadOnly(type);
-        if (view != null) {
+        ModelRuleInput<?> input = inputs.get(i);
+        ModelView<?> untypedView = input.getView();
+        if (type.isAssignableFrom(untypedView.getType())) {
+            @SuppressWarnings("unchecked") ModelView<? extends T> view = (ModelView<? extends T>) untypedView;
             return view;
         } else {
-            throw new RuntimeException("Can't view input '" + i + "' (" + element + ") as type '" + type + "'");
+            throw new RuntimeException("Can't view input '" + i + "' (" + input.getView().getType() + ") as type '" + type + "'");
         }
     }
 
@@ -46,7 +47,7 @@ public class DefaultInputs implements Inputs {
         return inputs.size();
     }
 
-    public Iterator<ModelElement> iterator() {
+    public Iterator<ModelRuleInput<?>> iterator() {
         return inputs.iterator();
     }
 }
