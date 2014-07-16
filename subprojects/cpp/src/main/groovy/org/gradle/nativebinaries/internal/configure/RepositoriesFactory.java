@@ -24,11 +24,11 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.Inputs;
 import org.gradle.model.internal.core.rule.ModelCreator;
+import org.gradle.model.internal.core.rule.ModelPromise;
+import org.gradle.model.internal.core.rule.SingleTypeModelPromise;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 import org.gradle.nativebinaries.*;
@@ -39,13 +39,15 @@ import org.gradle.nativebinaries.platform.PlatformContainer;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class RepositoriesFactory implements ModelCreator<Repositories> {
-    private final ModelReference<Repositories> reference;
+public class RepositoriesFactory implements ModelCreator {
+    private final ModelPath path;
+    private final ModelType<Repositories> type = ModelType.of(Repositories.class);
+    private final ModelPromise promise = new SingleTypeModelPromise(type);
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
 
     public RepositoriesFactory(String modelPath, Instantiator instantiator, FileResolver fileResolver) {
-        this.reference = new ModelReference<Repositories>(new ModelPath(modelPath), new ModelType<Repositories>(Repositories.class));
+        this.path = new ModelPath(modelPath);
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
     }
@@ -72,16 +74,20 @@ public class RepositoriesFactory implements ModelCreator<Repositories> {
         return descriptor;
     }
 
-    public Repositories create(Inputs inputs) {
+    public ModelAdapter create(Inputs inputs) {
         FlavorContainer flavors = inputs.get(0, ModelType.of(FlavorContainer.class)).getInstance();
         PlatformContainer platforms = inputs.get(1, ModelType.of(PlatformContainer.class)).getInstance();
         BuildTypeContainer buildTypes = inputs.get(2, ModelType.of(BuildTypeContainer.class)).getInstance();
         Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, platforms, buildTypes, flavors);
-        return new DefaultRepositories(instantiator, fileResolver, initializer);
+        return InstanceModelAdapter.of(type, new DefaultRepositories(instantiator, fileResolver, initializer));
     }
 
-    public ModelReference<Repositories> getReference() {
-        return reference;
+    public ModelPath getPath() {
+        return path;
+    }
+
+    public ModelPromise getPromise() {
+        return promise;
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {

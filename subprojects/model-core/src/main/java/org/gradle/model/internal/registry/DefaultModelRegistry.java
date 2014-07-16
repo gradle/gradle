@@ -30,9 +30,9 @@ import java.util.*;
 
 public class DefaultModelRegistry implements ModelRegistry {
 
-    private final Map<ModelPath, ModelElement<?>> store = new HashMap<ModelPath, ModelElement<?>>();
+    private final Map<ModelPath, ModelElement> store = new HashMap<ModelPath, ModelElement>();
 
-    private final Map<ModelPath, ModelCreator<?>> creations = new HashMap<ModelPath, ModelCreator<?>>();
+    private final Map<ModelPath, ModelCreator> creations = new HashMap<ModelPath, ModelCreator>();
     private final Multimap<ModelPath, ModelMutator<?>> mutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedMutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, ModelMutator<?>> finalizers = ArrayListMultimap.create();
@@ -40,9 +40,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
-    public <T> void create(ModelCreator<T> creator) {
-        ModelPath path = creator.getReference().getPath();
-        ModelCreator<?> existingCreation = creations.get(path);
+    public void create(ModelCreator creator) {
+        ModelPath path = creator.getPath();
+        ModelCreator existingCreation = creations.get(path);
 
         if (existingCreation != null) {
             throw new DuplicateModelException(
@@ -55,7 +55,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             );
         }
 
-        ModelElement<?> existing = store.get(path);
+        ModelElement existing = store.get(path);
         if (existing != null) {
             throw new DuplicateModelException(
                     String.format(
@@ -96,39 +96,39 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public <T> T get(ModelReference<T> reference) {
-        ModelElement<?> model = get(reference.getPath());
-        ModelElement<? extends T> typed = assertType(model, reference.getType(), "get(ModelReference)");
+        ModelElement element = get(reference.getPath());
+        ModelView<? extends T> typed = assertView(element, reference.getType(), true, "get(ModelReference)");
         return typed.getInstance();
     }
 
-    public <T> ModelElement<? extends T> element(ModelReference<T> reference) {
-        ModelElement<?> model = get(reference.getPath());
-        return assertType(model, reference.getType(), "element(ModelReference)");
+    public ModelElement element(ModelPath path) {
+        return get(path);
     }
 
-    public ModelState<?> state(ModelPath path) {
-        ModelElement<?> closed = store.get(path);
+    public ModelState state(ModelPath path) {
+        ModelElement closed = store.get(path);
         if (closed != null) {
-            return toState(closed.getReference(), ModelState.Status.FINALIZED);
+            return toState(closed.getPath(), ModelState.Status.FINALIZED);
         }
 
-        ModelCreator<?> creator = creations.get(path);
+        ModelCreator creator = creations.get(path);
         if (creator != null) {
-            return toState(creator.getReference(), ModelState.Status.PENDING);
+            return toState(creator.getPath(), ModelState.Status.PENDING);
         }
 
         return null;
     }
 
-    private <T> ModelState<T> toState(ModelReference<T> reference, ModelState.Status status) {
-        return new ModelState<T>(reference, status);
+    private ModelState toState(ModelPath path, ModelState.Status status) {
+        return new ModelState(path, status);
     }
 
     public void registerListener(ModelCreationListener listener) {
         boolean remove;
 
-        for (Map.Entry<ModelPath, ModelCreator<?>> entry : creations.entrySet()) {
-            remove = listener.onCreate(entry.getValue().getReference());
+        for (Map.Entry<ModelPath, ModelCreator> entry : creations.entrySet()) {
+            ModelCreator creator = entry.getValue();
+            remove = listener.onCreate(creator.getPath(), creator.getPromise());
             if (remove) {
                 return;
             }
@@ -185,23 +185,23 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ImmutableSet.<ModelPath>builder().addAll(creations.keySet()).build();
     }
 
-    private ModelElement<?> get(ModelPath path) {
+    private ModelElement get(ModelPath path) {
         if (store.containsKey(path)) {
             return store.get(path);
         }
 
-        ModelCreator<?> creation = removeCreator(path);
+        ModelCreator creation = removeCreator(path);
         return createAndClose(creation);
     }
 
-    private <T> ModelElement<T> createAndClose(ModelCreator<T> creation) {
-        ModelElement<T> element = doCreate(creation);
+    private ModelElement createAndClose(ModelCreator creation) {
+        ModelElement element = doCreate(creation);
         close(element);
         return element;
     }
 
-    private <T> void close(ModelElement<T> model) {
-        ModelPath path = model.getReference().getPath();
+    private void close(ModelElement model) {
+        ModelPath path = model.getPath();
         fireMutations(model, mutators.removeAll(path), usedMutators);
         fireMutations(model, finalizers.removeAll(path), usedFinalizers);
 
@@ -214,51 +214,32 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> void fireMutations(ModelElement<T> model, Iterable<ModelMutator<?>> mutators, Multimap<ModelPath, List<ModelPath>> used) {
+    private void fireMutations(ModelElement element, Iterable<ModelMutator<?>> mutators, Multimap<ModelPath, List<ModelPath>> used) {
         for (ModelMutator<?> mutator : mutators) {
-            ModelType<?> mutationTargetType = mutator.getReference().getType();
-
-            if (mutationTargetType.isAssignableFrom(model.getReference().getType())) {
-                @SuppressWarnings("unchecked") ModelMutator<? super T> castMutator = (ModelMutator<? super T>) mutator;
-                fireMutation(model, castMutator);
-                List<ModelPath> inputPaths = Lists.transform(mutator.getInputBindings(), new Function<ModelReference<?>, ModelPath>() {
-                    @Nullable
-                    public ModelPath apply(ModelReference<?> input) {
-                        return input.getPath();
-                    }
-                });
-                used.put(model.getReference().getPath(), inputPaths);
-            } else {
-                // TODO better exception
-                throw new IllegalArgumentException("Cannot fire mutation rule " + mutator + " for " + model + " due to incompatible types");
-            }
+            fireMutation(element, mutator);
+            List<ModelPath> inputPaths = Lists.transform(mutator.getInputBindings(), new Function<ModelReference<?>, ModelPath>() {
+                @Nullable
+                public ModelPath apply(ModelReference<?> input) {
+                    return input.getPath();
+                }
+            });
+            used.put(element.getPath(), inputPaths);
         }
     }
 
-    @Nullable // if is not type compatible
-    private <T> ModelElement<? extends T> type(ModelElement<?> element, ModelType<T> targetType) {
-        ModelType<?> elementType = element.getReference().getType();
-
-        if (targetType.isAssignableFrom(elementType)) {
-            @SuppressWarnings("unchecked") ModelElement<? extends T> cast = (ModelElement<? extends T>) element;
-            return cast;
-        } else {
-            return null;
-        }
-    }
-
-    private <T> ModelElement<? extends T> assertType(ModelElement<?> element, ModelType<T> targetType, String msg, Object... msgArgs) {
-        ModelElement<? extends T> typed = type(element, targetType);
-        if (typed == null) {
+    private <T> ModelView<? extends T> assertView(ModelElement element, ModelType<T> targetType, boolean readOnly, String msg, Object... msgArgs) {
+        ModelAdapter adapter = element.getAdapter();
+        ModelView<? extends T> view = readOnly ? adapter.asReadOnly(targetType) : adapter.asWritable(targetType);
+        if (view == null) {
             // TODO better error reporting here
-            throw new IllegalArgumentException("Model element " + element + " is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
+            throw new IllegalArgumentException("Model element " + element.getPath() + " is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
         } else {
-            return typed;
+            return view;
         }
     }
 
-    private ModelCreator<?> removeCreator(ModelPath path) {
-        ModelCreator<?> creator = creations.remove(path);
+    private ModelCreator removeCreator(ModelPath path) {
+        ModelCreator creator = creations.remove(path);
         if (creator == null) {
             throw new IllegalStateException("No creator for '" + path + "'");
         } else {
@@ -266,53 +247,52 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelElement<T> doCreate(ModelCreator<T> creator) {
-        ModelPath path = creator.getReference().getPath();
+    private ModelElement doCreate(ModelCreator creator) {
+        ModelPath path = creator.getPath();
         Inputs inputs = toInputs(creator.getInputBindings());
 
-        T created;
+        ModelAdapter adapter;
         try {
-            created = creator.create(inputs);
+            adapter = creator.create(inputs);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(creator.getSourceDescriptor(), e);
         }
 
-        if (created == null) {
-            throw new ModelRuleExecutionException(creator.getSourceDescriptor(), "rule returned null");
-        }
-
-        ModelElement<T> element = toElement(created, creator);
+        ModelElement element = toElement(adapter, creator);
         store.put(path, element);
         return element;
     }
 
-    private <T> ModelElement<T> toElement(T model, ModelCreator<T> creator) {
-        return new ModelElement<T>(creator.getReference(), model, creator.getSourceDescriptor());
+    private ModelElement toElement(ModelAdapter adapter, ModelCreator creator) {
+        return new ModelElement(creator.getPath(), adapter, creator.getSourceDescriptor());
     }
 
-    private <T> void fireMutation(ModelElement<T> model, ModelMutator<? super T> mutator) {
+    private <T> void fireMutation(ModelElement element, ModelMutator<T> mutator) {
+        ModelView<? extends T> view = assertView(element, mutator.getReference().getType(), false, "executing mutation rule %s", mutator.getSourceDescriptor());
         Inputs inputs = toInputs(mutator.getInputBindings());
         try {
-            mutator.mutate(model.getInstance(), inputs);
+            mutator.mutate(view.getInstance(), inputs);
         } catch (Exception e) {
             throw new ModelRuleExecutionException(mutator.getSourceDescriptor(), e);
+        } finally {
+            view.close();
         }
     }
 
     private Inputs toInputs(Iterable<? extends ModelReference<?>> references) {
-        ImmutableList.Builder<ModelElement<?>> builder = ImmutableList.builder();
+        ImmutableList.Builder<ModelElement> builder = ImmutableList.builder();
         for (ModelReference<?> reference : references) {
             builder.add(get(reference.getPath()));
         }
         return new DefaultInputs(builder.build());
     }
 
-    private <T> void notifyCreationListeners(ModelCreator<T> creator) {
+    private void notifyCreationListeners(ModelCreator creator) {
         ListIterator<ModelCreationListener> modelCreationListenerListIterator = modelCreationListeners.listIterator();
         while (modelCreationListenerListIterator.hasNext()) {
             ModelCreationListener next = modelCreationListenerListIterator.next();
-            boolean remove = next.onCreate(creator.getReference());
+            boolean remove = next.onCreate(creator.getPath(), creator.getPromise());
             if (remove) {
                 modelCreationListenerListIterator.remove();
             }

@@ -16,16 +16,20 @@
 
 package org.gradle.model.internal.core.rule;
 
+import org.gradle.model.internal.core.ModelAdapter;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
 import java.util.List;
 
-public interface ModelCreator<T> {
+public interface ModelCreator {
 
-    ModelReference<T> getReference();
+    ModelPath getPath();
 
-    T create(Inputs inputs);
+    ModelPromise getPromise();
+
+    ModelAdapter create(Inputs inputs);
 
     List<? extends ModelReference<?>> getInputBindings();
 

@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.core;
 
-public class ModelState<T> {
+public class ModelState {
 
     public enum Status {
         // TODO probably need to capture iterim states (e.g. MUTATING)
@@ -24,16 +24,16 @@ public class ModelState<T> {
         FINALIZED
     }
 
-    private final ModelReference<T> reference;
+    private final ModelPath path;
     private final Status status;
 
-    public ModelState(ModelReference<T> reference, Status status) {
-        this.reference = reference;
+    public ModelState(ModelPath path, Status status) {
+        this.path = path;
         this.status = status;
     }
 
-    public ModelReference<T> getReference() {
-        return reference;
+    public ModelPath getPath() {
+        return path;
     }
 
     public Status getStatus() {

@@ -19,26 +19,26 @@ package org.gradle.model.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.Inputs;
 
 import java.util.Iterator;
 
 public class DefaultInputs implements Inputs {
 
-    private final ImmutableList<ModelElement<?>> inputs;
+    private final ImmutableList<ModelElement> inputs;
 
-    public DefaultInputs(ImmutableList<ModelElement<?>> inputs) {
+    public DefaultInputs(ImmutableList<ModelElement> inputs) {
         this.inputs = inputs;
     }
 
-    public <T> ModelElement<? extends T> get(int i, ModelType<T> type) {
-        ModelElement<?> input = inputs.get(i);
-        ModelType<?> inputType = input.getReference().getType();
-        if (type.isAssignableFrom(inputType)) {
-            @SuppressWarnings("unchecked") ModelElement<? extends T> cast = (ModelElement<? extends T>) input;
-            return cast;
+    public <T> ModelView<? extends T> get(int i, ModelType<T> type) {
+        ModelElement element = inputs.get(i);
+        ModelView<? extends T> view = element.getAdapter().asReadOnly(type);
+        if (view != null) {
+            return view;
         } else {
-            throw new RuntimeException("Can't convert input '" + i + "' with type '" + inputType + "' to type '" + type + "'");
+            throw new RuntimeException("Can't view input '" + i + "' (" + element + ") as type '" + type + "'");
         }
     }
 
@@ -46,7 +46,7 @@ public class DefaultInputs implements Inputs {
         return inputs.size();
     }
 
-    public Iterator<ModelElement<?>> iterator() {
+    public Iterator<ModelElement> iterator() {
         return inputs.iterator();
     }
 }

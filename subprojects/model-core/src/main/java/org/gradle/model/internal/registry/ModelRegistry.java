@@ -27,7 +27,7 @@ import org.gradle.model.internal.core.rule.ModelMutator;
 
 public interface ModelRegistry {
 
-    public <T> void create(ModelCreator<T> creator);
+    public void create(ModelCreator creator);
 
     public <T> void mutate(ModelMutator<T> mutator);
 
@@ -35,10 +35,10 @@ public interface ModelRegistry {
 
     public <T> T get(ModelReference<T> reference);
 
-    public <T> ModelElement<? extends T> element(ModelReference<T> reference);
+    public ModelElement element(ModelPath path);
 
     @Nullable // if not registered/known
-    public ModelState<?> state(ModelPath path);
+    public ModelState state(ModelPath path);
 
     public void registerListener(ModelCreationListener listener);
 

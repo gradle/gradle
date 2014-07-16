@@ -60,11 +60,8 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.Inputs;
-import org.gradle.model.internal.core.rule.ModelCreator;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.InstanceBackedModelCreator;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
@@ -175,120 +172,62 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         final ModelRegistry modelRegistry = services.get(ModelRegistry.class);
 
-        modelRegistry.create(new ModelCreator<ServiceRegistry>() {
-            public ModelReference<ServiceRegistry> getReference() {
-                return ModelReference.of(new ModelPath("serviceRegistry"), ModelType.of(ServiceRegistry.class));
-            }
+        modelRegistry.create(InstanceBackedModelCreator.of(
+                new ModelPath("serviceRegistry"),
+                ModelType.of(ServiceRegistry.class),
+                new SimpleModelRuleSourceDescriptor("Project.<init>.serviceRegistry()"),
+                services
+        ));
 
-            public ServiceRegistry create(Inputs inputs) {
-                return services;
-            }
+        modelRegistry.create(InstanceBackedModelCreator.of(
+                new ModelPath("buildDir"),
+                ModelType.of(File.class),
+                new SimpleModelRuleSourceDescriptor("Project.<init>.buildDir()"),
+                new Factory<File>() {
+                    public File create() {
+                        return getBuildDir();
+                    }
+                }
+        ));
 
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor("Project.<init>.serviceRegistry()");
-            }
+        modelRegistry.create(InstanceBackedModelCreator.of(
+                new ModelPath("projectIdentifier"),
+                ModelType.of(ProjectIdentifier.class),
+                new SimpleModelRuleSourceDescriptor("Project.<init>.projectIdentifier()"),
+                this
+        ));
 
-            public List<? extends ModelReference<?>> getInputBindings() {
-                return Collections.emptyList();
-            }
-        });
-
-        modelRegistry.create(new ModelCreator<File>() {
-            public ModelReference<File> getReference() {
-                return ModelReference.of(new ModelPath("buildDir"), ModelType.of(File.class));
-            }
-
-            public File create(Inputs inputs) {
-                return getBuildDir();
-            }
-
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor("Project.<init>.buildDir()");
-            }
-
-            public List<? extends ModelReference<?>> getInputBindings() {
-                return Collections.emptyList();
-            }
-        });
-
-        modelRegistry.create(new ModelCreator<ProjectIdentifier>() {
-            public ModelReference<ProjectIdentifier> getReference() {
-                return ModelReference.of(new ModelPath("projectIdentifier"), ModelType.of(ProjectIdentifier.class));
-            }
-
-            public ProjectIdentifier create(Inputs inputs) {
-                return AbstractProject.this;
-            }
-
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor("Project.<init>.projectIdentifier()");
-            }
-
-            public List<? extends ModelReference<?>> getInputBindings() {
-                return Collections.emptyList();
-            }
-        });
-
-        modelRegistry.create(new ModelCreator<ExtensionContainer>() {
-            public ModelReference<ExtensionContainer> getReference() {
-                return ModelReference.of(new ModelPath("extensions"), ModelType.of(ExtensionContainer.class));
-            }
-
-            public ExtensionContainer create(Inputs inputs) {
-                return getExtensions();
-            }
-
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor("Project.<init>.extensions()");
-            }
-
-            public List<? extends ModelReference<?>> getInputBindings() {
-                return Collections.emptyList();
-            }
-        });
+        modelRegistry.create(InstanceBackedModelCreator.of(
+                new ModelPath("extensions"),
+                ModelType.of(ExtensionContainer.class),
+                new SimpleModelRuleSourceDescriptor("Project.<init>.extensions()"),
+                new Factory<ExtensionContainer>() {
+                    public ExtensionContainer create() {
+                        return getExtensions();
+                    }
+                }
+        ));
 
         final ModelPath tasksModelPath = ModelPath.path(TaskContainerInternal.MODEL_PATH);
 
-        modelRegistry.create(new ModelCreator<TaskContainerInternal>() {
-            public ModelReference<TaskContainerInternal> getReference() {
-                return ModelReference.of(tasksModelPath, ModelType.of(TaskContainerInternal.class));
-            }
-
-            public TaskContainerInternal create(Inputs inputs) {
-                return getTasks();
-            }
-
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor("Project.<init>.tasks()");
-            }
-
-            public List<? extends ModelReference<?>> getInputBindings() {
-                return Collections.emptyList();
-            }
-        });
+        modelRegistry.create(InstanceBackedModelCreator.of(
+                new ModelPath("tasks"),
+                ModelType.of(TaskContainerInternal.class),
+                new SimpleModelRuleSourceDescriptor("Project.<init>.tasks()"),
+                getTasks()
+        ));
 
         taskContainer.all(new Action<Task>() {
             public void execute(final Task task) {
                 final String name = task.getName();
                 final ModelPath modelPath = tasksModelPath.child(name);
-                modelRegistry.create(new ModelCreator<Task>() {
-                    public ModelReference<Task> getReference() {
-                        return ModelReference.of(modelPath, ModelType.of(Task.class));
-                    }
 
-                    public Task create(Inputs inputs) {
-                        return task;
-                    }
-
-                    public ModelRuleSourceDescriptor getSourceDescriptor() {
-                        return new SimpleModelRuleSourceDescriptor("Project.<init>.tasks." + name + "()");
-                    }
-
-                    public List<? extends ModelReference<?>> getInputBindings() {
-                        return Collections.emptyList();
-                    }
-                });
-
+                modelRegistry.create(InstanceBackedModelCreator.of(
+                        modelPath,
+                        ModelType.of(Task.class),
+                        new SimpleModelRuleSourceDescriptor("Project.<init>.tasks." + name + "()"),
+                        task
+                ));
             }
         });
 

@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelElement;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.ModelView;
+public interface ModelView<T> {
 
-public interface Inputs extends Iterable<ModelElement> {
+    ModelType<T> getType();
 
-    <T> ModelView<? extends T> get(int i, ModelType<T> type);
+    T getInstance();
 
-    int size();
+    void close();
 
 }

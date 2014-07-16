@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.core.rule;
 
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelPath;
 
 public interface ModelCreationListener {
 
-    boolean onCreate(ModelReference<?> reference);
+    boolean onCreate(ModelPath path, ModelPromise promise);
 
 }

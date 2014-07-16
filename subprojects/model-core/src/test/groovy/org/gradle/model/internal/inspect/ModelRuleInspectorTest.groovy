@@ -22,9 +22,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelState
 import org.gradle.model.internal.core.ModelType
-import org.gradle.model.internal.core.rule.Inputs
-import org.gradle.model.internal.core.rule.ModelCreator
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor
+import org.gradle.model.internal.core.rule.InstanceBackedModelCreator
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
@@ -129,9 +127,8 @@ class ModelRuleInspectorTest extends Specification {
     def "type variables of model type are captured"() {
         when:
         inspector.inspect(ConcreteGenericModelType, registry)
-        def element = registry.element(new ModelReference("strings", new ModelType(List)))
-        def type = element.reference.type
-
+        def element = registry.element(new ModelPath("strings"))
+        def type = element.adapter.asReadOnly(ModelType.of(new TypeToken<List<String>>() {})).type
 
         then:
         type.parameterized
@@ -152,8 +149,8 @@ class ModelRuleInspectorTest extends Specification {
     def "type variables of model type are captured when method is generic in interface"() {
         when:
         inspector.inspect(ConcreteGenericModelTypeImplementingGenericInterface, registry)
-        def element = registry.element(new ModelReference("strings", new ModelType(List)))
-        def type = element.reference.type
+        def element = registry.element(new ModelPath("strings"))
+        def type = element.adapter.asReadOnly(ModelType.of(new TypeToken<List<String>>() {})).type
 
         then:
         type.parameterized
@@ -207,37 +204,18 @@ class ModelRuleInspectorTest extends Specification {
     // Not an exhaustive test of the mechanics of mutation rules, just testing the extraction and registration
     def "mutation rules are registered"() {
         given:
-        def reference = ModelReference.of(new ModelPath("string"), ModelType.of(new TypeToken<List<String>>() {}))
+        def path = new ModelPath("strings")
+        def type = ModelType.of(new TypeToken<List<String>>() {})
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(new ModelCreator<List<String>>() {
-            @Override
-            List<? extends ModelReference<?>> getInputBindings() {
-                []
-            }
-
-            @Override
-            ModelReference getReference() {
-                reference
-            }
-
-            @Override
-            List<String> create(Inputs inputs) {
-                []
-            }
-
-            @Override
-            ModelRuleSourceDescriptor getSourceDescriptor() {
-                new SimpleModelRuleSourceDescriptor("strings")
-            }
-        })
+        registry.create(InstanceBackedModelCreator.of(path, type, new SimpleModelRuleSourceDescriptor("strings"), []))
 
         when:
         inspector.inspect(MutationRules, registry)
 
         then:
-        registry.element(reference).instance.sort() == ["1", "2"]
+        registry.element(path).adapter.asReadOnly(type).instance.sort() == ["1", "2"]
     }
 
     static class MutationAndFinalizeRules {
@@ -260,37 +238,18 @@ class ModelRuleInspectorTest extends Specification {
     // Not an exhaustive test of the mechanics of finalize rules, just testing the extraction and registration
     def "finalize rules are registered"() {
         given:
-        def reference = ModelReference.of(new ModelPath("string"), ModelType.of(new TypeToken<List<String>>() {}))
+        def path = new ModelPath("strings")
+        def type = ModelType.of(new TypeToken<List<String>>() {})
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(new ModelCreator<List<String>>() {
-            @Override
-            List<? extends ModelReference<?>> getInputBindings() {
-                []
-            }
-
-            @Override
-            ModelReference getReference() {
-                reference
-            }
-
-            @Override
-            List<String> create(Inputs inputs) {
-                []
-            }
-
-            @Override
-            ModelRuleSourceDescriptor getSourceDescriptor() {
-                new SimpleModelRuleSourceDescriptor("strings")
-            }
-        })
+        registry.create(InstanceBackedModelCreator.of(path, type, new SimpleModelRuleSourceDescriptor("strings"), []))
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registry)
 
         then:
-        registry.element(reference).instance == ["1", "2"]
+        registry.element(path).adapter.asReadOnly(type).instance == ["1", "2"]
     }
 
 }

@@ -16,14 +16,12 @@
 
 package org.gradle.model.internal.core.rule;
 
-import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.ModelView;
 
-public interface Inputs extends Iterable<ModelElement> {
+public interface ModelPromise {
 
-    <T> ModelView<? extends T> get(int i, ModelType<T> type);
+    <T> boolean asWritable(ModelType<T> type);
 
-    int size();
+    <T> boolean asReadOnly(ModelType<T> type);
 
 }

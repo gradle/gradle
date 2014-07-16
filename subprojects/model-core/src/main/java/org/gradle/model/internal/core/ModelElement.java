@@ -18,24 +18,24 @@ package org.gradle.model.internal.core;
 
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
-public class ModelElement<T> {
+public class ModelElement {
 
-    private final ModelReference<T> reference;
-    private final T instance;
+    private final ModelPath path;
+    private final ModelAdapter adapter;
     private final ModelRuleSourceDescriptor creatorDescriptor;
 
-    public ModelElement(ModelReference<T> reference, T instance, ModelRuleSourceDescriptor creatorDescriptor) {
-        this.reference = reference;
-        this.instance = instance;
+    public ModelElement(ModelPath path, ModelAdapter adapter, ModelRuleSourceDescriptor creatorDescriptor) {
+        this.path = path;
+        this.adapter = adapter;
         this.creatorDescriptor = creatorDescriptor;
     }
 
-    public ModelReference<T> getReference() {
-        return reference;
+    public ModelPath getPath() {
+        return path;
     }
 
-    public T getInstance() {
-        return instance;
+    public ModelAdapter getAdapter() {
+        return adapter;
     }
 
     public ModelRuleSourceDescriptor getCreatorDescriptor() {
@@ -44,6 +44,6 @@ public class ModelElement<T> {
 
     @Override
     public String toString() {
-        return "ModelElement{reference=" + reference + ", instance=" + instance + ", creatorDescriptor=" + creatorDescriptor + "}";
+        return "ModelElement{path=" + path + ", adapter=" + adapter + ", creatorDescriptor=" + creatorDescriptor + '}';
     }
 }

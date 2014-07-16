@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -31,6 +30,7 @@ import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.Inputs;
 import org.gradle.model.internal.core.rule.ModelCreationListener;
 import org.gradle.model.internal.core.rule.ModelMutator;
+import org.gradle.model.internal.core.rule.ModelPromise;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 import org.gradle.util.CollectionUtils;
@@ -67,15 +67,15 @@ public abstract class ReflectiveRule {
 
                 private List<BindableParameter<?>> bindings = initialBindings;
 
-                public boolean onCreate(ModelReference<?> reference) {
+                public boolean onCreate(ModelPath path, ModelPromise promise) {
                     ImmutableList.Builder<BindableParameter<?>> bindingsBuilder = ImmutableList.builder();
 
                     boolean unsatisfied = false;
 
                     for (BindableParameter<?> binding : bindings) {
                         if (binding.getPath() == null) {
-                            if (binding.getType().isAssignableFrom(reference.getType())) {
-                                bindingsBuilder.add(copyBindingWithPath(reference.getPath(), binding));
+                            if (promise.asReadOnly(binding.getType())) {
+                                bindingsBuilder.add(copyBindingWithPath(path, binding));
                                 continue;
                             } else {
                                 unsatisfied = true;
@@ -104,13 +104,6 @@ public abstract class ReflectiveRule {
         BindableParameter<?> first = bindings.get(0);
         List<BindableParameter<?>> tail = bindings.subList(1, bindings.size());
         ModelMutator<?> modelMutator = toMutator(bindingMethod, first, tail, instance);
-
-        String path = first.getPath().toString();
-        List<String> bindingPaths = CollectionUtils.collect(tail, new Transformer<String, BindableParameter<?>>() {
-            public String transform(BindableParameter<?> bindableParameter) {
-                return bindableParameter.getPath().toString();
-            }
-        });
 
         if (isFinalizer) {
             modelRegistry.finalize(modelMutator);
@@ -177,7 +170,6 @@ public abstract class ReflectiveRule {
         for (int i = 0; i < types.length; i++) {
             Type paramType = types[i];
             Annotation[] paramAnnotations = annotations[i];
-
             inputBindingBuilder.add(binding(paramType, paramAnnotations));
         }
 

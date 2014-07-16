@@ -29,12 +29,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.ModelElement;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.Inputs;
-import org.gradle.model.internal.core.rule.ModelCreator;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.*;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -143,40 +139,53 @@ public class ModelRuleInspector {
 
     private <T, R> void doRegisterCreation(final Method method, final TypeToken<R> returnType, final String modelName, final ModelRegistry modelRegistry) {
         ReflectiveRule.bind(modelRegistry, method, new Action<List<ReflectiveRule.BindableParameter<?>>>() {
+
             public void execute(final List<ReflectiveRule.BindableParameter<?>> bindableParameters) {
                 @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) method.getDeclaringClass();
                 @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
                 final JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
+                final ModelType<R> type = new ModelType<R>(returnType);
 
-                List<String> inputPaths = Lists.transform(bindableParameters, new Function<ReflectiveRule.BindableParameter<?>, String>() {
-                    public String apply(ReflectiveRule.BindableParameter<?> input) {
-                        return input.getPath().toString();
-                    }
-                });
+                modelRegistry.create(new ModelCreator() {
+                    private final ModelPromise promise = new SingleTypeModelPromise(type);
+                    private final ModelPath path = new ModelPath(modelName);
+                    private List<ModelReference<?>> bindings = Lists.transform(bindableParameters, new Function<ReflectiveRule.BindableParameter<?>, ModelReference<?>>() {
+                        @Nullable
+                        public ModelReference<?> apply(ReflectiveRule.BindableParameter<?> input) {
+                            return ModelReference.of(input.getPath(), input.getType());
+                        }
+                    });
 
-                modelRegistry.create(new ModelCreator<R>() {
                     public List<? extends ModelReference<?>> getInputBindings() {
-                        return Lists.transform(bindableParameters, new Function<ReflectiveRule.BindableParameter<?>, ModelReference<?>>() {
-                            @Nullable
-                            public ModelReference<?> apply(ReflectiveRule.BindableParameter<?> input) {
-                                return ModelReference.of(input.getPath(), input.getType());
-                            }
-                        });
+                        return bindings;
                     }
 
-                    public ModelReference<R> getReference() {
-                        return new ModelReference<R>(new ModelPath(modelName), new ModelType<R>(returnType));
+                    public ModelPath getPath() {
+                        return path;
                     }
 
-                    public R create(Inputs inputs) {
+                    public ModelPromise getPromise() {
+                        return promise;
+                    }
+
+                    public ModelAdapter create(Inputs inputs) {
+                        R instance = invoke(inputs);
+                        if (instance == null) {
+                            throw new ModelRuleExecutionException(getSourceDescriptor(), "rule returned null");
+                        }
+
+                        return InstanceModelAdapter.of(type, instance);
+                    }
+
+                    private R invoke(Inputs inputs) {
                         T instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(clazz);
                         if (inputs.size() == 0) {
                             return methodWrapper.invoke(instance);
                         } else {
                             Object[] args = new Object[inputs.size()];
                             int i = 0;
-                            for (ModelElement<?> input : inputs) {
-                                args[i++] = input.getInstance();
+                            for (ModelElement input : inputs) {
+                                args[i] = input.getAdapter().asReadOnly(bindings.get(i++).getType()).getInstance();
                             }
                             return methodWrapper.invoke(instance, args);
                         }

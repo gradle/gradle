@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelElement;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.ModelView;
+import org.gradle.api.Nullable;
 
-public interface Inputs extends Iterable<ModelElement> {
+public interface ModelAdapter {
 
-    <T> ModelView<? extends T> get(int i, ModelType<T> type);
+    @Nullable // if the model can't be viewed as this type
+    <T> ModelView<? extends T> asWritable(ModelType<T> type);
 
-    int size();
+    @Nullable // if the model can't be viewed as this type
+    <T> ModelView<? extends T> asReadOnly(ModelType<T> type);
+
+    // TODO some kind of description of the model item?
 
 }

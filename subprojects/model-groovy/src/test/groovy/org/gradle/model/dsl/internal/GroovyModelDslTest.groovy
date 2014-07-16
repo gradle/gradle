@@ -19,10 +19,8 @@ package org.gradle.model.dsl.internal
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelType
-import org.gradle.model.internal.core.rule.Inputs
-import org.gradle.model.internal.core.rule.ModelCreator
+import org.gradle.model.internal.core.rule.InstanceBackedModelCreator
 import org.gradle.model.internal.core.rule.ModelRuleExecutionException
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
@@ -32,29 +30,10 @@ class GroovyModelDslTest extends Specification {
     def modelRegistry = new DefaultModelRegistry()
     def modelDsl = new GroovyModelDsl(getModelRegistry())
 
-    void register(String path, Object element) {
-        def reference = new ModelReference(new ModelPath(path), ModelType.of(element.class))
-        modelRegistry.create(new ModelCreator() {
-            @Override
-            List<? extends ModelReference<?>> getInputBindings() {
-                []
-            }
-
-            @Override
-            ModelReference getReference() {
-                reference
-            }
-
-            @Override
-            Object create(Inputs inputs) {
-                return element
-            }
-
-            @Override
-            ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor("register")
-            }
-        })
+    void register(String pathString, Object element) {
+        def path = new ModelPath(pathString)
+        def type = ModelType.of(element.class)
+        modelRegistry.create(InstanceBackedModelCreator.of(path, type, new SimpleModelRuleSourceDescriptor("register"), element))
     }
 
     def "can add rules via dsl"() {
