@@ -26,6 +26,11 @@ import org.gradle.language.base.LanguageSourceSet;
 @Incubating @HasInternalProtocol
 public interface ProjectBinary extends BuildableModelElement, Named {
     /**
+     * Returns a human-consumable display name for this binary.
+     */
+    String getDisplayName();
+
+    /**
      * Can this binary be built in the current environment?
      */
     boolean isBuildable();

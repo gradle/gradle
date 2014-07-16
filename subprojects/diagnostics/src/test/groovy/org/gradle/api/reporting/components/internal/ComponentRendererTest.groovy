@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
+import org.gradle.runtime.base.ProjectBinary
 import org.gradle.runtime.base.ProjectComponent
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -64,6 +65,7 @@ class ComponentRendererTest extends Specification {
 
     def "renders component with no binaries"() {
         def component = Stub(ProjectComponent)
+        component.binaries >> new DefaultDomainObjectSet<ProjectBinary>(ProjectBinary)
 
         when:
         renderer.render(component, builder)
