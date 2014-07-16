@@ -17,7 +17,6 @@
 .dependencyTree, #insight {
     border: solid 2px #d0d0d0;
     border-radius: 10px;
-    behavior: url(css3-pie-1.0beta3.htc);
     padding: 8px;
     background-color: #FFFFEE
 }
