@@ -60,6 +60,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
             html();
                 head();
                     meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
+                    meta().httpEquiv("x-ua-compatible").content("IE=edge");
                     link().rel("stylesheet").type("text/css").href(baseCssLink).end();
                     link().rel("stylesheet").type("text/css").href(cssLink).end();
                     title().text("Build dashboard").end();

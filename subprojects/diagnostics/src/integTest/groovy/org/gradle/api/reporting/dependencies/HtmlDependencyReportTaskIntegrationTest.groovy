@@ -240,7 +240,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/project/dependencies/images/throbber.gif").assertExists()
         file("build/reports/project/dependencies/css/tree.css").assertExists()
 
-        file("build/reports/project/dependencies/root.html").getText().contains('<script src="root.js" charset="utf-8"></script>');
+        file("build/reports/project/dependencies/root.html").getText().contains('<script src="root.js" charset="utf-8">');
         file("build/reports/project/dependencies/root.js").assertExists();
     }
 

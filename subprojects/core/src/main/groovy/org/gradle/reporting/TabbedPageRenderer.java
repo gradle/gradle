@@ -44,13 +44,13 @@ public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, HtmlPageBu
 
         String baseStyleLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
         String reportJsLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
-        builder.requireResource(getClass().getResource("/org/gradle/reporting/css3-pie-1.0beta3.htc"));
         String styleLink = builder.requireResource(getClass().getResource("style.css"));
 
         SimpleHtmlWriter htmlWriter = builder.getOutput();
 
         htmlWriter.startElement("head")
             .startElement("meta").attribute("http-equiv", "Content-Type").attribute("content", "text/html; charset=utf-8").endElement()
+            .startElement("meta").attribute("http-equiv", "x-ua-compatible").attribute("content", "IE=edge").endElement()
             .startElement("title").characters(getPageTitle()).endElement()
             .startElement("link").attribute("href", baseStyleLink).attribute("rel", "stylesheet").attribute("type", "text/css").endElement()
             .startElement("link").attribute("href", styleLink).attribute("rel", "stylesheet").attribute("type", "text/css").endElement()

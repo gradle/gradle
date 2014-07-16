@@ -54,26 +54,18 @@ class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
         renderer.render(projects, new ReportRenderer<Set<Project>, HtmlReportBuilder>() {
             @Override
             void render(Set<Project> model, HtmlReportBuilder builder) {
-                builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"))
-                builder.requireResource(getClass().getResource("/org/gradle/reporting/jquery.min-1.11.0.js"))
-                builder.requireResource(getClass().getResource(getReportResourcePath("jquery.jstree.js")))
-                builder.requireResource(getClass().getResource(getReportResourcePath("script.js")))
-                builder.requireResource(getClass().getResource(getReportResourcePath("style.css")))
-                builder.requireResource(getClass().getResource(getReportResourcePath("tree.css")))
-                builder.requireResource(getClass().getResource(getReportResourcePath("d.gif")))
-                builder.requireResource(getClass().getResource(getReportResourcePath("d.png")))
-                builder.requireResource(getClass().getResource(getReportResourcePath("throbber.gif")))
-                builder.renderRawHtmlPage("index.html", projects, new ProjectsPageRenderer(projectNamingScheme()))
+                def htmlPageScheme = projectNamingScheme("html")
+                def jsScheme = projectNamingScheme("js")
+                def projectPageRenderer = new ProjectPageRenderer(jsScheme)
+                builder.renderRawHtmlPage("index.html", projects, new ProjectsPageRenderer(htmlPageScheme))
+                for (Project project : projects) {
+                    String jsFileName = jsScheme.transform(project)
+                    generateJsFile(project, jsFileName)
+                    String htmlFileName = htmlPageScheme.transform(project)
+                    builder.renderRawHtmlPage(htmlFileName, project, projectPageRenderer)
+                }
             }
         }, outputDirectory)
-
-        String template = readHtmlTemplate();
-        for (Project project : projects) {
-            String jsFileName = toFileName(project, '.js')
-            generateJsFile(project, jsFileName)
-            String htmlFileName = toFileName(project, '.html')
-            generateHtmlFile(template, htmlFileName, jsFileName)
-        }
     }
 
     private void generateJsFile(Project project, String fileName) {
@@ -82,25 +74,12 @@ class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
         GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8")
     }
 
-    private Transformer<String, Project> projectNamingScheme() {
+    private Transformer<String, Project> projectNamingScheme(String extension) {
         new Transformer<String, Project>() {
             String transform(Project project) {
-                toFileName(project, ".html")
+                toFileName(project, "." + extension)
             }
         }
-    }
-
-    private void generateHtmlFile(String template, String fileName, String jsFileName) {
-        String content = template.replace('@js@', jsFileName);
-        GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8")
-    }
-
-    private String readHtmlTemplate() {
-        getClass().getResourceAsStream(getReportResourcePath("template.html")).getText("utf-8")
-    }
-
-    private String getReportResourcePath(String fileName) {
-        "/org/gradle/api/tasks/diagnostics/htmldependencyreport/" + fileName
     }
 
     private String toFileName(Project project, String extension) {
