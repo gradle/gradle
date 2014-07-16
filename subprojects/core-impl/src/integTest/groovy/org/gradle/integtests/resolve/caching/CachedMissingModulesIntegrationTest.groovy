@@ -57,6 +57,51 @@ task showMissing << { println configurations.missing.files }
         succeeds('showMissing')
     }
 
+    def "checks for missing modules in each repository when run with --refresh-dependencies"() {
+        given:
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleInRepo1 = repo1.module("group", "projectA", "1.2")
+        def moduleInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${repo1.uri}"}
+    ivy { url "${repo2.uri}"}
+}
+configurations { missing }
+dependencies {
+    missing 'group:projectA:1.2'
+}
+task showMissing << { println configurations.missing.files }
+"""
+
+        when:
+        moduleInRepo1.ivy.expectGetMissing()
+        moduleInRepo1.jar.expectHeadMissing()
+        moduleInRepo2.ivy.expectGet()
+        moduleInRepo2.jar.expectGet()
+
+        then:
+        succeeds("showMissing")
+
+        when:
+        moduleInRepo1.publish()
+        server.resetExpectations()
+        then:
+        succeeds("showMissing")
+
+        when:
+        executer.withArgument("--refresh-dependencies")
+        moduleInRepo1.ivy.expectHead()
+        moduleInRepo1.ivy.sha1.expectGet()
+        moduleInRepo1.jar.expectHead()
+        moduleInRepo1.jar.sha1.expectGet()
+
+        then:
+        succeeds("showMissing")
+    }
+
     def "cached not-found information for dynamic version is ignored if module is not available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

@@ -46,7 +46,7 @@ public class DefaultCachePolicySpec extends Specification {
         hasChangingModuleTimeout(DAY)
         hasModuleTimeout(FOREVER)
         hasMissingArtifactTimeout(DAY)
-        hasMissingModuleTimeout(DAY)
+        hasMissingModuleTimeout(FOREVER)
     }
 
     def "uses changing module timeout for changing modules"() {
@@ -57,8 +57,8 @@ public class DefaultCachePolicySpec extends Specification {
         hasDynamicVersionTimeout(DAY);
         hasChangingModuleTimeout(10 * SECOND)
         hasModuleTimeout(FOREVER)
-        hasMissingModuleTimeout(DAY)
-        hasChangingArtifactTimeout(DAY)
+        hasMissingArtifactTimeout(DAY)
+        hasMissingModuleTimeout(FOREVER)
     }
 
     def "uses dynamic version timeout for dynamic versions"() {
@@ -68,9 +68,9 @@ public class DefaultCachePolicySpec extends Specification {
         then:
         hasDynamicVersionTimeout(10 * SECOND)
         hasChangingModuleTimeout(DAY)
-        hasMissingModuleTimeout(DAY)
-        hasMissingArtifactTimeout(DAY)
         hasModuleTimeout(FOREVER)
+        hasMissingArtifactTimeout(DAY)
+        hasMissingModuleTimeout(FOREVER)
     }
 
     def "applies invalidate rule for dynamic versions"() {
@@ -214,7 +214,8 @@ public class DefaultCachePolicySpec extends Specification {
         assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, 100)
         assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout);
         assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout - 1)
-        cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout + 1)
+        assert cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout + 1)
+        true
     }
 
     private def hasChangingModuleTimeout(int timeout) {
@@ -222,7 +223,8 @@ public class DefaultCachePolicySpec extends Specification {
         def module = moduleVersion('group', 'name', 'version')
         assert !cachePolicy.mustRefreshChangingModule(id, module, timeout - 1)
         assert !cachePolicy.mustRefreshChangingModule(id, module, timeout);
-        cachePolicy.mustRefreshChangingModule(id, module, timeout + 1)
+        assert cachePolicy.mustRefreshChangingModule(id, module, timeout + 1)
+        true
     }
 
     private def hasModuleTimeout(int timeout) {
@@ -230,27 +232,29 @@ public class DefaultCachePolicySpec extends Specification {
         def module = moduleVersion('group', 'name', 'version')
         assert !cachePolicy.mustRefreshModule(id, module, timeout);
         assert !cachePolicy.mustRefreshModule(id, module, timeout - 1)
-        if (timeout == FOREVER) {
-            return true
+        if (timeout != FOREVER) {
+            assert cachePolicy.mustRefreshModule(id, module, timeout + 1)
         }
-        cachePolicy.mustRefreshModule(id, module, timeout + 1)
+        true
     }
 
     private def hasMissingModuleTimeout(int timeout) {
         def id = moduleComponent('group', 'name', 'version')
         assert !cachePolicy.mustRefreshModule(id, null, timeout);
         assert !cachePolicy.mustRefreshModule(id, null, timeout - 1)
-        cachePolicy.mustRefreshModule(id, null, timeout + 1)
-    }
-
-    private def hasChangingArtifactTimeout(int timeout){
-        cachePolicy.mustRefreshArtifact(null, null, timeout, true, true)
+        if (timeout != FOREVER) {
+            assert cachePolicy.mustRefreshModule(id, null, timeout + 1)
+        }
+        return true
     }
 
     private def hasMissingArtifactTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshArtifact(null, null, timeout, true, true);
-        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1, true, true)
-        cachePolicy.mustRefreshArtifact(null, null, timeout + 1, true, true)
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout, false, false);
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1, false, false)
+        if (timeout != FOREVER) {
+            assert cachePolicy.mustRefreshArtifact(null, null, timeout + 1, false, false)
+        }
+        true
     }
 
     private def assertId(def moduleId, String group, String name, String version) {
