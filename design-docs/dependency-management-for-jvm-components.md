@@ -840,7 +840,6 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 Issue: can't apply `cunit` plugin without `c` plugin also applied.
 Issue: language plugins add every language to every component, regardless of whether that language is supported for the component.
-Issue: Java lang plugin does not declare any binaries.
 
 ### Story: User views component model as HTML report
 
