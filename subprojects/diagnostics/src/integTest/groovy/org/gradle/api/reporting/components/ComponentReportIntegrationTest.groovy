@@ -73,7 +73,8 @@ Source sets
         src/someLib/resources
 
 Binaries
-    No binaries.
+    Jar 'someLib:jar'
+        build task: :someLibJar
 """)
     }
 
