@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,36 +22,6 @@ import spock.lang.Unroll
 
 class ClassModelRuleSourceValidationTest extends Specification {
 
-    abstract static class AbstractClass {}
-
-    static interface AnInterface {}
-
-    class InnerInstanceClass {}
-
-    private class PrivateInnerStaticClass {}
-
-    static class HasSuperclass extends InnerPublicStaticClass {}
-
-    static class HasTwoConstructors {
-        HasTwoConstructors() {
-        }
-
-        HasTwoConstructors(String arg) {
-        }
-    }
-
-    static class HasInstanceVar {
-        String foo
-    }
-
-    static class HasFinalInstanceVar {
-        final String foo = null
-    }
-
-    static class HasNonFinalStaticVar {
-        static String foo = null
-    }
-
     @Unroll
     def "invalid #type - #reason"() {
         when:
@@ -64,27 +34,16 @@ class ClassModelRuleSourceValidationTest extends Specification {
         actualReason == reason
 
         where:
-        type                       | reason
-        AbstractClass              | "class cannot be abstract"
-        AnInterface                | "must be a class, not an interface"
-        InnerInstanceClass         | "enclosed classes must be static and non private"
-        new Object() {}.getClass() | "enclosed classes must be static and non private"
-        HasSuperclass              | "cannot have superclass"
-        HasTwoConstructors         | "cannot have more than one constructor"
-        HasInstanceVar             | "field foo is not static final"
-        HasFinalInstanceVar        | "field foo is not static final"
-        HasNonFinalStaticVar       | "field foo is not static final"
-    }
-
-    static class InnerPublicStaticClass {}
-
-    static class HasExplicitDefaultConstructor {
-        HasExplicitDefaultConstructor() {
-        }
-    }
-
-    static class HasStaticFinalField {
-        static final VALUE = null
+        type                            | reason
+        OuterClass.AbstractClass        | "class cannot be abstract"
+        OuterClass.AnInterface          | "must be a class, not an interface"
+        OuterClass.InnerInstanceClass   | "enclosed classes must be static and non private"
+        new Object() {}.getClass()      | "enclosed classes must be static and non private"
+        OuterClass.HasSuperclass        | "cannot have superclass"
+        OuterClass.HasTwoConstructors   | "cannot have more than one constructor"
+        OuterClass.HasInstanceVar       | "field foo is not static final"
+        OuterClass.HasFinalInstanceVar  | "field foo is not static final"
+        OuterClass.HasNonFinalStaticVar | "field foo is not static final"
     }
 
     @Unroll
@@ -97,9 +56,9 @@ class ClassModelRuleSourceValidationTest extends Specification {
 
         where:
         type << [
-                InnerPublicStaticClass,
-                HasExplicitDefaultConstructor,
-                HasStaticFinalField
+                OuterClass.InnerPublicStaticClass,
+                OuterClass.HasExplicitDefaultConstructor,
+                OuterClass.HasStaticFinalField
         ]
     }
 }
