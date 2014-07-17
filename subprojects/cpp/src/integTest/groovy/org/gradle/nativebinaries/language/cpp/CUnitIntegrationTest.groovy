@@ -127,10 +127,12 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
             libraries {
                 hello {}
             }
-            testSuites {
-                helloTest {
-                    binaries.all {
-                        lib library: "cunit", linkage: "static"
+            model {
+                testSuites {
+                    helloTest {
+                        binaries.all {
+                            lib library: "cunit", linkage: "static"
+                        }
                     }
                 }
             }
@@ -249,11 +251,13 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            sources {
-                variantTest {
-                    c {
-                        lib sources.hello.c
-                        lib sources.helloTest.cunitLauncher
+            model {
+                sources {
+                    variantTest {
+                        c {
+                            lib sources.hello.c
+                            lib sources.helloTest.cunitLauncher
+                        }
                     }
                 }
             }
@@ -358,18 +362,18 @@ There were test failures:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
                 "build.gradle",
-                "build/src/helloTestCUnitLauncher/c/gradle_cunit_main.c",
+                "build/src/helloTest/cunitLauncher/c/gradle_cunit_main.c",
                 "src/helloTest/c/test.c",
                 "src/hello/c/hello.c",
                 "src/hello/c/sum.c"
         ] as Set
         projectFile.headerFiles == [
-                "build/src/helloTestCUnitLauncher/headers/gradle_cunit_register.h",
+                "build/src/helloTest/cunitLauncher/headers/gradle_cunit_register.h",
                 "src/hello/headers/hello.h"
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "build/src/helloTestCUnitLauncher/headers;src/helloTest/headers;src/hello/headers;libs/cunit/2.1-2/include"
+            includePath == "build/src/helloTest/cunitLauncher/headers;src/helloTest/headers;src/hello/headers;libs/cunit/2.1-2/include"
         }
     }
 

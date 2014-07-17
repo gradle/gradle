@@ -27,7 +27,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.DependentSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
-import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
@@ -71,7 +70,7 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
             return extensions.getByType(TestSuiteContainer.class);
         }
 
-        @Mutate
+        @Finalize // Must run after test binaries have been created (currently in CUnit plugin)
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
             for (ProjectNativeTestSuiteBinary testSuiteBinary : binaries.withType(ProjectNativeTestSuiteBinary.class)) {
                 ProjectNativeBinary testedBinary = testSuiteBinary.getTestedBinary();

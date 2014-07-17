@@ -231,9 +231,34 @@ For example:
         main.cpp.lib library: 'foo'
     }
 
-#### Changed source set of CUnit sources
+#### Changes to CUnit configuration DSL
 
-The C language source set for CUnit test sources has been renamed from 'cunit' to 'c'.
+* The C language source set for CUnit test sources has been renamed from 'cunit' to 'c'. This means that by convention Gradle
+  will look for test sources in `src/<test-suite-name>/c`.
+* The CUnit test suite components are created via model rules, and must be configured via model rules:
+
+    model {
+        testSuites {
+            helloTest {
+                binaries.all {
+                    lib library: "cunit", linkage: "static"
+                }
+            }
+        }
+    }
+
+* The source set for a test suite component is created via model rules, and must be configured via model rules:
+
+    model {
+        sources {
+            variantTest {
+                c {
+                    lib sources.hello.c
+                    lib sources.helloTest.cunitLauncher
+                }
+            }
+        }
+    }
 
 ### Changes to incubating Java language plugins
 

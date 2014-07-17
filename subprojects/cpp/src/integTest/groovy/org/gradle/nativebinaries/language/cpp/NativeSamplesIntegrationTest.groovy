@@ -414,7 +414,7 @@ Util build type: RELEASE
 
         then:
         executedAndNotSkipped ":operatorsTestCUnitLauncher",
-                              ":compilePassingOperatorsTestCUnitExeOperatorsTestCunit", ":compilePassingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
+                              ":compilePassingOperatorsTestCUnitExeOperatorsTestC", ":compilePassingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
                               ":linkPassingOperatorsTestCUnitExe", ":passingOperatorsTestCUnitExe",
                               ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
 
@@ -432,7 +432,7 @@ Util build type: RELEASE
 
         then:
         skipped ":operatorsTestCUnitLauncher"
-        executedAndNotSkipped ":compileFailingOperatorsTestCUnitExeOperatorsTestCunit", ":compileFailingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
+        executedAndNotSkipped ":compileFailingOperatorsTestCUnitExeOperatorsTestC", ":compileFailingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
                               ":linkFailingOperatorsTestCUnitExe", ":failingOperatorsTestCUnitExe",
                               ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
 
