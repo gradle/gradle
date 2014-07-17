@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
 import org.gradle.api.tasks.compile.CompileOptions
@@ -29,6 +30,12 @@ class DefaultJavaToolChainTest extends Specification {
     def javaCompilerFactory = Stub(JavaCompilerFactory)
     def execActionFactory = Stub(ExecActionFactory)
     def toolChain = new DefaultJavaToolChain(javaCompilerFactory, execActionFactory)
+
+    def "has reasonable string representation"() {
+        expect:
+        toolChain.displayName == "current JDK (${JavaVersion.current()})"
+        toolChain.toString() == toolChain.displayName
+    }
 
     def "creates compiler for JavaCompileSpec"() {
         def options = Stub(CompileOptions)

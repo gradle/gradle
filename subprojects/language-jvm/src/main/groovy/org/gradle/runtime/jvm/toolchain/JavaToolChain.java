@@ -35,4 +35,5 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface JavaToolChain {
+    String getDisplayName();
 }
