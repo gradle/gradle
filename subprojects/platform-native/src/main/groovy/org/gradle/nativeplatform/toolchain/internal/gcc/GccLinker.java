@@ -19,9 +19,9 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
+import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
@@ -86,10 +86,12 @@ class GccLinker implements Compiler<LinkerSpec> {
 
         private void maybeSetInstallName(SharedLibraryLinkerSpec spec, List<String> args) {
             String installName = spec.getInstallName();
-            if (installName == null || OperatingSystem.current().isWindows()) {
+            OperatingSystem targetOs = spec.getTargetPlatform().getOperatingSystem();
+
+            if (installName == null || targetOs.isWindows()) {
                 return;
             }
-            if (OperatingSystem.current().isMacOsX()) {
+            if (targetOs.isMacOsX()) {
                 args.add("-Wl,-install_name," + installName);
             } else {
                 args.add("-Wl,-soname," + installName);

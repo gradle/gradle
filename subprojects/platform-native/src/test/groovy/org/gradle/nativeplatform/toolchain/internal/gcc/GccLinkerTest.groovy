@@ -19,6 +19,9 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.internal.LinkerSpec
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec
+import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
+import org.gradle.nativeplatform.platform.internal.DefaultPlatform
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -55,6 +58,7 @@ class GccLinkerTest extends Specification {
         spec.getLibraries() >> []
         spec.getLibraryPath() >> []
         spec.getInstallName() >> "installName"
+        spec.getTargetPlatform() >> new DefaultPlatform("default")
         spec.getObjectFiles() >> [testDir.file("one.o"), testDir.file("two.o")]
 
         and:
@@ -76,4 +80,75 @@ class GccLinkerTest extends Specification {
         }
         return ["-Wl,-soname,${value}"]
     }
+
+    def "sets -install_name for osx"() {
+        given:
+        def testDir = tmpDirProvider.testDirectory
+        def outputFile = testDir.file("output/lib")
+
+        final expectedArgs = [
+                "-shared",
+                "-Wl,-install_name,installName",
+                "-o", outputFile.absolutePath,
+                testDir.file("one.o").absolutePath].flatten()
+
+        when:
+        Platform platform = Mock(Platform)
+        platform.getOperatingSystem() >> new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS)
+
+        LinkerSpec spec = Mock(SharedLibraryLinkerSpec)
+        spec.getSystemArgs() >> []
+        spec.getArgs() >> []
+        spec.getOutputFile() >> outputFile
+        spec.getLibraries() >> []
+        spec.getLibraryPath() >> []
+        spec.getInstallName() >> "installName"
+        spec.getTargetPlatform() >> platform
+        spec.getObjectFiles() >> [testDir.file("one.o")]
+
+        and:
+        linker.execute(spec)
+
+        then:
+        1 * invocation.copy() >> invocation
+        1 * invocation.setArgs(expectedArgs)
+        1 * commandLineTool.execute(invocation)
+        0 * _
+    }
+
+    def "sets -soname for linux"() {
+        given:
+        def testDir = tmpDirProvider.testDirectory
+        def outputFile = testDir.file("output/lib")
+
+        final expectedArgs = [
+                "-shared",
+                "-Wl,-soname,installName",
+                "-o", outputFile.absolutePath,
+                testDir.file("one.o").absolutePath].flatten()
+
+        when:
+        Platform platform = Mock(Platform)
+        platform.getOperatingSystem() >> new DefaultOperatingSystem("osx", OperatingSystem.LINUX)
+
+        LinkerSpec spec = Mock(SharedLibraryLinkerSpec)
+        spec.getSystemArgs() >> []
+        spec.getArgs() >> []
+        spec.getOutputFile() >> outputFile
+        spec.getLibraries() >> []
+        spec.getLibraryPath() >> []
+        spec.getInstallName() >> "installName"
+        spec.getTargetPlatform() >> platform
+        spec.getObjectFiles() >> [testDir.file("one.o")]
+
+        and:
+        linker.execute(spec)
+
+        then:
+        1 * invocation.copy() >> invocation
+        1 * invocation.setArgs(expectedArgs)
+        1 * commandLineTool.execute(invocation)
+        0 * _
+    }
+
 }
