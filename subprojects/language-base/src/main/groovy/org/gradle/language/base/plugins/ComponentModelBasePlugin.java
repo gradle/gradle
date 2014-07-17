@@ -111,21 +111,15 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
             return extensions.getByType(LanguageRegistry.class);
         }
 
-        // Should not be finalizing here, but need this to run after the 'assembling' task (jar, link, etc) is created.
-        // TODO: find a better way
+        // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageRegistry languageRegistry) {
-            // TODO:DAZ Use simple iteration here
-            languageRegistry.all(new Action<LanguageRegistration>() {
-                public void execute(final LanguageRegistration language) {
-                    binaries.withType(ProjectBinaryInternal.class).all(new Action<ProjectBinaryInternal>() {
-                        public void execute(ProjectBinaryInternal binary) {
-                            final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-                            createRule.createCompileTasksForBinary(tasks, binary);
-                        }
-                    });
+            for (LanguageRegistration language : languageRegistry) {
+                for (ProjectBinaryInternal binary : binaries.withType(ProjectBinaryInternal.class)) {
+                    final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
+                    createRule.createCompileTasksForBinary(tasks, binary);
                 }
-            });
+            }
         }
 
         @Finalize

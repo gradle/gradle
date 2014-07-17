@@ -27,9 +27,9 @@ import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 
 public class CreateSourceTransformTask {
-    private final LanguageRegistration<? extends LanguageSourceSet> language;
+    private final LanguageRegistration language;
 
-    public CreateSourceTransformTask(LanguageRegistration<? extends LanguageSourceSet> languageRegistration) {
+    public CreateSourceTransformTask(LanguageRegistration languageRegistration) {
         this.language = languageRegistration;
     }
 
