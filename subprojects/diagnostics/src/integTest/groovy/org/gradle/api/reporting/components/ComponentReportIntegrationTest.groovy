@@ -277,11 +277,8 @@ Additional source sets
 ----------------------
 C source 'someExeTest:c'
     src/someExeTest/c
-C source 'someExeTest:cunit'
-    src/someExeTest/cunit
 C source 'someExeTest:cunitLauncher'
-    src/someExeTest/cunitLauncher
-    build/src/someExeTestCUnitLauncher/cunit
+    build/src/someExeTest/cunitLauncher/c
 
 Additional binaries
 -------------------
