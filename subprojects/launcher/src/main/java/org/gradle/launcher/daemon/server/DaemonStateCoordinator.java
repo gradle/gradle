@@ -18,12 +18,12 @@ package org.gradle.launcher.daemon.server;
 
 import com.google.common.base.Objects;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
-import org.gradle.launcher.exec.BuildCancellationToken;
 import org.gradle.launcher.exec.DefaultBuildCancellationToken;
 import org.slf4j.Logger;
 

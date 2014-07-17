@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.initialization.BuildCancellationToken;
+
 import java.util.ArrayList;
 import java.util.List;
 

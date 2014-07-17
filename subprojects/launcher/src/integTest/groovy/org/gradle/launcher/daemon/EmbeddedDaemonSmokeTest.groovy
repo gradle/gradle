@@ -17,10 +17,10 @@ package org.gradle.launcher.daemon
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
+import org.gradle.initialization.FixedBuildCancellationToken
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.exec.DefaultBuildActionParameters
-import org.gradle.launcher.exec.FixedBuildCancellationToken
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.provider.ConfiguringBuildAction
 import org.junit.Rule

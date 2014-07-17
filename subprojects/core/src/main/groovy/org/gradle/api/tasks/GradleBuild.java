@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.initialization.FixedBuildCancellationToken;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
@@ -112,7 +113,7 @@ public class GradleBuild extends ConventionTask {
 
     @TaskAction
     void build() {
-        GradleLauncher launcher = gradleLauncherFactory.newInstance(getStartParameter());
+        GradleLauncher launcher = gradleLauncherFactory.newInstance(getStartParameter(), new FixedBuildCancellationToken());
         try {
             launcher.run().rethrowFailure();
         } finally {

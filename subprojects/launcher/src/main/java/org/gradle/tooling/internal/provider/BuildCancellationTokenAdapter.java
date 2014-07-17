@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.launcher.exec.BuildCancellationToken;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
 public class BuildCancellationTokenAdapter implements BuildCancellationToken {

@@ -17,10 +17,10 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.exec.BuildCancellationToken;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.launcher.exec.ReportedException;
 import org.gradle.tooling.exceptions.BuildCancelledException;

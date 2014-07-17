@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.SystemProperties;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.*;

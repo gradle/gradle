@@ -17,12 +17,12 @@ package org.gradle.launcher.daemon.client
 
 import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.initialization.BuildAction
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.context.DaemonUidCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.launcher.exec.BuildCancellationToken
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.exceptions.BuildCancelledException

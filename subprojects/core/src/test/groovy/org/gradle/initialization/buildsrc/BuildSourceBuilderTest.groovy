@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization.buildsrc
 
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.GradleLauncher
 import org.gradle.StartParameter
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -31,9 +32,10 @@ class BuildSourceBuilderTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     GradleLauncherFactory launcherFactory = Mock()
+    BuildCancellationToken cancellationToken = Mock()
     ClassLoaderScope classLoaderScope = Mock()
     CacheRepository cacheRepository = Mock()
-    BuildSourceBuilder buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [launcherFactory, classLoaderScope,  cacheRepository])
+    BuildSourceBuilder buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [launcherFactory, cancellationToken, classLoaderScope,  cacheRepository])
 
     StartParameter parameter = new StartParameter()
 
@@ -48,7 +50,7 @@ class BuildSourceBuilderTest extends Specification {
         def cache = Mock(PersistentCache)
         def classpath = Mock(ClassPath)
         def launcher = Mock(GradleLauncher)
-        launcherFactory.newInstance(_) >> launcher
+        launcherFactory.newInstance(_, cancellationToken) >> launcher
         buildSourceBuilder.createCache(parameter) >> cache
         cache.useCache(_ as String, _ as BuildSrcUpdateFactory) >> classpath
 

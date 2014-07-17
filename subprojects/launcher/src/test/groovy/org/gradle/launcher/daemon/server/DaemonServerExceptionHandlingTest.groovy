@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.BuildAction
 import org.gradle.initialization.BuildController
+import org.gradle.initialization.FixedBuildCancellationToken
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
@@ -31,7 +32,6 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
 import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction
 import org.gradle.launcher.exec.DefaultBuildActionParameters
-import org.gradle.launcher.exec.FixedBuildCancellationToken
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

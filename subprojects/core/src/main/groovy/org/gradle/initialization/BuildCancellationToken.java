@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.initialization;
 
 /**
  * Propagates notification that the build should be cancelled.

@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.launcher.exec.BuildCancellationToken;
+import org.gradle.initialization.BuildCancellationToken;
 
 public interface DaemonStateControl {
     /**

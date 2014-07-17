@@ -16,6 +16,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildCancellationToken;
 
 public interface BuildActionExecuter<P> {
     /**

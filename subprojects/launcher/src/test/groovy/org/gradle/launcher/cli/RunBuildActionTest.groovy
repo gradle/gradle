@@ -16,10 +16,10 @@
 package org.gradle.launcher.cli
 
 import org.gradle.StartParameter
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.exec.BuildActionExecuter
-import org.gradle.launcher.exec.BuildCancellationToken
 import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
 

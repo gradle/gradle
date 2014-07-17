@@ -17,9 +17,9 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildAction
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factory
 import org.gradle.launcher.exec.BuildActionExecuter
-import org.gradle.launcher.exec.BuildCancellationToken
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import spock.lang.Specification

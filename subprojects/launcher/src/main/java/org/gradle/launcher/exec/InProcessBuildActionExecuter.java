@@ -19,10 +19,7 @@ package org.gradle.launcher.exec;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
-import org.gradle.initialization.DefaultGradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.*;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -34,7 +31,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     }
 
     public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, BuildActionParameters actionParameters) {
-        DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, actionParameters);
+        DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, cancellationToken, actionParameters);
         try {
             return action.run(buildController);
         } finally {
@@ -47,11 +44,13 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         private State state = State.NotStarted;
         private final BuildActionParameters actionParameters;
         private final GradleLauncherFactory gradleLauncherFactory;
+        private final BuildCancellationToken cancellationToken;
         private DefaultGradleLauncher gradleLauncher;
         private StartParameter startParameter = new StartParameter();
 
-        private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildActionParameters actionParameters) {
+        private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildCancellationToken cancellationToken, BuildActionParameters actionParameters) {
             this.gradleLauncherFactory = gradleLauncherFactory;
+            this.cancellationToken = cancellationToken;
             this.actionParameters = actionParameters;
         }
 
@@ -67,7 +66,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
                 throw new IllegalStateException("Cannot use launcher after build has completed.");
             }
             if (state == State.NotStarted) {
-                gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(startParameter, actionParameters.getBuildRequestMetaData());
+                gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(startParameter, cancellationToken, actionParameters.getBuildRequestMetaData());
                 state = State.Created;
             }
             return gradleLauncher;

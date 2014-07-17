@@ -16,9 +16,9 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildCancellationToken;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.initialization;
 
 /**
  * Implementation used for toolingApi requests from consumer without cancellation support.
