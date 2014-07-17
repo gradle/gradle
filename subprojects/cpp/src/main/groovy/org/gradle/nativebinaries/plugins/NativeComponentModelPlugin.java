@@ -15,18 +15,19 @@
  */
 package org.gradle.nativebinaries.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Plugin;
+import org.gradle.api.*;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.HeaderExportingSourceSet;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.*;
 import org.gradle.nativebinaries.*;
@@ -53,13 +54,11 @@ import java.io.File;
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
-    private final ProjectConfigurationActionContainer configurationActions;
     private final FileResolver fileResolver;
 
     @Inject
-    public NativeComponentModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, FileResolver fileResolver) {
+    public NativeComponentModelPlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
-        this.configurationActions = configurationActions;
         this.fileResolver = fileResolver;
     }
 
@@ -81,16 +80,12 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().add("nativeComponents", components.withType(ProjectNativeComponent.class));
         project.getExtensions().add("executables", nativeExecutables);
         project.getExtensions().add("libraries", nativeLibraries);
-
-        configurationActions.add(Actions.composite(
-                new ConfigureGeneratedSourceSets(),
-                new ApplyHeaderSourceSetConventions()
-        ));
     }
 
     /**
      * Model rules.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     public static class Rules {
 
@@ -171,6 +166,45 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 flavors.create(DefaultFlavor.DEFAULT);
             }
         }
+
+        @Mutate
+        void configureGeneratedSourceSets(ProjectSourceSet sources) {
+            for (FunctionalSourceSet functionalSourceSet : sources) {
+                for (LanguageSourceSetInternal languageSourceSet : functionalSourceSet.withType(LanguageSourceSetInternal.class)) {
+                    Task generatorTask = languageSourceSet.getGeneratorTask();
+                    if (generatorTask != null) {
+                        languageSourceSet.builtBy(generatorTask);
+                        maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
+                        if (languageSourceSet instanceof HeaderExportingSourceSet) {
+                            maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
+                        }
+                    }
+                }
+            }
+        }
+
+        @Finalize
+        public void applyHeaderSourceSetConventions(ProjectSourceSet sources) {
+            for (FunctionalSourceSet functionalSourceSet : sources) {
+                for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
+                    // Only apply default locations when none explicitly configured
+                    if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
+                        headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", functionalSourceSet.getName()));
+                    }
+
+                    headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
+                    headerSourceSet.getImplicitHeaders().include("**/*.h");
+                }
+            }
+        }
+
+        private void maybeSetSourceDir(SourceDirectorySet sourceSet, Task task, String propertyName) {
+            Object value = task.property(propertyName);
+            if (value != null) {
+                sourceSet.srcDir(value);
+            }
+        }
+
     }
 
     private static class MarkBinariesBuildable implements Action<ProjectNativeBinary> {

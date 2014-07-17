@@ -59,6 +59,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     /**
      * Model rules.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
 

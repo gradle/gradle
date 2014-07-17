@@ -18,7 +18,6 @@ package org.gradle.language.base.plugins;
 import org.gradle.api.*;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
@@ -26,10 +25,10 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
-import org.gradle.language.base.internal.plugins.ApplyDefaultSourceLocations;
 import org.gradle.language.base.internal.plugins.CreateSourceTransformTask;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
+import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectComponent;
@@ -52,13 +51,10 @@ import javax.inject.Inject;
 public class ComponentModelBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
-    // TODO:DAZ This should be a model rule, once sourceSets are included in the model
-    private final ProjectConfigurationActionContainer configurationActions;
 
     @Inject
-    public ComponentModelBasePlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions) {
+    public ComponentModelBasePlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.configurationActions = configurationActions;
     }
 
     public void apply(final Project project) {
@@ -71,8 +67,6 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         // TODO:DAZ Convert to model rules
         createProjectSourceSetForEachComponent(sources, components);
         createLanguageSourceSets(project, languageRegistry, sources);
-
-        configurationActions.add(new ApplyDefaultSourceLocations());
     }
 
     private void createLanguageSourceSets(final Project project, final LanguageRegistry languageRegistry, final ProjectSourceSet sources) {
@@ -109,6 +103,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
     /**
      * Model rules.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
         @Model
@@ -131,6 +126,23 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
                     });
                 }
             });
+        }
+
+        @Finalize
+        void applyDefaultSourceConventions(ProjectSourceSet sources) {
+            for (FunctionalSourceSet functionalSourceSet : sources) {
+               for (LanguageSourceSet languageSourceSet : functionalSourceSet) {
+                   // Only apply default locations when none explicitly configured
+                   if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+                       languageSourceSet.getSource().srcDir(String.format("src/%s/%s", functionalSourceSet.getName(), languageSourceSet.getName()));
+                   }
+               }
+           }
+        }
+
+        @Mutate
+        void closeSourcesForTasks(TaskContainer tasks, ProjectSourceSet sources) {
+            // Only required because sources aren't fully integrated into model
         }
     }
 }

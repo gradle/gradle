@@ -67,6 +67,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
     /**
      * Model rules.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     public static class Rules {
 
@@ -80,7 +81,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return new DefaultBinaryNamingSchemeBuilder();
         }
 
-        @SuppressWarnings("UnusedDeclaration")
         @Mutate
         public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<ProjectJvmLibrary> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
