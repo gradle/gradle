@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
+import org.junit.Assert
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -52,7 +53,7 @@ task log << {
             build.standardOutput = output
             build.forTasks("log")
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            ConcurrentTestUtil.poll(10) { Assert.assertTrue(output.toString().contains("waiting")) }
             marker.text = 'go!'
             resultHandler.finished()
         }
