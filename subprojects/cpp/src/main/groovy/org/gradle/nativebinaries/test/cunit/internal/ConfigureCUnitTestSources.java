@@ -19,7 +19,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.c.CSourceSet;
-import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuite;
 import org.gradle.nativebinaries.test.cunit.tasks.GenerateCUnitLauncher;
 
@@ -42,11 +41,6 @@ public class ConfigureCUnitTestSources {
         CSourceSet testSources = suiteSourceSet.maybeCreate("cunit", CSourceSet.class);
         cUnitTestSuite.source(testSources);
         testSources.lib(launcherSources);
-
-        ProjectNativeComponent testedComponent = cUnitTestSuite.getTestedComponent();
-        cUnitTestSuite.source(testedComponent.getSource());
-
-        testSources.lib(testedComponent.getSource().withType(CSourceSet.class));
     }
 
     private FunctionalSourceSet createSuiteSources(CUnitTestSuite cUnitTestSuite) {

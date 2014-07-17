@@ -141,7 +141,9 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             libraries {
                 hello {}
             }
-            sources.main.cpp.lib libraries.hello.static
+            sources {
+                main.cpp.lib libraries.hello.static
+            }
         """
         and:
         succeeds "installDebugMainExecutable", "installReleaseMainExecutable"
@@ -194,7 +196,9 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                     targetBuildTypes "debug"
                 }
             }
-            sources.main.cpp.lib libraries.hello.static
+            sources {
+                main.cpp.lib libraries.hello.static
+            }
 """
 
         and:

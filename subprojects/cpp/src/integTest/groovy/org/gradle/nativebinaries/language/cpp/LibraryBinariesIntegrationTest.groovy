@@ -37,8 +37,10 @@ class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrati
                 helloStatic {}
                 helloShared {}
             }
-            sources.main.cpp.lib libraries.helloStatic.static
-            sources.main.cpp.lib libraries.helloShared
+            sources {
+                main.cpp.lib libraries.helloStatic.static
+                main.cpp.lib libraries.helloShared
+            }
         """
 
         and:
@@ -120,9 +122,11 @@ include 'exe', 'lib'
                 libraries {
                     helloMain {}
                 }
-                sources.main.cpp {
-                    lib libraries.helloMain
-                    lib project(":lib").libraries.helloLib
+                sources {
+                    main.cpp {
+                        lib libraries.helloMain
+                        lib project(":lib").libraries.helloLib
+                    }
                 }
             }
         """
@@ -204,8 +208,10 @@ include 'exe', 'lib'
                 libCpp {}
                 libC {}
             }
-            sources.main.cpp.lib libraries.libCpp.static
-            sources.main.c.lib libraries.libC.static
+            sources {
+                main.cpp.lib libraries.libCpp.static
+                main.c.lib libraries.libC.static
+            }
         """
 
         and:
@@ -282,7 +288,9 @@ include 'exe', 'lib'
                     }
                 }
             }
-            sources.main.cpp.lib libraries.hello
+            sources {
+                main.cpp.lib libraries.hello
+            }
         """
 
         and:

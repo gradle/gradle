@@ -57,7 +57,9 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             libraries {
                 hello {}
             }
-            sources.main.cpp.lib ${dependencyNotation}
+            sources {
+                main.cpp.lib ${dependencyNotation}
+            }
         }
         project(":other") {
             libraries {
@@ -95,7 +97,9 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             libraries {
                 hello {}
             }
-            sources.main.cpp.lib ${notation}
+            sources {
+                main.cpp.lib ${notation}
+            }
         """
 
         when:
@@ -154,7 +158,9 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             executables {
                 main {}
             }
-            sources.main.cpp.lib library: 'hello', linkage: 'static'
+            sources {
+                main.cpp.lib library: 'hello', linkage: 'static'
+            }
             libraries {
                 hello {}
             }
@@ -182,7 +188,9 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             executables {
                 main {}
             }
-            sources.main.cpp.lib project: ':lib', library: 'hello'
+            sources {
+                main.cpp.lib project: ':lib', library: 'hello'
+            }
         }
         project(":lib") {
             libraries {
@@ -224,13 +232,17 @@ project.afterEvaluate {
             executables {
                 main {}
             }
-            sources.main.cpp.lib project: ':lib', library: 'hello'
+            sources {
+                main.cpp.lib project: ':lib', library: 'hello'
+            }
         }
         project(":lib") {
             libraries {
                 hello {}
             }
-            sources.hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+            sources {
+                hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+            }
         }
         project(":greet") {
             libraries {
@@ -262,14 +274,18 @@ project.afterEvaluate {
             libraries {
                 greetings {}
             }
-            sources.main.cpp.lib project: ':lib', library: 'hello'
+            sources {
+                main.cpp.lib project: ':lib', library: 'hello'
+            }
         }
         project(":lib") {
             apply plugin: "cpp"
             libraries {
                 hello {}
             }
-            sources.hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
+            sources {
+                hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
+            }
         }
         """
 
@@ -295,9 +311,11 @@ project.afterEvaluate {
                 hello {}
                 greetings {}
             }
-            sources.main.cpp.lib libraries.hello.shared
-            sources.main.cpp.lib libraries.greetings.static
-            sources.hello.cpp.lib libraries.greetings.static
+            sources {
+                main.cpp.lib libraries.hello.shared
+                main.cpp.lib libraries.greetings.static
+                hello.cpp.lib libraries.greetings.static
+            }
         """
 
         when:
@@ -326,9 +344,11 @@ project.afterEvaluate {
                 hello {}
                 greetings {}
             }
-            sources.main.cpp.lib libraries.hello.shared
-            sources.main.cpp.lib libraries.greetings.shared
-            sources.hello.cpp.lib libraries.greetings.static
+            sources {
+                main.cpp.lib libraries.hello.shared
+                main.cpp.lib libraries.greetings.shared
+                hello.cpp.lib libraries.greetings.static
+            }
         """
 
         when:

@@ -114,8 +114,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        NamedDomainObjectSet<ProjectNativeComponent> nativeComponents(ExtensionContainer extensions) {
-            return extensions.getByType(ProjectComponentContainer.class).withType(ProjectNativeComponent.class);
+        NamedDomainObjectSet<ProjectNativeComponent> nativeComponents(ProjectComponentContainer components) {
+            return components.withType(ProjectNativeComponent.class);
         }
 
         @Mutate

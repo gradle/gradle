@@ -182,6 +182,9 @@ to use explicitly HTTP for connecting the Bintray's JCenter repository you can s
  
 ### Changes to incubating native language plugins
 
+TODO: Note about major breaking changes and suggestions about when to upgrade
+TODO: Clean up this entire section
+
 #### Native language plugins no longer apply the base plugin
 
 The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle.language.base.plugins.LifecycleBasePlugin) instead of the `BasePlugin`. This means
@@ -196,6 +199,37 @@ TBD - make this more explicit re. what is actually not longer available.
 - Merged TestSuiteExecutableBinary into NativeTestSuiteBinary
 - Renamed CUnitTestSuiteExecutableBinary -> CUnitTestSuiteBinary
 - TODO: document all of the changes once they are finalised
+
+#### Changes to native cross compilation and custom platforms support
+
+In [PlatformConfigurableToolChain](dsl/org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain.html) we removed
+
+* target(Platform, Action)
+* target(Platform)
+* target(Iterable<? extends Platform>)
+* target(List<String>)
+* target(String... platformNames)
+* target(Iterable<? extends Platform>, Action<? super TargetedPlatformToolChain>)
+
+#### Changes to `sources` DSL
+
+As part of our migration to use model rules, there have been some changes to the behaviour of the `sources` container.
+
+The primary `FunctionalSourceSet` for a component is not created eagerly when the component is defined. This means that you cannot
+reference these source sets directly via dot-notation, but should instead use the `sources` container to optionally create them when configuring.
+
+For example:
+
+    executables {
+        main
+    }
+    // No longer works, since 'sources.main' doesn't yet exist
+    sources.main.cpp.lib library: 'foo'
+
+    // Still works, because 'main' will be created if it doesn't yet exist
+    sources {
+        main.cpp.lib library: 'foo'
+    }
 
 ### Changes to incubating Java language plugins
 
@@ -214,24 +248,6 @@ will be affected by this change.
 
 The `maven-publish` plugin will now correctly add required 'exclusion' elements to the generated POM. If you have a build or plugin that
 applies these exclusions itself, the generated POM file may contain duplicate 'exclusion' elements.
-
-### Incubating native language plugins no longer apply the base plugin
-
-The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle.language.base.plugins.LifecycleBasePlugin) instead of the `BasePlugin`. This means
-that the default values defined by the `BasePlugin` are not available.
-
-TBD - make this more explicit re. what is actually not longer available.
-
-### Changes to incubating native cross compilation and custom platforms support
-
-In [PlatformConfigurableToolChain](dsl/org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain.html) we removed
-
-* target(Platform, Action)
-* target(Platform)
-* target(Iterable<? extends Platform>)
-* target(List<String>)
-* target(String... platformNames)
-* target(Iterable<? extends Platform>, Action<? super TargetedPlatformToolChain>)
 
 ### Internal methods removed
 

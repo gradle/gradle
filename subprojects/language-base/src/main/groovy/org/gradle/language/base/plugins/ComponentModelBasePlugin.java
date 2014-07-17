@@ -26,17 +26,16 @@ import org.gradle.language.base.internal.DefaultLanguageRegistry;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.plugins.CreateSourceTransformTask;
-import org.gradle.model.Finalize;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
+import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
+import java.util.Set;
 
 /**
  * Base plugin for language support.
@@ -61,11 +60,10 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
         LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
-        ProjectComponentContainer components = project.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
+        project.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         // TODO:DAZ Convert to model rules
-        createProjectSourceSetForEachComponent(sources, components);
         createLanguageSourceSets(project, languageRegistry, sources);
     }
 
@@ -91,15 +89,6 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void createProjectSourceSetForEachComponent(final ProjectSourceSet sources, ProjectComponentContainer components) {
-        // Create a functionalSourceSet for each native component, with the same name
-        components.withType(ProjectComponent.class).all(new Action<ProjectComponent>() {
-            public void execute(ProjectComponent component) {
-                component.source(sources.maybeCreate(component.getName()));
-            }
-        });
-    }
-
     /**
      * Model rules.
      */
@@ -109,6 +98,36 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         @Model
         LanguageRegistry languages(ExtensionContainer extensions) {
             return extensions.getByType(LanguageRegistry.class);
+        }
+
+        @Model
+        ProjectComponentContainer projectComponents(ExtensionContainer extensions) {
+            return extensions.getByType(ProjectComponentContainer.class);
+        }
+
+        @Model
+        Set<String> projectComponentNames(ExtensionContainer extensions) {
+            ProjectComponentContainer components = extensions.getByType(ProjectComponentContainer.class);
+            return CollectionUtils.collect(components, new Transformer<String, ProjectComponent>() {
+                public String transform(ProjectComponent original) {
+                    return original.getName();
+                }
+            });
+        }
+
+        @Mutate
+        void createProjectSourceSetForEachComponent(ProjectSourceSet sources, @Path("projectComponentNames") Set<String> componentNames) {
+            // Create a functionalSourceSet for each native component, with the same name
+            for (String componentName : componentNames) {
+                sources.maybeCreate(componentName);
+            }
+        }
+
+        @Mutate
+        void attachFunctionalSourceSetToComponents(ProjectComponentContainer components, ProjectSourceSet sources) {
+            for (ProjectComponent component : components) {
+                component.source(sources.getByName(component.getName()));
+            }
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
@@ -135,7 +154,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void closeSourcesForTasks(TaskContainer tasks, ProjectSourceSet sources) {
+        void closeSourcesForBinaries(BinaryContainer binaries, ProjectSourceSet sources) {
             // Only required because sources aren't fully integrated into model
         }
     }

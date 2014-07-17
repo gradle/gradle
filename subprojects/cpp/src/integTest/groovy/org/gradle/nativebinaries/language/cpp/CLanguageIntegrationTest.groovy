@@ -101,7 +101,9 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     executables {
         main {}
     }
-    sources.main.c.source.include "**/*.c"
+    sources {
+        main.c.source.include "**/*.c"
+    }
 """
 
         when:

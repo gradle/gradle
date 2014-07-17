@@ -70,7 +70,9 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             executables {
                 main {}
             }
-            sources.main.cpp.lib library: 'hello', linkage: 'api'
+            sources {
+                main.cpp.lib library: 'hello', linkage: 'api'
+            }
         """
 
         when:
@@ -166,7 +168,9 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             executables {
                 main {}
             }
-            sources.main.cpp.lib library: 'hello', linkage: 'static'
+            sources {
+                main.cpp.lib library: 'hello', linkage: 'static'
+            }
         """
 
         when:
@@ -190,7 +194,9 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 executables {
                     main {}
                 }
-                sources.main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+                sources {
+                    main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+                }
             }
             project(':projectB') {
                 apply plugin: 'cpp'
@@ -229,7 +235,9 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             executables {
                 main {}
             }
-            sources.main.cpp.lib library: 'hello', linkage: 'static'
+            sources {
+                main.cpp.lib library: 'hello', linkage: 'static'
+            }
         """
 
         when:
@@ -258,7 +266,9 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             executables {
                 main {}
             }
-            sources.main.cpp.lib library: 'hello', linkage: 'static'
+            sources {
+                main.cpp.lib library: 'hello', linkage: 'static'
+            }
         """
 
         when:
@@ -286,7 +296,9 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             executables {
                 main {}
             }
-            sources.main.cpp.lib library: 'other'
+            sources {
+                main.cpp.lib library: 'other'
+            }
         """
 
         when:
@@ -316,7 +328,9 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 executables {
                     main {}
                 }
-                sources.main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+                sources {
+                    main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+                }
             }
             project(':projectB') {
                 apply plugin: 'cpp'

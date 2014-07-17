@@ -58,7 +58,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
     executables {
         main {}
     }
-    sources.main.cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+    sources {
+        main.cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+    }
 """
         file("lib", "build.gradle") << """
     libraries {
@@ -106,14 +108,18 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
             executables {
                 main {}
             }
-            sources.main.cpp.lib project: ':lib', library: 'hello'
+            sources {
+                main.cpp.lib project: ':lib', library: 'hello'
+            }
         }
         project(":lib") {
             apply plugin: "cpp"
             libraries {
                 hello {}
             }
-            sources.hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+            sources {
+                hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+            }
         }
         project(":greet") {
             apply plugin: "cpp"
@@ -157,14 +163,18 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
             executables {
                 main {}
             }
-            sources.main.cpp.lib project: ':lib', library: 'main'
+            sources {
+                main.cpp.lib project: ':lib', library: 'main'
+            }
         }
         project(":lib") {
             apply plugin: "cpp"
             libraries {
                 main {}
             }
-            sources.main.cpp.lib project: ':greet', library: 'main', linkage: 'static'
+            sources {
+                main.cpp.lib project: ':greet', library: 'main', linkage: 'static'
+            }
         }
         project(":greet") {
             apply plugin: "cpp"
@@ -211,14 +221,18 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
             libraries {
                 greetings {}
             }
-            sources.main.cpp.lib project: ':lib', library: 'hello'
+            sources {
+                main.cpp.lib project: ':lib', library: 'hello'
+            }
         }
         project(":lib") {
             apply plugin: "cpp"
             libraries {
                 hello {}
             }
-            sources.hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
+            sources {
+                hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
+            }
         }
         """
 
@@ -273,7 +287,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         executables {
             main {}
         }
-        sources.main.cpp.lib project: ':lib', library: 'main', linkage: 'static'
+        sources {
+            main.cpp.lib project: ':lib', library: 'main', linkage: 'static'
+        }
     }
     project(':lib') {
         libraries {

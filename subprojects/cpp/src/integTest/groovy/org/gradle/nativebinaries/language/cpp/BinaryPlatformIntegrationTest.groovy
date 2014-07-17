@@ -113,7 +113,9 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             libraries {
                 hello {}
             }
-            sources.exe.cpp.lib libraries.hello.static
+            sources {
+                exe.cpp.lib libraries.hello.static
+            }
             executables.exe.targetPlatforms "x86"
 """
 
@@ -309,7 +311,9 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                     targetPlatforms "two"
                 }
             }
-            sources.main.cpp.lib libraries.hello
+            sources {
+                main.cpp.lib libraries.hello
+            }
 """
 
         and:

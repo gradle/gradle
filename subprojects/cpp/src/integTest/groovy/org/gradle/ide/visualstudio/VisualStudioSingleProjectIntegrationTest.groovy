@@ -210,7 +210,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     executables {
         main {}
     }
-    sources.main.cpp.lib libraries.hello.static
+    sources {
+        main.cpp.lib libraries.hello.static
+    }
 """
         and:
         run "mainVisualStudio"
@@ -245,7 +247,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     executables {
         main {}
     }
-    sources.main.cpp.lib libraries.hello
+    sources {
+        main.cpp.lib libraries.hello
+    }
 """
         and:
         run "mainVisualStudio"
@@ -329,9 +333,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         main {}
         mainStatic {}
     }
-    sources.main.cpp.lib libraries.hello
-    sources.mainStatic.cpp.source.srcDirs "src/main/cpp"
-    sources.mainStatic.cpp.lib libraries.hello.static
+    sources {
+        main.cpp.lib libraries.hello
+        mainStatic.cpp.source.srcDirs "src/main/cpp"
+        mainStatic.cpp.lib libraries.hello.static
+    }
 """
         and:
         run "mainVisualStudio", "mainStaticVisualStudio"
@@ -368,10 +374,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             targetBuildTypes "release"
         }
     }
-    sources.main.cpp.lib libraries.hello
+    sources {
+        main.cpp.lib libraries.hello
 
-    sources.mainRelease.cpp.source.srcDirs "src/main/cpp"
-    sources.mainRelease.cpp.lib libraries.hello
+        mainRelease.cpp.source.srcDirs "src/main/cpp"
+        mainRelease.cpp.lib libraries.hello
+    }
 """
         and:
         run "mainVisualStudio", "mainReleaseVisualStudio"
@@ -432,9 +440,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
                 hello {}
                 greetings {}
             }
-            sources.main.cpp.lib libraries.hello.shared
-            sources.main.cpp.lib libraries.greetings.static
-            sources.hello.cpp.lib libraries.greetings.static
+            sources {
+                main.cpp.lib libraries.hello.shared
+                main.cpp.lib libraries.greetings.static
+                hello.cpp.lib libraries.greetings.static
+            }
         """
 
         when:
@@ -472,9 +482,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
                 hello {}
                 greetings {}
             }
-            sources.main.cpp.lib libraries.hello.shared
-            sources.main.cpp.lib libraries.greetings.shared
-            sources.hello.cpp.lib libraries.greetings.static
+            sources {
+                main.cpp.lib libraries.hello.shared
+                main.cpp.lib libraries.greetings.shared
+                hello.cpp.lib libraries.greetings.static
+            }
         """
 
         when:
@@ -607,7 +619,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     executables {
         main {}
     }
-    sources.main.cpp.source.include "**/*.cpp"
+    sources {
+        main.cpp.source.include "**/*.cpp"
+    }
 """
         and:
         run "mainVisualStudio"
@@ -638,9 +652,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
                 helloApi {}
                 hello {}
             }
-            sources.main.cpp.lib library: 'helloApi', linkage: 'api' // TODO:DAZ This should not be needed
-            sources.main.cpp.lib library: 'hello'
-            sources.hello.cpp.lib library: 'helloApi', linkage: 'api'
+            sources {
+                main.cpp.lib library: 'helloApi', linkage: 'api' // TODO:DAZ This should not be needed
+                main.cpp.lib library: 'hello'
+                hello.cpp.lib library: 'helloApi', linkage: 'api'
+            }
         """
 
         when:
@@ -715,7 +731,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     executables {
         main {}
     }
-    sources.main.cpp.lib library: 'test', linkage: 'api'
+    sources {
+        main.cpp.lib library: 'test', linkage: 'api'
+    }
 """
 
         when:
@@ -753,9 +771,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
                 hello {}
                 greetings {}
             }
-            sources.main.cpp.lib library: 'hello'
-            sources.hello.cpp.lib library: 'greetings', linkage: 'static'
-            sources.greetings.cpp.lib library: 'hello', linkage: 'api'
+            sources {
+                main.cpp.lib library: 'hello'
+                hello.cpp.lib library: 'greetings', linkage: 'static'
+                greetings.cpp.lib library: 'hello', linkage: 'api'
+            }
         """
 
         when:
@@ -798,7 +818,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             targetBuildTypes "release"
         }
     }
-    sources.main.cpp.lib libraries.hello
+    sources {
+        main.cpp.lib libraries.hello
+    }
 """
         and:
         run "mainVisualStudio"

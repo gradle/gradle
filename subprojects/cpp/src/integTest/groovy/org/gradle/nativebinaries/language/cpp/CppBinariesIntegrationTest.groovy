@@ -310,7 +310,6 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                     }
                 }
             }
-            //sources.main.cpp.lib libraries.hello
 
             def modPath(File file) {
                 new File("\${file.parentFile}/new_output/_\${file.name}")
@@ -352,7 +351,9 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                     }
                 }
             }
-            sources.main.cpp.lib libraries.hello.${linkage}
+            sources {
+                main.cpp.lib libraries.hello.${linkage}
+            }
 
             def modPath(File file) {
                 new File("\${file.parentFile}/new_output/_\${file.name}")

@@ -16,7 +16,6 @@
 package org.gradle.runtime.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.service.ServiceRegistry;
@@ -32,7 +31,6 @@ import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier;
-import org.gradle.runtime.jvm.JvmComponentExtension;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary;
@@ -72,8 +70,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
     public static class Rules {
 
         @Model("jvm.libraries")
-        NamedDomainObjectCollection<ProjectJvmLibrary> jvmLibraries(ExtensionContainer extensions) {
-            return extensions.getByType(JvmComponentExtension.class).getLibraries();
+        NamedDomainObjectCollection<ProjectJvmLibrary> jvmLibraries(ProjectComponentContainer components) {
+            return components.withType(ProjectJvmLibrary.class);
         }
 
         @Model

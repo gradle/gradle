@@ -236,9 +236,11 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         when:
         buildFile << """
-            sources.main.${app.sourceType} {
-                exportedHeaders {
-                    srcDirs ${headerDirs}
+            sources {
+                main.${app.sourceType} {
+                    exportedHeaders {
+                        srcDirs ${headerDirs}
+                    }
                 }
             }
 """
@@ -264,9 +266,11 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         when:
         buildFile << """
-            sources.main.${app.sourceType}  {
-                exportedHeaders {
-                    srcDirs "src/replacement-headers", "src/main/headers"
+            sources {
+                main.${app.sourceType}  {
+                    exportedHeaders {
+                        srcDirs "src/replacement-headers", "src/main/headers"
+                    }
                 }
             }
 """
@@ -283,9 +287,11 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
     def "recompiles when replacement header file is added before previous header to existing include path"() {
         given:
         buildFile << """
-            sources.main.${app.sourceType} {
-                exportedHeaders {
-                    srcDirs "src/replacement-headers", "src/main/headers"
+            sources {
+                main.${app.sourceType} {
+                    exportedHeaders {
+                        srcDirs "src/replacement-headers", "src/main/headers"
+                    }
                 }
             }
 """

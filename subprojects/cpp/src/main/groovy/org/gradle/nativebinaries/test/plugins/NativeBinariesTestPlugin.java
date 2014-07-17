@@ -21,14 +21,21 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.DependentSourceSet;
 import org.gradle.model.Finalize;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin;
 import org.gradle.nativebinaries.tasks.InstallExecutable;
+import org.gradle.nativebinaries.test.ProjectNativeTestSuite;
 import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary;
+import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer;
 import org.gradle.nativebinaries.test.tasks.RunTestExecutable;
 import org.gradle.runtime.base.BinaryContainer;
@@ -57,8 +64,31 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
     /**
      * Model rules.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     public static class Rules {
+        @Model
+        TestSuiteContainer testSuites(ExtensionContainer extensions) {
+            return extensions.getByType(TestSuiteContainer.class);
+        }
+
+        @Mutate
+        void attachTestedComponentSourcesToTestSuites(TestSuiteContainer testSuites) {
+            for (ProjectNativeTestSuite testSuite : testSuites) {
+                ProjectNativeComponent testedComponent = testSuite.getTestedComponent();
+                testSuite.source(testedComponent.getSource());
+
+                for (DependentSourceSet testSource : testSuite.getSource().withType(DependentSourceSet.class)) {
+                    testSource.lib(testedComponent.getSource());
+                }
+            }
+        }
+
+        @Mutate
+        void closeTestSuitesForBinaries(BinaryContainer binaries, TestSuiteContainer testSuites) {
+            // TODO:DAZ Improve the model to avoid this
+        }
+
         @Finalize
         public void createTestTasks(final TaskContainer tasks, BinaryContainer binaries) {
 

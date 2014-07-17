@@ -31,7 +31,9 @@ executables {
 // END SNIPPET executables
 
 // START SNIPPET source-library
-sources.main.c.lib libraries.hello
+sources {
+   main.c.lib libraries.hello
+}
 // END SNIPPET source-library
 
 // START SNIPPET compiler-args

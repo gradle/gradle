@@ -100,7 +100,9 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         libraries {
             hello
         }
-        sources.main.cpp.lib libraries.hello
+        sources {
+            main.cpp.lib libraries.hello
+        }
     }
 """
         when:
@@ -128,7 +130,9 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     libraries {
         hello
     }
-    sources.main.cpp.lib libraries.hello
+    sources {
+        main.cpp.lib libraries.hello
+    }
     task buildAllExecutables {
         dependsOn binaries.withType(ExecutableBinary).matching {
             it.buildable

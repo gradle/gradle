@@ -112,7 +112,9 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             libraries {
                 hello {}
             }
-            sources.main.${helloWorldApp.sourceType}.lib libraries.hello
+            sources {
+                main.${helloWorldApp.sourceType}.lib libraries.hello
+            }
         """
 
         and:
@@ -146,7 +148,9 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
                     }
                 }
             }
-            sources.main.${helloWorldApp.sourceType}.lib libraries.hello.static
+            sources {
+                main.${helloWorldApp.sourceType}.lib libraries.hello.static
+            }
         """
 
         and:

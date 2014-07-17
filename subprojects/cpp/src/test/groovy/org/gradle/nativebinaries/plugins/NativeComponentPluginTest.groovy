@@ -102,6 +102,7 @@ class NativeComponentPluginTest extends Specification {
         project.sources.testExe.add languageSourceSet
 
         project.nativeRuntime.executables.create "testExe"
+        project.evaluate()
 
         then:
         project.nativeRuntime.executables.testExe.source == [languageSourceSet] as Set
@@ -119,6 +120,7 @@ class NativeComponentPluginTest extends Specification {
         }
 
         project.nativeRuntime.executables.create "testExe"
+        project.evaluate()
 
         then:
         project.nativeRuntime.executables.testExe.source == [languageSourceSet] as Set

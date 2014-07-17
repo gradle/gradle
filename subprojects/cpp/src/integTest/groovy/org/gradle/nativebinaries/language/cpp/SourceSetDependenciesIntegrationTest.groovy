@@ -38,7 +38,9 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         main {}
         library {}
     }
-    sources.main.c.lib sources.library.c
+    sources {
+        main.c.lib sources.library.c
+    }
     executables {
         main {
             source sources.library
@@ -67,7 +69,9 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
     sources {
         library {}
     }
-    sources.main.c.lib sources.library.c
+    sources {
+        main.c.lib sources.library.c
+    }
 """
         when:
         succeeds "mainExecutable"
@@ -88,7 +92,9 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         main {}
         library {}
     }
-    sources.main.cpp.lib sources.library.c
+    sources {
+        main.cpp.lib sources.library.c
+    }
     executables {
         main {
             source sources.library
@@ -119,7 +125,9 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
     sources {
         extra {}
     }
-    sources.main.cpp.lib sources.extra.cpp
+    sources {
+        main.cpp.lib sources.extra.cpp
+    }
 """
         expect:
         succeeds "mainExecutable"

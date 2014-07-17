@@ -74,7 +74,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables {
         main {}
     }
-    sources.main.c.generatedBy tasks.generateCSources
+    sources {
+        main.c.generatedBy tasks.generateCSources
+    }
 """
 
         then:
@@ -104,7 +106,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
             }
         }
     }
-    sources.main.c.lib sources.generated.cHeaders
+    sources {
+        main.c.lib sources.generated.cHeaders
+    }
 """
 
         then:
@@ -132,7 +136,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
             }
         }
     }
-    sources.main.c.lib sources.generated.c
+    sources {
+        main.c.lib sources.generated.c
+    }
     executables.main.source sources.generated.c
 """
 
@@ -164,7 +170,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
             }
         }
     }
-    sources.main.c.lib library: 'hello', linkage: 'static'
+    sources {
+        main.c.lib library: 'hello', linkage: 'static'
+    }
 """
 
         then:
@@ -197,7 +205,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
             }
         }
     }
-    sources.main.c.lib library: 'hello', linkage: 'api'
+    sources {
+        main.c.lib library: 'hello', linkage: 'api'
+    }
 """
 
         then:
@@ -223,7 +233,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables {
         main {}
     }
-    sources.main.cpp.generatedBy tasks.generateCppSources
+    sources {
+        main.cpp.generatedBy tasks.generateCppSources
+    }
 """
 
         then:
@@ -252,7 +264,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables {
         main {}
     }
-    sources.main.asm.generatedBy tasks.generateAsmSources
+    sources {
+        main.asm.generatedBy tasks.generateAsmSources
+    }
 """
 
         then:
@@ -281,7 +295,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables {
         main {}
     }
-    sources.main.rc.generatedBy tasks.generateRcSources
+    sources {
+        main.rc.generatedBy tasks.generateRcSources
+    }
 """
 
         then:
@@ -299,7 +315,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables {
         main {}
     }
-    sources.main.c.generatedBy tasks.generateSources
+    sources {
+        main.c.generatedBy tasks.generateSources
+    }
 """
 
         and:
@@ -357,7 +375,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables {
         main {}
     }
-    sources.main.c.generatedBy tasks.lateConfiguredGenerator
+    sources {
+        main.c.generatedBy tasks.lateConfiguredGenerator
+    }
 
     lateConfiguredGenerator {
         inputDir project.file("src/input")
@@ -384,7 +404,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables {
         main {}
     }
-    sources.main.c.generatedBy tasks.generateCSources
+    sources {
+        main.c.generatedBy tasks.generateCSources
+    }
 """
 
         when:

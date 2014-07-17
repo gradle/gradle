@@ -54,9 +54,11 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
                 helloApi {}
                 hello {}
             }
-            sources.main.cpp.lib ${notation}
-            sources.main.cpp.lib library: 'hello'
-            sources.hello.cpp.lib ${notation}
+            sources {
+                main.cpp.lib ${notation}
+                main.cpp.lib library: 'hello'
+                hello.cpp.lib ${notation}
+            }
         """
 
         when:
@@ -92,7 +94,9 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             libraries {
                 util {}
             }
-            sources.main.cpp.lib library: 'util'
+            sources {
+                main.cpp.lib library: 'util'
+            }
 """
         when:
         succeeds "installMainExecutable"
@@ -170,9 +174,11 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
                 hello {}
                 hello2 {}
             }
-            sources.main.cpp.lib library: 'hello', linkage: 'api'
-            sources.main.cpp.lib library: 'hello2'
-            sources.hello2.cpp.lib library: 'hello', linkage: 'api'
+            sources {
+                main.cpp.lib library: 'hello', linkage: 'api'
+                main.cpp.lib library: 'hello2'
+                hello2.cpp.lib library: 'hello', linkage: 'api'
+            }
         """
 
         when:
@@ -199,9 +205,11 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
                 hello {}
                 greetings {}
             }
-            sources.main.cpp.lib library: 'hello'
-            sources.hello.cpp.lib library: 'greetings', linkage: 'static'
-            sources.greetings.cpp.lib library: 'hello', linkage: 'api'
+            sources {
+                main.cpp.lib library: 'hello'
+                hello.cpp.lib library: 'greetings', linkage: 'static'
+                greetings.cpp.lib library: 'hello', linkage: 'api'
+            }
         """
 
         when:
@@ -225,7 +233,9 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             libraries {
                 hello {}
             }
-            sources.main.cpp.lib library: 'hello', linkage: 'api'
+            sources {
+                main.cpp.lib library: 'hello', linkage: 'api'
+            }
         """
 
         when:
