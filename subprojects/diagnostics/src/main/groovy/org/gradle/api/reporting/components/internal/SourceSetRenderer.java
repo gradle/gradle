@@ -36,7 +36,7 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
     @Override
     public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) {
         StyledTextOutput textOutput = builder.getOutput();
-        textOutput.println(StringUtils.capitalize(sourceSet.toString()));
+        textOutput.println(StringUtils.capitalize(sourceSet.getDisplayName()));
         Set<File> srcDirs = sourceSet.getSource().getSrcDirs();
         if (srcDirs.isEmpty()) {
             textOutput.println("    No source directories");

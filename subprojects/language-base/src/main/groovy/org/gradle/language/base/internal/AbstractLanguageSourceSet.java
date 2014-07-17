@@ -67,9 +67,13 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         return generated || !source.isEmpty();
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
     }
 
     public void source(Action<? super SourceDirectorySet> config) {

@@ -27,6 +27,7 @@ class DefaultResourceSetTest extends Specification {
         def resourceSet = new DefaultResourceSet("resourcesX", Stub(SourceDirectorySet), functionalSourceSet)
 
         expect:
+        resourceSet.displayName == "resources 'mainX:resourcesX'"
         resourceSet.toString() == "resources 'mainX:resourcesX'"
     }
 }

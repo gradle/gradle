@@ -29,6 +29,8 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface LanguageSourceSet extends Named, BuildableModelElement {
+    String getDisplayName();
+
     // TODO: do we want to keep using SourceDirectorySet in the new API?
     // would feel more natural if dirs could be added directly to LanguageSourceSet
     // could also think about extending SourceDirectorySet

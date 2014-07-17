@@ -31,6 +31,7 @@ class DefaultCppSourceSetTest extends Specification {
 
     def "has useful string representation"() {
         expect:
+        sourceSet.displayName == "C++ source 'main:cpp'"
         sourceSet.toString() == "C++ source 'main:cpp'"
     }
 
