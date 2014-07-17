@@ -69,11 +69,15 @@ Resources 'test:resources'
 Additional binaries
 -------------------
 Classes 'main' (not buildable)
+    build using task: :classes
     tool chain: current JDK (${JavaVersion.current()})
-    build task: :classes
+    classes dir: build/classes/main
+    resources dir: build/resources/main
 Classes 'test' (not buildable)
+    build using task: :testClasses
     tool chain: current JDK (${JavaVersion.current()})
-    build task: :testClasses
+    classes dir: build/classes/test
+    resources dir: build/resources/test
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 """)
@@ -113,9 +117,9 @@ Source sets
 
 Binaries
     Jar 'someLib:jar'
+        build using task: :someLibJar
         tool chain: current JDK (${JavaVersion.current()})
         Jar file: build/jars/someLibJar/someLib.jar
-        build task: :someLibJar
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -154,19 +158,19 @@ Source sets
 
 Binaries
     Shared library 'someLib:sharedLibrary'
+        build using task: :someLibSharedLibrary
         platform: current
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
-        build task: :someLibSharedLibrary
     Static library 'someLib:staticLibrary'
+        build using task: :someLibStaticLibrary
         platform: current
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
-        build task: :someLibStaticLibrary
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -210,19 +214,19 @@ Source sets
 
 Binaries
     Shared library 'someLib:sharedLibrary' (not buildable)
+        build using task: :someLibSharedLibrary
         platform: solaris
         build type: debug
         flavor: default
         tool chain: unavailable
         shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
-        build task: :someLibSharedLibrary
     Static library 'someLib:staticLibrary' (not buildable)
+        build using task: :someLibStaticLibrary
         platform: solaris
         build type: debug
         flavor: default
         tool chain: unavailable
         static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
-        build task: :someLibStaticLibrary
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -262,12 +266,12 @@ Source sets
 
 Binaries
     Executable 'someExe:executable'
+        build using task: :someExeExecutable
         platform: current
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         executable file: build/binaries/someExeExecutable/someExe
-        build task: :someExeExecutable
 
 Additional source sets
 ----------------------
@@ -282,11 +286,12 @@ C source 'someExeTest:cunitLauncher'
 Additional binaries
 -------------------
 C unit exe 'someExeTest:cUnitExe'
+    build using task: :someExeTestCUnitExe
     platform: current
     build type: debug
     flavor: default
     tool chain: Tool chain 'clang' (Clang)
-    build task: :someExeTestCUnitExe
+    executable file: build/binaries/someExeTestCUnitExe/someExeTest
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -342,61 +347,61 @@ Source sets
 
 Binaries
     Shared library 'someLib:amd64:free:sharedLibrary'
+        build using task: :amd64FreeSomeLibSharedLibrary
         platform: amd64
         build type: debug
         flavor: free
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/amd64Free/libsomeLib.dylib
-        build task: :amd64FreeSomeLibSharedLibrary
     Static library 'someLib:amd64:free:staticLibrary'
+        build using task: :amd64FreeSomeLibStaticLibrary
         platform: amd64
         build type: debug
         flavor: free
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/amd64Free/libsomeLib.a
-        build task: :amd64FreeSomeLibStaticLibrary
     Shared library 'someLib:amd64:paid:sharedLibrary'
+        build using task: :amd64PaidSomeLibSharedLibrary
         platform: amd64
         build type: debug
         flavor: paid
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/amd64Paid/libsomeLib.dylib
-        build task: :amd64PaidSomeLibSharedLibrary
     Static library 'someLib:amd64:paid:staticLibrary'
+        build using task: :amd64PaidSomeLibStaticLibrary
         platform: amd64
         build type: debug
         flavor: paid
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/amd64Paid/libsomeLib.a
-        build task: :amd64PaidSomeLibStaticLibrary
     Shared library 'someLib:i386:free:sharedLibrary'
+        build using task: :i386FreeSomeLibSharedLibrary
         platform: i386
         build type: debug
         flavor: free
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/i386Free/libsomeLib.dylib
-        build task: :i386FreeSomeLibSharedLibrary
     Static library 'someLib:i386:free:staticLibrary'
+        build using task: :i386FreeSomeLibStaticLibrary
         platform: i386
         build type: debug
         flavor: free
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/i386Free/libsomeLib.a
-        build task: :i386FreeSomeLibStaticLibrary
     Shared library 'someLib:i386:paid:sharedLibrary'
+        build using task: :i386PaidSomeLibSharedLibrary
         platform: i386
         build type: debug
         flavor: paid
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/i386Paid/libsomeLib.dylib
-        build task: :i386PaidSomeLibSharedLibrary
     Static library 'someLib:i386:paid:staticLibrary'
+        build using task: :i386PaidSomeLibStaticLibrary
         platform: i386
         build type: debug
         flavor: paid
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/i386Paid/libsomeLib.a
-        build task: :i386PaidSomeLibStaticLibrary
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 

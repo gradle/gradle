@@ -18,9 +18,11 @@ package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.jvm.ProjectClassDirectoryBinary;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.jvm.ProjectJarBinary;
@@ -43,6 +45,8 @@ class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
         }
         textOutput.println();
 
+        textOutput.formatln("    build using task: %s", binary.getBuildTask().getPath());
+
         if (binary instanceof ProjectNativeBinary) {
             ProjectNativeBinary nativeBinary = (ProjectNativeBinary) binary;
             textOutput.formatln("    platform: %s", nativeBinary.getTargetPlatform().getName());
@@ -51,6 +55,10 @@ class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
             textOutput.formatln("    tool chain: %s", nativeBinary.getToolChain().getDisplayName());
             if (binary instanceof ProjectNativeExecutableBinary) {
                 ProjectNativeExecutableBinary executableBinary = (ProjectNativeExecutableBinary) binary;
+                textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
+            }
+            if (binary instanceof ProjectNativeTestSuiteBinary) {
+                ProjectNativeTestSuiteBinary executableBinary = (ProjectNativeTestSuiteBinary) binary;
                 textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
             }
             if (binary instanceof ProjectSharedLibraryBinary) {
@@ -62,6 +70,7 @@ class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
                 textOutput.formatln("    static library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getStaticLibraryFile()));
             }
         }
+
         if (binary instanceof ProjectJvmLibraryBinary) {
             ProjectJvmLibraryBinary libraryBinary = (ProjectJvmLibraryBinary) binary;
             textOutput.formatln("    tool chain: %s", libraryBinary.getToolChain().toString());
@@ -69,7 +78,11 @@ class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
                 ProjectJarBinary jarBinary = (ProjectJarBinary) binary;
                 textOutput.formatln("    Jar file: %s", fileResolver.resolveAsRelativePath(jarBinary.getJarFile()));
             }
+            if (binary instanceof ProjectClassDirectoryBinary) {
+                ProjectClassDirectoryBinary classDirectoryBinary = (ProjectClassDirectoryBinary) binary;
+                textOutput.formatln("    classes dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getClassesDir()));
+                textOutput.formatln("    resources dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getResourcesDir()));
+            }
         }
-        textOutput.formatln("    build task: %s", binary.getBuildTask().getPath());
     }
 }
