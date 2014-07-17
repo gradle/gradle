@@ -644,7 +644,7 @@
                 Gradle will expect and call a function with the signature <literal>void gradle_cunit_register()</literal> that you can use to configure the
                 actual CUnit suites and tests to execute.
             </para>
-            <sample id="cunitSources" dir="native-binaries/cunit/src/operatorsTest/cunit" title="Registering CUnit tests">
+            <sample id="cunitSources" dir="native-binaries/cunit/src/operatorsTest/c" title="Registering CUnit tests">
                 <sourcefile file="suite_operators.c"/>
             </sample>
             <note>
