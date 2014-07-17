@@ -63,7 +63,9 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
-            sources.main.cpp.lib libraries.resources
+            sources {
+                main.cpp.lib libraries.resources
+            }
 """
 
         and:
