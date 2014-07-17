@@ -38,7 +38,7 @@ public class ConfigureCUnitTestSources {
         cUnitTestSuite.source(launcherSources);
         createCUnitLauncherTask(cUnitTestSuite, launcherSources);
 
-        CSourceSet testSources = suiteSourceSet.maybeCreate("cunit", CSourceSet.class);
+        CSourceSet testSources = suiteSourceSet.maybeCreate("c", CSourceSet.class);
         cUnitTestSuite.source(testSources);
         testSources.lib(launcherSources);
     }
@@ -53,7 +53,7 @@ public class ConfigureCUnitTestSources {
         GenerateCUnitLauncher skeletonTask = project.getTasks().create(taskName, GenerateCUnitLauncher.class);
 
         File baseDir = new File(project.getBuildDir(), "src/" + taskName);
-        skeletonTask.setSourceDir(new File(baseDir, "cunit"));
+        skeletonTask.setSourceDir(new File(baseDir, "c"));
         skeletonTask.setHeaderDir(new File(baseDir, "headers"));
         cunitSourceSet.generatedBy(skeletonTask);
     }

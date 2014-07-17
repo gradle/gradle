@@ -107,7 +107,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         run "runHelloTestCUnitExe"
 
         then:
-        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
+        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
 
@@ -140,7 +140,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         run "runHelloTestCUnitExe"
 
         then:
-        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
+        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
 
@@ -181,8 +181,8 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         buildFile << """
             sources {
                 helloTest {
-                    cunit {
-                        source.srcDir "src/alternateHelloTest/cunit"
+                    c {
+                        source.srcDir "src/alternateHelloTest/c"
                     }
                 }
             }
@@ -202,8 +202,8 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         buildFile << """
             sources {
                 helloTest {
-                    cunit(CSourceSet) {
-                        source.srcDir "src/alternateHelloTest/cunit"
+                    c {
+                        source.srcDir "src/alternateHelloTest/c"
                     }
                 }
             }
@@ -251,14 +251,14 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         buildFile << """
             sources {
                 variantTest {
-                    cunit(CSourceSet) {
+                    c {
                         lib sources.hello.c
                         lib sources.helloTest.cunitLauncher
                     }
                 }
             }
             binaries.withType(CUnitTestSuiteBinary) {
-                source sources.variantTest.cunit
+                source sources.variantTest.c
             }
 """
 
@@ -291,7 +291,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         failure.assertHasCause("There were failing tests. See the results at: ")
 
         and:
-        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
+        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
         output.contains """
 There were test failures:
@@ -358,8 +358,8 @@ There were test failures:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
                 "build.gradle",
-                "build/src/helloTestCUnitLauncher/cunit/gradle_cunit_main.c",
-                "src/helloTest/cunit/test.c",
+                "build/src/helloTestCUnitLauncher/c/gradle_cunit_main.c",
+                "src/helloTest/c/test.c",
                 "src/hello/c/hello.c",
                 "src/hello/c/sum.c"
         ] as Set

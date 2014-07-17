@@ -123,7 +123,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
     TestComponent getCunitTests() {
         return new TestComponent() {
             List<SourceFile> sourceFiles = [
-                    sourceFile("cunit", "test.c", """
+                    sourceFile("c", "test.c", """
 #include <CUnit/Basic.h>
 #include "hello.h"
 #include "gradle_cunit_register.h"

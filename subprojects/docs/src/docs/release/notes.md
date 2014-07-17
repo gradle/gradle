@@ -231,6 +231,10 @@ For example:
         main.cpp.lib library: 'foo'
     }
 
+#### Changed source set of CUnit sources
+
+The C language source set for CUnit test sources has been renamed from 'cunit' to 'c'.
+
 ### Changes to incubating Java language plugins
 
 To better support the production of multiple binary outputs for a single set of sources, a new set of Java
