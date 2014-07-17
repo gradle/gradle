@@ -57,6 +57,9 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     private void useStandardConfig() {
         buildFile << """
+            sources {
+                hello
+            }
             libraries {
                 hello {}
             }

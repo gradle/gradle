@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
@@ -52,12 +51,6 @@ public class CreateCUnitBinaries {
 
                 cUnitTestSuite.getBinaries().add(cunitExe);
                 binaries.add(cunitExe);
-
-                testedBinary.getSource().all(new Action<LanguageSourceSet>() {
-                    public void execute(LanguageSourceSet languageSourceSet) {
-                        cunitExe.source(languageSourceSet);
-                    }
-                });
             }
         });
     }
@@ -68,8 +61,7 @@ public class CreateCUnitBinaries {
                 .withTypeString("CUnitExe").build();
 
         CUnitTestSuiteBinary testBinary = instantiator.newInstance(DefaultCUnitTestSuiteBinary.class,
-                cUnitTestSuite, testedBinary.getFlavor(), testedBinary.getToolChain(),
-                testedBinary.getTargetPlatform(), testedBinary.getBuildType(), namingScheme, resolver);
+                cUnitTestSuite, testedBinary, namingScheme, resolver);
 
         setupDefaults(testBinary, project);
         return testBinary;

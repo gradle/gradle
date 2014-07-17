@@ -15,22 +15,26 @@
  */
 package org.gradle.nativebinaries.test.internal;
 
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.internal.AbstractProjectNativeBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
 public class DefaultProjectNativeTestSuiteBinary extends AbstractProjectNativeBinary implements ProjectNativeTestSuiteBinaryInternal {
+    private final ProjectNativeBinary testedBinary;
     private File executableFile;
 
-    public DefaultProjectNativeTestSuiteBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
+    public DefaultProjectNativeTestSuiteBinary(ProjectNativeComponent owner, ProjectNativeBinary testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(owner, testedBinary.getFlavor(), (ToolChainInternal) testedBinary.getToolChain(), testedBinary.getTargetPlatform(), testedBinary.getBuildType(), namingScheme, resolver);
+        this.testedBinary = testedBinary;
+    }
+
+    public ProjectNativeBinary getTestedBinary() {
+        return testedBinary;
     }
 
     public File getExecutableFile() {

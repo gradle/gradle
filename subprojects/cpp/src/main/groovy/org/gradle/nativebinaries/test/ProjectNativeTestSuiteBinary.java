@@ -27,6 +27,11 @@ import java.io.File;
 @Incubating @HasInternalProtocol
 public interface ProjectNativeTestSuiteBinary extends ProjectNativeBinary {
     /**
+     * The tested binary.
+     */
+    ProjectNativeBinary getTestedBinary();
+
+    /**
      * The executable file.
      */
     File getExecutableFile();
