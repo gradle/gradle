@@ -40,7 +40,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
     public ComponentReportRenderer(FileResolver fileResolver) {
         componentRenderer = new ComponentRenderer(fileResolver);
         sourceSetRenderer = new SourceSetRenderer(fileResolver);
-        binaryRenderer = new BinaryRenderer();
+        binaryRenderer = new BinaryRenderer(fileResolver);
     }
 
     @Override

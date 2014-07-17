@@ -90,7 +90,7 @@ class ComponentReportRendererTest extends Specification {
     def "renders additional source sets"() {
         def sourceSet1 = Stub(LanguageSourceSet)
         def sourceSet2 = Stub(LanguageSourceSet) {
-            toString() >> "<source set>"
+            getDisplayName() >> "<source set>"
         }
         def component = Stub(ProjectComponent) {
             getSource() >> set(LanguageSourceSet, sourceSet1)
@@ -119,6 +119,7 @@ class ComponentReportRendererTest extends Specification {
         def binary1 = Stub(ProjectBinary)
         def binary2 = Stub(ProjectBinary) {
             getDisplayName() >> "<binary>"
+            isBuildable() >> true
         }
         def component = Stub(ProjectComponent) {
             getBinaries() >> set(ProjectBinary, binary1)

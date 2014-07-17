@@ -24,10 +24,11 @@ import org.gradle.runtime.base.ProjectComponent;
 
 public class ComponentRenderer extends ReportRenderer<ProjectComponent, TextReportBuilder> {
     private final SourceSetRenderer sourceSetRenderer;
-    private final BinaryRenderer renderer = new BinaryRenderer();
+    private final BinaryRenderer renderer;
 
     public ComponentRenderer(FileResolver fileResolver) {
         sourceSetRenderer = new SourceSetRenderer(fileResolver);
+        renderer = new BinaryRenderer(fileResolver);
     }
 
     @Override

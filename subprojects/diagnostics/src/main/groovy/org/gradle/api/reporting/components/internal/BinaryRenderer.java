@@ -17,22 +17,58 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.logging.StyledTextOutput;
-import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.*;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.jvm.ProjectJarBinary;
+import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
 
 class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
+    private final FileResolver fileResolver;
+
+    BinaryRenderer(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
+
     @Override
     public void render(ProjectBinary binary, TextReportBuilder builder) {
         StyledTextOutput textOutput = builder.getOutput();
-        textOutput.println(StringUtils.capitalize(binary.getDisplayName()));
-        if (binary instanceof NativeBinary) {
-            NativeBinary nativeBinary = (NativeBinary) binary;
+
+        textOutput.append(StringUtils.capitalize(binary.getDisplayName()));
+        if (!binary.isBuildable()) {
+            textOutput.append(" (not buildable)");
+        }
+        textOutput.println();
+
+        if (binary instanceof ProjectNativeBinary) {
+            ProjectNativeBinary nativeBinary = (ProjectNativeBinary) binary;
             textOutput.formatln("    platform: %s", nativeBinary.getTargetPlatform().getName());
             textOutput.formatln("    build type: %s", nativeBinary.getBuildType().getName());
             textOutput.formatln("    flavor: %s", nativeBinary.getFlavor().getName());
+            textOutput.formatln("    tool chain: %s", nativeBinary.getToolChain().getDisplayName());
+            if (binary instanceof ProjectNativeExecutableBinary) {
+                ProjectNativeExecutableBinary executableBinary = (ProjectNativeExecutableBinary) binary;
+                textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
+            }
+            if (binary instanceof ProjectSharedLibraryBinary) {
+                ProjectSharedLibraryBinary libraryBinary = (ProjectSharedLibraryBinary) binary;
+                textOutput.formatln("    shared library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getSharedLibraryFile()));
+            }
+            if (binary instanceof ProjectStaticLibraryBinary) {
+                ProjectStaticLibraryBinary libraryBinary = (ProjectStaticLibraryBinary) binary;
+                textOutput.formatln("    static library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getStaticLibraryFile()));
+            }
+        }
+        if (binary instanceof ProjectJvmLibraryBinary) {
+            ProjectJvmLibraryBinary libraryBinary = (ProjectJvmLibraryBinary) binary;
+            textOutput.formatln("    tool chain: %s", libraryBinary.getToolChain().toString());
+            if (binary instanceof ProjectJarBinary) {
+                ProjectJarBinary jarBinary = (ProjectJarBinary) binary;
+                textOutput.formatln("    Jar file: %s", fileResolver.resolveAsRelativePath(jarBinary.getJarFile()));
+            }
         }
         textOutput.formatln("    build task: %s", binary.getBuildTask().getPath());
     }
