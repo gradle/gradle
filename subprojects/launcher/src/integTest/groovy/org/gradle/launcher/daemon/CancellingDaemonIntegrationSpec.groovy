@@ -93,7 +93,9 @@ task t2 << {
         then:
         !build.standardOutput.contains('_t1_finished_')
         build.standardOutput.contains('Cancel request not processed: will force stop.')
-        build2.standardOutput.contains('Cancel request does not match current build')
+        !build2.standardOutput.contains('Cancel request not processed: will force stop.')
+        // build2 can end before cancel is send
+        // build2.standardOutput.contains('Cancel request does not match current build')
         build2.standardOutput.contains('_t2_finished_')
     }
 }
