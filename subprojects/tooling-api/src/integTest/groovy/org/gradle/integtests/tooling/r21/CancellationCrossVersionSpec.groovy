@@ -220,9 +220,10 @@ task hang << {
 
         then:
         output.toString().contains("waiting")
-        !output.toString().contains("finished")
+        // TODO add when print 'finished' is preceeded with call to BuildController and we're able to cancel it
+        // !output.toString().contains("finished")
         // TODO until we implement proper cancelling this depends on timing
-        // resultHandler.failure.cause.class.name == BuildCancelledException.name || resultHandler.failure.cause.class.name == DaemonDisappearedException.name
+        resultHandler.failure.cause.class.name == BuildCancelledException.name || resultHandler.failure.cause.class.name.contains("DaemonDisappearedException")
         resultHandler.failure instanceof GradleConnectionException
     }
 
