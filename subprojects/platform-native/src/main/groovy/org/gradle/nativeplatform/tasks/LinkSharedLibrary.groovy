@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec
 import org.gradle.nativeplatform.internal.LinkerSpec
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec
+import org.gradle.nativeplatform.platform.Platform
 
 /**
  * Links a binary shared library from object files and imported libraries.
@@ -34,10 +35,12 @@ class LinkSharedLibrary extends AbstractLinkTask {
     protected LinkerSpec createLinkerSpec() {
         final spec = new Spec()
         spec.installName = getInstallName()
+        spec.targetPlatform = getTargetPlatform()
         return spec
     }
 
     private static class Spec extends DefaultLinkerSpec implements SharedLibraryLinkerSpec {
         String installName;
+        Platform targetPlatform;
     }
 }
