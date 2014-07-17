@@ -68,4 +68,81 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "b - task b"
     }
 
+    def "can configure generated tasks"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyTasks {
+                List<String> tasks = []
+            }
+
+            class MyMessage {
+                String message
+            }
+
+            class MessageTask extends DefaultTask {
+                String message = "default"
+
+                @TaskAction
+                void printMessages() {
+                    println "\$name message: \$message"
+                }
+            }
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    MyTasks myTasks() {
+                        new MyTasks()
+                    }
+
+                    @Model
+                    MyMessage myMessage() {
+                        new MyMessage()
+                    }
+
+                    @Mutate
+                    void addTasks(NamedItemCollectionBuilder<Task> tasks, MyTasks myTasks) {
+                        myTasks.tasks.each { n ->
+                            tasks.create(n, MessageTask) {
+                              it.description = "task \$n"
+                            }
+                        }
+                    }
+
+                    @Mutate
+                    void configureFoo(@Path("tasks.foo") MessageTask task, MyMessage myMessage) {
+                        task.message = myMessage.message
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks.bar {
+                    message = "custom message!"
+                }
+                myTasks {
+                    tasks << "foo" << "bar"
+                }
+                myMessage {
+                    message = "model message!"
+                }
+            }
+        """
+
+        when:
+        succeeds "foo", "bar"
+
+        then:
+        output.contains "foo message: model message!"
+        output.contains "bar message: custom message!"
+    }
+
 }
