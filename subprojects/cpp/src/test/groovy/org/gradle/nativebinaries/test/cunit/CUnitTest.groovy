@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.test.cunit
 
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.nativebinaries.language.c.plugins.CPlugin
 import org.gradle.nativebinaries.test.cunit.plugins.CUnitPlugin;
 import org.gradle.nativebinaries.test.TestSuiteContainer
@@ -34,7 +35,7 @@ class CUnitTest extends Specification {
         project.evaluate()
 
         then:
-        def binaries = project.getExtensions().getByType(TestSuiteContainer).getByName("mainTest").binaries
+        def binaries = project.modelRegistry.get(ModelReference.of("testSuites", TestSuiteContainer)).getByName("mainTest").binaries
         binaries.collect({it instanceof CUnitTestSuiteBinary}) == [true]*binaries.size()
     }
 }

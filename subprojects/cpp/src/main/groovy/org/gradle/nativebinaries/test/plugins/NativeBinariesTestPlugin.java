@@ -21,9 +21,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.DependentSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
@@ -39,7 +39,6 @@ import org.gradle.nativebinaries.test.tasks.RunTestExecutable;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
-import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -47,16 +46,8 @@ import java.io.File;
  */
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
-    private final Instantiator instantiator;
-
-    @Inject
-    public NativeBinariesTestPlugin(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
-
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(NativeComponentPlugin.class);
-        project.getExtensions().create("testSuites", DefaultTestSuiteContainer.class, instantiator);
     }
 
     /**
@@ -66,8 +57,9 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
     @RuleSource
     public static class Rules {
         @Model
-        TestSuiteContainer testSuites(ExtensionContainer extensions) {
-            return extensions.getByType(TestSuiteContainer.class);
+        TestSuiteContainer testSuites(ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultTestSuiteContainer.class, instantiator);
         }
 
         @Finalize // Must run after test binaries have been created (currently in CUnit plugin)
