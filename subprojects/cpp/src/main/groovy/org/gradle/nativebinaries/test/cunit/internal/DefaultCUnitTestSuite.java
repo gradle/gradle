@@ -29,7 +29,7 @@ public class DefaultCUnitTestSuite extends AbstractProjectNativeComponent implem
     }
 
     public String getDisplayName() {
-        return String.format("cunit tests '%s'", getName());
+        return String.format("cunit test suite '%s'", getName());
     }
 
     public ProjectNativeComponent getTestedComponent() {
