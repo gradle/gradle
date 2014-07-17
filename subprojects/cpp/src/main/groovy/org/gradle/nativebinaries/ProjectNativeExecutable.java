@@ -21,6 +21,6 @@ import org.gradle.api.Incubating;
  * An executable native component that is built by Gradle.
  */
 @Incubating
-public interface ProjectNativeExecutable extends ProjectNativeComponent {
+public interface ProjectNativeExecutable extends ProjectNativeComponent, TargetedNativeComponent {
     
 }
