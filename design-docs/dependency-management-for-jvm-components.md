@@ -811,7 +811,7 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 ### Story: User views outline of component model from command line
 
-- User runs `gradle components`
+- User runs `gradle components` and views report on console.
 - Presents basic details of each project component:
     - JVM and native components
     - Legacy JVM library and application
@@ -821,17 +821,18 @@ Dependency resolution selects the best binary from each dependency for the targe
     - Distribution
 - Show source sets and binaries for each component.
 - Show target platforms, flavors and build types for each component, where applicable.
+- Show output files for each binary.
 
 #### Implementation
 
-- Display output locations for binary
+- Display install task for executables, test task for test suites.
 - Display native language header directories
-- Hoist 'component with binaries' up and remove dependency on cpp project
+- Display native tool locations
 - Add new task type to DSL guide.
 - Add basic implementation for legacy component types.
 - Add `description` to `ProjectComponent`.
 - Sort things by name
-- Move rendering of specific component types to live with the type.
+- Move rendering of specific component types to live with the type and remove dependency on cpp project.
 - Add some general 'show properties' rendering.
 - Tweak report headers for single project builds.
 - Don't show chrome when report task is the only task scheduled to run.
