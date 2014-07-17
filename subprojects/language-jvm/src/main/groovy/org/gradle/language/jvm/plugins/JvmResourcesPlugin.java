@@ -16,10 +16,7 @@
 
 package org.gradle.language.jvm.plugins;
 
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -38,6 +35,7 @@ import java.util.Map;
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
  * org.gradle.language.jvm.ResourceSet}.
  */
+@Incubating
 public class JvmResourcesPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
