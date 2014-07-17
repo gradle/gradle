@@ -30,6 +30,10 @@ public class ModelReference<T> {
         return new ModelReference<T>(path, type);
     }
 
+    public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
+        return new ModelReference<T>(path, ModelType.of(type));
+    }
+
     public static <T> ModelReference<T> of(String path, Class<T> type) {
         return new ModelReference<T>(new ModelPath(path), ModelType.of(type));
     }

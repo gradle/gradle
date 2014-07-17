@@ -52,6 +52,10 @@ public class ModelType<T> {
         return typeToken.getRawType();
     }
 
+    public TypeToken<T> getToken() {
+        return typeToken;
+    }
+
     public boolean isParameterized() {
         return typeToken.getType() instanceof ParameterizedType;
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model.internal.core;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;

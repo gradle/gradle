@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.ModelView;
+public class SingleTypeModelPromise implements ModelPromise {
 
-public interface Inputs extends Iterable<ModelRuleInput<?>> {
+    private final ModelType<?> type;
 
-    <T> ModelView<? extends T> get(int i, ModelType<T> type);
+    public SingleTypeModelPromise(ModelType<?> type) {
+        this.type = type;
+    }
 
-    int size();
+    public <T> boolean asWritable(ModelType<T> type) {
+        return type.isAssignableFrom(this.type);
+    }
+
+    public <T> boolean asReadOnly(ModelType<T> type) {
+        return type.isAssignableFrom(this.type);
+    }
 
 }

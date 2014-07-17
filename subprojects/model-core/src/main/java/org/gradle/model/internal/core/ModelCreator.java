@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
-public class SingleTypeModelPromise implements ModelPromise {
+import java.util.List;
 
-    private final ModelType<?> type;
+public interface ModelCreator {
 
-    public SingleTypeModelPromise(ModelType<?> type) {
-        this.type = type;
-    }
+    ModelPath getPath();
 
-    public <T> boolean asWritable(ModelType<T> type) {
-        return type.isAssignableFrom(this.type);
-    }
+    ModelPromise getPromise();
 
-    public <T> boolean asReadOnly(ModelType<T> type) {
-        return type.isAssignableFrom(this.type);
-    }
+    ModelAdapter create(Inputs inputs);
+
+    List<? extends ModelReference<?>> getInputBindings();
+
+    ModelRuleSourceDescriptor getSourceDescriptor();
 
 }

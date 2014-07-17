@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelAdapter;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+public interface ModelRuleRegistrar {
 
-import java.util.List;
+    public void create(ModelCreator creator);
 
-public interface ModelCreator {
+    public <T> void mutate(ModelMutator<T> mutator);
 
-    ModelPath getPath();
-
-    ModelPromise getPromise();
-
-    ModelAdapter create(Inputs inputs);
-
-    List<? extends ModelReference<?>> getInputBindings();
-
-    ModelRuleSourceDescriptor getSourceDescriptor();
+    public <T> void finalize(ModelMutator<T> mutator);
 
 }

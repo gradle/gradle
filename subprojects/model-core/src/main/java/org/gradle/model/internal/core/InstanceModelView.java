@@ -14,12 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelPath;
+public class InstanceModelView<T> implements ModelView<T> {
 
-public interface ModelCreationListener {
+    private final ModelType<T> type;
+    private final T instance;
 
-    boolean onCreate(ModelPath path, ModelPromise promise);
+    public InstanceModelView(ModelType<T> type, T instance) {
+        this.type = type;
+        this.instance = instance;
+    }
 
+    public static <T> ModelView<T> of(ModelType<T> type, T instance) {
+        return new InstanceModelView<T>(type, instance);
+    }
+
+    public ModelType<T> getType() {
+        return type;
+    }
+
+    public T getInstance() {
+        return instance;
+    }
+
+    public void close() {
+
+    }
 }

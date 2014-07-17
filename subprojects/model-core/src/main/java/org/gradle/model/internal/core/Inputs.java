@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelType;
+import java.util.List;
 
-public interface ModelPromise {
+public interface Inputs {
 
-    <T> boolean asWritable(ModelType<T> type);
+    <T> ModelView<? extends T> get(int i, ModelType<T> type);
 
-    <T> boolean asReadOnly(ModelType<T> type);
+    int size();
+
+    List<ModelReference<?>> getReferences();
 
 }

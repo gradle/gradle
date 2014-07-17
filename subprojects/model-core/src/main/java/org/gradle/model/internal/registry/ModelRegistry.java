@@ -21,17 +21,10 @@ import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelState;
-import org.gradle.model.internal.core.rule.ModelCreationListener;
-import org.gradle.model.internal.core.rule.ModelCreator;
-import org.gradle.model.internal.core.rule.ModelMutator;
+import org.gradle.model.internal.core.ModelCreationListener;
+import org.gradle.model.internal.core.ModelRuleRegistrar;
 
-public interface ModelRegistry {
-
-    public void create(ModelCreator creator);
-
-    public <T> void mutate(ModelMutator<T> mutator);
-
-    public <T> void finalize(ModelMutator<T> mutator);
+public interface ModelRegistry extends ModelRuleRegistrar {
 
     public <T> T get(ModelReference<T> reference);
 

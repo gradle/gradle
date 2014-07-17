@@ -23,7 +23,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
 import java.util.*;
@@ -97,7 +96,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public <T> T get(ModelReference<T> reference) {
         ModelElement element = get(reference.getPath());
-        ModelView<? extends T> typed = assertView(element, reference.getType(), true, "get(ModelReference)");
+        ModelView<? extends T> typed = assertView(element, reference.getType(), "get(ModelReference)");
         return typed.getInstance();
     }
 
@@ -227,12 +226,23 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelView<? extends T> assertView(ModelElement element, ModelType<T> targetType, boolean readOnly, String msg, Object... msgArgs) {
+    private <T> ModelView<? extends T> assertView(ModelElement element, ModelType<T> targetType, String msg, Object... msgArgs) {
         ModelAdapter adapter = element.getAdapter();
-        ModelView<? extends T> view = readOnly ? adapter.asReadOnly(targetType) : adapter.asWritable(targetType);
+        ModelView<? extends T> view = adapter.asReadOnly(targetType);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Model element " + element.getPath() + " is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
+        } else {
+            return view;
+        }
+    }
+
+    private <T> ModelView<? extends T> assertView(ModelElement element, ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Inputs inputs) {
+        ModelAdapter adapter = element.getAdapter();
+        ModelView<? extends T> view = adapter.asWritable(reference, sourceDescriptor, inputs, this);
+        if (view == null) {
+            // TODO better error reporting here
+            throw new IllegalArgumentException("Cannot project model element " + reference.getPath() + " to writable type '" + reference.getType() + "' for rule " + sourceDescriptor);
         } else {
             return view;
         }
@@ -269,8 +279,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> void fireMutation(ModelElement element, ModelMutator<T> mutator) {
-        ModelView<? extends T> view = assertView(element, mutator.getReference().getType(), false, "executing mutation rule %s", mutator.getSourceDescriptor());
         Inputs inputs = toInputs(mutator.getInputBindings());
+        ModelView<? extends T> view = assertView(element, mutator.getReference(), mutator.getSourceDescriptor(), inputs);
         try {
             mutator.mutate(view.getInstance(), inputs);
         } catch (Exception e) {
@@ -283,12 +293,17 @@ public class DefaultModelRegistry implements ModelRegistry {
     private Inputs toInputs(Iterable<? extends ModelReference<?>> references) {
         ImmutableList.Builder<ModelRuleInput<?>> builder = ImmutableList.builder();
         for (ModelReference<?> reference : references) {
-            ModelPath path = reference.getPath();
-            ModelElement element = element(path);
-            ModelView<?> view = assertView(element, reference.getType(), true, "toInputs");
-            builder.add(ModelRuleInput.of(path, view));
+            ModelRuleInput<?> input = toInput(reference);
+            builder.add(input);
         }
         return new DefaultInputs(builder.build());
+    }
+
+    private <T> ModelRuleInput<T> toInput(ModelReference<T> reference) {
+        ModelPath path = reference.getPath();
+        ModelElement element = element(path);
+        ModelView<? extends T> view = assertView(element, reference.getType(), "toInputs");
+        return ModelRuleInput.of(reference, view);
     }
 
     private void notifyCreationListeners(ModelCreator creator) {

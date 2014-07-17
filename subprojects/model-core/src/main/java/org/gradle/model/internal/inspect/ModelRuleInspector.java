@@ -30,7 +30,6 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.*;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -138,7 +137,7 @@ public class ModelRuleInspector {
     }
 
     private <T, R> void doRegisterCreation(final Method method, final TypeToken<R> returnType, final String modelName, final ModelRegistry modelRegistry) {
-        ReflectiveRule.bind(modelRegistry, method, new Action<List<ReflectiveRule.BindableParameter<?>>>() {
+        ReflectiveRule.bind(modelRegistry, method, false, new Action<List<ReflectiveRule.BindableParameter<?>>>() {
 
             public void execute(final List<ReflectiveRule.BindableParameter<?>> bindableParameters) {
                 @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) method.getDeclaringClass();

@@ -16,19 +16,10 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+public interface ModelPromise {
 
-public interface ModelAdapter {
+    <T> boolean asWritable(ModelType<T> type);
 
-    @Nullable
-        // if the model can't be viewed as this type
-    <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry);
-
-    @Nullable
-        // if the model can't be viewed as this type
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type);
-
-    // TODO some kind of description of the model item?
+    <T> boolean asReadOnly(ModelType<T> type);
 
 }

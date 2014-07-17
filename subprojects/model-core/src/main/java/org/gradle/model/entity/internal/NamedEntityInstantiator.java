@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model.entity.internal;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.ModelType;
 
-public interface ModelAdapter {
+public interface NamedEntityInstantiator<T> {
 
-    @Nullable
-        // if the model can't be viewed as this type
-    <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry);
+    ModelType<T> getType();
 
-    @Nullable
-        // if the model can't be viewed as this type
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type);
+    T create(String name);
 
-    // TODO some kind of description of the model item?
+    <S extends T> S create(String name, Class<S> type);
 
 }

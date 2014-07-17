@@ -14,36 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule;
-
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelView;
+package org.gradle.model.internal.core;
 
 public class ModelRuleInput<T> {
 
-    private final ModelPath path;
-    private final ModelView<T> view;
+    private final ModelReference<T> reference;
+    private final ModelView<? extends T> view;
 
-    public ModelRuleInput(ModelPath path, ModelView<T> view) {
-        this.path = path;
+    public ModelRuleInput(ModelReference<T> reference, ModelView<? extends T> view) {
+        this.reference = reference;
         this.view = view;
     }
 
-    public static <T> ModelRuleInput<T> of(ModelPath path, ModelView<T> view) {
+    public static <T> ModelRuleInput<T> of(ModelReference<T> path, ModelView<? extends T> view) {
         return new ModelRuleInput<T>(path, view);
     }
 
-    public ModelPath getPath() {
-        return path;
+    public ModelReference<T> getReference() {
+        return reference;
     }
 
-    public ModelView<T> getView() {
+    public ModelView<? extends T> getView() {
         return view;
     }
 
     @Override
     public String toString() {
-        return "ModelRuleInput{path=" + path + ", view=" + view + '}';
+        return "ModelRuleInput{reference=" + reference + ", view=" + view + '}';
     }
-
 }

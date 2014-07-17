@@ -18,64 +18,49 @@ package org.gradle.model.internal.core;
 
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 
-public class InstanceModelAdapter implements ModelAdapter {
+public class InstanceModelAdapter<I> implements ModelAdapter {
 
-    private final ModelView<?> view;
+    private final ModelType<I> type;
+    private final Factory<? extends I> factory;
+    private I instance;
+
+    public InstanceModelAdapter(ModelType<I> type, Factory<? extends I> factory) {
+        this.type = type;
+        this.factory = factory;
+    }
 
     public static <T> ModelAdapter of(ModelType<T> type, T instance) {
-        return new InstanceModelAdapter(new InstanceView<T>(type, Factories.constant(instance)));
+        return of(type, Factories.constant(instance));
     }
 
     public static <T> ModelAdapter of(ModelType<T> type, Factory<? extends T> factory) {
-        return new InstanceModelAdapter(new InstanceView<T>(type, factory));
+        return new InstanceModelAdapter<T>(type, factory);
     }
 
-    private InstanceModelAdapter(ModelView<?> view) {
-        this.view = view;
-    }
-
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type) {
-        return type(type);
+    public <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
+        return type(reference.getType());
     }
 
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type) {
         return type(type);
     }
 
+    private I getInstance() {
+        if (instance == null) {
+            instance = factory.create();
+        }
+        return instance;
+    }
+
     private <T> ModelView<? extends T> type(ModelType<T> targetType) {
-        if (targetType.isAssignableFrom(view.getType())) {
-            @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) view;
+        if (targetType.isAssignableFrom(type)) {
+            @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) InstanceModelView.of(type, getInstance());
             return cast;
         } else {
             return null;
         }
     }
 
-    private static class InstanceView<T> implements ModelView<T> {
-
-        private final ModelType<T> type;
-        private final Factory<? extends T> factory;
-        private T instance;
-
-        private InstanceView(ModelType<T> type, Factory<? extends T> factory) {
-            this.type = type;
-            this.factory = factory;
-        }
-
-        public ModelType<T> getType() {
-            return type;
-        }
-
-        public T getInstance() {
-            if (instance == null) {
-                instance = factory.create();
-            }
-            return instance;
-        }
-
-        public void close() {
-
-        }
-    }
 }

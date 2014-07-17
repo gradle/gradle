@@ -22,7 +22,7 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelCreator
 import org.gradle.model.internal.inspect.ModelRuleInspector
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.registry.ModelRegistryScope
@@ -113,7 +113,7 @@ class PluginModelRuleExtractorTest extends Specification {
         extractor.execute(application(new HasSource(), new ModelAwareTarget()))
 
         then:
-        1 * registry.create({it.path == new ModelPath("thing")})
+        1 * registry.create(_ as ModelCreator)
     }
 
     def "target is not model capable"() {

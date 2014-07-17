@@ -27,10 +27,10 @@ import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.Inputs;
-import org.gradle.model.internal.core.rule.ModelCreationListener;
-import org.gradle.model.internal.core.rule.ModelMutator;
-import org.gradle.model.internal.core.rule.ModelPromise;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelCreationListener;
+import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
 import org.gradle.util.CollectionUtils;
@@ -46,14 +46,14 @@ import static org.gradle.util.CollectionUtils.findFirst;
 public abstract class ReflectiveRule {
 
     public static void rule(final ModelRegistry modelRegistry, final Method method, final boolean isFinalizer, final Factory<?> instance) {
-        bind(modelRegistry, method, new Action<List<BindableParameter<?>>>() {
+        bind(modelRegistry, method, true, new Action<List<BindableParameter<?>>>() {
             public void execute(List<BindableParameter<?>> bindableParameters) {
                 registerMutator(modelRegistry, method, bindableParameters, isFinalizer, instance);
             }
         });
     }
 
-    public static void bind(final ModelRegistry modelRegistry, final Method bindingMethod, final Action<? super List<BindableParameter<?>>> onBound) {
+    public static void bind(final ModelRegistry modelRegistry, final Method bindingMethod, final boolean firstIsWritable, final Action<? super List<BindableParameter<?>>> onBound) {
         final List<BindableParameter<?>> initialBindings = bindings(bindingMethod);
 
         boolean unsatisfied = CollectionUtils.any(initialBindings, new Spec<BindableParameter<?>>() {
@@ -72,9 +72,10 @@ public abstract class ReflectiveRule {
 
                     boolean unsatisfied = false;
 
+                    int i = 0;
                     for (BindableParameter<?> binding : bindings) {
                         if (binding.getPath() == null) {
-                            if (promise.asReadOnly(binding.getType())) {
+                            if (i++ == 0 && firstIsWritable ? promise.asWritable(binding.getType()) : promise.asReadOnly(binding.getType())) {
                                 bindingsBuilder.add(copyBindingWithPath(path, binding));
                                 continue;
                             } else {
