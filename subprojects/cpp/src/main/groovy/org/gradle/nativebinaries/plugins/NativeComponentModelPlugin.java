@@ -113,6 +113,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             return instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
         }
 
+        @Model
+        NamedDomainObjectSet<ProjectNativeComponent> nativeComponents(ExtensionContainer extensions) {
+            return extensions.getByType(ProjectComponentContainer.class).withType(ProjectNativeComponent.class);
+        }
+
         @Mutate
         public void registerExtensions(ExtensionContainer extensions, PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors) {
             extensions.add("platforms", platforms);
@@ -121,19 +126,21 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void createNativeBinaries(BinaryContainer binaries, ExtensionContainer extensions, ToolChainRegistryInternal toolChains, PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors, ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
+        public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<ProjectNativeComponent> nativeComponents,
+                                         LanguageRegistry languages, ToolChainRegistryInternal toolChains,
+                                         PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
+                                         ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
             Action<ProjectNativeBinary> configureBinaryAction = new ProjectNativeBinaryInitializer(buildDir);
-            Action<ProjectNativeBinary> setToolsAction = new ToolSettingNativeBinaryInitializer(extensions.getByType(LanguageRegistry.class));
+            Action<ProjectNativeBinary> setToolsAction = new ToolSettingNativeBinaryInitializer(languages);
             Action<ProjectNativeBinary> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<ProjectNativeComponent> createBinariesAction =
                     new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
-            ProjectComponentContainer projectComponents = extensions.getByType(ProjectComponentContainer.class);
-            for (ProjectNativeComponent component : projectComponents.withType(ProjectNativeComponent.class)) {
+            for (ProjectNativeComponent component : nativeComponents) {
                 createBinariesAction.execute(component);
                 binaries.addAll(component.getBinaries());
             }
