@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  * An executable tool used for GCC that allows customizing the executable.
  */
 @Incubating
-public interface GccCommandLineToolConfiguration extends CommandLineToolConfiguration{
+public interface GccCommandLineToolConfiguration extends CommandLineToolConfiguration {
     /**
      * The name of the executable file for this tool.
      */

@@ -163,7 +163,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "can configure platform specific executables"() {
         def binDir = testDirectory.createDir("bin")
-        wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
+        wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")
         wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
         wrapperTool(binDir, "linker", toolChain.linker)
 
@@ -182,50 +182,42 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         """
         and:
         buildFile << """
-            executables{
+            executables {
                 execTest
             }
             model {
                 toolChains {
                     ${toolChain.id} {
-                        target("arm"){
-                            cCompiler.executable = '${binDir.absolutePath}/c-compiler'
+                        target("alwaysFrench"){
+                            cCompiler.executable = '${binDir.absolutePath}/french-c-compiler'
                             staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'
                             linker.executable = '${binDir.absolutePath}/linker'
                         }
 
-                        target("i386"){
-                            if(cCompiler.executable.equals('gcc')){
-                                cCompiler.executable = 'g++'
-                            }
-                            if(cCompiler.executable.equals('clang')){
-                                cCompiler.executable = 'clang++'
-                            }
+                        target("alwaysCPlusPlus") {
+                            def compilerMap = [gcc: 'g++', clang: 'clang++']
+                            cCompiler.executable = compilerMap[cCompiler.executable]
                             cCompiler.withArguments { args ->
                                 args.removeAll(["-x", "c"])
+                                args << '-w' // Disable deprecation warning from clang
                             }
                         }
                     }
                 }
 
                 platforms {
-                    arm {
-                        architecture "arm"
-                    }
-                    i386 {
-                        architecture "i386"
-                    }
+                    alwaysFrench
+                    alwaysCPlusPlus
                 }
             }
 
 """
-        executer.withDeprecationChecksDisabled()
-        succeeds "armMainExecutable", "i386MainExecutable", "i386execTest", "armExecTest"
+        succeeds "assemble"
         then:
-        executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.frenchOutput
-        executable("build/binaries/mainExecutable/i386/main").exec().out == helloWorldApp.englishOutput
-        executable("build/binaries/execTestExecutable/i386/execTest").exec().out == "C++ compiler used"
-        executable("build/binaries/execTestExecutable/arm/execTest").exec().out == "C compiler used"
+        executable("build/binaries/mainExecutable/alwaysFrench/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/binaries/mainExecutable/alwaysCPlusPlus/main").exec().out == helloWorldApp.englishOutput
+        executable("build/binaries/execTestExecutable/alwaysCPlusPlus/execTest").exec().out == "C++ compiler used"
+        executable("build/binaries/execTestExecutable/alwaysFrench/execTest").exec().out == "C compiler used"
     }
 
     def wrapperTool(TestFile binDir, String wrapperName, String executable, String... additionalArgs) {

@@ -170,24 +170,12 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                             args.add("-m32");
                         }
                     };
-                    CommandLineToolConfiguration cppCompiler = (CommandLineToolConfiguration) configurableToolChain.getByName("cppCompiler");
-                    cppCompiler.withArguments(m32args);
-
-                    CommandLineToolConfiguration cCompiler = (CommandLineToolConfiguration) configurableToolChain.getByName("cCompiler");
-                    cCompiler.withArguments(m32args);
-
-                    CommandLineToolConfiguration objcCompiler = (CommandLineToolConfiguration) configurableToolChain.getByName("objcCompiler");
-                    objcCompiler.withArguments(m32args);
-
-                    CommandLineToolConfiguration objcppCompiler = (CommandLineToolConfiguration) configurableToolChain.getByName("objcppCompiler");
-                    objcppCompiler.withArguments(m32args);
-
-                    CommandLineToolConfiguration linker = (CommandLineToolConfiguration) configurableToolChain.getByName("linker");
-                    linker.withArguments(m32args);
-
-                    CommandLineToolConfiguration assembler = (CommandLineToolConfiguration) configurableToolChain.getByName("assembler");
-
-                    assembler.withArguments(new Action<List<String>>() {
+                    configureTool(configurableToolChain, "cppCompiler", m32args);
+                    configureTool(configurableToolChain, "cCompiler", m32args);
+                    configureTool(configurableToolChain, "objcCompiler", m32args);
+                    configureTool(configurableToolChain, "objcppCompiler", m32args);
+                    configureTool(configurableToolChain, "linker", m32args);
+                    configureTool(configurableToolChain, "assembler", new Action<List<String>>() {
                         public void execute(List<String> args) {
                             if (OperatingSystem.current().isMacOsX()) {
                                 args.addAll(asList("-arch", "i386"));
@@ -219,38 +207,30 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                             args.add("-m64");
                         }
                     };
-                    CommandLineToolConfiguration cppCompiler = (CommandLineToolConfiguration) configurableToolChain.getByName("cppCompiler");
-                    cppCompiler.withArguments(m64args);
-
-                    CommandLineToolConfiguration cCompiler = (CommandLineToolConfiguration) configurableToolChain.getByName("cCompiler");
-                    cCompiler.withArguments(m64args);
-
-                    CommandLineToolConfiguration objcCompiler = (CommandLineToolConfiguration) configurableToolChain.getByName("objcCompiler");
-                    objcCompiler.withArguments(m64args);
-
-                    CommandLineToolConfiguration objcppCompiler = (CommandLineToolConfiguration) configurableToolChain.getByName("objcppCompiler");
-                    objcppCompiler.withArguments(m64args);
-
-                    CommandLineToolConfiguration linker = (CommandLineToolConfiguration) configurableToolChain.getByName("linker");
-                    linker.withArguments(m64args);
-
-                    CommandLineToolConfiguration assembler = (CommandLineToolConfiguration) configurableToolChain.getByName("assembler");
-                    assembler.withArguments(
-                            new Action<List<String>>() {
-                                public void execute(List<String> args) {
-                                    if (OperatingSystem.current().isMacOsX()) {
-                                        args.addAll(asList("-arch", "x86_64"));
-                                    } else {
-                                        args.add("--64");
-                                    }
-                                }
-                          }
-                    );
+                    configureTool(configurableToolChain, "cppCompiler", m64args);
+                    configureTool(configurableToolChain, "cCompiler", m64args);
+                    configureTool(configurableToolChain, "objcCompiler", m64args);
+                    configureTool(configurableToolChain, "objcppCompiler", m64args);
+                    configureTool(configurableToolChain, "linker", m64args);
+                    configureTool(configurableToolChain, "assembler", new Action<List<String>>() {
+                        public void execute(List<String> args) {
+                            if (OperatingSystem.current().isMacOsX()) {
+                                args.addAll(asList("-arch", "x86_64"));
+                            } else {
+                                args.add("--64");
+                            }
+                        }
+                    });
                 }
             };
             action.execute(targetedPlatformToolChain);
             return targetedPlatformToolChain;
         }
+    }
+
+    private static void configureTool(TargetedPlatformToolChain toolChain, String tool, Action<List<String>> config) {
+        CommandLineToolConfiguration cppCompiler = (CommandLineToolConfiguration) toolChain.getByName(tool);
+        cppCompiler.withArguments(config);
     }
 
     private static class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {
