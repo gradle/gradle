@@ -28,6 +28,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.c.CSourceSet;
+import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
@@ -60,6 +61,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(NativeBinariesTestPlugin.class);
+        project.getPlugins().apply(CLangPlugin.class);
     }
 
     /**

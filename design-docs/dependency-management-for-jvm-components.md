@@ -842,7 +842,6 @@ Dependency resolution selects the best binary from each dependency for the targe
 #### Issues discovered
 
 - Issue: language plugins add every language to every component, regardless of whether that language is supported for the component.
-- Issue: can't apply `cunit` plugin without `c` plugin also applied.
 - Issue: CUnit source sets and binaries are not associated with any component.
 - Issue: CUnit test suite has additional `c` source set defined.
 - Issue: CUnit test executable launcher has additional `c` source directory defined.
