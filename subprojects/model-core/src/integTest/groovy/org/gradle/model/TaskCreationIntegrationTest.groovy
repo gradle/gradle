@@ -233,4 +233,70 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Attempt to mutate closed view of model 'tasks' of type 'org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>' given to rule 'MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>)'")
     }
 
+    def "failure during task instantiation is reasonably reported"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class Faulty extends DefaultTask {
+                Faulty() {
+                    throw new RuntimeException("!")
+                }
+            }
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(NamedItemCollectionBuilder<Task> tasks) {
+                        tasks.create("foo", Faulty)
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>) > create(foo)")
+        failure.assertHasCause("Could not create task of type 'Faulty'")
+    }
+
+    def "failure during task initial configuration is reasonably reported"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(NamedItemCollectionBuilder<Task> tasks) {
+                        tasks.create("foo") {
+                            throw new RuntimeException("config failure")
+                        }
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>) > create(foo)")
+        failure.assertHasCause("config failure")
+    }
+
 }
