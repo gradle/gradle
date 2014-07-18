@@ -29,6 +29,15 @@ import java.util.*;
 
 public class DefaultModelRegistry implements ModelRegistry {
 
+    /*
+        Things we aren't doing and should:
+
+        - Detecting cycles between config rules
+        - Detecting dangling, unbound, rules
+        - Detecting model elements with no object at their parent path
+        - Detecting mutation rules registering parent model
+
+     */
     private final Map<ModelPath, ModelElement> store = new HashMap<ModelPath, ModelElement>();
 
     private final Map<ModelPath, ModelCreator> creations = new HashMap<ModelPath, ModelCreator>();
