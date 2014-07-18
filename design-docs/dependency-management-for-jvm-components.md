@@ -843,7 +843,6 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 - Issue: language plugins add every language to every component, regardless of whether that language is supported for the component.
 - Issue: CUnit source sets and binaries are associated with TestSuite component, which is not in ProjectComponentContainer.
-- Issue: DefaultProjectClassDirectoryBinary.buildable is always false.
 
 ### Story: User views component model as HTML report
 

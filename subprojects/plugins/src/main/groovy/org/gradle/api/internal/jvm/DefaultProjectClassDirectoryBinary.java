@@ -56,7 +56,7 @@ public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelEl
     }
 
     public boolean isBuildable() {
-        return false;
+        return true;
     }
 
     public boolean isLegacyBinary() {

@@ -74,12 +74,12 @@ Resources 'test:resources'
 
 Additional binaries
 -------------------
-Classes 'main' (not buildable)
+Classes 'main'
     build using task: :classes
     tool chain: current JDK (${JavaVersion.current()})
     classes dir: build/classes/main
     resources dir: build/resources/main
-Classes 'test' (not buildable)
+Classes 'test'
     build using task: :testClasses
     tool chain: current JDK (${JavaVersion.current()})
     classes dir: build/classes/test
