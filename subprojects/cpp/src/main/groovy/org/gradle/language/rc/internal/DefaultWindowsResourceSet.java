@@ -16,13 +16,13 @@
 package org.gradle.language.rc.internal;
 
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.internal.AbstractHeaderExportingSourceSet;
 import org.gradle.language.rc.WindowsResourceSet;
 
 public class DefaultWindowsResourceSet extends AbstractHeaderExportingSourceSet implements WindowsResourceSet {
-    public DefaultWindowsResourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, project, "windows resources", new DefaultSourceDirectorySet("source", project.getFileResolver()));
+    public DefaultWindowsResourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
+        super(name, parent, fileResolver, "windows resources", new DefaultSourceDirectorySet("source", fileResolver));
      }
 }

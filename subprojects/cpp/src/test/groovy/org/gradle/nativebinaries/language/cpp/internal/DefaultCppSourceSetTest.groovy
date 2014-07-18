@@ -15,19 +15,20 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.internal
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.cpp.internal.DefaultCppSourceSet
-import org.gradle.nativebinaries.NativeLibraryBinary
 import org.gradle.nativebinaries.NativeDependencySet
+import org.gradle.nativebinaries.NativeLibraryBinary
 import org.gradle.nativebinaries.ProjectNativeLibrary
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
     def parent = Stub(FunctionalSourceSet) {
         getName() >> "main"
     }
-    def sourceSet = new DefaultCppSourceSet("cpp", parent, TestUtil.createRootProject())
+    def fileResolver = Mock(FileResolver)
+    def sourceSet = new DefaultCppSourceSet("cpp", parent, fileResolver)
 
     def "has useful string representation"() {
         expect:

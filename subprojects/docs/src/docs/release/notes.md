@@ -260,6 +260,11 @@ For example:
         }
     }
 
+#### Removed old mechanism for declaring dependencies
+
+Very early versions of the `cpp-lib` and `cpp-exe` plugins had rudimentary support for publishing and resolving native components.
+This support was never fully functional, and has now been completely removed in preparation for full support in the upcoming releases.
+
 ### Changes to incubating Java language plugins
 
 To better support the production of multiple binary outputs for a single set of sources, a new set of Java

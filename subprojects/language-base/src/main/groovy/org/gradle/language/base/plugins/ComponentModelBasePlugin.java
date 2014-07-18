@@ -16,6 +16,8 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -47,7 +49,7 @@ import java.util.Set;
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
-public class ComponentModelBasePlugin implements Plugin<Project> {
+public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
 
@@ -56,7 +58,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         this.instantiator = instantiator;
     }
 
-    public void apply(final Project project) {
+    public void apply(final ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
         LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
@@ -64,10 +66,10 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         // TODO:DAZ Convert to model rules
-        createLanguageSourceSets(project, languageRegistry, sources);
+        createLanguageSourceSets(sources, languageRegistry, project.getFileResolver());
     }
 
-    private void createLanguageSourceSets(final Project project, final LanguageRegistry languageRegistry, final ProjectSourceSet sources) {
+    private void createLanguageSourceSets(final ProjectSourceSet sources, final LanguageRegistry languageRegistry, final FileResolver fileResolver) {
         languageRegistry.all(new Action<LanguageRegistration>() {
             public void execute(final LanguageRegistration languageRegistration) {
                 sources.all(new Action<FunctionalSourceSet>() {
@@ -75,13 +77,14 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
                         NamedDomainObjectFactory<? extends LanguageSourceSet> namedDomainObjectFactory = new NamedDomainObjectFactory<LanguageSourceSet>() {
                             public LanguageSourceSet create(String name) {
                                 Class<? extends LanguageSourceSet> sourceSetImplementation = languageRegistration.getSourceSetImplementation();
-                                return instantiator.newInstance(sourceSetImplementation, name, functionalSourceSet, project);
+                                return instantiator.newInstance(sourceSetImplementation, name, functionalSourceSet, fileResolver);
                             }
                         };
                         Class<? extends LanguageSourceSet> sourceSetType = languageRegistration.getSourceSetType();
                         functionalSourceSet.registerFactory((Class<LanguageSourceSet>) sourceSetType, namedDomainObjectFactory);
 
                         // Create a default language source set
+                        // TODO:DAZ Should only attach LanguageSourceSet where appropriate for component (at the moment we have no way to determine the component)
                         functionalSourceSet.maybeCreate(languageRegistration.getName(), sourceSetType);
                     }
                 });

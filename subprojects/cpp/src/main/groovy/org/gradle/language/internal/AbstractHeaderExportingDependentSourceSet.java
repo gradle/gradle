@@ -16,7 +16,7 @@
 package org.gradle.language.internal;
 
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.DependentSourceSet;
 import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -26,7 +26,6 @@ import org.gradle.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A convenience base class for implementing language source sets with dependencies and exported headers.
@@ -35,14 +34,9 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
         implements HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 
     private final List<Object> libs = new ArrayList<Object>();
-    private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
-    public AbstractHeaderExportingDependentSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project, String typeName, SourceDirectorySet source) {
-        super(name, parent, project, typeName, source);
-
-        this.configurationDependencySet = new ConfigurationBasedNativeDependencySet(project, getFullName());
-
-        libs.add(configurationDependencySet);
+    public AbstractHeaderExportingDependentSourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver, String typeName, SourceDirectorySet source) {
+        super(name, parent, fileResolver, typeName, source);
     }
 
     public Collection<?> getLibs() {
@@ -56,9 +50,5 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
         } else {
             libs.add(library);
         }
-    }
-
-    public void dependency(Map<?, ?> dep) {
-        configurationDependencySet.add(dep);
     }
 }

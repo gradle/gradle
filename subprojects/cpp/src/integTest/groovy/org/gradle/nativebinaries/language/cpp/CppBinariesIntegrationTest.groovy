@@ -252,7 +252,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         succeeds "mainExecutable"
 
         then:
-        executedTasks.tail() == [":compileMainExecutableMainCpp", ":mainExecutablePreLink", ":linkMainExecutable", ":mainExecutablePostLink", ":mainExecutable"]
+        executedTasks == [":compileMainExecutableMainCpp", ":mainExecutablePreLink", ":linkMainExecutable", ":mainExecutablePostLink", ":mainExecutable"]
     }
 
     @Issue("GRADLE-2973")

@@ -19,7 +19,6 @@ import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * A source set that depends on one or more {@link org.gradle.nativebinaries.NativeDependencySet}s to be built.
@@ -49,9 +48,4 @@ public interface DependentSourceSet extends LanguageSourceSet {
      * </ul>
      */
     void lib(Object library);
-
-    /**
-     * Add a dependency to this source set.
-     */
-    void dependency(Map<?, ?> dep);
 }

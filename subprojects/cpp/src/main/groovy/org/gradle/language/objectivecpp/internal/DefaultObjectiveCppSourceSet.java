@@ -16,17 +16,17 @@
 
 package org.gradle.language.objectivecpp.internal;
 
-import javax.inject.Inject;
-
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.internal.AbstractHeaderExportingDependentSourceSet;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 
+import javax.inject.Inject;
+
 public class DefaultObjectiveCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements ObjectiveCppSourceSet {
     @Inject
-    public DefaultObjectiveCppSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, project, "Objective-C++ source", new DefaultSourceDirectorySet("source", project.getFileResolver()));
+    public DefaultObjectiveCppSourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
+        super(name, parent, fileResolver, "Objective-C++ source", new DefaultSourceDirectorySet("source", fileResolver));
     }
 }

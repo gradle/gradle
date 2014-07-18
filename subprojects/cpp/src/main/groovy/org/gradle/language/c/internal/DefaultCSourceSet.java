@@ -17,7 +17,7 @@
 package org.gradle.language.c.internal;
 
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.internal.AbstractHeaderExportingDependentSourceSet;
@@ -26,7 +26,7 @@ import javax.inject.Inject;
 
 public class DefaultCSourceSet extends AbstractHeaderExportingDependentSourceSet implements CSourceSet {
     @Inject
-    public DefaultCSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, project, "C source", new DefaultSourceDirectorySet("source", project.getFileResolver()));
+    public DefaultCSourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
+        super(name, parent, fileResolver, "C source", new DefaultSourceDirectorySet("source", fileResolver));
     }
 }
