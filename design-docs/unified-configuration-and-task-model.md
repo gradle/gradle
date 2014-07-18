@@ -178,6 +178,7 @@ A mock up:
 
 - --Build script configuration closure is executed before rule method is invoked.--
 - --Reasonable error message when two rules create tasks with the same name.--
+- --Item configuration action cannot create more items--
 - Reasonable error message when rule method fails.
 - Reasonable error message when rule method declares input of unknown type.
 - Reasonable error message when rule method declares ambiguous input.

@@ -20,6 +20,7 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.model.collection.NamedItemCollectionBuilder;
+import org.gradle.model.collection.NamedItemCollectionBuilderModelView;
 import org.gradle.model.collection.internal.DefaultNamedItemCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
@@ -46,8 +47,8 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
             @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) InstanceModelView.of(containerType, container);
             return cast;
         } else if (reference.getType().isAssignableFrom(collectionBuilderModelType)) {
-            DefaultNamedItemCollectionBuilder<I> builder = new DefaultNamedItemCollectionBuilder<I>(reference.getPath(), new Instantiator(), sourceDescriptor, inputs, modelRuleRegistrar);
-            @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) InstanceModelView.of(collectionBuilderModelType, builder);
+            NamedItemCollectionBuilder<I> builder = new DefaultNamedItemCollectionBuilder<I>(reference.getPath(), new Instantiator(), sourceDescriptor, inputs, modelRuleRegistrar);
+            @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) new NamedItemCollectionBuilderModelView<I>(collectionBuilderModelType, builder, reference.getPath(), sourceDescriptor);
             return cast;
         } else {
             return null;

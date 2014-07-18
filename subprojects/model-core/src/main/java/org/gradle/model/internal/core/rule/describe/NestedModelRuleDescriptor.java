@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 
-public class NestedModelRuleDescriptor implements ModelRuleDescriptor {
+public class NestedModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private final ModelRuleDescriptor parent;
     private final ModelRuleDescriptor child;

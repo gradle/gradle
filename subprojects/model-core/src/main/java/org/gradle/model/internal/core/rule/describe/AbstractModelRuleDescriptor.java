@@ -16,22 +16,13 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
-import org.gradle.api.Action;
+public abstract class AbstractModelRuleDescriptor implements ModelRuleDescriptor {
 
-public class ActionModelRuleDescriptor extends AbstractModelRuleDescriptor {
-
-    private final Action<? super Appendable> action;
-
-    public static ModelRuleDescriptor from(Action<? super Appendable> action) {
-        return new ActionModelRuleDescriptor(action);
-    }
-
-    public ActionModelRuleDescriptor(Action<? super Appendable> action) {
-        this.action = action;
-    }
-
-    public void describeTo(Appendable appendable) {
-        action.execute(appendable);
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        describeTo(sb);
+        return sb.toString();
     }
 
 }

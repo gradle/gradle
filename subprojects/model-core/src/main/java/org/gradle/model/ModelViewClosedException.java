@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core.rule.describe;
+package org.gradle.model;
 
-import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-public class ActionModelRuleDescriptor extends AbstractModelRuleDescriptor {
+public class ModelViewClosedException extends GradleException {
 
-    private final Action<? super Appendable> action;
-
-    public static ModelRuleDescriptor from(Action<? super Appendable> action) {
-        return new ActionModelRuleDescriptor(action);
-    }
-
-    public ActionModelRuleDescriptor(Action<? super Appendable> action) {
-        this.action = action;
-    }
-
-    public void describeTo(Appendable appendable) {
-        action.execute(appendable);
+    public ModelViewClosedException(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
+        super(String.format(
+                "Attempt to mutate closed view of model '%s' of type '%s' given to rule '%s'", path, type.getToken(), ruleDescriptor
+        ));
     }
 
 }

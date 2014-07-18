@@ -202,4 +202,35 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot register model creation rule 'MyPlugin\$Rules#addTasks2(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' for path 'tasks.a' as the rule 'MyPlugin\$Rules#addTasks1(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' is already registered to create a model element at this path")
     }
 
+    def "cannot create tasks during config of task"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(NamedItemCollectionBuilder<Task> tasks) {
+                        tasks.create("foo") {
+                          tasks.create("bar")
+                        }
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>) > create(foo)")
+        failure.assertHasCause("Attempt to mutate closed view of model 'tasks' of type 'org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>' given to rule 'MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>)'")
+    }
+
 }

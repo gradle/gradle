@@ -29,7 +29,7 @@ import java.util.Arrays;
 
 // TODO some kind of context of why the method was attached (e.g. which plugin declared the rule)
 // TODO some kind of instance state for the method (might be the same as context above)
-public class MethodModelRuleDescriptor implements ModelRuleDescriptor {
+public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private static final Joiner PARAMS_JOINER = Joiner.on(", ");
     private static final Function<Type, String> TYPE_TO_STRING = new Function<Type, String>() {

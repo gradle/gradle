@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 
-public class SimpleModelRuleDescriptor implements ModelRuleDescriptor {
+public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private final String descriptor;
 
