@@ -26,6 +26,7 @@ import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.FileIdentityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,11 +75,11 @@ abstract public class AvailableJavaHomes {
         Jvm jvm = Jvm.current();
         for (JvmInstallation candidate : getJvms()) {
             try{
-                if (candidate.getJavaHome().getCanonicalPath().equals(jvm.getJavaHome().getCanonicalPath())) {
+                if (FileIdentityUtil.isSameFile(candidate.getJavaHome(), jvm.getJavaHome())) {
                     continue;
                 }
             }catch(IOException ioException){
-                LOGGER.warn(String.format("Could verify JDK candidate with path '%s'", jvm.getJavaHome().getAbsolutePath()), ioException);
+                LOGGER.warn(String.format("Could not verify JDK candidate with path '%s'", jvm.getJavaHome().getAbsolutePath()), ioException);
                 continue;
             }
             // Currently tests implicitly assume a JDK
