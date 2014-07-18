@@ -19,8 +19,7 @@ import org.gradle.api.Incubating;
 
 /**
  * A binary artifact that is built from of a {@link org.gradle.nativebinaries.NativeExecutable}, targeted at a particular platform with specific configuration.
- * // TODO:DAZ Deprecate in 2.1
  */
-@Incubating
+@Incubating @Deprecated
 public interface ExecutableBinary extends NativeExecutableBinary {
 }
