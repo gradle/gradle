@@ -51,7 +51,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
-        // TODO:DAZ Split the legacy extensions from the new model: the legacy plugins cannot share the same instances
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
     }

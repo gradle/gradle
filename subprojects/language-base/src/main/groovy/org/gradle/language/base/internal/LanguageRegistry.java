@@ -20,7 +20,6 @@ import org.gradle.api.DomainObjectSet;
 
 /**
  * A registry of domains.
- * TODO:DAZ This should be populated by inspecting the plugin, rather than having the plugin register explicitly.
  */
 public interface LanguageRegistry extends DomainObjectSet<LanguageRegistration> {
 }

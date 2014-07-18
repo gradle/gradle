@@ -21,6 +21,5 @@ import org.gradle.runtime.base.ProjectBinary;
 public interface ProjectBinaryInternal extends ProjectBinary {
     BinaryNamingScheme getNamingScheme();
 
-    // TODO:DAZ Won't need this once the 'binaries' model is separate from the extension
     boolean isLegacyBinary();
 }
