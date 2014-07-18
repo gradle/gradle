@@ -13,6 +13,8 @@ For PMD, sharing configuration files via a binary repository is already possible
       ruleSets = ["my_pmd_ruleset.xml"]
     }
 
+(Note: if `pmdClassPath` could be configured via `pmd { ... }`, the syntax would become a bit nicer.)
+
 This leaves Checkstyle and FindBugs.
 
 # Use cases
@@ -59,3 +61,4 @@ If configured, extract include/exclude filter resources from `pluginClasspath` (
 
 * Instead of introducing new properties, the existing properties could be generalized to accept either a class path resource name or a file location. However, this would constitute a breaking change, as the properties' type would have to change from `File` to `Object`. Another option would be to introduce new generalized properties while deprecating the existing ones.
 * FindBugs: Resource files could be extracted using `project.copy`/`zipTree`, or accessed using a class loader. Extraction could happen in the Gradle process or the FindBugs worker process.
+* Do we want to allow all of this to be configured via the `checkstyle`, `pmd`, and `findbugs` extensions? This would require to also add the respective `classpath` properties to the extensions.
