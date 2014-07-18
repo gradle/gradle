@@ -35,7 +35,7 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        output.startsWith(""":help
+        output.startsWith(toPlatformLineSeparators(""":help
 
 Welcome to Gradle ${GradleVersion.current().version}.
 
@@ -46,7 +46,7 @@ To see a list of available tasks, run gradle tasks
 To see a list of command-line options, run gradle --help
 
 BUILD SUCCESSFUL
-""")
+"""))
     }
 
     def "can print help for implicit tasks"() {

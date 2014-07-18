@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -31,7 +33,7 @@ class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
         succeeds "components"
 
         then:
-        output.contains("""
+        output.contains(toPlatformLineSeparators("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -40,7 +42,7 @@ No components defined for this project.
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
-""")
+"""))
     }
 
     def "shows details of legacy Java project"() {
@@ -54,7 +56,7 @@ plugins {
         succeeds "components"
 
         then:
-        output.contains("""
+        output.contains(toPlatformLineSeparators("""
 No components defined for this project.
 
 Additional source sets
@@ -82,7 +84,7 @@ Classes 'test' (not buildable)
     resources dir: build/resources/test
 
 Note: currently not all plugins register their components, so some components may not be visible here.
-""")
+"""))
     }
 
     def "shows details of Java library"() {
@@ -103,7 +105,7 @@ jvm {
         succeeds "components"
 
         then:
-        output.contains("""
+        output.contains(toPlatformLineSeparators("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -126,7 +128,7 @@ Binaries
 Note: currently not all plugins register their components, so some components may not be visible here.
 
 BUILD SUCCESSFUL
-""")
+"""))
     }
 
     def "shows details of native C++ library"() {
@@ -146,7 +148,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains("""
+        output.contains(toPlatformLineSeparators("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -177,7 +179,7 @@ Binaries
 Note: currently not all plugins register their components, so some components may not be visible here.
 
 BUILD SUCCESSFUL
-""")
+"""))
     }
 
     def "shows details of native C++ library that is not buildable"() {
@@ -202,7 +204,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains("""
+        output.contains(toPlatformLineSeparators("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -233,7 +235,7 @@ Binaries
 Note: currently not all plugins register their components, so some components may not be visible here.
 
 BUILD SUCCESSFUL
-""")
+"""))
     }
 
     def "shows details of native C executable with test suite"() {
@@ -254,7 +256,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains("""
+        output.contains(toPlatformLineSeparators("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -295,7 +297,7 @@ C unit exe 'someExeTest:cUnitExe'
 Note: currently not all plugins register their components, so some components may not be visible here.
 
 BUILD SUCCESSFUL
-""")
+"""))
     }
 
     def "shows details of polyglot native library with multiple variants"() {
@@ -328,7 +330,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains("""
+        output.contains(toPlatformLineSeparators("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -405,7 +407,7 @@ Binaries
 Note: currently not all plugins register their components, so some components may not be visible here.
 
 BUILD SUCCESSFUL
-""")
+"""))
     }
 
     def "shows details of multiple components"() {
@@ -434,19 +436,19 @@ nativeRuntime {
 
         then:
         // TODO - flesh this out when languages are associated with correct component types
-        output.contains("""
+        output.contains(toPlatformLineSeparators("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
 
 JVM library 'jvmLib'
 --------------------
-""")
-        output.contains("""
+"""))
+        output.contains(toPlatformLineSeparators("""
 
 Native library 'nativeLib'
 --------------------------
-""")
+"""))
     }
 
     String getToolChainDisplayName() {

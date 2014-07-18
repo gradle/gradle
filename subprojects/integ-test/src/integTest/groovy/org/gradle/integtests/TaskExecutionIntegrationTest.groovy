@@ -19,6 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.startsWith
 
 public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -248,19 +249,19 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'sometask'
 
         then:
-        output.startsWith(""":someTask
+        output.startsWith(toPlatformLineSeparators(""":someTask
 explicit sometask
 
-BUILD SUCCESSFUL""")
+BUILD SUCCESSFUL"""))
 
         when:
         succeeds 'someT'
 
         then:
-        output.startsWith(""":someTask
+        output.startsWith(toPlatformLineSeparators(""":someTask
 explicit sometask
 
-BUILD SUCCESSFUL""")
+BUILD SUCCESSFUL"""))
     }
 
     def "honours mustRunAfter task ordering"() {
