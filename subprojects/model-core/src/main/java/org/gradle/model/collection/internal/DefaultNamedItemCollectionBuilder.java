@@ -17,13 +17,15 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Actions;
+import org.gradle.internal.ErroringAction;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.NamedItemCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ActionModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 public class DefaultNamedItemCollectionBuilder<T> implements NamedItemCollectionBuilder<T> {
 
@@ -41,51 +43,79 @@ public class DefaultNamedItemCollectionBuilder<T> implements NamedItemCollection
         this.ruleRegistrar = ruleRegistrar;
     }
 
-    public void create(String name) {
-        create(name, (Action<? super T>) null);
+    public void create(final String name) {
+        doCreate(name, instantiator.getType(), Actions.doNothing(), new DefaultTypeFactory(name));
     }
 
-    public void create(final String name, Action<? super T> configAction) {
-        doCreate(name, instantiator.getType(), configAction, new Factory<T>() {
-            public T create() {
-                return instantiator.create(name);
-            }
-        });
+    public void create(String name, Action<? super T> configAction) {
+        doCreate(name, instantiator.getType(), configAction, new DefaultTypeFactory(name));
     }
 
-    private <S extends T> void doCreate(final String name, ModelType<S> type, Action<? super S> configAction, Factory<S> factory) {
+    public <S extends T> void create(String name, Class<S> type) {
+        doCreate(name, ModelType.of(type), Actions.<S>doNothing(), new CustomTypeFactory<S>(name, type));
+    }
+
+    public <S extends T> void create(final String name, final Class<S> type, Action<? super S> configAction) {
+        doCreate(name, ModelType.of(type), configAction, new CustomTypeFactory<S>(name, type));
+    }
+
+    private <S extends T> void doCreate(final String name, ModelType<S> type, Action<? super S> configAction, Factory<? extends S> factory) {
         ModelPath path = collectionPath.child(name);
-        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, new SimpleModelRuleDescriptor(name));
+        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
+            @Override
+            protected void doExecute(Appendable thing) throws Exception {
+                thing.append("create(").append(name).append(")");
+            }
+        }));
 
         ruleRegistrar.create(InstanceBackedModelCreator.of(
                 ModelReference.of(path, type),
                 descriptor,
                 implicitInputs.getReferences(),
-                factory
+                new CreateAndConfigureFactory<S>(factory, configAction)
         ));
+    }
 
-        if (configAction != null) {
-            ruleRegistrar.mutate(
-                    ActionBackedModelMutator.of(
-                            ModelReference.of(path, type),
-                            implicitInputs.getReferences(),
-                            new NestedModelRuleDescriptor(descriptor, new SimpleModelRuleDescriptor("configure")),
-                            configAction
-                    )
-            );
+    private class CustomTypeFactory<S extends T> implements Factory<S> {
+        private final String name;
+        private final Class<S> type;
+
+        public CustomTypeFactory(String name, Class<S> type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        public S create() {
+            return instantiator.create(name, type);
         }
     }
 
-    public void create(String name, Class<? extends T> type) {
-        create(name, type, null);
+    private class DefaultTypeFactory implements Factory<T> {
+        private final String name;
+
+        public DefaultTypeFactory(String name) {
+            this.name = name;
+        }
+
+        public T create() {
+            return instantiator.create(name);
+        }
     }
 
-    public <S extends T> void create(final String name, final Class<S> type, Action<? super S> configAction) {
-        doCreate(name, ModelType.of(type), configAction, new Factory<S>() {
-            public S create() {
-                return instantiator.create(name, type);
-            }
-        });
-    }
+    private static class CreateAndConfigureFactory<T> implements Factory<T> {
 
+        private final Factory<? extends T> factory;
+        private final Action<? super T> action;
+
+        private CreateAndConfigureFactory(Factory<? extends T> factory, Action<? super T> action) {
+            this.factory = factory;
+            this.action = action;
+        }
+
+        public T create() {
+            T t = factory.create();
+            action.execute(t);
+            return t;
+        }
+    }
 }

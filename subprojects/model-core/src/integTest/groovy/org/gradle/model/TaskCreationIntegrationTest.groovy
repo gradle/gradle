@@ -145,4 +145,61 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "bar message: custom message!"
     }
 
+    def "two rules attempt to create task"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyModel {
+                List<String> tasks = []
+            }
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Model
+                    MyModel myModel() {
+                        new MyModel()
+                    }
+
+                    @Mutate
+                    void addTasks1(NamedItemCollectionBuilder<Task> tasks, MyModel myModel) {
+                        myModel.tasks.each { n ->
+                            tasks.create(n) {
+                              it.description = "task \$n"
+                            }
+                        }
+                    }
+
+                    @Mutate
+                    void addTasks2(NamedItemCollectionBuilder<Task> tasks, MyModel myModel) {
+                        myModel.tasks.each { n ->
+                            tasks.create(n) {
+                              it.description = "task \$n"
+                            }
+                        }
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                myModel {
+                    tasks << "a" << "b"
+                }
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks2(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>, MyModel)")
+        failure.assertHasCause("Cannot register model creation rule 'MyPlugin\$Rules#addTasks2(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' for path 'tasks.a' as the rule 'MyPlugin\$Rules#addTasks1(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' is already registered to create a model element at this path")
+    }
+
 }

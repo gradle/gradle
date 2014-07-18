@@ -66,4 +66,23 @@ public class MethodModelRuleDescriptor implements ModelRuleDescriptor {
 
         return description;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MethodModelRuleDescriptor that = (MethodModelRuleDescriptor) o;
+
+        return method.equals(that.method);
+    }
+
+    @Override
+    public int hashCode() {
+        return method.hashCode();
+    }
 }
