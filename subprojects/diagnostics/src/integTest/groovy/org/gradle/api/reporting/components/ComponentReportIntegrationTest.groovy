@@ -18,6 +18,8 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 
 class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -162,15 +164,15 @@ Binaries
         platform: current
         build type: debug
         flavor: default
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
+        tool chain: ${toolChainDisplayName}
+        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/someLib')}
     Static library 'someLib:staticLibrary'
         build using task: :someLibStaticLibrary
         platform: current
         build type: debug
         flavor: default
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
+        tool chain: ${toolChainDisplayName}
+        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/someLib')}
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -219,14 +221,14 @@ Binaries
         build type: debug
         flavor: default
         tool chain: unavailable
-        shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
+        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/someLib')}
     Static library 'someLib:staticLibrary' (not buildable)
         build using task: :someLibStaticLibrary
         platform: solaris
         build type: debug
         flavor: default
         tool chain: unavailable
-        static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
+        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/someLib')}
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -270,8 +272,8 @@ Binaries
         platform: current
         build type: debug
         flavor: default
-        tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeExecutable/someExe
+        tool chain: ${toolChainDisplayName}
+        executable file: ${executable('build/binaries/someExeExecutable/someExe')}
 
 Additional source sets
 ----------------------
@@ -287,8 +289,8 @@ C unit exe 'someExeTest:cUnitExe'
     platform: current
     build type: debug
     flavor: default
-    tool chain: Tool chain 'clang' (Clang)
-    executable file: build/binaries/someExeTestCUnitExe/someExeTest
+    tool chain: ${toolChainDisplayName}
+    executable file: ${executable('build/binaries/someExeTestCUnitExe/someExeTest')}
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -348,57 +350,57 @@ Binaries
         platform: amd64
         build type: debug
         flavor: free
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/amd64Free/libsomeLib.dylib
+        tool chain: ${toolChainDisplayName}
+        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/amd64Free/someLib')}
     Static library 'someLib:amd64:free:staticLibrary'
         build using task: :amd64FreeSomeLibStaticLibrary
         platform: amd64
         build type: debug
         flavor: free
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/amd64Free/libsomeLib.a
+        tool chain: ${toolChainDisplayName}
+        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/amd64Free/someLib')}
     Shared library 'someLib:amd64:paid:sharedLibrary'
         build using task: :amd64PaidSomeLibSharedLibrary
         platform: amd64
         build type: debug
         flavor: paid
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/amd64Paid/libsomeLib.dylib
+        tool chain: ${toolChainDisplayName}
+        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/amd64Paid/someLib')}
     Static library 'someLib:amd64:paid:staticLibrary'
         build using task: :amd64PaidSomeLibStaticLibrary
         platform: amd64
         build type: debug
         flavor: paid
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/amd64Paid/libsomeLib.a
+        tool chain: ${toolChainDisplayName}
+        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/amd64Paid/someLib')}
     Shared library 'someLib:i386:free:sharedLibrary'
         build using task: :i386FreeSomeLibSharedLibrary
         platform: i386
         build type: debug
         flavor: free
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/i386Free/libsomeLib.dylib
+        tool chain: ${toolChainDisplayName}
+        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/i386Free/someLib')}
     Static library 'someLib:i386:free:staticLibrary'
         build using task: :i386FreeSomeLibStaticLibrary
         platform: i386
         build type: debug
         flavor: free
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/i386Free/libsomeLib.a
+        tool chain: ${toolChainDisplayName}
+        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/i386Free/someLib')}
     Shared library 'someLib:i386:paid:sharedLibrary'
         build using task: :i386PaidSomeLibSharedLibrary
         platform: i386
         build type: debug
         flavor: paid
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/i386Paid/libsomeLib.dylib
+        tool chain: ${toolChainDisplayName}
+        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/i386Paid/someLib')}
     Static library 'someLib:i386:paid:staticLibrary'
         build using task: :i386PaidSomeLibStaticLibrary
         platform: i386
         build type: debug
         flavor: paid
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/i386Paid/libsomeLib.a
+        tool chain: ${toolChainDisplayName}
+        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/i386Paid/someLib')}
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -445,5 +447,25 @@ JVM library 'jvmLib'
 Native library 'nativeLib'
 --------------------------
 """)
+    }
+
+    String getToolChainDisplayName() {
+        return toolChain.instanceDisplayName
+    }
+
+    AvailableToolChains.InstalledToolChain getToolChain() {
+        return AvailableToolChains.toolChains.find { it instanceof AvailableToolChains.InstalledToolChain }
+    }
+
+    String executable(String path) {
+        return OperatingSystem.current().getExecutableName(path)
+    }
+
+    String sharedLibrary(String path) {
+        return OperatingSystem.current().getSharedLibraryName(path)
+    }
+
+    String staticLibrary(String path) {
+        return OperatingSystem.current().getStaticLibraryName(path)
     }
 }
