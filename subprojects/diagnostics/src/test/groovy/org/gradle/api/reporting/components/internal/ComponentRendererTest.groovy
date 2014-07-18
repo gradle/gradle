@@ -26,7 +26,6 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.runtime.base.ProjectBinary
 import org.gradle.runtime.base.ProjectComponent
-import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class ComponentRendererTest extends Specification {
@@ -47,9 +46,9 @@ class ComponentRendererTest extends Specification {
         renderer.render(component, builder)
 
         then:
-        output.value.startsWith(TextUtil.toPlatformLineSeparators("""{header}<component>
+        output.value.startsWith("""{header}<component>
 -----------{normal}
-"""))
+""")
     }
 
     def "renders component with no source sets"() {

@@ -20,8 +20,6 @@ import org.gradle.logging.TestStyledTextOutput
 import org.gradle.reporting.ReportRenderer
 import spock.lang.Specification
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class DefaultTextReportBuilderTest extends Specification {
     def output = new TestStyledTextOutput()
     def builder = new DefaultTextReportBuilder(output)
@@ -31,12 +29,12 @@ class DefaultTextReportBuilderTest extends Specification {
         builder.heading("heading")
 
         expect:
-        output.value == toPlatformLineSeparators("""
+        output.value == """
 {header}------------------------------------------------------------
 heading
 ------------------------------------------------------------{normal}
 
-""")
+"""
     }
 
     def "formats subheading"() {
@@ -44,9 +42,9 @@ heading
         builder.subheading("heading")
 
         expect:
-        output.value == toPlatformLineSeparators("""{header}heading
+        output.value == """{header}heading
 -------{normal}
-""")
+"""
     }
 
     def "formats collection"() {
@@ -61,10 +59,10 @@ heading
         builder.collection("Things", [1, 2], renderer, "things")
 
         then:
-        output.value == toPlatformLineSeparators("""Things
+        output.value == """Things
     [1]
     [2]
-""")
+"""
     }
 
     def "formats empty collection"() {
@@ -74,8 +72,8 @@ heading
         builder.collection("Things", [], renderer, "things")
 
         then:
-        output.value == toPlatformLineSeparators("""Things
+        output.value == """Things
     No things.
-""")
+"""
     }
 }
