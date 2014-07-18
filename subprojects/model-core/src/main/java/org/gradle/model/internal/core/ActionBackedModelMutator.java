@@ -23,35 +23,35 @@ import java.util.List;
 
 public class ActionBackedModelMutator<T> implements ModelMutator<T> {
 
-    private final ModelReference<T> reference;
-    private final List<? extends ModelReference<?>> inputBindings;
+    private final ModelBinding<T> binding;
+    private final List<ModelBinding<?>> inputBindings;
     private final ModelRuleDescriptor sourceDescriptor;
     private final Action<? super T> action;
 
-    public ActionBackedModelMutator(ModelReference<T> reference, List<? extends ModelReference<?>> inputBindings, ModelRuleDescriptor sourceDescriptor, Action<? super T> action) {
-        this.reference = reference;
+    public ActionBackedModelMutator(ModelBinding<T> binding, List<ModelBinding<?>> inputBindings, ModelRuleDescriptor sourceDescriptor, Action<? super T> action) {
+        this.binding = binding;
         this.inputBindings = inputBindings;
         this.sourceDescriptor = sourceDescriptor;
         this.action = action;
     }
 
-    public static <T> ModelMutator<T> of(ModelReference<T> reference, List<? extends ModelReference<?>> bindings, ModelRuleDescriptor descriptor, Action<? super T> action) {
+    public static <T> ModelMutator<T> of(ModelBinding<T> reference, List<ModelBinding<?>> bindings, ModelRuleDescriptor descriptor, Action<? super T> action) {
         return new ActionBackedModelMutator<T>(reference, bindings, descriptor, action);
     }
 
-    public ModelReference<T> getReference() {
-        return reference;
+    public ModelBinding<T> getBinding() {
+        return binding;
     }
 
     public void mutate(T object, Inputs inputs) {
         action.execute(object);
     }
 
-    public List<? extends ModelReference<?>> getInputBindings() {
+    public List<ModelBinding<?>> getInputBindings() {
         return inputBindings;
     }
 
-    public ModelRuleDescriptor getSourceDescriptor() {
+    public ModelRuleDescriptor getDescriptor() {
         return sourceDescriptor;
     }
 

@@ -18,22 +18,16 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.Path;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelCreationListener;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.ModelPromise;
+import org.gradle.model.internal.core.ModelBinding;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -46,138 +40,35 @@ import static org.gradle.util.CollectionUtils.findFirst;
 public abstract class ReflectiveRule {
 
     public static void rule(final ModelRegistry modelRegistry, final Method method, final boolean isFinalizer, final Factory<?> instance) {
-        bind(modelRegistry, method, true, new Action<List<BindableParameter<?>>>() {
-            public void execute(List<BindableParameter<?>> bindableParameters) {
-                registerMutator(modelRegistry, method, bindableParameters, isFinalizer, instance);
-            }
-        });
-    }
+        List<ModelBinding<?>> bindings = bindings(method);
 
-    public static void bind(final ModelRegistry modelRegistry, final Method bindingMethod, final boolean firstIsWritable, final Action<? super List<BindableParameter<?>>> onBound) {
-        final List<BindableParameter<?>> initialBindings = bindings(bindingMethod);
-
-        boolean unsatisfied = CollectionUtils.any(initialBindings, new Spec<BindableParameter<?>>() {
-            public boolean isSatisfiedBy(BindableParameter<?> element) {
-                return element.getPath() == null;
-            }
-        });
-
-        if (unsatisfied) {
-            modelRegistry.registerListener(new ModelCreationListener() {
-
-                private List<BindableParameter<?>> bindings = initialBindings;
-
-                public boolean onCreate(ModelPath path, ModelPromise promise) {
-                    ImmutableList.Builder<BindableParameter<?>> bindingsBuilder = ImmutableList.builder();
-
-                    boolean unsatisfied = false;
-
-                    int i = 0;
-                    for (BindableParameter<?> binding : bindings) {
-                        if (binding.getPath() == null) {
-                            if (i++ == 0 && firstIsWritable ? promise.asWritable(binding.getType()) : promise.asReadOnly(binding.getType())) {
-                                bindingsBuilder.add(copyBindingWithPath(path, binding));
-                                continue;
-                            } else {
-                                unsatisfied = true;
-                            }
-                        }
-
-                        bindingsBuilder.add(binding);
-                    }
-
-                    bindings = bindingsBuilder.build();
-
-                    if (unsatisfied) {
-                        return false;
-                    } else {
-                        onBound.execute(bindings);
-                        return true;
-                    }
-                }
-            });
-        } else {
-            onBound.execute(initialBindings);
-        }
-    }
-
-    private static void registerMutator(ModelRegistry modelRegistry, final Method bindingMethod, final List<BindableParameter<?>> bindings, boolean isFinalizer, Factory<?> instance) {
-        BindableParameter<?> first = bindings.get(0);
-        List<BindableParameter<?>> tail = bindings.subList(1, bindings.size());
-        ModelMutator<?> modelMutator = toMutator(bindingMethod, first, tail, instance);
+        ModelBinding<?> subject = bindings.get(0);
+        List<ModelBinding<?>> inputs = bindings.subList(1, bindings.size());
+        MethodModelMutator<?> mutator = toMutator(method, instance, subject, inputs);
 
         if (isFinalizer) {
-            modelRegistry.finalize(modelMutator);
+            modelRegistry.finalize(mutator);
         } else {
-            modelRegistry.mutate(modelMutator);
+            modelRegistry.mutate(mutator);
         }
     }
 
-    private static <T> ModelMutator<T> toMutator(final Method bindingMethod, final BindableParameter<T> first, final List<BindableParameter<?>> tail, final Factory<?> instance) {
-        return new ModelMutator<T>() {
-
-            private final MethodModelRuleDescriptor methodModelRuleSourceDescriptor = new MethodModelRuleDescriptor(bindingMethod);
-
-            public ModelRuleDescriptor getSourceDescriptor() {
-                return methodModelRuleSourceDescriptor;
-            }
-
-            public ModelReference<T> getReference() {
-                return new ModelReference<T>(first.path, first.type);
-            }
-
-            public List<? extends ModelReference<?>> getInputBindings() {
-                ImmutableList.Builder<ModelReference<?>> builder = ImmutableList.builder();
-                for (BindableParameter<?> bindableParameter : tail) {
-                    builder.add(bindableParameter.getReference());
-                }
-                return builder.build();
-            }
-
-            public void mutate(T object, Inputs inputs) {
-                Object[] args = new Object[1 + tail.size()];
-                args[0] = object;
-                for (int i = 0; i < inputs.size(); ++i) {
-                    args[i + 1] = inputs.get(i, tail.get(i).getType()).getInstance();
-                }
-
-                bindingMethod.setAccessible(true);
-
-                try {
-                    bindingMethod.invoke(instance.create(), args);
-                } catch (Exception e) {
-                    Throwable t = e;
-                    if (t instanceof InvocationTargetException) {
-                        t = e.getCause();
-                    }
-
-                    throw UncheckedException.throwAsUncheckedException(t);
-                }
-            }
-        };
+    private static <T> MethodModelMutator<T> toMutator(Method method, Factory<?> instance, ModelBinding<T> first, List<ModelBinding<?>> tail) {
+        return new MethodModelMutator<T>(method, first, tail, instance);
     }
 
-    private static <T> BindableParameter<T> copyBindingWithPath(ModelPath path, BindableParameter<T> binding) {
-        return new BindableParameter<T>(path, binding.getType());
-    }
-
-    private static List<BindableParameter<?>> bindings(Method method) {
-        return bindings(method.getGenericParameterTypes(), method.getParameterAnnotations());
-    }
-
-    static List<BindableParameter<?>> bindings(Type[] types, Annotation[][] annotations) {
-        ImmutableList.Builder<BindableParameter<?>> inputBindingBuilder = ImmutableList.builder();
-
+    private static List<ModelBinding<?>> bindings(Method method) {
+        Type[] types = method.getGenericParameterTypes();
+        ImmutableList.Builder<ModelBinding<?>> inputBindingBuilder = ImmutableList.builder();
         for (int i = 0; i < types.length; i++) {
             Type paramType = types[i];
-            Annotation[] paramAnnotations = annotations[i];
+            Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
             inputBindingBuilder.add(binding(paramType, paramAnnotations));
         }
-
         return inputBindingBuilder.build();
     }
 
-    private static <T> BindableParameter binding(Type type, Annotation[] annotations) {
+    private static <T> ModelBinding<T> binding(Type type, Annotation[] annotations) {
         Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
             public boolean isSatisfiedBy(Annotation element) {
                 return element.annotationType().equals(Path.class);
@@ -185,34 +76,55 @@ public abstract class ReflectiveRule {
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
         @SuppressWarnings("unchecked") TypeToken<T> cast = (TypeToken<T>) TypeToken.of(type);
-        return new BindableParameter<T>(path == null ? null : ModelPath.path(path), new ModelType<T>(cast));
+        return ModelBinding.of(path == null ? null : ModelPath.path(path), ModelType.of(cast));
     }
 
+    private static class MethodModelMutator<T> implements org.gradle.model.internal.core.ModelMutator<T> {
+        private final MethodModelRuleDescriptor descriptor;
+        private final Method bindingMethod;
+        private final ModelBinding<T> subject;
+        private final List<ModelBinding<?>> inputs;
+        private final Factory<?> instance;
 
-    public static class BindableParameter<T> {
-
-        private final ModelPath path;
-        private final ModelType<T> type;
-
-        public BindableParameter(@Nullable ModelPath path, ModelType<T> type) {
-            this.path = path;
-            this.type = type;
+        public MethodModelMutator(Method method, ModelBinding<T> subject, List<ModelBinding<?>> inputs, Factory<?> instance) {
+            this.bindingMethod = method;
+            this.subject = subject;
+            this.inputs = inputs;
+            this.instance = instance;
+            this.descriptor = new MethodModelRuleDescriptor(method);
         }
 
-        public ModelPath getPath() {
-            return path;
+        public ModelRuleDescriptor getDescriptor() {
+            return descriptor;
         }
 
-        public ModelType<T> getType() {
-            return type;
+        public ModelBinding<T> getBinding() {
+            return subject;
         }
 
-        public ModelReference<T> getReference() {
-            if (path == null) {
-                throw new NullPointerException("path cannot be null");
+        public List<ModelBinding<?>> getInputBindings() {
+            return inputs;
+        }
+
+        public void mutate(T object, Inputs inputs) {
+            Object[] args = new Object[1 + this.inputs.size()];
+            args[0] = object;
+            for (int i = 0; i < inputs.size(); ++i) {
+                args[i + 1] = inputs.get(i, this.inputs.get(i).getType()).getInstance();
             }
 
-            return ModelReference.of(path, type);
+            bindingMethod.setAccessible(true);
+
+            try {
+                bindingMethod.invoke(instance.create(), args);
+            } catch (Exception e) {
+                Throwable t = e;
+                if (t instanceof InvocationTargetException) {
+                    t = e.getCause();
+                }
+
+                throw UncheckedException.throwAsUncheckedException(t);
+            }
         }
     }
 }

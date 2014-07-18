@@ -21,7 +21,6 @@ import org.gradle.model.internal.core.ModelElement;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelState;
-import org.gradle.model.internal.core.ModelCreationListener;
 import org.gradle.model.internal.core.ModelRuleRegistrar;
 
 public interface ModelRegistry extends ModelRuleRegistrar {
@@ -32,8 +31,6 @@ public interface ModelRegistry extends ModelRuleRegistrar {
 
     @Nullable // if not registered/known
     public ModelState state(ModelPath path);
-
-    public void registerListener(ModelCreationListener listener);
 
     void remove(ModelPath path);
 }

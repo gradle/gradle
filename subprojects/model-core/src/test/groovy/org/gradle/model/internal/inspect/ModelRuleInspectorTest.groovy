@@ -254,10 +254,6 @@ class ModelRuleInspectorTest extends Specification {
 
     def "methods are processed ordered by their to string representation"() {
         given:
-        3 * registryMock.registerListener(_) >> { ModelCreationListener it ->
-            registry.registerListener(it)
-        }
-
         def path = new ModelPath("strings")
         def type = ModelType.of(new TypeToken<List<String>>() {})
 
@@ -268,13 +264,13 @@ class ModelRuleInspectorTest extends Specification {
         inspector.inspect(MutationAndFinalizeRules, registryMock)
 
         then:
-        1 * registryMock.finalize({ it.sourceDescriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })
+        1 * registryMock.finalize({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })
 
         then:
-        1 * registryMock.mutate({ it.sourceDescriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate1" }) })
+        1 * registryMock.mutate({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate1" }) })
 
         then:
-        1 * registryMock.mutate({ it.sourceDescriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
+        1 * registryMock.mutate({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
     }
 
 }

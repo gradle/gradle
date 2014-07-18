@@ -25,12 +25,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.InstanceModelAdapter;
-import org.gradle.model.internal.core.ModelAdapter;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelPromise;
-import org.gradle.model.internal.core.SingleTypeModelPromise;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.nativebinaries.*;
@@ -54,11 +48,11 @@ public class RepositoriesFactory implements ModelCreator {
         this.fileResolver = fileResolver;
     }
 
-    public List<? extends ModelReference<?>> getInputBindings() {
-        return ImmutableList.of(
-                ModelReference.of("flavors", FlavorContainer.class),
-                ModelReference.of("platforms", PlatformContainer.class),
-                ModelReference.of("buildTypes", BuildTypeContainer.class)
+    public List<ModelBinding<?>> getInputBindings() {
+        return ImmutableList.<ModelBinding<?>>of(
+                ModelBinding.of(ModelPath.path("flavors"), ModelType.of(FlavorContainer.class)),
+                ModelBinding.of(ModelPath.path("platforms"), ModelType.of(PlatformContainer.class)),
+                ModelBinding.of(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer.class))
         );
     }
 
@@ -72,7 +66,7 @@ public class RepositoriesFactory implements ModelCreator {
         }
     }
 
-    public ModelRuleDescriptor getSourceDescriptor() {
+    public ModelRuleDescriptor getDescriptor() {
         return descriptor;
     }
 

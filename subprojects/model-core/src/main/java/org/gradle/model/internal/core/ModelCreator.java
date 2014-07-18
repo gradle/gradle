@@ -28,8 +28,8 @@ public interface ModelCreator {
 
     ModelAdapter create(Inputs inputs);
 
-    List<? extends ModelReference<?>> getInputBindings();
+    List<ModelBinding<?>> getInputBindings();
 
-    ModelRuleDescriptor getSourceDescriptor();
+    ModelRuleDescriptor getDescriptor();
 
 }

@@ -27,7 +27,7 @@ public class InstanceBackedModelCreator<T> implements ModelCreator {
 
     private final ModelPromise promise;
     private final ModelRuleDescriptor descriptor;
-    private final List<ModelReference<?>> inputBindings;
+    private final List<ModelBinding<?>> inputBindings;
     private final ModelReference<T> reference;
     private final Factory<? extends T> factory;
 
@@ -36,14 +36,14 @@ public class InstanceBackedModelCreator<T> implements ModelCreator {
     }
 
     public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Factory<? extends T> factory) {
-        return of(reference, sourceDescriptor, Collections.<ModelReference<?>>emptyList(), factory);
+        return of(reference, sourceDescriptor, Collections.<ModelBinding<?>>emptyList(), factory);
     }
 
-    public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelReference<?>> inputBindings, Factory<? extends T> factory) {
+    public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelBinding<?>> inputBindings, Factory<? extends T> factory) {
         return new InstanceBackedModelCreator<T>(reference, sourceDescriptor, inputBindings, factory);
     }
 
-    private InstanceBackedModelCreator(ModelReference<T> reference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputBindings, Factory<? extends T> factory) {
+    private InstanceBackedModelCreator(ModelReference<T> reference, ModelRuleDescriptor descriptor, List<ModelBinding<?>> inputBindings, Factory<? extends T> factory) {
         this.reference = reference;
         this.factory = factory;
         this.promise = new SingleTypeModelPromise(reference.getType());
@@ -63,11 +63,11 @@ public class InstanceBackedModelCreator<T> implements ModelCreator {
         return InstanceModelAdapter.of(reference.getType(), factory.create());
     }
 
-    public List<? extends ModelReference<?>> getInputBindings() {
+    public List<ModelBinding<?>> getInputBindings() {
         return inputBindings;
     }
 
-    public ModelRuleDescriptor getSourceDescriptor() {
+    public ModelRuleDescriptor getDescriptor() {
         return descriptor;
     }
 

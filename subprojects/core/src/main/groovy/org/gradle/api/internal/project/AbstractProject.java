@@ -220,11 +220,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 return tasksModelAdapter;
             }
 
-            public List<? extends ModelReference<?>> getInputBindings() {
+            public List<ModelBinding<?>> getInputBindings() {
                 return Collections.emptyList();
             }
 
-            public ModelRuleDescriptor getSourceDescriptor() {
+            public ModelRuleDescriptor getDescriptor() {
                 return new SimpleModelRuleDescriptor("Project.<init>.tasks()");
             }
         });

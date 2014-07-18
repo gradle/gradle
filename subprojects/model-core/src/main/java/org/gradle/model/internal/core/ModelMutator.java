@@ -22,12 +22,12 @@ import java.util.List;
 
 public interface ModelMutator<T> {
 
-    ModelReference<T> getReference();
+    ModelBinding<T> getBinding();
 
     void mutate(T object, Inputs inputs);
 
-    List<? extends ModelReference<?>> getInputBindings();
+    List<ModelBinding<?>> getInputBindings();
 
-    ModelRuleDescriptor getSourceDescriptor();
+    ModelRuleDescriptor getDescriptor();
 
 }

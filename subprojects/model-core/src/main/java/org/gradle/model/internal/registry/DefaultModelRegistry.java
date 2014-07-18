@@ -18,7 +18,9 @@ package org.gradle.model.internal.registry;
 
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.*;
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
@@ -29,36 +31,64 @@ import java.util.*;
 
 public class DefaultModelRegistry implements ModelRegistry {
 
+    private static final Function<ModelBinding<?>, ModelReference<?>> BINDING_TO_REFERENCE = new Function<ModelBinding<?>, ModelReference<?>>() {
+        @Nullable
+        public ModelReference<?> apply(ModelBinding<?> input) {
+            return ModelReference.of(input.getPath(), input.getType());
+        }
+    };
+    private static final Predicate<ModelBinding<?>> IS_BOUND = new Predicate<ModelBinding<?>>() {
+        public boolean apply(ModelBinding<?> input) {
+            return input.isBound();
+        }
+    };
     /*
-        Things we aren't doing and should:
+                Things we aren't doing and should:
 
-        - Detecting cycles between config rules
-        - Detecting dangling, unbound, rules
-        - Detecting model elements with no object at their parent path
-        - Detecting mutation rules registering parent model
+                - Detecting cycles between config rules
+                - Detecting dangling, unbound, rules
+                - Detecting model elements with no object at their parent path
+                - Detecting mutation rules registering parent model
+                - Detecting a rule binding the same input twice (maybe that's ok)
+                - Detecting a rule trying to bind the same element to mutate and to read
 
-     */
+             */
     private final Map<ModelPath, ModelElement> store = new HashMap<ModelPath, ModelElement>();
 
-    private final Map<ModelPath, ModelCreator> creations = new HashMap<ModelPath, ModelCreator>();
-    private final Multimap<ModelPath, ModelMutator<?>> mutators = ArrayListMultimap.create();
+    private final Map<ModelPath, BoundModelCreator> creations = new HashMap<ModelPath, BoundModelCreator>();
+    private final Multimap<ModelPath, BoundModelMutator<?>> mutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedMutators = ArrayListMultimap.create();
-    private final Multimap<ModelPath, ModelMutator<?>> finalizers = ArrayListMultimap.create();
+    private final Multimap<ModelPath, BoundModelMutator<?>> finalizers = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedFinalizers = ArrayListMultimap.create();
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
+    private static List<ModelReference<?>> toReferencesUnsafe(List<ModelBinding<?>> inputBindings) {
+        // unsafe because we are assuming all fully bound
+        return Lists.transform(inputBindings, BINDING_TO_REFERENCE);
+    }
+
+    private static boolean allFullyBound(List<ModelBinding<?>> inputBindings) {
+        return inputBindings.isEmpty() || Iterables.all(inputBindings, IS_BOUND);
+    }
+
+    private static String toString(ModelRuleDescriptor descriptor) {
+        StringBuilder stringBuilder = new StringBuilder();
+        descriptor.describeTo(stringBuilder);
+        return stringBuilder.toString();
+    }
+
     public void create(ModelCreator creator) {
         ModelPath path = creator.getPath();
-        ModelCreator existingCreation = creations.get(path);
+        BoundModelCreator existingCreation = creations.get(path);
 
         if (existingCreation != null) {
             throw new DuplicateModelException(
                     String.format(
                             "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",
-                            toString(creator.getSourceDescriptor()),
+                            toString(creator.getDescriptor()),
                             path,
-                            toString(existingCreation.getSourceDescriptor())
+                            toString(existingCreation.getCreator().getDescriptor())
                     )
             );
         }
@@ -68,7 +98,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new DuplicateModelException(
                     String.format(
                             "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",
-                            toString(creator.getSourceDescriptor()),
+                            toString(creator.getDescriptor()),
                             path,
                             toString(existing.getCreatorDescriptor())
                     )
@@ -76,25 +106,41 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         notifyCreationListeners(creator);
-        creations.put(path, creator);
-    }
-
-    private static String toString(ModelRuleDescriptor descriptor) {
-        StringBuilder stringBuilder = new StringBuilder();
-        descriptor.describeTo(stringBuilder);
-        return stringBuilder.toString();
+        bind(creator);
     }
 
     public <T> void mutate(ModelMutator<T> mutator) {
-        ModelPath path = mutator.getReference().getPath();
-        assertNotFinalized(path);
-        mutators.put(path, mutator);
+        bind(mutator, mutators);
     }
 
     public <T> void finalize(ModelMutator<T> mutator) {
-        ModelPath path = mutator.getReference().getPath();
+        bind(mutator, finalizers);
+    }
+
+    private void bind(final ModelCreator creator) {
+        new CreationBinder(creator, new Action<BoundModelCreator>() {
+            public void execute(BoundModelCreator boundModelCreator) {
+                add(boundModelCreator);
+            }
+        });
+    }
+
+    private void add(BoundModelCreator boundCreator) {
+        creations.put(boundCreator.getCreator().getPath(), boundCreator);
+    }
+
+    private <T> void bind(ModelMutator<T> mutator, final Multimap<ModelPath, BoundModelMutator<?>> mutators) {
+        new MutationBinder<T>(mutator, new Action<BoundModelMutator<T>>() {
+            public void execute(BoundModelMutator<T> boundMutator) {
+                add(mutators, boundMutator);
+            }
+        });
+    }
+
+    private <T> void add(Multimap<ModelPath, BoundModelMutator<?>> mutators, BoundModelMutator<T> boundModelMutator) {
+        ModelPath path = boundModelMutator.getReference().getPath();
         assertNotFinalized(path);
-        finalizers.put(path, mutator);
+        mutators.put(path, boundModelMutator);
     }
 
     private void assertNotFinalized(ModelPath path) {
@@ -119,9 +165,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             return toState(closed.getPath(), ModelState.Status.FINALIZED);
         }
 
-        ModelCreator creator = creations.get(path);
+        BoundModelCreator creator = creations.get(path);
         if (creator != null) {
-            return toState(creator.getPath(), ModelState.Status.PENDING);
+            return toState(creator.getCreator().getPath(), ModelState.Status.PENDING);
         }
 
         return null;
@@ -134,8 +180,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     public void registerListener(ModelCreationListener listener) {
         boolean remove;
 
-        for (Map.Entry<ModelPath, ModelCreator> entry : creations.entrySet()) {
-            ModelCreator creator = entry.getValue();
+        for (Map.Entry<ModelPath, BoundModelCreator> entry : creations.entrySet()) {
+            BoundModelCreator boundCreator = entry.getValue();
+            ModelCreator creator = boundCreator.getCreator();
             remove = listener.onCreate(creator.getPath(), creator.getPromise());
             if (remove) {
                 return;
@@ -157,10 +204,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
+    // TODO - this needs to consider partially bound rules
     private boolean isDependedOn(ModelPath candidate) {
-        Transformer<Iterable<ModelPath>, ModelMutator<?>> extractInputPaths = new Transformer<Iterable<ModelPath>, ModelMutator<?>>() {
-            public Iterable<ModelPath> transform(ModelMutator<?> original) {
-                return Iterables.transform(original.getInputBindings(), new Function<ModelReference<?>, ModelPath>() {
+        Transformer<Iterable<ModelPath>, BoundModelMutator<?>> extractInputPaths = new Transformer<Iterable<ModelPath>, BoundModelMutator<?>>() {
+            public Iterable<ModelPath> transform(BoundModelMutator<?> original) {
+                return Iterables.transform(original.getInputReferences(), new Function<ModelReference<?>, ModelPath>() {
                     @Nullable
                     public ModelPath apply(ModelReference<?> input) {
                         return input.getPath();
@@ -198,11 +246,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             return store.get(path);
         }
 
-        ModelCreator creation = removeCreator(path);
+        BoundModelCreator creation = removeCreator(path);
         return createAndClose(creation);
     }
 
-    private ModelElement createAndClose(ModelCreator creation) {
+    private ModelElement createAndClose(BoundModelCreator creation) {
         ModelElement element = doCreate(creation);
         close(element);
         return element;
@@ -222,10 +270,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private void fireMutations(ModelElement element, Iterable<ModelMutator<?>> mutators, Multimap<ModelPath, List<ModelPath>> used) {
-        for (ModelMutator<?> mutator : mutators) {
+    private void fireMutations(ModelElement element, Iterable<BoundModelMutator<?>> mutators, Multimap<ModelPath, List<ModelPath>> used) {
+        for (BoundModelMutator<?> mutator : mutators) {
             fireMutation(element, mutator);
-            List<ModelPath> inputPaths = Lists.transform(mutator.getInputBindings(), new Function<ModelReference<?>, ModelPath>() {
+            List<ModelPath> inputPaths = Lists.transform(mutator.getInputReferences(), new Function<ModelReference<?>, ModelPath>() {
                 @Nullable
                 public ModelPath apply(ModelReference<?> input) {
                     return input.getPath();
@@ -257,8 +305,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelCreator removeCreator(ModelPath path) {
-        ModelCreator creator = creations.remove(path);
+    private BoundModelCreator removeCreator(ModelPath path) {
+        BoundModelCreator creator = creations.remove(path);
         if (creator == null) {
             throw new IllegalStateException("No creator for '" + path + "'");
         } else {
@@ -266,16 +314,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelElement doCreate(ModelCreator creator) {
+    private ModelElement doCreate(BoundModelCreator boundCreator) {
+        ModelCreator creator = boundCreator.getCreator();
         ModelPath path = creator.getPath();
-        Inputs inputs = toInputs(creator.getInputBindings());
+        Inputs inputs = toInputs(boundCreator.getInputReferences());
 
         ModelAdapter adapter;
         try {
             adapter = creator.create(inputs);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
-            throw new ModelRuleExecutionException(creator.getSourceDescriptor(), e);
+            throw new ModelRuleExecutionException(creator.getDescriptor(), e);
         }
 
         ModelElement element = toElement(adapter, creator);
@@ -284,16 +333,19 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private ModelElement toElement(ModelAdapter adapter, ModelCreator creator) {
-        return new ModelElement(creator.getPath(), adapter, creator.getSourceDescriptor());
+        return new ModelElement(creator.getPath(), adapter, creator.getDescriptor());
     }
 
-    private <T> void fireMutation(ModelElement element, ModelMutator<T> mutator) {
-        Inputs inputs = toInputs(mutator.getInputBindings());
-        ModelView<? extends T> view = assertView(element, mutator.getReference(), mutator.getSourceDescriptor(), inputs);
+    private <T> void fireMutation(ModelElement element, BoundModelMutator<T> boundMutator) {
+        Inputs inputs = toInputs(boundMutator.getInputReferences());
+        ModelMutator<T> mutator = boundMutator.getMutator();
+        ModelRuleDescriptor descriptor = mutator.getDescriptor();
+
+        ModelView<? extends T> view = assertView(element, boundMutator.getReference(), descriptor, inputs);
         try {
             mutator.mutate(view.getInstance(), inputs);
         } catch (Exception e) {
-            throw new ModelRuleExecutionException(mutator.getSourceDescriptor(), e);
+            throw new ModelRuleExecutionException(descriptor, e);
         } finally {
             view.close();
         }
@@ -326,4 +378,157 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
+    private static class BoundModelCreator {
+        private final ModelCreator creator;
+        private final List<ModelReference<?>> inputReferences;
+
+        private BoundModelCreator(ModelCreator creator, List<ModelReference<?>> inputReferences) {
+            this.creator = creator;
+            this.inputReferences = inputReferences;
+        }
+
+        public ModelCreator getCreator() {
+            return creator;
+        }
+
+        public List<ModelReference<?>> getInputReferences() {
+            return inputReferences;
+        }
+    }
+
+    private static class BoundModelMutator<T> {
+        private final ModelMutator<T> mutator;
+        private final ModelReference<T> reference;
+        private final List<ModelReference<?>> inputReferences;
+
+        private BoundModelMutator(ModelMutator<T> mutator, ModelReference<T> reference, List<ModelReference<?>> inputReferences) {
+            this.mutator = mutator;
+            this.reference = reference;
+            this.inputReferences = inputReferences;
+        }
+
+        public ModelMutator<T> getMutator() {
+            return mutator;
+        }
+
+        public ModelReference<T> getReference() {
+            return reference;
+        }
+
+        public List<ModelReference<?>> getInputReferences() {
+            return inputReferences;
+        }
+    }
+
+    private class CreationBinder {
+
+        private final ModelCreator creator;
+        private final Action<? super BoundModelCreator> onBound;
+
+        private List<ModelBinding<?>> inputBindings;
+
+        public CreationBinder(ModelCreator creator, Action<? super BoundModelCreator> onBound) {
+            this.creator = creator;
+            this.onBound = onBound;
+            this.inputBindings = new ArrayList<ModelBinding<?>>(creator.getInputBindings());
+
+            if (allFullyBound(inputBindings)) {
+                fire();
+            } else {
+                registerListener(new ModelCreationListener() {
+                    public boolean onCreate(ModelPath path, ModelPromise promise) {
+                        // TODO this needs optimisation
+                        boolean unsatisfied = false;
+
+                        ListIterator<ModelBinding<?>> iterator = inputBindings.listIterator();
+                        while (iterator.hasNext()) {
+                            ModelBinding<?> inputBinding = iterator.next();
+                            if (!inputBinding.isBound()) {
+                                if (promise.asReadOnly(inputBinding.getType())) {
+                                    iterator.set(inputBinding.bind(path));
+                                } else {
+                                    unsatisfied = true;
+                                }
+                            }
+                        }
+
+                        if (unsatisfied) {
+                            return false;
+                        } else {
+                            fire();
+                            return true;
+                        }
+                    }
+                });
+            }
+        }
+
+        private void fire() {
+            List<ModelReference<?>> references = toReferencesUnsafe(inputBindings);
+            onBound.execute(new BoundModelCreator(creator, references));
+        }
+    }
+
+    private class MutationBinder<T> {
+
+        private final ModelMutator<T> mutator;
+        private final Action<? super BoundModelMutator<T>> onBound;
+
+        private ModelBinding<T> binding;
+        private List<ModelBinding<?>> inputBindings;
+
+        private MutationBinder(ModelMutator<T> mutator, Action<? super BoundModelMutator<T>> onBound) {
+            this.mutator = mutator;
+            this.onBound = onBound;
+            this.inputBindings = new ArrayList<ModelBinding<?>>(mutator.getInputBindings());
+            this.binding = mutator.getBinding();
+
+            if (binding.isBound() && allFullyBound(inputBindings)) {
+                fire();
+            } else {
+                registerListener(new ModelCreationListener() {
+                    public boolean onCreate(ModelPath path, ModelPromise promise) {
+                        boolean unsatisfied = false;
+                        if (!binding.isBound()) {
+                            if (promise.asWritable(binding.getType())) {
+                                binding = binding.bind(path);
+                            } else {
+                                unsatisfied = true;
+                            }
+                        }
+
+                        ListIterator<ModelBinding<?>> iterator = inputBindings.listIterator();
+                        while (iterator.hasNext()) {
+                            ModelBinding<?> inputBinding = iterator.next();
+                            if (!inputBinding.isBound()) {
+                                if (promise.asReadOnly(inputBinding.getType())) {
+                                    iterator.set(inputBinding.bind(path));
+                                } else {
+                                    unsatisfied = true;
+                                }
+                            }
+                        }
+
+                        if (unsatisfied) {
+                            return false;
+                        } else {
+                            fire();
+                            return true;
+                        }
+                    }
+                });
+            }
+        }
+
+        private void fire() {
+            List<ModelReference<?>> references = toReferencesUnsafe(inputBindings);
+            onBound.execute(new BoundModelMutator<T>(mutator, ModelReference.of(binding.getPath(), binding.getType()), references));
+        }
+    }
+
+    public static interface ModelCreationListener {
+
+        boolean onCreate(ModelPath path, ModelPromise promise);
+
+    }
 }

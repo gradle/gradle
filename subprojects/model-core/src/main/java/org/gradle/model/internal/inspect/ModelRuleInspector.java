@@ -18,12 +18,11 @@ package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.Action;
-import org.gradle.api.Nullable;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
@@ -39,9 +38,88 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 
+import static org.gradle.util.CollectionUtils.findFirst;
+
 public class ModelRuleInspector {
 
     private final static Set<Class<? extends Annotation>> TYPE_ANNOTATIONS = ImmutableSet.of(Model.class, Mutate.class, Finalize.class);
+
+    private static String typeAnnotationsDescription() {
+        String desc = Joiner.on(", ").join(Iterables.transform(TYPE_ANNOTATIONS, new Function<Class<? extends Annotation>, String>() {
+            public String apply(Class<? extends Annotation> input) {
+                return input.getName();
+            }
+        }));
+
+        return "[" + desc + "]";
+    }
+
+    private static <T> T toInstance(Class<T> source) {
+        try {
+            Constructor<T> declaredConstructor = source.getDeclaredConstructor();
+            declaredConstructor.setAccessible(true);
+            return declaredConstructor.newInstance();
+        } catch (InstantiationException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (IllegalAccessException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getTargetException());
+        }
+    }
+
+    private static RuntimeException invalid(Class<?> source, String reason) {
+        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
+    }
+
+    private static RuntimeException invalid(String description, Method method, String reason) {
+        StringBuilder sb = new StringBuilder();
+        new MethodModelRuleDescriptor(method).describeTo(sb);
+        sb.append(" is not a valid ").append(description).append(": ").append(reason);
+        return new InvalidModelRuleDeclarationException(sb.toString());
+    }
+
+    public static void rule(final ModelRegistry modelRegistry, final Method method, final boolean isFinalizer, final Factory<?> instance) {
+        List<ModelBinding<?>> bindings = bindings(method);
+
+        ModelBinding<?> subject = bindings.get(0);
+        List<ModelBinding<?>> inputs = bindings.subList(1, bindings.size());
+        MethodModelMutator<?> mutator = toMutator(method, instance, subject, inputs);
+
+        if (isFinalizer) {
+            modelRegistry.finalize(mutator);
+        } else {
+            modelRegistry.mutate(mutator);
+        }
+    }
+
+    private static <T> MethodModelMutator<T> toMutator(Method method, Factory<?> instance, ModelBinding<T> first, List<ModelBinding<?>> tail) {
+        return new MethodModelMutator<T>(method, first, tail, instance);
+    }
+
+    private static List<ModelBinding<?>> bindings(Method method) {
+        Type[] types = method.getGenericParameterTypes();
+        ImmutableList.Builder<ModelBinding<?>> inputBindingBuilder = ImmutableList.builder();
+        for (int i = 0; i < types.length; i++) {
+            Type paramType = types[i];
+            Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
+            inputBindingBuilder.add(binding(paramType, paramAnnotations));
+        }
+        return inputBindingBuilder.build();
+    }
+
+    private static <T> ModelBinding<T> binding(Type type, Annotation[] annotations) {
+        Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
+            public boolean isSatisfiedBy(Annotation element) {
+                return element.annotationType().equals(Path.class);
+            }
+        });
+        String path = pathAnnotation == null ? null : pathAnnotation.value();
+        @SuppressWarnings("unchecked") TypeToken<T> cast = (TypeToken<T>) TypeToken.of(type);
+        return ModelBinding.of(path == null ? null : ModelPath.path(path), ModelType.of(cast));
+    }
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
     public Set<Class<?>> getDeclaredSources(Class<?> container) {
@@ -115,16 +193,6 @@ public class ModelRuleInspector {
         return annotation;
     }
 
-    private static String typeAnnotationsDescription() {
-        String desc = Joiner.on(", ").join(Iterables.transform(TYPE_ANNOTATIONS, new Function<Class<? extends Annotation>, String>() {
-            public String apply(Class<? extends Annotation> input) {
-                return input.getName();
-            }
-        }));
-
-        return "[" + desc + "]";
-    }
-
     private void creationMethod(ModelRegistry modelRegistry, Method method, Model modelAnnotation) {
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
 
@@ -143,80 +211,72 @@ public class ModelRuleInspector {
     }
 
     private <T, R> void doRegisterCreation(final Method method, final TypeToken<R> returnType, final String modelName, final ModelRegistry modelRegistry) {
-        ReflectiveRule.bind(modelRegistry, method, false, new Action<List<ReflectiveRule.BindableParameter<?>>>() {
+        ModelPath path = ModelPath.path(modelName);
+        ModelType<R> type = new ModelType<R>(returnType);
+        List<ModelBinding<?>> bindings = bindings(method);
+        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) method.getDeclaringClass();
+        @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
+        JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
 
-            public void execute(final List<ReflectiveRule.BindableParameter<?>> bindableParameters) {
-                @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) method.getDeclaringClass();
-                @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
-                final JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
-                final ModelType<R> type = new ModelType<R>(returnType);
-
-                modelRegistry.create(new ModelCreator() {
-                    private final ModelPromise promise = new SingleTypeModelPromise(type);
-                    private final ModelPath path = new ModelPath(modelName);
-                    private List<ModelReference<?>> bindings = Lists.transform(bindableParameters, new Function<ReflectiveRule.BindableParameter<?>, ModelReference<?>>() {
-                        @Nullable
-                        public ModelReference<?> apply(ReflectiveRule.BindableParameter<?> input) {
-                            return ModelReference.of(input.getPath(), input.getType());
-                        }
-                    });
-
-                    public List<? extends ModelReference<?>> getInputBindings() {
-                        return bindings;
-                    }
-
-                    public ModelPath getPath() {
-                        return path;
-                    }
-
-                    public ModelPromise getPromise() {
-                        return promise;
-                    }
-
-                    public ModelAdapter create(Inputs inputs) {
-                        R instance = invoke(inputs);
-                        if (instance == null) {
-                            throw new ModelRuleExecutionException(getSourceDescriptor(), "rule returned null");
-                        }
-
-                        return InstanceModelAdapter.of(type, instance);
-                    }
-
-                    private R invoke(Inputs inputs) {
-                        T instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(clazz);
-                        if (inputs.size() == 0) {
-                            return methodWrapper.invoke(instance);
-                        } else {
-                            Object[] args = new Object[inputs.size()];
-                            for (int i = 0; i < inputs.size(); i++) {
-                                args[i] = inputs.get(i, bindings.get(i).getType()).getInstance();
-                            }
-
-                            return methodWrapper.invoke(instance, args);
-                        }
-                    }
-
-                    public ModelRuleDescriptor getSourceDescriptor() {
-                        return new MethodModelRuleDescriptor(method);
-                    }
-                });
-            }
-        });
+        modelRegistry.create(new MethodModelCreator<R, T>(type, path, bindings, method, clazz, methodWrapper));
     }
 
-    private static <T> T toInstance(Class<T> source) {
-        try {
-            Constructor<T> declaredConstructor = source.getDeclaredConstructor();
-            declaredConstructor.setAccessible(true);
-            return declaredConstructor.newInstance();
-        } catch (InstantiationException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (IllegalAccessException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (NoSuchMethodException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getTargetException());
+    private static class MethodModelCreator<R, T> implements ModelCreator {
+        private final ModelType<R> type;
+        private final ModelPath path;
+        private final ModelPromise promise;
+        private List<ModelBinding<?>> bindings;
+        private final Method method;
+        private final Class<T> clazz;
+        private final JavaMethod<T, R> methodWrapper;
+
+        public MethodModelCreator(ModelType<R> type, ModelPath path, List<ModelBinding<?>> bindings, Method method, Class<T> clazz, JavaMethod<T, R> methodWrapper) {
+            this.type = type;
+            this.path = path;
+            this.bindings = bindings;
+            this.promise = new SingleTypeModelPromise(type);
+            this.method = method;
+            this.clazz = clazz;
+            this.methodWrapper = methodWrapper;
+        }
+
+        public ModelPath getPath() {
+            return path;
+        }
+
+        public ModelPromise getPromise() {
+            return promise;
+        }
+
+        public List<ModelBinding<?>> getInputBindings() {
+            return bindings;
+        }
+
+        public ModelAdapter create(Inputs inputs) {
+            R instance = invoke(inputs);
+            if (instance == null) {
+                throw new ModelRuleExecutionException(getDescriptor(), "rule returned null");
+            }
+
+            return InstanceModelAdapter.of(type, instance);
+        }
+
+        private R invoke(Inputs inputs) {
+            T instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(clazz);
+            if (inputs.size() == 0) {
+                return methodWrapper.invoke(instance);
+            } else {
+                Object[] args = new Object[inputs.size()];
+                for (int i = 0; i < inputs.size(); i++) {
+                    args[i] = inputs.get(i, bindings.get(i).getType()).getInstance();
+                }
+
+                return methodWrapper.invoke(instance, args);
+            }
+        }
+
+        public ModelRuleDescriptor getDescriptor() {
+            return new MethodModelRuleDescriptor(method);
         }
     }
 
@@ -282,15 +342,53 @@ public class ModelRuleInspector {
 
     }
 
-    private static RuntimeException invalid(Class<?> source, String reason) {
-        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
-    }
+    private static class MethodModelMutator<T> implements org.gradle.model.internal.core.ModelMutator<T> {
+        private final MethodModelRuleDescriptor descriptor;
+        private final Method bindingMethod;
+        private final ModelBinding<T> subject;
+        private final List<ModelBinding<?>> inputs;
+        private final Factory<?> instance;
 
-    private static RuntimeException invalid(String description, Method method, String reason) {
-        StringBuilder sb = new StringBuilder();
-        new MethodModelRuleDescriptor(method).describeTo(sb);
-        sb.append(" is not a valid ").append(description).append(": ").append(reason);
-        return new InvalidModelRuleDeclarationException(sb.toString());
+        public MethodModelMutator(Method method, ModelBinding<T> subject, List<ModelBinding<?>> inputs, Factory<?> instance) {
+            this.bindingMethod = method;
+            this.subject = subject;
+            this.inputs = inputs;
+            this.instance = instance;
+            this.descriptor = new MethodModelRuleDescriptor(method);
+        }
+
+        public ModelRuleDescriptor getDescriptor() {
+            return descriptor;
+        }
+
+        public ModelBinding<T> getBinding() {
+            return subject;
+        }
+
+        public List<ModelBinding<?>> getInputBindings() {
+            return inputs;
+        }
+
+        public void mutate(T object, Inputs inputs) {
+            Object[] args = new Object[1 + this.inputs.size()];
+            args[0] = object;
+            for (int i = 0; i < inputs.size(); ++i) {
+                args[i + 1] = inputs.get(i, this.inputs.get(i).getType()).getInstance();
+            }
+
+            bindingMethod.setAccessible(true);
+
+            try {
+                bindingMethod.invoke(instance.create(), args);
+            } catch (Exception e) {
+                Throwable t = e;
+                if (t instanceof InvocationTargetException) {
+                    t = e.getCause();
+                }
+
+                throw UncheckedException.throwAsUncheckedException(t);
+            }
+        }
     }
 
 }

@@ -94,7 +94,7 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
         }
 
         @Override
-        ModelRuleDescriptor getSourceDescriptor() {
+        ModelRuleDescriptor getDescriptor() {
             new SimpleModelRuleDescriptor("container")
         }
     }

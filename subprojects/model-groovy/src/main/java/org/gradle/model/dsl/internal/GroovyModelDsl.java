@@ -22,11 +22,7 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.dsl.ModelDsl;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -57,19 +53,19 @@ public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
 
     private void registerConfigurationAction(final Closure<?> action) {
         modelRegistry.mutate(new ModelMutator<Object>() {
-            public ModelReference<Object> getReference() {
-                return new ModelReference<Object>(modelPath, new ModelType<Object>(Object.class));
+            public ModelBinding<Object> getBinding() {
+                return ModelBinding.of(modelPath, ModelType.of(Object.class));
             }
 
             public void mutate(Object object, Inputs inputs) {
                 new ClosureBackedAction<Object>(action).execute(object);
             }
 
-            public ModelRuleDescriptor getSourceDescriptor() {
+            public ModelRuleDescriptor getDescriptor() {
                 return new SimpleModelRuleDescriptor("model." + modelPath);
             }
 
-            public List<? extends ModelReference<?>> getInputBindings() {
+            public List<ModelBinding<?>> getInputBindings() {
                 return Collections.emptyList();
             }
         });
