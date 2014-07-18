@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.nativebinaries.test.cunit
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.TestResources
@@ -21,7 +21,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
-import org.gradle.nativebinaries.test.cunit.CUnitTestResults
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -76,14 +75,14 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         if (OperatingSystem.current().isLinux()) {
             return "linux"
         }
-        if (toolChain.displayName == "mingw") {
+        if (AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "mingw") {
             return "mingw"
         }
-        if (toolChain.displayName == "gcc cygwin") {
+        if (AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "gcc cygwin") {
             return "cygwin"
         }
-        if (toolChain.visualCpp) {
-            def vcVersion = (toolChain as AvailableToolChains.InstalledVisualCpp).version
+        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
+            def vcVersion = (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version
             switch (vcVersion.major) {
                 case "12":
                     return "vs2013"
@@ -91,7 +90,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
                     return "vs2010"
             }
         }
-        throw new IllegalStateException("No cunit binary available for ${toolChain.displayName}")
+        throw new IllegalStateException("No cunit binary available for ${AbstractInstalledToolChainIntegrationSpec.toolChain.displayName}")
     }
 
     private def getCunitLibName() {
