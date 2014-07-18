@@ -59,7 +59,7 @@ project(':b:c') {
 
     @TargetGradleVersion(">=2.1")
     def "task visibility is correct"() {
-        def publicTasks = [':init', ':wrapper', ':dependencies', ':dependencyInsight', ':help', ':projects', ':properties', ':tasks', ':t2']
+        def publicTasks = rootProjectImplicitTasks.collect { ":" + it } + [':t2']
         def publicSelectors = ['t1', 't2']
 
         when:
@@ -68,8 +68,8 @@ project(':b:c') {
         }
 
         then:
-        model.tasks.every { Task t -> publicTasks.contains(t.path) == t.visible }
-        model.taskSelectors.every { TaskSelector ts -> println('ts ' + ts.name + ': ' + ts.visible); publicSelectors.contains(ts.name) == ts.visible }
+        model.tasks.every { Task t -> assert publicTasks.contains(t.path) == t.visible; true }
+        model.taskSelectors.every { TaskSelector ts -> publicSelectors.contains(ts.name) == ts.visible }
     }
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.1")

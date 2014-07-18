@@ -123,4 +123,15 @@ abstract class ToolingApiSpecification extends Specification {
         projectDir.file(path)
     }
 
+    Set<String> getImplicitTasks() {
+        if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.1")) {
+            return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
+        } else {
+            return ['dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
+        }
+    }
+
+    Set<String> getRootProjectImplicitTasks() {
+        return implicitTasks + ['init', 'wrapper']
+    }
 }
