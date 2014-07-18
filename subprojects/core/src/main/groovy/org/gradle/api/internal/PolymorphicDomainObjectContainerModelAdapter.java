@@ -48,7 +48,8 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
             return cast;
         } else if (reference.getType().isAssignableFrom(collectionBuilderModelType)) {
             NamedItemCollectionBuilder<I> builder = new DefaultNamedItemCollectionBuilder<I>(reference.getPath(), new Instantiator(), sourceDescriptor, inputs, modelRuleRegistrar);
-            @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) new NamedItemCollectionBuilderModelView<I>(collectionBuilderModelType, builder, reference.getPath(), sourceDescriptor);
+            NamedItemCollectionBuilderModelView<I> view = new NamedItemCollectionBuilderModelView<I>(collectionBuilderModelType, builder, reference.getPath(), sourceDescriptor);
+            @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
             return cast;
         } else {
             return null;
