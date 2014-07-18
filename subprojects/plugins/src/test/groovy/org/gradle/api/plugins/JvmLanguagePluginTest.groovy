@@ -86,4 +86,19 @@ class JvmLanguagePluginTest extends Specification {
         resourcesTask instanceof ProcessResources
         resourcesTask.description == "Processes resources 'main:resources'."
     }
+
+    def "binary tasks are available via binary.tasks"() {
+        ProjectClassDirectoryBinary binary = project.binaries.create("prod", ProjectClassDirectoryBinary)
+        ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
+
+        when:
+        binary.source.add(resources)
+
+        then:
+        def classesTask = project.tasks.findByName("prodClasses")
+        def resourcesTask = project.tasks.findByName("processProdResources")
+
+        binary.tasks.build == classesTask
+        binary.tasks as Set == [resourcesTask] as Set
+    }
 }

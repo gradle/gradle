@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-
 import org.gradle.api.Project
-import org.gradle.language.java.JavaSourceSet
-import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.jvm.ProjectClassDirectoryBinary
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.language.java.JavaSourceSet
 import org.gradle.util.TestUtil
-
 import spock.lang.Specification
 
 class JavaLanguagePluginTest extends Specification {
@@ -45,5 +43,16 @@ class JavaLanguagePluginTest extends Specification {
         def task = project.tasks.findByName("compileIntegTestJava")
         task instanceof JavaCompile
         task.description == "Compiles Java source 'model:java'."
+    }
+
+    def "java compile task is available via binary.tasks"() {
+        when:
+        project.sources.create("model").create("java", JavaSourceSet)
+        def binary = project.binaries.create("integTest", ProjectClassDirectoryBinary)
+        binary.source << project.sources.model.java
+
+        then:
+        def javaCompileTask = project.tasks.findByName("compileIntegTestJava")
+        binary.tasks as Set == [javaCompileTask] as Set
     }
 }

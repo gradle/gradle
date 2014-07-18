@@ -21,6 +21,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.jvm.JvmBinaryTasks;
+import org.gradle.runtime.jvm.internal.DefaultJvmBinaryTasks;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
@@ -30,6 +31,7 @@ public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelEl
     private final LanguageSourceSetContainer source = new LanguageSourceSetContainer();
     private final String name;
     private final JavaToolChain toolChain;
+    private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
     private File classesDir;
     private File resourcesDir;
 
@@ -47,8 +49,7 @@ public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelEl
     }
 
     public JvmBinaryTasks getTasks() {
-        // TODO:DAZ Implement
-        throw new UnsupportedOperationException();
+        return tasks;
     }
 
     public JavaToolChain getToolChain() {

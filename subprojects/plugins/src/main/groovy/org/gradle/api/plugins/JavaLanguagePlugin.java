@@ -64,6 +64,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                         // TODO: handle case where binary has multiple JavaSourceSet's
                         JavaCompile compileTask = target.getTasks().create(namingScheme.getTaskName("compile", "java"), JavaCompile.class);
                         configureCompileTask(compileTask, javaSourceSet, binary);
+                        binary.getTasks().add(compileTask);
                         binary.builtBy(compileTask);
                     }
                 });
