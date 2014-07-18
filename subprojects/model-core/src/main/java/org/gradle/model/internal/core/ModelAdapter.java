@@ -17,13 +17,13 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public interface ModelAdapter {
 
     @Nullable
         // if the model can't be viewed as this type
-    <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry);
+    <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry);
 
     @Nullable
         // if the model can't be viewed as this type

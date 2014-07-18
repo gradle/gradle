@@ -21,19 +21,19 @@ import org.gradle.internal.Factory;
 import org.gradle.model.collection.NamedItemCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
-import org.gradle.model.internal.core.rule.describe.NestedModelRuleSourceDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 public class DefaultNamedItemCollectionBuilder<T> implements NamedItemCollectionBuilder<T> {
 
     private final ModelPath collectionPath;
     private final NamedEntityInstantiator<T> instantiator;
-    private final ModelRuleSourceDescriptor sourceDescriptor;
+    private final ModelRuleDescriptor sourceDescriptor;
     private final Inputs implicitInputs;
     private final ModelRuleRegistrar ruleRegistrar;
 
-    public DefaultNamedItemCollectionBuilder(ModelPath collectionPath, NamedEntityInstantiator<T> instantiator, ModelRuleSourceDescriptor sourceDescriptor, Inputs implicitInputs, ModelRuleRegistrar ruleRegistrar) {
+    public DefaultNamedItemCollectionBuilder(ModelPath collectionPath, NamedEntityInstantiator<T> instantiator, ModelRuleDescriptor sourceDescriptor, Inputs implicitInputs, ModelRuleRegistrar ruleRegistrar) {
         this.collectionPath = collectionPath;
         this.instantiator = instantiator;
         this.sourceDescriptor = sourceDescriptor;
@@ -55,7 +55,7 @@ public class DefaultNamedItemCollectionBuilder<T> implements NamedItemCollection
 
     private <S extends T> void doCreate(final String name, ModelType<S> type, Action<? super S> configAction, Factory<S> factory) {
         ModelPath path = collectionPath.child(name);
-        ModelRuleSourceDescriptor descriptor = new NestedModelRuleSourceDescriptor(sourceDescriptor, new SimpleModelRuleSourceDescriptor(name));
+        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, new SimpleModelRuleDescriptor(name));
 
         ruleRegistrar.create(InstanceBackedModelCreator.of(
                 ModelReference.of(path, type),
@@ -69,7 +69,7 @@ public class DefaultNamedItemCollectionBuilder<T> implements NamedItemCollection
                     ActionBackedModelMutator.of(
                             ModelReference.of(path, type),
                             implicitInputs.getReferences(),
-                            new NestedModelRuleSourceDescriptor(descriptor, new SimpleModelRuleSourceDescriptor("configure")),
+                            new NestedModelRuleDescriptor(descriptor, new SimpleModelRuleDescriptor("configure")),
                             configAction
                     )
             );

@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
@@ -28,6 +28,6 @@ public interface ModelMutator<T> {
 
     List<? extends ModelReference<?>> getInputBindings();
 
-    ModelRuleSourceDescriptor getSourceDescriptor();
+    ModelRuleDescriptor getSourceDescriptor();
 
 }

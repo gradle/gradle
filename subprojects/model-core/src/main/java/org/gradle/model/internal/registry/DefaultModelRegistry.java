@@ -23,7 +23,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.*;
 
@@ -79,7 +79,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         creations.put(path, creator);
     }
 
-    private static String toString(ModelRuleSourceDescriptor descriptor) {
+    private static String toString(ModelRuleDescriptor descriptor) {
         StringBuilder stringBuilder = new StringBuilder();
         descriptor.describeTo(stringBuilder);
         return stringBuilder.toString();
@@ -246,7 +246,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelView<? extends T> assertView(ModelElement element, ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Inputs inputs) {
+    private <T> ModelView<? extends T> assertView(ModelElement element, ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
         ModelAdapter adapter = element.getAdapter();
         ModelView<? extends T> view = adapter.asWritable(reference, sourceDescriptor, inputs, this);
         if (view == null) {

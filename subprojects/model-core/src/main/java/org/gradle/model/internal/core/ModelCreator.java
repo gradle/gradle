@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
@@ -30,6 +30,6 @@ public interface ModelCreator {
 
     List<? extends ModelReference<?>> getInputBindings();
 
-    ModelRuleSourceDescriptor getSourceDescriptor();
+    ModelRuleDescriptor getSourceDescriptor();
 
 }

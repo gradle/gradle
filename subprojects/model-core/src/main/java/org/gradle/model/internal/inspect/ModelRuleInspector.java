@@ -30,8 +30,8 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ReflectiveRule;
 
@@ -190,8 +190,8 @@ public class ModelRuleInspector {
                         }
                     }
 
-                    public ModelRuleSourceDescriptor getSourceDescriptor() {
-                        return new MethodModelRuleSourceDescriptor(method);
+                    public ModelRuleDescriptor getSourceDescriptor() {
+                        return new MethodModelRuleDescriptor(method);
                     }
                 });
             }
@@ -282,7 +282,7 @@ public class ModelRuleInspector {
 
     private static RuntimeException invalid(String description, Method method, String reason) {
         StringBuilder sb = new StringBuilder();
-        new MethodModelRuleSourceDescriptor(method).describeTo(sb);
+        new MethodModelRuleDescriptor(method).describeTo(sb);
         sb.append(" is not a valid ").append(description).append(": ").append(reason);
         return new InvalidModelRuleDeclarationException(sb.toString());
     }

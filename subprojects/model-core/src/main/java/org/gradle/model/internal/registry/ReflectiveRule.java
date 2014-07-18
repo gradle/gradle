@@ -31,8 +31,8 @@ import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelCreationListener;
 import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelPromise;
-import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -116,9 +116,9 @@ public abstract class ReflectiveRule {
     private static <T> ModelMutator<T> toMutator(final Method bindingMethod, final BindableParameter<T> first, final List<BindableParameter<?>> tail, final Factory<?> instance) {
         return new ModelMutator<T>() {
 
-            private final MethodModelRuleSourceDescriptor methodModelRuleSourceDescriptor = new MethodModelRuleSourceDescriptor(bindingMethod);
+            private final MethodModelRuleDescriptor methodModelRuleSourceDescriptor = new MethodModelRuleDescriptor(bindingMethod);
 
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
+            public ModelRuleDescriptor getSourceDescriptor() {
                 return methodModelRuleSourceDescriptor;
             }
 

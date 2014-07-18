@@ -23,7 +23,7 @@ import org.gradle.model.collection.NamedItemCollectionBuilder;
 import org.gradle.model.collection.internal.DefaultNamedItemCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public class PolymorphicDomainObjectContainerModelAdapter<I, C extends PolymorphicDomainObjectContainer<I>> implements ModelAdapter {
 
@@ -41,7 +41,7 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
         }, itemType.getToken()));
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
+    public <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
         if (reference.getType().isAssignableFrom(containerType)) {
             @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) InstanceModelView.of(containerType, container);
             return cast;

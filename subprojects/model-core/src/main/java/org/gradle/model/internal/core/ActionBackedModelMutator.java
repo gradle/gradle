@@ -17,7 +17,7 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
@@ -25,17 +25,17 @@ public class ActionBackedModelMutator<T> implements ModelMutator<T> {
 
     private final ModelReference<T> reference;
     private final List<? extends ModelReference<?>> inputBindings;
-    private final ModelRuleSourceDescriptor sourceDescriptor;
+    private final ModelRuleDescriptor sourceDescriptor;
     private final Action<? super T> action;
 
-    public ActionBackedModelMutator(ModelReference<T> reference, List<? extends ModelReference<?>> inputBindings, ModelRuleSourceDescriptor sourceDescriptor, Action<? super T> action) {
+    public ActionBackedModelMutator(ModelReference<T> reference, List<? extends ModelReference<?>> inputBindings, ModelRuleDescriptor sourceDescriptor, Action<? super T> action) {
         this.reference = reference;
         this.inputBindings = inputBindings;
         this.sourceDescriptor = sourceDescriptor;
         this.action = action;
     }
 
-    public static <T> ModelMutator<T> of(ModelReference<T> reference, List<? extends ModelReference<?>> bindings, ModelRuleSourceDescriptor descriptor, Action<? super T> action) {
+    public static <T> ModelMutator<T> of(ModelReference<T> reference, List<? extends ModelReference<?>> bindings, ModelRuleDescriptor descriptor, Action<? super T> action) {
         return new ActionBackedModelMutator<T>(reference, bindings, descriptor, action);
     }
 
@@ -51,7 +51,7 @@ public class ActionBackedModelMutator<T> implements ModelMutator<T> {
         return inputBindings;
     }
 
-    public ModelRuleSourceDescriptor getSourceDescriptor() {
+    public ModelRuleDescriptor getSourceDescriptor() {
         return sourceDescriptor;
     }
 

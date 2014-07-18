@@ -21,7 +21,7 @@ import org.gradle.api.UncheckedIOException;
 import java.io.IOException;
 
 // TODO remove this - it's a temporary measure until we change existing rules to be in a more descriptive form
-public class UnknownModelRuleSourceDescriptor implements ModelRuleSourceDescriptor {
+public class UnknownModelRuleDescriptor implements ModelRuleDescriptor {
 
     public void describeTo(Appendable appendable) {
         try {

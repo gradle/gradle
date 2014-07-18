@@ -21,7 +21,7 @@ import org.gradle.model.entity.internal.NamedEntityInstantiator
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelState
 import org.gradle.model.internal.core.ModelType
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultInputs
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
@@ -67,7 +67,7 @@ class DefaultNamedItemCollectionBuilderTest extends Specification {
     def builder = new DefaultNamedItemCollectionBuilder<NamedThing>(
             containerPath,
             instantiator,
-            new SimpleModelRuleSourceDescriptor("builder"),
+            new SimpleModelRuleDescriptor("builder"),
             new DefaultInputs([]),
             registry
     )

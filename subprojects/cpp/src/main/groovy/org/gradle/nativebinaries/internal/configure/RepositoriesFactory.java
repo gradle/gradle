@@ -31,8 +31,8 @@ import org.gradle.model.internal.core.ModelAdapter;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.SingleTypeModelPromise;
-import org.gradle.model.internal.core.rule.describe.MethodModelRuleSourceDescriptor;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativebinaries.internal.prebuilt.PrebuiltLibraryInitializer;
@@ -62,7 +62,7 @@ public class RepositoriesFactory implements ModelCreator {
         );
     }
 
-    private final ModelRuleSourceDescriptor descriptor = new MethodModelRuleSourceDescriptor(findCreateMethod());
+    private final ModelRuleDescriptor descriptor = new MethodModelRuleDescriptor(findCreateMethod());
 
     private static Method findCreateMethod() {
         try {
@@ -72,7 +72,7 @@ public class RepositoriesFactory implements ModelCreator {
         }
     }
 
-    public ModelRuleSourceDescriptor getSourceDescriptor() {
+    public ModelRuleDescriptor getSourceDescriptor() {
         return descriptor;
     }
 

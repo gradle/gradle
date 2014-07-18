@@ -18,7 +18,7 @@ package org.gradle.model.internal.core;
 
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public class InstanceModelAdapter<I> implements ModelAdapter {
 
@@ -39,7 +39,7 @@ public class InstanceModelAdapter<I> implements ModelAdapter {
         return new InstanceModelAdapter<T>(type, factory);
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
+    public <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
         return type(reference.getType());
     }
 

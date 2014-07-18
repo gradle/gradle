@@ -17,7 +17,7 @@
 package org.gradle.model.dsl.internal
 
 import org.gradle.model.internal.core.*
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class GroovyModelDslTest extends Specification {
     void register(String pathString, Object element) {
         def path = new ModelPath(pathString)
         def type = ModelType.of(element.class)
-        modelRegistry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleSourceDescriptor("register"), element))
+        modelRegistry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("register"), element))
     }
 
     def "can add rules via dsl"() {

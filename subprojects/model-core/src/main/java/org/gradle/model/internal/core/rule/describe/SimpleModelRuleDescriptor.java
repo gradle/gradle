@@ -16,13 +16,24 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
-public interface ModelRuleSourceDescriptor {
+import org.gradle.api.UncheckedIOException;
 
-    /**
-     * This method is expected to be idempotent.
-     *
-     * @param appendable where to write the description to.
-     */
-    void describeTo(Appendable appendable);
+import java.io.IOException;
+
+public class SimpleModelRuleDescriptor implements ModelRuleDescriptor {
+
+    private final String descriptor;
+
+    public SimpleModelRuleDescriptor(String descriptor) {
+        this.descriptor = descriptor;
+    }
+
+    public void describeTo(Appendable appendable) {
+        try {
+            appendable.append(descriptor);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
 }

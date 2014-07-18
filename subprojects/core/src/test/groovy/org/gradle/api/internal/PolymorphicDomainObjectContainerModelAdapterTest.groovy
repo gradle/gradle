@@ -22,8 +22,8 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.collection.NamedItemCollectionBuilder
 import org.gradle.model.internal.core.*
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultInputs
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
@@ -94,8 +94,8 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
         }
 
         @Override
-        ModelRuleSourceDescriptor getSourceDescriptor() {
-            new SimpleModelRuleSourceDescriptor("container")
+        ModelRuleDescriptor getSourceDescriptor() {
+            new SimpleModelRuleDescriptor("container")
         }
     }
 
@@ -111,14 +111,14 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
 
     def "can view as write types"() {
         expect:
-        adapter.asWritable(reference, new SimpleModelRuleSourceDescriptor("write"), new DefaultInputs([]), registry).instance.is(container)
-        adapter.asWritable(ModelReference.of(reference.path, builderType), new SimpleModelRuleSourceDescriptor("write"), new DefaultInputs([]), registry).instance instanceof NamedItemCollectionBuilder
+        adapter.asWritable(reference, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance.is(container)
+        adapter.asWritable(ModelReference.of(reference.path, builderType), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance instanceof NamedItemCollectionBuilder
     }
 
     def "can create items"() {
         // don't need to test too much here, assume that DefaultNamedItemCollectionBuilder is used internally
         given:
-        def builder = adapter.asWritable(ModelReference.of(reference.path, builderType), new SimpleModelRuleSourceDescriptor("write"), new DefaultInputs([]), registry).instance
+        def builder = adapter.asWritable(ModelReference.of(reference.path, builderType), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance
 
         when:
         builder.create("foo") {

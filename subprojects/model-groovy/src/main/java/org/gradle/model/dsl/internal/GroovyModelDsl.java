@@ -27,8 +27,8 @@ import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.Collections;
@@ -65,8 +65,8 @@ public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
                 new ClosureBackedAction<Object>(action).execute(object);
             }
 
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor("model." + modelPath);
+            public ModelRuleDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleDescriptor("model." + modelPath);
             }
 
             public List<? extends ModelReference<?>> getInputBindings() {

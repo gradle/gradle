@@ -20,12 +20,12 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 
-public class NestedModelRuleSourceDescriptor implements ModelRuleSourceDescriptor {
+public class NestedModelRuleDescriptor implements ModelRuleDescriptor {
 
-    private final ModelRuleSourceDescriptor parent;
-    private final ModelRuleSourceDescriptor child;
+    private final ModelRuleDescriptor parent;
+    private final ModelRuleDescriptor child;
 
-    public NestedModelRuleSourceDescriptor(ModelRuleSourceDescriptor parent, ModelRuleSourceDescriptor child) {
+    public NestedModelRuleDescriptor(ModelRuleDescriptor parent, ModelRuleDescriptor child) {
         this.parent = parent;
         this.child = child;
     }

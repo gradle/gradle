@@ -18,7 +18,7 @@ package org.gradle.model.internal.core;
 
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,24 +26,24 @@ import java.util.List;
 public class InstanceBackedModelCreator<T> implements ModelCreator {
 
     private final ModelPromise promise;
-    private final ModelRuleSourceDescriptor descriptor;
+    private final ModelRuleDescriptor descriptor;
     private final List<ModelReference<?>> inputBindings;
     private final ModelReference<T> reference;
     private final Factory<? extends T> factory;
 
-    public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, T instance) {
+    public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, T instance) {
         return of(reference, sourceDescriptor, Factories.constant(instance));
     }
 
-    public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, Factory<? extends T> factory) {
+    public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Factory<? extends T> factory) {
         return of(reference, sourceDescriptor, Collections.<ModelReference<?>>emptyList(), factory);
     }
 
-    public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleSourceDescriptor sourceDescriptor, List<ModelReference<?>> inputBindings, Factory<? extends T> factory) {
+    public static <T> ModelCreator of(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelReference<?>> inputBindings, Factory<? extends T> factory) {
         return new InstanceBackedModelCreator<T>(reference, sourceDescriptor, inputBindings, factory);
     }
 
-    private InstanceBackedModelCreator(ModelReference<T> reference, ModelRuleSourceDescriptor descriptor, List<ModelReference<?>> inputBindings, Factory<? extends T> factory) {
+    private InstanceBackedModelCreator(ModelReference<T> reference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputBindings, Factory<? extends T> factory) {
         this.reference = reference;
         this.factory = factory;
         this.promise = new SingleTypeModelPromise(reference.getType());
@@ -67,7 +67,7 @@ public class InstanceBackedModelCreator<T> implements ModelCreator {
         return inputBindings;
     }
 
-    public ModelRuleSourceDescriptor getSourceDescriptor() {
+    public ModelRuleDescriptor getSourceDescriptor() {
         return descriptor;
     }
 

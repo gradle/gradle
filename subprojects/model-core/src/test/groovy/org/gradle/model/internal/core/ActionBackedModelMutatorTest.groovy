@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.core
 
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class ActionBackedModelMutatorTest extends Specification {
         def foo = ModelReference.of("foo", List)
         def bar = ModelReference.of("bar", List)
 
-        def descriptor = new SimpleModelRuleSourceDescriptor("foo")
+        def descriptor = new SimpleModelRuleDescriptor("foo")
 
         def fooList = []
         registry.create(InstanceBackedModelCreator.of(foo, descriptor, fooList))

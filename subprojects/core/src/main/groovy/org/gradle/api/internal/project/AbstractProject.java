@@ -61,8 +61,8 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.util.Configurable;
@@ -172,13 +172,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         modelRegistry.create(InstanceBackedModelCreator.of(
                 ModelReference.of("serviceRegistry", ServiceRegistry.class),
-                new SimpleModelRuleSourceDescriptor("Project.<init>.serviceRegistry()"),
+                new SimpleModelRuleDescriptor("Project.<init>.serviceRegistry()"),
                 services
         ));
 
         modelRegistry.create(InstanceBackedModelCreator.of(
                 ModelReference.of("buildDir", File.class),
-                new SimpleModelRuleSourceDescriptor("Project.<init>.buildDir()"),
+                new SimpleModelRuleDescriptor("Project.<init>.buildDir()"),
                 new Factory<File>() {
                     public File create() {
                         return getBuildDir();
@@ -188,13 +188,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         modelRegistry.create(InstanceBackedModelCreator.of(
                 ModelReference.of("projectIdentifier", ProjectIdentifier.class),
-                new SimpleModelRuleSourceDescriptor("Project.<init>.projectIdentifier()"),
+                new SimpleModelRuleDescriptor("Project.<init>.projectIdentifier()"),
                 this
         ));
 
         modelRegistry.create(InstanceBackedModelCreator.of(
                 ModelReference.of("extensions", ExtensionContainer.class),
-                new SimpleModelRuleSourceDescriptor("Project.<init>.extensions()"),
+                new SimpleModelRuleDescriptor("Project.<init>.extensions()"),
                 new Factory<ExtensionContainer>() {
                     public ExtensionContainer create() {
                         return getExtensions();
@@ -224,8 +224,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 return Collections.emptyList();
             }
 
-            public ModelRuleSourceDescriptor getSourceDescriptor() {
-                return new SimpleModelRuleSourceDescriptor("Project.<init>.tasks()");
+            public ModelRuleDescriptor getSourceDescriptor() {
+                return new SimpleModelRuleDescriptor("Project.<init>.tasks()");
             }
         });
 
@@ -237,7 +237,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 if (modelRegistry.state(modelPath) == null) {
                     modelRegistry.create(InstanceBackedModelCreator.of(
                             ModelReference.of(modelPath, ModelType.of(Task.class)),
-                            new SimpleModelRuleSourceDescriptor("Project.<init>.tasks." + name + "()"),
+                            new SimpleModelRuleDescriptor("Project.<init>.tasks." + name + "()"),
                             task
                     ));
                 }

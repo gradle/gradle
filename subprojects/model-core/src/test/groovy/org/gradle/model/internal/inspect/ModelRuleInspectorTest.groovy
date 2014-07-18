@@ -19,7 +19,7 @@ package org.gradle.model.internal.inspect
 import com.google.common.reflect.TypeToken
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleSourceDescriptor
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Requires
@@ -208,7 +208,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleSourceDescriptor("strings"), []))
+        registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
 
         when:
         inspector.inspect(MutationRules, registry)
@@ -242,7 +242,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleSourceDescriptor("strings"), []))
+        registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registry)

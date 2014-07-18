@@ -16,15 +16,15 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleSourceDescriptor;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public class ModelElement {
 
     private final ModelPath path;
     private final ModelAdapter adapter;
-    private final ModelRuleSourceDescriptor creatorDescriptor;
+    private final ModelRuleDescriptor creatorDescriptor;
 
-    public ModelElement(ModelPath path, ModelAdapter adapter, ModelRuleSourceDescriptor creatorDescriptor) {
+    public ModelElement(ModelPath path, ModelAdapter adapter, ModelRuleDescriptor creatorDescriptor) {
         this.path = path;
         this.adapter = adapter;
         this.creatorDescriptor = creatorDescriptor;
@@ -38,7 +38,7 @@ public class ModelElement {
         return adapter;
     }
 
-    public ModelRuleSourceDescriptor getCreatorDescriptor() {
+    public ModelRuleDescriptor getCreatorDescriptor() {
         return creatorDescriptor;
     }
 
