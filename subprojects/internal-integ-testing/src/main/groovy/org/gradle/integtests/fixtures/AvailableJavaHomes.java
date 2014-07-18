@@ -26,8 +26,11 @@ import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,6 +43,7 @@ import java.util.regex.Pattern;
  */
 abstract public class AvailableJavaHomes {
     private static List<JvmInstallation> jvms;
+    private final static Logger LOGGER = LoggerFactory.getLogger(AvailableJavaHomes.class);
 
     @Nullable
     public static JavaInfo getJava5() {
@@ -69,7 +73,12 @@ abstract public class AvailableJavaHomes {
     public static JavaInfo getDifferentJdk() {
         Jvm jvm = Jvm.current();
         for (JvmInstallation candidate : getJvms()) {
-            if (candidate.getJavaHome().equals(jvm.getJavaHome())) {
+            try{
+                if (candidate.getJavaHome().getCanonicalPath().equals(jvm.getJavaHome().getCanonicalPath())) {
+                    continue;
+                }
+            }catch(IOException ioException){
+                LOGGER.warn(String.format("Could verify JDK candidate with path '%s'", jvm.getJavaHome().getAbsolutePath()), ioException);
                 continue;
             }
             // Currently tests implicitly assume a JDK
