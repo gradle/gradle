@@ -58,7 +58,7 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.openStore(tmpDir.testDirectory, "<display>", mode(Shared), null)
 
         then:
-        cache.getBinding.cache instanceof DefaultPersistentDirectoryStore
+        cache.reference.cache instanceof DefaultPersistentDirectoryStore
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "<display>"
     }
@@ -68,7 +68,7 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.open(tmpDir.testDirectory, "<display>", null, [prop: 'value'], mode(Shared), null)
 
         then:
-        cache.getBinding.cache instanceof DefaultPersistentDirectoryCache
+        cache.reference.cache instanceof DefaultPersistentDirectoryCache
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "<display>"
     }
@@ -79,7 +79,7 @@ class DefaultCacheFactoryTest extends Specification {
         def ref2 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], mode(Exclusive), null)
 
         then:
-        ref1.getBinding.cache.is(ref2.getBinding.cache)
+        ref1.reference.cache.is(ref2.reference.cache)
 
         and:
         1 * opened.execute(_)
@@ -92,7 +92,7 @@ class DefaultCacheFactoryTest extends Specification {
         def ref2 = factory.openStore(tmpDir.testDirectory, null, mode(Exclusive), null)
 
         then:
-        ref1.getBinding.cache.is(ref2.getBinding.cache)
+        ref1.reference.cache.is(ref2.reference.cache)
 
         and:
         1 * opened.execute(_)
