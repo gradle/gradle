@@ -70,7 +70,7 @@ public class AvailableToolChains {
             compilers.add(findCygwin());
         } else {
             // GCC4.x must be on the path
-            compilers.add(findGcc("4", null));
+            compilers.add(findGcc());
 
             // Clang must be on the path
             compilers.add(findClang());
@@ -118,8 +118,7 @@ public class AvailableToolChains {
         return new UnavailableToolChain("gcc cygwin");
     }
 
-    static private ToolChainCandidate findGcc(String versionPrefix, String hardcodedFallback) {
-        String name = String.format("gcc %s", versionPrefix);
+    static private ToolChainCandidate findGcc() {
         GccVersionDeterminer versionDeterminer = new GccVersionDeterminer(new ExecActionFactory() {
             public ExecAction newExecAction() {
                 return new DefaultExecAction(TestFiles.resolver());
@@ -130,8 +129,8 @@ public class AvailableToolChains {
         for (int i = 0; i < gppCandidates.size(); i++) {
             File candidate = gppCandidates.get(i);
             GccVersionResult version = versionDeterminer.transform(candidate);
-            if (version.isAvailable() && version.getVersion().startsWith(versionPrefix)) {
-                InstalledGcc gcc = new InstalledGcc(name);
+            if (version.isAvailable() && version.getVersion().startsWith("4.")) {
+                InstalledGcc gcc = new InstalledGcc("gcc");
                 if (i > 0) {
                     // Not the first g++ in the path, needs the path variable updated
                     gcc.inPath(candidate.getParentFile());
@@ -140,14 +139,7 @@ public class AvailableToolChains {
             }
         }
 
-        if (hardcodedFallback != null) {
-            File fallback = new File(hardcodedFallback);
-            if (fallback.isFile()) {
-                return new InstalledGcc(name).inPath(fallback.getParentFile());
-            }
-        }
-
-        return new UnavailableToolChain(name);
+        return new UnavailableToolChain("gcc");
     }
 
     public static abstract class ToolChainCandidate {
