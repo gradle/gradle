@@ -32,7 +32,6 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.registry.ReflectiveRule;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -171,7 +170,7 @@ public class ModelRuleInspector {
             throw invalid("model rule", method, "cannot have type variables (i.e. cannot be a generic method)");
         }
 
-        ReflectiveRule.rule(modelRegistry, method, finalize, new Factory<Object>() {
+        rule(modelRegistry, method, finalize, new Factory<Object>() {
             public Object create() {
                 return toInstance(method.getDeclaringClass());
             }
