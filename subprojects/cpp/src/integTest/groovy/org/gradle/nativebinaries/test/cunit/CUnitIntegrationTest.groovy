@@ -74,14 +74,14 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         if (OperatingSystem.current().isLinux()) {
             return "linux"
         }
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "mingw") {
+        if (toolChain.displayName == "mingw") {
             return "mingw"
         }
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "gcc cygwin") {
+        if (toolChain.displayName == "gcc cygwin") {
             return "cygwin"
         }
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
-            def vcVersion = (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version
+        if (toolChain.visualCpp) {
+            def vcVersion = (toolChain as AvailableToolChains.InstalledVisualCpp).version
             switch (vcVersion.major) {
                 case "12":
                     return "vs2013"
@@ -89,7 +89,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
                     return "vs2010"
             }
         }
-        throw new IllegalStateException("No cunit binary available for ${AbstractInstalledToolChainIntegrationSpec.toolChain.displayName}")
+        throw new IllegalStateException("No cunit binary available for ${toolChain.displayName}")
     }
 
     private def getCunitLibName() {

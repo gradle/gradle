@@ -16,10 +16,7 @@
 
 package org.gradle.nativebinaries.test.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -76,23 +73,19 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
 
         @Finalize
         public void createTestTasks(final TaskContainer tasks, BinaryContainer binaries) {
+            for (ProjectNativeTestSuiteBinary testBinary : binaries.withType(ProjectNativeTestSuiteBinary.class)) {
+                ProjectNativeBinaryInternal binary = (ProjectNativeBinaryInternal) testBinary;
+                final BinaryNamingScheme namingScheme = binary.getNamingScheme();
 
-            // TODO:DAZ Use simple iteration
-            binaries.withType(ProjectNativeTestSuiteBinary.class).all(new Action<ProjectNativeTestSuiteBinary>() {
-                public void execute(ProjectNativeTestSuiteBinary testBinary) {
-                    ProjectNativeBinaryInternal binary = (ProjectNativeBinaryInternal) testBinary;
-                    final BinaryNamingScheme namingScheme = binary.getNamingScheme();
+                RunTestExecutable runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable.class);
+                final Project project = runTask.getProject();
+                runTask.setDescription(String.format("Runs the %s", binary.getNamingScheme().getDescription()));
 
-                    RunTestExecutable runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable.class);
-                    final Project project = runTask.getProject();
-                    runTask.setDescription(String.format("Runs the %s", binary.getNamingScheme().getDescription()));
-
-                    final InstallExecutable installTask = binary.getTasks().withType(InstallExecutable.class).iterator().next();
-                    runTask.getInputs().files(installTask.getOutputs().getFiles());
-                    runTask.setTestExecutable(installTask.getRunScript());
-                    runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
-                }
-            });
+                final InstallExecutable installTask = binary.getTasks().withType(InstallExecutable.class).iterator().next();
+                runTask.getInputs().files(installTask.getOutputs().getFiles());
+                runTask.setTestExecutable(installTask.getRunScript());
+                runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
+            }
         }
     }
 }
