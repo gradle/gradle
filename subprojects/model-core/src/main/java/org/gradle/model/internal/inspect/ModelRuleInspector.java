@@ -37,9 +37,7 @@ import org.gradle.model.internal.registry.ReflectiveRule;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ModelRuleInspector {
 
@@ -65,7 +63,15 @@ public class ModelRuleInspector {
     // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)
     public <T> void inspect(Class<T> source, ModelRegistry modelRegistry) {
         validate(source);
-        Method[] methods = source.getDeclaredMethods();
+        final Method[] methods = source.getDeclaredMethods();
+
+        // sort for determinism
+        Arrays.sort(methods, new Comparator<Method>() {
+            public int compare(Method o1, Method o2) {
+                return o1.toString().compareTo(o2.toString());
+            }
+        });
+
         for (Method method : methods) {
             Annotation annotation = getTypeAnnotation(method);
             if (annotation != null) {

@@ -19,6 +19,7 @@ package org.gradle.model.internal.inspect
 import com.google.common.reflect.TypeToken
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
@@ -218,6 +219,11 @@ class ModelRuleInspectorTest extends Specification {
     }
 
     static class MutationAndFinalizeRules {
+        @Mutate
+        static void mutate3(List<Integer> strings) {
+            strings << 3
+        }
+
         @Finalize
         static void finalize1(List<String> strings) {
             strings << "2"
@@ -226,11 +232,6 @@ class ModelRuleInspectorTest extends Specification {
         @Mutate
         static void mutate1(List<String> strings) {
             strings << "1"
-        }
-
-        @Mutate
-        static void mutate3(List<Integer> strings) {
-            strings << 3
         }
     }
 
@@ -249,6 +250,31 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         registry.element(path).adapter.asReadOnly(type).instance == ["1", "2"]
+    }
+
+    def "methods are processed ordered by their to string representation"() {
+        given:
+        3 * registryMock.registerListener(_) >> { ModelCreationListener it ->
+            registry.registerListener(it)
+        }
+
+        def path = new ModelPath("strings")
+        def type = ModelType.of(new TypeToken<List<String>>() {})
+
+        registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
+        registry.create(InstanceBackedModelCreator.of(ModelReference.of(ModelPath.path("integers"), ModelType.of(new TypeToken<List<Integer>>() {})), new SimpleModelRuleDescriptor("integers"), []))
+
+        when:
+        inspector.inspect(MutationAndFinalizeRules, registryMock)
+
+        then:
+        1 * registryMock.finalize({ it.sourceDescriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })
+
+        then:
+        1 * registryMock.mutate({ it.sourceDescriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate1" }) })
+
+        then:
+        1 * registryMock.mutate({ it.sourceDescriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
     }
 
 }
