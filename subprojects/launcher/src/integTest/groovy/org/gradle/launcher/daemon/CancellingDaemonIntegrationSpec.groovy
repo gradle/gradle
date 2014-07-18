@@ -74,9 +74,9 @@ task t2 << {
 """
 
         when:
-        def build = executer.withArgument('t1').start()
+        def build = executer.withArguments('-d', 't1').start()
         ConcurrentTestUtil.poll { assert file('start1.txt').file }
-        def build2 = executer.withArgument('t2').start()
+        def build2 = executer.withArguments('-i', 't2').start()
         ConcurrentTestUtil.poll { assert file('start2.txt').file }
 
         def buildCmdPattern = Pattern.compile('Dispatching Build\\{id=([0-9a-z\\-]+\\.1),')
@@ -84,7 +84,7 @@ task t2 << {
         assert buildCmdMatcher.find()
         def buildId = buildCmdMatcher.group(1)
 
-        def stopExecution = executer.withArguments('--cancel=' + buildId).start()
+        def stopExecution = executer.withArguments('-d', '--cancel=' + buildId).start()
         file('marker2.txt') << 'go'
         stopExecution.waitForFinish()
         build.waitForFailure()
