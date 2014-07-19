@@ -18,6 +18,7 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 
@@ -56,7 +57,7 @@ plugins {
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains(expected("""
 No components defined for this project.
 
 Additional source sets
@@ -74,12 +75,12 @@ Additional binaries
 -------------------
 Classes 'main'
     build using task: :classes
-    tool chain: current JDK (${JavaVersion.current()})
+    tool chain: current JDK (1.7)
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
-    tool chain: current JDK (${JavaVersion.current()})
+    tool chain: current JDK (1.7)
     classes dir: build/classes/test
     resources dir: build/resources/test
 
@@ -105,7 +106,7 @@ jvm {
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains(expected("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -122,7 +123,7 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        tool chain: current JDK (${JavaVersion.current()})
+        tool chain: current JDK (1.7)
         Jar file: build/jars/someLibJar/someLib.jar
 
 Note: currently not all plugins register their components, so some components may not be visible here.
@@ -138,6 +139,12 @@ plugins {
     id 'cpp'
 }
 
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+}
+
 nativeRuntime {
     libraries {
         someLib
@@ -148,7 +155,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains(expected("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -166,15 +173,15 @@ Binaries
         platform: current
         build type: debug
         flavor: default
-        tool chain: ${toolChainDisplayName}
-        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
     Static library 'someLib:staticLibrary'
         build using task: :someLibStaticLibrary
         platform: current
         build type: debug
         flavor: default
-        tool chain: ${toolChainDisplayName}
-        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -193,7 +200,11 @@ model {
     platforms {
         solaris { operatingSystem 'solaris' }
     }
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
 }
+
 nativeRuntime {
     libraries {
         someLib
@@ -204,7 +215,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains(expected("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -223,14 +234,14 @@ Binaries
         build type: debug
         flavor: default
         tool chain: unavailable
-        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/someLib')}
+        shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
     Static library 'someLib:staticLibrary' (not buildable)
         build using task: :someLibStaticLibrary
         platform: solaris
         build type: debug
         flavor: default
         tool chain: unavailable
-        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/someLib')}
+        static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -246,6 +257,12 @@ plugins {
     id 'cunit'
 }
 
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+}
+
 nativeRuntime {
     executables {
         someExe
@@ -256,7 +273,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains(expected("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -274,8 +291,8 @@ Binaries
         platform: current
         build type: debug
         flavor: default
-        tool chain: ${toolChainDisplayName}
-        executable file: ${executable('build/binaries/someExeExecutable/someExe')}
+        tool chain: Tool chain 'clang' (Clang)
+        executable file: build/binaries/someExeExecutable/someExe
 
 Cunit test suite 'someExeTest'
 ------------------------------
@@ -292,8 +309,8 @@ Binaries
         platform: current
         build type: debug
         flavor: default
-        tool chain: ${toolChainDisplayName}
-        executable file: ${executable('build/binaries/someExeTestCUnitExe/someExeTest')}
+        tool chain: Tool chain 'clang' (Clang)
+        executable file: build/binaries/someExeTestCUnitExe/someExeTest
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -311,6 +328,9 @@ plugins {
 }
 
 model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
     platforms {
         i386 { architecture 'i386' }
         amd64 { architecture 'amd64' }
@@ -331,7 +351,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains(expected("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -353,57 +373,57 @@ Binaries
         platform: amd64
         build type: debug
         flavor: free
-        tool chain: ${toolChainDisplayName}
-        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/amd64Free/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/amd64Free/libsomeLib.dylib
     Static library 'someLib:amd64:free:staticLibrary'
         build using task: :amd64FreeSomeLibStaticLibrary
         platform: amd64
         build type: debug
         flavor: free
-        tool chain: ${toolChainDisplayName}
-        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/amd64Free/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/amd64Free/libsomeLib.a
     Shared library 'someLib:amd64:paid:sharedLibrary'
         build using task: :amd64PaidSomeLibSharedLibrary
         platform: amd64
         build type: debug
         flavor: paid
-        tool chain: ${toolChainDisplayName}
-        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/amd64Paid/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/amd64Paid/libsomeLib.dylib
     Static library 'someLib:amd64:paid:staticLibrary'
         build using task: :amd64PaidSomeLibStaticLibrary
         platform: amd64
         build type: debug
         flavor: paid
-        tool chain: ${toolChainDisplayName}
-        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/amd64Paid/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/amd64Paid/libsomeLib.a
     Shared library 'someLib:i386:free:sharedLibrary'
         build using task: :i386FreeSomeLibSharedLibrary
         platform: i386
         build type: debug
         flavor: free
-        tool chain: ${toolChainDisplayName}
-        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/i386Free/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/i386Free/libsomeLib.dylib
     Static library 'someLib:i386:free:staticLibrary'
         build using task: :i386FreeSomeLibStaticLibrary
         platform: i386
         build type: debug
         flavor: free
-        tool chain: ${toolChainDisplayName}
-        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/i386Free/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/i386Free/libsomeLib.a
     Shared library 'someLib:i386:paid:sharedLibrary'
         build using task: :i386PaidSomeLibSharedLibrary
         platform: i386
         build type: debug
         flavor: paid
-        tool chain: ${toolChainDisplayName}
-        shared library file: ${sharedLibrary('build/binaries/someLibSharedLibrary/i386Paid/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/i386Paid/libsomeLib.dylib
     Static library 'someLib:i386:paid:staticLibrary'
         build using task: :i386PaidSomeLibStaticLibrary
         platform: i386
         build type: debug
         flavor: paid
-        tool chain: ${toolChainDisplayName}
-        static library file: ${staticLibrary('build/binaries/someLibStaticLibrary/i386Paid/someLib')}
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/i386Paid/libsomeLib.a
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -419,6 +439,12 @@ plugins {
     id 'java-lang'
     id 'cpp'
     id 'c'
+}
+
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
 }
 
 jvm {
@@ -437,7 +463,7 @@ nativeRuntime {
 
         then:
         // TODO - flesh this out when languages are associated with correct component types
-        output.contains(toPlatformLineSeparators("""
+        output.contains(expected("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -445,11 +471,22 @@ Root project
 JVM library 'jvmLib'
 --------------------
 """))
-        output.contains(toPlatformLineSeparators("""
+        output.contains(expected("""
 
 Native library 'nativeLib'
 --------------------------
 """))
+    }
+
+    String expected(String normalised) {
+        return normalised
+                .replace("current JDK (1.7)", "current JDK (${JavaVersion.current()})")
+                .replace("Tool chain 'clang' (Clang)", toolChainDisplayName)
+                .replace("\n", SystemProperties.lineSeparator)
+                .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystem.current().getSharedLibraryName(it[2]) }
+                .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).a$') { it[1] + OperatingSystem.current().getStaticLibraryName(it[2]) }
+                .replaceAll('(?m)(build/binaries/.+/)(\\w+)$') { it[1] + OperatingSystem.current().getExecutableName(it[2]) }
+                .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
     }
 
     String getToolChainDisplayName() {
@@ -458,17 +495,5 @@ Native library 'nativeLib'
 
     AvailableToolChains.InstalledToolChain getToolChain() {
         return AvailableToolChains.toolChains.find { it.available }
-    }
-
-    String executable(String path) {
-        return OperatingSystem.current().getExecutableName(path)
-    }
-
-    String sharedLibrary(String path) {
-        return OperatingSystem.current().getSharedLibraryName(path)
-    }
-
-    String staticLibrary(String path) {
-        return OperatingSystem.current().getStaticLibraryName(path)
     }
 }
