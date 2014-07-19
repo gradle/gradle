@@ -811,6 +811,8 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 ### Story: User views outline of component model from command line
 
+Present to the user some information about how a given project is composed.
+
 - User runs `gradle components` and views report on console.
 - Presents basic details of each project component:
     - JVM and native components
@@ -825,10 +827,11 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 #### Implementation
 
-- Display install task for executables, test task for test suites.
-- Display native language header directories
-- Display native tool locations
 - Add new task type to DSL guide.
+- Display install task for executables, test task for test suites.
+- Display native language header directories.
+- Display native tool locations and versions.
+- Don't show the generated CUnit launcher source set as an input. Should be shown as an intermediate output, as should the object or class files.
 - Add basic implementation for legacy component types.
 - Add `description` to `ProjectComponent`.
 - Sort things by name
@@ -842,7 +845,9 @@ Dependency resolution selects the best binary from each dependency for the targe
 #### Issues discovered
 
 - Issue: language plugins add every language to every component, regardless of whether that language is supported for the component.
-- Issue: CUnit source sets and binaries are associated with TestSuite component, which is not in ProjectComponentContainer.
+- Issue: TestSuite components are not included in ProjectComponentContainer.
+- Issue: Display name for CUnit executable is 'C unit exe' instead of `CUnit executable'
+- Issue: Better naming scheme for output directories, eg `executables/someThing/...` instead of `binaries/someThingExecutable/...`
 
 ### Story: User views component model as HTML report
 
