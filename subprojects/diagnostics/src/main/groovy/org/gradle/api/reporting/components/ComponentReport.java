@@ -25,12 +25,16 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectComponent;
 import org.gradle.runtime.base.ProjectComponentContainer;
 
 import javax.inject.Inject;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Displays some details about the software components produced by the project.
@@ -47,6 +51,11 @@ public class ComponentReport extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ModelRegistry getModelRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void report() {
         Project project = getProject();
@@ -57,12 +66,21 @@ public class ComponentReport extends DefaultTask {
 
         renderer.startProject(project);
 
-        ProjectComponentContainer components = project.getExtensions().findByType(ProjectComponentContainer.class);
-        if (components != null) {
-            renderer.renderComponents(components);
-        } else {
-            renderer.renderComponents(Collections.<ProjectComponent>emptyList());
+        Collection<ProjectComponent> components = new ArrayList<ProjectComponent>();
+        ProjectComponentContainer projectComponents = project.getExtensions().findByType(ProjectComponentContainer.class);
+        if (projectComponents != null) {
+            components.addAll(projectComponents);
         }
+
+        try {
+            TestSuiteContainer testSuites = getModelRegistry().get(ModelReference.of("testSuites", TestSuiteContainer.class));
+            components.addAll(testSuites);
+        } catch (IllegalStateException e) {
+            // TODO - need a better contract here
+            // Ignore for now
+        }
+
+        renderer.renderComponents(components);
 
         ProjectSourceSet sourceSets = project.getExtensions().findByType(ProjectSourceSet.class);
         if (sourceSets != null) {

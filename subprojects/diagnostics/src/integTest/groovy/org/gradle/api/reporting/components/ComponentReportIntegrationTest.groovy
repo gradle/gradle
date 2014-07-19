@@ -20,11 +20,9 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-@Ignore
 class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -279,22 +277,23 @@ Binaries
         tool chain: ${toolChainDisplayName}
         executable file: ${executable('build/binaries/someExeExecutable/someExe')}
 
-Additional source sets
-----------------------
-C source 'someExeTest:c'
-    src/someExeTest/c
-C source 'someExeTest:cunitLauncher'
-    build/src/someExeTest/cunitLauncher/c
+Cunit test suite 'someExeTest'
+------------------------------
 
-Additional binaries
--------------------
-C unit exe 'someExeTest:cUnitExe'
-    build using task: :someExeTestCUnitExe
-    platform: current
-    build type: debug
-    flavor: default
-    tool chain: ${toolChainDisplayName}
-    executable file: ${executable('build/binaries/someExeTestCUnitExe/someExeTest')}
+Source sets
+    C source 'someExeTest:cunitLauncher'
+        build/src/someExeTest/cunitLauncher/c
+    C source 'someExeTest:c'
+        src/someExeTest/c
+
+Binaries
+    C unit exe 'someExeTest:cUnitExe'
+        build using task: :someExeTestCUnitExe
+        platform: current
+        build type: debug
+        flavor: default
+        tool chain: ${toolChainDisplayName}
+        executable file: ${executable('build/binaries/someExeTestCUnitExe/someExeTest')}
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
