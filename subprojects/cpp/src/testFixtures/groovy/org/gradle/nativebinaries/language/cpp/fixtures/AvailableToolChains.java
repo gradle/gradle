@@ -131,7 +131,7 @@ public class AvailableToolChains {
         for (int i = 0; i < gppCandidates.size(); i++) {
             File candidate = gppCandidates.get(i);
             GccVersionResult version = versionDeterminer.transform(candidate);
-            if (version.isAvailable() && version.getVersion().startsWith("4.")) {
+            if (version.isAvailable()) {
                 InstalledGcc gcc = new InstalledGcc("gcc");
                 if (i > 0) {
                     // Not the first g++ in the path, needs the path variable updated
