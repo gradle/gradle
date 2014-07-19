@@ -81,6 +81,9 @@ A mock up:
 
 ### Open issues
 
+- Need some mechanism for the ComponentReport task to determine whether the TestSuites model is available or not. The mechanism
+should be internal at this stage, eg add a `ModelRegistry.find()` or throw a specific exception thrown by `ModelRegistry.get()`.
+
 - Expose models as extensions as well:
     - Have to handle creation rules that take inputs: defer creation until the convention is used, and close the inputs at this point.
     - Once closed, cannot mutate an object.
@@ -185,6 +188,8 @@ A mock up:
 
 ### Open issues
 
+- Project and other things can leak out of `Task` instances when `TaskContainer` is provided to a rule.
+    - Same with `Buildable` things, `BuildableModelElement`, `NativeBinaryTasks`, etc.
 - Need another type to allow task instances to be defined without being created.
 - Don't fire rule when tasks not required (eg building model via tooling API).
 - Report on unknown target for configuration closure.
