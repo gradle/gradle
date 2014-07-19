@@ -47,6 +47,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class AvailableToolChains {
+    private static List<ToolChainCandidate> toolChains;
+
     /**
      * @return The tool chain with the given name.
      */
@@ -63,19 +65,19 @@ public class AvailableToolChains {
      * @return A list of all tool chains for this platform, with the default tool chain listed first.
      */
     public static List<ToolChainCandidate> getToolChains() {
-        List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
-        if (OperatingSystem.current().isWindows()) {
-            compilers.add(findVisualCpp());
-            compilers.add(findMinGW());
-            compilers.add(findCygwin());
-        } else {
-            // GCC4.x must be on the path
-            compilers.add(findGcc());
-
-            // Clang must be on the path
-            compilers.add(findClang());
+        if (toolChains == null) {
+            List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
+            if (OperatingSystem.current().isWindows()) {
+                compilers.add(findVisualCpp());
+                compilers.add(findMinGW());
+                compilers.add(findCygwin());
+            } else {
+                compilers.add(findGcc());
+                compilers.add(findClang());
+            }
+            toolChains = compilers;
         }
-        return compilers;
+        return toolChains;
     }
 
     static private ToolChainCandidate findClang() {
