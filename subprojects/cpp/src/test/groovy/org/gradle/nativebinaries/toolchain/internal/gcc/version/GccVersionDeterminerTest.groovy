@@ -21,21 +21,43 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
+import org.gradle.util.VersionNumber
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class GccVersionDeterminerTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
+    static def gcc4 = """#define __GNUC_MINOR__ 2
+#define __GNUC_PATCHLEVEL__ 1
+#define __GNUC__ 4
+#define __INTMAX_C(c) c ## LL
+#define __REGISTER_PREFIX__ """
+    static def gcc3 = """#define __gnu_linux__ 1
+#define __GNUC_PATCHLEVEL__ 4
+#define __GNUC__ 3
+#define __GNUC_MINOR__ 3
+"""
+    static def gccMajorOnly = """#define __gnu_linux__ 1
+#define __GNUC__ 3
+"""
+    static def gccNoMinor = """#define __gnu_linux__ 1
+#define __GNUC__ 3
+#define __GNUC_PATCHLEVEL__ 4
+"""
 
     @Unroll
     "can scrape ok output for #version"() {
         expect:
         def result = output(output)
         result.available
-        result.version == version
+        result.version == VersionNumber.parse(version)
 
         where:
-        [version, output] << OUTPUTS.collect { [it.value, it.key] }
+        output       | version
+        gccMajorOnly | "3.0.0"
+        gccNoMinor   | "3.0.4"
+        gcc3         | "3.3.4"
+        gcc4         | "4.2.1"
     }
 
     def "handles gcc output that cannot be parsed"() {
@@ -52,7 +74,7 @@ class GccVersionDeterminerTest extends Specification {
         1 * visitor.node("Could not determine GCC version: g++ produced unexpected output.")
 
         where:
-        output << [ "not sure about this", "" ]
+        output << ["not sure about this", ""]
     }
 
     def "g++ execution error ok"() {
@@ -64,10 +86,10 @@ class GccVersionDeterminerTest extends Specification {
         and:
         def determiner = new GccVersionDeterminer(execActionFactory)
         def binary = new File("g++")
-        
+
         when:
         def result = determiner.transform(binary)
-        
+
         then:
         1 * execActionFactory.newExecAction() >> action
         1 * action.execute() >> execResult
@@ -126,14 +148,4 @@ class GccVersionDeterminerTest extends Specification {
             }
         }
     }
-
-    static final OUTPUTS = [
-        """#define __GNUC_MINOR__ 2
-#define __GNUC_PATCHLEVEL__ 1
-#define __GNUC__ 4
-#define __INTMAX_C(c) c ## LL
-#define __REGISTER_PREFIX__ """: "4",
-        """#define __gnu_linux__ 1
-#define __GNUC__ 3""": "3",
-    ]
 }

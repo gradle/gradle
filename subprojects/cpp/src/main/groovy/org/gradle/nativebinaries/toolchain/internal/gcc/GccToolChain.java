@@ -19,8 +19,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.toolchain.TargetedPlatformToolChain;
 import org.gradle.nativebinaries.toolchain.Gcc;
+import org.gradle.nativebinaries.toolchain.TargetedPlatformToolChain;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
@@ -82,13 +82,6 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     protected boolean canUseCommandFile() {
-        String[] components = versionResult.getVersion().split("\\.");
-        int majorVersion;
-        try {
-            majorVersion = Integer.valueOf(components[0]);
-        } catch (NumberFormatException e) {
-            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", versionResult), e);
-        }
-        return majorVersion >= 4;
+        return versionResult.getVersion().getMajor() >= 4;
     }
 }

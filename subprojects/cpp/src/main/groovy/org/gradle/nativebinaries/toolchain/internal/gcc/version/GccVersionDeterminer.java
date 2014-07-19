@@ -22,6 +22,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
+import org.gradle.util.VersionNumber;
 
 import java.io.*;
 import java.util.HashMap;
@@ -71,17 +72,31 @@ public class GccVersionDeterminer implements Transformer<GccVersionResult, File>
         if (defines.containsKey("__clang__")) {
             return new BrokenResult(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.", gccBinary.getName()));
         }
-        return new DefaultGccVersionResult(defines.get("__GNUC__"));
+        int major = toInt(defines.get("__GNUC__"));
+        int minor = toInt(defines.get("__GNUC_MINOR__"));
+        int patch = toInt(defines.get("__GNUC_PATCHLEVEL__"));
+        return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null));
+    }
+
+    private int toInt(String value) {
+        if (value == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private static class DefaultGccVersionResult implements GccVersionResult {
-        private final String scrapedVersion;
+        private final VersionNumber scrapedVersion;
 
-        public DefaultGccVersionResult(String scrapedVersion) {
+        public DefaultGccVersionResult(VersionNumber scrapedVersion) {
             this.scrapedVersion = scrapedVersion;
         }
 
-        public String getVersion() {
+        public VersionNumber getVersion() {
             return scrapedVersion;
         }
 
@@ -127,7 +142,7 @@ public class GccVersionDeterminer implements Transformer<GccVersionResult, File>
             this.message = message;
         }
 
-        public String getVersion() {
+        public VersionNumber getVersion() {
             throw new UnsupportedOperationException();
         }
 
