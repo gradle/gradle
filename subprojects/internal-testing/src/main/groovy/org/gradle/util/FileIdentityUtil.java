@@ -28,7 +28,7 @@ public class FileIdentityUtil {
 
     public static boolean isSameFile(File file1, File file2) throws IOException {
         FileIdentityChecker checker = null;
-        if(Jvm.current().getJavaVersion().isJava7Compatible()){
+        if (Jvm.current().getJavaVersion().isJava7Compatible()) {
             String jdkFilePermissionclass = "org.gradle.util.jdk7.Jdk7FileIdentityChecker";
             Class<?> jdk7FileChecker = null;
             try {
@@ -38,13 +38,13 @@ public class FileIdentityUtil {
             }
             if (jdk7FileChecker != null) {
                 try {
-                    checker = (FileIdentityChecker)jdk7FileChecker.newInstance();
+                    checker = (FileIdentityChecker) jdk7FileChecker.newInstance();
                 } catch (Exception e) {
                     LOGGER.warn(String.format("Unable to instantiate %s", jdk7FileChecker));
                 }
             }
         }
-        if(checker==null){
+        if (checker == null) {
             checker = new SimpleFileIdentiyChecker();
         }
         return checker.isSameFile(file1, file2);
