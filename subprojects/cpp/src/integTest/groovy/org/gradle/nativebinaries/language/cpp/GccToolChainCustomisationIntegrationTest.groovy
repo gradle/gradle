@@ -198,8 +198,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                             def compilerMap = [gcc: 'g++', clang: 'clang++']
                             cCompiler.executable = compilerMap[cCompiler.executable]
                             cCompiler.withArguments { args ->
-                                args.removeAll(["-x", "c"])
-                                args << '-w' // Disable deprecation warning from clang
+                                Collections.replaceAll(args, "c", "c++")
                             }
                         }
                     }
