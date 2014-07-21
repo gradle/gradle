@@ -118,29 +118,25 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void bind(final ModelCreator creator) {
-        new CreationBinder(creator, new Action<BoundModelCreator>() {
-            public void execute(BoundModelCreator boundModelCreator) {
-                add(boundModelCreator);
+        new RuleBinding<Void>(null, creator.getInputBindings(), new Action<RuleBinding<Void>>() {
+            public void execute(RuleBinding<Void> ruleBinding) {
+                List<ModelReference<?>> inputReferences = toReferencesUnsafe(ruleBinding.read);
+                BoundModelCreator boundCreator = new BoundModelCreator(creator, inputReferences);
+                creations.put(creator.getPath(), boundCreator);
             }
         });
     }
 
-    private void add(BoundModelCreator boundCreator) {
-        creations.put(boundCreator.getCreator().getPath(), boundCreator);
-    }
-
-    private <T> void bind(ModelMutator<T> mutator, final Multimap<ModelPath, BoundModelMutator<?>> mutators) {
-        new MutationBinder<T>(mutator, new Action<BoundModelMutator<T>>() {
-            public void execute(BoundModelMutator<T> boundMutator) {
-                add(mutators, boundMutator);
+    private <T> void bind(final ModelMutator<T> mutator, final Multimap<ModelPath, BoundModelMutator<?>> mutators) {
+        new RuleBinding<T>(mutator.getBinding(), mutator.getInputBindings(), new Action<RuleBinding<T>>() {
+            public void execute(RuleBinding<T> ruleBinding) {
+                List<ModelReference<?>> inputReferences = toReferencesUnsafe(ruleBinding.read);
+                BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinding.write.getReference(), inputReferences);
+                ModelPath path = boundMutator.getReference().getPath();
+                assertNotFinalized(path);
+                mutators.put(path, boundMutator);
             }
         });
-    }
-
-    private <T> void add(Multimap<ModelPath, BoundModelMutator<?>> mutators, BoundModelMutator<T> boundModelMutator) {
-        ModelPath path = boundModelMutator.getReference().getPath();
-        assertNotFinalized(path);
-        mutators.put(path, boundModelMutator);
     }
 
     private void assertNotFinalized(ModelPath path) {
@@ -420,115 +416,70 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class CreationBinder {
+    public class RuleBinding<T> {
+        private ModelBinding<T> write;
+        private final List<ModelBinding<?>> read;
 
-        private final ModelCreator creator;
-        private final Action<? super BoundModelCreator> onBound;
+        private final Action<? super RuleBinding<T>> onFullyBound;
 
-        private List<ModelBinding<?>> inputBindings;
+        public RuleBinding(@Nullable ModelBinding<T> initialWrite, List<ModelBinding<?>> initialRead, Action<? super RuleBinding<T>> onFullyBound) {
+            this.onFullyBound = onFullyBound;
 
-        public CreationBinder(ModelCreator creator, Action<? super BoundModelCreator> onBound) {
-            this.creator = creator;
-            this.onBound = onBound;
-            this.inputBindings = new ArrayList<ModelBinding<?>>(creator.getInputBindings());
+            this.write = initialWrite;
+            this.read = mutableFixedSizeCopy(initialRead);
 
-            if (allFullyBound(inputBindings)) {
+            if ((write == null || write.isBound()) && allFullyBound(read)) {
                 fire();
             } else {
-                registerListener(new ModelCreationListener() {
-                    public boolean onCreate(ModelPath path, ModelPromise promise) {
-                        // TODO this needs optimisation
-                        boolean unsatisfied = false;
-
-                        ListIterator<ModelBinding<?>> iterator = inputBindings.listIterator();
-                        while (iterator.hasNext()) {
-                            ModelBinding<?> inputBinding = iterator.next();
-                            if (!inputBinding.isBound()) {
-                                if (promise.asReadOnly(inputBinding.getType())) {
-                                    iterator.set(inputBinding.bind(path));
-                                } else {
-                                    unsatisfied = true;
-                                }
-                            }
-                        }
-
-                        if (unsatisfied) {
-                            return false;
-                        } else {
-                            fire();
-                            return true;
-                        }
-                    }
-                });
+                registerListener(new Listener());
             }
         }
 
-        private void fire() {
-            List<ModelReference<?>> references = toReferencesUnsafe(inputBindings);
-            onBound.execute(new BoundModelCreator(creator, references));
+        private List<ModelBinding<?>> mutableFixedSizeCopy(List<ModelBinding<?>> initialWrite) {
+            return initialWrite.isEmpty() ? Collections.<ModelBinding<?>>emptyList() : Lists.newArrayList(initialWrite);
         }
-    }
 
-    private class MutationBinder<T> {
+        private class Listener implements ModelCreationListener {
+            public boolean onCreate(ModelPath path, ModelPromise promise) {
+                boolean satisfied = true;
+                if (write != null && !write.isBound()) {
+                    if (promise.asWritable(write.getType())) {
+                        write = write.bind(path);
+                    } else {
+                        satisfied = false;
+                    }
+                }
 
-        private final ModelMutator<T> mutator;
-        private final Action<? super BoundModelMutator<T>> onBound;
-
-        private ModelBinding<T> binding;
-        private List<ModelBinding<?>> inputBindings;
-
-        private MutationBinder(ModelMutator<T> mutator, Action<? super BoundModelMutator<T>> onBound) {
-            this.mutator = mutator;
-            this.onBound = onBound;
-            this.inputBindings = new ArrayList<ModelBinding<?>>(mutator.getInputBindings());
-            this.binding = mutator.getBinding();
-
-            if (binding.isBound() && allFullyBound(inputBindings)) {
-                fire();
-            } else {
-                registerListener(new ModelCreationListener() {
-                    public boolean onCreate(ModelPath path, ModelPromise promise) {
-                        boolean unsatisfied = false;
-                        if (!binding.isBound()) {
-                            if (promise.asWritable(binding.getType())) {
-                                binding = binding.bind(path);
+                if (!read.isEmpty()) {
+                    ListIterator<ModelBinding<?>> iterator = read.listIterator();
+                    while (iterator.hasNext()) {
+                        ModelBinding<?> inputBinding = iterator.next();
+                        if (!inputBinding.isBound()) {
+                            if (promise.asReadOnly(inputBinding.getType())) {
+                                iterator.set(inputBinding.bind(path));
                             } else {
-                                unsatisfied = true;
+                                satisfied = false;
                             }
-                        }
-
-                        ListIterator<ModelBinding<?>> iterator = inputBindings.listIterator();
-                        while (iterator.hasNext()) {
-                            ModelBinding<?> inputBinding = iterator.next();
-                            if (!inputBinding.isBound()) {
-                                if (promise.asReadOnly(inputBinding.getType())) {
-                                    iterator.set(inputBinding.bind(path));
-                                } else {
-                                    unsatisfied = true;
-                                }
-                            }
-                        }
-
-                        if (unsatisfied) {
-                            return false;
-                        } else {
-                            fire();
-                            return true;
                         }
                     }
-                });
+                }
+
+                if (satisfied) {
+                    fire();
+                    return true;
+                } else {
+                    return false;
+                }
             }
+
         }
 
         private void fire() {
-            List<ModelReference<?>> references = toReferencesUnsafe(inputBindings);
-            onBound.execute(new BoundModelMutator<T>(mutator, ModelReference.of(binding.getPath(), binding.getType()), references));
+            onFullyBound.execute(this);
         }
     }
 
     public static interface ModelCreationListener {
-
         boolean onCreate(ModelPath path, ModelPromise promise);
-
     }
 }
