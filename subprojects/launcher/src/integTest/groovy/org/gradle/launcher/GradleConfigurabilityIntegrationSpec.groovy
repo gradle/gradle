@@ -107,11 +107,11 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
         buildSucceeds "assert System.getProperty('java.home').startsWith('${TextUtil.escapeString(javaPath)}')"
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null || System.getProperty('java.runtime.version') == null})
+    @IgnoreIf({ AvailableJavaHomes.differentVersion == null || System.getProperty('java.runtime.version') == null})
     def "does not alter java.runtime.version"() {
         given:
 
-        useAlternativeJavaPath(AvailableJavaHomes.differentJdk)
+        useAlternativeJavaPath(AvailableJavaHomes.differentVersion)
         String javaRuntimeVersion = System.getProperty('java.runtime.version')
 
         expect:
