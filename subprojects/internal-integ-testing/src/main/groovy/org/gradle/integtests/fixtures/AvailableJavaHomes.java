@@ -53,6 +53,7 @@ abstract public class AvailableJavaHomes {
 
     /**
      * Locates a JDK installation for the given version.
+     *
      * @return null if not found.
      */
     @Nullable
@@ -74,11 +75,11 @@ abstract public class AvailableJavaHomes {
     public static JavaInfo getDifferentJdk() {
         Jvm jvm = Jvm.current();
         for (JvmInstallation candidate : getJvms()) {
-            try{
+            try {
                 if (FileIdentityUtil.isSameFile(candidate.getJavaHome(), jvm.getJavaHome())) {
                     continue;
                 }
-            }catch(IOException ioException){
+            } catch (IOException ioException) {
                 LOGGER.warn(String.format("Could not verify JDK candidate with path '%s'", jvm.getJavaHome().getAbsolutePath()), ioException);
                 continue;
             }
@@ -93,7 +94,7 @@ abstract public class AvailableJavaHomes {
     }
 
     /**
-     * Locates a JVM installation that has a different version to the current JVM, ie for which java.version is different.
+     * Locates a JDK installation that has a different version to the current JVM, ie for which java.version is different.
      *
      * @return null if not found.
      */
@@ -102,6 +103,10 @@ abstract public class AvailableJavaHomes {
         Jvm jvm = Jvm.current();
         for (JvmInstallation candidate : getJvms()) {
             if (candidate.getJavaVersion().equals(jvm.getJavaVersion())) {
+                continue;
+            }
+            // Currently tests implicitly assume a JDK
+            if (!candidate.isJdk()) {
                 continue;
             }
             return Jvm.forHome(candidate.getJavaHome());
