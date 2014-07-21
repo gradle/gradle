@@ -277,18 +277,27 @@ A custom library type:
 
 #### Implementation Plan
 
+- New annotation `ComponentModel` with parameter of `Class<? extends Library>`
 - If a plugin RuleSource has a @ComponentModel annotation
-    - Automatically apply the 'language-base' plugin
-    - Inspect any declared rules for ones that create Library instances via a `CollectionBuilder<? extends Library>`.
-    - The library-creation rule will be executed when closing the LibraryContainer. This mechanism can be specific to the language-base plugin.
-- TBD: elaborate this
+    - Automatically apply the `ComponentModelBasePlugin`
+    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<SampleLibrary>` view of the `ProjectComponentContainer`.
+- Add a sample to demonstrate creating a custom component plugin
+
+#### Test cases
+
+- Does not add any components for inner class with `@ComponentModel` but no rules for creating libraries
+- Configured libraries are available in `projectComponents` container for
+    - Single inner class has both `@ComponentModel` as well as `@RuleSource` and rule for creating libraries
+    - Separate inner classes declare `@ComponentModel` and `@RuleSource`
+    - Separate plugins define `@ComponentModel` and `@RuleSource`
+- Can define and create 2 component types in the same plugin with 2 `@ComponentModel` annotated inner classes
+- Can define 2 component types with separate plugins
 
 #### Open issues
 
-- Need some public way to easily 'implement' Library and commons subtypes such as `ProjectComponent`. For example, a public default implementation that can
-be extended (should have no-args constructor) or generate the implementation from the interface.
+- Need some public way to easily 'implement' Library and commons subtypes such as `ProjectComponent`. For example, a public default implementation that can be extended (should have no-args constructor) or generate the implementation from the interface.
 - Interaction with the `model { }` block.
-- Need some way to declare a language domain, without necessarily defining any particular component instances.
+- Need some way to declare a component model, without necessarily defining any particular component instances.
 
 ### Story: Custom plugin defines binaries for each custom library
 
