@@ -221,14 +221,16 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - Class file is removed when source is removed
     - Copied resource is removed when resource is removed
 - Can build native and JVM libraries in the same project
-  - `gradle assemble` builds each native library and each jvm library
+    - `gradle assemble` builds each native library and each jvm library
+- Can combine old and new JVM plugins in the same project
+    - `gradle assemble` builds both jars
 
 #### Open issues
 
-- Need to be able to navigate from a `JvmLibrary` to its binaries.
-- Need to be able to navigate from a `JvmLibraryBinary` to its tool chain.
 - Rework the native & JVM component models for consistency and extensibility.
+- Native package structure needs to be more consistent with JVM package structure.
 - When to document and announce the new JVM plugins?
+- Need to merge `SoftwareComponent` into `ProjectComponent`
 
 ## Feature: Custom plugin defines a custom library type
 
@@ -327,9 +329,15 @@ A custom binary:
 
 #### Open issues
 
+- Add 'plugin declares custom platform' story.
 - Public mechanism to 'implement' Binary and common subtypes such as ProjectBinary.
 - General mechanism to register a model collection and have rules that apply to each element of that collection.
 - Validation of binary names
+- Migrate the JVM and natives plugins to use this.
+    - Need to be able to declare the target platform for the component type.
+    - Need to declare default implementation.
+    - Need to expose general DSL for defining components of a given type.
+    - Need to attach source sets to components.
 
 ### Story: Custom plugin defines tasks from binaries
 
