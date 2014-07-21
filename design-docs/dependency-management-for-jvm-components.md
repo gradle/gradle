@@ -243,18 +243,23 @@ Development of this feature depends on the first 2 stories from the `unified-con
 
 Define a sample plugin that declares a custom library type:
     
-    interface SampleLibrary extends Library {}
+    interface SampleLibrary extends Library { ... }
+    class DefaultSampleLibrary implements SampleLibrary { ... }
 
-    @ComponentModel // Need a better name for this
-    class MySamplePlugin {
-        @Model("mySample")
-        SampleExtension createSampleExtension() {
-            ...
-        }
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        @ComponentModel(SampleLibrary.class)
+        static class ComponentModel {
+            @Model("mySample")
+            SampleExtension createSampleExtension() {
+                ...
+            }
 
-        @Rule
-        void createSampleLibraryComponents(CollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
-            ... Register sample libraries based on configured sampleExtension
+            @Rule
+            void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
+                for (String libraryName : sampleExtension.getLibraryNames()) {
+                    sampleLibraries.create(libraryName, DefaultSampleLibrary.class);
+            }
         }
     }
 
@@ -262,7 +267,6 @@ Libraries are then visible in libraries and components containers:
 
     // Library is visible in libraries and components containers
     assert projectComponents.withType(SampleLibrary).size() == 2
-    assert libraries.withType(SampleLibrary).size() == 2
 
 A custom library type:
 - Extends or implements some public base `Library` type.
@@ -271,11 +275,11 @@ A custom library type:
 
 #### Implementation Plan
 
-- Allow a rule-based plugin to add general rules via the @Rule annotation
-- If a rule-based plugin has a @ComponentModel annotation
+- If a plugin RuleSource has a @ComponentModel annotation
     - Automatically apply the 'language-base' plugin
     - Inspect any declared rules for ones that create Library instances via a `CollectionBuilder<? extends Library>`.
     - The library-creation rule will be executed when closing the LibraryContainer. This mechanism can be specific to the language-base plugin.
+- TBD: elaborate this
 
 #### Open issues
 
