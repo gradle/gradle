@@ -420,7 +420,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         private ModelBinding<T> write;
         private final List<ModelBinding<?>> read;
 
-        private final Action<? super RuleBinding<T>> onFullyBound;
+        private Action<? super RuleBinding<T>> onFullyBound;
 
         public RuleBinding(@Nullable ModelBinding<T> initialWrite, List<ModelBinding<?>> initialRead, Action<? super RuleBinding<T>> onFullyBound) {
             this.onFullyBound = onFullyBound;
@@ -475,7 +475,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         private void fire() {
-            onFullyBound.execute(this);
+            try {
+                onFullyBound.execute(this);
+            } finally {
+                onFullyBound = null; // memory reclaim
+            }
         }
     }
 
