@@ -82,7 +82,7 @@ public class ModelBinding<T> {
     public static List<ModelBinding<?>> toBindings(List<ModelReference<?>> references) {
         return Lists.transform(references, new Function<ModelReference<?>, ModelBinding<?>>() {
             @Nullable
-            public ModelBinding<?> apply(ModelReference input) {
+            public ModelBinding<?> apply(ModelReference<?> input) {
                 return of(input);
             }
         });

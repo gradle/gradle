@@ -59,7 +59,7 @@ public class ModelReference<T> {
             return false;
         }
 
-        ModelReference that = (ModelReference) o;
+        ModelReference<?> that = (ModelReference<?>) o;
 
         return path.equals(that.path) && type.equals(that.type);
     }

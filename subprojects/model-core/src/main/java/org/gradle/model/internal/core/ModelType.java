@@ -92,7 +92,7 @@ public class ModelType<T> {
             return false;
         }
 
-        ModelType modelType = (ModelType) o;
+        ModelType<?> modelType = (ModelType<?>) o;
 
         return typeToken.equals(modelType.typeToken);
     }

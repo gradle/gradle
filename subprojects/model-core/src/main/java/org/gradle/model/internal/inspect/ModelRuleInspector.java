@@ -326,7 +326,7 @@ public class ModelRuleInspector {
             throw invalid(source, "cannot have more than one constructor");
         }
 
-        Constructor constructor = constructors[0];
+        Constructor<?> constructor = constructors[0];
         if (constructor.getParameterTypes().length > 0) {
             throw invalid(source, "constructor cannot take any arguments");
         }
