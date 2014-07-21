@@ -255,7 +255,7 @@ Define a sample plugin that declares a custom library type:
                 ...
             }
 
-            @Mutation
+            @Mutate
             void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
                 for (String libraryName : sampleExtension.getLibraryNames()) {
                     sampleLibraries.create(libraryName, DefaultSampleLibrary.class);
@@ -297,7 +297,7 @@ Add a binary type to the sample plugin:
     class MySamplePlugin {
         ...
 
-        @Mutation
+        @Mutate
         void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
             ... Create sample binaries for this library, one for each flavor. Add to the 'binaries' set.
         }
