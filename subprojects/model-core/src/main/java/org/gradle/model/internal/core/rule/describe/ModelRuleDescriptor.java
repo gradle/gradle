@@ -18,6 +18,8 @@ package org.gradle.model.internal.core.rule.describe;
 
 public interface ModelRuleDescriptor {
 
+    // TODO - expand to include the concept of identity and description
+
     /**
      * This method is expected to be idempotent.
      *
