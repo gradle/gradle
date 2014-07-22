@@ -18,20 +18,20 @@ package org.gradle.model.internal.core;
 
 public class ModelRuleInput<T> {
 
-    private final ModelReference<T> reference;
+    private final ModelBinding<T> binding;
     private final ModelView<? extends T> view;
 
-    public ModelRuleInput(ModelReference<T> reference, ModelView<? extends T> view) {
-        this.reference = reference;
+    public ModelRuleInput(ModelBinding<T> binding, ModelView<? extends T> view) {
+        this.binding = binding;
         this.view = view;
     }
 
-    public static <T> ModelRuleInput<T> of(ModelReference<T> path, ModelView<? extends T> view) {
-        return new ModelRuleInput<T>(path, view);
+    public static <T> ModelRuleInput<T> of(ModelBinding<T> binding, ModelView<? extends T> view) {
+        return new ModelRuleInput<T>(binding, view);
     }
 
-    public ModelReference<T> getReference() {
-        return reference;
+    public ModelBinding<T> getBinding() {
+        return binding;
     }
 
     public ModelView<? extends T> getView() {
@@ -40,6 +40,6 @@ public class ModelRuleInput<T> {
 
     @Override
     public String toString() {
-        return "ModelRuleInput{reference=" + reference + ", view=" + view + '}';
+        return "ModelRuleInput{binding=" + binding + ", view=" + view + '}';
     }
 }

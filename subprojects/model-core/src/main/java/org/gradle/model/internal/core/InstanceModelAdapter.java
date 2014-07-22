@@ -39,8 +39,8 @@ public class InstanceModelAdapter<I> implements ModelAdapter {
         return new InstanceModelAdapter<T>(type, factory);
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
-        return type(reference.getType());
+    public <T> ModelView<? extends T> asWritable(ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
+        return type(binding.getReference().getType());
     }
 
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type) {

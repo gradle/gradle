@@ -18,7 +18,8 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.internal.resolve.ProjectLocator;
 
@@ -32,7 +33,7 @@ public class VisualStudioProjectResolver {
     public VisualStudioProjectConfiguration lookupProjectConfiguration(ProjectNativeBinary nativeBinary) {
         // Looks in the correct project registry for this binary
         ProjectInternal componentProject = getComponentProject(nativeBinary);
-        VisualStudioExtension visualStudioExtension = componentProject.getModelRegistry().get(ModelReference.of("visualStudio", VisualStudioExtension.class));
+        VisualStudioExtension visualStudioExtension = componentProject.getModelRegistry().get(ModelPath.path("visualStudio"), ModelType.of(VisualStudioExtension.class));
         VisualStudioProjectRegistry projectRegistry = ((VisualStudioExtensionInternal) visualStudioExtension).getProjectRegistry();
         return projectRegistry.getProjectConfiguration(nativeBinary);
     }

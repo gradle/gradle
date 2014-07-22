@@ -16,76 +16,51 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
-
-import java.util.List;
-
+/**
+ * A binding of a reference to an actual model element.
+ * <p>
+ * A binding represents the knowledge that the model element referenced by the reference is known and can project a view of the reference type.
+ * Like the reference, whether the view is read or write is not inherent in the binding and is contextual.
+ */
 public class ModelBinding<T> {
 
-    private final ModelType<T> type;
+    private final ModelReference<T> reference;
     private final ModelPath path;
 
-    private ModelBinding(ModelType<T> type, @Nullable ModelPath path) {
-        this.type = type;
+    private ModelBinding(ModelReference<T> reference, ModelPath path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path cannot be null");
+        }
+        this.reference = reference;
         this.path = path;
     }
 
-    public static <T> ModelBinding<T> of(ModelPath modelPath, ModelType<T> type) {
-        return new ModelBinding<T>(type, modelPath);
-    }
-
     public static <T> ModelBinding<T> of(ModelReference<T> reference) {
-        return of(reference.getPath(), reference.getType());
+        if (reference.getPath() == null) {
+            throw new IllegalArgumentException("reference has no path: " + reference);
+        }
+
+        return new ModelBinding<T>(reference, reference.getPath());
     }
 
-    public static <T> ModelBinding<T> of(String path, Class<T> type) {
-        return of(new ModelPath(path), ModelType.of(type));
+    public static <T> ModelBinding<T> of(ModelReference<T> reference, ModelPath path) {
+        if (reference.getPath() != null && !reference.getPath().equals(path)) {
+            throw new IllegalArgumentException("mismatched paths: " + reference.getPath() + " & " + path);
+        } else {
+            return new ModelBinding<T>(reference, path);
+        }
     }
 
-
-    public ModelType<T> getType() {
-        return type;
+    public ModelReference<T> getReference() {
+        return reference;
     }
 
-    @Nullable
     public ModelPath getPath() {
         return path;
     }
 
-    public boolean isBound() {
-        return path != null;
-    }
-
-    public ModelBinding<T> bind(ModelPath path) {
-        if (isBound()) {
-            throw new IllegalStateException("Cannot bind model binding " + toString() + " to path '" + path + "' as it is already fully bound");
-        }
-
-        return of(path, type);
-    }
-
-    public ModelReference<T> getReference() {
-        if (!isBound()) {
-            throw new IllegalStateException("Binding is not bound");
-        }
-
-        return ModelReference.of(path, type);
-    }
-
     @Override
     public String toString() {
-        return "ModelBinding{type=" + type + ", path=" + path + '}';
+        return "ModelBinding{reference=" + reference + ", path=" + path + '}';
     }
-
-    public static List<ModelBinding<?>> toBindings(List<ModelReference<?>> references) {
-        return Lists.transform(references, new Function<ModelReference<?>, ModelBinding<?>>() {
-            @Nullable
-            public ModelBinding<?> apply(ModelReference<?> input) {
-                return of(input);
-            }
-        });
-    }
-
 }

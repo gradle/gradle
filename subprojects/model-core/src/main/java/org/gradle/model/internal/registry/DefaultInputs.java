@@ -41,6 +41,7 @@ public class DefaultInputs implements Inputs {
             @SuppressWarnings("unchecked") ModelView<? extends T> view = (ModelView<? extends T>) untypedView;
             return view;
         } else {
+            // TODO better exception type
             throw new IllegalArgumentException("Can't view input '" + i + "' (" + input.getView().getType() + ") as type '" + type + "'");
         }
     }
@@ -52,7 +53,7 @@ public class DefaultInputs implements Inputs {
     public List<ModelReference<?>> getReferences() {
         return Lists.transform(inputs, new Function<ModelRuleInput<?>, ModelReference<?>>() {
             public ModelReference<?> apply(ModelRuleInput<?> input) {
-                return input.getReference();
+                return input.getBinding().getReference();
             }
         });
     }

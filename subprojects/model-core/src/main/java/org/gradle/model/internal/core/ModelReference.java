@@ -16,12 +16,25 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.api.Nullable;
+
+/**
+ * A model reference is a speculative reference to a potential model element.
+ * <p>
+ * Rule subjects/inputs are defined in terms of references, as opposed to concrete identity.
+ * The reference may be by type only, or by path only.
+ * <p>
+ * A reference doesn't include the notion of readonly vs. writable as the context of the reference implies this.
+ * Having this be part of the reference would open opportunities for mismatch of that flag in the context.
+ *
+ * @param <T> the type of the reference.
+ */
 public class ModelReference<T> {
 
     private final ModelPath path;
     private final ModelType<T> type;
 
-    public ModelReference(ModelPath path, ModelType<T> type) {
+    private ModelReference(@Nullable ModelPath path, ModelType<T> type) {
         this.path = path;
         this.type = type;
     }
@@ -30,18 +43,23 @@ public class ModelReference<T> {
         return new ModelReference<T>(path, type);
     }
 
-    public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
-        return new ModelReference<T>(path, ModelType.of(type));
-    }
-
     public static <T> ModelReference<T> of(String path, Class<T> type) {
-        return new ModelReference<T>(new ModelPath(path), ModelType.of(type));
+        return of(ModelPath.path(path), ModelType.of(type));
     }
 
-    public ModelReference(String modelPath, ModelType<T> type) {
-        this(new ModelPath(modelPath), type);
+    public static <T> ModelReference<T> of(Class<T> type) {
+        return of(null, ModelType.of(type));
     }
 
+    public static <T> ModelReference<T> of(ModelType<T> type) {
+        return of(null, type);
+    }
+
+    public static ModelReference<Object> untyped(ModelPath path) {
+        return of(path, ModelType.UNTYPED);
+    }
+
+    @Nullable
     public ModelPath getPath() {
         return path;
     }

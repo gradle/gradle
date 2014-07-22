@@ -80,10 +80,10 @@ public class ModelRuleInspector {
     }
 
     public static void rule(final ModelRegistry modelRegistry, final Method method, final boolean isFinalizer, final Factory<?> instance) {
-        List<ModelBinding<?>> bindings = bindings(method);
+        List<ModelReference<?>> bindings = references(method);
 
-        ModelBinding<?> subject = bindings.get(0);
-        List<ModelBinding<?>> inputs = bindings.subList(1, bindings.size());
+        ModelReference<?> subject = bindings.get(0);
+        List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         MethodModelMutator<?> mutator = toMutator(method, instance, subject, inputs);
 
         if (isFinalizer) {
@@ -93,22 +93,22 @@ public class ModelRuleInspector {
         }
     }
 
-    private static <T> MethodModelMutator<T> toMutator(Method method, Factory<?> instance, ModelBinding<T> first, List<ModelBinding<?>> tail) {
+    private static <T> MethodModelMutator<T> toMutator(Method method, Factory<?> instance, ModelReference<T> first, List<ModelReference<?>> tail) {
         return new MethodModelMutator<T>(method, first, tail, instance);
     }
 
-    private static List<ModelBinding<?>> bindings(Method method) {
+    private static List<ModelReference<?>> references(Method method) {
         Type[] types = method.getGenericParameterTypes();
-        ImmutableList.Builder<ModelBinding<?>> inputBindingBuilder = ImmutableList.builder();
+        ImmutableList.Builder<ModelReference<?>> inputBindingBuilder = ImmutableList.builder();
         for (int i = 0; i < types.length; i++) {
             Type paramType = types[i];
             Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
-            inputBindingBuilder.add(binding(paramType, paramAnnotations));
+            inputBindingBuilder.add(reference(paramType, paramAnnotations));
         }
         return inputBindingBuilder.build();
     }
 
-    private static <T> ModelBinding<T> binding(Type type, Annotation[] annotations) {
+    private static <T> ModelReference<T> reference(Type type, Annotation[] annotations) {
         Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
             public boolean isSatisfiedBy(Annotation element) {
                 return element.annotationType().equals(Path.class);
@@ -116,7 +116,7 @@ public class ModelRuleInspector {
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
         @SuppressWarnings("unchecked") ModelType<T> cast = (ModelType<T>) ModelType.of(type);
-        return ModelBinding.of(path == null ? null : ModelPath.path(path), cast);
+        return ModelReference.of(path == null ? null : ModelPath.path(path), cast);
     }
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
@@ -208,29 +208,29 @@ public class ModelRuleInspector {
         doRegisterCreation(method, returnType, modelName, modelRegistry);
     }
 
-    private <T, R> void doRegisterCreation(final Method method, final ModelType<R> returnType, final String modelName, final ModelRegistry modelRegistry) {
+    private <T, R> void doRegisterCreation(final Method method, final ModelType<R> type, final String modelName, final ModelRegistry modelRegistry) {
         ModelPath path = ModelPath.path(modelName);
-        List<ModelBinding<?>> bindings = bindings(method);
+        List<ModelReference<?>> references = references(method);
         @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) method.getDeclaringClass();
-        @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawClass();
+        @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) type.getRawClass();
         JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
 
-        modelRegistry.create(new MethodModelCreator<R, T>(returnType, path, bindings, method, clazz, methodWrapper));
+        modelRegistry.create(new MethodModelCreator<R, T>(type, path, references, method, clazz, methodWrapper));
     }
 
     private static class MethodModelCreator<R, T> implements ModelCreator {
         private final ModelType<R> type;
         private final ModelPath path;
         private final ModelPromise promise;
-        private List<ModelBinding<?>> bindings;
+        private List<ModelReference<?>> inputs;
         private final Method method;
         private final Class<T> clazz;
         private final JavaMethod<T, R> methodWrapper;
 
-        public MethodModelCreator(ModelType<R> type, ModelPath path, List<ModelBinding<?>> bindings, Method method, Class<T> clazz, JavaMethod<T, R> methodWrapper) {
+        public MethodModelCreator(ModelType<R> type, ModelPath path, List<ModelReference<?>> inputs, Method method, Class<T> clazz, JavaMethod<T, R> methodWrapper) {
             this.type = type;
             this.path = path;
-            this.bindings = bindings;
+            this.inputs = inputs;
             this.promise = new SingleTypeModelPromise(type);
             this.method = method;
             this.clazz = clazz;
@@ -245,8 +245,8 @@ public class ModelRuleInspector {
             return promise;
         }
 
-        public List<ModelBinding<?>> getInputBindings() {
-            return bindings;
+        public List<ModelReference<?>> getInputs() {
+            return inputs;
         }
 
         public ModelAdapter create(Inputs inputs) {
@@ -265,7 +265,7 @@ public class ModelRuleInspector {
             } else {
                 Object[] args = new Object[inputs.size()];
                 for (int i = 0; i < inputs.size(); i++) {
-                    args[i] = inputs.get(i, bindings.get(i).getType()).getInstance();
+                    args[i] = inputs.get(i, this.inputs.get(i).getType()).getInstance();
                 }
 
                 return methodWrapper.invoke(instance, args);
@@ -342,11 +342,11 @@ public class ModelRuleInspector {
     private static class MethodModelMutator<T> implements org.gradle.model.internal.core.ModelMutator<T> {
         private final MethodModelRuleDescriptor descriptor;
         private final Method bindingMethod;
-        private final ModelBinding<T> subject;
-        private final List<ModelBinding<?>> inputs;
+        private final ModelReference<T> subject;
+        private final List<ModelReference<?>> inputs;
         private final Factory<?> instance;
 
-        public MethodModelMutator(Method method, ModelBinding<T> subject, List<ModelBinding<?>> inputs, Factory<?> instance) {
+        public MethodModelMutator(Method method, ModelReference<T> subject, List<ModelReference<?>> inputs, Factory<?> instance) {
             this.bindingMethod = method;
             this.subject = subject;
             this.inputs = inputs;
@@ -358,11 +358,11 @@ public class ModelRuleInspector {
             return descriptor;
         }
 
-        public ModelBinding<T> getBinding() {
+        public ModelReference<T> getSubject() {
             return subject;
         }
 
-        public List<ModelBinding<?>> getInputBindings() {
+        public List<ModelReference<?>> getInputs() {
             return inputs;
         }
 

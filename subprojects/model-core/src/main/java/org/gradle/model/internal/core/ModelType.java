@@ -45,6 +45,8 @@ public abstract class ModelType<T> {
         }
     }
 
+    public static final ModelType<Object> UNTYPED = ModelType.of(Object.class);
+
     private final TypeToken<T> typeToken;
 
     private ModelType(TypeToken<T> typeToken) {

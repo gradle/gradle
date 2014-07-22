@@ -21,11 +21,13 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 public class ModelElement {
 
     private final ModelPath path;
+    private final ModelPromise promise;
     private final ModelAdapter adapter;
     private final ModelRuleDescriptor creatorDescriptor;
 
-    public ModelElement(ModelPath path, ModelAdapter adapter, ModelRuleDescriptor creatorDescriptor) {
+    public ModelElement(ModelPath path, ModelPromise promise, ModelAdapter adapter, ModelRuleDescriptor creatorDescriptor) {
         this.path = path;
+        this.promise = promise;
         this.adapter = adapter;
         this.creatorDescriptor = creatorDescriptor;
     }
@@ -38,12 +40,16 @@ public class ModelElement {
         return adapter;
     }
 
+    public ModelPromise getPromise() {
+        return promise;
+    }
+
     public ModelRuleDescriptor getCreatorDescriptor() {
         return creatorDescriptor;
     }
 
     @Override
     public String toString() {
-        return "ModelElement{path=" + path + ", adapter=" + adapter + ", creatorDescriptor=" + creatorDescriptor + '}';
+        return "ModelElement{path=" + path + ", promise=" + promise + ", adapter=" + adapter + ", creatorDescriptor=" + creatorDescriptor + '}';
     }
 }

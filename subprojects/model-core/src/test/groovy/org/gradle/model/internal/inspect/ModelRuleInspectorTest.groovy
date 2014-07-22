@@ -67,7 +67,7 @@ class ModelRuleInspectorTest extends Specification {
         def state = registry.state(new ModelPath("modelPath"))
         state.status == ModelState.Status.PENDING
 
-        def element = registry.get(ModelReference.of("modelPath", ModelThing))
+        def element = registry.get(ModelPath.path("modelPath"), ModelType.of(ModelThing))
         element.name == "foo"
     }
 

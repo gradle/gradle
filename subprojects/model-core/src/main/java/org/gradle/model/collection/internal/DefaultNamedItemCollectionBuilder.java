@@ -71,7 +71,7 @@ public class DefaultNamedItemCollectionBuilder<T> implements NamedItemCollection
         ruleRegistrar.create(InstanceBackedModelCreator.of(
                 ModelReference.of(path, type),
                 descriptor,
-                ModelBinding.toBindings(implicitInputs.getReferences()),
+                implicitInputs.getReferences(),
                 new CreateAndConfigureFactory<S>(factory, configAction)
         ));
     }

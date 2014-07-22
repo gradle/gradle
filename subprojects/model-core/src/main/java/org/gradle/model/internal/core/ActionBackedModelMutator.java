@@ -23,36 +23,36 @@ import java.util.List;
 
 public class ActionBackedModelMutator<T> implements ModelMutator<T> {
 
-    private final ModelBinding<T> binding;
-    private final List<ModelBinding<?>> inputBindings;
-    private final ModelRuleDescriptor sourceDescriptor;
+    private final ModelReference<T> subject;
+    private final List<ModelReference<?>> inputs;
+    private final ModelRuleDescriptor descriptor;
     private final Action<? super T> action;
 
-    public ActionBackedModelMutator(ModelBinding<T> binding, List<ModelBinding<?>> inputBindings, ModelRuleDescriptor sourceDescriptor, Action<? super T> action) {
-        this.binding = binding;
-        this.inputBindings = inputBindings;
-        this.sourceDescriptor = sourceDescriptor;
+    public ActionBackedModelMutator(ModelReference<T> subject, List<ModelReference<?>> inputs, ModelRuleDescriptor descriptor, Action<? super T> action) {
+        this.subject = subject;
+        this.inputs = inputs;
+        this.descriptor = descriptor;
         this.action = action;
     }
 
-    public static <T> ModelMutator<T> of(ModelBinding<T> reference, List<ModelBinding<?>> bindings, ModelRuleDescriptor descriptor, Action<? super T> action) {
-        return new ActionBackedModelMutator<T>(reference, bindings, descriptor, action);
+    public static <T> ModelMutator<T> of(ModelReference<T> subject, List<ModelReference<?>> inputs, ModelRuleDescriptor descriptor, Action<? super T> action) {
+        return new ActionBackedModelMutator<T>(subject, inputs, descriptor, action);
     }
 
-    public ModelBinding<T> getBinding() {
-        return binding;
+    public ModelReference<T> getSubject() {
+        return subject;
     }
 
     public void mutate(T object, Inputs inputs) {
         action.execute(object);
     }
 
-    public List<ModelBinding<?>> getInputBindings() {
-        return inputBindings;
+    public List<ModelReference<?>> getInputs() {
+        return inputs;
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return sourceDescriptor;
+        return descriptor;
     }
 
 }

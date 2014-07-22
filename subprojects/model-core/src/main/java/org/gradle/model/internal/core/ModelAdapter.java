@@ -23,7 +23,7 @@ public interface ModelAdapter {
 
     @Nullable
         // if the model can't be viewed as this type
-    <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry);
+    <T> ModelView<? extends T> asWritable(ModelBinding<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry);
 
     @Nullable
         // if the model can't be viewed as this type

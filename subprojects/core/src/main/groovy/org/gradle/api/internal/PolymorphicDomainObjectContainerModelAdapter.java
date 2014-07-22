@@ -39,13 +39,13 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
         }.where(new ModelType.Parameter<I>() {}, itemType).build();
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
-        if (reference.getType().isAssignableFrom(containerType)) {
+    public <T> ModelView<? extends T> asWritable(ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
+        if (binding.getReference().getType().isAssignableFrom(containerType)) {
             @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) InstanceModelView.of(containerType, container);
             return cast;
-        } else if (reference.getType().isAssignableFrom(collectionBuilderModelType)) {
-            NamedItemCollectionBuilder<I> builder = new DefaultNamedItemCollectionBuilder<I>(reference.getPath(), new Instantiator(), sourceDescriptor, inputs, modelRuleRegistrar);
-            NamedItemCollectionBuilderModelView<I> view = new NamedItemCollectionBuilderModelView<I>(collectionBuilderModelType, builder, reference.getPath(), sourceDescriptor);
+        } else if (binding.getReference().getType().isAssignableFrom(collectionBuilderModelType)) {
+            NamedItemCollectionBuilder<I> builder = new DefaultNamedItemCollectionBuilder<I>(binding.getPath(), new Instantiator(), sourceDescriptor, inputs, modelRuleRegistrar);
+            NamedItemCollectionBuilderModelView<I> view = new NamedItemCollectionBuilderModelView<I>(collectionBuilderModelType, builder, binding.getPath(), sourceDescriptor);
             @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
             return cast;
         } else {

@@ -35,6 +35,7 @@ class InstanceModelAdapterTest extends Specification {
     }
 
     private static <T> ModelView<T> asWritable(ModelAdapter adapter, Class<T> type) {
-        adapter.asWritable(ModelReference.of("foo", type), null, null, null)  // can null these because we know they aren't used
+        def reference = ModelReference.of("foo", type)
+        adapter.asWritable(new ModelBinding(reference, reference.path), null, null, null)  // can null these because we know they aren't used
     }
 }

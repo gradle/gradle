@@ -48,11 +48,11 @@ public class RepositoriesFactory implements ModelCreator {
         this.fileResolver = fileResolver;
     }
 
-    public List<ModelBinding<?>> getInputBindings() {
-        return ImmutableList.<ModelBinding<?>>of(
-                ModelBinding.of(ModelPath.path("flavors"), ModelType.of(FlavorContainer.class)),
-                ModelBinding.of(ModelPath.path("platforms"), ModelType.of(PlatformContainer.class)),
-                ModelBinding.of(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer.class))
+    public List<ModelReference<?>> getInputs() {
+        return ImmutableList.<ModelReference<?>>of(
+                ModelReference.of("flavors", FlavorContainer.class),
+                ModelReference.of("platforms", PlatformContainer.class),
+                ModelReference.of("buildTypes", BuildTypeContainer.class)
         );
     }
 

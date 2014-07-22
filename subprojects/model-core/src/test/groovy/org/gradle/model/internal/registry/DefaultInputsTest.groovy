@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry
 
 import org.gradle.model.internal.core.InstanceModelView
+import org.gradle.model.internal.core.ModelBinding
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleInput
 import org.gradle.model.internal.core.ModelType
@@ -27,11 +28,13 @@ class DefaultInputsTest extends Specification {
     def foo = "foo"
     def bar = 1
     def fooRef = ModelReference.of("foo", String)
+    def fooBinding = ModelBinding.of(fooRef)
     def barRef = ModelReference.of("bar", Integer)
+    def barBinding = ModelBinding.of(barRef)
 
     def inputs = new DefaultInputs([
-            ModelRuleInput.of(fooRef, InstanceModelView.of(fooRef.type, foo)),
-            ModelRuleInput.of(barRef, InstanceModelView.of(barRef.type, bar))
+            ModelRuleInput.of(fooBinding, InstanceModelView.of(fooRef.type, foo)),
+            ModelRuleInput.of(barBinding, InstanceModelView.of(barRef.type, bar))
     ])
 
     def "size"() {

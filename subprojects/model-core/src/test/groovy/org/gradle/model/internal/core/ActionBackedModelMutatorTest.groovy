@@ -26,16 +26,16 @@ class ActionBackedModelMutatorTest extends Specification {
 
     def "action is called"() {
         when:
-        def foo = ModelBinding.of("foo", List)
-        def bar = ModelBinding.of("bar", List)
+        def foo = ModelReference.of("foo", List)
+        def bar = ModelReference.of("bar", List)
 
         def descriptor = new SimpleModelRuleDescriptor("foo")
 
         def fooList = []
-        registry.create(InstanceBackedModelCreator.of(foo.reference, descriptor, fooList))
+        registry.create(InstanceBackedModelCreator.of(foo, descriptor, fooList))
 
         def barList = []
-        registry.create(InstanceBackedModelCreator.of(bar.reference, descriptor, barList))
+        registry.create(InstanceBackedModelCreator.of(bar, descriptor, barList))
 
         registry.mutate(ActionBackedModelMutator.of(bar, [], descriptor) {
             it.add("bar")
@@ -46,7 +46,7 @@ class ActionBackedModelMutatorTest extends Specification {
         })
 
         then:
-        registry.get(foo.reference) == ["foo"]
+        registry.get(foo.path, foo.type) == ["foo"]
         barList == ["bar"] // foo rule depended on bar rule
     }
 

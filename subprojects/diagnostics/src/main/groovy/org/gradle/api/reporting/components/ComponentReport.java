@@ -25,7 +25,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.runtime.base.BinaryContainer;
@@ -73,7 +74,7 @@ public class ComponentReport extends DefaultTask {
         }
 
         try {
-            TestSuiteContainer testSuites = getModelRegistry().get(ModelReference.of("testSuites", TestSuiteContainer.class));
+            TestSuiteContainer testSuites = getModelRegistry().get(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
             components.addAll(testSuites);
         } catch (IllegalStateException e) {
             // TODO - need a better contract here

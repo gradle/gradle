@@ -202,14 +202,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 }
         ));
 
-        final ModelPath tasksModelPath = ModelPath.path(TaskContainerInternal.MODEL_PATH);
         final PolymorphicDomainObjectContainerModelAdapter<Task, TaskContainer> tasksModelAdapter = new PolymorphicDomainObjectContainerModelAdapter<Task, TaskContainer>(
                 getTasks(), ModelType.of(TaskContainer.class), ModelType.of(Task.class)
         );
 
         modelRegistry.create(new ModelCreator() {
             public ModelPath getPath() {
-                return tasksModelPath;
+                return TaskContainerInternal.MODEL_PATH;
             }
 
             public ModelPromise getPromise() {
@@ -220,7 +219,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 return tasksModelAdapter;
             }
 
-            public List<ModelBinding<?>> getInputBindings() {
+            public List<ModelReference<?>> getInputs() {
                 return Collections.emptyList();
             }
 
@@ -232,7 +231,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         taskContainer.all(new Action<Task>() {
             public void execute(final Task task) {
                 final String name = task.getName();
-                final ModelPath modelPath = tasksModelPath.child(name);
+                final ModelPath modelPath = TaskContainerInternal.MODEL_PATH.child(name);
 
                 if (modelRegistry.state(modelPath) == null) {
                     modelRegistry.create(InstanceBackedModelCreator.of(
@@ -246,7 +245,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         taskContainer.whenObjectRemoved(new Action<Task>() {
             public void execute(Task task) {
-                modelRegistry.remove(tasksModelPath.child(task.getName()));
+                modelRegistry.remove(TaskContainerInternal.MODEL_PATH.child(task.getName()));
             }
         });
 

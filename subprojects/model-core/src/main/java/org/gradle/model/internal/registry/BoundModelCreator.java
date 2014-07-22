@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model.internal.registry;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.ModelBinding;
+import org.gradle.model.internal.core.ModelCreator;
 
 import java.util.List;
 
-public interface ModelCreator {
+class BoundModelCreator {
 
-    ModelPath getPath();
+    private final ModelCreator creator;
+    private final List<ModelBinding<?>> inputs;
 
-    ModelPromise getPromise();
+    BoundModelCreator(ModelCreator creator, List<ModelBinding<?>> inputs) {
+        this.creator = creator;
+        this.inputs = inputs;
+    }
 
-    ModelAdapter create(Inputs inputs);
+    public ModelCreator getCreator() {
+        return creator;
+    }
 
-    List<ModelReference<?>> getInputs();
-
-    ModelRuleDescriptor getDescriptor();
-
+    public List<ModelBinding<?>> getInputs() {
+        return inputs;
+    }
 }

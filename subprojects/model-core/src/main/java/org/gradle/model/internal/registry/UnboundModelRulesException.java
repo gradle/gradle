@@ -16,19 +16,24 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.*;
+import org.gradle.api.GradleException;
 
-public interface ModelRegistry extends ModelRuleRegistrar {
+public class UnboundModelRulesException extends GradleException {
 
-    public <T> T get(ModelPath path, ModelType<T> type);
+    public UnboundModelRulesException(Iterable<RuleBinder<?>> bindings) {
+        super(toMessage(bindings));
+    }
 
-    public ModelElement element(ModelPath path);
+    private static String toMessage(Iterable<RuleBinder<?>> bindings) {
+        StringBuilder sb = new StringBuilder("The following model rules are unbound:\n");
+        for (RuleBinder<?> binding : bindings) {
+            sb.append("  ");
+            binding.getDescriptor().describeTo(sb);
+            sb.append("\n");
 
-    @Nullable // if not registered/known
-    public ModelState state(ModelPath path);
+            // TODO details of what is unbound
+        }
+        return sb.toString();
+    }
 
-    void remove(ModelPath path);
-
-    void close() throws UnboundModelRulesException;
 }

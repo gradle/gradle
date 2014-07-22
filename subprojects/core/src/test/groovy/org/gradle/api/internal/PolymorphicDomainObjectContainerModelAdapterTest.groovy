@@ -88,7 +88,7 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
         }
 
         @Override
-        List<? extends ModelReference<?>> getInputBindings() {
+        List<? extends ModelReference<?>> getInputs() {
             []
         }
 

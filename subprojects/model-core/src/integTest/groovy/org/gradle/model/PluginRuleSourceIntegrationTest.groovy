@@ -49,7 +49,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             // internal API here
             task value {
-                doFirst { println "value: " + modelRegistry.get(ModelReference.of("strings", List)) }
+                doFirst { println "value: " + modelRegistry.get(ModelPath.path("strings"), ModelType.of(List)) }
             }
         """
 
@@ -198,7 +198,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: MyPlugin
 
             // reaching into internals
-            assert modelRegistry.get(ModelReference.of("string", String)) == "foo"
+            assert modelRegistry.get(ModelPath.path("string"), ModelType.of(String)) == "foo"
 
             apply plugin: MyOtherPlugin
         """
@@ -230,7 +230,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             apply plugin: MyPlugin
 
-            assert modelRegistry.get(ModelReference.of("string", String)) == "foo"
+            assert modelRegistry.get(ModelPath.path("string"), ModelType.of(String)) == "foo"
         """
 
         then:
@@ -266,7 +266,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            modelRegistry.get(ModelReference.of("string", String))
+            modelRegistry.get(ModelPath.path("string"), ModelType.of(String))
         """
 
         then:
@@ -298,7 +298,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             apply plugin: MyPlugin
 
-            modelRegistry.get(ModelReference.of("string", String))
+            modelRegistry.get(ModelPath.path("string"), ModelType.of(String))
 
         """
 
@@ -322,7 +322,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Mutate
-                    void strings(List strings) {
+                    void strings(List<String> strings) {
                       strings << "foo"
                     }
                 }
@@ -336,7 +336,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Model
-                    List strings() {
+                    List<String> strings() {
                       []
                     }
                 }
@@ -346,7 +346,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             // internal API here
             task value {
-                doFirst { println "value: " + modelRegistry.get(ModelReference.of("strings", List)) }
+                doFirst { println "value: " + modelRegistry.get(ModelPath.path("strings"), new ModelType<List<String>>() {}) }
             }
         """
 

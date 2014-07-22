@@ -48,8 +48,8 @@ class InstanceBackedModelCreatorTest extends Specification {
         fooCreator.promise.asReadOnly(ModelType.of(List))
         fooCreator.promise.asWritable(ModelType.of(List))
 
-        registry.get(foo).is(fooList)
-        registry.get(bar).is(barList)
+        registry.get(foo.path, foo.type).is(fooList)
+        registry.get(bar.path, bar.type).is(barList)
     }
 
 }
