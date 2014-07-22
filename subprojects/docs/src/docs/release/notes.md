@@ -135,6 +135,10 @@ The generated POM file will contain the following content:
 
 This feature addresses [GRADLE-2945] was contributed by [Biswa Dahal](https://github.com/ffos).
 
+### Task visibility is exposed in Tooling API
+
+Tasks and selectors accessible from Tooling API now carry an information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
