@@ -28,7 +28,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
-import org.gradle.internal.DefaultTaskParameter;
+import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
 
@@ -52,7 +52,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
-    private List<TaskParameter> taskParameters = new ArrayList<TaskParameter>();
+    private List<TaskExecutionRequest> taskParameters = new ArrayList<TaskExecutionRequest>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
@@ -120,7 +120,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
-        p.taskParameters = new ArrayList<TaskParameter>(taskParameters);
+        p.taskParameters = new ArrayList<TaskExecutionRequest>(taskParameters);
         p.excludedTaskNames = new LinkedHashSet<String>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
         p.currentDir = currentDir;
@@ -219,15 +219,15 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed.
-     * If {@link org.gradle.TaskParameter}s are set for this build then names from these task parameters are returned.
+     * If {@link TaskExecutionRequest}s are set for this build then names from these task parameters are returned.
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */
     public List<String> getTaskNames() {
         return Lists.newArrayList(Iterables.transform(
                 taskParameters,
-                new Function<TaskParameter, String>() {
-                    public String apply(TaskParameter input) {
+                new Function<TaskExecutionRequest, String>() {
+                    public String apply(TaskExecutionRequest input) {
                         return input.getTaskName();
                     }
                 }));
@@ -242,9 +242,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public void setTaskNames(Iterable<String> taskNames) {
         this.taskParameters = Lists.newArrayList(Iterables.transform(
                 taskNames != null ? taskNames : Collections.<String>emptyList(),
-                    new Function<String, TaskParameter>() {
-                        public TaskParameter apply(String input) {
-                            return new DefaultTaskParameter(input);
+                    new Function<String, TaskExecutionRequest>() {
+                        public TaskExecutionRequest apply(String input) {
+                            return new DefaultTaskExecutionRequest(input);
                         }
                     }));
     }
@@ -255,7 +255,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the tasks to execute in this build. Never returns null.
      */
     @Incubating
-    public List<TaskParameter> getTaskParameters() {
+    public List<TaskExecutionRequest> getTaskParameters() {
         return taskParameters;
     }
 
@@ -266,7 +266,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param taskParameters the tasks to execute in this build.
      */
     @Incubating
-    public void setTaskParameters(Iterable<TaskParameter> taskParameters) {
+    public void setTaskParameters(Iterable<TaskExecutionRequest> taskParameters) {
         this.taskParameters = Lists.newArrayList(taskParameters);
     }
 

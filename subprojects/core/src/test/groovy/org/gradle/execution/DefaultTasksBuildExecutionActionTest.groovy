@@ -15,7 +15,7 @@
  */
 package org.gradle.execution
 
-import org.gradle.internal.DefaultTaskParameter
+import org.gradle.internal.DefaultTaskExecutionRequest
 import spock.lang.Specification
 import org.gradle.StartParameter
 import org.gradle.api.internal.project.ProjectInternal
@@ -36,7 +36,7 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
 
     def "proceeds when task names specified in StartParameter"() {
         given:
-        _ * startParameter.taskParameters >> [ new DefaultTaskParameter('a') ]
+        _ * startParameter.taskParameters >> [ new DefaultTaskExecutionRequest('a') ]
 
         when:
         action.configure(context)

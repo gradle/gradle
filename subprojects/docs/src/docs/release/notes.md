@@ -350,6 +350,10 @@ This applies to all named domain object containers in Gradle.
 
 TODO - replacement (@RuleSource) detail
 
+### TaskParameter replaced with TaskExecutionRequest
+
+Incubating class `TaskParameter` has been replaced with `TaskExecutionRequest`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

@@ -18,13 +18,13 @@ package org.gradle.tooling.internal.provider;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
-import org.gradle.TaskParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.internal.DefaultTaskParameter;
+import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
@@ -90,12 +90,12 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         if (launchables != null) {
             startParameter.setTaskParameters(Iterables.transform(
                     launchables,
-                    new Function<InternalLaunchable, TaskParameter>() {
-                        public TaskParameter apply(InternalLaunchable launchable) {
-                            if (launchable instanceof TaskParameter) {
+                    new Function<InternalLaunchable, TaskExecutionRequest>() {
+                        public TaskExecutionRequest apply(InternalLaunchable launchable) {
+                            if (launchable instanceof TaskExecutionRequest) {
                                 // make sure we don't send object graph with whole project structure back
-                                TaskParameter originalLaunchable = (TaskParameter) launchable;
-                                TaskParameter launchableImpl = new DefaultTaskParameter(
+                                TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
+                                TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(
                                         originalLaunchable.getTaskName(), originalLaunchable.getProjectPath());
                                 return launchableImpl;
                             }

@@ -16,12 +16,12 @@
 
 package org.gradle.tooling.internal.impl;
 
-import org.gradle.TaskParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 
 import java.io.Serializable;
 
-public class LaunchableGradleTask implements Serializable, InternalLaunchable, TaskParameter {
+public class LaunchableGradleTask implements Serializable, InternalLaunchable, TaskExecutionRequest {
 
     private String path;
     private String name;

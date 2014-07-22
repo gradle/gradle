@@ -18,22 +18,22 @@ package org.gradle.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import org.gradle.TaskParameter;
+import org.gradle.TaskExecutionRequest;
 
 import java.io.Serializable;
 
 /**
  * Adapter to create TaskParameter for a simple task name.
  */
-public class DefaultTaskParameter implements TaskParameter, Serializable {
+public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serializable {
     private final String taskName;
     private final String projectPath;
 
-    public DefaultTaskParameter(String taskName) {
+    public DefaultTaskExecutionRequest(String taskName) {
         this(taskName, null);
     }
 
-    public DefaultTaskParameter(String taskName, String projectPath) {
+    public DefaultTaskExecutionRequest(String taskName, String projectPath) {
         this.taskName = Preconditions.checkNotNull(taskName);
         this.projectPath = projectPath;
     }
@@ -55,7 +55,7 @@ public class DefaultTaskParameter implements TaskParameter, Serializable {
             return false;
         }
 
-        DefaultTaskParameter that = (DefaultTaskParameter) o;
+        DefaultTaskExecutionRequest that = (DefaultTaskExecutionRequest) o;
         if (!Objects.equal(projectPath, that.projectPath)) {
             return false;
         }
@@ -75,7 +75,7 @@ public class DefaultTaskParameter implements TaskParameter, Serializable {
 
     @Override
     public String toString() {
-        return "DefaultTaskParameter{"
+        return "DefaultTaskExecutionRequest{"
                 + "taskName='" + taskName + '\''
                 + ",projectPath='" + projectPath + '\''
                 + '}';

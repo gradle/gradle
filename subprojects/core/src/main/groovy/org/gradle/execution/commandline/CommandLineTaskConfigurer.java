@@ -19,7 +19,7 @@ package org.gradle.execution.commandline;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.TaskParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
@@ -27,7 +27,7 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
-import org.gradle.internal.DefaultTaskParameter;
+import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.Collection;
@@ -41,7 +41,7 @@ public class CommandLineTaskConfigurer {
         this.optionReader = optionReader;
     }
 
-    public List<TaskParameter> configureTasks(Collection<Task> tasks, List<TaskParameter> arguments) {
+    public List<TaskExecutionRequest> configureTasks(Collection<Task> tasks, List<TaskExecutionRequest> arguments) {
         assert !tasks.isEmpty();
         if (arguments.isEmpty()) {
             return arguments;
@@ -49,12 +49,12 @@ public class CommandLineTaskConfigurer {
         return configureTasksNow(tasks, arguments);
     }
 
-    private List<TaskParameter> configureTasksNow(Collection<Task> tasks, List<TaskParameter> arguments) {
+    private List<TaskExecutionRequest> configureTasksNow(Collection<Task> tasks, List<TaskExecutionRequest> arguments) {
         List<String> remainingArguments = null;
         List<String> argumentsOrParameters = Lists.newArrayList();
-        List<TaskParameter> parameters = Lists.newArrayList();
+        List<TaskExecutionRequest> parameters = Lists.newArrayList();
         boolean notArgument = false;
-        for (TaskParameter parameter : arguments) {
+        for (TaskExecutionRequest parameter : arguments) {
             if (parameter.getProjectPath() != null) {
                 notArgument = true;
             }
@@ -101,9 +101,9 @@ public class CommandLineTaskConfigurer {
         return Lists.newArrayList(Iterables.concat(
                 Iterables.transform(
                         remainingArguments,
-                        new Function<String, TaskParameter>() {
-                            public TaskParameter apply(String input) {
-                                return new DefaultTaskParameter(input);
+                        new Function<String, TaskExecutionRequest>() {
+                            public TaskExecutionRequest apply(String input) {
+                                return new DefaultTaskExecutionRequest(input);
                             }
                         }),
                 parameters));

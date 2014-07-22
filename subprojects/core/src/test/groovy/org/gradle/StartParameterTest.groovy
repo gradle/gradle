@@ -17,7 +17,7 @@
 package org.gradle
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.DefaultTaskParameter
+import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -334,11 +334,11 @@ class StartParameterTest extends Specification {
         StartParameter parameter = new StartParameter()
 
         when:
-        parameter.taskParameters = [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+        parameter.taskParameters = [ new DefaultTaskExecutionRequest('a'), new DefaultTaskExecutionRequest('b') ]
 
         then:
         parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+        parameter.taskParameters == [ new DefaultTaskExecutionRequest('a'), new DefaultTaskExecutionRequest('b') ]
     }
 
     def 'taskNames setter defaults to taskParameters'() {
@@ -349,7 +349,7 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+        parameter.taskParameters == [ new DefaultTaskExecutionRequest('a'), new DefaultTaskExecutionRequest('b') ]
 
         when:
         parameter.taskNames = null

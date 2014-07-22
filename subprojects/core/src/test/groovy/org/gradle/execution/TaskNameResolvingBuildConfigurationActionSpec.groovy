@@ -18,13 +18,13 @@ package org.gradle.execution
 
 import com.google.common.collect.Sets
 import org.gradle.StartParameter
-import org.gradle.TaskParameter
+import org.gradle.TaskExecutionRequest
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.execution.commandline.CommandLineTaskConfigurer
 import org.gradle.execution.commandline.CommandLineTaskParser
-import org.gradle.internal.DefaultTaskParameter
+import org.gradle.internal.DefaultTaskExecutionRequest
 import spock.lang.Specification
 
 class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
@@ -63,8 +63,8 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         given:
         def startParameters = Mock(StartParameter)
         def executer = Mock(TaskGraphExecuter)
-        TaskParameter taskParameter1 = new DefaultTaskParameter('task1', ':')
-        TaskParameter taskParameter2 = new DefaultTaskParameter('task2', ':')
+        TaskExecutionRequest taskParameter1 = new DefaultTaskExecutionRequest('task1', ':')
+        TaskExecutionRequest taskParameter2 = new DefaultTaskExecutionRequest('task2', ':')
         def selection1 = Mock(TaskSelector.TaskSelection)
         def task1a = Mock(Task)
         def task1b = Mock(Task)

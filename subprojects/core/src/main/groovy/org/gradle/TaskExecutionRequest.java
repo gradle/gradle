@@ -25,7 +25,7 @@ import org.gradle.api.Nullable;
  * @since 2.0
  */
 @Incubating
-public interface TaskParameter {
+public interface TaskExecutionRequest {
     /**
      * Task path for real tasks, selector name for task selectors.
      *
@@ -36,7 +36,7 @@ public interface TaskParameter {
     /**
      * Project path associated with this task parameter request if any.
      *
-     * @return project path or {@code null}.
+     * @return project path or {@code null} to use the default project path.
      */
     @Nullable String getProjectPath();
 }

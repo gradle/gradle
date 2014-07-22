@@ -15,7 +15,7 @@
  */
 package org.gradle.execution;
 
-import org.gradle.TaskParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -45,7 +45,7 @@ public class TaskSelector {
         return getSelection(path, gradle.getDefaultProject());
     }
 
-    public TaskSelection getSelection(TaskParameter taskParameter) {
+    public TaskSelection getSelection(TaskExecutionRequest taskParameter) {
         ProjectInternal project = taskParameter.getProjectPath() != null
                 ? gradle.getRootProject().findProject(taskParameter.getProjectPath())
                 : gradle.getDefaultProject();

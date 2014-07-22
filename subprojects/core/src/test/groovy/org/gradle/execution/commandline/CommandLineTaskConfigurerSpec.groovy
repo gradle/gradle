@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.api.tasks.TaskAction
 import org.gradle.execution.TaskSelector
-import org.gradle.internal.DefaultTaskParameter
+import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -147,7 +147,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
 
     def "configures options and returns unused arguments when TaskParameter is used"() {
         def args = toTaskParameters(['--someFlag', '--content', 'Hey!'])
-        def parameter = new DefaultTaskParameter('foo', ':')
+        def parameter = new DefaultTaskExecutionRequest('foo', ':')
         when:
         def out = configurer.configureTasks([task, task2], args + parameter)
         then:
@@ -175,7 +175,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
     }
 
     def toTaskParameters(List<String> arguments) {
-        arguments.collect { new DefaultTaskParameter(it) }
+        arguments.collect { new DefaultTaskExecutionRequest(it) }
     }
 
     public static class SomeTask extends DefaultTask {
