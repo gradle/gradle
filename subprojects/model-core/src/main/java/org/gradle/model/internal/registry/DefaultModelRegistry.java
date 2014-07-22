@@ -178,7 +178,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                             binder.bindInput(finalI, path);
                             return true;
                         }
-                    } else if (path == inputReference.getPath()) {
+                    } else if (path.equals(inputReference.getPath())) {
                         boolean typeCompatible = promise.asReadOnly(inputReference.getType());
                         if (typeCompatible) {
                             binder.bindInput(finalI, path);
