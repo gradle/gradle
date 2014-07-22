@@ -88,7 +88,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         for (Project child : project.getChildProjects().values()) {
             findTasks(child, tasks, visibleTasks);
         }
-        for (Task task : project.getTasks()) {
+        for (Task task : taskLister.listProjectTasks(project)) {
             tasks.add(task.getName());
             if (task.getGroup() != null) {
                 visibleTasks.add(task.getName());

@@ -60,7 +60,7 @@ project(':b:c') {
     @TargetGradleVersion(">=2.1")
     def "task visibility is correct"() {
         def publicTasks = rootProjectImplicitTasks.collect { ":" + it } + [':t2']
-        def publicSelectors = ['t1', 't2']
+        def publicSelectors = rootProjectImplicitTasks + ['t1', 't2']
 
         when:
         BuildInvocations model = withConnection { connection ->
@@ -68,7 +68,7 @@ project(':b:c') {
         }
 
         then:
-        model.tasks.every { Task t -> assert publicTasks.contains(t.path) == t.visible; true }
+        model.tasks.every { Task t -> publicTasks.contains(t.path) == t.visible }
         model.taskSelectors.every { TaskSelector ts -> publicSelectors.contains(ts.name) == ts.visible }
     }
 

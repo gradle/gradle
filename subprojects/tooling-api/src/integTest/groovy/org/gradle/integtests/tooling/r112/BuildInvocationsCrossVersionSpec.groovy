@@ -67,7 +67,7 @@ project(':b:c') {
         e.cause.message.startsWith('No model of type \'BuildInvocations\' is available in this build.')
     }
 
-    @TargetGradleVersion(">=1.12")
+    @TargetGradleVersion(">=1.12 <=2.0")
     def "can request task selectors in action"() {
         when:
         Map<String, Set<String>> result = withConnection { connection ->
@@ -80,6 +80,21 @@ project(':b:c') {
         result['b'] == ['t1', 't2', 't3'] as Set
         result['c'] == ['t1', 't2'] as Set
         result['a'].isEmpty()
+    }
+
+    @TargetGradleVersion(">=2.1")
+    def "can request task selectors including implicit tasks in action"() {
+        when:
+        Map<String, Set<String>> result = withConnection { connection ->
+            connection.action(new FetchAllTaskSelectorsBuildAction()).run() }
+
+        then:
+        result != null
+        result.keySet() == ['test', 'a', 'b', 'c'] as Set
+        result['test'] == rootProjectImplicitTasks + ['t1', 't2', 't3'] as Set
+        result['b'] == implicitTasks + ['t1', 't2', 't3'] as Set
+        result['c'] == implicitTasks + ['t1', 't2'] as Set
+        result['a'] == implicitTasks
     }
 
     @TargetGradleVersion(">=1.12")
@@ -147,13 +162,14 @@ project(':b:c') {
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
+        def expectedBuiltinNames = targetDist.version.compareTo(targetDist.version.version('2.0')) > 0 ? rootProjectImplicitTasks : []
 
         when:
         def selectors = model.taskSelectors.findAll { TaskSelector it ->
             !it.description.startsWith(':') && it.name != 'setupBuild' // synthetic task in 1.6
         }
         then:
-        selectors*.name as Set == ['t1', 't2', 't3'] as Set
+        selectors*.name as Set == expectedBuiltinNames + ['t1', 't2', 't3'] as Set
     }
 
     @TargetGradleVersion("=1.12")
