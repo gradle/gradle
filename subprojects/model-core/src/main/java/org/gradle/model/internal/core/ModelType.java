@@ -88,8 +88,7 @@ public abstract class ModelType<T> {
             List<Type> types = Arrays.asList(((ParameterizedType) typeToken.getType()).getActualTypeArguments());
             return ImmutableList.<ModelType<?>>builder().addAll(Iterables.transform(types, new Function<Type, ModelType<?>>() {
                 public ModelType<?> apply(Type input) {
-                    @SuppressWarnings("unchecked") ModelType raw = new Simple(TypeToken.of(input));
-                    return raw;
+                    return ModelType.of(input);
                 }
             })).build();
         } else {
