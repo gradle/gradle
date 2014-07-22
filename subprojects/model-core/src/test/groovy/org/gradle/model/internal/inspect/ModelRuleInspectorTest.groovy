@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.inspect
 
-import com.google.common.reflect.TypeToken
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
@@ -128,11 +127,11 @@ class ModelRuleInspectorTest extends Specification {
         when:
         inspector.inspect(ConcreteGenericModelType, registry)
         def element = registry.element(new ModelPath("strings"))
-        def type = element.adapter.asReadOnly(ModelType.of(new TypeToken<List<String>>() {})).type
+        def type = element.adapter.asReadOnly(new ModelType<List<String>>() {}).type
 
         then:
         type.parameterized
-        type.typeVariables[0] == new ModelType(String)
+        type.typeVariables[0] == ModelType.of(String)
     }
 
     static interface HasStrings<T> {
@@ -150,11 +149,11 @@ class ModelRuleInspectorTest extends Specification {
         when:
         inspector.inspect(ConcreteGenericModelTypeImplementingGenericInterface, registry)
         def element = registry.element(new ModelPath("strings"))
-        def type = element.adapter.asReadOnly(ModelType.of(new TypeToken<List<String>>() {})).type
+        def type = element.adapter.asReadOnly(new ModelType<List<String>>() {}).type
 
         then:
         type.parameterized
-        type.typeVariables[0] == new ModelType(String)
+        type.typeVariables[0] == ModelType.of(String)
     }
 
     static class HasRuleWithIdentityCrisis {
@@ -205,7 +204,7 @@ class ModelRuleInspectorTest extends Specification {
     def "mutation rules are registered"() {
         given:
         def path = new ModelPath("strings")
-        def type = ModelType.of(new TypeToken<List<String>>() {})
+        def type = new ModelType<List<String>>() {}
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
@@ -239,7 +238,7 @@ class ModelRuleInspectorTest extends Specification {
     def "finalize rules are registered"() {
         given:
         def path = new ModelPath("strings")
-        def type = ModelType.of(new TypeToken<List<String>>() {})
+        def type = new ModelType<List<String>>() {}
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
@@ -255,10 +254,10 @@ class ModelRuleInspectorTest extends Specification {
     def "methods are processed ordered by their to string representation"() {
         given:
         def path = new ModelPath("strings")
-        def type = ModelType.of(new TypeToken<List<String>>() {})
+        def type = new ModelType<List<String>>() {}
 
         registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
-        registry.create(InstanceBackedModelCreator.of(ModelReference.of(ModelPath.path("integers"), ModelType.of(new TypeToken<List<Integer>>() {})), new SimpleModelRuleDescriptor("integers"), []))
+        registry.create(InstanceBackedModelCreator.of(ModelReference.of(ModelPath.path("integers"), new ModelType<List<Integer>>() {}), new SimpleModelRuleDescriptor("integers"), []))
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registryMock)

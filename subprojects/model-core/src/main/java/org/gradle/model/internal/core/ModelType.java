@@ -19,41 +19,62 @@ package org.gradle.model.internal.core;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-// TODO restrict this to concrete types, validated recursively
-public class ModelType<T> {
+/**
+ * A type token for the type of a model element.
+ * <p>
+ * Borrows from Guava's type token.
+ * Represent a fully resolved/bound type.
+ */
+public abstract class ModelType<T> {
+    // TODO restrict this to concrete types, validated recursively
+    // TODO analyze performance cost of wrapping Guava's type token instead of inlining the code
+
+    private static class Simple<T> extends ModelType<T> {
+        private Simple(TypeToken<T> typeToken) {
+            super(typeToken);
+        }
+    }
 
     private final TypeToken<T> typeToken;
 
-    public ModelType(TypeToken<T> typeToken) {
+    private ModelType(TypeToken<T> typeToken) {
         this.typeToken = typeToken;
     }
 
-    public ModelType(Class<T> clazz) {
-        this(TypeToken.of(clazz));
+    protected ModelType() {
+        typeToken = new TypeToken<T>(getClass()) {
+        };
+    }
+
+    protected ModelType(final Class<?> clazz) {
+        this(new TypeToken<T>(clazz) {
+        });
     }
 
     public static <T> ModelType<T> of(Class<T> clazz) {
-        return new ModelType<T>(clazz);
+        return new Simple<T>(TypeToken.of(clazz));
     }
 
-    public static <T> ModelType<T> of(TypeToken<T> type) {
-        return new ModelType<T>(type);
+    public static ModelType<?> of(Type type) {
+        return toModelType(TypeToken.of(type));
+    }
+
+    private static <T> ModelType<T> toModelType(TypeToken<T> type) {
+        return new Simple<T>(type);
     }
 
     public Class<? super T> getRawClass() {
         return typeToken.getRawType();
-    }
-
-    public TypeToken<T> getToken() {
-        return typeToken;
     }
 
     public boolean isParameterized() {
@@ -65,7 +86,7 @@ public class ModelType<T> {
             List<Type> types = Arrays.asList(((ParameterizedType) typeToken.getType()).getActualTypeArguments());
             return ImmutableList.<ModelType<?>>builder().addAll(Iterables.transform(types, new Function<Type, ModelType<?>>() {
                 public ModelType<?> apply(Type input) {
-                    @SuppressWarnings("unchecked") ModelType raw = new ModelType(TypeToken.of(input));
+                    @SuppressWarnings("unchecked") ModelType raw = new Simple(TypeToken.of(input));
                     return raw;
                 }
             })).build();
@@ -80,7 +101,7 @@ public class ModelType<T> {
 
     @Override
     public String toString() {
-        return "ModelType{" + typeToken + '}';
+        return typeToken.toString();
     }
 
     @Override
@@ -88,7 +109,7 @@ public class ModelType<T> {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof ModelType)) {
             return false;
         }
 
@@ -100,5 +121,40 @@ public class ModelType<T> {
     @Override
     public int hashCode() {
         return typeToken.hashCode();
+    }
+
+    abstract public static class Builder<T> {
+        private TypeToken<T> typeToken;
+
+        public Builder() {
+            typeToken = new TypeToken<T>(getClass()) {
+            };
+        }
+
+        @SuppressWarnings("unchecked")
+        public <I> Builder<T> where(Parameter<I> parameter, ModelType<I> type) {
+            TypeResolver resolver = new TypeResolver().where(parameter.typeVariable, type.typeToken.getType());
+            typeToken = (TypeToken<T>) TypeToken.of(resolver.resolveType(typeToken.getType()));
+            return this;
+        }
+
+        public ModelType<T> build() {
+            return new Simple<T>(typeToken);
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    abstract public static class Parameter<T> {
+        private final TypeVariable<?> typeVariable;
+
+        public Parameter() {
+            Type type = new TypeToken<T>(getClass()) {
+            }.getType();
+            if (type instanceof TypeVariable<?>) {
+                this.typeVariable = (TypeVariable<?>) type;
+            } else {
+                throw new IllegalStateException("T for Parameter<T> MUST be a type variable");
+            }
+        }
     }
 }

@@ -16,14 +16,13 @@
 
 package org.gradle.model.internal.core
 
-import com.google.common.reflect.TypeToken
 import spock.lang.Specification
 
 class SingleTypeModelPromiseTest extends Specification {
 
     def "promise"() {
         when:
-        def type = ModelType.of(new TypeToken<List<CharSequence>>() {})
+        def type = new ModelType<List<CharSequence>>() {}
         def promise = new SingleTypeModelPromise(type)
 
         then:
@@ -31,7 +30,7 @@ class SingleTypeModelPromiseTest extends Specification {
         promise.asWritable(type)
 
         when:
-        def supertype = ModelType.of(new TypeToken<List<? extends Object>>() {})
+        def supertype = new ModelType<List<? extends Object>>() {}
 
         then:
         promise.asReadOnly(supertype)

@@ -16,18 +16,17 @@
 
 package org.gradle.model.internal.core
 
-import com.google.common.reflect.TypeToken
 import spock.lang.Specification
 
 class ModelTypeTest extends Specification {
 
     def "represents type variables"() {
         when:
-        def type = ModelType.of(new TypeToken<Map<String, Map<Integer, Float>>>() {})
+        def type = new ModelType<Map<String, Map<Integer, Float>>>() {}
 
         then:
         type.typeVariables[0] == ModelType.of(String)
-        type.typeVariables[1] == ModelType.of(new TypeToken<Map<Integer, Float>>() {})
+        type.typeVariables[1] == new ModelType<Map<Integer, Float>>() {}
         type.typeVariables[1].typeVariables[0] == ModelType.of(Integer)
         type.typeVariables[1].typeVariables[1] == ModelType.of(Float)
     }

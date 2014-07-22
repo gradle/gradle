@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.reflect.TypeParameter;
-import com.google.common.reflect.TypeToken;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.model.collection.NamedItemCollectionBuilder;
 import org.gradle.model.collection.NamedItemCollectionBuilderModelView;
@@ -33,13 +31,12 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
     private final ModelType<I> itemType;
     private final ModelType<NamedItemCollectionBuilder<I>> collectionBuilderModelType;
 
-    public PolymorphicDomainObjectContainerModelAdapter(C container, ModelType<C> containerType, ModelType<I> itemType) {
+    public PolymorphicDomainObjectContainerModelAdapter(C container, ModelType<C> containerType, final ModelType<I> itemType) {
         this.container = container;
         this.containerType = containerType;
         this.itemType = itemType;
-        this.collectionBuilderModelType = ModelType.of(new TypeToken<NamedItemCollectionBuilder<I>>() {
-        }.where(new TypeParameter<I>() {
-        }, itemType.getToken()));
+        this.collectionBuilderModelType = new ModelType.Builder<NamedItemCollectionBuilder<I>>() {
+        }.where(new ModelType.Parameter<I>() {}, itemType).build();
     }
 
     public <T> ModelView<? extends T> asWritable(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {

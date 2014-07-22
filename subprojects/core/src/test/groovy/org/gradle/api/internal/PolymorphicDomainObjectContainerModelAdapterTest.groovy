@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal
 
-import com.google.common.reflect.TypeToken
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -68,7 +67,7 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
             container, ModelType.of(ThingContainer), ModelType.of(NamedThing)
     )
 
-    def builderType = ModelType.of(new TypeToken<NamedItemCollectionBuilder<NamedThing>>() {})
+    def builderType = new ModelType<NamedItemCollectionBuilder<NamedThing>>() {}
 
     def registry = new DefaultModelRegistry()
     def reference = ModelReference.of("container", ThingContainer)

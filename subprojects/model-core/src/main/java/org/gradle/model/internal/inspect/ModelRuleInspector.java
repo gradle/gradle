@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.reflect.TypeToken;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -116,8 +115,8 @@ public class ModelRuleInspector {
             }
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
-        @SuppressWarnings("unchecked") TypeToken<T> cast = (TypeToken<T>) TypeToken.of(type);
-        return ModelBinding.of(path == null ? null : ModelPath.path(path), ModelType.of(cast));
+        @SuppressWarnings("unchecked") ModelType<T> cast = (ModelType<T>) ModelType.of(type);
+        return ModelBinding.of(path == null ? null : ModelPath.path(path), cast);
     }
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
@@ -204,20 +203,19 @@ public class ModelRuleInspector {
 
         // TODO validate the return type (generics?)
 
-        TypeToken<?> returnType = TypeToken.of(method.getGenericReturnType());
+        ModelType<?> returnType = ModelType.of(method.getGenericReturnType());
 
         doRegisterCreation(method, returnType, modelName, modelRegistry);
     }
 
-    private <T, R> void doRegisterCreation(final Method method, final TypeToken<R> returnType, final String modelName, final ModelRegistry modelRegistry) {
+    private <T, R> void doRegisterCreation(final Method method, final ModelType<R> returnType, final String modelName, final ModelRegistry modelRegistry) {
         ModelPath path = ModelPath.path(modelName);
-        ModelType<R> type = new ModelType<R>(returnType);
         List<ModelBinding<?>> bindings = bindings(method);
         @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) method.getDeclaringClass();
-        @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawType();
+        @SuppressWarnings("unchecked") Class<R> returnTypeClass = (Class<R>) returnType.getRawClass();
         JavaMethod<T, R> methodWrapper = JavaReflectionUtil.method(clazz, returnTypeClass, method);
 
-        modelRegistry.create(new MethodModelCreator<R, T>(type, path, bindings, method, clazz, methodWrapper));
+        modelRegistry.create(new MethodModelCreator<R, T>(returnType, path, bindings, method, clazz, methodWrapper));
     }
 
     private static class MethodModelCreator<R, T> implements ModelCreator {

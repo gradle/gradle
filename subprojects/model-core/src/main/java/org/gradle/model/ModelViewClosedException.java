@@ -25,7 +25,7 @@ public class ModelViewClosedException extends GradleException {
 
     public ModelViewClosedException(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
         super(String.format(
-                "Attempt to mutate closed view of model '%s' of type '%s' given to rule '%s'", path, type.getToken(), ruleDescriptor
+                "Attempt to mutate closed view of model '%s' of type '%s' given to rule '%s'", path, type, ruleDescriptor
         ));
     }
 

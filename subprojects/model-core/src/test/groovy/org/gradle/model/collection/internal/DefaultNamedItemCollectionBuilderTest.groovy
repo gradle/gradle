@@ -16,7 +16,6 @@
 
 package org.gradle.model.collection.internal
 
-import com.google.common.reflect.TypeToken
 import org.gradle.model.entity.internal.NamedEntityInstantiator
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelState
@@ -28,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultNamedItemCollectionBuilderTest extends Specification {
 
-    def type = ModelType.of(new TypeToken<NamedThing>() {})
+    def type = new ModelType<NamedThing>() {}
 
     class NamedThing {
         String name
