@@ -245,7 +245,7 @@ Development of this feature depends on the first 2 stories from the `unified-con
 
 Define a sample plugin that declares a custom library type:
     
-    interface SampleLibrary extends Library { ... }
+    interface SampleLibrary extends LibrarySpec { ... }
     class DefaultSampleLibrary implements SampleLibrary { ... }
 
     class MySamplePlugin implements Plugin<Project> {
@@ -271,33 +271,58 @@ Libraries are then visible in libraries and components containers:
     assert projectComponents.withType(SampleLibrary).size() == 2
 
 A custom library type:
-- Extends or implements some public base `Library` type.
+- Extends or implements the public base `LibrarySpec` type.
 - Has no dependencies.
+- Has no sources.
 - Produces no artifacts.
+
+A custom library implementation:
+- Implements the custom library type
+- Has a single constructor marked with `@Inject` with a single parameter of type `ComponentSpecIdentifier`
 
 #### Implementation Plan
 
-- New annotation `ComponentModel` with parameter of `Class<? extends Library>`
-- If a plugin RuleSource has a @ComponentModel annotation
-    - Automatically apply the `ComponentModelBasePlugin`
-    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<SampleLibrary>` view of the `ProjectComponentContainer`.
-- Add a sample to demonstrate creating a custom component plugin
+- Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.
+- Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.
+- Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere
+
+    ComponentSpecIdentifier extends Named { String getProjectPath() }
+
+- Add a new Sample for a custom plugin that uses model rules to add `SampleLibrary` instances to the `ComponentSpecContainer`
+    - Should apply the `ComponentModelBasePlugin`
+    - At the end of the story the sample will be adapted to use the new mechanism introduced
+    - Add an integration test for the sample
+- Whenever the `ComponentModelBasePlugin` is applied (with or without @ComponentModel annotation)
+    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<LibrarySpec>` view of the `ComponentSpecContainer`.
+        - The builder implementation should generate a `ComponentSpecIdentifier` with the supplied name, instantiate the component and add it to the `ComponentSpecContainer`.
+- Add a new incubating annotation to the 'language-base' project: `ComponentModel` with parameter of `Class<? extends LibrarySpec>`
+- Add functionality to the 'language-base' plugin that registers a hook that inspects every applied plugin for a nested class with the @ComponentModel annotation
+    - Implement by adding a `Action<? super PluginApplication>` to `DefaultPluginContainer`, via `PluginServiceRegistry`.
+- When a plugin is applied that has a nested class with the `@ComponentModel(SampleLibrary)` annotation:
+    - Automatically apply the `ComponentModelBasePlugin` before the plugin is applied
+    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<SampleLibrary>` view of the `ComponentSpecContainer`.
+        - The builder implementation should generate a `ComponentSpecIdentifier` with the supplied name, and instantiate the component.
 
 #### Test cases
 
-- Does not add any components for inner class with `@ComponentModel` but no rules for creating libraries
+- Does not add any components for nested class with `@ComponentModel` but no rules for creating
+- Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` without a `@ComponentModel` annotation
 - Configured libraries are available in `projectComponents` container for
-    - Single inner class has both `@ComponentModel` as well as `@RuleSource` and rule for creating libraries
-    - Separate inner classes declare `@ComponentModel` and `@RuleSource`
+    - Single nested class has both `@ComponentModel` as well as `@RuleSource` and rule for creating libraries
+    - Separate nested classes declare `@ComponentModel` and `@RuleSource`
     - Separate plugins define `@ComponentModel` and `@RuleSource`
 - Can define and create 2 component types in the same plugin with 2 `@ComponentModel` annotated inner classes
-- Can define 2 component types with separate plugins
+- Friendly error message when supplied library implementation:
+    - Has no constructor annotated with @Inject
+    - Has multiple constructors annotated with @Inject
+    - Single annotated constructor does not have a single parameter of type `ComponentSpecIdentifier`
 
 #### Open issues
 
 - Need some public way to easily 'implement' Library and commons subtypes such as `ProjectComponent`. For example, a public default implementation that can be extended (should have no-args constructor) or generate the implementation from the interface.
 - Interaction with the `model { }` block.
 - Need some way to declare a component model, without necessarily defining any particular component instances.
+- Injection of inputs into component constructor.
 
 ### Story: Custom plugin defines binaries for each custom library
 
@@ -323,15 +348,16 @@ Binaries are now visible in the appropriate containers:
 
 Running `gradle assemble` will execute lifecycle task for each library binary.
 
-A custom binary:
-- Extends or implements some public base `LibraryBinary` type.
+A custom binary type:
+- Implements some public base `LibraryBinarySpec` type.
 - Has some lifecycle task to build its outputs.
 
 #### Implementation Plan
 
-- For a library-producing plugin:
-    - Inspect any declared rules that take the created library type as input, and produce LibraryBinary instances
-      via a `CollectionBuilder<? extends LibraryBinary> parameter.
+- Register a
+- For a custom component-model plugin:
+    - Inspect the declared library type for an overloaded `getBinaries()` method, to determine the library binary type.
+    - If a custom type is found, register
 - The binary-creation rule will be executed for each library when closing the BinariesContainer.
 - For each created binary, create the lifecycle task
 - Document in the user guide how to use this. Include some samples.
