@@ -21,7 +21,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultProjectNativeExecutable
 import org.gradle.nativebinaries.internal.DefaultProjectNativeLibrary
-import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier
+import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
@@ -37,7 +37,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
     def buildType = Mock(BuildType)
     def flavor = Mock(Flavor)
 
-    def id = new DefaultNamedProjectComponentIdentifier("project", "name")
+    def id = new DefaultComponentSpecIdentifier("project", "name")
 
     def namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder().withComponentName("test")
     def factory = new DefaultNativeBinariesFactory(new DirectInstantiator(), configAction, resolver)

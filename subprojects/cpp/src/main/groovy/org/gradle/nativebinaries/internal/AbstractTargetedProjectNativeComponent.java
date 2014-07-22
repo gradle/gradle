@@ -20,7 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.platform.Platform;
-import org.gradle.runtime.base.NamedProjectComponentIdentifier;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,7 +33,7 @@ public abstract class AbstractTargetedProjectNativeComponent extends AbstractPro
     private final Set<String> buildTypes = new HashSet<String>();
     private final Set<String> flavors = new HashSet<String>();
 
-    public AbstractTargetedProjectNativeComponent(NamedProjectComponentIdentifier id) {
+    public AbstractTargetedProjectNativeComponent(ComponentSpecIdentifier id) {
         super(id);
     }
 

@@ -18,11 +18,11 @@ package org.gradle.runtime.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 /**
  * An identifier for a {@link org.gradle.runtime.base.ProjectComponent}, which has a name.
  */
 @Incubating
-public interface NamedProjectComponentIdentifier extends ProjectComponentIdentifier, Named {
+public interface ComponentSpecIdentifier extends Named {
+    String getProjectPath();
 }

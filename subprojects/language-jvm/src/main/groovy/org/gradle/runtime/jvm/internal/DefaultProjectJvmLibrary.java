@@ -21,16 +21,16 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.runtime.base.NamedProjectComponentIdentifier;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
 import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
 
 public class DefaultProjectJvmLibrary implements ProjectJvmLibrary {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
-    private final NamedProjectComponentIdentifier identifier;
+    private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<ProjectJvmLibraryBinary> binaries = new DefaultDomainObjectSet<ProjectJvmLibraryBinary>(ProjectJvmLibraryBinary.class);
 
-    public DefaultProjectJvmLibrary(NamedProjectComponentIdentifier identifier) {
+    public DefaultProjectJvmLibrary(ComponentSpecIdentifier identifier) {
         this.identifier = identifier;
     }
 

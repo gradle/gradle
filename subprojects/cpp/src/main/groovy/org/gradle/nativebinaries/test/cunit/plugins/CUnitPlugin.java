@@ -46,10 +46,10 @@ import org.gradle.nativebinaries.test.cunit.tasks.GenerateCUnitLauncher;
 import org.gradle.nativebinaries.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.NamedProjectComponentIdentifier;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier;
+import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
 
@@ -84,7 +84,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         private CUnitTestSuite createCUnitTestSuite(final ProjectNativeComponent testedComponent, Instantiator instantiator) {
             String suiteName = String.format("%sTest", testedComponent.getName());
             String path = testedComponent.getProjectPath();
-            NamedProjectComponentIdentifier id = new DefaultNamedProjectComponentIdentifier(path, suiteName);
+            ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
             return instantiator.newInstance(DefaultCUnitTestSuite.class, id, testedComponent);
         }
 

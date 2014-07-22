@@ -284,7 +284,7 @@ A custom library implementation:
 
 - Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.
 - Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.
-- Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere
+- ~~Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere~~
 
     ComponentSpecIdentifier extends Named { String getProjectPath() }
 

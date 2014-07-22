@@ -21,17 +21,17 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.runtime.base.NamedProjectComponentIdentifier;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.util.GUtil;
 
 public abstract class AbstractProjectNativeComponent implements ProjectNativeComponent {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
-    private final NamedProjectComponentIdentifier id;
+    private final ComponentSpecIdentifier id;
     private final DefaultDomainObjectSet<ProjectNativeBinary> binaries;
 
     private String baseName;
 
-    public AbstractProjectNativeComponent(NamedProjectComponentIdentifier id) {
+    public AbstractProjectNativeComponent(ComponentSpecIdentifier id) {
         this.id = id;
         binaries = new DefaultDomainObjectSet<ProjectNativeBinary>(ProjectNativeBinary.class);
     }

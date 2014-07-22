@@ -19,7 +19,7 @@ package org.gradle.runtime.jvm.internal.plugins
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.runtime.base.BinaryContainer
-import org.gradle.runtime.base.NamedProjectComponentIdentifier
+import org.gradle.runtime.base.ComponentSpecIdentifier
 import org.gradle.runtime.base.ProjectBinary
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
@@ -93,7 +93,7 @@ class CreateJvmBinariesTest extends Specification {
     }
 
     def componentId(def name, def path) {
-        Stub(NamedProjectComponentIdentifier) {
+        Stub(ComponentSpecIdentifier) {
             getName() >> name
             getProjectPath() >> path
         }

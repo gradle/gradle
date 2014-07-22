@@ -15,20 +15,18 @@
  */
 package org.gradle.runtime.base.internal;
 
-import org.gradle.runtime.base.NamedProjectComponentIdentifier;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
 
 /**
- * An identifier for a native component that is built as part of the current build.
+ * An identifier for a component that is built as part of the current build.
  */
-public class DefaultNamedProjectComponentIdentifier implements NamedProjectComponentIdentifier {
+public class DefaultComponentSpecIdentifier implements ComponentSpecIdentifier {
     private final String projectPath;
     private final String name;
-    private final String displayName;
 
-    public DefaultNamedProjectComponentIdentifier(String projectPath, String name) {
+    public DefaultComponentSpecIdentifier(String projectPath, String name) {
         this.projectPath = projectPath;
         this.name = name;
-        displayName = String.format("%s:%s", projectPath, name);
     }
 
     public String getName() {
@@ -39,20 +37,16 @@ public class DefaultNamedProjectComponentIdentifier implements NamedProjectCompo
         return projectPath;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DefaultNamedProjectComponentIdentifier)) {
+        if (!(o instanceof DefaultComponentSpecIdentifier)) {
             return false;
         }
 
-        DefaultNamedProjectComponentIdentifier that = (DefaultNamedProjectComponentIdentifier) o;
+        DefaultComponentSpecIdentifier that = (DefaultComponentSpecIdentifier) o;
         return name.equals(that.name) && projectPath.equals(that.projectPath);
 
     }

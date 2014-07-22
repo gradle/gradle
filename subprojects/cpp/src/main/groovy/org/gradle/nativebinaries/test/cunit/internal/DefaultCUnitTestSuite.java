@@ -18,12 +18,12 @@ package org.gradle.nativebinaries.test.cunit.internal;
 import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.internal.AbstractProjectNativeComponent;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuite;
-import org.gradle.runtime.base.NamedProjectComponentIdentifier;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
 
 public class DefaultCUnitTestSuite extends AbstractProjectNativeComponent implements CUnitTestSuite {
     private final ProjectNativeComponent testedComponent;
 
-    public DefaultCUnitTestSuite(NamedProjectComponentIdentifier id, ProjectNativeComponent testedComponent) {
+    public DefaultCUnitTestSuite(ComponentSpecIdentifier id, ProjectNativeComponent testedComponent) {
         super(id);
         this.testedComponent = testedComponent;
     }

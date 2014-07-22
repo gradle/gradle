@@ -25,12 +25,12 @@ import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.NamedProjectComponentIdentifier;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.runtime.base.internal.DefaultNamedProjectComponentIdentifier;
+import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.runtime.jvm.ProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
 import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary;
@@ -53,7 +53,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         ProjectComponentContainer projectComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
         projectComponents.registerFactory(ProjectJvmLibrary.class, new NamedDomainObjectFactory<ProjectJvmLibrary>() {
             public ProjectJvmLibrary create(String name) {
-                NamedProjectComponentIdentifier id = new DefaultNamedProjectComponentIdentifier(project.getPath(), name);
+                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
                 return new DefaultProjectJvmLibrary(id);
             }
         });
