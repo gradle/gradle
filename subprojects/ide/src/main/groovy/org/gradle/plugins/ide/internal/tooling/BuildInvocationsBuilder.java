@@ -42,7 +42,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
     }
 
-    public DefaultBuildInvocations<LaunchableGradleTask> buildAll(String modelName, Project project) {
+    public DefaultBuildInvocations<LaunchableGradleTask, LaunchableGradleTaskSelector> buildAll(String modelName, Project project) {
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
@@ -61,7 +61,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
                     setVisible(visibleTasks.contains(selectorName)));
         }
-        return new DefaultBuildInvocations<LaunchableGradleTask>()
+        return new DefaultBuildInvocations<LaunchableGradleTask, LaunchableGradleTaskSelector>()
                 .setSelectors(selectors)
                 .setTasks(tasks(project));
     }

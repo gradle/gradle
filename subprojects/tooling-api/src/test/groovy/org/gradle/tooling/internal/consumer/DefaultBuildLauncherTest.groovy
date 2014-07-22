@@ -25,7 +25,7 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector
+import org.gradle.tooling.internal.gradle.TaskListingLaunchable
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
@@ -108,7 +108,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     }
 
     def "can configure task selector build operation for consumer generated selectors"() {
-        TaskSelector ts = Mock(BasicGradleTaskSelector)
+        TaskSelector ts = Mock(ListingTaskSelectorImplementation)
         _ * ts.name >> 'myTask'
         _ * ts.taskNames >> Sets.newTreeSet([':a:myTask', ':b:myTask'])
         ResultHandlerVersion1<Void> adaptedHandler
@@ -142,6 +142,9 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     }
 
     static interface InternalTaskSelectorImplementation extends TaskSelector, InternalLaunchable {
+    }
+
+    static interface ListingTaskSelectorImplementation extends TaskSelector, TaskListingLaunchable {
     }
 
     def "can configure task selector build operation"() {
@@ -178,13 +181,13 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     }
 
     def "preserves task selectors order in build operation"() {
-        TaskSelector ts1 = Mock(BasicGradleTaskSelector)
+        TaskSelector ts1 = Mock(ListingTaskSelectorImplementation)
         _ * ts1.name >> 'firstTask'
         _ * ts1.taskNames >> Sets.newTreeSet([':firstTask'])
-        TaskSelector ts2 = Mock(BasicGradleTaskSelector)
+        TaskSelector ts2 = Mock(ListingTaskSelectorImplementation)
         _ * ts2.name >> 'secondTask'
         _ * ts2.taskNames >> Sets.newTreeSet([':secondTask'])
-        TaskSelector ts3 = Mock(BasicGradleTaskSelector)
+        TaskSelector ts3 = Mock(ListingTaskSelectorImplementation)
         _ * ts3.name >> 'thirdTask'
         _ * ts3.taskNames >> Sets.newTreeSet([':thirdTask'])
         ResultHandlerVersion1<Void> adaptedHandler

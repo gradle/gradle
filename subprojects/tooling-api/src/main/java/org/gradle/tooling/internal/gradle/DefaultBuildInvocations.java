@@ -16,26 +16,24 @@
 package org.gradle.tooling.internal.gradle;
 
 
-import org.gradle.tooling.model.TaskSelector;
-
 import java.io.Serializable;
 import java.util.List;
 
 // used with LaunchingGradleTask from provider or with DefaultGradleTask from adapting consumer
-public class DefaultBuildInvocations<T> implements Serializable {
-    private List<? extends TaskSelector> selectors;
+public class DefaultBuildInvocations<T, S> implements Serializable {
+    private List<S> selectors;
     private List<T> tasks;
 
-    public DefaultBuildInvocations<T> setSelectors(List<? extends TaskSelector> selectors) {
+    public DefaultBuildInvocations<T, S> setSelectors(List<S> selectors) {
         this.selectors = selectors;
         return this;
     }
 
-    public List<? extends TaskSelector> getTaskSelectors() {
+    public List<S> getTaskSelectors() {
         return selectors;
     }
 
-    public DefaultBuildInvocations<T> setTasks(List<T> tasks) {
+    public DefaultBuildInvocations<T, S> setTasks(List<T> tasks) {
         this.tasks = tasks;
         return this;
     }
