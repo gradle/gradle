@@ -414,7 +414,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             } else if (failure instanceof LocationAwareException) {
                 causes.addAll(((LocationAwareException) failure).getReportableCauses());
             } else {
-                causes.add(failure.getCause());
+                causes.add(failure);
             }
         }
 
