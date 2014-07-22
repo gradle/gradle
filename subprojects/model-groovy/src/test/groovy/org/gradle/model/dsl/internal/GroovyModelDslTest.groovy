@@ -44,7 +44,7 @@ class GroovyModelDslTest extends Specification {
         }
 
         then:
-        modelRegistry.get(ModelReference.of("foo", List)) == [1]
+        modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == [1]
     }
 
     def "can use property accessors in DSL to build model object path"() {
@@ -59,7 +59,7 @@ class GroovyModelDslTest extends Specification {
         }
 
         then:
-        modelRegistry.get(ModelReference.of("foo.bar", List)) == [1]
+        modelRegistry.get(ModelPath.path("foo.bar"), ModelType.of(List)) == [1]
     }
 
     def "does not add rules when not configuring"() {
@@ -75,7 +75,7 @@ class GroovyModelDslTest extends Specification {
                 }
             }
         }
-        modelRegistry.get(ModelReference.of("foo", Object))
+        modelRegistry.get(ModelPath.path("foo"), ModelType.UNTYPED)
 
         then:
         def e = thrown(ModelRuleExecutionException)
@@ -91,7 +91,7 @@ class GroovyModelDslTest extends Specification {
                 }
             }
         }
-        modelRegistry.get(ModelReference.of("bah", Object))
+        modelRegistry.get(ModelPath.path("bah"), ModelType.UNTYPED)
 
         then:
         e = thrown(ModelRuleExecutionException)

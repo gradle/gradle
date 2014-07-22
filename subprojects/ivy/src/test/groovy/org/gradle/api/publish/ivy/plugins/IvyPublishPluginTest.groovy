@@ -23,7 +23,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelType
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -55,7 +55,7 @@ class IvyPublishPluginTest extends Specification {
         when:
         publishing.publications.create("test", IvyPublication)
         publishing.repositories { ivy { url = "http://foo.com" } }
-        project.modelRegistry.get(ModelReference.of(TaskContainerInternal.MODEL_PATH, Object))
+        project.modelRegistry.get(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED)
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
         then:
@@ -73,7 +73,7 @@ class IvyPublishPluginTest extends Specification {
         publishing.publications.create("test", IvyPublication)
 
         then:
-        with (publishing.publications.test) {
+        with(publishing.publications.test) {
             identity.module == project.name
             identity.organisation == "foo"
             identity.revision == "1.0"
@@ -85,7 +85,7 @@ class IvyPublishPluginTest extends Specification {
         project.version = "changed-version"
 
         then:
-        with (publishing.publications.test) {
+        with(publishing.publications.test) {
             identity.organisation == "foo"
             identity.revision == "1.0"
         }

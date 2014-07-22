@@ -26,7 +26,8 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelType
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -127,7 +128,7 @@ class MavenPublishPluginTest extends Specification {
     }
 
     void closeTaskContainer() {
-        project.modelRegistry.get(ModelReference.of("tasks", Object))
+        project.modelRegistry.get(ModelPath.path("tasks"), ModelType.UNTYPED)
     }
 
     List<PublishToMavenRepository> getPublishTasks() {

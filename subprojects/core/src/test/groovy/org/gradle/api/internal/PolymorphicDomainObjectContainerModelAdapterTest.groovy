@@ -110,14 +110,14 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
 
     def "can view as write types"() {
         expect:
-        adapter.asWritable(reference, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance.is(container)
-        adapter.asWritable(ModelReference.of(reference.path, builderType), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance instanceof NamedItemCollectionBuilder
+        adapter.asWritable(ModelBinding.of(reference), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance.is(container)
+        adapter.asWritable(ModelBinding.of(ModelReference.of(reference.path, builderType)), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance instanceof NamedItemCollectionBuilder
     }
 
     def "can create items"() {
         // don't need to test too much here, assume that DefaultNamedItemCollectionBuilder is used internally
         given:
-        def builder = adapter.asWritable(ModelReference.of(reference.path, builderType), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance
+        def builder = adapter.asWritable(ModelBinding.of(ModelReference.of(reference.path, builderType)), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance
 
         when:
         builder.create("foo") {
@@ -129,9 +129,9 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
         }
 
         then:
-        registry.get(ModelReference.of(reference.path.child("foo"), NamedThing)).name == "foo"
+        registry.get(reference.path.child("foo"), ModelType.of(NamedThing)).name == "foo"
 
-        def bar = registry.get(ModelReference.of(reference.path.child("bar"), NamedThing))
+        def bar = registry.get(reference.path.child("bar"), ModelType.of(NamedThing))
         bar.name == "bar"
         bar instanceof SpecialNamedThing
     }

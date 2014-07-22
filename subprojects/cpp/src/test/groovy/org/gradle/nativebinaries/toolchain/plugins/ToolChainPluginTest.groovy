@@ -19,7 +19,8 @@ package org.gradle.nativebinaries.toolchain.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelType
 import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.ToolChainRegistry
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
@@ -43,7 +44,7 @@ abstract class ToolChainPluginTest extends Specification {
     }
 
     ToolChainInternal getToolchain() {
-        project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry)).getByName(getToolchainName()) as ToolChainInternal
+        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry)).getByName(getToolchainName()) as ToolChainInternal
     }
 
     void register() {
@@ -63,7 +64,7 @@ abstract class ToolChainPluginTest extends Specification {
         register()
 
         then:
-        with (toolchain) {
+        with(toolchain) {
             it instanceof ExtensionAware
             it.ext instanceof ExtraPropertiesExtension
         }
