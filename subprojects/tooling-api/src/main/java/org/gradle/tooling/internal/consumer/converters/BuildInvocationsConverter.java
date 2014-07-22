@@ -30,13 +30,13 @@ import java.util.List;
 import java.util.SortedSet;
 
 public class BuildInvocationsConverter {
-    public DefaultBuildInvocations<DefaultGradleTask, BasicGradleTaskSelector> convert(GradleProject project) {
+    public DefaultBuildInvocations<DefaultGradleTask> convert(GradleProject project) {
         GradleProject rootProject = project;
         while (rootProject.getParent() != null) {
             rootProject = rootProject.getParent();
         }
         List<BasicGradleTaskSelector> selectors = buildRecursively(rootProject);
-        return new DefaultBuildInvocations<DefaultGradleTask, BasicGradleTaskSelector>()
+        return new DefaultBuildInvocations<DefaultGradleTask>()
                 .setSelectors(selectors)
                 .setTasks(convertTasks(rootProject.getTasks()));
     }
