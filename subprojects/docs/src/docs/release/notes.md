@@ -352,7 +352,8 @@ TODO - replacement (@RuleSource) detail
 
 ### TaskParameter replaced with TaskExecutionRequest
 
-Incubating class `TaskParameter` has been replaced with `TaskExecutionRequest`.
+- Incubating class `TaskParameter` has been replaced with `TaskExecutionRequest`.
+- Incubating property `StartParameter.taskParameters` has been replaced with `StartParameter.taskRequests`.
 
 ## External contributions
 

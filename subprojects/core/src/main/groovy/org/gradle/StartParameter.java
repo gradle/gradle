@@ -52,7 +52,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
-    private List<TaskExecutionRequest> taskParameters = new ArrayList<TaskExecutionRequest>();
+    private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
@@ -120,7 +120,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
-        p.taskParameters = new ArrayList<TaskExecutionRequest>(taskParameters);
+        p.taskRequests = new ArrayList<TaskExecutionRequest>(taskRequests);
         p.excludedTaskNames = new LinkedHashSet<String>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
         p.currentDir = currentDir;
@@ -225,7 +225,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public List<String> getTaskNames() {
         return Lists.newArrayList(Iterables.transform(
-                taskParameters,
+                taskRequests,
                 new Function<TaskExecutionRequest, String>() {
                     public String apply(TaskExecutionRequest input) {
                         return input.getTaskName();
@@ -240,7 +240,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param taskNames the names of the tasks to execute in this build.
      */
     public void setTaskNames(Iterable<String> taskNames) {
-        this.taskParameters = Lists.newArrayList(Iterables.transform(
+        this.taskRequests = Lists.newArrayList(Iterables.transform(
                 taskNames != null ? taskNames : Collections.<String>emptyList(),
                     new Function<String, TaskExecutionRequest>() {
                         public TaskExecutionRequest apply(String input) {
@@ -255,8 +255,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the tasks to execute in this build. Never returns null.
      */
     @Incubating
-    public List<TaskExecutionRequest> getTaskParameters() {
-        return taskParameters;
+    public List<TaskExecutionRequest> getTaskRequests() {
+        return taskRequests;
     }
 
     /**
@@ -266,8 +266,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param taskParameters the tasks to execute in this build.
      */
     @Incubating
-    public void setTaskParameters(Iterable<TaskExecutionRequest> taskParameters) {
-        this.taskParameters = Lists.newArrayList(taskParameters);
+    public void setTaskRequests(Iterable<? extends TaskExecutionRequest> taskParameters) {
+        this.taskRequests = Lists.newArrayList(taskParameters);
     }
 
     /**
@@ -592,7 +592,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     @Override
     public String toString() {
         return "StartParameter{"
-                + "taskParameters=" + taskParameters
+                + "taskRequests=" + taskRequests
                 + ", excludedTaskNames=" + excludedTaskNames
                 + ", currentDir=" + currentDir
                 + ", searchUpwards=" + searchUpwards

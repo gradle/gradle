@@ -120,6 +120,6 @@ class ConfiguringBuildActionTest extends Specification {
         def start = action.configureStartParameter()
 
         then:
-        start.taskParameters.size() == 1
+        start.taskRequests.size() == 1
     }
 }

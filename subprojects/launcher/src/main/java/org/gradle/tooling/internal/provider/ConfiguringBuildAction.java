@@ -88,7 +88,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         }
 
         if (launchables != null) {
-            startParameter.setTaskParameters(Iterables.transform(
+            startParameter.setTaskRequests(Iterables.transform(
                     launchables,
                     new Function<InternalLaunchable, TaskExecutionRequest>() {
                         public TaskExecutionRequest apply(InternalLaunchable launchable) {
@@ -104,7 +104,8 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                                             + "\nOnly objects from this provider can be built."
                             );
                         }
-                    }));
+                    }
+            ));
         } else if (tasks != null) {
             startParameter.setTaskNames(tasks);
         }

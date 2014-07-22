@@ -49,7 +49,7 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         when:
         _ * context.getGradle() >> gradle
         _ * gradle.getStartParameter() >> startParameters
-        _ * startParameters.getTaskParameters() >> []
+        _ * startParameters.getTaskRequests() >> []
 
         action.configure(context)
 
@@ -74,7 +74,7 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         when:
         _ * context.getGradle() >> gradle
         _ * gradle.getStartParameter() >> startParameters
-        _ * startParameters.getTaskParameters() >> [taskParameter1, taskParameter2]
+        _ * startParameters.getTaskRequests() >> [taskParameter1, taskParameter2]
         _ * selector.getSelection(taskParameter1) >> selection1
         _ * selector.getSelection(taskParameter2) >> selection2
         _ * gradle.taskGraph >> executer

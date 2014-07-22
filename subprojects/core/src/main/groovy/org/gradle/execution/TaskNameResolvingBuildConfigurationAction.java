@@ -42,7 +42,7 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
-        List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskParameters();
+        List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
         Multimap<TaskExecutionRequest, Task> selectedTasks = commandLineTaskParser.parseTasks(taskParameters, selector);
 
         TaskGraphExecuter executer = gradle.getTaskGraph();
