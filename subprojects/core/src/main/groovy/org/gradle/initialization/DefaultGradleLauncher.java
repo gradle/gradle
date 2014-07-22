@@ -45,6 +45,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final TasksCompletionListener tasksCompletionListener;
     private final BuildCompletionListener buildCompletionListener;
     private final BuildExecuter buildExecuter;
+    private final BuildCancellationToken cancellationToken;
     private final Closeable buildServices;
 
     /**
@@ -54,7 +55,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
                                  ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
-                                 BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener, Closeable buildServices) {
+                                 BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener,
+                                 BuildCancellationToken cancellationToken, Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -67,6 +69,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.tasksCompletionListener = tasksCompletionListener;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
+        this.cancellationToken = cancellationToken;
         this.buildServices = buildServices;
     }
 
@@ -138,7 +141,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         }
 
         // Populate task graph
-        buildExecuter.select(gradle);
+        buildExecuter.select(gradle, cancellationToken);
 
         if (gradle.getStartParameter().isConfigureOnDemand()) {
             buildListener.projectsEvaluated(gradle);

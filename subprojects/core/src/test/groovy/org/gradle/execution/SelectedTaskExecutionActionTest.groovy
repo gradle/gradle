@@ -19,6 +19,7 @@ import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.tasks.TaskState
+import org.gradle.initialization.BuildCancellationToken
 import spock.lang.Specification
 
 class SelectedTaskExecutionActionTest extends Specification {
@@ -27,9 +28,11 @@ class SelectedTaskExecutionActionTest extends Specification {
     final TaskGraphExecuter executer = Mock()
     final GradleInternal gradleInternal = Mock()
     final StartParameter startParameter = Mock()
+    final BuildCancellationToken cancellationToken = Mock()
 
     def setup() {
         _ * context.gradle >> gradleInternal
+        _ * context.cancellationToken >> cancellationToken
         _ * gradleInternal.taskGraph >> executer
         _ * gradleInternal.startParameter >> startParameter
     }
@@ -42,6 +45,7 @@ class SelectedTaskExecutionActionTest extends Specification {
         action.execute(context)
 
         then:
+        1 * executer.useCancellationHandler(cancellationToken)
         1 * executer.execute()
     }
 
@@ -54,6 +58,7 @@ class SelectedTaskExecutionActionTest extends Specification {
 
         then:
         1 * executer.useFailureHandler(!null)
+        1 * executer.useCancellationHandler(cancellationToken)
         1 * executer.execute()
     }
 
@@ -69,6 +74,7 @@ class SelectedTaskExecutionActionTest extends Specification {
 
         then:
         1 * executer.useFailureHandler(!null) >> { handler = it[0] }
+        1 * executer.useCancellationHandler(cancellationToken)
         1 * executer.execute() >> { handler.onTaskFailure(brokenTask(failure)) }
     }
 

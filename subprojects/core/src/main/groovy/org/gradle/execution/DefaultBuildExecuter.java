@@ -17,6 +17,7 @@ package org.gradle.execution;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.initialization.BuildCancellationToken;
 
 import java.util.List;
 
@@ -24,14 +25,16 @@ public class DefaultBuildExecuter implements BuildExecuter {
     private final List<BuildConfigurationAction> configurationActions;
     private final List<BuildExecutionAction> executionActions;
     private GradleInternal gradle;
+    private BuildCancellationToken cancellationToken;
 
     public DefaultBuildExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildExecutionAction> executionActions) {
         this.configurationActions = Lists.newArrayList(configurationActions);
         this.executionActions = Lists.newArrayList(executionActions);
     }
 
-    public void select(GradleInternal gradle) {
+    public void select(GradleInternal gradle, BuildCancellationToken cancellationToken) {
         this.gradle = gradle;
+        this.cancellationToken = cancellationToken;
         configure(0);
     }
 
@@ -46,6 +49,10 @@ public class DefaultBuildExecuter implements BuildExecuter {
 
             public void proceed() {
                 configure(index + 1);
+            }
+
+            public BuildCancellationToken getCancellationToken() {
+                return cancellationToken;
             }
         });
     }
@@ -65,6 +72,10 @@ public class DefaultBuildExecuter implements BuildExecuter {
 
             public void proceed() {
                 execute(index + 1);
+            }
+
+            public BuildCancellationToken getCancellationToken() {
+                return cancellationToken;
             }
         });
     }

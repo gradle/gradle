@@ -25,6 +25,7 @@ public class SelectedTaskExecutionAction implements BuildExecutionAction {
         if (gradle.getStartParameter().isContinueOnFailure()) {
             taskGraph.useFailureHandler(new ContinueOnFailureHandler());
         }
+        taskGraph.useCancellationHandler(context.getCancellationToken());
 
         taskGraph.execute();
     }

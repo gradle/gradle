@@ -25,6 +25,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.FixedBuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
@@ -54,6 +56,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
+    private BuildCancellationToken cancellationToken = new FixedBuildCancellationToken();
     private final List<String> runningProjects = new ArrayList<String>();
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -376,6 +379,10 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     public void useFailureHandler(TaskFailureHandler handler) {
         this.failureHandler = handler;
+    }
+
+    public void useCancellationHandler(BuildCancellationToken cancellationToken) {
+        this.cancellationToken = cancellationToken;
     }
 
     public TaskInfo getTaskToExecute() {

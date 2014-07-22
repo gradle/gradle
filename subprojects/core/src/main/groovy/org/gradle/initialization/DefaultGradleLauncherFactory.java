@@ -135,6 +135,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 listenerManager.getBroadcaster(TasksCompletionListener.class),
                 gradle.getServices().get(BuildExecuter.class),
                 listenerManager.getBroadcaster(BuildCompletionListener.class),
+                cancellationToken,
                 serviceRegistry
         );
     }

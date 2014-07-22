@@ -23,6 +23,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
@@ -55,6 +56,11 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
     public void useFailureHandler(TaskFailureHandler handler) {
         taskExecutionPlan.useFailureHandler(handler);
+    }
+
+    public void useCancellationHandler(BuildCancellationToken cancellationToken) {
+        taskExecutionPlan.useCancellationHandler(cancellationToken);
+
     }
 
     public void useFilter(Spec<? super Task> filter) {
