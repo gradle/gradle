@@ -20,7 +20,8 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelType
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.platform.Platform
@@ -43,25 +44,25 @@ class NativeComponentModelPluginTest extends Specification {
         expect:
         project.nativeRuntime.executables instanceof NamedDomainObjectContainer
         project.nativeRuntime.libraries instanceof NamedDomainObjectContainer
-        project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry)) != null
-        project.modelRegistry.get(ModelReference.of("platforms", PlatformContainer)) != null
-        project.modelRegistry.get(ModelReference.of("buildTypes", BuildTypeContainer)) != null
-        project.modelRegistry.get(ModelReference.of("flavors", FlavorContainer)) != null
+        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry)) != null
+        project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)) != null
+        project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer)) != null
+        project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer)) != null
     }
 
     def "adds default target platform, build type and flavor"() {
         expect:
-        with(one(project.modelRegistry.get(ModelReference.of("platforms", PlatformContainer)))) {
+        with(one(project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)))) {
             name == 'current'
             architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
         }
-        one(project.modelRegistry.get(ModelReference.of("buildTypes", BuildTypeContainer))).name == 'debug'
-        one(project.modelRegistry.get(ModelReference.of("flavors", FlavorContainer))).name == 'default'
+        one(project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'debug'
+        one(project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'default'
     }
 
     def "does not provide a default tool chain"() {
         expect:
-        project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry)).isEmpty()
+        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry)).isEmpty()
     }
 
     def "adds default flavor to every binary"() {
@@ -96,10 +97,10 @@ class NativeComponentModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        one(project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry))).name == 'tc'
-        one(project.modelRegistry.get(ModelReference.of("platforms", PlatformContainer))).name == 'platform'
-        one(project.modelRegistry.get(ModelReference.of("buildTypes", BuildTypeContainer))).name == 'bt'
-        one(project.modelRegistry.get(ModelReference.of("flavors", FlavorContainer))).name == 'flavor1'
+        one(project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry))).name == 'tc'
+        one(project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer))).name == 'platform'
+        one(project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'bt'
+        one(project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'flavor1'
     }
 
     def "creates binaries for executable"() {

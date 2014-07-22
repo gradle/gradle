@@ -16,7 +16,8 @@
 
 package org.gradle.nativebinaries.language.rc.plugins
 
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelType
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.ToolChainRegistry
@@ -43,7 +44,7 @@ class WindowsResourcesPluginTest extends Specification {
             }
         }
         then:
-        ToolChainRegistry toolChains = project.modelRegistry.get(ModelReference.of("toolChains", ToolChainRegistry))
+        ToolChainRegistry toolChains = project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry))
         toolChains.withType(VisualCpp) { VisualCpp visualCpp ->
             visualCpp.getByName("rcCompiler") != null
         }

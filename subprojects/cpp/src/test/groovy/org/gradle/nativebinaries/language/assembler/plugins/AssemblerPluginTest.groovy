@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.language.assembler.plugins
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.ProjectNativeExecutableBinary
