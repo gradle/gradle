@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.TaskFailureHandler
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -528,6 +529,26 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
+    }
+
+    def "stops returning tasks when build is cancelled"() {
+        def cancellationHandler = Mock(BuildCancellationToken)
+        executionPlan.useCancellationHandler(cancellationHandler)
+        2 * cancellationHandler.cancellationRequested >>> [false, true]
+        Task a = task("a");
+        Task b = task("b");
+
+        when:
+        addToGraphAndPopulate([a, b])
+
+        then:
+        executedTasks == [a]
+
+        when:
+        executionPlan.awaitCompletion()
+
+        then:
+        RuntimeException e = thrown()
     }
 
     protected TaskInfo getTaskToExecute() {

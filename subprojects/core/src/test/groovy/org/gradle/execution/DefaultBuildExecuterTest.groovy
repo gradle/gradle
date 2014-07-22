@@ -137,4 +137,24 @@ class DefaultBuildExecuterTest extends Specification {
             assert it[0].gradle ==gradleInternal
         }
     }
+
+    def "makes cancellation token available to actions"() {
+        BuildConfigurationAction configurationAction = Mock()
+        BuildExecutionAction executionAction = Mock()
+
+        given:
+        def buildExecution = new DefaultBuildExecuter([configurationAction], [executionAction])
+
+        when:
+        buildExecution.select(gradleInternal, cancellationToken)
+        buildExecution.execute()
+
+        then:
+        1 * configurationAction.configure(!null) >> {
+            assert it[0].cancellationToken == cancellationToken
+        }
+        1 * executionAction.execute(!null) >> {
+            assert it[0].cancellationToken == cancellationToken
+        }
+    }
 }

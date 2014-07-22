@@ -389,6 +389,10 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         lock.lock();
         try {
             while (true) {
+                if (cancellationToken.isCancellationRequested()) {
+                    failures.add(new RuntimeException("Build cancelled."));
+                    abortExecution();
+                }
                 TaskInfo nextMatching = null;
                 boolean allTasksComplete = true;
                 for (TaskInfo taskInfo : executionPlan.values()) {

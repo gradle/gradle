@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.tooling.r21
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
@@ -41,6 +43,53 @@ rootProject.name = 'cancelling'
     }
 
     @TargetGradleVersion(">=2.1")
+    def "can cancel build and skip some tasks"() {
+        def marker = file("marker.txt")
+
+        buildFile << """
+task hang << {
+    println "__waiting__"
+    def marker = file('${marker.toURI()}')
+    long timeout = System.currentTimeMillis() + 10000
+    while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
+    if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+    Thread.sleep(1000)
+    println "__finished__"
+}
+
+task notExecuted(dependsOn: hang) << {
+    println "__should_not_run__"
+}
+"""
+        def cancel = new CancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+        def output = new TestOutputStream()
+        def error = new TestOutputStream()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.forTasks('notExecuted')
+                    .withCancellationToken(cancel.token())
+                    .setStandardOutput(output)
+                    .setStandardError(error)
+            build.run(resultHandler)
+            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            marker.text = 'go!'
+            cancel.cancel()
+            resultHandler.finished()
+        }
+        then:
+        output.toString().contains("__waiting__")
+        output.toString().contains("__finished__")
+        !output.toString().contains("__should_not_run__")
+        new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted(':hang')
+
+        resultHandler.failure instanceof BuildException
+        resultHandler.failure.cause.cause.message.contains('Build cancelled.')
+    }
+
+    @TargetGradleVersion(">=2.1")
     def "can cancel build"() {
         def marker = file("marker.txt")
 
@@ -58,6 +107,7 @@ task hang << {
         def cancel = new CancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
+        def error = new TestOutputStream()
 
         when:
         withConnection { ProjectConnection connection ->
@@ -65,6 +115,7 @@ task hang << {
             build.forTasks('hang')
                     .withCancellationToken(cancel.token())
                     .setStandardOutput(output)
+                    .setStandardError(error)
             build.run(resultHandler)
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             marker.text = 'go!'
@@ -74,9 +125,10 @@ task hang << {
         then:
         output.toString().contains("__waiting__")
         output.toString().contains("__finished__")
-        // TODO until we implement proper cancelling this depends on timing
-        resultHandler.failure.cause.class.name == BuildCancelledException.name
-        resultHandler.failure instanceof GradleConnectionException
+        new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted(':hang')
+
+        resultHandler.failure instanceof BuildException
+        resultHandler.failure.cause.cause.message.contains('Build cancelled.')
     }
 
     @TargetGradleVersion(">=2.1")

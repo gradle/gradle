@@ -367,6 +367,30 @@ public class DefaultTaskGraphExecuterTest {
     }
 
     @Test
+    public void testStopsExecutionWhenCancelled() {
+        final Task a = task("a");
+        final Task b = task("b");
+
+        taskExecuter.useCancellationHandler(cancellationToken);
+        taskExecuter.addTasks(toList(a, b));
+
+        context.checking(new Expectations(){{
+            one(cancellationToken).isCancellationRequested();
+            will(returnValue(Boolean.FALSE));
+            one(cancellationToken).isCancellationRequested();
+            will(returnValue(Boolean.TRUE));
+        }});
+        try {
+            taskExecuter.execute();
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("Build cancelled.", e.getMessage());
+        }
+
+        assertThat(executedTasks, equalTo(toList(a)));
+    }
+
+    @Test
     public void testNotifiesBeforeTaskClosureAsTasksAreExecuted() {
         final TestClosure runnable = context.mock(TestClosure.class);
         final Task a = task("a");

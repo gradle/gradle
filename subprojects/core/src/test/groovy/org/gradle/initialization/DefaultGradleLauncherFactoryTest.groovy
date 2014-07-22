@@ -37,6 +37,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildRequestMetaData) == metaData
+        launcher.cancellationToken == cancellationToken
     }
 
     def newInstanceWithStartParameterWhenNoBuildRunning() {
@@ -47,6 +48,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         def launcher = factory.newInstance(startParameter, cancellationToken)
         launcher.gradle.parent == null
         launcher.gradle.services.get(BuildRequestMetaData) instanceof DefaultBuildRequestMetaData
+        launcher.cancellationToken == cancellationToken
     }
 
     def newInstanceWithStartParameterWhenBuildRunning() {
@@ -64,5 +66,6 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         request instanceof DefaultBuildRequestMetaData
         request != requestMetaData
         request.client == clientMetaData
+        launcher.cancellationToken == cancellationToken
     }
 }
