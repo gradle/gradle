@@ -173,7 +173,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
 
     @TaskAction
     void run() {
-        new FindBugsClasspathValidator(JavaVersion.current()).validateClasspath(findbugsClasspath.files*.name)
+        new FindBugsClasspathValidator(JavaVersion.current()).validateClasspath(getFindbugsClasspath().files*.name)
 
         FindBugsSpec spec = generateSpec()
         FindBugsWorkerManager manager = new FindBugsWorkerManager()
