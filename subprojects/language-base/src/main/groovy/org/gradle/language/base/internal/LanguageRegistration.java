@@ -18,7 +18,7 @@ package org.gradle.language.base.internal;
 
 
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.base.BinarySpec;
 
 import java.util.Map;
 
@@ -52,6 +52,6 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
     SourceTransformTaskConfig getTransformTask();
 
     // TODO:DAZ This should be declarative, not imperative
-    boolean applyToBinary(ProjectBinary binary);
+    boolean applyToBinary(BinarySpec binary);
 
 }

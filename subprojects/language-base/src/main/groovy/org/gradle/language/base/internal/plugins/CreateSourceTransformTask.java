@@ -23,8 +23,8 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.base.internal.ProjectBinaryInternal;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.base.internal.BinarySpecInternal;
 
 public class CreateSourceTransformTask {
     private final LanguageRegistration language;
@@ -33,8 +33,8 @@ public class CreateSourceTransformTask {
         this.language = languageRegistration;
     }
 
-    public void createCompileTasksForBinary(final TaskContainer tasks, ProjectBinary projectBinary) {
-        final ProjectBinaryInternal binary = (ProjectBinaryInternal) projectBinary;
+    public void createCompileTasksForBinary(final TaskContainer tasks, BinarySpec binarySpec) {
+        final BinarySpecInternal binary = (BinarySpecInternal) binarySpec;
         if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
             return;
         }

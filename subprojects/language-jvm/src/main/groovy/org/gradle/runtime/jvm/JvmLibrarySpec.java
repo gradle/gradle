@@ -29,5 +29,5 @@ public interface JvmLibrarySpec extends ComponentSpec, LibrarySpec {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
-    DomainObjectSet<ProjectJvmLibraryBinary> getBinaries();
+    DomainObjectSet<JvmLibraryBinarySpec> getBinaries();
 }

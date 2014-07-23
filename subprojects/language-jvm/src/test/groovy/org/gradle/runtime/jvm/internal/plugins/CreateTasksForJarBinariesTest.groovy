@@ -20,7 +20,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.jvm.JvmBinaryTasks
-import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal
+import org.gradle.runtime.jvm.internal.JarBinarySpecInternal
 import org.gradle.runtime.jvm.plugins.JvmComponentPlugin
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ class CreateTasksForJarBinariesTest extends Specification {
     def binaries = Mock(BinaryContainer)
 
     def "creates a 'jar' tasks for each jar library binary"() {
-        def jarBinary = Mock(ProjectJarBinaryInternal)
+        def jarBinary = Mock(JarBinarySpecInternal)
         def namingScheme = Mock(BinaryNamingScheme)
         def jarTask = Mock(Jar)
         def binaryTasks = Mock(JvmBinaryTasks)
@@ -41,7 +41,7 @@ class CreateTasksForJarBinariesTest extends Specification {
         def jarFile = Mock(File)
 
         when:
-        1 * binaries.withType(ProjectJarBinaryInternal) >> toNamedDomainObjectSet(ProjectJarBinaryInternal, jarBinary)
+        1 * binaries.withType(JarBinarySpecInternal) >> toNamedDomainObjectSet(JarBinarySpecInternal, jarBinary)
 
         and:
         rule.createTasks(tasks, binaries)
@@ -72,7 +72,7 @@ class CreateTasksForJarBinariesTest extends Specification {
 
     def "does nothing for non-jvm binaries"() {
         when:
-        1 * binaries.withType(ProjectJarBinaryInternal) >> toNamedDomainObjectSet(ProjectJarBinaryInternal)
+        1 * binaries.withType(JarBinarySpecInternal) >> toNamedDomainObjectSet(JarBinarySpecInternal)
 
         and:
         rule.createTasks(tasks, binaries)

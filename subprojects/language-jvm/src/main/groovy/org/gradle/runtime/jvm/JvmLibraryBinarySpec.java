@@ -17,7 +17,7 @@
 package org.gradle.runtime.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.base.BinarySpec;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
@@ -26,7 +26,7 @@ import java.io.File;
  * Definition of a JVM binary to be built by Gradle.
  */
 @Incubating
-public interface ProjectJvmLibraryBinary extends ProjectBinary {
+public interface JvmLibraryBinarySpec extends BinarySpec {
     /**
      * The set of tasks associated with this binary.
      */

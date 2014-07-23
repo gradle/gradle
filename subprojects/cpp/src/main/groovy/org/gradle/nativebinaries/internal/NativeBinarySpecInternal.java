@@ -20,12 +20,12 @@ import org.gradle.language.DependentSourceSet;
 import org.gradle.nativebinaries.NativeDependencySet;
 import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeBinarySpec;
-import org.gradle.runtime.base.internal.ProjectBinaryInternal;
+import org.gradle.runtime.base.internal.BinarySpecInternal;
 
 import java.io.File;
 import java.util.Collection;
 
-public interface NativeBinarySpecInternal extends NativeBinarySpec, ProjectBinaryInternal {
+public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
     File getPrimaryOutput();
 
     Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);

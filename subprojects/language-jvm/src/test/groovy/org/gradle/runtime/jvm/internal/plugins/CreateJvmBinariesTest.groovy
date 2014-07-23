@@ -20,11 +20,11 @@ import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.ComponentSpecIdentifier
-import org.gradle.runtime.base.ProjectBinary
+import org.gradle.runtime.base.BinarySpec
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.runtime.jvm.JvmLibrarySpec
-import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary
+import org.gradle.runtime.jvm.internal.DefaultJarBinarySpec
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrarySpec
 import org.gradle.runtime.jvm.plugins.JvmComponentPlugin
 import org.gradle.runtime.jvm.toolchain.JavaToolChain
@@ -57,13 +57,13 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * binaries.add({ DefaultProjectJarBinary binary ->
+        1 * binaries.add({ DefaultJarBinarySpec binary ->
             binary.namingScheme == namingScheme
             binary.library == library
             binary.classesDir == new File(buildDir, "jvmJarOutput")
             binary.resourcesDir == binary.classesDir
             binary.toolChain == toolChain
-        } as ProjectBinary)
+        } as BinarySpec)
         0 * _
     }
 
@@ -83,12 +83,12 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * binaries.add({ DefaultProjectJarBinary binary ->
+        1 * binaries.add({ DefaultJarBinarySpec binary ->
             binary.namingScheme == namingScheme
             binary.library == library
             binary.source == library.source
             binary.toolChain == toolChain
-        } as ProjectBinary)
+        } as BinarySpec)
         0 * _
     }
 

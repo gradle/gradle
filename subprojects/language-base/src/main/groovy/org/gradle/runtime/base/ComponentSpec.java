@@ -57,5 +57,5 @@ public interface ComponentSpec extends Named {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
-    DomainObjectSet<? extends ProjectBinary> getBinaries();
+    DomainObjectSet<? extends BinarySpec> getBinaries();
 }

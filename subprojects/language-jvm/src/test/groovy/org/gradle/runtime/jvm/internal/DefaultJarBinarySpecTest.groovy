@@ -20,7 +20,7 @@ import org.gradle.runtime.jvm.JvmLibrarySpec
 import org.gradle.runtime.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
-class DefaultProjectJarBinaryTest extends Specification {
+class DefaultJarBinarySpecTest extends Specification {
     def library = Mock(JvmLibrarySpec)
     def namingScheme = Mock(BinaryNamingScheme)
     def toolChain = Mock(JavaToolChain)
@@ -68,7 +68,7 @@ class DefaultProjectJarBinaryTest extends Specification {
         binary.toolChain == toolChain
     }
 
-    private DefaultProjectJarBinary binary() {
-        new DefaultProjectJarBinary(library, namingScheme, toolChain)
+    private DefaultJarBinarySpec binary() {
+        new DefaultJarBinarySpec(library, namingScheme, toolChain)
     }
 }

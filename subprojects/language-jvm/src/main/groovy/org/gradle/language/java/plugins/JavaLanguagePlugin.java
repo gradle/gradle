@@ -30,8 +30,8 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
-import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
 import java.io.File;
 import java.util.Collections;
@@ -76,10 +76,10 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
                     return JavaCompile.class;
                 }
 
-                public void configureTask(Task task, ProjectBinary projectBinary, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
                     JavaCompile compile = (JavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    ProjectJvmLibraryBinary binary = (ProjectJvmLibraryBinary) projectBinary;
+                    JvmLibraryBinarySpec binary = (JvmLibraryBinarySpec) binarySpec;
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
@@ -97,8 +97,8 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
             };
         }
 
-        public boolean applyToBinary(ProjectBinary binary) {
-            return binary instanceof ProjectJvmLibraryBinary;
+        public boolean applyToBinary(BinarySpec binary) {
+            return binary instanceof JvmLibraryBinarySpec;
         }
     }
 }

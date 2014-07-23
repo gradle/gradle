@@ -33,8 +33,8 @@ import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.runtime.jvm.JvmLibrarySpec;
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrarySpec;
-import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
-import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
+import org.gradle.runtime.jvm.internal.DefaultJarBinarySpec;
+import org.gradle.runtime.jvm.internal.JarBinarySpecInternal;
 import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
@@ -87,7 +87,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         .withComponentName(jvmLibrary.getName())
                         .withTypeString("jar")
                         .build();
-                ProjectJarBinaryInternal jarBinary = new DefaultProjectJarBinary(jvmLibrary, namingScheme, toolChain);
+                JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain);
                 jarBinary.source(jvmLibrary.getSource());
                 configureBinaryOutputLocations(jarBinary, buildDir);
                 jvmLibrary.getBinaries().add(jarBinary);
@@ -95,7 +95,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             }
         }
 
-        private void configureBinaryOutputLocations(ProjectJarBinaryInternal jarBinary, File buildDir) {
+        private void configureBinaryOutputLocations(JarBinarySpecInternal jarBinary, File buildDir) {
             File binariesDir = new File(buildDir, "jars");
             File classesDir = new File(buildDir, "classes");
 
@@ -109,14 +109,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @Mutate
         public void createTasks(TaskContainer tasks, BinaryContainer binaries) {
-            for (ProjectJarBinaryInternal projectJarBinary : binaries.withType(ProjectJarBinaryInternal.class)) {
+            for (JarBinarySpecInternal projectJarBinary : binaries.withType(JarBinarySpecInternal.class)) {
                 Task jarTask = createJarTask(tasks, projectJarBinary);
                 projectJarBinary.builtBy(jarTask);
                 projectJarBinary.getTasks().add(jarTask);
             }
         }
 
-        private Task createJarTask(TaskContainer tasks, ProjectJarBinaryInternal binary) {
+        private Task createJarTask(TaskContainer tasks, JarBinarySpecInternal binary) {
             Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
             jar.setDescription(String.format("Creates the binary file for %s.", binary.getNamingScheme().getDescription()));
             jar.from(binary.getClassesDir());

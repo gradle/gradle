@@ -22,12 +22,12 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.runtime.jvm.JvmBinaryTasks;
-import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
+import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
 public class DefaultJvmBinaryTasks extends DefaultDomainObjectSet<Task> implements JvmBinaryTasks {
-    private final ProjectJvmLibraryBinary binary;
+    private final JvmLibraryBinarySpec binary;
 
-    public DefaultJvmBinaryTasks(ProjectJvmLibraryBinary binary) {
+    public DefaultJvmBinaryTasks(JvmLibraryBinarySpec binary) {
         super(Task.class);
         this.binary = binary;
     }

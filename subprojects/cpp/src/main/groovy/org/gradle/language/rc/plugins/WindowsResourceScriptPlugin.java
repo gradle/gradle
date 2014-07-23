@@ -28,7 +28,7 @@ import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
 import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 import org.gradle.nativebinaries.language.internal.WindowsResourcesCompileTaskConfig;
-import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.base.BinarySpec;
 
 import java.util.Map;
 
@@ -67,7 +67,7 @@ public class WindowsResourceScriptPlugin implements Plugin<ProjectInternal> {
         }
 
         @Override
-        public boolean applyToBinary(ProjectBinary binary) {
+        public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof NativeBinarySpec && shouldProcessResources((NativeBinarySpec) binary);
         }
 

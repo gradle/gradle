@@ -14,12 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.runtime.jvm;
 
-import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-public interface ProjectBinaryInternal extends ProjectBinary {
-    BinaryNamingScheme getNamingScheme();
+import java.io.File;
 
-    boolean isLegacyBinary();
+/**
+ * Definition of a Jar file binary that is to be built by Gradle.
+ */
+@Incubating @HasInternalProtocol
+public interface JarBinarySpec extends JvmLibraryBinarySpec {
+    /**
+     * The ProjectJvmLibrary that this binary belongs to.
+     */
+    JvmLibrarySpec getLibrary();
+
+    /**
+     * The jar file output for this binary.
+     */
+    File getJarFile();
+
+    /**
+     * Sets the jar file output for this binary.
+     */
+    void setJarFile(File jarFile);
 }

@@ -24,7 +24,7 @@ import org.gradle.language.base.LanguageSourceSet;
  * Represents a binary artifact that is the result of building a project component.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectBinary extends BuildableModelElement, Named {
+public interface BinarySpec extends BuildableModelElement, Named {
     /**
      * Returns a human-consumable display name for this binary.
      */

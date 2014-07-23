@@ -138,7 +138,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
-                    new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
+                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
             for (NativeComponentSpec component : nativeComponents) {
                 createBinariesAction.execute(component);

@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ProjectNativeComponentInitializer implements Action<NativeComponentSpec> {
+public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> {
     private final NativeBinariesFactory factory;
     private final ToolChainRegistryInternal toolChainRegistry;
     private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
@@ -38,8 +38,8 @@ public class ProjectNativeComponentInitializer implements Action<NativeComponent
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
 
-    public ProjectNativeComponentInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, ToolChainRegistryInternal toolChainRegistry,
-                                             Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+    public NativeComponentSpecInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, ToolChainRegistryInternal toolChainRegistry,
+                                          Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;
         this.toolChainRegistry = toolChainRegistry;

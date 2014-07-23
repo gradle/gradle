@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm.internal;
+package org.gradle.runtime.base.internal;
 
-import org.gradle.runtime.base.internal.ProjectBinaryInternal;
-import org.gradle.runtime.jvm.ProjectJarBinary;
+import org.gradle.runtime.base.BinarySpec;
 
-public interface ProjectJarBinaryInternal extends ProjectJarBinary, ProjectBinaryInternal {
+public interface BinarySpecInternal extends BinarySpec {
+    BinaryNamingScheme getNamingScheme();
+
+    boolean isLegacyBinary();
 }

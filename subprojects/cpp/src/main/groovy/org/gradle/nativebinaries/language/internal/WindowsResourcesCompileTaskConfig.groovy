@@ -25,7 +25,7 @@ import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
 import org.gradle.nativebinaries.internal.StaticLibraryBinarySpecInternal
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
-import org.gradle.runtime.base.ProjectBinary
+import org.gradle.runtime.base.BinarySpec
 
 // TODO:DAZ Convert to Java
 public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskConfig {
@@ -38,7 +38,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         return WindowsResourceCompile.class
     }
 
-    void configureTask(Task task, ProjectBinary binary, LanguageSourceSet sourceSet) {
+    void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
         configureResourceCompileTask(task as WindowsResourceCompile, binary as NativeBinarySpecInternal, sourceSet as WindowsResourceSet)
     }
 

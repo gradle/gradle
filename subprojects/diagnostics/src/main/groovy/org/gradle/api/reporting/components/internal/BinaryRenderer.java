@@ -24,11 +24,11 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.jvm.ProjectJarBinary;
-import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.jvm.JarBinarySpec;
+import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
-class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
+class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
     private final FileResolver fileResolver;
 
     BinaryRenderer(FileResolver fileResolver) {
@@ -36,7 +36,7 @@ class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
     }
 
     @Override
-    public void render(ProjectBinary binary, TextReportBuilder builder) {
+    public void render(BinarySpec binary, TextReportBuilder builder) {
         StyledTextOutput textOutput = builder.getOutput();
 
         textOutput.append(StringUtils.capitalize(binary.getDisplayName()));
@@ -71,11 +71,11 @@ class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
             }
         }
 
-        if (binary instanceof ProjectJvmLibraryBinary) {
-            ProjectJvmLibraryBinary libraryBinary = (ProjectJvmLibraryBinary) binary;
+        if (binary instanceof JvmLibraryBinarySpec) {
+            JvmLibraryBinarySpec libraryBinary = (JvmLibraryBinarySpec) binary;
             textOutput.formatln("    tool chain: %s", libraryBinary.getToolChain().toString());
-            if (binary instanceof ProjectJarBinary) {
-                ProjectJarBinary jarBinary = (ProjectJarBinary) binary;
+            if (binary instanceof JarBinarySpec) {
+                JarBinarySpec jarBinary = (JarBinarySpec) binary;
                 textOutput.formatln("    Jar file: %s", fileResolver.resolveAsRelativePath(jarBinary.getJarFile()));
             }
             if (binary instanceof ProjectClassDirectoryBinary) {

@@ -14,30 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm;
+package org.gradle.runtime.base.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.runtime.base.ComponentSpec;
+import org.gradle.runtime.base.ComponentSpecContainer;
 
-import java.io.File;
+public class DefaultComponentSpecContainer extends DefaultPolymorphicDomainObjectContainer<ComponentSpec> implements ComponentSpecContainer {
 
-/**
- * Definition of a Jar file binary that is to be built by Gradle.
- */
-@Incubating @HasInternalProtocol
-public interface ProjectJarBinary extends ProjectJvmLibraryBinary {
-    /**
-     * The ProjectJvmLibrary that this binary belongs to.
-     */
-    JvmLibrarySpec getLibrary();
-
-    /**
-     * The jar file output for this binary.
-     */
-    File getJarFile();
-
-    /**
-     * Sets the jar file output for this binary.
-     */
-    void setJarFile(File jarFile);
+    public DefaultComponentSpecContainer(Instantiator instantiator) {
+        super(ComponentSpec.class, instantiator);
+    }
 }

@@ -219,7 +219,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
             myLib
         }
     }
-    binaries.withType(ProjectJarBinary) {
+    binaries.withType(JarBinarySpec) {
         classesDir = file("\${project.buildDir}/custom-classes")
         resourcesDir = file("\${project.buildDir}/custom-resources")
     }

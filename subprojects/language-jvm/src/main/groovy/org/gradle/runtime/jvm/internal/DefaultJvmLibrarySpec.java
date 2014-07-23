@@ -22,13 +22,13 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 import org.gradle.runtime.jvm.JvmLibrarySpec;
-import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
 
 public class DefaultJvmLibrarySpec implements JvmLibrarySpec {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier identifier;
-    private final DomainObjectSet<ProjectJvmLibraryBinary> binaries = new DefaultDomainObjectSet<ProjectJvmLibraryBinary>(ProjectJvmLibraryBinary.class);
+    private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
 
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier) {
         this.identifier = identifier;
@@ -59,7 +59,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec {
         sourceSets.source(sources);
     }
 
-    public DomainObjectSet<ProjectJvmLibraryBinary> getBinaries() {
+    public DomainObjectSet<JvmLibraryBinarySpec> getBinaries() {
         return binaries;
     }
 }

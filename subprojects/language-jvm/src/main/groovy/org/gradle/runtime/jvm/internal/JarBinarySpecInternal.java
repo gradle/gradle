@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.runtime.jvm.internal;
 
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.runtime.base.ComponentSpec;
-import org.gradle.runtime.base.ComponentSpecContainer;
+import org.gradle.runtime.base.internal.BinarySpecInternal;
+import org.gradle.runtime.jvm.JarBinarySpec;
 
-public class DefaultProjectComponentContainer extends DefaultPolymorphicDomainObjectContainer<ComponentSpec> implements ComponentSpecContainer {
-
-    public DefaultProjectComponentContainer(Instantiator instantiator) {
-        super(ComponentSpec.class, instantiator);
-    }
+public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal {
 }

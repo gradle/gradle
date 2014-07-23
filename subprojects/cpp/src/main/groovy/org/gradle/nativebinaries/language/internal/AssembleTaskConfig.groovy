@@ -25,7 +25,7 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig
 import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
-import org.gradle.runtime.base.ProjectBinary
+import org.gradle.runtime.base.BinarySpec
 
 // TODO:DAZ Convert to Java
 public class AssembleTaskConfig implements SourceTransformTaskConfig {
@@ -41,7 +41,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
     }
 
     @Override
-    void configureTask(Task task, ProjectBinary binary, LanguageSourceSet sourceSet) {
+    void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
         configureAssembleTask(task as Assemble, binary as NativeBinarySpecInternal, sourceSet as LanguageSourceSetInternal)
     }
 

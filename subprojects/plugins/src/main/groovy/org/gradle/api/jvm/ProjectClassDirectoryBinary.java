@@ -17,7 +17,7 @@ package org.gradle.api.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
+import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
 /**
  * An exploded binary containing resources and compiled class files.
@@ -28,5 +28,5 @@ import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
 // As far as generated resources are concerned, it might be better to model
 // them as an additional (Buildable) ResourceSet.
 @Incubating @HasInternalProtocol
-public interface ProjectClassDirectoryBinary extends ProjectJvmLibraryBinary {
+public interface ProjectClassDirectoryBinary extends JvmLibraryBinarySpec {
 }

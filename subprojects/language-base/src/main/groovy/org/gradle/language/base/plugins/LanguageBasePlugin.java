@@ -26,7 +26,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.DefaultBinaryContainer;
-import org.gradle.runtime.base.internal.ProjectBinaryInternal;
+import org.gradle.runtime.base.internal.BinarySpecInternal;
 
 import javax.inject.Inject;
 
@@ -76,7 +76,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         void createLifecycleTaskForBinary(TaskContainer tasks, BinaryContainer binaries) {
 
             Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
-            for (ProjectBinaryInternal binary : binaries.withType(ProjectBinaryInternal.class)) {
+            for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                 if (!binary.isLegacyBinary()) {
                     Task binaryLifecycleTask = tasks.create(binary.getNamingScheme().getLifecycleTaskName());
                     binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);

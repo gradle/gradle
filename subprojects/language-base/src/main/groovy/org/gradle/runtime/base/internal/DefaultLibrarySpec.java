@@ -23,7 +23,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.LibrarySpec;
-import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.base.BinarySpec;
 
 /**
  * Base class for a LibrarySpec.
@@ -34,7 +34,7 @@ import org.gradle.runtime.base.ProjectBinary;
 public class DefaultLibrarySpec implements LibrarySpec {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier identifier;
-    private final DomainObjectSet<ProjectBinary> binaries = new DefaultDomainObjectSet<ProjectBinary>(ProjectBinary.class);
+    private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
 
     public DefaultLibrarySpec(ComponentSpecIdentifier identifier) {
         this.identifier = identifier;
@@ -65,7 +65,7 @@ public class DefaultLibrarySpec implements LibrarySpec {
         sourceSets.source(sources);
     }
 
-    public DomainObjectSet<ProjectBinary> getBinaries() {
+    public DomainObjectSet<BinarySpec> getBinaries() {
         return binaries;
     }
 }

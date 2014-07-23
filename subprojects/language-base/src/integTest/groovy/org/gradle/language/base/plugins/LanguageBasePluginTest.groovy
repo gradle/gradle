@@ -23,7 +23,7 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.DefaultBinaryContainer
-import org.gradle.runtime.base.internal.ProjectBinaryInternal
+import org.gradle.runtime.base.internal.BinarySpecInternal
 import org.gradle.util.TestUtil
 
 class LanguageBasePluginTest extends WellBehavedPluginTest {
@@ -51,7 +51,7 @@ class LanguageBasePluginTest extends WellBehavedPluginTest {
     def "creates a lifecycle task for each binary"() {
         def tasks = Mock(TaskContainer)
         def binaries = new DefaultBinaryContainer(new DirectInstantiator())
-        def binary = Mock(ProjectBinaryInternal)
+        def binary = Mock(BinarySpecInternal)
         def namingScheme = Mock(BinaryNamingScheme)
         def task = Mock(Task)
 

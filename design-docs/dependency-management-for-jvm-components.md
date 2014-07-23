@@ -944,7 +944,7 @@ TBD
       Or, if I'm building for Android, fail if the SDK is not installed.
     - Build everything. Fail if a certain binary cannot be built.
 - Lifecycle phase for binary to determine if binary can be built
-    - Replace current `ProjectBinary.buildable` flag
+    - Replace current `BinarySpec.buildable` flag
     - Attach useful error message explaining why the binary can't be built: no sources, no available toolchain, etc
     - Fail early when trying to build a binary that cannot be built
 - Better cleanup when components, binaries and source sets are removed or renamed.

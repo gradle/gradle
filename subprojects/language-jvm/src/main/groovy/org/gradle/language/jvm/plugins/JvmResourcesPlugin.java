@@ -25,8 +25,8 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.jvm.ProjectJvmLibraryBinary;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
 import java.util.Collections;
 import java.util.Map;
@@ -70,10 +70,10 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                     return ProcessResources.class;
                 }
 
-                public void configureTask(Task task, ProjectBinary binary, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
                     ProcessResources resourcesTask = (ProcessResources) task;
                     ResourceSet resourceSet = (ResourceSet) sourceSet;
-                    ProjectJvmLibraryBinary jvmBinary = (ProjectJvmLibraryBinary) binary;
+                    JvmLibraryBinarySpec jvmBinary = (JvmLibraryBinarySpec) binary;
                     resourcesTask.from(resourceSet.getSource());
                     resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
                     jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
@@ -81,8 +81,8 @@ public class JvmResourcesPlugin implements Plugin<Project> {
             };
         }
 
-        public boolean applyToBinary(ProjectBinary binary) {
-            return binary instanceof ProjectJvmLibraryBinary;
+        public boolean applyToBinary(BinarySpec binary) {
+            return binary instanceof JvmLibraryBinarySpec;
         }
     }
 

@@ -60,7 +60,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLib.binaries as Set == binaries as Set
 
         def myLibJar = (binaries as List)[0]
-        assert myLibJar instanceof ProjectJarBinary
+        assert myLibJar instanceof JarBinarySpec
         assert myLibJar.name == 'myLibJar'
         assert myLibJar.displayName == "jar 'myLib:jar'"
 
@@ -111,7 +111,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
             myJvmLib
         }
     }
-    binaries.withType(ProjectJarBinary) { jar ->
+    binaries.withType(JarBinarySpec) { jar ->
         jar.jarFile = file("\${project.buildDir}/bin/\${jar.name}.bin")
     }
 """
@@ -136,7 +136,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
-    binaries.withType(ProjectJarBinary) { jar ->
+    binaries.withType(JarBinarySpec) { jar ->
     }
 """
         when:

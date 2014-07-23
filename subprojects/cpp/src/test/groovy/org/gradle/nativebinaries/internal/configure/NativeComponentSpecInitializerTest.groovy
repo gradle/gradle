@@ -27,7 +27,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import spock.lang.Specification
 
-class ProjectNativeComponentInitializerTest extends Specification {
+class NativeComponentSpecInitializerTest extends Specification {
     def toolChains = Mock(ToolChainRegistryInternal)
     def toolChain = Mock(ToolChainInternal)
     def nativeBinariesFactory = Mock(NativeBinariesFactory)
@@ -42,7 +42,7 @@ class ProjectNativeComponentInitializerTest extends Specification {
 
     def "does not use variant dimension names for single valued dimensions"() {
         when:
-        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, [platform], [buildType], [flavor])
+        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, [platform], [buildType], [flavor])
         factory.execute(component)
 
         then:
@@ -54,7 +54,7 @@ class ProjectNativeComponentInitializerTest extends Specification {
 
     def "does not use variant dimension names when component targets a single point on dimension"() {
         when:
-        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
+        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 [platform, Mock(Platform)], [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
         component.targetPlatforms("platform1")
         component.targetBuildTypes("buildType1")
@@ -71,7 +71,7 @@ class ProjectNativeComponentInitializerTest extends Specification {
     def "includes platform in name for when multiple platforms"() {
         final Platform platform2 = createStub(Platform, "platform2")
         when:
-        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
+        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 [platform, platform2], [buildType], [flavor])
         factory.execute(component)
 
@@ -93,7 +93,7 @@ class ProjectNativeComponentInitializerTest extends Specification {
     def "includes buildType in name for when multiple buildTypes"() {
         final BuildType buildType2 = createStub(BuildType, "buildType2")
         when:
-        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
+        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 [platform], [buildType, buildType2], [flavor])
         factory.execute(component)
 
@@ -116,7 +116,7 @@ class ProjectNativeComponentInitializerTest extends Specification {
     def "includes flavor in name for when multiple flavors"() {
         final Flavor flavor2 = createStub(Flavor, "flavor2")
         when:
-        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
+        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 [platform], [buildType], [flavor, flavor2])
         factory.execute(component)
 

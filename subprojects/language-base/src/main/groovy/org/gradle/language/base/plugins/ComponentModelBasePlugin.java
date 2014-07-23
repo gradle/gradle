@@ -32,8 +32,8 @@ import org.gradle.model.*;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ComponentSpec;
 import org.gradle.runtime.base.ComponentSpecContainer;
-import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
-import org.gradle.runtime.base.internal.ProjectBinaryInternal;
+import org.gradle.runtime.base.internal.DefaultComponentSpecContainer;
+import org.gradle.runtime.base.internal.BinarySpecInternal;
 import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
@@ -62,7 +62,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
         LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
-        project.getExtensions().create("projectComponents", DefaultProjectComponentContainer.class, instantiator);
+        project.getExtensions().create("projectComponents", DefaultComponentSpecContainer.class, instantiator);
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         // TODO:DAZ Convert to model rules
@@ -137,7 +137,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageRegistry languageRegistry) {
             for (LanguageRegistration language : languageRegistry) {
-                for (ProjectBinaryInternal binary : binaries.withType(ProjectBinaryInternal.class)) {
+                for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                     final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
                     createRule.createCompileTasksForBinary(tasks, binary);
                 }

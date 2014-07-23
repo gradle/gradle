@@ -27,7 +27,7 @@ import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 
-public class DefaultProjectJarBinary extends AbstractBuildableModelElement implements ProjectJarBinaryInternal {
+public class DefaultJarBinarySpec extends AbstractBuildableModelElement implements JarBinarySpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final JvmLibrarySpec library;
     private final BinaryNamingScheme namingScheme;
@@ -37,7 +37,7 @@ public class DefaultProjectJarBinary extends AbstractBuildableModelElement imple
     private File resourcesDir;
     private File jarFile;
 
-    public DefaultProjectJarBinary(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain) {
+    public DefaultJarBinarySpec(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain) {
         this.library = library;
         this.namingScheme = namingScheme;
         this.toolChain = toolChain;

@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
-import org.gradle.runtime.base.ProjectBinary
+import org.gradle.runtime.base.BinarySpec
 import org.gradle.runtime.base.ComponentSpec
 import spock.lang.Specification
 
@@ -116,13 +116,13 @@ class ComponentReportRendererTest extends Specification {
     }
 
     def "renders additional binaries"() {
-        def binary1 = Stub(ProjectBinary)
-        def binary2 = Stub(ProjectBinary) {
+        def binary1 = Stub(BinarySpec)
+        def binary2 = Stub(BinarySpec) {
             getDisplayName() >> "<binary>"
             isBuildable() >> true
         }
         def component = Stub(ComponentSpec) {
-            getBinaries() >> set(ProjectBinary, binary1)
+            getBinaries() >> set(BinarySpec, binary1)
         }
 
         when:

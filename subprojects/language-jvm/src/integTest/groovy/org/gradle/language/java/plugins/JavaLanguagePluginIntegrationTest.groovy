@@ -44,7 +44,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLib instanceof JvmLibrarySpec
         assert myLib.source as Set == [sources.myLib.java, sources.myLib.resources] as Set
 
-        binaries.withType(ProjectJarBinary) { jvmBinary ->
+        binaries.withType(JarBinarySpec) { jvmBinary ->
             assert jvmBinary.source == myLib.source
         }
     }
@@ -88,7 +88,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLib instanceof JvmLibrarySpec
         assert myLib.source as Set == [sources.myLib.java, sources.myLib.extraJava, sources.myLib.resources, sources.myLib.extraResources] as Set
 
-        binaries.withType(ProjectJarBinary) { jvmBinary ->
+        binaries.withType(JarBinarySpec) { jvmBinary ->
             assert jvmBinary.source == myLib.source
         }
     }
@@ -132,7 +132,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLib instanceof JvmLibrarySpec
         assert myLib.source as Set == [sources.myLib.java, sources.myExtraSources.java, sources.myLib.resources, sources.myExtraSources.resources] as Set
 
-        binaries.withType(ProjectJarBinary) { jvmBinary ->
+        binaries.withType(JarBinarySpec) { jvmBinary ->
             assert jvmBinary.source == myLib.source
         }
     }

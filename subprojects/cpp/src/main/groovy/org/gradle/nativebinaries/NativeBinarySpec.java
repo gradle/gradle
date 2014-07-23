@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
-import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.base.BinarySpec;
 
 import java.util.Collection;
 
@@ -28,7 +28,7 @@ import java.util.Collection;
  * Represents a particular binary artifact that is the result of building a native component.
  */
 @Incubating @HasInternalProtocol
-public interface NativeBinarySpec extends ProjectBinary {
+public interface NativeBinarySpec extends BinarySpec {
     /**
      * The component that this binary was built from.
      */

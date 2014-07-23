@@ -33,7 +33,7 @@ import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
-class ProjectNativeBinaryTest extends Specification {
+class NativeBinarySpecTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
     def component = new TestNativeComponentSpec(id)
