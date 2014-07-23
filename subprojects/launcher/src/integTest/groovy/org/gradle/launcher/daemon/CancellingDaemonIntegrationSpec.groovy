@@ -18,12 +18,9 @@ package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.util.regex.Pattern
 
-@Requires(TestPrecondition.NOT_WINDOWS)
 class CancellingDaemonIntegrationSpec extends DaemonIntegrationSpec {
     def "can handle multiple concurrent cancel requests"() {
         given:
