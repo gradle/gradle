@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,5 +18,15 @@ package org.gradle.api.plugins.quality
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
-class FindBugsPluginIntegrationTest extends AbstractFindBugsPluginIntegrationTest {}
+@Requires(TestPrecondition.JDK6)
+class FindBugsForOldJavaIntegrationTest extends AbstractFindBugsPluginIntegrationTest {
+
+    def setup() {
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                findbugs "com.google.code.findbugs:findbugs:2.0.3"
+            }
+        """
+    }
+}
