@@ -511,10 +511,10 @@
                 <td>org.gradle.nativebinaries.PrebuiltStaticLibraryBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectNativeComponent</td>
+                <td>org.gradle.nativebinaries.NativeComponentSpec</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectNativeExecutable</td>
+                <td>org.gradle.nativebinaries.NativeExecutableSpec</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.NativeLibrarySpec</td>
@@ -553,7 +553,7 @@
                 <td>org.gradle.nativebinaries.toolchain.VisualCpp</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.test.ProjectNativeTestSuite</td>
+                <td>org.gradle.nativebinaries.test.NativeTestSuiteSpec</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary</td>
