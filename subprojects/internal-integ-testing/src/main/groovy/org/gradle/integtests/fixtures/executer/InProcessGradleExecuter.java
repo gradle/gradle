@@ -393,7 +393,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertHasCause(String description) {
-            assertThatCause(startsWith(description));
+            assertThatCause(normalizedLineSeparators(startsWith(description)));
             return this;
         }
 
