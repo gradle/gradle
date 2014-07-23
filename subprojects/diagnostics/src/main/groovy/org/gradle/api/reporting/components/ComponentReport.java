@@ -30,7 +30,7 @@ import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ProjectComponent;
+import org.gradle.runtime.base.ComponentSpec;
 import org.gradle.runtime.base.ProjectComponentContainer;
 
 import javax.inject.Inject;
@@ -67,7 +67,7 @@ public class ComponentReport extends DefaultTask {
 
         renderer.startProject(project);
 
-        Collection<ProjectComponent> components = new ArrayList<ProjectComponent>();
+        Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
         ProjectComponentContainer projectComponents = project.getExtensions().findByType(ProjectComponentContainer.class);
         if (projectComponents != null) {
             components.addAll(projectComponents);

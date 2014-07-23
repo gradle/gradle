@@ -20,7 +20,7 @@ import org.gradle.nativebinaries.NativeLibrarySpec;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 
-public class DefaultNativeLibrarySpec extends AbstractTargetedProjectNativeComponent implements NativeLibrarySpec {
+public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpec implements NativeLibrarySpec {
     public DefaultNativeLibrarySpec(ComponentSpecIdentifier id) {
         super(id);
     }

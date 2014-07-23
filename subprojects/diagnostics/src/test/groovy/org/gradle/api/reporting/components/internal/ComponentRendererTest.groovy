@@ -25,7 +25,7 @@ import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.runtime.base.ProjectBinary
-import org.gradle.runtime.base.ProjectComponent
+import org.gradle.runtime.base.ComponentSpec
 import spock.lang.Specification
 
 class ComponentRendererTest extends Specification {
@@ -38,7 +38,7 @@ class ComponentRendererTest extends Specification {
     def renderer = new ComponentRenderer(resolver)
 
     def "renders component"() {
-        def component = Stub(ProjectComponent)
+        def component = Stub(ComponentSpec)
         component.displayName >> "<component>"
         component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
 
@@ -52,7 +52,7 @@ class ComponentRendererTest extends Specification {
     }
 
     def "renders component with no source sets"() {
-        def component = Stub(ProjectComponent)
+        def component = Stub(ComponentSpec)
         component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
 
         when:
@@ -63,7 +63,7 @@ class ComponentRendererTest extends Specification {
     }
 
     def "renders component with no binaries"() {
-        def component = Stub(ProjectComponent)
+        def component = Stub(ComponentSpec)
         component.binaries >> new DefaultDomainObjectSet<ProjectBinary>(ProjectBinary)
 
         when:

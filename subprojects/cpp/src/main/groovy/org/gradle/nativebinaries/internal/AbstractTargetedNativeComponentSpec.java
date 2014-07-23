@@ -27,13 +27,13 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractTargetedProjectNativeComponent extends AbstractProjectNativeComponent implements TargetedNativeComponentInternal {
+public abstract class AbstractTargetedNativeComponentSpec extends AbstractNativeComponentSpec implements TargetedNativeComponentInternal {
 
     private final Set<String> targetPlatforms = new HashSet<String>();
     private final Set<String> buildTypes = new HashSet<String>();
     private final Set<String> flavors = new HashSet<String>();
 
-    public AbstractTargetedProjectNativeComponent(ComponentSpecIdentifier id) {
+    public AbstractTargetedNativeComponentSpec(ComponentSpecIdentifier id) {
         super(id);
     }
 

@@ -32,7 +32,7 @@ public interface ProjectNativeBinary extends ProjectBinary {
     /**
      * The component that this binary was built from.
      */
-    ProjectNativeComponent getComponent();
+    NativeComponentSpec getComponent();
 
     /**
      * The flavor that this binary was built with.

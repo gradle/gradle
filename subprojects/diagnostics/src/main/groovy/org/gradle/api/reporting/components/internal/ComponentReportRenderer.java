@@ -20,8 +20,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.runtime.base.ComponentSpec;
 import org.gradle.runtime.base.ProjectBinary;
-import org.gradle.runtime.base.ProjectComponent;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -50,13 +50,13 @@ public class ComponentReportRenderer extends TextReportRenderer {
         super.complete();
     }
 
-    public void renderComponents(Collection<ProjectComponent> components) {
+    public void renderComponents(Collection<ComponentSpec> components) {
         if (components.isEmpty()) {
             getTextOutput().withStyle(Info).println("No components defined for this project.");
             return;
         }
         boolean seen = false;
-        for (ProjectComponent component : components) {
+        for (ComponentSpec component : components) {
             if (seen) {
                 getBuilder().getOutput().println();
             } else {

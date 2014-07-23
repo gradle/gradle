@@ -38,7 +38,7 @@ public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
         this.resolver = resolver;
     }
 
-    public void createNativeBinaries(ProjectNativeComponent component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
+    public void createNativeBinaries(NativeComponentSpec component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         if (component instanceof NativeLibrarySpec) {
             createNativeBinary(DefaultProjectSharedLibraryBinary.class, component, namingScheme.withTypeString("SharedLibrary").build(), toolChain, platform, buildType, flavor);
             createNativeBinary(DefaultProjectStaticLibraryBinary.class, component, namingScheme.withTypeString("StaticLibrary").build(), toolChain, platform, buildType, flavor);
@@ -47,7 +47,7 @@ public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
         }
     }
 
-    private void createNativeBinary(Class<? extends ProjectNativeBinary> type, ProjectNativeComponent component, BinaryNamingScheme namingScheme,
+    private void createNativeBinary(Class<? extends ProjectNativeBinary> type, NativeComponentSpec component, BinaryNamingScheme namingScheme,
                             ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         ProjectNativeBinary nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, buildType, namingScheme, resolver);
         setupDefaults(nativeBinary);

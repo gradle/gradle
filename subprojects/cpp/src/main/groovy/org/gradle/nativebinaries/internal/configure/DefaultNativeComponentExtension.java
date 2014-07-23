@@ -18,24 +18,24 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.nativebinaries.ProjectNativeExecutable;
+import org.gradle.nativebinaries.NativeExecutableSpec;
 import org.gradle.nativebinaries.NativeLibrarySpec;
 import org.gradle.nativebinaries.NativeComponentExtension;
 
 public class DefaultNativeComponentExtension implements NativeComponentExtension {
-    private final NamedDomainObjectContainer<ProjectNativeExecutable> executables;
+    private final NamedDomainObjectContainer<NativeExecutableSpec> executables;
     private final NamedDomainObjectContainer<NativeLibrarySpec> libraries;
 
-    public DefaultNativeComponentExtension(NamedDomainObjectContainer<ProjectNativeExecutable> executables, NamedDomainObjectContainer<NativeLibrarySpec> libraries) {
+    public DefaultNativeComponentExtension(NamedDomainObjectContainer<NativeExecutableSpec> executables, NamedDomainObjectContainer<NativeLibrarySpec> libraries) {
         this.executables = executables;
         this.libraries = libraries;
     }
 
-    public NamedDomainObjectContainer<ProjectNativeExecutable> getExecutables() {
+    public NamedDomainObjectContainer<NativeExecutableSpec> getExecutables() {
         return executables;
     }
 
-    public void executables(Action<? super NamedDomainObjectContainer<? super ProjectNativeExecutable>> action) {
+    public void executables(Action<? super NamedDomainObjectContainer<? super NativeExecutableSpec>> action) {
         action.execute(executables);
     }
 

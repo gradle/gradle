@@ -50,7 +50,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         return getInstantiator().newInstance(type, project, configuration, platform, nativeBinary);
     }
 
-    private DefaultVisualStudioProject getOrCreateProject(ProjectNativeComponent nativeComponent, String projectName) {
+    private DefaultVisualStudioProject getOrCreateProject(NativeComponentSpec nativeComponent, String projectName) {
         DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
             vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, projectName, nativeComponent, fileResolver, getInstantiator());

@@ -27,7 +27,7 @@ import java.io.File;
 public class DefaultProjectNativeExecutableBinary extends AbstractProjectNativeBinary implements NativeExecutableBinary, ExecutableBinary, ProjectNativeExecutableBinaryInternal {
     private File executableFile;
 
-    public DefaultProjectNativeExecutableBinary(ProjectNativeExecutable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public DefaultProjectNativeExecutableBinary(NativeExecutableSpec executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                          BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(executable, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }

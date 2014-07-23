@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.test;
+package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.ProjectNativeComponent;
+import org.gradle.nativebinaries.NativeExecutableSpec;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
 
-/**
- * A component representing a suite of tests that will be executed together.
- */
-@Incubating
-public interface ProjectNativeTestSuite extends ProjectNativeComponent {
-    /**
-     * The tested component.
-     */
-    ProjectNativeComponent getTestedComponent();
+public class DefaultNativeExecutableSpec extends AbstractTargetedNativeComponentSpec implements NativeExecutableSpec {
+    public DefaultNativeExecutableSpec(ComponentSpecIdentifier id) {
+        super(id);
+    }
+
+    public String getDisplayName() {
+        return String.format("native executable '%s'", getName());
+    }
 }

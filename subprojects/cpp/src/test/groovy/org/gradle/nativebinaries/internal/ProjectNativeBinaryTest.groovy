@@ -36,7 +36,7 @@ import spock.lang.Specification
 class ProjectNativeBinaryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = new TestProjectNativeComponent(id)
+    def component = new TestNativeComponentSpec(id)
     def toolChain1 = Stub(ToolChainInternal) {
         getName() >> "ToolChain1"
     }
@@ -178,12 +178,12 @@ class ProjectNativeBinaryTest extends Specification {
         binary.libs as List == [dep1, dep2, sourceDep]
     }
 
-    def testBinary(ProjectNativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
+    def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
         return new TestProjectNativeBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName", "", []), resolver)
     }
 
-    class TestProjectNativeComponent extends AbstractProjectNativeComponent {
-        TestProjectNativeComponent(ComponentSpecIdentifier id) {
+    class TestNativeComponentSpec extends AbstractNativeComponentSpec {
+        TestNativeComponentSpec(ComponentSpecIdentifier id) {
             super(id)
         }
 
@@ -195,7 +195,7 @@ class ProjectNativeBinaryTest extends Specification {
     class TestProjectNativeBinary extends AbstractProjectNativeBinary {
         def owner
 
-        TestProjectNativeBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+        TestProjectNativeBinary(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                    BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
             super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver)
             this.owner = owner

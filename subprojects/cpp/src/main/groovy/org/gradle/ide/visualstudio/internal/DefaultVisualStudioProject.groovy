@@ -27,7 +27,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.ProjectNativeComponent
+import org.gradle.nativebinaries.NativeComponentSpec
 import org.gradle.util.CollectionUtils
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
@@ -36,12 +36,12 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     private final String name
     private final DefaultConfigFile projectFile
     private final DefaultConfigFile filtersFile
-    private final ProjectNativeComponent component
+    private final NativeComponentSpec component
     private final List<File> additionalFiles = []
     final Set<LanguageSourceSet> sources = new LinkedHashSet<LanguageSourceSet>()
     private final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
-    DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, Instantiator instantiator) {
+    DefaultVisualStudioProject(String name, NativeComponentSpec component, FileResolver fileResolver, Instantiator instantiator) {
         this.name = name
         this.component = component
         projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "${name}.vcxproj" as String)
@@ -60,7 +60,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return filtersFile
     }
 
-    ProjectNativeComponent getComponent() {
+    NativeComponentSpec getComponent() {
         return component
     }
 

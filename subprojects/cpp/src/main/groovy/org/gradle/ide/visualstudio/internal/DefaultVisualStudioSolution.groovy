@@ -24,7 +24,7 @@ import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.NativeLibraryBinary
-import org.gradle.nativebinaries.ProjectNativeComponent
+import org.gradle.nativebinaries.NativeComponentSpec
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
@@ -49,7 +49,7 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         return solutionFile
     }
 
-    ProjectNativeComponent getComponent() {
+    NativeComponentSpec getComponent() {
         return rootProject.component
     }
 

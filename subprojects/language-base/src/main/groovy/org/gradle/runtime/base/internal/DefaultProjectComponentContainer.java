@@ -18,12 +18,12 @@ package org.gradle.runtime.base.internal;
 
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.runtime.base.ProjectComponent;
+import org.gradle.runtime.base.ComponentSpec;
 import org.gradle.runtime.base.ProjectComponentContainer;
 
-public class DefaultProjectComponentContainer extends DefaultPolymorphicDomainObjectContainer<ProjectComponent> implements ProjectComponentContainer {
+public class DefaultProjectComponentContainer extends DefaultPolymorphicDomainObjectContainer<ComponentSpec> implements ProjectComponentContainer {
 
     public DefaultProjectComponentContainer(Instantiator instantiator) {
-        super(ProjectComponent.class, instantiator);
+        super(ComponentSpec.class, instantiator);
     }
 }

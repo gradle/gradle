@@ -20,8 +20,8 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 
 /**
- * A polymorphic container of {@link ProjectNativeTestSuite} instances.
+ * A polymorphic container of {@link NativeTestSuiteSpec} instances.
  */
 @Incubating
-public interface TestSuiteContainer extends ExtensiblePolymorphicDomainObjectContainer<ProjectNativeTestSuite> {
+public interface TestSuiteContainer extends ExtensiblePolymorphicDomainObjectContainer<NativeTestSuiteSpec> {
 }

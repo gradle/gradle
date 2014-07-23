@@ -16,15 +16,15 @@
 
 package org.gradle.nativebinaries.test.cunit.internal;
 
+import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinary;
 import org.gradle.nativebinaries.test.internal.DefaultProjectNativeTestSuiteBinary;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 public class DefaultCUnitTestSuiteBinary extends DefaultProjectNativeTestSuiteBinary implements CUnitTestSuiteBinary {
-    public DefaultCUnitTestSuiteBinary(ProjectNativeComponent owner, ProjectNativeBinary testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultCUnitTestSuiteBinary(NativeComponentSpec owner, ProjectNativeBinary testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(owner, testedBinary, namingScheme, resolver);
     }
 }

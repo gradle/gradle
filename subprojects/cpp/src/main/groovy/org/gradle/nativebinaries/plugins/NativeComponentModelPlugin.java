@@ -68,8 +68,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getModelRegistry().create(new RepositoriesFactory("repositories", instantiator, fileResolver));
 
         ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer.class);
-        components.registerFactory(ProjectNativeExecutable.class, new ProjectNativeExecutableFactory(instantiator, project));
-        NamedDomainObjectContainer<ProjectNativeExecutable> nativeExecutables = components.containerWithType(ProjectNativeExecutable.class);
+        components.registerFactory(NativeExecutableSpec.class, new ProjectNativeExecutableFactory(instantiator, project));
+        NamedDomainObjectContainer<NativeExecutableSpec> nativeExecutables = components.containerWithType(NativeExecutableSpec.class);
 
         components.registerFactory(NativeLibrarySpec.class, new ProjectNativeLibraryFactory(instantiator, project));
         NamedDomainObjectContainer<NativeLibrarySpec> nativeLibraries = components.containerWithType(NativeLibrarySpec.class);
@@ -77,7 +77,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().create("nativeRuntime", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
 
         // TODO:DAZ Remove these: should not pollute the global namespace
-        project.getExtensions().add("nativeComponents", components.withType(ProjectNativeComponent.class));
+        project.getExtensions().add("nativeComponents", components.withType(NativeComponentSpec.class));
         project.getExtensions().add("executables", nativeExecutables);
         project.getExtensions().add("libraries", nativeLibraries);
     }
@@ -114,8 +114,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        NamedDomainObjectSet<ProjectNativeComponent> nativeComponents(ProjectComponentContainer components) {
-            return components.withType(ProjectNativeComponent.class);
+        NamedDomainObjectSet<NativeComponentSpec> nativeComponents(ProjectComponentContainer components) {
+            return components.withType(NativeComponentSpec.class);
         }
 
         @Mutate
@@ -126,7 +126,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<ProjectNativeComponent> nativeComponents,
+        public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<NativeComponentSpec> nativeComponents,
                                          LanguageRegistry languages, ToolChainRegistryInternal toolChains,
                                          PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
@@ -137,10 +137,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             Action<ProjectNativeBinary> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
-            Action<ProjectNativeComponent> createBinariesAction =
+            Action<NativeComponentSpec> createBinariesAction =
                     new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
-            for (ProjectNativeComponent component : nativeComponents) {
+            for (NativeComponentSpec component : nativeComponents) {
                 createBinariesAction.execute(component);
                 binaries.addAll(component.getBinaries());
             }

@@ -24,5 +24,5 @@ import org.gradle.api.Incubating;
  * TODO:DAZ Merge with org.gradle.api.component.SoftwareComponentContainer
  */
 @Incubating
-public interface ProjectComponentContainer extends ExtensiblePolymorphicDomainObjectContainer<ProjectComponent> {
+public interface ProjectComponentContainer extends ExtensiblePolymorphicDomainObjectContainer<ComponentSpec> {
 }

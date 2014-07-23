@@ -25,7 +25,7 @@ import org.gradle.language.base.LanguageSourceSet;
  * A software component that is built by a Gradle project.
  */
 @Incubating
-public interface ProjectComponent extends Named {
+public interface ComponentSpec extends Named {
     /**
      * The path the the project containing this component.
      */

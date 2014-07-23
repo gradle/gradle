@@ -30,7 +30,7 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.plugins.CreateSourceTransformTask;
 import org.gradle.model.*;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ProjectComponent;
+import org.gradle.runtime.base.ComponentSpec;
 import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
@@ -111,8 +111,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Model
         Set<String> projectComponentNames(ExtensionContainer extensions) {
             ProjectComponentContainer components = extensions.getByType(ProjectComponentContainer.class);
-            return CollectionUtils.collect(components, new Transformer<String, ProjectComponent>() {
-                public String transform(ProjectComponent original) {
+            return CollectionUtils.collect(components, new Transformer<String, ComponentSpec>() {
+                public String transform(ComponentSpec original) {
                     return original.getName();
                 }
             });
@@ -128,7 +128,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         void attachFunctionalSourceSetToComponents(ProjectComponentContainer components, ProjectSourceSet sources) {
-            for (ProjectComponent component : components) {
+            for (ComponentSpec component : components) {
                 component.source(sources.getByName(component.getName()));
             }
         }

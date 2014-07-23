@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.ProjectNativeComponent;
+import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.internal.TargetedNativeComponentInternal;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ProjectNativeComponentInitializer implements Action<ProjectNativeComponent> {
+public class ProjectNativeComponentInitializer implements Action<NativeComponentSpec> {
     private final NativeBinariesFactory factory;
     private final ToolChainRegistryInternal toolChainRegistry;
     private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
@@ -48,7 +48,7 @@ public class ProjectNativeComponentInitializer implements Action<ProjectNativeCo
         this.allFlavors.addAll(allFlavors);
     }
 
-    public void execute(ProjectNativeComponent projectNativeComponent) {
+    public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
         for (Platform platform : targetedComponent.choosePlatforms(allPlatforms)) {
             ToolChain toolChain = toolChainRegistry.getForPlatform(platform);

@@ -17,13 +17,13 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.ProjectComponent;
+import org.gradle.runtime.base.ComponentSpec;
 
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
 @Incubating
-public interface ProjectNativeComponent extends ProjectComponent {
+public interface NativeComponentSpec extends ComponentSpec {
 
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.

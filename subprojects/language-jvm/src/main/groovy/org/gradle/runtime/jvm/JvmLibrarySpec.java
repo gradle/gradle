@@ -18,14 +18,14 @@ package org.gradle.runtime.jvm;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.runtime.base.ComponentSpec;
 import org.gradle.runtime.base.LibrarySpec;
-import org.gradle.runtime.base.ProjectComponent;
 
 /**
  * Definition of a JVM library component that is to be built by Gradle.
  */
 @Incubating
-public interface JvmLibrarySpec extends ProjectComponent, LibrarySpec {
+public interface JvmLibrarySpec extends ComponentSpec, LibrarySpec {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */

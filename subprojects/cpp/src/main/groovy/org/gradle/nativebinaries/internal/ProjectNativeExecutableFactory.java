@@ -19,11 +19,11 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.ProjectNativeExecutable;
+import org.gradle.nativebinaries.NativeExecutableSpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
-public class ProjectNativeExecutableFactory implements NamedDomainObjectFactory<ProjectNativeExecutable> {
+public class ProjectNativeExecutableFactory implements NamedDomainObjectFactory<NativeExecutableSpec> {
     private final Instantiator instantiator;
     private final Project project;
 
@@ -32,8 +32,8 @@ public class ProjectNativeExecutableFactory implements NamedDomainObjectFactory<
         this.project = project;
     }
 
-    public ProjectNativeExecutable create(String name) {
+    public NativeExecutableSpec create(String name) {
         ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-        return instantiator.newInstance(DefaultProjectNativeExecutable.class, id);
+        return instantiator.newInstance(DefaultNativeExecutableSpec.class, id);
     }
 }

@@ -15,15 +15,15 @@
  */
 package org.gradle.nativebinaries.test.cunit.internal;
 
-import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.nativebinaries.internal.AbstractProjectNativeComponent;
+import org.gradle.nativebinaries.NativeComponentSpec;
+import org.gradle.nativebinaries.internal.AbstractNativeComponentSpec;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuite;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 
-public class DefaultCUnitTestSuite extends AbstractProjectNativeComponent implements CUnitTestSuite {
-    private final ProjectNativeComponent testedComponent;
+public class DefaultCUnitTestSuite extends AbstractNativeComponentSpec implements CUnitTestSuite {
+    private final NativeComponentSpec testedComponent;
 
-    public DefaultCUnitTestSuite(ComponentSpecIdentifier id, ProjectNativeComponent testedComponent) {
+    public DefaultCUnitTestSuite(ComponentSpecIdentifier id, NativeComponentSpec testedComponent) {
         super(id);
         this.testedComponent = testedComponent;
     }
@@ -32,7 +32,7 @@ public class DefaultCUnitTestSuite extends AbstractProjectNativeComponent implem
         return String.format("cunit test suite '%s'", getName());
     }
 
-    public ProjectNativeComponent getTestedComponent() {
+    public NativeComponentSpec getTestedComponent() {
         return testedComponent;
     }
 }

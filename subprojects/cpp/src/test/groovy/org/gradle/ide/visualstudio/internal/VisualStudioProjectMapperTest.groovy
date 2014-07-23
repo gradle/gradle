@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.internal
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Flavor
-import org.gradle.nativebinaries.ProjectNativeExecutable
+import org.gradle.nativebinaries.NativeExecutableSpec
 import org.gradle.nativebinaries.NativeLibrarySpec
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
@@ -26,7 +26,7 @@ import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
 import org.gradle.nativebinaries.platform.Architecture
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
-import org.gradle.nativebinaries.test.ProjectNativeTestSuite
+import org.gradle.nativebinaries.test.NativeTestSuiteSpec
 import org.gradle.nativebinaries.test.internal.ProjectNativeTestSuiteBinaryInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import spock.lang.Specification
@@ -34,7 +34,7 @@ import spock.lang.Specification
 class VisualStudioProjectMapperTest extends Specification {
     def mapper = new VisualStudioProjectMapper()
 
-    def executable = Mock(ProjectNativeExecutable)
+    def executable = Mock(NativeExecutableSpec)
     def library = Mock(NativeLibrarySpec)
     def namingScheme = Mock(BinaryNamingScheme)
     ProjectNativeExecutableBinaryInternal executableBinary
@@ -81,7 +81,7 @@ class VisualStudioProjectMapperTest extends Specification {
     }
 
     def "maps test binary to visual studio project"() {
-        def testExecutable = Mock(ProjectNativeTestSuite)
+        def testExecutable = Mock(NativeTestSuiteSpec)
         def binary = Mock(ProjectNativeTestSuiteBinaryInternal)
 
         when:

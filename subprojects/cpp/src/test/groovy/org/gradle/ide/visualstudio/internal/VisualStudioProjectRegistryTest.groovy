@@ -19,7 +19,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.ProjectNativeExecutable
+import org.gradle.nativebinaries.NativeExecutableSpec
 import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class VisualStudioProjectRegistryTest extends Specification {
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
     def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, new DirectInstantiator())
 
-    def executable = Mock(ProjectNativeExecutable)
+    def executable = Mock(NativeExecutableSpec)
 
     def "creates a matching visual studio project configuration for NativeBinary"() {
         def executableBinary = Mock(ProjectNativeExecutableBinaryInternal)

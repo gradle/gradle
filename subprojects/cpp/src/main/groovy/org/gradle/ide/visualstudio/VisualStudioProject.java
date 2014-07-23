@@ -19,7 +19,7 @@ package org.gradle.ide.visualstudio;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.BuildableModelElement;
-import org.gradle.nativebinaries.ProjectNativeComponent;
+import org.gradle.nativebinaries.NativeComponentSpec;
 
 /**
  * A visual studio project, created from one or more {@link org.gradle.nativebinaries.NativeBinary} instances.
@@ -48,7 +48,7 @@ public interface VisualStudioProject extends Named, BuildableModelElement {
     /**
      * The component that this project represents.
      */
-    ProjectNativeComponent getComponent();
+    NativeComponentSpec getComponent();
 
     /**
      * Configuration for the generated project file.

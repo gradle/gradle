@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries;
 
-import org.gradle.nativebinaries.ProjectNativeExecutable;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.api.Incubating;
 
-public class DefaultProjectNativeExecutable extends AbstractTargetedProjectNativeComponent implements ProjectNativeExecutable {
-    public DefaultProjectNativeExecutable(ComponentSpecIdentifier id) {
-        super(id);
-    }
-
-    public String getDisplayName() {
-        return String.format("native executable '%s'", getName());
-    }
+/**
+ * An executable native component that is built by Gradle.
+ */
+@Incubating
+public interface NativeExecutableSpec extends NativeComponentSpec, TargetedNativeComponent {
+    
 }

@@ -28,11 +28,11 @@ import org.gradle.nativebinaries.*
 @Incubating
 class CprojectSettings {
 
-    ProjectNativeComponent binary
+    NativeComponentSpec binary
     private final ConfigurableFileCollection includeRoots
     private final ConfigurableFileCollection libs
 
-    CprojectSettings(ProjectNativeComponent binary, ProjectInternal project) {
+    CprojectSettings(NativeComponentSpec binary, ProjectInternal project) {
         this.binary = binary
         includeRoots = project.files()
         libs = project.files()
@@ -79,7 +79,7 @@ class CprojectSettings {
         def type 
         if (binary instanceof NativeLibrarySpec) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
-        } else if (binary instanceof ProjectNativeExecutable) {
+        } else if (binary instanceof NativeExecutableSpec) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.exe"
         } else {
             throw new IllegalStateException("The binary $binary is of a type that we don't know about")

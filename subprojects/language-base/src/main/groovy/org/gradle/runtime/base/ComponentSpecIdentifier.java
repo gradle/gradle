@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * An identifier for a {@link org.gradle.runtime.base.ProjectComponent}, which has a name.
+ * An identifier for a {@link ComponentSpec}, which has a name.
  */
 @Incubating
 public interface ComponentSpecIdentifier extends Named {

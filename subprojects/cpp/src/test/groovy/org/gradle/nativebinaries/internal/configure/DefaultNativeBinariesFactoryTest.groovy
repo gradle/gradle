@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.DefaultProjectNativeExecutable
+import org.gradle.nativebinaries.internal.DefaultNativeExecutableSpec
 import org.gradle.nativebinaries.internal.DefaultNativeLibrarySpec
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
@@ -44,7 +44,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for executable"() {
         given:
-        def executable = new DefaultProjectNativeExecutable(id)
+        def executable = new DefaultNativeExecutableSpec(id)
 
         when:
         1 * configAction.execute(_)

@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.Project
-import org.gradle.nativebinaries.ProjectNativeComponent
+import org.gradle.nativebinaries.NativeComponentSpec
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinaryInternal
@@ -30,7 +30,7 @@ import spock.lang.Specification
 class ProjectNativeBinaryInitializerTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
-    def component = Mock(ProjectNativeComponent)
+    def component = Mock(NativeComponentSpec)
     def project = Mock(Project)
     def configAction
 

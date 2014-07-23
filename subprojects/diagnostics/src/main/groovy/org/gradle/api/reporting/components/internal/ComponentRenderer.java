@@ -20,9 +20,9 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.runtime.base.ProjectComponent;
+import org.gradle.runtime.base.ComponentSpec;
 
-public class ComponentRenderer extends ReportRenderer<ProjectComponent, TextReportBuilder> {
+public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
     private final SourceSetRenderer sourceSetRenderer;
     private final BinaryRenderer renderer;
 
@@ -32,7 +32,7 @@ public class ComponentRenderer extends ReportRenderer<ProjectComponent, TextRepo
     }
 
     @Override
-    public void render(ProjectComponent component, TextReportBuilder builder) {
+    public void render(ComponentSpec component, TextReportBuilder builder) {
         builder.subheading(StringUtils.capitalize(component.getDisplayName()));
         builder.getOutput().println();
         builder.collection("Source sets", component.getSource(), sourceSetRenderer, "source sets");

@@ -20,7 +20,7 @@ import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultProjectNativeExecutableTest extends Specification {
-    def executable = new DefaultProjectNativeExecutable(new DefaultComponentSpecIdentifier("project-path", "someExe"))
+    def executable = new DefaultNativeExecutableSpec(new DefaultComponentSpecIdentifier("project-path", "someExe"))
 
     def "has useful string representation"() {
         expect:

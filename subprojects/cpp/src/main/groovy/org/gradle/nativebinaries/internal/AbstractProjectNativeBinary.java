@@ -35,7 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractProjectNativeBinary extends AbstractBuildableModelElement implements ProjectNativeBinaryInternal {
-    private final ProjectNativeComponent component;
+    private final NativeComponentSpec component;
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
     private final DefaultTool linker = new DefaultTool();
@@ -49,7 +49,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     private final NativeDependencyResolver resolver;
     private boolean buildable;
 
-    protected AbstractProjectNativeBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+    protected AbstractProjectNativeBinary(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                                           BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         this.component = owner;
         this.namingScheme = namingScheme;
@@ -79,7 +79,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
         return namingScheme.getLifecycleTaskName();
     }
 
-    public ProjectNativeComponent getComponent() {
+    public NativeComponentSpec getComponent() {
         return component;
     }
 

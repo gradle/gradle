@@ -32,8 +32,8 @@ import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
+import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
@@ -74,14 +74,14 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         private static final String CUNIT_LAUNCHER_SOURCE_SET = "cunitLauncher";
 
         @Mutate
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, NamedDomainObjectSet<ProjectNativeComponent> components, ServiceRegistry serviceRegistry) {
+        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, NamedDomainObjectSet<NativeComponentSpec> components, ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            for (ProjectNativeComponent component : components) {
+            for (NativeComponentSpec component : components) {
                 testSuites.add(createCUnitTestSuite(component, instantiator));
             }
         }
 
-        private CUnitTestSuite createCUnitTestSuite(final ProjectNativeComponent testedComponent, Instantiator instantiator) {
+        private CUnitTestSuite createCUnitTestSuite(final NativeComponentSpec testedComponent, Instantiator instantiator) {
             String suiteName = String.format("%sTest", testedComponent.getName());
             String path = testedComponent.getProjectPath();
             ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
