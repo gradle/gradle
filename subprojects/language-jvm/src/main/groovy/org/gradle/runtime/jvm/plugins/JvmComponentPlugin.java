@@ -31,9 +31,9 @@ import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
-import org.gradle.runtime.jvm.ProjectJvmLibrary;
+import org.gradle.runtime.jvm.JvmLibrarySpec;
+import org.gradle.runtime.jvm.internal.DefaultJvmLibrarySpec;
 import org.gradle.runtime.jvm.internal.DefaultProjectJarBinary;
-import org.gradle.runtime.jvm.internal.DefaultProjectJvmLibrary;
 import org.gradle.runtime.jvm.internal.ProjectJarBinaryInternal;
 import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
@@ -41,7 +41,7 @@ import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 import java.io.File;
 
 /**
- * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.runtime.jvm.ProjectJvmLibrary} library type for
+ * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.runtime.jvm.JvmLibrarySpec} library type for
  * the {@link org.gradle.runtime.base.ProjectComponentContainer}.
  */
 @Incubating
@@ -51,14 +51,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
 
         ProjectComponentContainer projectComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
-        projectComponents.registerFactory(ProjectJvmLibrary.class, new NamedDomainObjectFactory<ProjectJvmLibrary>() {
-            public ProjectJvmLibrary create(String name) {
+        projectComponents.registerFactory(JvmLibrarySpec.class, new NamedDomainObjectFactory<JvmLibrarySpec>() {
+            public JvmLibrarySpec create(String name) {
                 ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return new DefaultProjectJvmLibrary(id);
+                return new DefaultJvmLibrarySpec(id);
             }
         });
 
-        final NamedDomainObjectContainer<ProjectJvmLibrary> jvmLibraries = projectComponents.containerWithType(ProjectJvmLibrary.class);
+        final NamedDomainObjectContainer<JvmLibrarySpec> jvmLibraries = projectComponents.containerWithType(JvmLibrarySpec.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
     }
 
@@ -70,8 +70,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
     public static class Rules {
 
         @Model("jvm.libraries")
-        NamedDomainObjectCollection<ProjectJvmLibrary> jvmLibraries(ProjectComponentContainer components) {
-            return components.withType(ProjectJvmLibrary.class);
+        NamedDomainObjectCollection<JvmLibrarySpec> jvmLibraries(ProjectComponentContainer components) {
+            return components.withType(JvmLibrarySpec.class);
         }
 
         @Model
@@ -80,9 +80,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<ProjectJvmLibrary> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
+        public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
-            for (ProjectJvmLibrary jvmLibrary : libraries) {
+            for (JvmLibrarySpec jvmLibrary : libraries) {
                 BinaryNamingScheme namingScheme = namingSchemeBuilder
                         .withComponentName(jvmLibrary.getName())
                         .withTypeString("jar")

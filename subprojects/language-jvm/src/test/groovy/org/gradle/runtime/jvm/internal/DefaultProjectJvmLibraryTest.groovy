@@ -23,7 +23,7 @@ class DefaultProjectJvmLibraryTest extends Specification {
     def libraryId = Mock(ComponentSpecIdentifier)
 
     def "library has name and path"() {
-        def library = new DefaultProjectJvmLibrary(libraryId)
+        def library = new DefaultJvmLibrarySpec(libraryId)
 
         when:
         _ * libraryId.name >> "jvm-lib"

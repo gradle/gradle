@@ -28,10 +28,10 @@ public interface JvmComponentExtension {
     /**
      * Provides the set of JVM libraries that can be created by this build.
      */
-    NamedDomainObjectContainer<ProjectJvmLibrary> getLibraries();
+    NamedDomainObjectContainer<JvmLibrarySpec> getLibraries();
 
     /**
      * Configures the set of JVM libraries.
      */
-    void libraries(Action<? super NamedDomainObjectContainer<? super ProjectJvmLibrary>> action);
+    void libraries(Action<? super NamedDomainObjectContainer<? super JvmLibrarySpec>> action);
 }

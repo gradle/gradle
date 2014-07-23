@@ -22,14 +22,14 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.jvm.JvmBinaryTasks;
-import org.gradle.runtime.jvm.ProjectJvmLibrary;
+import org.gradle.runtime.jvm.JvmLibrarySpec;
 import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 
 public class DefaultProjectJarBinary extends AbstractBuildableModelElement implements ProjectJarBinaryInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
-    private final ProjectJvmLibrary library;
+    private final JvmLibrarySpec library;
     private final BinaryNamingScheme namingScheme;
     private final JavaToolChain toolChain;
     private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
@@ -37,7 +37,7 @@ public class DefaultProjectJarBinary extends AbstractBuildableModelElement imple
     private File resourcesDir;
     private File jarFile;
 
-    public DefaultProjectJarBinary(ProjectJvmLibrary library, BinaryNamingScheme namingScheme, JavaToolChain toolChain) {
+    public DefaultProjectJarBinary(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain) {
         this.library = library;
         this.namingScheme = namingScheme;
         this.toolChain = toolChain;
@@ -64,7 +64,7 @@ public class DefaultProjectJarBinary extends AbstractBuildableModelElement imple
         return namingScheme.getLifecycleTaskName();
     }
 
-    public ProjectJvmLibrary getLibrary() {
+    public JvmLibrarySpec getLibrary() {
         return library;
     }
 

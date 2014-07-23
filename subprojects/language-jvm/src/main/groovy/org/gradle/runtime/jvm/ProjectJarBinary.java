@@ -29,7 +29,7 @@ public interface ProjectJarBinary extends ProjectJvmLibraryBinary {
     /**
      * The ProjectJvmLibrary that this binary belongs to.
      */
-    ProjectJvmLibrary getLibrary();
+    JvmLibrarySpec getLibrary();
 
     /**
      * The jar file output for this binary.

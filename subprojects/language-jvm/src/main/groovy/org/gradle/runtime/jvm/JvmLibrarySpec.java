@@ -24,7 +24,7 @@ import org.gradle.runtime.base.ProjectComponent;
  * Definition of a JVM library component that is to be built by Gradle.
  */
 @Incubating
-public interface ProjectJvmLibrary extends ProjectComponent {
+public interface JvmLibrarySpec extends ProjectComponent {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */

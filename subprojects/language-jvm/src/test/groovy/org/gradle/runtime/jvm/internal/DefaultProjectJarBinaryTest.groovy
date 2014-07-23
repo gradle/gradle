@@ -16,12 +16,12 @@
 
 package org.gradle.runtime.jvm.internal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
-import org.gradle.runtime.jvm.ProjectJvmLibrary
+import org.gradle.runtime.jvm.JvmLibrarySpec
 import org.gradle.runtime.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
 class DefaultProjectJarBinaryTest extends Specification {
-    def library = Mock(ProjectJvmLibrary)
+    def library = Mock(JvmLibrarySpec)
     def namingScheme = Mock(BinaryNamingScheme)
     def toolChain = Mock(JavaToolChain)
 
