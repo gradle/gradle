@@ -140,12 +140,12 @@ import java.util.Map;
  * <p>There are two notations supported for declaring a dependency on an external module.
  * One is a string notation formatted this way:</p>
  *
- * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>"</code>
+ * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>@<i>extension</i>"</code>
  *
  * <p>The other is a map notation:</p>
  *
  * <code><i>configurationName</i> group: <i>group</i>:, name: <i>name</i>, version: <i>version</i>, classifier:
- * <i>classifier</i></code>
+ * <i>classifier</i>, ext: <i>extension</i></code>
  *
  * <p>In both notations, all properties, except name, are optional.</p>
  *
