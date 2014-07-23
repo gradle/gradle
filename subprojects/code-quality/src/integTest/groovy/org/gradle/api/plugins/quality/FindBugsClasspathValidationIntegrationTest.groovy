@@ -46,13 +46,13 @@ class FindBugsClasspathValidationIntegrationTest extends AbstractIntegrationSpec
         """
         expect:
         fails("findbugsMain")
-        failure.assertThatDescription(CoreMatchers.containsString("too low to work with currently used java"))
+        failure.assertThatCause(CoreMatchers.containsString("too low to work with currently used Java"))
     }
 
     @Requires(TestPrecondition.JDK6)
     def "informs that FindBugs version is too high"() {
         expect:
         fails("findbugsMain")
-        failure.assertThatDescription(CoreMatchers.containsString("too high to work with currently used java"))
+        failure.assertThatCause(CoreMatchers.containsString("too high to work with currently used Java"))
     }
 }
