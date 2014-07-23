@@ -31,6 +31,8 @@ import java.util.Map;
 
 /**
  * {@code AbstractExecTask} is the base class for all exec tasks.
+ *
+ * @param <T> The concrete type of the class.
  */
 public abstract class AbstractExecTask<T extends AbstractExecTask> extends ConventionTask implements ExecSpec {
     private final Class<T> taskType;
