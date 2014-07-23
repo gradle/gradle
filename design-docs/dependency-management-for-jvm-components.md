@@ -285,32 +285,30 @@ A custom library implementation:
 - Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.
 - Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.
 - ~~Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere~~
-
-    ComponentSpecIdentifier extends Named { String getProjectPath() }
-
 - Add a new Sample for a custom plugin that uses model rules to add `SampleLibrary` instances to the `ComponentSpecContainer`
     - Should apply the `ComponentModelBasePlugin`
     - At the end of the story the sample will be adapted to use the new mechanism introduced
     - Add an integration test for the sample
-- Whenever the `ComponentModelBasePlugin` is applied (with or without @ComponentModel annotation)
-    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<LibrarySpec>` view of the `ComponentSpecContainer`.
-        - The builder implementation should generate a `ComponentSpecIdentifier` with the supplied name, instantiate the component and add it to the `ComponentSpecContainer`.
-- Add a new incubating annotation to the 'language-base' project: `ComponentModel` with parameter of `Class<? extends LibrarySpec>`
-- Add functionality to the 'language-base' plugin that registers a hook that inspects every applied plugin for a nested class with the @ComponentModel annotation
+- Add a new incubating annotation to the 'language-base' project: `ComponentModel` with parameter defining the Library type
+- Add functionality to the 'language-base' plugin that registers a hook that inspects every applied plugin for a nested (static) class with the @ComponentModel annotation
     - Implement by adding a `Action<? super PluginApplication>` to `DefaultPluginContainer`, via `PluginServiceRegistry`.
 - When a plugin is applied that has a nested class with the `@ComponentModel(SampleLibrary)` annotation:
     - Automatically apply the `ComponentModelBasePlugin` before the plugin is applied
     - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<SampleLibrary>` view of the `ComponentSpecContainer`.
         - The builder implementation should generate a `ComponentSpecIdentifier` with the supplied name, and instantiate the component.
+- Whenever the `ComponentModelBasePlugin` is applied (with or without @ComponentModel annotation)
+    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<LibrarySpec>` view of the `ComponentSpecContainer`.
+        - The builder implementation should generate a `ComponentSpecIdentifier` with the supplied name, instantiate the component and add it to the `ComponentSpecContainer`.
 
 #### Test cases
 
-- Does not add any components for nested class with `@ComponentModel` but no rules for creating
-- Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` without a `@ComponentModel` annotation
-- Configured libraries are available in `projectComponents` container for
-    - Single nested class has both `@ComponentModel` as well as `@RuleSource` and rule for creating libraries
-    - Separate nested classes declare `@ComponentModel` and `@RuleSource`
-    - Separate plugins define `@ComponentModel` and `@RuleSource`
+- Can register a component model with @ComponentModel without any rules for creating components (does not create components)
+- Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` when the `ComponentModeBasePlugin` is applied without using a `@ComponentModel` annotation
+- Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` with a plugin that:
+    - Has the `ComponentModelBasePlugin` applied
+    - Has a single nested class with both `@ComponentModel` and `@RuleSource` annotations
+    - Has separate nested classes with `@ComponentModel` and `@RuleSource` annotations
+- Rule for adding library instances can be in a separate plugin to the plugin declaring the component model
 - Can define and create 2 component types in the same plugin with 2 `@ComponentModel` annotated inner classes
 - Friendly error message when supplied library implementation:
     - Has no constructor annotated with @Inject
