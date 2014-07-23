@@ -15,18 +15,14 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.Matcher
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
-abstract class AbstractFindBugsPluginIntegrationTest extends WellBehavedPluginTest {
-    @Override
-    String getMainTask() {
-        return "check"
-    }
+abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         writeBuildFile()
@@ -341,7 +337,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends WellBehavedPluginTe
         ":findbugsMain" in skippedTasks
     }
 
-    private boolean containsXmlMessages(File xmlReportFile) {
+    private static boolean containsXmlMessages(File xmlReportFile) {
         new XmlSlurper().parseText(xmlReportFile.text).BugInstance.children().collect { it.name() }.containsAll(['ShortMessage', 'LongMessage'])
     }
 
