@@ -360,7 +360,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
     }
 
     private void writeBuildFile() {
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: "java"
             apply plugin: "findbugs"
 
