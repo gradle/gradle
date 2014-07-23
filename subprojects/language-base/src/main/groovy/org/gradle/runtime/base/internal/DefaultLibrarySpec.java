@@ -26,10 +26,9 @@ import org.gradle.runtime.base.LibrarySpec;
 import org.gradle.runtime.base.BinarySpec;
 
 /**
- * Base class for a LibrarySpec.
- * Each custom implementation must extend this DefaultLibrarySpec
- * */
-
+ * Base class for custom library implementations.
+ * A custom implementation of {@link LibrarySpec} must extend this type.
+ */
 @Incubating
 public class DefaultLibrarySpec implements LibrarySpec {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
@@ -49,7 +48,7 @@ public class DefaultLibrarySpec implements LibrarySpec {
     }
 
     public String getDisplayName() {
-        return String.format("library '%s'", getName());
+        return String.format("%s '%s'", getClass().getSimpleName(), getName());
     }
 
     @Override

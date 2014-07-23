@@ -20,33 +20,34 @@ import org.gradle.runtime.base.ComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultLibrarySpecTest extends Specification {
+    def libraryId = Mock(ComponentSpecIdentifier)
 
-    ComponentSpecIdentifier componentSpecIdentifier = Mock()
+    def "library has name and path"() {
+        def library = new DefaultLibrarySpec(libraryId)
 
-    def "use componentIdentifier for calculating projectPath"() {
-        given:
-        def projectPath = "testProjectPath"
         when:
-        1 * componentSpecIdentifier.projectPath >> projectPath
+        _ * libraryId.name >> "jvm-lib"
+        _ * libraryId.projectPath >> ":project-path"
+
         then:
-        new DefaultLibrarySpec(componentSpecIdentifier).projectPath == projectPath
+        library.name == "jvm-lib"
+        library.projectPath == ":project-path"
+        library.displayName == "DefaultLibrarySpec 'jvm-lib'"
     }
 
-    def "use componentIdentifier for calculating name"() {
-        given:
-        def testName = "SampleName"
+    def "has sensible display name"() {
+        def library = new MySampleLibrary(libraryId)
+
         when:
-        1 * componentSpecIdentifier.name >> testName
+        _ * libraryId.name >> "jvm-lib"
+
         then:
-        new DefaultLibrarySpec(componentSpecIdentifier).name == testName
+        library.displayName == "MySampleLibrary 'jvm-lib'"
     }
 
-    def "provides meaningful sample name"() {
-        given:
-        def testName = "sampleName"
-        when:
-        1 * componentSpecIdentifier.name >> testName
-        then:
-        new DefaultLibrarySpec(componentSpecIdentifier).displayName == "library '$testName'"
+    class MySampleLibrary extends DefaultLibrarySpec {
+        MySampleLibrary(ComponentSpecIdentifier identifier) {
+            super(identifier)
+        }
     }
 }
