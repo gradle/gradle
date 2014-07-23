@@ -63,6 +63,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "analyze bad code"() {
+        defaultLanguage('en')
         badCode()
 
         expect:
@@ -76,6 +77,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
 
     def "can suppress console output"() {
         given:
+        defaultLanguage('en')
         badCode()
 
         when:
@@ -179,5 +181,9 @@ dependencies {
     </module>
 </module>
         """
+    }
+
+    private void defaultLanguage(String defaultLanguage) {
+        executer.withDefaultLanguage(defaultLanguage)
     }
 }
