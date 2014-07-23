@@ -300,7 +300,9 @@ task pdfUserguideXhtml(type: Docbook2Xhtml) {
 }
 
 task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
-    inputs.files cssFiles
+    inputs.files fileTree(userguideSrcDir) {
+        include 'img/*.png'
+    } + cssFiles
     sourceFile = pdfUserguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
