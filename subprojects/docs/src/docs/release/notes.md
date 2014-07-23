@@ -183,6 +183,15 @@ to use explicitly HTTP for connecting the Bintray's JCenter repository you can s
             url = "http://jcenter.bintray.com/"
         }
     }
+
+### Default FindBugs version was upgraded to 3.0.0
+
+This way the FindBugs plugin works out of the box with newer Java versions (most notably: Java 1.8).
+If you use Java 1.6 you need to configure an older version of FindBugs explicitly:
+
+    findbugs {
+        toolVersion = '2.0.3'
+    }
  
 ### Changes to incubating native language plugins
 
