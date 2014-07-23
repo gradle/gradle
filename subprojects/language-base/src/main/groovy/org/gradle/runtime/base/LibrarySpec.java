@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm;
+package org.gradle.runtime.base;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.LibrarySpec;
-import org.gradle.runtime.base.ProjectComponent;
 
 /**
- * Definition of a JVM library component that is to be built by Gradle.
+ * A specification of a org.gradle.runtime.base.Library
  */
 @Incubating
-public interface JvmLibrarySpec extends ProjectComponent, LibrarySpec {
-    /**
-     * The binaries that are built for this component. You can use this to configure the binaries for this component.
-     */
-    DomainObjectSet<ProjectJvmLibraryBinary> getBinaries();
+public interface LibrarySpec {
 }
