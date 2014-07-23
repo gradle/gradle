@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Flavor
 import org.gradle.nativebinaries.ProjectNativeExecutable
-import org.gradle.nativebinaries.ProjectNativeLibrary
+import org.gradle.nativebinaries.NativeLibrarySpec
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinaryInternal
@@ -35,7 +35,7 @@ class VisualStudioProjectMapperTest extends Specification {
     def mapper = new VisualStudioProjectMapper()
 
     def executable = Mock(ProjectNativeExecutable)
-    def library = Mock(ProjectNativeLibrary)
+    def library = Mock(NativeLibrarySpec)
     def namingScheme = Mock(BinaryNamingScheme)
     ProjectNativeExecutableBinaryInternal executableBinary
 

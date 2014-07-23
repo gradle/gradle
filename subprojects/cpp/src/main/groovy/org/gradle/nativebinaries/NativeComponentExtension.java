@@ -36,12 +36,12 @@ public interface NativeComponentExtension {
     void executables(Action<? super NamedDomainObjectContainer<? super ProjectNativeExecutable>> action);
 
     /**
-     * The {@link ProjectNativeLibrary} components produced by the build.
+     * The {@link NativeLibrarySpec} components produced by the build.
      */
-    NamedDomainObjectContainer<ProjectNativeLibrary> getLibraries();
+    NamedDomainObjectContainer<NativeLibrarySpec> getLibraries();
 
     /**
-     * Configure the {@link ProjectNativeLibrary} components produced by the build.
+     * Configure the {@link NativeLibrarySpec} components produced by the build.
      */
-    void libraries(Action<? super NamedDomainObjectContainer<? super ProjectNativeLibrary>> action);
+    void libraries(Action<? super NamedDomainObjectContainer<? super NativeLibrarySpec>> action);
 }

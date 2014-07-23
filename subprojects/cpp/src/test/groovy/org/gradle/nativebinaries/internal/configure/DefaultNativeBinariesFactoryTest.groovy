@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultProjectNativeExecutable
-import org.gradle.nativebinaries.internal.DefaultProjectNativeLibrary
+import org.gradle.nativebinaries.internal.DefaultNativeLibrarySpec
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
@@ -64,7 +64,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for library"() {
         given:
-        def library = new DefaultProjectNativeLibrary(id)
+        def library = new DefaultNativeLibrarySpec(id)
 
         when:
         2 * configAction.execute(_)

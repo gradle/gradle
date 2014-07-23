@@ -39,7 +39,7 @@ public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
     }
 
     public void createNativeBinaries(ProjectNativeComponent component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
-        if (component instanceof ProjectNativeLibrary) {
+        if (component instanceof NativeLibrarySpec) {
             createNativeBinary(DefaultProjectSharedLibraryBinary.class, component, namingScheme.withTypeString("SharedLibrary").build(), toolChain, platform, buildType, flavor);
             createNativeBinary(DefaultProjectStaticLibraryBinary.class, component, namingScheme.withTypeString("StaticLibrary").build(), toolChain, platform, buildType, flavor);
         } else {

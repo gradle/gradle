@@ -19,11 +19,11 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.ProjectNativeLibrary;
+import org.gradle.nativebinaries.NativeLibrarySpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
-public class ProjectNativeLibraryFactory implements NamedDomainObjectFactory<ProjectNativeLibrary> {
+public class ProjectNativeLibraryFactory implements NamedDomainObjectFactory<NativeLibrarySpec> {
     private final Instantiator instantiator;
     private final Project project;
 
@@ -32,8 +32,8 @@ public class ProjectNativeLibraryFactory implements NamedDomainObjectFactory<Pro
         this.project = project;
     }
 
-    public ProjectNativeLibrary create(String name) {
+    public NativeLibrarySpec create(String name) {
         ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-        return instantiator.newInstance(DefaultProjectNativeLibrary.class, id);
+        return instantiator.newInstance(DefaultNativeLibrarySpec.class, id);
     }
 }

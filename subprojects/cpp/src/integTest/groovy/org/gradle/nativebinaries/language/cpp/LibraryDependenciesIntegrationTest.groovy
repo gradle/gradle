@@ -77,9 +77,9 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         where:
         label                                  | dependencyNotation                      | description                                                | cause
-        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | "ProjectNativeLibrary with name 'unknown' not found."
+        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | "NativeLibrarySpec with name 'unknown' not found."
         "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Could not locate library 'hello' for project ':unknown'." | "Project with path ':unknown' could not be found in project ':exe'."
-        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | "ProjectNativeLibrary with name 'unknown' not found."
+        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | "NativeLibrarySpec with name 'unknown' not found."
     }
 
     @Unroll

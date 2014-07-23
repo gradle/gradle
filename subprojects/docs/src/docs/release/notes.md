@@ -202,6 +202,7 @@ TBD - make this more explicit re. what is actually not longer available.
 - NativeTestSuiteBinary no longer extends NativeExecutableBinary
 - Merged TestSuiteExecutableBinary into NativeTestSuiteBinary
 - Renamed CUnitTestSuiteExecutableBinary -> CUnitTestSuiteBinary
+- Renamed ProjectNativeLibrary -> NativeLibrarySpec
 - TODO: document all of the changes once they are finalised
 
 #### Changes to native cross compilation and custom platforms support

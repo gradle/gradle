@@ -20,7 +20,7 @@ import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.cpp.internal.DefaultCppSourceSet
 import org.gradle.nativebinaries.NativeDependencySet
 import org.gradle.nativebinaries.NativeLibraryBinary
-import org.gradle.nativebinaries.ProjectNativeLibrary
+import org.gradle.nativebinaries.NativeLibrarySpec
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
@@ -37,7 +37,7 @@ class DefaultCppSourceSetTest extends Specification {
     }
 
     def "can add a library as a dependency of the source set"() {
-        def library = Mock(ProjectNativeLibrary)
+        def library = Mock(NativeLibrarySpec)
 
         when:
         sourceSet.lib(library)

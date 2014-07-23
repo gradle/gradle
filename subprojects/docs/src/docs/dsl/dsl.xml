@@ -517,7 +517,7 @@
                 <td>org.gradle.nativebinaries.ProjectNativeExecutable</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectNativeLibrary</td>
+                <td>org.gradle.nativebinaries.NativeLibrarySpec</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.ProjectNativeBinary</td>

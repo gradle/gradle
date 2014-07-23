@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal.resolve;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.typeconversion.*;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
-import org.gradle.nativebinaries.ProjectNativeLibrary;
+import org.gradle.nativebinaries.NativeLibrarySpec;
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement;
 
 import java.util.Collection;
@@ -33,13 +33,13 @@ class NativeDependencyNotationParser {
                 .toComposite();
     }
 
-    private static class LibraryConverter extends TypedNotationParser<ProjectNativeLibrary, NativeLibraryRequirement> {
+    private static class LibraryConverter extends TypedNotationParser<NativeLibrarySpec, NativeLibraryRequirement> {
         private LibraryConverter() {
-            super(ProjectNativeLibrary.class);
+            super(NativeLibrarySpec.class);
         }
 
         @Override
-        protected NativeLibraryRequirement parseType(ProjectNativeLibrary notation) {
+        protected NativeLibraryRequirement parseType(NativeLibrarySpec notation) {
             return notation.getShared();
         }
     }

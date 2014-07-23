@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.nativebinaries.ProjectNativeLibrary;
+import org.gradle.nativebinaries.NativeLibrarySpec;
 import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 import org.gradle.nativebinaries.ProjectNativeBinary;
@@ -38,7 +38,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         if (projectComponentContainer == null) {
             throw new LibraryResolveException(String.format("Project does not have a libraries container: '%s'", project.getPath()));
         }
-        DomainObjectSet<ProjectNativeBinary> projectBinaries = projectComponentContainer.withType(ProjectNativeLibrary.class).getByName(requirement.getLibraryName()).getBinaries();
+        DomainObjectSet<ProjectNativeBinary> projectBinaries = projectComponentContainer.withType(NativeLibrarySpec.class).getByName(requirement.getLibraryName()).getBinaries();
         DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
         // TODO:DAZ Convert, don't cast
         for (ProjectNativeBinary projectNativeBinary : projectBinaries) {

@@ -71,8 +71,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         components.registerFactory(ProjectNativeExecutable.class, new ProjectNativeExecutableFactory(instantiator, project));
         NamedDomainObjectContainer<ProjectNativeExecutable> nativeExecutables = components.containerWithType(ProjectNativeExecutable.class);
 
-        components.registerFactory(ProjectNativeLibrary.class, new ProjectNativeLibraryFactory(instantiator, project));
-        NamedDomainObjectContainer<ProjectNativeLibrary> nativeLibraries = components.containerWithType(ProjectNativeLibrary.class);
+        components.registerFactory(NativeLibrarySpec.class, new ProjectNativeLibraryFactory(instantiator, project));
+        NamedDomainObjectContainer<NativeLibrarySpec> nativeLibraries = components.containerWithType(NativeLibrarySpec.class);
 
         project.getExtensions().create("nativeRuntime", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
 

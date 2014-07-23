@@ -33,7 +33,7 @@ public class DefaultProjectSharedLibraryBinary extends AbstractProjectNativeLibr
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public DefaultProjectSharedLibraryBinary(ProjectNativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public DefaultProjectSharedLibraryBinary(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                              BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }

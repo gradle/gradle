@@ -34,7 +34,7 @@ public interface DependentSourceSet extends LanguageSourceSet {
      * Adds a library that this source set requires. This method accepts the following types:
      *
      * <ul>
-     *     <li>A {@link org.gradle.nativebinaries.ProjectNativeLibrary}</li>
+     *     <li>A {@link org.gradle.nativebinaries.NativeLibrarySpec}</li>
      *     <li>A {@link org.gradle.nativebinaries.NativeDependencySet}</li>
      *     <li>A {@link java.util.Map} containing the library selector.</li>
      * </ul>

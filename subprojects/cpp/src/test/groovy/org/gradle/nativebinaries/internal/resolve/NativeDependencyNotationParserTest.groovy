@@ -15,14 +15,14 @@
  */
 package org.gradle.nativebinaries.internal.resolve
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.ProjectNativeLibrary
+import org.gradle.nativebinaries.NativeLibrarySpec
 import org.gradle.nativebinaries.NativeLibraryRequirement
 import spock.lang.Specification
 
 class NativeDependencyNotationParserTest extends Specification {
     def parser = NativeDependencyNotationParser.parser()
     def requirement = Mock(NativeLibraryRequirement)
-    def library = Mock(ProjectNativeLibrary)
+    def library = Mock(NativeLibrarySpec)
     def project = Mock(ProjectInternal)
 
     def "uses shared variant of library"() {
