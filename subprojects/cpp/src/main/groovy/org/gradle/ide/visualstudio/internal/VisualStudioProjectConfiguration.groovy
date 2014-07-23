@@ -18,8 +18,8 @@ package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.NativeBinarySpec
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter
 
@@ -27,14 +27,14 @@ class VisualStudioProjectConfiguration {
     private final DefaultVisualStudioProject vsProject
     private final String configurationName
     private final String platformName
-    final ProjectNativeBinaryInternal binary
+    final NativeBinarySpecInternal binary
     final String type = "Makefile"
 
-    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, ProjectNativeBinary binary) {
+    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, NativeBinarySpec binary) {
         this.vsProject = vsProject
         this.configurationName = configurationName
         this.platformName = platformName
-        this.binary = binary as ProjectNativeBinaryInternal
+        this.binary = binary as NativeBinarySpecInternal
     }
 
     String getName() {

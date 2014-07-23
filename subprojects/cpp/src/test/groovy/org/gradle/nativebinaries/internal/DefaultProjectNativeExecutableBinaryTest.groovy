@@ -32,7 +32,7 @@ class DefaultProjectNativeExecutableBinaryTest extends Specification {
         def executable = Stub(NativeExecutableSpec)
 
         when:
-        def binary = new DefaultProjectNativeExecutableBinary(executable, new DefaultFlavor("flavorOne"), Stub(ToolChainInternal), Stub(Platform), Stub(BuildType), namingScheme, Mock(NativeDependencyResolver))
+        def binary = new DefaultNativeExecutableBinarySpec(executable, new DefaultFlavor("flavorOne"), Stub(ToolChainInternal), Stub(Platform), Stub(BuildType), namingScheme, Mock(NativeDependencyResolver))
 
         then:
         binary.toString() == "executable 'bigOne:executable'"

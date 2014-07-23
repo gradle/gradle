@@ -71,7 +71,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             }
             libraries {
                 hello {
-                    binaries.withType(ProjectSharedLibraryBinary) {
+                    binaries.withType(SharedLibraryBinarySpec) {
                         ${app.compilerDefine("DLL_EXPORT")}
                     }
                 }

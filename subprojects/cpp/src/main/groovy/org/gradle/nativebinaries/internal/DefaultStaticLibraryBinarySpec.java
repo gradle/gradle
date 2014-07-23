@@ -33,12 +33,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultProjectStaticLibraryBinary extends AbstractProjectNativeLibraryBinary implements StaticLibraryBinary, ProjectStaticLibraryBinaryInternal {
+public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
     private File staticLibraryFile;
 
-    public DefaultProjectStaticLibraryBinary(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                             BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultStaticLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                          BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
 

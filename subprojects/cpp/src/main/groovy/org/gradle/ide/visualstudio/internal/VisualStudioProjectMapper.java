@@ -17,32 +17,32 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
-import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
-import org.gradle.nativebinaries.ProjectStaticLibraryBinary;
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
-import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary;
+import org.gradle.nativebinaries.NativeBinarySpec;
+import org.gradle.nativebinaries.NativeExecutableBinarySpec;
+import org.gradle.nativebinaries.SharedLibraryBinarySpec;
+import org.gradle.nativebinaries.StaticLibraryBinarySpec;
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal;
+import org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec;
 
 import java.util.List;
 
 public class VisualStudioProjectMapper {
 
-    public ProjectConfigurationNames mapToConfiguration(ProjectNativeBinary nativeBinary) {
+    public ProjectConfigurationNames mapToConfiguration(NativeBinarySpec nativeBinary) {
         String projectName = projectPrefix(nativeBinary) + componentName(nativeBinary) + projectSuffix(nativeBinary);
         String configurationName = getConfigurationName(nativeBinary);
         return new ProjectConfigurationNames(projectName, configurationName, "Win32");
     }
 
-    private String getConfigurationName(ProjectNativeBinary nativeBinary) {
-        List<String> dimensions = ((ProjectNativeBinaryInternal) nativeBinary).getNamingScheme().getVariantDimensions();
+    private String getConfigurationName(NativeBinarySpec nativeBinary) {
+        List<String> dimensions = ((NativeBinarySpecInternal) nativeBinary).getNamingScheme().getVariantDimensions();
         if (dimensions.isEmpty()) {
             return nativeBinary.getBuildType().getName();
         }
         return makeName(dimensions);
     }
 
-    private String projectPrefix(ProjectNativeBinary nativeBinary) {
+    private String projectPrefix(NativeBinarySpec nativeBinary) {
         String projectPath = nativeBinary.getComponent().getProjectPath();
         if (":".equals(projectPath)) {
             return "";
@@ -50,15 +50,15 @@ public class VisualStudioProjectMapper {
         return projectPath.substring(1).replace(":", "_") + "_";
     }
 
-    private String componentName(ProjectNativeBinary nativeBinary) {
+    private String componentName(NativeBinarySpec nativeBinary) {
         return nativeBinary.getComponent().getName();
     }
 
-    private String projectSuffix(ProjectNativeBinary nativeBinary) {
-        return nativeBinary instanceof ProjectSharedLibraryBinary ? "Dll"
-                : nativeBinary instanceof ProjectStaticLibraryBinary ? "Lib"
-                : nativeBinary instanceof ProjectNativeExecutableBinary ? "Exe"
-                : nativeBinary instanceof ProjectNativeTestSuiteBinary ? "Exe"
+    private String projectSuffix(NativeBinarySpec nativeBinary) {
+        return nativeBinary instanceof SharedLibraryBinarySpec ? "Dll"
+                : nativeBinary instanceof StaticLibraryBinarySpec ? "Lib"
+                : nativeBinary instanceof NativeExecutableBinarySpec ? "Exe"
+                : nativeBinary instanceof NativeTestSuiteBinarySpec ? "Exe"
                 : "";
     }
 

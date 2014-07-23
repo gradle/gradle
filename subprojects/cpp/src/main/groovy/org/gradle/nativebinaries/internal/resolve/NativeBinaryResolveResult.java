@@ -20,7 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
-import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -28,17 +28,17 @@ import java.util.Collection;
 import java.util.List;
 
 public class NativeBinaryResolveResult {
-    private final ProjectNativeBinary target;
+    private final NativeBinarySpec target;
     private final List<NativeBinaryRequirementResolveResult> resolutions = new ArrayList<NativeBinaryRequirementResolveResult>();
 
-    public NativeBinaryResolveResult(ProjectNativeBinary target, Collection<?> libs) {
+    public NativeBinaryResolveResult(NativeBinarySpec target, Collection<?> libs) {
         this.target = target;
         for (Object lib : libs) {
             resolutions.add(new NativeBinaryRequirementResolveResult(lib));
         }
     }
 
-    public ProjectNativeBinary getTarget() {
+    public NativeBinarySpec getTarget() {
         return target;
     }
 

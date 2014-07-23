@@ -21,27 +21,17 @@ import org.gradle.api.Incubating;
 import java.io.File;
 
 /**
- * A shared library binary built by Gradle for a native library.
+ * An binary built by Gradle for a native application.
  */
 @Incubating
-public interface ProjectSharedLibraryBinary extends ProjectNativeBinary {
+public interface NativeExecutableBinarySpec extends NativeBinarySpec {
     /**
-     * The shared library file.
+     * The executable file.
      */
-    File getSharedLibraryFile();
+    File getExecutableFile();
 
     /**
-     * The shared library link file.
+     * The executable file.
      */
-    File getSharedLibraryLinkFile();
-
-    /**
-     * The shared library file.
-     */
-    void setSharedLibraryFile(File sharedLibraryFile);
-
-    /**
-     * The shared library link file.
-     */
-    void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
+    void setExecutableFile(File executableFile);
 }

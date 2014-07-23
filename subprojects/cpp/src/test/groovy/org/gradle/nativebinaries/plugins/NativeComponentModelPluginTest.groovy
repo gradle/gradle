@@ -72,8 +72,8 @@ class NativeComponentModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        one(project.binaries.withType(ProjectNativeExecutableBinary)).flavor.name == DefaultFlavor.DEFAULT
-        one(project.binaries.withType(ProjectSharedLibraryBinary)).flavor.name == DefaultFlavor.DEFAULT
+        one(project.binaries.withType(NativeExecutableBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
+        one(project.binaries.withType(SharedLibraryBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
     }
 
     def "does not add defaults when domain is explicitly configured"() {
@@ -124,7 +124,7 @@ class NativeComponentModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        ProjectNativeExecutableBinary executableBinary = one(project.binaries) as ProjectNativeExecutableBinary
+        NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
             name == 'testExecutable'
             component == executable
@@ -159,7 +159,7 @@ class NativeComponentModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        ProjectSharedLibraryBinary sharedLibraryBinary = project.binaries.testSharedLibrary as ProjectSharedLibraryBinary
+        SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
             name == 'testSharedLibrary'
             component == library
@@ -171,7 +171,7 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        ProjectStaticLibraryBinary staticLibraryBinary = project.binaries.testStaticLibrary as ProjectStaticLibraryBinary
+        StaticLibraryBinarySpec staticLibraryBinary = project.binaries.testStaticLibrary as StaticLibraryBinarySpec
         with(staticLibraryBinary) {
             name == 'testStaticLibrary'
             component == library
@@ -195,17 +195,17 @@ class NativeComponentModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        ProjectNativeExecutableBinary executableBinary = project.binaries.exeExecutable as ProjectNativeExecutableBinary
+        NativeExecutableBinarySpec executableBinary = project.binaries.exeExecutable as NativeExecutableBinarySpec
         with(oneTask(executableBinary.buildDependencies)) {
             name == executableBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }
-        ProjectSharedLibraryBinary sharedLibraryBinary = project.binaries.libSharedLibrary as ProjectSharedLibraryBinary
+        SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.libSharedLibrary as SharedLibraryBinarySpec
         with(oneTask(sharedLibraryBinary.buildDependencies)) {
             name == sharedLibraryBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }
-        ProjectStaticLibraryBinary staticLibraryBinary = project.binaries.libStaticLibrary as ProjectStaticLibraryBinary
+        StaticLibraryBinarySpec staticLibraryBinary = project.binaries.libStaticLibrary as StaticLibraryBinarySpec
         with(oneTask(staticLibraryBinary.buildDependencies)) {
             name == staticLibraryBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP

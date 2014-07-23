@@ -17,27 +17,31 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 
 /**
- * A static library binary built by Gradle for a native library.
+ * A shared library binary built by Gradle for a native library.
  */
 @Incubating
-public interface ProjectStaticLibraryBinary extends ProjectNativeBinary {
+public interface SharedLibraryBinarySpec extends NativeBinarySpec {
     /**
-     * The static library file.
+     * The shared library file.
      */
-    File getStaticLibraryFile();
+    File getSharedLibraryFile();
 
     /**
-     * The static library binary file.
+     * The shared library link file.
      */
-    void setStaticLibraryFile(File staticLibraryFile);
+    File getSharedLibraryLinkFile();
 
     /**
-     * Add some additional files required at link time.
+     * The shared library file.
      */
-    void additionalLinkFiles(FileCollection files);
+    void setSharedLibraryFile(File sharedLibraryFile);
+
+    /**
+     * The shared library link file.
+     */
+    void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
 }

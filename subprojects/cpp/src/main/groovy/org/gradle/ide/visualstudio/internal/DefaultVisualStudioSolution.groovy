@@ -25,7 +25,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.NativeLibraryBinary
 import org.gradle.nativebinaries.NativeComponentSpec
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
 
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
     final DefaultVisualStudioProject rootProject
@@ -76,7 +76,7 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
 
     private void addDependentConfigurations(Set configurations, VisualStudioProjectConfiguration configuration) {
         for (NativeLibraryBinary library : configuration.binary.dependentBinaries) {
-            if (library instanceof ProjectNativeBinaryInternal) {
+            if (library instanceof NativeBinarySpecInternal) {
                 VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration(library);
                 if (configurations.add(libraryConfiguration)) {
                     addDependentConfigurations(configurations, libraryConfiguration)

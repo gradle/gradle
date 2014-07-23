@@ -22,7 +22,7 @@ import org.gradle.api.jvm.ProjectClassDirectoryBinary;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary;
+import org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.jvm.ProjectJarBinary;
@@ -47,26 +47,26 @@ class BinaryRenderer extends ReportRenderer<ProjectBinary, TextReportBuilder> {
 
         textOutput.formatln("    build using task: %s", binary.getBuildTask().getPath());
 
-        if (binary instanceof ProjectNativeBinary) {
-            ProjectNativeBinary nativeBinary = (ProjectNativeBinary) binary;
+        if (binary instanceof NativeBinarySpec) {
+            NativeBinarySpec nativeBinary = (NativeBinarySpec) binary;
             textOutput.formatln("    platform: %s", nativeBinary.getTargetPlatform().getName());
             textOutput.formatln("    build type: %s", nativeBinary.getBuildType().getName());
             textOutput.formatln("    flavor: %s", nativeBinary.getFlavor().getName());
             textOutput.formatln("    tool chain: %s", nativeBinary.getToolChain().getDisplayName());
-            if (binary instanceof ProjectNativeExecutableBinary) {
-                ProjectNativeExecutableBinary executableBinary = (ProjectNativeExecutableBinary) binary;
+            if (binary instanceof NativeExecutableBinarySpec) {
+                NativeExecutableBinarySpec executableBinary = (NativeExecutableBinarySpec) binary;
                 textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
             }
-            if (binary instanceof ProjectNativeTestSuiteBinary) {
-                ProjectNativeTestSuiteBinary executableBinary = (ProjectNativeTestSuiteBinary) binary;
+            if (binary instanceof NativeTestSuiteBinarySpec) {
+                NativeTestSuiteBinarySpec executableBinary = (NativeTestSuiteBinarySpec) binary;
                 textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
             }
-            if (binary instanceof ProjectSharedLibraryBinary) {
-                ProjectSharedLibraryBinary libraryBinary = (ProjectSharedLibraryBinary) binary;
+            if (binary instanceof SharedLibraryBinarySpec) {
+                SharedLibraryBinarySpec libraryBinary = (SharedLibraryBinarySpec) binary;
                 textOutput.formatln("    shared library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getSharedLibraryFile()));
             }
-            if (binary instanceof ProjectStaticLibraryBinary) {
-                ProjectStaticLibraryBinary libraryBinary = (ProjectStaticLibraryBinary) binary;
+            if (binary instanceof StaticLibraryBinarySpec) {
+                StaticLibraryBinarySpec libraryBinary = (StaticLibraryBinarySpec) binary;
                 textOutput.formatln("    static library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getStaticLibraryFile()));
             }
         }

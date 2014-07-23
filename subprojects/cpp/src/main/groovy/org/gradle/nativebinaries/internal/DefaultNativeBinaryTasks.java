@@ -26,9 +26,9 @@ import org.gradle.nativebinaries.tasks.ObjectFilesToBinary;
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary;
 
 public class DefaultNativeBinaryTasks extends DefaultDomainObjectSet<Task> implements NativeBinaryTasks {
-    private final ProjectNativeBinaryInternal binary;
+    private final NativeBinarySpecInternal binary;
 
-    public DefaultNativeBinaryTasks(ProjectNativeBinaryInternal binary) {
+    public DefaultNativeBinaryTasks(NativeBinarySpecInternal binary) {
         super(Task.class);
         this.binary = binary;
     }

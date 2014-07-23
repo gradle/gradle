@@ -28,7 +28,7 @@ public interface NativeComponentSpec extends ComponentSpec {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
-    DomainObjectSet<ProjectNativeBinary> getBinaries();
+    DomainObjectSet<NativeBinarySpec> getBinaries();
 
     /**
      * The name that is used to construct the output file names when building this component.

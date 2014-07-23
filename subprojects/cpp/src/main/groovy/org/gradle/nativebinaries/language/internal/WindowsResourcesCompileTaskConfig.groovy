@@ -22,8 +22,8 @@ import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.SourceTransformTaskConfig
 import org.gradle.language.rc.WindowsResourceSet
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
+import org.gradle.nativebinaries.internal.StaticLibraryBinarySpecInternal
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.runtime.base.ProjectBinary
 
@@ -39,10 +39,10 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
     }
 
     void configureTask(Task task, ProjectBinary binary, LanguageSourceSet sourceSet) {
-        configureResourceCompileTask(task as WindowsResourceCompile, binary as ProjectNativeBinaryInternal, sourceSet as WindowsResourceSet)
+        configureResourceCompileTask(task as WindowsResourceCompile, binary as NativeBinarySpecInternal, sourceSet as WindowsResourceSet)
     }
 
-    private void configureResourceCompileTask(WindowsResourceCompile task, ProjectNativeBinaryInternal binary, WindowsResourceSet sourceSet) {
+    private void configureResourceCompileTask(WindowsResourceCompile task, NativeBinarySpecInternal binary, WindowsResourceSet sourceSet) {
         task.description = "Compiles resources of the $sourceSet of $binary"
 
         task.toolChain = binary.toolChain
@@ -61,7 +61,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
 
         final resourceOutputs = task.outputs.files.asFileTree.matching { include '**/*.res' }
         binary.tasks.createOrLink.source resourceOutputs
-        if (binary instanceof ProjectStaticLibraryBinaryInternal) {
+        if (binary instanceof StaticLibraryBinarySpecInternal) {
             binary.additionalLinkFiles resourceOutputs
         }
     }

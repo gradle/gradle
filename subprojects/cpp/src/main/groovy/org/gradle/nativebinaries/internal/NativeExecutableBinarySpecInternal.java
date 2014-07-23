@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.test.internal;
+package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
-import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary;
+import org.gradle.nativebinaries.NativeExecutableBinarySpec;
 
-public interface ProjectNativeTestSuiteBinaryInternal extends ProjectNativeTestSuiteBinary, ProjectNativeBinaryInternal {
+public interface NativeExecutableBinarySpecInternal extends NativeExecutableBinarySpec, NativeBinarySpecInternal {
 }

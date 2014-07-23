@@ -16,36 +16,36 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
-import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.ProjectNativeExecutableBinary;
-import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
-import org.gradle.nativebinaries.ProjectStaticLibraryBinary;
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
+import org.gradle.nativebinaries.NativeBinarySpec;
+import org.gradle.nativebinaries.NativeExecutableBinarySpec;
+import org.gradle.nativebinaries.SharedLibraryBinarySpec;
+import org.gradle.nativebinaries.StaticLibraryBinarySpec;
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
-public class ProjectNativeBinaryInitializer implements Action<ProjectNativeBinary> {
+public class ProjectNativeBinaryInitializer implements Action<NativeBinarySpec> {
     private final File binariesOutputDir;
 
     public ProjectNativeBinaryInitializer(File buildDir) {
         binariesOutputDir = new File(buildDir, "binaries");
     }
 
-    public void execute(ProjectNativeBinary nativeBinary) {
+    public void execute(NativeBinarySpec nativeBinary) {
         ToolChainInternal tc = (ToolChainInternal) nativeBinary.getToolChain();
-        BinaryNamingScheme namingScheme = ((ProjectNativeBinaryInternal) nativeBinary).getNamingScheme();
+        BinaryNamingScheme namingScheme = ((NativeBinarySpecInternal) nativeBinary).getNamingScheme();
         File binaryOutputDir = new File(binariesOutputDir, namingScheme.getOutputDirectoryBase());
         String baseName = nativeBinary.getComponent().getBaseName();
 
-        if (nativeBinary instanceof ProjectNativeExecutableBinary) {
-            ((ProjectNativeExecutableBinary) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
-        } else if (nativeBinary instanceof ProjectSharedLibraryBinary) {
-            ((ProjectSharedLibraryBinary) nativeBinary).setSharedLibraryFile(new File(binaryOutputDir, tc.getSharedLibraryName(baseName)));
-            ((ProjectSharedLibraryBinary) nativeBinary).setSharedLibraryLinkFile(new File(binaryOutputDir, tc.getSharedLibraryLinkFileName(baseName)));
-        } else if (nativeBinary instanceof ProjectStaticLibraryBinary) {
-            ((ProjectStaticLibraryBinary) nativeBinary).setStaticLibraryFile(new File(binaryOutputDir, tc.getStaticLibraryName(baseName)));
+        if (nativeBinary instanceof NativeExecutableBinarySpec) {
+            ((NativeExecutableBinarySpec) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
+        } else if (nativeBinary instanceof SharedLibraryBinarySpec) {
+            ((SharedLibraryBinarySpec) nativeBinary).setSharedLibraryFile(new File(binaryOutputDir, tc.getSharedLibraryName(baseName)));
+            ((SharedLibraryBinarySpec) nativeBinary).setSharedLibraryLinkFile(new File(binaryOutputDir, tc.getSharedLibraryLinkFileName(baseName)));
+        } else if (nativeBinary instanceof StaticLibraryBinarySpec) {
+            ((StaticLibraryBinarySpec) nativeBinary).setStaticLibraryFile(new File(binaryOutputDir, tc.getStaticLibraryName(baseName)));
         }
     }
 }

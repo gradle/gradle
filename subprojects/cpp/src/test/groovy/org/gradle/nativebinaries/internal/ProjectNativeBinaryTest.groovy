@@ -179,7 +179,7 @@ class ProjectNativeBinaryTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return new TestProjectNativeBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName", "", []), resolver)
+        return new TestNativeBinarySpec(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName", "", []), resolver)
     }
 
     class TestNativeComponentSpec extends AbstractNativeComponentSpec {
@@ -192,10 +192,10 @@ class ProjectNativeBinaryTest extends Specification {
         }
     }
 
-    class TestProjectNativeBinary extends AbstractProjectNativeBinary {
+    class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
 
-        TestProjectNativeBinary(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+        TestNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                    BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
             super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver)
             this.owner = owner

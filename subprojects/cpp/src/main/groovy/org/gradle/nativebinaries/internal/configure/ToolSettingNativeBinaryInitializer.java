@@ -20,18 +20,18 @@ import org.gradle.api.Action;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
-import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.NativeBinarySpec;
 
 import java.util.Map;
 
-public class ToolSettingNativeBinaryInitializer implements Action<ProjectNativeBinary> {
+public class ToolSettingNativeBinaryInitializer implements Action<NativeBinarySpec> {
     private final LanguageRegistry languageRegistry;
 
     public ToolSettingNativeBinaryInitializer(LanguageRegistry languageRegistry) {
         this.languageRegistry = languageRegistry;
     }
 
-    public void execute(ProjectNativeBinary nativeBinary) {
+    public void execute(NativeBinarySpec nativeBinary) {
         for (LanguageRegistration language : languageRegistry) {
             Map<String, Class<?>> binaryTools = language.getBinaryTools();
             for (String toolName : binaryTools.keySet()) {

@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 class DefaultNativeBinariesFactoryTest extends Specification {
     def resolver = Mock(NativeDependencyResolver)
-    Action<ProjectNativeBinary> configAction = Mock(Action)
+    Action<NativeBinarySpec> configAction = Mock(Action)
 
     def toolChain = Mock(ToolChainInternal)
     def platform = Mock(Platform)
@@ -54,7 +54,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
         then:
         executable.binaries.size() == 1
-        def binary = (executable.binaries as List)[0] as ProjectNativeBinary
+        def binary = (executable.binaries as List)[0] as NativeBinarySpec
         binary.name == "testExecutable"
         binary.toolChain == toolChain
         binary.targetPlatform == platform
@@ -74,14 +74,14 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
         then:
         library.binaries.size() == 2
-        def sharedLibrary = (library.binaries.withType(ProjectSharedLibraryBinary) as List)[0] as ProjectNativeBinary
+        def sharedLibrary = (library.binaries.withType(SharedLibraryBinarySpec) as List)[0] as NativeBinarySpec
         sharedLibrary.name == "testSharedLibrary"
         sharedLibrary.toolChain == toolChain
         sharedLibrary.targetPlatform == platform
         sharedLibrary.buildType == buildType
         sharedLibrary.flavor == flavor
 
-        def staticLibrary = (library.binaries.withType(ProjectSharedLibraryBinary) as List)[0] as ProjectNativeBinary
+        def staticLibrary = (library.binaries.withType(SharedLibraryBinarySpec) as List)[0] as NativeBinarySpec
         staticLibrary.name == "testSharedLibrary"
         staticLibrary.toolChain == toolChain
         staticLibrary.targetPlatform == platform

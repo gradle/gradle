@@ -19,7 +19,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.language.base.internal.DefaultLanguageRegistry
 import org.gradle.language.base.internal.LanguageRegistration
-import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.NativeBinarySpec
 import org.gradle.nativebinaries.internal.DefaultTool
 import spock.lang.Specification
 
@@ -67,5 +67,5 @@ class ToolSettingNativeBinaryInitializerTest extends Specification {
         0 * _
     }
 
-    private interface ExtensionAwareNativeBinary extends ProjectNativeBinary, ExtensionAware {}
+    private interface ExtensionAwareNativeBinary extends NativeBinarySpec, ExtensionAware {}
 }

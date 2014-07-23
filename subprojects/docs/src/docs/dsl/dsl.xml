@@ -520,16 +520,16 @@
                 <td>org.gradle.nativebinaries.NativeLibrarySpec</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectNativeBinary</td>
+                <td>org.gradle.nativebinaries.NativeBinarySpec</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectNativeExecutableBinary</td>
+                <td>org.gradle.nativebinaries.NativeExecutableBinarySpec</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectSharedLibraryBinary</td>
+                <td>org.gradle.nativebinaries.SharedLibraryBinarySpec</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ProjectStaticLibraryBinary</td>
+                <td>org.gradle.nativebinaries.StaticLibraryBinarySpec</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.BuildType</td>
@@ -556,7 +556,7 @@
                 <td>org.gradle.nativebinaries.test.NativeTestSuiteSpec</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary</td>
+                <td>org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.test.cunit.CUnitTestSuite</td>

@@ -23,7 +23,7 @@ libraries {
     }
 }
 // END SNIPPET flavors
-binaries.withType(ProjectSharedLibraryBinary) {
+binaries.withType(SharedLibraryBinarySpec) {
     cppCompiler.define "DLL_EXPORT"
 }
 

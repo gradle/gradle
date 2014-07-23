@@ -29,12 +29,12 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultProjectSharedLibraryBinary extends AbstractProjectNativeLibraryBinary implements SharedLibraryBinary, ProjectSharedLibraryBinaryInternal {
+public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements SharedLibraryBinary, SharedLibraryBinarySpecInternal {
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public DefaultProjectSharedLibraryBinary(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                             BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultSharedLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                          BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
 

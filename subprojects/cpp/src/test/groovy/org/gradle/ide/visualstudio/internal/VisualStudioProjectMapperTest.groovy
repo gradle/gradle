@@ -19,15 +19,15 @@ import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Flavor
 import org.gradle.nativebinaries.NativeExecutableSpec
 import org.gradle.nativebinaries.NativeLibrarySpec
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
+import org.gradle.nativebinaries.internal.NativeExecutableBinarySpecInternal
+import org.gradle.nativebinaries.internal.SharedLibraryBinarySpecInternal
+import org.gradle.nativebinaries.internal.StaticLibraryBinarySpecInternal
 import org.gradle.nativebinaries.platform.Architecture
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
 import org.gradle.nativebinaries.test.NativeTestSuiteSpec
-import org.gradle.nativebinaries.test.internal.ProjectNativeTestSuiteBinaryInternal
+import org.gradle.nativebinaries.test.internal.NativeTestSuiteBinarySpecInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import spock.lang.Specification
 
@@ -37,7 +37,7 @@ class VisualStudioProjectMapperTest extends Specification {
     def executable = Mock(NativeExecutableSpec)
     def library = Mock(NativeLibrarySpec)
     def namingScheme = Mock(BinaryNamingScheme)
-    ProjectNativeExecutableBinaryInternal executableBinary
+    NativeExecutableBinarySpecInternal executableBinary
 
     def flavorOne = Mock(Flavor)
     def buildTypeOne = Mock(BuildType)
@@ -69,8 +69,8 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "maps library binary types to visual studio projects"() {
         when:
-        def sharedLibraryBinary = libraryBinary(ProjectSharedLibraryBinaryInternal)
-        def staticLibraryBinary = libraryBinary(ProjectStaticLibraryBinaryInternal)
+        def sharedLibraryBinary = libraryBinary(SharedLibraryBinarySpecInternal)
+        def staticLibraryBinary = libraryBinary(StaticLibraryBinarySpecInternal)
 
         library.projectPath >> ":"
         namingScheme.variantDimensions >> []
@@ -82,7 +82,7 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "maps test binary to visual studio project"() {
         def testExecutable = Mock(NativeTestSuiteSpec)
-        def binary = Mock(ProjectNativeTestSuiteBinaryInternal)
+        def binary = Mock(NativeTestSuiteBinarySpecInternal)
 
         when:
         testExecutable.name >> "testSuiteName"
@@ -128,7 +128,7 @@ class VisualStudioProjectMapperTest extends Specification {
     }
 
     private def createExecutableBinary(String binaryName, def buildType, def platform) {
-        def binary = Mock(ProjectNativeExecutableBinaryInternal)
+        def binary = Mock(NativeExecutableBinarySpecInternal)
         binary.name >> binaryName
         binary.component >> executable
         binary.buildType >> buildType
@@ -149,7 +149,7 @@ class VisualStudioProjectMapperTest extends Specification {
         return ArchitectureNotationParser.parser().parseNotation(name)
     }
 
-    private libraryBinary(Class<? extends ProjectNativeBinaryInternal> type) {
+    private libraryBinary(Class<? extends NativeBinarySpecInternal> type) {
         def binary = Mock(type)
         binary.component >> library
         binary.flavor >> flavorOne

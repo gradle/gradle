@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.ProjectSharedLibraryBinary;
+import org.gradle.nativebinaries.SharedLibraryBinarySpec;
 
-public interface ProjectSharedLibraryBinaryInternal extends ProjectSharedLibraryBinary, ProjectNativeBinaryInternal {
+public interface SharedLibraryBinarySpecInternal extends SharedLibraryBinarySpec, NativeBinarySpecInternal {
 }

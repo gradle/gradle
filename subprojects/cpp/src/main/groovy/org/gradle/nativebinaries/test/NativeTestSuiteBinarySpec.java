@@ -17,7 +17,7 @@ package org.gradle.nativebinaries.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.NativeBinarySpec;
 
 import java.io.File;
 
@@ -25,11 +25,11 @@ import java.io.File;
  * An executable which runs a suite of tests.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectNativeTestSuiteBinary extends ProjectNativeBinary {
+public interface NativeTestSuiteBinarySpec extends NativeBinarySpec {
     /**
      * The tested binary.
      */
-    ProjectNativeBinary getTestedBinary();
+    NativeBinarySpec getTestedBinary();
 
     /**
      * The executable file.

@@ -38,8 +38,8 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
             task checkBinaries << {
                 assert binaries.mainClasses instanceof ProjectClassDirectoryBinary
-                assert binaries.mainExeExecutable instanceof ProjectNativeExecutableBinary
-                assert binaries.mainLibSharedLibrary instanceof ProjectSharedLibraryBinary
+                assert binaries.mainExeExecutable instanceof NativeExecutableBinarySpec
+                assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinarySpec
             }
 """
         expect:
@@ -68,9 +68,9 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
     task check << {
         assert projectComponents.size() == 3
-        assert projectComponents.nativeExe instanceof ProjectNativeExecutable
-        assert projectComponents.nativeLib instanceof ProjectNativeLibrary
-        assert projectComponents.jvmLib instanceof ProjectJvmLibrary
+        assert projectComponents.nativeExe instanceof NativeExecutableSpec
+        assert projectComponents.nativeLib instanceof NativeLibrarySpec
+        assert projectComponents.jvmLib instanceof JvmLibrarySpec
 
         assert nativeRuntime.executables as List == [projectComponents.nativeExe]
         assert nativeRuntime.libraries as List == [projectComponents.nativeLib]
@@ -78,9 +78,9 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
         assert binaries.size() == 4
         assert binaries.jvmLibJar instanceof ProjectJarBinary
-        assert binaries.nativeExeExecutable instanceof ProjectNativeExecutableBinary
-        assert binaries.nativeLibStaticLibrary instanceof ProjectStaticLibraryBinary
-        assert binaries.nativeLibSharedLibrary instanceof ProjectSharedLibraryBinary
+        assert binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
+        assert binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
+        assert binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
     }
 """
         expect:

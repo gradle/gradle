@@ -35,7 +35,7 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
 
             task checkModel << {
                 assert projectComponents.size() == 1
-                assert projectComponents.jvmLib instanceof ProjectJvmLibrary
+                assert projectComponents.jvmLib instanceof JvmLibrarySpec
 
                 assert binaries.size() == 3
                 assert binaries.jvmLibJar instanceof ProjectJarBinary

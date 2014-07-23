@@ -24,7 +24,7 @@ import org.gradle.nativebinaries.NativeComponentSpec;
 import java.util.Set;
 
 /**
- * A visual studio solution, representing one or more {@link org.gradle.nativebinaries.ProjectNativeBinary} instances
+ * A visual studio solution, representing one or more {@link org.gradle.nativebinaries.NativeBinarySpec} instances
  * from the same {@link org.gradle.nativebinaries.NativeComponentSpec}.
  * <p/>
  *

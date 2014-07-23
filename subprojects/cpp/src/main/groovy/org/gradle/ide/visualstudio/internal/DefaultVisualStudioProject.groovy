@@ -26,7 +26,7 @@ import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.NativeBinarySpec
 import org.gradle.nativebinaries.NativeComponentSpec
 import org.gradle.util.CollectionUtils
 /**
@@ -115,12 +115,12 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return CollectionUtils.toList(configurations.values())
     }
 
-    void addConfiguration(ProjectNativeBinary nativeBinary, VisualStudioProjectConfiguration configuration) {
+    void addConfiguration(NativeBinarySpec nativeBinary, VisualStudioProjectConfiguration configuration) {
         configurations[nativeBinary] = configuration
         source nativeBinary.source
     }
 
-    VisualStudioProjectConfiguration getConfiguration(ProjectNativeBinary nativeBinary) {
+    VisualStudioProjectConfiguration getConfiguration(NativeBinarySpec nativeBinary) {
         return configurations[nativeBinary]
     }
 

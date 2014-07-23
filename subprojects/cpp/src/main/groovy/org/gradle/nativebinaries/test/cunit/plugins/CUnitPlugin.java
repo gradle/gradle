@@ -33,8 +33,8 @@ import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.nativebinaries.NativeComponentSpec;
-import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
+import org.gradle.nativebinaries.NativeBinarySpec;
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
@@ -131,7 +131,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void createCUnitTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             for (final CUnitTestSuite cUnitTestSuite : testSuites.withType(CUnitTestSuite.class)) {
-                for (ProjectNativeBinary testedBinary : cUnitTestSuite.getTestedComponent().getBinaries()) {
+                for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries()) {
 
                     CUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary);
 
@@ -143,8 +143,8 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        private CUnitTestSuiteBinary createTestBinary(ServiceRegistry serviceRegistry, CUnitTestSuite cUnitTestSuite, ProjectNativeBinary testedBinary) {
-            BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((ProjectNativeBinaryInternal) testedBinary).getNamingScheme())
+        private CUnitTestSuiteBinary createTestBinary(ServiceRegistry serviceRegistry, CUnitTestSuite cUnitTestSuite, NativeBinarySpec testedBinary) {
+            BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
                     .withComponentName(cUnitTestSuite.getBaseName())
                     .withTypeString("CUnitExe").build();
 
@@ -154,7 +154,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         }
 
         private void configure(CUnitTestSuiteBinary testBinary, File buildDir) {
-            BinaryNamingScheme namingScheme = ((ProjectNativeBinaryInternal) testBinary).getNamingScheme();
+            BinaryNamingScheme namingScheme = ((NativeBinarySpecInternal) testBinary).getNamingScheme();
             File binaryOutputDir = new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
             String baseName = testBinary.getComponent().getBaseName();
 

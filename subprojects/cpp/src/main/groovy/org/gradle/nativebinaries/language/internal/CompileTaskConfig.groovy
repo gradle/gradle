@@ -24,9 +24,9 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.LanguageRegistration
 import org.gradle.language.base.internal.LanguageSourceSetInternal
 import org.gradle.language.base.internal.SourceTransformTaskConfig
-import org.gradle.nativebinaries.ProjectSharedLibraryBinary
+import org.gradle.nativebinaries.SharedLibraryBinarySpec
 import org.gradle.nativebinaries.Tool
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
 import org.gradle.runtime.base.ProjectBinary
@@ -53,15 +53,15 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
 
     @Override
     void configureTask(Task task, ProjectBinary binary, LanguageSourceSet sourceSet) {
-        configureCompileTask(task as AbstractNativeCompileTask, binary as ProjectNativeBinaryInternal, sourceSet as LanguageSourceSetInternal)
+        configureCompileTask(task as AbstractNativeCompileTask, binary as NativeBinarySpecInternal, sourceSet as LanguageSourceSetInternal)
     }
 
-    private AbstractNativeCompileTask configureCompileTask(AbstractNativeCompileTask task, ProjectNativeBinaryInternal binary, LanguageSourceSetInternal sourceSet) {
+    private AbstractNativeCompileTask configureCompileTask(AbstractNativeCompileTask task, NativeBinarySpecInternal binary, LanguageSourceSetInternal sourceSet) {
         task.setDescription("Compiles the $sourceSet of $binary");
 
         task.setToolChain(binary.getToolChain());
         task.setTargetPlatform(binary.getTargetPlatform());
-        task.setPositionIndependentCode(binary instanceof ProjectSharedLibraryBinary);
+        task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
 
         task.includes {
             sourceSet.exportedHeaders.srcDirs

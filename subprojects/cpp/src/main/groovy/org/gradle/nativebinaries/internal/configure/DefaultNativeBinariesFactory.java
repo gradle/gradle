@@ -18,9 +18,9 @@ package org.gradle.nativebinaries.internal.configure;
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.DefaultProjectNativeExecutableBinary;
-import org.gradle.nativebinaries.internal.DefaultProjectSharedLibraryBinary;
-import org.gradle.nativebinaries.internal.DefaultProjectStaticLibraryBinary;
+import org.gradle.nativebinaries.internal.DefaultNativeExecutableBinarySpec;
+import org.gradle.nativebinaries.internal.DefaultSharedLibraryBinarySpec;
+import org.gradle.nativebinaries.internal.DefaultStaticLibraryBinarySpec;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
@@ -29,10 +29,10 @@ import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 
 public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
     private final Instantiator instantiator;
-    private final Action<ProjectNativeBinary> configureAction;
+    private final Action<NativeBinarySpec> configureAction;
     private final NativeDependencyResolver resolver;
 
-    public DefaultNativeBinariesFactory(Instantiator instantiator, Action<ProjectNativeBinary> configureAction, NativeDependencyResolver resolver) {
+    public DefaultNativeBinariesFactory(Instantiator instantiator, Action<NativeBinarySpec> configureAction, NativeDependencyResolver resolver) {
         this.configureAction = configureAction;
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -40,21 +40,21 @@ public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
 
     public void createNativeBinaries(NativeComponentSpec component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         if (component instanceof NativeLibrarySpec) {
-            createNativeBinary(DefaultProjectSharedLibraryBinary.class, component, namingScheme.withTypeString("SharedLibrary").build(), toolChain, platform, buildType, flavor);
-            createNativeBinary(DefaultProjectStaticLibraryBinary.class, component, namingScheme.withTypeString("StaticLibrary").build(), toolChain, platform, buildType, flavor);
+            createNativeBinary(DefaultSharedLibraryBinarySpec.class, component, namingScheme.withTypeString("SharedLibrary").build(), toolChain, platform, buildType, flavor);
+            createNativeBinary(DefaultStaticLibraryBinarySpec.class, component, namingScheme.withTypeString("StaticLibrary").build(), toolChain, platform, buildType, flavor);
         } else {
-            createNativeBinary(DefaultProjectNativeExecutableBinary.class, component, namingScheme.withTypeString("Executable").build(), toolChain, platform, buildType, flavor);
+            createNativeBinary(DefaultNativeExecutableBinarySpec.class, component, namingScheme.withTypeString("Executable").build(), toolChain, platform, buildType, flavor);
         }
     }
 
-    private void createNativeBinary(Class<? extends ProjectNativeBinary> type, NativeComponentSpec component, BinaryNamingScheme namingScheme,
+    private void createNativeBinary(Class<? extends NativeBinarySpec> type, NativeComponentSpec component, BinaryNamingScheme namingScheme,
                             ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
-        ProjectNativeBinary nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, buildType, namingScheme, resolver);
+        NativeBinarySpec nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, buildType, namingScheme, resolver);
         setupDefaults(nativeBinary);
         component.getBinaries().add(nativeBinary);
     }
 
-    private void setupDefaults(ProjectNativeBinary nativeBinary) {
+    private void setupDefaults(NativeBinarySpec nativeBinary) {
         configureAction.execute(nativeBinary);
     }
 }

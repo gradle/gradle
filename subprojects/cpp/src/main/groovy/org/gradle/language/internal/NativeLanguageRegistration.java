@@ -18,11 +18,11 @@ package org.gradle.language.internal;
 
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.runtime.base.ProjectBinary;
 
 public abstract class NativeLanguageRegistration<U extends LanguageSourceSet> implements LanguageRegistration<U> {
     public boolean applyToBinary(ProjectBinary binary) {
-        return binary instanceof ProjectNativeBinary;
+        return binary instanceof NativeBinarySpec;
     }
 }

@@ -25,10 +25,10 @@ import java.util.Set;
 
 class DefaultLibraryResolver {
     private final NativeLibraryRequirement requirement;
-    private final ProjectNativeBinary context;
+    private final NativeBinarySpec context;
     private final LibraryBinaryLocator libraryBinaryLocator;
 
-    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, NativeLibraryRequirement requirement, ProjectNativeBinary context) {
+    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, NativeLibraryRequirement requirement, NativeBinarySpec context) {
         this.requirement = requirement;
         this.context = context;
         this.libraryBinaryLocator = libraryBinaryLocator;

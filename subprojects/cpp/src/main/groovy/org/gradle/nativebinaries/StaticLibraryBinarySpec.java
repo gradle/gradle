@@ -17,21 +17,27 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 
 /**
- * An binary built by Gradle for a native application.
+ * A static library binary built by Gradle for a native library.
  */
 @Incubating
-public interface ProjectNativeExecutableBinary extends ProjectNativeBinary {
+public interface StaticLibraryBinarySpec extends NativeBinarySpec {
     /**
-     * The executable file.
+     * The static library file.
      */
-    File getExecutableFile();
+    File getStaticLibraryFile();
 
     /**
-     * The executable file.
+     * The static library binary file.
      */
-    void setExecutableFile(File executableFile);
+    void setStaticLibraryFile(File staticLibraryFile);
+
+    /**
+     * Add some additional files required at link time.
+     */
+    void additionalLinkFiles(FileCollection files);
 }

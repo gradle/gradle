@@ -99,8 +99,8 @@
         <para>
             To build either a static or shared native library binary,
             a <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component is added to the <literal>libraries</literal> container.
-            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.ProjectSharedLibraryBinary"/>
-            and at least one <apilink class="org.gradle.nativebinaries.ProjectStaticLibraryBinary"/>.
+            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/>
+            and at least one <apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/>.
         </para>
         <sample id="cppLibraries" dir="native-binaries/c" title="Defining a library component">
             <sourcefile file="build.gradle" snippet="libraries"/>
@@ -133,13 +133,13 @@
                 <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
             </thread>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.ProjectNativeExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.NativeExecutableBinarySpec"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.ProjectSharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.ProjectStaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
             </tr>
         </table>
 
@@ -657,7 +657,7 @@
             <para>
                 A <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuite"/> component has an associated
                 <apilink class="org.gradle.nativebinaries.NativeExecutable"/> or <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component.
-                For each <apilink class="org.gradle.nativebinaries.ProjectNativeBinary"/> configured for the main component, a matching
+                For each <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> configured for the main component, a matching
                 <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinary"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>

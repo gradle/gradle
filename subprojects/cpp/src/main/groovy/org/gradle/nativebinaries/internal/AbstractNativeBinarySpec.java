@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractProjectNativeBinary extends AbstractBuildableModelElement implements ProjectNativeBinaryInternal {
+public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelElement implements NativeBinarySpecInternal {
     private final NativeComponentSpec component;
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
@@ -49,8 +49,8 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     private final NativeDependencyResolver resolver;
     private boolean buildable;
 
-    protected AbstractProjectNativeBinary(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                                          BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    protected AbstractNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+                                       BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         this.component = owner;
         this.namingScheme = namingScheme;
         this.flavor = flavor;

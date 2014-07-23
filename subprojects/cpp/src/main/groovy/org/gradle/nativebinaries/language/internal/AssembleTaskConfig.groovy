@@ -22,7 +22,7 @@ import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.LanguageSourceSetInternal
 import org.gradle.language.base.internal.SourceTransformTaskConfig
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
 import org.gradle.runtime.base.ProjectBinary
@@ -42,10 +42,10 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
 
     @Override
     void configureTask(Task task, ProjectBinary binary, LanguageSourceSet sourceSet) {
-        configureAssembleTask(task as Assemble, binary as ProjectNativeBinaryInternal, sourceSet as LanguageSourceSetInternal)
+        configureAssembleTask(task as Assemble, binary as NativeBinarySpecInternal, sourceSet as LanguageSourceSetInternal)
     }
 
-    private AbstractNativeCompileTask configureAssembleTask(Assemble task, ProjectNativeBinaryInternal binary, LanguageSourceSetInternal sourceSet) {
+    private AbstractNativeCompileTask configureAssembleTask(Assemble task, NativeBinarySpecInternal binary, LanguageSourceSetInternal sourceSet) {
         task.setDescription("Assembles the $sourceSet of $binary");
 
 

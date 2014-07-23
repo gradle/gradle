@@ -132,9 +132,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
-            Action<ProjectNativeBinary> configureBinaryAction = new ProjectNativeBinaryInitializer(buildDir);
-            Action<ProjectNativeBinary> setToolsAction = new ToolSettingNativeBinaryInitializer(languages);
-            Action<ProjectNativeBinary> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
+            Action<NativeBinarySpec> configureBinaryAction = new ProjectNativeBinaryInitializer(buildDir);
+            Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languages);
+            Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
@@ -214,11 +214,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     }
 
-    private static class MarkBinariesBuildable implements Action<ProjectNativeBinary> {
-        public void execute(ProjectNativeBinary projectNativeBinary) {
-            ToolChainInternal toolChainInternal = (ToolChainInternal) projectNativeBinary.getToolChain();
-            boolean canBuild = toolChainInternal.select(projectNativeBinary.getTargetPlatform()).isAvailable();
-            ((ProjectNativeBinaryInternal) projectNativeBinary).setBuildable(canBuild);
+    private static class MarkBinariesBuildable implements Action<NativeBinarySpec> {
+        public void execute(NativeBinarySpec nativeBinarySpec) {
+            ToolChainInternal toolChainInternal = (ToolChainInternal) nativeBinarySpec.getToolChain();
+            boolean canBuild = toolChainInternal.select(nativeBinarySpec.getTargetPlatform()).isAvailable();
+            ((NativeBinarySpecInternal) nativeBinarySpec).setBuildable(canBuild);
         }
     }
 }

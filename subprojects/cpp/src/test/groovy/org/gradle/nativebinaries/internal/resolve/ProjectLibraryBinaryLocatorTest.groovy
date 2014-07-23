@@ -23,7 +23,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.nativebinaries.NativeLibraryBinary
 import org.gradle.nativebinaries.NativeLibraryRequirement
-import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.NativeBinarySpec
 import org.gradle.nativebinaries.NativeLibrarySpec
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
 import org.gradle.runtime.base.ProjectComponentContainer
@@ -35,8 +35,8 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def projectLocator = Mock(ProjectLocator)
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(NativeLibrarySpec)
-    def binary = Mock(ProjectNativeLibraryBinary)
-    def binaries = new DefaultDomainObjectSet(ProjectNativeBinary, [binary])
+    def binary = Mock(NativeLibraryBinarySpec)
+    def binaries = new DefaultDomainObjectSet(NativeBinarySpec, [binary])
     def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary, [binary])
     def locator = new ProjectLibraryBinaryLocator(projectLocator)
 
@@ -144,6 +144,6 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         return libraryContainer
     }
 
-    interface ProjectNativeLibraryBinary extends ProjectNativeBinary, NativeLibraryBinary {}
+    interface NativeLibraryBinarySpec extends NativeBinarySpec, NativeLibraryBinary {}
 
 }

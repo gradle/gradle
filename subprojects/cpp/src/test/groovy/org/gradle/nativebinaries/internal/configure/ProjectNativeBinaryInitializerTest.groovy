@@ -17,10 +17,10 @@
 package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.Project
 import org.gradle.nativebinaries.NativeComponentSpec
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinaryInternal
-import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinaryInternal
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
+import org.gradle.nativebinaries.internal.NativeExecutableBinarySpecInternal
+import org.gradle.nativebinaries.internal.SharedLibraryBinarySpecInternal
+import org.gradle.nativebinaries.internal.StaticLibraryBinarySpecInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -43,7 +43,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
     }
 
     def "test executable"() {
-        def binary = initBinary(ProjectNativeExecutableBinaryInternal)
+        def binary = initBinary(NativeExecutableBinarySpecInternal)
 
         when:
         toolChain.getExecutableName("base_name") >> "exe_name"
@@ -56,7 +56,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
     }
 
     def "test shared library"() {
-        def binary = initBinary(ProjectSharedLibraryBinaryInternal)
+        def binary = initBinary(SharedLibraryBinarySpecInternal)
 
         when:
         toolChain.getSharedLibraryName("base_name") >> "shared_library_name"
@@ -71,7 +71,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
     }
 
     def "test static library"() {
-        def binary = initBinary(ProjectStaticLibraryBinaryInternal)
+        def binary = initBinary(StaticLibraryBinarySpecInternal)
 
         when:
         toolChain.getStaticLibraryName("base_name") >> "static_library_name"
@@ -83,7 +83,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
         1 * binary.setStaticLibraryFile(tmpDir.testDirectory.file("binaries", "output_dir", "static_library_name"))
     }
 
-    private <T extends ProjectNativeBinaryInternal> T initBinary(Class<T> type) {
+    private <T extends NativeBinarySpecInternal> T initBinary(Class<T> type) {
         def binary = Mock(type)
         binary.component >> component
         binary.toolChain >> toolChain

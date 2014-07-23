@@ -24,11 +24,11 @@ import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
-public class DefaultProjectNativeExecutableBinary extends AbstractProjectNativeBinary implements NativeExecutableBinary, ExecutableBinary, ProjectNativeExecutableBinaryInternal {
+public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, ExecutableBinary, NativeExecutableBinarySpecInternal {
     private File executableFile;
 
-    public DefaultProjectNativeExecutableBinary(NativeExecutableSpec executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                         BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultNativeExecutableBinarySpec(NativeExecutableSpec executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                             BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(executable, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
 

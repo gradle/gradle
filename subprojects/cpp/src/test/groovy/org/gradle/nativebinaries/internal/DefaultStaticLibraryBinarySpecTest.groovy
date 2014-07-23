@@ -30,7 +30,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultProjectStaticLibraryBinaryTest extends Specification {
+class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
     def library = Stub(NativeLibrarySpec)
@@ -46,7 +46,7 @@ class DefaultProjectStaticLibraryBinaryTest extends Specification {
     }
 
     def getStaticLibrary() {
-        new DefaultProjectStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
+        new DefaultStaticLibraryBinarySpec(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
     }
 
     def "can set output file"() {
@@ -108,7 +108,7 @@ class DefaultProjectStaticLibraryBinaryTest extends Specification {
         binary.linkFiles.files == [binary.staticLibraryFile, linkFile1, linkFile2] as Set
     }
 
-    private TestFile addSources(DefaultProjectStaticLibraryBinary binary, def headerDir) {
+    private TestFile addSources(DefaultStaticLibraryBinarySpec binary, def headerDir) {
         def headerDirSet = Stub(SourceDirectorySet) {
             getSrcDirs() >> [headerDir]
         }

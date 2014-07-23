@@ -20,16 +20,16 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.ProjectNativeExecutableBinary
-import org.gradle.nativebinaries.ProjectSharedLibraryBinary
-import org.gradle.nativebinaries.ProjectStaticLibraryBinary
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.NativeBinarySpec
+import org.gradle.nativebinaries.NativeExecutableBinarySpec
+import org.gradle.nativebinaries.SharedLibraryBinarySpec
+import org.gradle.nativebinaries.StaticLibraryBinarySpec
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
-import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary
+import org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.runtime.base.BinaryContainer
 
@@ -48,19 +48,19 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
 
     // TODO:DAZ Convert to a model rule and use simple iteration - this breaks non-rule code that uses binary.tasks.link
     static void createTasks(TaskContainer tasks, BinaryContainer binaries) {
-        binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
+        binaries.withType(NativeBinarySpec) { NativeBinarySpecInternal binary ->
             createTasksForBinary(tasks, binary)
         }
     }
 
-    private static void createTasksForBinary(TaskContainer tasks, ProjectNativeBinaryInternal binary) {
+    private static void createTasksForBinary(TaskContainer tasks, NativeBinarySpecInternal binary) {
         def builderTask
-        if (binary instanceof ProjectNativeExecutableBinary || binary instanceof ProjectNativeTestSuiteBinary) {
+        if (binary instanceof NativeExecutableBinarySpec || binary instanceof NativeTestSuiteBinarySpec) {
             builderTask = createLinkExecutableTask(tasks, binary)
             binary.tasks.add createInstallTask(tasks, binary);
-        } else if (binary instanceof ProjectSharedLibraryBinary) {
+        } else if (binary instanceof SharedLibraryBinarySpec) {
             builderTask = createLinkSharedLibraryTask(tasks, binary)
-        } else if (binary instanceof ProjectStaticLibraryBinary) {
+        } else if (binary instanceof StaticLibraryBinarySpec) {
             builderTask = createStaticLibraryTask(tasks, binary)
         } else {
             throw new RuntimeException("Not a valid binary type for building: " + binary)
@@ -70,7 +70,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
     }
 
     private static LinkExecutable createLinkExecutableTask(TaskContainer tasks, def executable) {
-        def binary = executable as ProjectNativeBinaryInternal
+        def binary = executable as NativeBinarySpecInternal
         LinkExecutable linkTask = tasks.create(binary.namingScheme.getTaskName("link"), LinkExecutable)
         linkTask.description = "Links ${executable}"
 
@@ -84,8 +84,8 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         return linkTask
     }
 
-    private static LinkSharedLibrary createLinkSharedLibraryTask(TaskContainer tasks, ProjectSharedLibraryBinary sharedLibrary) {
-        def binary = sharedLibrary as ProjectNativeBinaryInternal
+    private static LinkSharedLibrary createLinkSharedLibraryTask(TaskContainer tasks, SharedLibraryBinarySpec sharedLibrary) {
+        def binary = sharedLibrary as NativeBinarySpecInternal
         LinkSharedLibrary linkTask = tasks.create(binary.namingScheme.getTaskName("link"), LinkSharedLibrary)
         linkTask.description = "Links ${sharedLibrary}"
 
@@ -100,8 +100,8 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         return linkTask
     }
 
-    private static CreateStaticLibrary createStaticLibraryTask(TaskContainer tasks, ProjectStaticLibraryBinary staticLibrary) {
-        def binary = staticLibrary as ProjectNativeBinaryInternal
+    private static CreateStaticLibrary createStaticLibraryTask(TaskContainer tasks, StaticLibraryBinarySpec staticLibrary) {
+        def binary = staticLibrary as NativeBinarySpecInternal
         CreateStaticLibrary task = tasks.create(binary.namingScheme.getTaskName("create"), CreateStaticLibrary)
         task.description = "Creates ${staticLibrary}"
 
@@ -113,7 +113,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
     }
 
     private static createInstallTask(TaskContainer tasks, def executable) {
-        def binary = executable as ProjectNativeBinaryInternal
+        def binary = executable as NativeBinarySpecInternal
         InstallExecutable installTask = tasks.create(binary.namingScheme.getTaskName("install"), InstallExecutable)
         installTask.description = "Installs a development image of $executable"
         installTask.group = LifecycleBasePlugin.BUILD_GROUP

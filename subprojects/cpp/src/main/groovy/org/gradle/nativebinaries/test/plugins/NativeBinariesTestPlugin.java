@@ -25,11 +25,11 @@ import org.gradle.language.DependentSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
-import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
+import org.gradle.nativebinaries.NativeBinarySpec;
+import org.gradle.nativebinaries.internal.NativeBinarySpecInternal;
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin;
 import org.gradle.nativebinaries.tasks.InstallExecutable;
-import org.gradle.nativebinaries.test.ProjectNativeTestSuiteBinary;
+import org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer;
 import org.gradle.nativebinaries.test.tasks.RunTestExecutable;
@@ -61,8 +61,8 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
 
         @Finalize // Must run after test binaries have been created (currently in CUnit plugin)
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
-            for (ProjectNativeTestSuiteBinary testSuiteBinary : binaries.withType(ProjectNativeTestSuiteBinary.class)) {
-                ProjectNativeBinary testedBinary = testSuiteBinary.getTestedBinary();
+            for (NativeTestSuiteBinarySpec testSuiteBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
+                NativeBinarySpec testedBinary = testSuiteBinary.getTestedBinary();
                 testSuiteBinary.source(testedBinary.getSource());
 
                 for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class)) {
@@ -73,8 +73,8 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
 
         @Finalize
         public void createTestTasks(final TaskContainer tasks, BinaryContainer binaries) {
-            for (ProjectNativeTestSuiteBinary testBinary : binaries.withType(ProjectNativeTestSuiteBinary.class)) {
-                ProjectNativeBinaryInternal binary = (ProjectNativeBinaryInternal) testBinary;
+            for (NativeTestSuiteBinarySpec testBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
+                NativeBinarySpecInternal binary = (NativeBinarySpecInternal) testBinary;
                 final BinaryNamingScheme namingScheme = binary.getNamingScheme();
 
                 RunTestExecutable runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable.class);

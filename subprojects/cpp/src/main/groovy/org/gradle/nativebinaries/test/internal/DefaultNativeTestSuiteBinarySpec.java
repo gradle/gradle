@@ -15,25 +15,25 @@
  */
 package org.gradle.nativebinaries.test.internal;
 
-import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.nativebinaries.NativeComponentSpec;
-import org.gradle.nativebinaries.internal.AbstractProjectNativeBinary;
+import org.gradle.nativebinaries.internal.AbstractNativeBinarySpec;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
-public class DefaultProjectNativeTestSuiteBinary extends AbstractProjectNativeBinary implements ProjectNativeTestSuiteBinaryInternal {
-    private final ProjectNativeBinary testedBinary;
+public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
+    private final NativeBinarySpec testedBinary;
     private File executableFile;
 
-    public DefaultProjectNativeTestSuiteBinary(NativeComponentSpec owner, ProjectNativeBinary testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultNativeTestSuiteBinarySpec(NativeComponentSpec owner, NativeBinarySpec testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(owner, testedBinary.getFlavor(), (ToolChainInternal) testedBinary.getToolChain(), testedBinary.getTargetPlatform(), testedBinary.getBuildType(), namingScheme, resolver);
         this.testedBinary = testedBinary;
     }
 
-    public ProjectNativeBinary getTestedBinary() {
+    public NativeBinarySpec getTestedBinary() {
         return testedBinary;
     }
 

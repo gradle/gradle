@@ -34,10 +34,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractProjectNativeLibraryBinary extends AbstractProjectNativeBinary {
+public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec {
 
-    protected AbstractProjectNativeLibraryBinary(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                                                 BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    protected AbstractNativeLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+                                              BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
     }
 
@@ -87,12 +87,12 @@ public abstract class AbstractProjectNativeLibraryBinary extends AbstractProject
         }
 
         public final String getDisplayName() {
-            return AbstractProjectNativeLibraryBinary.this.toString();
+            return AbstractNativeLibraryBinarySpec.this.toString();
         }
 
         public final TaskDependency getBuildDependencies() {
             if (hasOutputs()) {
-                return AbstractProjectNativeLibraryBinary.this.getBuildDependencies();
+                return AbstractNativeLibraryBinarySpec.this.getBuildDependencies();
             }
             return new DefaultTaskDependency();
         }

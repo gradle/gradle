@@ -28,7 +28,7 @@ import java.util.Collection;
  * Represents a particular binary artifact that is the result of building a native component.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectNativeBinary extends ProjectBinary {
+public interface NativeBinarySpec extends ProjectBinary {
     /**
      * The component that this binary was built from.
      */

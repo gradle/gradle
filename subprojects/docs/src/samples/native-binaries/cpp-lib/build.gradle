@@ -5,7 +5,7 @@ apply plugin: "cpp"
 // START SNIPPET args
 libraries {
     main {
-        binaries.withType(ProjectSharedLibraryBinary) {
+        binaries.withType(SharedLibraryBinarySpec) {
             // Define a preprocessor macro that only applies to shared libraries
             cppCompiler.define "DLL_EXPORT"
         }
