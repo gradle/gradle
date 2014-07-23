@@ -65,6 +65,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
+    private String defaultLanguage;
     private int daemonIdleTimeoutSecs = 60;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
     private final List<String> gradleOpts = new ArrayList<String>();
@@ -108,6 +109,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         environmentVars.clear();
         stdin = null;
         defaultCharacterEncoding = null;
+        defaultLanguage = null;
         noDefaultJvmArgs = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
@@ -193,6 +195,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (defaultCharacterEncoding != null) {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
+        }
+        if (defaultLanguage != null) {
+            executer.withDefaultLanguage(defaultLanguage);
         }
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
         if (noDefaultJvmArgs) {
@@ -304,6 +309,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public String getDefaultCharacterEncoding() {
         return defaultCharacterEncoding == null ? Charset.defaultCharset().name() : defaultCharacterEncoding;
+    }
+
+    public GradleExecuter withDefaultLanguage(String defaultLanguage) {
+        this.defaultLanguage = defaultLanguage;
+        return this;
+    }
+
+    public String getDefaultLanguage() {
+        return defaultLanguage == null ? Locale.getDefault().getLanguage() : defaultLanguage;
     }
 
     public GradleExecuter withSearchUpwards() {
@@ -513,6 +527,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
+        properties.put("user.language", getDefaultLanguage());
 
         if (eagerClassLoaderCreationChecksOn) {
             properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
