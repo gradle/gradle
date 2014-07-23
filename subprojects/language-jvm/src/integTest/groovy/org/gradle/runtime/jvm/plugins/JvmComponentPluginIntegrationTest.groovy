@@ -51,7 +51,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         def myLib = jvm.libraries.myLib
         assert myLib.name == 'myLib'
         assert myLib == jvm.libraries['myLib']
-        assert myLib instanceof ProjectJvmLibrary
+        assert myLib instanceof JvmLibrarySpec
 
         assert sources.size() == 1
         assert sources.myLib instanceof FunctionalSourceSet
@@ -187,8 +187,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     task check << {
         assert jvm.libraries.size() == 2
-        assert jvm.libraries.myLibOne instanceof ProjectJvmLibrary
-        assert jvm.libraries.myLibTwo instanceof ProjectJvmLibrary
+        assert jvm.libraries.myLibOne instanceof JvmLibrarySpec
+        assert jvm.libraries.myLibTwo instanceof JvmLibrarySpec
 
         assert binaries.size() == 2
         assert binaries.myLibOneJar.library == jvm.libraries.myLibOne
