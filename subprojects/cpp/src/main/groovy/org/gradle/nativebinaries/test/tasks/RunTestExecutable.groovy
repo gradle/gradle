@@ -15,28 +15,21 @@
  */
 
 package org.gradle.nativebinaries.test.tasks
-
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
-import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.AbstractExecTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.process.internal.ExecActionFactory
-
-import javax.inject.Inject
-
 /**
  * Runs a compiled and installed test executable.
  */
 @Incubating
-public class RunTestExecutable extends ConventionTask {
-    /**
-     * The executable binary to run.
-     */
-    @InputFile File testExecutable
+public class RunTestExecutable extends AbstractExecTask {
+    public RunTestExecutable() {
+        super(RunTestExecutable.class);
+    }
 
     /**
      * The directory where the results should be generated.
@@ -48,18 +41,15 @@ public class RunTestExecutable extends ConventionTask {
      */
     @Input boolean ignoreFailures
 
-    @Inject
-    ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException()
-    }
-
     @TaskAction
-    void exec() {
-        def execAction = getExecActionFactory().newExecAction();
-        execAction.setExecutable(getTestExecutable())
-        execAction.setWorkingDir(getOutputDir())
+    @Override
+    protected void exec() {
+        // Make convention mapping work
+        setExecutable(getExecutable());
+        setWorkingDir(getOutputDir());
+
         try {
-            execAction.execute();
+            super.exec();
         } catch (Exception e) {
             handleTestFailures(e);
         }
@@ -76,5 +66,4 @@ public class RunTestExecutable extends ConventionTask {
             throw new GradleException(message, e);
         }
     }
-
 }
