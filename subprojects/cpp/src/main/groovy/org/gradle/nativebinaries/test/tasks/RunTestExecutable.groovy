@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativebinaries.test.tasks
-
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.tasks.AbstractExecTask
@@ -23,19 +22,13 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.process.ProcessForkOptions
-
 /**
  * Runs a compiled and installed test executable.
  */
 @Incubating
 public class RunTestExecutable extends AbstractExecTask {
-    /**
-     * {@inheritDoc}
-     */
-    @Input
-    public String getExecutable() {
-        return super.getExecutable();
+    public RunTestExecutable() {
+        super(RunTestExecutable.class);
     }
 
     /**
@@ -47,94 +40,6 @@ public class RunTestExecutable extends AbstractExecTask {
      * Should the build continue if a test fails, or should the build break?
      */
     @Input boolean ignoreFailures
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable commandLine(Object... arguments) {
-        super.commandLine(arguments);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable args(Object... args) {
-        super.args(args);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable setArgs(Iterable<?> arguments) {
-        super.setArgs(arguments);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable executable(Object executable) {
-        super.executable(executable);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable workingDir(Object dir) {
-        super.workingDir(dir);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable environment(String name, Object value) {
-        super.environment(name, value);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable environment(Map<String, ?> environmentVariables) {
-        super.environment(environmentVariables);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable copyTo(ProcessForkOptions target) {
-        super.copyTo(target);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable setStandardInput(InputStream inputStream) {
-        super.setStandardInput(inputStream);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable setStandardOutput(OutputStream outputStream) {
-        super.setStandardOutput(outputStream);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public RunTestExecutable setErrorOutput(OutputStream outputStream) {
-        super.setErrorOutput(outputStream);
-        return this;
-    }
 
     @TaskAction
     @Override

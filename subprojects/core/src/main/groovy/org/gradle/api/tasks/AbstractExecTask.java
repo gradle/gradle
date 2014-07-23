@@ -32,12 +32,14 @@ import java.util.Map;
 /**
  * {@code AbstractExecTask} is the base class for all exec tasks.
  */
-public abstract class AbstractExecTask extends ConventionTask implements ExecSpec {
+public abstract class AbstractExecTask<T extends AbstractExecTask> extends ConventionTask implements ExecSpec {
+    private final Class<T> taskType;
     private ExecAction execAction;
     private ExecResult execResult;
 
-    public AbstractExecTask() {
+    public AbstractExecTask(Class<T> taskType) {
         execAction = getExecActionFactory().newExecAction();
+        this.taskType = taskType;
     }
 
     @Inject
@@ -53,9 +55,9 @@ public abstract class AbstractExecTask extends ConventionTask implements ExecSpe
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask commandLine(Object... arguments) {
+    public T commandLine(Object... arguments) {
         execAction.commandLine(arguments);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -69,9 +71,9 @@ public abstract class AbstractExecTask extends ConventionTask implements ExecSpe
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask args(Object... args) {
+    public T args(Object... args) {
         execAction.args(args);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -85,9 +87,9 @@ public abstract class AbstractExecTask extends ConventionTask implements ExecSpe
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask setArgs(Iterable<?> arguments) {
+    public T setArgs(Iterable<?> arguments) {
         execAction.setArgs(arguments);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -135,9 +137,9 @@ public abstract class AbstractExecTask extends ConventionTask implements ExecSpe
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask executable(Object executable) {
+    public T executable(Object executable) {
         execAction.executable(executable);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -157,9 +159,9 @@ public abstract class AbstractExecTask extends ConventionTask implements ExecSpe
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask workingDir(Object dir) {
+    public T workingDir(Object dir) {
         execAction.workingDir(dir);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -179,33 +181,33 @@ public abstract class AbstractExecTask extends ConventionTask implements ExecSpe
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask environment(String name, Object value) {
+    public T environment(String name, Object value) {
         execAction.environment(name, value);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask environment(Map<String, ?> environmentVariables) {
+    public T environment(Map<String, ?> environmentVariables) {
         execAction.environment(environmentVariables);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask copyTo(ProcessForkOptions target) {
+    public T copyTo(ProcessForkOptions target) {
         execAction.copyTo(target);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask setStandardInput(InputStream inputStream) {
+    public T setStandardInput(InputStream inputStream) {
         execAction.setStandardInput(inputStream);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -218,9 +220,9 @@ public abstract class AbstractExecTask extends ConventionTask implements ExecSpe
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask setStandardOutput(OutputStream outputStream) {
+    public T setStandardOutput(OutputStream outputStream) {
         execAction.setStandardOutput(outputStream);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -233,9 +235,9 @@ public abstract class AbstractExecTask extends ConventionTask implements ExecSpe
     /**
      * {@inheritDoc}
      */
-    public AbstractExecTask setErrorOutput(OutputStream outputStream) {
+    public T setErrorOutput(OutputStream outputStream) {
         execAction.setErrorOutput(outputStream);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
