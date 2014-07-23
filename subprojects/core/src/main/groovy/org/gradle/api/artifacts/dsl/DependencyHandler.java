@@ -138,7 +138,7 @@ import java.util.Map;
  * <h3>External dependencies</h3>
  *
  * <p>There are two notations supported for declaring a dependency on an external module.
- * One is a string notation formatted this way: group:name:version</p>
+ * One is a string notation formatted this way:</p>
  *
  * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>"</code>
  *
