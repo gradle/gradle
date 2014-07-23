@@ -19,11 +19,7 @@ import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 
-import org.gradle.model.internal.core.*
-
 import javax.inject.Inject
-import org.gradle.runtime.base.ComponentSpecIdentifier
-import org.gradle.runtime.base.internal.DefaultLibrarySpec
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.api.internal.project.ProjectIdentifier
 
@@ -42,47 +38,46 @@ class SampleExtension {
 }
 
 class MySamplePlugin implements Plugin<Project> {
-
-    Project project
-
     void apply(Project project) {
-        this.project = project
         project.apply(plugin:org.gradle.language.base.plugins.ComponentModelBasePlugin)
     }
 
     @RuleSource
-    static class ComponentModel {
-
+    static class Rules {
         @Model("mySample")
         SampleExtension createSampleExtension() {
              return new SampleExtension()
         }
 
         @Mutate
-        void createSampleLibraryComponents(ComponentSpecContainer componentSpecs, SampleExtension sampleExtension, ProjectIdentifier projectIdentier) {
-			for (String libraryName : sampleExtension.getLibraryNames()) {
-                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentier.getPath(), name);
+        void createSampleLibraryComponents(ComponentSpecContainer componentSpecs, SampleExtension sampleExtension, ProjectIdentifier projectIdentifier) {
+            for (String libraryName : sampleExtension.getLibraryNames()) {
+                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), libraryName);
                 componentSpecs.add(new DefaultSampleLibrary(id))
             }
         }
 
         @Mutate
         void createSampleLibraryComponents(TaskContainer tasks, ComponentSpecContainer componentSpecs) {
-            //closed container by tasks //TODO
+            // Close the components container for tasks
         }
     }
 }
 
 apply plugin:MySamplePlugin
 
-model{
-    mySample{
+model {
+    mySample {
 		println "configuring mySample"
-        libraryNames << "lib1"
+        libraryNames << "sampleLib1"
     }
 }
 
-task check << {
-    println modelRegistry.get(ModelPath.path("projectComponents"), ModelType.of(ComponentSpecContainer))
+task checkModel << {
+    assert project.projectComponents.size() == 1
+    def sampleLib = project.projectComponents.sampleLib1
+    assert sampleLib instanceof SampleLibrary
+    assert sampleLib.projectPath == project.path
+    assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib1'"
 }
 

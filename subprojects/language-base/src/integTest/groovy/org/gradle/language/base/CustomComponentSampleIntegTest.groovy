@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.plugins
+package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
-class CustomComponentSampleIntegTest extends AbstractIntegrationSpec{
-    @Rule Sample sample = new Sample(temporaryFolder, "customComponent")
+class CustomComponentSampleIntegTest extends AbstractIntegrationSpec {
+    @Rule Sample customComponent = new Sample(temporaryFolder, "customComponent")
 
     def "can create custom component"() {
         given:
-        inDirectory sample.dir
+        sample customComponent
 
         expect:
-        succeeds "check"
-
+        succeeds "checkModel"
     }
 }

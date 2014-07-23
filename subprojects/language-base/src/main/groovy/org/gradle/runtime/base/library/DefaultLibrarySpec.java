@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.runtime.base.library;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
