@@ -25,8 +25,8 @@ import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.ComponentSpecContainer;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
-import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
@@ -42,7 +42,7 @@ import java.io.File;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.runtime.jvm.JvmLibrarySpec} library type for
- * the {@link org.gradle.runtime.base.ProjectComponentContainer}.
+ * the {@link org.gradle.runtime.base.ComponentSpecContainer}.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
@@ -50,7 +50,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
 
-        ProjectComponentContainer projectComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
+        ComponentSpecContainer projectComponents = project.getExtensions().getByType(ComponentSpecContainer.class);
         projectComponents.registerFactory(JvmLibrarySpec.class, new NamedDomainObjectFactory<JvmLibrarySpec>() {
             public JvmLibrarySpec create(String name) {
                 ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
@@ -70,7 +70,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
     public static class Rules {
 
         @Model("jvm.libraries")
-        NamedDomainObjectCollection<JvmLibrarySpec> jvmLibraries(ProjectComponentContainer components) {
+        NamedDomainObjectCollection<JvmLibrarySpec> jvmLibraries(ComponentSpecContainer components) {
             return components.withType(JvmLibrarySpec.class);
         }
 

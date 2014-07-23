@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.language.base.plugins
 
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.runtime.base.ComponentSpec;
-import org.gradle.runtime.base.ComponentSpecContainer;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.Sample
+import org.junit.Rule
 
-public class DefaultProjectComponentContainer extends DefaultPolymorphicDomainObjectContainer<ComponentSpec> implements ComponentSpecContainer {
+class CustomComponentSampleIntegTest extends AbstractIntegrationSpec{
+    @Rule Sample sample = new Sample(temporaryFolder, "customComponent")
 
-    public DefaultProjectComponentContainer(Instantiator instantiator) {
-        super(ComponentSpec.class, instantiator);
+    def "can create custom component"() {
+        given:
+        inDirectory sample.dir
+
+        expect:
+        succeeds "check"
+
     }
 }

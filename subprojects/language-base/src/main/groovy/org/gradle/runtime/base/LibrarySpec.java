@@ -22,5 +22,5 @@ import org.gradle.api.Incubating;
  * A specification of a org.gradle.runtime.base.Library
  */
 @Incubating
-public interface LibrarySpec {
+public interface LibrarySpec extends ComponentSpec{
 }

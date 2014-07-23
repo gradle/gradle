@@ -26,7 +26,7 @@ import org.gradle.nativebinaries.NativeLibraryRequirement
 import org.gradle.nativebinaries.NativeBinarySpec
 import org.gradle.nativebinaries.NativeLibrarySpec
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
-import org.gradle.runtime.base.ProjectComponentContainer
+import org.gradle.runtime.base.ComponentSpecContainer
 import spock.lang.Specification
 
 // TODO:DAZ Improve test names, at the very least
@@ -136,10 +136,10 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
 
     private findLibraryContainer(ProjectInternal project) {
         def extensions = Mock(ExtensionContainerInternal)
-        def components = Mock(ProjectComponentContainer)
+        def components = Mock(ComponentSpecContainer)
         def libraryContainer = Mock(NamedDomainObjectSet)
         project.getExtensions() >> extensions
-        extensions.findByType(ProjectComponentContainer) >> components
+        extensions.findByType(ComponentSpecContainer) >> components
         components.withType(NativeLibrarySpec) >> libraryContainer
         return libraryContainer
     }

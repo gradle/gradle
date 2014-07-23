@@ -31,7 +31,7 @@ import org.gradle.language.base.internal.plugins.CreateSourceTransformTask;
 import org.gradle.model.*;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ComponentSpec;
-import org.gradle.runtime.base.ProjectComponentContainer;
+import org.gradle.runtime.base.ComponentSpecContainer;
 import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
 import org.gradle.runtime.base.internal.ProjectBinaryInternal;
 import org.gradle.util.CollectionUtils;
@@ -42,7 +42,7 @@ import java.util.Set;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.runtime.base.ProjectComponentContainer} named {@code projectComponents} to the project.
+ * Adds a {@link org.gradle.runtime.base.ComponentSpecContainer} named {@code projectComponents} to the project.
  * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
@@ -104,13 +104,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        ProjectComponentContainer projectComponents(ExtensionContainer extensions) {
-            return extensions.getByType(ProjectComponentContainer.class);
+        ComponentSpecContainer projectComponents(ExtensionContainer extensions) {
+            return extensions.getByType(ComponentSpecContainer.class);
         }
 
         @Model
         Set<String> projectComponentNames(ExtensionContainer extensions) {
-            ProjectComponentContainer components = extensions.getByType(ProjectComponentContainer.class);
+            ComponentSpecContainer components = extensions.getByType(ComponentSpecContainer.class);
             return CollectionUtils.collect(components, new Transformer<String, ComponentSpec>() {
                 public String transform(ComponentSpec original) {
                     return original.getName();
@@ -127,7 +127,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void attachFunctionalSourceSetToComponents(ProjectComponentContainer components, ProjectSourceSet sources) {
+        void attachFunctionalSourceSetToComponents(ComponentSpecContainer components, ProjectSourceSet sources) {
             for (ComponentSpec component : components) {
                 component.source(sources.getByName(component.getName()));
             }

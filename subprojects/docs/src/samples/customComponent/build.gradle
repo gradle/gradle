@@ -1,0 +1,88 @@
+
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.model.Model
+import org.gradle.model.Mutate
+import org.gradle.model.RuleSource
+
+import org.gradle.model.internal.core.*
+
+import javax.inject.Inject
+import org.gradle.runtime.base.ComponentSpecIdentifier
+import org.gradle.runtime.base.internal.DefaultLibrarySpec
+import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.api.internal.project.ProjectIdentifier
+
+
+interface SampleLibrary extends LibrarySpec { }
+class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
+
+    @Inject
+    DefaultSampleLibrary(ComponentSpecIdentifier componentIdentifier){
+        super(componentIdentifier)
+    }
+}
+
+class SampleExtension {
+    List<String> libraryNames = new ArrayList<String>()
+}
+
+class MySamplePlugin implements Plugin<Project> {
+
+    Project project
+
+    void apply(Project project) {
+        this.project = project
+        project.apply(plugin:org.gradle.language.base.plugins.ComponentModelBasePlugin)
+    }
+
+    @RuleSource
+    static class ComponentModel {
+
+        @Model("mySample")
+        SampleExtension createSampleExtension() {
+             return new SampleExtension()
+        }
+
+        @Mutate
+        void createSampleLibraryComponents(ComponentSpecContainer componentSpecs, SampleExtension sampleExtension, ProjectIdentifier projectIdentier) {
+			for (String libraryName : sampleExtension.getLibraryNames()) {
+                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentier.getPath(), name);
+                componentSpecs.add(new DefaultSampleLibrary(id))
+            }
+        }
+
+        @Mutate
+        void createSampleLibraryComponents(TaskContainer tasks, ComponentSpecContainer componentSpecs) {
+            //closed container by tasks //TODO
+        }
+    }
+}
+
+apply plugin:MySamplePlugin
+
+model{
+    mySample{
+		println "configuring mySample"
+        libraryNames << "lib1"
+    }
+}
+
+task check << {
+    println modelRegistry.get(ModelPath.path("projectComponents"), ModelType.of(ComponentSpecContainer))
+}
+

@@ -40,7 +40,7 @@ import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ProjectComponentContainer;
+import org.gradle.runtime.base.ComponentSpecContainer;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 
@@ -67,7 +67,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         project.getModelRegistry().create(new RepositoriesFactory("repositories", instantiator, fileResolver));
 
-        ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer.class);
+        ComponentSpecContainer components = project.getExtensions().getByType(ComponentSpecContainer.class);
         components.registerFactory(NativeExecutableSpec.class, new ProjectNativeExecutableFactory(instantiator, project));
         NamedDomainObjectContainer<NativeExecutableSpec> nativeExecutables = components.containerWithType(NativeExecutableSpec.class);
 
@@ -114,7 +114,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        NamedDomainObjectSet<NativeComponentSpec> nativeComponents(ProjectComponentContainer components) {
+        NamedDomainObjectSet<NativeComponentSpec> nativeComponents(ComponentSpecContainer components) {
             return components.withType(NativeComponentSpec.class);
         }
 
