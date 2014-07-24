@@ -43,16 +43,26 @@ class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
         when:
         buildFile << """
 class MySamplePlugin implements Plugin<Project> {
-    void apply(Project project) {
+
+    void apply(final Project project) {
+
+        // This stuff should all happen automatically based on the @ComponentModel annotation
         project.apply(plugin:org.gradle.language.base.plugins.ComponentModelBasePlugin)
+
+        def componentSpecs = project.extensions.getByType(ComponentSpecContainer)
+        componentSpecs.registerFactory(SampleLibrary, new NamedDomainObjectFactory<SampleLibrary>() {
+            public SampleLibrary create(String name) {
+                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
+                return new DefaultSampleLibrary(id);
+            }
+        });
     }
 
     @RuleSource
     static class Rules {
         @Mutate
-        void createSampleLibraryComponents(ComponentSpecContainer componentSpecs, ProjectIdentifier projectIdentifier) {
-            ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), "sampleLib");
-            componentSpecs.add(new DefaultSampleLibrary(id))
+        void createSampleLibraryComponents(NamedItemCollectionBuilder<ComponentSpec> componentSpecs, ProjectIdentifier projectIdentifier) {
+            componentSpecs.create("sampleLib", SampleLibrary)
         }
 
         @Mutate
