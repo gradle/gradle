@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
@@ -126,7 +127,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public ExecutionFailure assertHasCause(String description) {
-        assertThatCause(startsWith(description));
+        assertThatCause(normalizedLineSeparators(startsWith(description)));
         return this;
     }
 
