@@ -284,8 +284,8 @@ A custom library implementation:
 #### Implementation Plan
 
 - Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.
-- Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.
-- Add a default implementation of `LibrarySpec` named `DefaultLibrarySpec`. All custom library implementations extend this.
+- ~~Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.~~
+- ~~Add a default implementation of `LibrarySpec` named `DefaultLibrarySpec`. All custom library implementations extend this.~~
 - ~~Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere~~
 - Add a new Sample for a custom plugin that uses model rules to add `SampleLibrary` instances to the `ComponentSpecContainer`
     - Should apply the `ComponentModelBasePlugin`
@@ -299,8 +299,8 @@ A custom library implementation:
     - Register a factory with the `ComponentSpecContainer` for creating `SampleLibrary` instances with the supplied implementation
         - The factory implementation should generate a `ComponentSpecIdentifier` with the supplied name to instantiate the component
     - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<SampleLibrary>` view of the `ComponentSpecContainer`.
-- Update `DefaultLibrarySpec` so that it has a public no-arg constructor
-    - Inject the ComponentSpecIdentifier into the constructed library using a ThreadLocal and static setter method (see AbstractTask).
+- ~~Update `DefaultLibrarySpec` so that it has a public no-arg constructor~~
+    - ~~Inject the ComponentSpecIdentifier into the constructed library using a ThreadLocal and static setter method (see AbstractTask).~~
 
 #### Test cases
 

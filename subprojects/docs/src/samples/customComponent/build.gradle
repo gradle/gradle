@@ -15,27 +15,30 @@
  * limitations under the License.
  */
 
-import org.gradle.model.*
-import org.gradle.model.collection.*
-
-import javax.inject.Inject
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.model.Model
+import org.gradle.model.Mutate
+import org.gradle.model.RuleSource
+import org.gradle.model.collection.NamedItemCollectionBuilder
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 
+import javax.inject.Inject
 
 interface SampleLibrary extends LibrarySpec { }
-class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
-
-    @Inject
-    DefaultSampleLibrary(ComponentSpecIdentifier componentIdentifier){
-        super(componentIdentifier)
-    }
-}
+class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {}
 
 class SampleExtension {
     List<String> libraryNames = new ArrayList<String>()
 }
 
 class MySamplePlugin implements Plugin<Project> {
+    final Instantiator instantiator
+
+    @Inject
+    MySamplePlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
+
     void apply(Project project) {
         // This stuff will all happen automatically based on the @ComponentModel annotation
         project.apply(plugin:org.gradle.language.base.plugins.ComponentModelBasePlugin)
@@ -44,7 +47,7 @@ class MySamplePlugin implements Plugin<Project> {
         componentSpecs.registerFactory(SampleLibrary, new NamedDomainObjectFactory<SampleLibrary>() {
             public SampleLibrary create(String name) {
                 ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return new DefaultSampleLibrary(id);
+                return DefaultLibrarySpec.create(DefaultSampleLibrary, id, instantiator)
             }
         });
     }

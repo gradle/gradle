@@ -23,19 +23,14 @@ class CustomLibraryPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 import org.gradle.model.*
 import org.gradle.model.collection.*
+import org.gradle.internal.reflect.Instantiator
 
 import javax.inject.Inject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 
 interface SampleLibrary extends LibrarySpec {}
-
-class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
-    @Inject
-    DefaultSampleLibrary(ComponentSpecIdentifier componentIdentifier){
-        super(componentIdentifier)
-    }
-}
+class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {}
 """
     }
 
@@ -43,6 +38,12 @@ class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
         when:
         buildFile << """
 class MySamplePlugin implements Plugin<Project> {
+    final Instantiator instantiator
+
+    @Inject
+    MySamplePlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     void apply(final Project project) {
 
@@ -53,7 +54,7 @@ class MySamplePlugin implements Plugin<Project> {
         componentSpecs.registerFactory(SampleLibrary, new NamedDomainObjectFactory<SampleLibrary>() {
             public SampleLibrary create(String name) {
                 ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return new DefaultSampleLibrary(id);
+                return DefaultLibrarySpec.create(DefaultSampleLibrary, id, instantiator)
             }
         });
     }

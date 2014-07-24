@@ -19,11 +19,14 @@ package org.gradle.runtime.base.library;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.runtime.base.BinarySpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.LibrarySpec;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.base.ModelInstantiationException;
 
 /**
  * Base class for custom library implementations.
@@ -31,12 +34,32 @@ import org.gradle.runtime.base.BinarySpec;
  */
 @Incubating
 public class DefaultLibrarySpec implements LibrarySpec {
+    private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier identifier;
+    private final String typeName;
     private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
 
-    public DefaultLibrarySpec(ComponentSpecIdentifier identifier) {
-        this.identifier = identifier;
+    public static <T extends DefaultLibrarySpec> T create(Class<T> type, ComponentSpecIdentifier identifier, Instantiator instantiator) {
+        nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName()));
+        try {
+            try {
+                return instantiator.newInstance(type);
+            } catch (ObjectInstantiationException e) {
+                throw new ModelInstantiationException(String.format("Could not create library of type %s", type.getSimpleName()), e.getCause());
+            }
+        } finally {
+            nextComponentInfo.set(null);
+        }
+    }
+
+    public DefaultLibrarySpec() {
+        this(nextComponentInfo.get());
+    }
+
+    private DefaultLibrarySpec(ComponentInfo info) {
+        this.identifier = info.componentIdentifier;
+        this.typeName = info.typeName;
     }
 
     public String getName() {
@@ -48,7 +71,7 @@ public class DefaultLibrarySpec implements LibrarySpec {
     }
 
     public String getDisplayName() {
-        return String.format("%s '%s'", getClass().getSimpleName(), getName());
+        return String.format("%s '%s'", typeName, getName());
     }
 
     @Override
@@ -66,5 +89,15 @@ public class DefaultLibrarySpec implements LibrarySpec {
 
     public DomainObjectSet<BinarySpec> getBinaries() {
         return binaries;
+    }
+
+    private static class ComponentInfo {
+        final ComponentSpecIdentifier componentIdentifier;
+        final String typeName;
+
+        private ComponentInfo(ComponentSpecIdentifier componentIdentifier, String typeName) {
+            this.componentIdentifier = componentIdentifier;
+            this.typeName = typeName;
+        }
     }
 }

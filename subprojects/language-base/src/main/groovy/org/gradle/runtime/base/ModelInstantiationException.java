@@ -16,11 +16,17 @@
 
 package org.gradle.runtime.base;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.GradleException;
 
 /**
- * A specification of a org.gradle.runtime.base.Library
+ * Thrown when a model element cannot be instantiated for some reason.
  */
-@Incubating
-public interface LibrarySpec extends ComponentSpec {
+public class ModelInstantiationException extends GradleException {
+    public ModelInstantiationException(String message) {
+        this(message, null);
+    }
+
+    public ModelInstantiationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

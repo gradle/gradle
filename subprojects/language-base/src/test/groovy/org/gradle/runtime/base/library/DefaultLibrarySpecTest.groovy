@@ -16,14 +16,17 @@
 
 package org.gradle.runtime.base.library
 
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.runtime.base.ComponentSpecIdentifier
+import org.gradle.runtime.base.ModelInstantiationException
 import spock.lang.Specification
 
 class DefaultLibrarySpecTest extends Specification {
+    def instantiator = new DirectInstantiator()
     def libraryId = Mock(ComponentSpecIdentifier)
 
     def "library has name and path"() {
-        def library = new DefaultLibrarySpec(libraryId)
+        def library = DefaultLibrarySpec.create(DefaultLibrarySpec, libraryId, instantiator)
 
         when:
         _ * libraryId.name >> "jvm-lib"
@@ -36,7 +39,7 @@ class DefaultLibrarySpecTest extends Specification {
     }
 
     def "has sensible display name"() {
-        def library = new MySampleLibrary(libraryId)
+        def library = DefaultLibrarySpec.create(MySampleLibrary, libraryId, instantiator)
 
         when:
         _ * libraryId.name >> "jvm-lib"
@@ -45,9 +48,20 @@ class DefaultLibrarySpecTest extends Specification {
         library.displayName == "MySampleLibrary 'jvm-lib'"
     }
 
-    class MySampleLibrary extends DefaultLibrarySpec {
-        MySampleLibrary(ComponentSpecIdentifier identifier) {
-            super(identifier)
-        }
+    def "create fails if subtype does not have a public no-args constructor"() {
+
+        when:
+        DefaultLibrarySpec.create(MyConstructedLibrary, libraryId, instantiator)
+
+        then:
+        def e = thrown ModelInstantiationException
+        e.message == "Could not create library of type MyConstructedLibrary"
+        e.cause instanceof IllegalArgumentException
+        e.cause.message.startsWith "Could not find any public constructor for class"
+    }
+
+    static class MySampleLibrary extends DefaultLibrarySpec {}
+    static class MyConstructedLibrary extends DefaultLibrarySpec {
+        MyConstructedLibrary(String arg) {}
     }
 }
