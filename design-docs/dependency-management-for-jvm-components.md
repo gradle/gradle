@@ -462,17 +462,18 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 - Expose all native and jvm components through `project.components`.
 - Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
 
+```
+apply plugin: 'java'
 
-    apply plugin: 'java'
+// The library is visible
+assert jvm.libraries.main instanceof LegacyJvmLibrary
+assert libraries.size() == 1
+assert components.size() == 1
 
-    // The library is visible
-    assert jvm.libraries.main instanceof LegacyJvmLibrary
-    assert libraries.size() == 1
-    assert components.size() == 1
-
-    // The binary is visible
-    assert binaries.withType(ClassDirectoryBinary).size() == 1
-    assert binaries.withType(JarBinary).size() == 1
+// The binary is visible
+assert binaries.withType(ClassDirectoryBinary).size() == 1
+assert binaries.withType(JarBinary).size() == 1
+```
 
 #### Test cases
 
