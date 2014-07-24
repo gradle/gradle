@@ -246,11 +246,11 @@ Development of this feature depends on the first 2 stories from the `unified-con
 Define a sample plugin that declares a custom library type:
     
     interface SampleLibrary extends LibrarySpec { ... }
-    class DefaultSampleLibrary implements SampleLibrary { ... }
+    class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary { ... }
 
     class MySamplePlugin implements Plugin<Project> {
         @RuleSource
-        @ComponentModel(SampleLibrary.class)
+        @ComponentModel(SampleLibrary.class, DefaultSampleLibrary.class)
         static class ComponentModel {
             @Model("mySample")
             SampleExtension createSampleExtension() {
@@ -260,14 +260,14 @@ Define a sample plugin that declares a custom library type:
             @Mutate
             void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
                 for (String libraryName : sampleExtension.getLibraryNames()) {
-                    sampleLibraries.create(libraryName, DefaultSampleLibrary.class);
+                    sampleLibraries.create(libraryName);
             }
         }
     }
 
 Libraries are then visible in libraries and components containers:
 
-    // Library is visible in libraries and components containers
+    // Library is visible in component container
     assert projectComponents.withType(SampleLibrary).size() == 2
 
 A custom library type:
@@ -278,48 +278,50 @@ A custom library type:
 
 A custom library implementation:
 - Implements the custom library type
-- Has a single constructor marked with `@Inject` with a single parameter of type `ComponentSpecIdentifier`
+- Extends `DefaultLibrarySpec`
+- Has a no-arg constructor
 
 #### Implementation Plan
 
 - Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.
 - Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.
+- Add a default implementation of `LibrarySpec` named `DefaultLibrarySpec`. All custom library implementations extend this.
 - ~~Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere~~
 - Add a new Sample for a custom plugin that uses model rules to add `SampleLibrary` instances to the `ComponentSpecContainer`
     - Should apply the `ComponentModelBasePlugin`
     - At the end of the story the sample will be adapted to use the new mechanism introduced
     - Add an integration test for the sample
-- Add a new incubating annotation to the 'language-base' project: `ComponentModel` with parameter defining the Library type
+- Add a new incubating annotation to the 'language-base' project: `ComponentModel` with parameters defining the Library type and implementation classes
 - Add functionality to the 'language-base' plugin that registers a hook that inspects every applied plugin for a nested (static) class with the @ComponentModel annotation
-    - Implement by adding a `Action<? super PluginApplication>` to `DefaultPluginContainer`, via `PluginServiceRegistry`.
+    - Implement by making an `Action<? super PluginApplication>` available to the construction of `DefaultPluginContainer`, via `PluginServiceRegistry`.
 - When a plugin is applied that has a nested class with the `@ComponentModel(SampleLibrary)` annotation:
     - Automatically apply the `ComponentModelBasePlugin` before the plugin is applied
+    - Register a factory with the `ComponentSpecContainer` for creating `SampleLibrary` instances with the supplied implementation
+        - The factory implementation should generate a `ComponentSpecIdentifier` with the supplied name to instantiate the component
     - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<SampleLibrary>` view of the `ComponentSpecContainer`.
-        - The builder implementation should generate a `ComponentSpecIdentifier` with the supplied name, and instantiate the component.
-- Whenever the `ComponentModelBasePlugin` is applied (with or without @ComponentModel annotation)
-    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<LibrarySpec>` view of the `ComponentSpecContainer`.
-        - The builder implementation should generate a `ComponentSpecIdentifier` with the supplied name, instantiate the component and add it to the `ComponentSpecContainer`.
+- Update `DefaultLibrarySpec` so that it has a public no-arg constructor
+    - Inject the ComponentSpecIdentifier into the constructed library using a ThreadLocal and static setter method (see AbstractTask).
 
 #### Test cases
 
-- Can register a component model with @ComponentModel without any rules for creating components (does not create components)
-- Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` when the `ComponentModeBasePlugin` is applied without using a `@ComponentModel` annotation
+- Can register a component model with @Library without any rules for creating components (does not create components)
+- Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` when the `ComponentModeBasePlugin` is applied without using a `@Library` annotation
 - Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` with a plugin that:
     - Has the `ComponentModelBasePlugin` applied
-    - Has a single nested class with both `@ComponentModel` and `@RuleSource` annotations
-    - Has separate nested classes with `@ComponentModel` and `@RuleSource` annotations
+    - Has a single nested class with both `@Library` and `@RuleSource` annotations
+    - Has separate nested classes with `@Library` and `@RuleSource` annotations
 - Rule for adding library instances can be in a separate plugin to the plugin declaring the component model
-- Can define and create 2 component types in the same plugin with 2 `@ComponentModel` annotated inner classes
+- Can define and create multiple component types in the same plugin with multiple `@ComponentModel` annotations
 - Friendly error message when supplied library implementation:
-    - Has no constructor annotated with @Inject
-    - Has multiple constructors annotated with @Inject
-    - Single annotated constructor does not have a single parameter of type `ComponentSpecIdentifier`
+    - Does not have a public no-arg constructor
+    - Does not implement library type
+    - Does not extend `DefaultLibrarySpec`
+- Friendly error message when attempting to register the same library type with different implementations
+- Custom libraries show up in components report
 
 #### Open issues
 
-- Need some public way to easily 'implement' Library and commons subtypes such as `ProjectComponent`. For example, a public default implementation that can be extended (should have no-args constructor) or generate the implementation from the interface.
 - Interaction with the `model { }` block.
-- Need some way to declare a component model, without necessarily defining any particular component instances.
 - Injection of inputs into component constructor.
 
 ### Story: Custom plugin defines binaries for each custom library
@@ -328,12 +330,15 @@ Add a binary type to the sample plugin:
 
     interface SampleBinary extends LibraryBinary {}
 
-    class MySamplePlugin {
-        ...
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        @Library(SampleLibrary.class)
+        static class Rules {
 
-        @Mutate
-        void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
-            ... Create sample binaries for this library, one for each flavor. Add to the 'binaries' set.
+            @Mutate
+            void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
+                ... Create sample binaries for this library, one for each flavor. Add to the 'binaries' set.
+            }
         }
     }
 
