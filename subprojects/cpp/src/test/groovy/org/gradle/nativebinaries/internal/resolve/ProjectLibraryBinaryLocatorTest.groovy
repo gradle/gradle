@@ -35,7 +35,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def projectLocator = Mock(ProjectLocator)
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(NativeLibrarySpec)
-    def binary = Mock(NativeLibraryBinarySpec)
+    def binary = Mock(MockNativeLibraryBinary)
     def binaries = new DefaultDomainObjectSet(NativeBinarySpec, [binary])
     def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary, [binary])
     def locator = new ProjectLibraryBinaryLocator(projectLocator)
@@ -144,6 +144,6 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         return libraryContainer
     }
 
-    interface NativeLibraryBinarySpec extends NativeBinarySpec, NativeLibraryBinary {}
+    interface MockNativeLibraryBinary extends NativeBinarySpec, NativeLibraryBinary {}
 
 }

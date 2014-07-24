@@ -16,28 +16,8 @@
 
 package org.gradle.nativebinaries;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
-
-import java.io.File;
-
 /**
- * A static library binary built by Gradle for a native library.
+ * Represents a binary artifact that is the result of building a native library component.
  */
-@Incubating
-public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
-    /**
-     * The static library file.
-     */
-    File getStaticLibraryFile();
-
-    /**
-     * The static library binary file.
-     */
-    void setStaticLibraryFile(File staticLibraryFile);
-
-    /**
-     * Add some additional files required at link time.
-     */
-    void additionalLinkFiles(FileCollection files);
+public interface NativeLibraryBinarySpec extends NativeBinarySpec {
 }

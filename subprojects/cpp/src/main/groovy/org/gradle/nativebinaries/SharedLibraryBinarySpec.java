@@ -24,7 +24,7 @@ import java.io.File;
  * A shared library binary built by Gradle for a native library.
  */
 @Incubating
-public interface SharedLibraryBinarySpec extends NativeBinarySpec {
+public interface SharedLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * The shared library file.
      */

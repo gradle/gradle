@@ -25,7 +25,7 @@ import org.gradle.runtime.base.BinarySpec;
 import java.util.Collection;
 
 /**
- * Represents a particular binary artifact that is the result of building a native component.
+ * Represents a binary artifact that is the result of building a native component.
  */
 @Incubating @HasInternalProtocol
 public interface NativeBinarySpec extends BinarySpec {
