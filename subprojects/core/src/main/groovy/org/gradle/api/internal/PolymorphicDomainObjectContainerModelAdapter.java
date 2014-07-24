@@ -28,29 +28,46 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
 
     private final C container;
     private final ModelType<C> containerType;
-    private final ModelType<I> itemType;
-    private final ModelType<NamedItemCollectionBuilder<I>> collectionBuilderModelType;
+    private final Class<I> itemType;
 
-    public PolymorphicDomainObjectContainerModelAdapter(C container, ModelType<C> containerType, final ModelType<I> itemType) {
+    public PolymorphicDomainObjectContainerModelAdapter(C container, ModelType<C> containerType, final Class<I> itemType) {
         this.container = container;
         this.containerType = containerType;
         this.itemType = itemType;
-        this.collectionBuilderModelType = new ModelType.Builder<NamedItemCollectionBuilder<I>>() {
-        }.where(new ModelType.Parameter<I>() {}, itemType).build();
     }
 
     public <T> ModelView<? extends T> asWritable(ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar) {
-        if (binding.getReference().getType().isAssignableFrom(containerType)) {
+        ModelType<T> bindingType = binding.getReference().getType();
+        if (bindingType.isAssignableFrom(containerType)) {
             @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) InstanceModelView.of(containerType, container);
             return cast;
-        } else if (binding.getReference().getType().isAssignableFrom(collectionBuilderModelType)) {
-            NamedItemCollectionBuilder<I> builder = new DefaultNamedItemCollectionBuilder<I>(binding.getPath(), new Instantiator(), sourceDescriptor, inputs, modelRuleRegistrar);
-            NamedItemCollectionBuilderModelView<I> view = new NamedItemCollectionBuilderModelView<I>(collectionBuilderModelType, builder, binding.getPath(), sourceDescriptor);
-            @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
-            return cast;
+        } else if (bindingType.getRawClass().equals(NamedItemCollectionBuilder.class)) {
+            ModelType<?> bindingItemType = bindingType.getTypeVariables().get(0);
+            if (bindingItemType.getRawClass().isAssignableFrom(itemType)) { // item type is super of base
+                return toView(binding, sourceDescriptor, inputs, modelRuleRegistrar, itemType);
+            } else if (itemType.isAssignableFrom(bindingItemType.getRawClass())) { // item type is sub type
+                Class<? extends I> subType = bindingItemType.getRawClass().asSubclass(itemType);
+                return toSubModelView(binding, sourceDescriptor, inputs, modelRuleRegistrar, subType);
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
+    }
+
+    private <T, S extends I> ModelView<? extends T> toSubModelView(ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar, Class<S> subType) {
+        return toView(binding, sourceDescriptor, inputs, modelRuleRegistrar, subType);
+    }
+
+    private <T, S extends I> ModelView<? extends T> toView(ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar, Class<S> itemType) {
+        NamedItemCollectionBuilder<S> builder = new DefaultNamedItemCollectionBuilder<S>(binding.getPath(), new Instantiator<S>(itemType, container), sourceDescriptor, inputs, modelRuleRegistrar);
+        ModelType<NamedItemCollectionBuilder<S>> viewType = new ModelType.Builder<NamedItemCollectionBuilder<S>>() {
+        }.where(new ModelType.Parameter<S>() {
+        }, ModelType.of(itemType)).build();
+        NamedItemCollectionBuilderModelView<S> view = new NamedItemCollectionBuilderModelView<S>(viewType, builder, binding.getPath(), sourceDescriptor);
+        @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
+        return cast;
     }
 
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type) {
@@ -62,13 +79,24 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
         }
     }
 
-    class Instantiator implements NamedEntityInstantiator<I> {
+    static class Instantiator<I> implements NamedEntityInstantiator<I> {
+
+        private final Class<I> defaultType;
+        private final ModelType<I> itemType;
+        private final PolymorphicDomainObjectContainer<? super I> container;
+
+        Instantiator(Class<I> defaultType, PolymorphicDomainObjectContainer<? super I> container) {
+            this.defaultType = defaultType;
+            this.itemType = ModelType.of(defaultType);
+            this.container = container;
+        }
+
         public ModelType<I> getType() {
             return itemType;
         }
 
         public I create(String name) {
-            return container.create(name);
+            return container.create(name, defaultType);
         }
 
         public <S extends I> S create(String name, Class<S> type) {
@@ -79,7 +107,16 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
     public ModelPromise asPromise() {
         return new ModelPromise() {
             public <T> boolean asWritable(ModelType<T> type) {
-                return type.isAssignableFrom(containerType) || type.isAssignableFrom(collectionBuilderModelType);
+                return type.isAssignableFrom(containerType) || isContainerView(type);
+            }
+
+            private <T> boolean isContainerView(ModelType<T> type) {
+                if (type.getRawClass().equals(NamedItemCollectionBuilder.class)) {
+                    ModelType<?> targetItemType = type.getTypeVariables().get(0);
+                    return targetItemType.getRawClass().isAssignableFrom(itemType) || itemType.isAssignableFrom(targetItemType.getRawClass());
+                } else {
+                    return false;
+                }
             }
 
             public <T> boolean asReadOnly(ModelType<T> type) {

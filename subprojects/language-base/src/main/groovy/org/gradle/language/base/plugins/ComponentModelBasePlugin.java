@@ -75,7 +75,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         DefaultComponentSpecContainer components = project.getExtensions().create("projectComponents", DefaultComponentSpecContainer.class, instantiator);
         final PolymorphicDomainObjectContainerModelAdapter<ComponentSpec, ComponentSpecContainer> componentSpecContainerAdapter = new PolymorphicDomainObjectContainerModelAdapter<ComponentSpec, ComponentSpecContainer>(
-                components, ModelType.of(ComponentSpecContainer.class), ModelType.of(ComponentSpec.class)
+                components, ModelType.of(ComponentSpecContainer.class), ComponentSpec.class
         );
 
         modelRegistry.create(new ModelCreator() {
