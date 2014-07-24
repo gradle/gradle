@@ -24,9 +24,10 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class DefaultPluginContainer<T extends PluginAware> extends DefaultPluginCollection<Plugin> implements PluginContainer {
@@ -85,17 +86,17 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
     });
 
     private final T pluginAware;
-    private final Action<? super PluginApplication> onApply;
+    private final List<PluginOnApplyAction> onApplys;
 
     public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware) {
-        this(pluginRegistry, pluginAware, Actions.doNothing());
+        this(pluginRegistry, pluginAware, Collections.<PluginOnApplyAction>emptyList());
     }
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, Action<? super PluginApplication> onApply) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, List<PluginOnApplyAction> onApplys) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.pluginAware = pluginAware;
-        this.onApply = onApply;
+        this.onApplys = onApplys;
     }
 
     public Plugin apply(String id) {
@@ -134,7 +135,9 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
     private <P extends Plugin<?>> P addPluginInternal(Class<P> type) {
         if (findPlugin(type) == null) {
             Plugin plugin = providePlugin(type);
-            onApply.execute(new PluginApplication(plugin, pluginAware));
+            for (PluginOnApplyAction onApply : onApplys) {
+                onApply.execute(new PluginApplication(plugin, pluginAware));
+            }
             add(plugin);
         }
         return type.cast(findPlugin(type));

@@ -31,8 +31,9 @@ public class DefaultPluginContainerTest extends Specification {
 
     def project = TestUtil.createRootProject()
     def pluginRegistry = Mock(PluginRegistry)
+
     @Subject
-            container = new DefaultPluginContainer(pluginRegistry, project)
+    container = new DefaultPluginContainer(pluginRegistry, project)
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -239,5 +240,18 @@ public class DefaultPluginContainerTest extends Specification {
 
         then:
         plugins == []
+    }
+
+    def "can register on apply actions"() {
+        given:
+        def plugin = new TestPlugin1()
+        pluginRegistry.loadPlugin(TestPlugin1) >> plugin
+        def onApplyAction = Mock(PluginOnApplyAction)
+        def container = new DefaultPluginContainer(pluginRegistry, project, Arrays.asList(onApplyAction))
+
+        when:
+        container.apply(TestPlugin1)
+        then:
+        1 * onApplyAction.execute({it.plugin == plugin && it.target == project})
     }
 }

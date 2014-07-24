@@ -31,9 +31,7 @@ import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.DefaultPluginContainer;
-import org.gradle.api.internal.plugins.PluginModelRuleExtractor;
-import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
@@ -58,6 +56,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Contains the services for a given project.
@@ -116,9 +115,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginContainer createPluginContainer() {
-        return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project, new PluginModelRuleExtractor(new ModelRuleInspector()));
+        List<PluginOnApplyAction> allPluginApplyActions = getAll(PluginOnApplyAction.class);
+        return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project, allPluginApplyActions);
     }
 
+    protected PluginOnApplyAction createPluginOnApplyAction(){
+        return new PluginModelRuleExtractor(new ModelRuleInspector());
+    }
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
         return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this)));
     }

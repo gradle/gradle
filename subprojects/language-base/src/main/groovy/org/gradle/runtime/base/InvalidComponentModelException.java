@@ -16,27 +16,17 @@
 
 package org.gradle.runtime.base;
 
-import org.gradle.api.Incubating;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.gradle.api.GradleException;
 
 /**
- * Declares that the associated class declares a ComponentModel
+ * Thrown when a component model is declared in an invalid way.
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Incubating
-public @interface ComponentModel {
-    /**
-     * Denotes the type of the LibrarySpec.
-     */
-    Class<? extends LibrarySpec> type();
+public class InvalidComponentModelException extends GradleException {
+    public InvalidComponentModelException(String message) {
+        super(message);
+    }
 
-    /**
-     * Denotes the implementation class of the LibrarySpec.
-     */
-    Class<? extends LibrarySpec> implementation();
+    public InvalidComponentModelException(String message, Exception cause) {
+        super(message, cause);
+    }
 }

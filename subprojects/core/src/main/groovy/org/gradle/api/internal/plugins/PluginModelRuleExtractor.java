@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -25,7 +24,7 @@ import org.gradle.model.internal.inspect.ModelRuleInspector;
 
 import java.util.Set;
 
-public class PluginModelRuleExtractor implements Action<PluginApplication> {
+public class PluginModelRuleExtractor implements PluginOnApplyAction {
 
     private final ModelRuleInspector inspector;
 

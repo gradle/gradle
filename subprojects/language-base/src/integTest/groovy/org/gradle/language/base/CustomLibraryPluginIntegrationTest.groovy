@@ -45,20 +45,9 @@ class MySamplePlugin implements Plugin<Project> {
         this.instantiator = instantiator
     }
 
-    void apply(final Project project) {
+    void apply(final Project project) {}
 
-        // This stuff should all happen automatically based on the @ComponentModel annotation
-        project.apply(plugin:org.gradle.language.base.plugins.ComponentModelBasePlugin)
-
-        def componentSpecs = project.extensions.getByType(ComponentSpecContainer)
-        componentSpecs.registerFactory(SampleLibrary, new NamedDomainObjectFactory<SampleLibrary>() {
-            public SampleLibrary create(String name) {
-                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return DefaultLibrarySpec.create(DefaultSampleLibrary, id, instantiator)
-            }
-        });
-    }
-
+    @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
     @RuleSource
     static class Rules {
         @Mutate
