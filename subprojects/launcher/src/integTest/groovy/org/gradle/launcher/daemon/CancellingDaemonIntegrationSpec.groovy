@@ -75,9 +75,9 @@ task t2 << {
 
         when:
         def build = executer.withArguments('-d', 't1').start()
-        ConcurrentTestUtil.poll { assert file('start1.txt').file }
+        ConcurrentTestUtil.poll(20) { assert file('start1.txt').file }
         def build2 = executer.withArguments('-i', 't2').start()
-        ConcurrentTestUtil.poll { assert file('start2.txt').file }
+        ConcurrentTestUtil.poll(20) { assert file('start2.txt').file }
 
         def buildCmdPattern = Pattern.compile('Dispatching Build\\{id=([0-9a-z\\-]+\\.1),')
         def buildCmdMatcher = buildCmdPattern.matcher(build.standardOutput)
