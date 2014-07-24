@@ -22,7 +22,7 @@ import org.gradle.runtime.base.LibrarySpec;
  * A library component that is built by a gradle project.
  */
 @Incubating
-public interface NativeLibrarySpec extends NativeComponentSpec, TargetedNativeComponent, LibrarySpec{
+public interface NativeLibrarySpec extends LibrarySpec, NativeComponentSpec, TargetedNativeComponent {
     /**
      * Converts this library to a native library requirement that uses the shared library variant. This is the default.
      */
