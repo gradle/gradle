@@ -18,6 +18,8 @@ package org.gradle.model.internal.registry;
 
 import org.gradle.api.GradleException;
 
+import static org.gradle.internal.SystemProperties.getLineSeparator;
+
 public class UnboundModelRulesException extends GradleException {
 
     public UnboundModelRulesException(Iterable<RuleBinder<?>> bindings) {
@@ -25,11 +27,11 @@ public class UnboundModelRulesException extends GradleException {
     }
 
     private static String toMessage(Iterable<RuleBinder<?>> bindings) {
-        StringBuilder sb = new StringBuilder("The following model rules are unbound:\n");
+        StringBuilder sb = new StringBuilder("The following model rules are unbound:").append(getLineSeparator());
         for (RuleBinder<?> binding : bindings) {
             sb.append("  ");
             binding.getDescriptor().describeTo(sb);
-            sb.append("\n");
+            sb.append(getLineSeparator());
 
             // TODO details of what is unbound
         }
