@@ -15,13 +15,11 @@
  * limitations under the License.
  */
 
-import org.gradle.model.Model
-import org.gradle.model.Mutate
-import org.gradle.model.RuleSource
+import org.gradle.model.*
+import org.gradle.model.collection.*
 
 import javax.inject.Inject
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
-import org.gradle.api.internal.project.ProjectIdentifier
 
 
 interface SampleLibrary extends LibrarySpec { }
@@ -39,7 +37,16 @@ class SampleExtension {
 
 class MySamplePlugin implements Plugin<Project> {
     void apply(Project project) {
+        // This stuff will all happen automatically based on the @ComponentModel annotation
         project.apply(plugin:org.gradle.language.base.plugins.ComponentModelBasePlugin)
+
+        def componentSpecs = project.extensions.getByType(ComponentSpecContainer)
+        componentSpecs.registerFactory(SampleLibrary, new NamedDomainObjectFactory<SampleLibrary>() {
+            public SampleLibrary create(String name) {
+                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
+                return new DefaultSampleLibrary(id);
+            }
+        });
     }
 
     @RuleSource
@@ -50,10 +57,9 @@ class MySamplePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createSampleLibraryComponents(ComponentSpecContainer componentSpecs, SampleExtension sampleExtension, ProjectIdentifier projectIdentifier) {
+        void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
             for (String libraryName : sampleExtension.getLibraryNames()) {
-                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), libraryName);
-                componentSpecs.add(new DefaultSampleLibrary(id))
+                sampleLibraries.create(libraryName)
             }
         }
     }

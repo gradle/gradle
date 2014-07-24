@@ -61,11 +61,12 @@ class MySamplePlugin implements Plugin<Project> {
     @RuleSource
     static class Rules {
         @Mutate
-        void createSampleLibraryComponents(NamedItemCollectionBuilder<ComponentSpec> componentSpecs, ProjectIdentifier projectIdentifier) {
-            componentSpecs.create("sampleLib", SampleLibrary)
+        void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs, ProjectIdentifier projectIdentifier) {
+            componentSpecs.create("sampleLib")
         }
     }
 }
+
 apply plugin:MySamplePlugin
 
 task checkModel << {
