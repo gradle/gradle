@@ -22,9 +22,12 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
+@Requires(TestPrecondition.NOT_WINDOWS)
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
