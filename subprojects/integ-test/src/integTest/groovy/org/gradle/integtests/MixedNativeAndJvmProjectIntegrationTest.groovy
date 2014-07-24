@@ -77,7 +77,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         assert jvm.libraries as List == [projectComponents.jvmLib]
 
         assert binaries.size() == 4
-        assert binaries.jvmLibJar instanceof ProjectJarBinary
+        assert binaries.jvmLibJar instanceof JarBinarySpec
         assert binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
         assert binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
         assert binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
