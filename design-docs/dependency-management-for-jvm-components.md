@@ -286,7 +286,7 @@ A custom library implementation:
 - Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.
 - ~~Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.~~
 - ~~Add a default implementation of `LibrarySpec` named `DefaultLibrarySpec`. All custom library implementations extend this.~~
-- ~~Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere~~
+- ~~Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere.~~
 - Add a new Sample for a custom plugin that uses model rules to add `SampleLibrary` instances to the `ComponentSpecContainer`
     - Should apply the `ComponentModelBasePlugin`
     - At the end of the story the sample will be adapted to use the new mechanism introduced
@@ -326,18 +326,41 @@ A custom library implementation:
 
 ### Story: Custom plugin defines binaries for each custom library
 
+This story introduces a mechanism by this a developer can declare the binaries that should be built for a custom library.
+This has 2 purposes:
+
+1. Provide a simple way for developers to specify the binaries that are relevant for a particular custom library
+2. Allow developers to declare the type of binaries produced for their custom plugin so they can be integrated with dependency management.
+
+While the first purpose is the primary one covered by this story, it is important that the mechanism also address the second point.
+
 Add a binary type to the sample plugin:
 
-    interface SampleBinary extends LibraryBinary {}
+    // Define the library
+    interface SampleLibrary extends LibrarySpec {
+        // Overload the getBinaries() method to declare the base binary type
+        DomainObjectSet<SampleBinary> getBinaries()
+    }
+    class DefaultSampleLibrary extends DefaultLibrarySpec<SampleBinary> implements SampleLibrary {}
+
+    // Define some binary types
+    interface SampleBinary extends LibraryBinarySpec {}
+    interface SampleBinarySubType extends SampleBinary {}
+
+    // Define implementations for the binary types - these will go away at some point
+    class DefaultSampleBinary extends DefaultLibraryBinarySpec implements SampleBinary {}
+    class DefaultSampleBinarySubType extends DefaultLibraryBinarySpec implements SampleBinarySubType {}
 
     class MySamplePlugin implements Plugin<Project> {
+        @ComponentModel(type = SampleLibrary, implementation = DefaultSampleLibrary)
+        @ComponentModelType(type = SampleBinary, implementation = DefaultSampleBinary)
+        @ComponentModelType(type = SampleBinarySubType, implementation = DefaultSampleBinarySubType)
         @RuleSource
-        @Library(SampleLibrary.class)
-        static class Rules {
-
+        static class ComponentModel {
             @Mutate
-            void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
-                ... Create sample binaries for this library, one for each flavor. Add to the 'binaries' set.
+            void createBinariesForSampleLibrary(NamedItemCollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
+                binaries.create("${library.name}Binary")
+                binaries.create("${library.name}BinarySubType", SampleBinarySubType)
             }
         }
     }
@@ -347,30 +370,50 @@ Binaries are now visible in the appropriate containers:
     // Binaries are visible in the appropriate containers
     // (assume 2 libraries & 2 binaries per library)
     assert binaries.withType(SampleBinary).size() == 4
-    assert libraries[0].binaries.size() == 2
+    assert binaries.withType(SampleBinarySubType).size() == 2
+    projectComponents.withType(LibrarySpec).each { assert binaries.size() == 2 }
 
 Running `gradle assemble` will execute lifecycle task for each library binary.
 
 A custom binary type:
-- Implements some public base `LibraryBinarySpec` type.
+- Extends public `LibraryBinarySpec` type.
+- Has no sources.
+- Is buildable.
 - Has some lifecycle task to build its outputs.
+
+A custom binary implementation:
+- Implements the custom binary type.
+- Extends `DefaultLibraryBinarySpec`.
+- Has a public no-arg constructor.
 
 #### Implementation Plan
 
-- Register a
-- For a custom component-model plugin:
+- Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of subtypes.
+- Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
+    - Similarly, add `ApplicationBinarySpec`.
+    - Add a `DefaultLibraryBinarySpec` implementation that has a no-arg constructor.
+- Introduce a `@ComponentModelType` annotation that permits a factory to be registered for a type with the appropriate container
+    - For now, only types that extend `LibraryBinarySpec` are handled: anything else is an error.
+    - Assert that the implementation class extends `DefaultLibraryBinarySpec`, has a no-arg constructor and implements the type.
+    - Register a factory with the `BinaryContainer`.
+- When registering a library type from a `@ComponentModel` annotation
     - Inspect the declared library type for an overloaded `getBinaries()` method, to determine the library binary type.
-    - If a custom type is found, register
-- The binary-creation rule will be executed for each library when closing the BinariesContainer.
-- For each created binary, create the lifecycle task
+    - TBD mechanism for iteration rule
+- For each created binary, create the lifecycle task.
 - Document in the user guide how to use this. Include some samples.
+
+#### Test cases
+
+- Can create binaries via rules that declare these as input:
+    - `NamedItemCollectionBuilder<BinarySpec>`
+    - `NamedItemCollectionBuilder<SampleBinary>`
+    - `NamedItemCollectionBuilder<SampleBinarySubType>`
+- TBD
 
 #### Open issues
 
 - Add 'plugin declares custom platform' story.
-- Public mechanism to 'implement' Binary and common subtypes such as ProjectBinary.
 - General mechanism to register a model collection and have rules that apply to each element of that collection.
-- Validation of binary names
 - Migrate the JVM and natives plugins to use this.
     - Need to be able to declare the target platform for the component type.
     - Need to declare default implementation.
