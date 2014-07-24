@@ -30,6 +30,7 @@ import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.plugins.CreateSourceTransformTask;
 import org.gradle.model.*;
+import org.gradle.model.collection.NamedItemCollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -162,6 +163,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 component.source(sources.getByName(component.getName()));
             }
         }
+
+        // Required because creation of Binaries from Components is not yet wired into the infrastructure
+        @Mutate
+        void closeComponentsForBinaries(NamedItemCollectionBuilder<Task> tasks, ComponentSpecContainer components) {}
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         @Finalize

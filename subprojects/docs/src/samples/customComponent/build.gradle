@@ -56,11 +56,6 @@ class MySamplePlugin implements Plugin<Project> {
                 componentSpecs.add(new DefaultSampleLibrary(id))
             }
         }
-
-        @Mutate
-        void createSampleLibraryComponents(TaskContainer tasks, ComponentSpecContainer componentSpecs) {
-            // Close the components container for tasks
-        }
     }
 }
 

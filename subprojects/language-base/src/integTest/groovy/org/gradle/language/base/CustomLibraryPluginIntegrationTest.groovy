@@ -64,9 +64,6 @@ class MySamplePlugin implements Plugin<Project> {
         void createSampleLibraryComponents(NamedItemCollectionBuilder<ComponentSpec> componentSpecs, ProjectIdentifier projectIdentifier) {
             componentSpecs.create("sampleLib", SampleLibrary)
         }
-
-        @Mutate
-        void closeComponentsForTasks(NamedItemCollectionBuilder<Task> tasks, ComponentSpecContainer components) {}
     }
 }
 apply plugin:MySamplePlugin
