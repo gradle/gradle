@@ -24,7 +24,11 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
+import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ProjectBuilderTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
@@ -91,6 +95,46 @@ class ProjectBuilderTest extends Specification {
 
         then:
         project.tasks.hello instanceof DefaultTask
+    }
+
+    def "Can trigger afterEvaluate programmatically"() {
+        setup:
+        def latch = new AtomicBoolean(false)
+
+        when:
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+
+        project.afterEvaluate {
+            latch.getAndSet(true)
+        }
+
+        project.evaluate()
+
+        then:
+        noExceptionThrown()
+        latch.get()
+    }
+
+    @Ignore
+    @Issue("GRADLE-3136")
+    def "Can trigger afterEvaluate programmatically after calling getTasksByName"() {
+        setup:
+        def latch = new AtomicBoolean(false)
+
+        when:
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+
+        project.getTasksByName('myTask', true)
+
+        project.afterEvaluate {
+            latch.getAndSet(true)
+        }
+
+        project.evaluate()
+
+        then:
+        noExceptionThrown()
+        latch.get()
     }
 }
 
