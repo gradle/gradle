@@ -179,7 +179,7 @@ public interface SourceSet {
     String getCompileTaskName(String language);
 
     /**
-     * Returns the name of the Jar task for this source set, if such a task exists.
+     * Returns the name of the Jar task for this source set.
      *
      * @return The task name. Never returns null.
      */
