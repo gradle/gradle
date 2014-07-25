@@ -15,14 +15,10 @@
  * limitations under the License.
  */
 
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 import org.gradle.model.collection.NamedItemCollectionBuilder
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
-
-import javax.inject.Inject
 
 interface SampleLibrary extends LibrarySpec { }
 class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {}
@@ -32,27 +28,11 @@ class SampleExtension {
 }
 
 class MySamplePlugin implements Plugin<Project> {
-    final Instantiator instantiator
-
-    @Inject
-    MySamplePlugin(Instantiator instantiator) {
-        this.instantiator = instantiator
-    }
-
     void apply(Project project) {
-        // This stuff will all happen automatically based on the @ComponentModel annotation
-        project.apply(plugin:org.gradle.language.base.plugins.ComponentModelBasePlugin)
-
-        def componentSpecs = project.extensions.getByType(ComponentSpecContainer)
-        componentSpecs.registerFactory(SampleLibrary, new NamedDomainObjectFactory<SampleLibrary>() {
-            public SampleLibrary create(String name) {
-                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return DefaultLibrarySpec.create(DefaultSampleLibrary, id, instantiator)
-            }
-        });
     }
 
     @RuleSource
+    @ComponentModel(type=SampleLibrary.class, implementation=DefaultSampleLibrary.class)
     static class Rules {
         @Model("mySample")
         SampleExtension createSampleExtension() {
@@ -72,7 +52,6 @@ apply plugin:MySamplePlugin
 
 model {
     mySample {
-		println "configuring mySample"
         libraryNames << "sampleLib1"
     }
 }
