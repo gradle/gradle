@@ -34,7 +34,7 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class ProjectScopeServices {
-        PluginApplicationAction createPluginApplicationAction(Instantiator instantiator) {
+        PluginApplicationAction createComponentModelPluginInspector(Instantiator instantiator) {
             return new ComponentModelInspectionPluginApplicationAction(instantiator);
         }
     }

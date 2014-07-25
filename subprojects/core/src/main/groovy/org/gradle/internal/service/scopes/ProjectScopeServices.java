@@ -119,7 +119,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project, allPluginApplyActions);
     }
 
-    protected PluginApplicationAction createPluginApplicationAction(){
+    protected PluginApplicationAction createPluginModelRuleExtractor(){
         return new PluginModelRuleExtractor(new ModelRuleInspector());
     }
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
