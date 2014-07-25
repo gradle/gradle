@@ -19,10 +19,10 @@ package org.gradle.runtime.base.internal.registry;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.PluginApplication;
+import org.gradle.api.internal.plugins.PluginApplicationAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.api.internal.plugins.PluginOnApplyAction;
 import org.gradle.runtime.base.*;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.runtime.base.library.DefaultLibrarySpec;
@@ -30,11 +30,11 @@ import org.gradle.runtime.base.library.DefaultLibrarySpec;
 import java.lang.annotation.IncompleteAnnotationException;
 
 
-public class ComponentModelInspectionApplyAction implements PluginOnApplyAction {
+public class ComponentModelInspectionPluginApplicationAction implements PluginApplicationAction {
 
     private Instantiator instantiator;
 
-    public ComponentModelInspectionApplyAction(Instantiator instantiator) {
+    public ComponentModelInspectionPluginApplicationAction(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
@@ -71,7 +71,7 @@ public class ComponentModelInspectionApplyAction implements PluginOnApplyAction 
     }
 
     private void registerComponentModel(PluginAware target, final ComponentModel componentModel) {
-        if (!Project.class.isAssignableFrom(target.getClass())) {
+        if (!(target instanceof Project))  {
             throw new InvalidComponentModelException("ComponentModel can only be declared for project plugins.");
         }
 

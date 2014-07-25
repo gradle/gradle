@@ -26,7 +26,7 @@ import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 
-public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelElement implements ProjectClassDirectoryBinaryInternal {
+public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
     private final BinaryNamingScheme namingScheme;
     private final LanguageSourceSetContainer source = new LanguageSourceSetContainer();
     private final String name;
@@ -35,7 +35,7 @@ public class DefaultProjectClassDirectoryBinary extends AbstractBuildableModelEl
     private File classesDir;
     private File resourcesDir;
 
-    public DefaultProjectClassDirectoryBinary(String name, JavaToolChain toolChain) {
+    public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain) {
         this.name = name;
         this.toolChain = toolChain;
         this.namingScheme = new ClassDirectoryBinaryNamingScheme(removeClassesSuffix(name));

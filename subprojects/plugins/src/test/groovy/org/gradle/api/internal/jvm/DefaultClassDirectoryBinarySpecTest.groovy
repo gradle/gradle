@@ -19,7 +19,7 @@ package org.gradle.api.internal.jvm
 import org.gradle.runtime.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
-public class DefaultProjectClassDirectoryBinaryTest extends Specification {
+public class DefaultClassDirectoryBinarySpecTest extends Specification {
     def toolChain = Mock(JavaToolChain)
 
     def "uses short task names for binary with name 'mainClasses'"() {
@@ -80,7 +80,7 @@ public class DefaultProjectClassDirectoryBinaryTest extends Specification {
         'otherBinary' | 'classes \'otherBinary\''
     }
 
-    private DefaultProjectClassDirectoryBinary binary(String name) {
-        new DefaultProjectClassDirectoryBinary(name, toolChain)
+    private DefaultClassDirectoryBinarySpec binary(String name) {
+        new DefaultClassDirectoryBinarySpec(name, toolChain)
     }
 }

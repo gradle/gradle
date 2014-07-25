@@ -15,8 +15,8 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.jvm.DefaultProjectClassDirectoryBinary
-import org.gradle.api.jvm.ProjectClassDirectoryBinary
+import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec
+import org.gradle.api.jvm.ClassDirectoryBinarySpec
 import org.gradle.language.jvm.ResourceSet
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.util.TestUtil
@@ -37,16 +37,16 @@ class JvmLanguagePluginTest extends Specification {
 
     def "registers the ClassDirectoryBinary type with the binaries container"() {
         def binaries = project.extensions.findByName("binaries")
-        def binary = binaries.create("test", ProjectClassDirectoryBinary)
+        def binary = binaries.create("test", ClassDirectoryBinarySpec)
 
         expect:
         binary != null
-        binary instanceof DefaultProjectClassDirectoryBinary
+        binary instanceof DefaultClassDirectoryBinarySpec
     }
 
     def "adds a 'classes' task for every ClassDirectoryBinary added to the container"() {
         when:
-        def binary = project.binaries.create("prod", ProjectClassDirectoryBinary)
+        def binary = project.binaries.create("prod", ClassDirectoryBinarySpec)
 
         then:
         binary.classesDir == new File("$project.buildDir/classes/prod")
@@ -56,7 +56,7 @@ class JvmLanguagePluginTest extends Specification {
     }
 
     def "adds a 'processResources' task for every ResourceSet added to a ClassDirectoryBinary"() {
-        ProjectClassDirectoryBinary binary = project.binaries.create("prod", ProjectClassDirectoryBinary)
+        ClassDirectoryBinarySpec binary = project.binaries.create("prod", ClassDirectoryBinarySpec)
         ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
 
         when:
@@ -71,7 +71,7 @@ class JvmLanguagePluginTest extends Specification {
 
     def "adds tasks based on short name when ClassDirectoryBinary has name ending in Classes"() {
         when:
-        ProjectClassDirectoryBinary binary = project.binaries.create("fooClasses", ProjectClassDirectoryBinary)
+        ClassDirectoryBinarySpec binary = project.binaries.create("fooClasses", ClassDirectoryBinarySpec)
         ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
         binary.source.add(resources)
 
@@ -88,7 +88,7 @@ class JvmLanguagePluginTest extends Specification {
     }
 
     def "binary tasks are available via binary.tasks"() {
-        ProjectClassDirectoryBinary binary = project.binaries.create("prod", ProjectClassDirectoryBinary)
+        ClassDirectoryBinarySpec binary = project.binaries.create("prod", ClassDirectoryBinarySpec)
         ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
 
         when:

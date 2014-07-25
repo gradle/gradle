@@ -86,17 +86,17 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
     });
 
     private final T pluginAware;
-    private final List<PluginOnApplyAction> onApplys;
+    private final List<PluginApplicationAction> pluginApplicationActions;
 
     public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware) {
-        this(pluginRegistry, pluginAware, Collections.<PluginOnApplyAction>emptyList());
+        this(pluginRegistry, pluginAware, Collections.<PluginApplicationAction>emptyList());
     }
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, List<PluginOnApplyAction> onApplys) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, List<PluginApplicationAction> pluginApplicationActions) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.pluginAware = pluginAware;
-        this.onApplys = onApplys;
+        this.pluginApplicationActions = pluginApplicationActions;
     }
 
     public Plugin apply(String id) {
@@ -135,8 +135,8 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
     private <P extends Plugin<?>> P addPluginInternal(Class<P> type) {
         if (findPlugin(type) == null) {
             Plugin plugin = providePlugin(type);
-            for (PluginOnApplyAction onApply : onApplys) {
-                onApply.execute(new PluginApplication(plugin, pluginAware));
+            for (PluginApplicationAction onApplyAction : pluginApplicationActions) {
+                onApplyAction.execute(new PluginApplication(plugin, pluginAware));
             }
             add(plugin);
         }

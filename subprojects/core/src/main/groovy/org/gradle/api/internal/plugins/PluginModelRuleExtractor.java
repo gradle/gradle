@@ -24,7 +24,7 @@ import org.gradle.model.internal.inspect.ModelRuleInspector;
 
 import java.util.Set;
 
-public class PluginModelRuleExtractor implements PluginOnApplyAction {
+public class PluginModelRuleExtractor implements PluginApplicationAction {
 
     private final ModelRuleInspector inspector;
 

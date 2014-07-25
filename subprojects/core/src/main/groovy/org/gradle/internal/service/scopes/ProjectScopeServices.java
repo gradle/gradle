@@ -115,11 +115,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginContainer createPluginContainer() {
-        List<PluginOnApplyAction> allPluginApplyActions = getAll(PluginOnApplyAction.class);
+        List<PluginApplicationAction> allPluginApplyActions = getAll(PluginApplicationAction.class);
         return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project, allPluginApplyActions);
     }
 
-    protected PluginOnApplyAction createPluginOnApplyAction(){
+    protected PluginApplicationAction createPluginApplicationAction(){
         return new PluginModelRuleExtractor(new ModelRuleInspector());
     }
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

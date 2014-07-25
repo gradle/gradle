@@ -18,7 +18,7 @@ package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.jvm.ProjectClassDirectoryBinary;
+import org.gradle.api.jvm.ClassDirectoryBinarySpec;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.nativebinaries.*;
@@ -78,8 +78,8 @@ class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
                 JarBinarySpec jarBinary = (JarBinarySpec) binary;
                 textOutput.formatln("    Jar file: %s", fileResolver.resolveAsRelativePath(jarBinary.getJarFile()));
             }
-            if (binary instanceof ProjectClassDirectoryBinary) {
-                ProjectClassDirectoryBinary classDirectoryBinary = (ProjectClassDirectoryBinary) binary;
+            if (binary instanceof ClassDirectoryBinarySpec) {
+                ClassDirectoryBinarySpec classDirectoryBinary = (ClassDirectoryBinarySpec) binary;
                 textOutput.formatln("    classes dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getClassesDir()));
                 textOutput.formatln("    resources dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getResourcesDir()));
             }

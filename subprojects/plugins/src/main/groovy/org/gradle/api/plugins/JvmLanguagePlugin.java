@@ -19,10 +19,10 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.jvm.DefaultProjectClassDirectoryBinary;
-import org.gradle.api.internal.jvm.ProjectClassDirectoryBinaryInternal;
+import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
+import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.jvm.ProjectClassDirectoryBinary;
+import org.gradle.api.jvm.ClassDirectoryBinarySpec;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -42,10 +42,10 @@ import java.util.concurrent.Callable;
 
 /**
  * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.api.jvm.ProjectClassDirectoryBinary} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
- * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ProjectClassDirectoryBinary}.
+ * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
+ * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
  * Registers the {@link org.gradle.language.jvm.ResourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
- * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.api.jvm.ProjectClassDirectoryBinary}.
+ * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
  */
 @Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {
@@ -76,14 +76,14 @@ public class JvmLanguagePlugin implements Plugin<Project> {
         });
 
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
-        binaryContainer.registerFactory(ProjectClassDirectoryBinary.class, new NamedDomainObjectFactory<ProjectClassDirectoryBinary>() {
-            public ProjectClassDirectoryBinary create(String name) {
-                return instantiator.newInstance(DefaultProjectClassDirectoryBinary.class, name, toolChain);
+        binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
+            public ClassDirectoryBinarySpec create(String name) {
+                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain);
             }
         });
 
-        binaryContainer.withType(ProjectClassDirectoryBinaryInternal.class).all(new Action<ProjectClassDirectoryBinaryInternal>() {
-            public void execute(ProjectClassDirectoryBinaryInternal binary) {
+        binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
+            public void execute(ClassDirectoryBinarySpecInternal binary) {
                 Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
                 binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                 binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
@@ -91,8 +91,8 @@ public class JvmLanguagePlugin implements Plugin<Project> {
             }
         });
 
-        binaryContainer.withType(ProjectClassDirectoryBinaryInternal.class).all(new Action<ProjectClassDirectoryBinaryInternal>() {
-            public void execute(final ProjectClassDirectoryBinaryInternal binary) {
+        binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
+            public void execute(final ClassDirectoryBinarySpecInternal binary) {
                 final BinaryNamingScheme namingScheme = binary.getNamingScheme();
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {

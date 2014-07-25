@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.jvm;
 
-import org.gradle.api.jvm.ProjectClassDirectoryBinary;
+import org.gradle.api.jvm.ClassDirectoryBinarySpec;
 import org.gradle.runtime.base.internal.BinarySpecInternal;
 
-public interface ProjectClassDirectoryBinaryInternal extends ProjectClassDirectoryBinary, BinarySpecInternal {
+public interface ClassDirectoryBinarySpecInternal extends ClassDirectoryBinarySpec, BinarySpecInternal {
 }

@@ -18,5 +18,5 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Action;
 
-public interface PluginOnApplyAction extends Action<PluginApplication> {
+public interface PluginApplicationAction extends Action<PluginApplication> {
 }

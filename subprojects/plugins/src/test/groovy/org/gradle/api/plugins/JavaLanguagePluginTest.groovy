@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins
 import org.gradle.api.Project
-import org.gradle.api.jvm.ProjectClassDirectoryBinary
+import org.gradle.api.jvm.ClassDirectoryBinarySpec
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.util.TestUtil
@@ -36,7 +36,7 @@ class JavaLanguagePluginTest extends Specification {
     def "adds a JavaCompile task for every JavaSourceSet added to a ClassDirectoryBinary"() {
         when:
         project.sources.create("model").create("java", JavaSourceSet)
-        project.binaries.create("integTest", ProjectClassDirectoryBinary)
+        project.binaries.create("integTest", ClassDirectoryBinarySpec)
         project.binaries.integTest.source << project.sources.model.java
 
         then:
@@ -48,7 +48,7 @@ class JavaLanguagePluginTest extends Specification {
     def "java compile task is available via binary.tasks"() {
         when:
         project.sources.create("model").create("java", JavaSourceSet)
-        def binary = project.binaries.create("integTest", ProjectClassDirectoryBinary)
+        def binary = project.binaries.create("integTest", ClassDirectoryBinarySpec)
         binary.source << project.sources.model.java
 
         then:

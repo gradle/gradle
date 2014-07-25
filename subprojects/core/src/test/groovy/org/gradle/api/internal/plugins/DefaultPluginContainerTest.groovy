@@ -246,7 +246,7 @@ public class DefaultPluginContainerTest extends Specification {
         given:
         def plugin = new TestPlugin1()
         pluginRegistry.loadPlugin(TestPlugin1) >> plugin
-        def onApplyAction = Mock(PluginOnApplyAction)
+        def onApplyAction = Mock(PluginApplicationAction)
         def container = new DefaultPluginContainer(pluginRegistry, project, Arrays.asList(onApplyAction))
 
         when:
