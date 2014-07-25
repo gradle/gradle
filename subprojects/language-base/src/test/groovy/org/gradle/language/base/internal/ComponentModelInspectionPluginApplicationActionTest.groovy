@@ -16,13 +16,16 @@
 
 package org.gradle.language.base.internal
 
+import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.PluginApplication
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
+import org.gradle.runtime.base.BinarySpec
 import org.gradle.runtime.base.ComponentModel
 import org.gradle.runtime.base.InvalidComponentModelException
 import org.gradle.runtime.base.LibrarySpec
@@ -52,7 +55,6 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
         new ValidTestPlugin() | true
     }
 
-
     @Unroll
     def "decent error message for #descr"() {
         given:
@@ -64,11 +66,12 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
         ex.message == expectedMessage
 
         where:
-        plugin                   | expectedMessage                                                          | descr
-        new Invalid1TestPlugin() | "Parameter 'implementation' not declared in ComponentModel declaration." | "missing implementation parameter"
-        new InvalidTest2Plugin() | "Parameter 'type' not declared in ComponentModel declaration."           | "missing type parameter"
-        new InvalidTest3Plugin() | "Invalid 'type' parameter for ComponentModel declaration."               | "invalid type parameter"
-        new InvalidTest4Plugin() | "Invalid 'implementation' parameter for ComponentModel declaration."     | "invalid implementation parameter"
+        plugin                   | expectedMessage                                                                             | descr
+        new Invalid1TestPlugin() | "Parameter 'implementation' not declared in ComponentModel declaration."                    | "missing implementation parameter"
+        new InvalidTest2Plugin() | "Parameter 'type' not declared in ComponentModel declaration."                              | "missing type parameter"
+        new InvalidTest3Plugin() | "ComponentModel type 'SomeInvalidTestLib' must extend 'LibrarySpec'."                       | "type not extending LibrarySpec"
+        new InvalidTest4Plugin() | "ComponentModel implementation 'SomeInvalidTestLibImpl1' must implement 'SomeLibrarySpec'." | "implementation not implementing type class"
+        new InvalidTest5Plugin() | "ComponentModel implementation 'SomeInvalidTestLibImpl2' must extend 'DefaultLibrarySpec'." | "implementation not extending DefaultLibrarySpec"
     }
 
     def "decent error when ComponentModel declared in non project plugin"() {
@@ -149,7 +152,18 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
         void apply(Project target) {
         }
 
-        @ComponentModel(type = SomeLibrarySpec, implementation = SomeInvalidTestLibImpl)
+        @ComponentModel(type = SomeLibrarySpec, implementation = SomeInvalidTestLibImpl1)
+        static class SomeStaticSubClass {
+        }
+
+    }
+
+    class InvalidTest5Plugin implements Plugin<Project> {
+        @Override
+        void apply(Project target) {
+        }
+
+        @ComponentModel(type = SomeLibrarySpec, implementation = SomeInvalidTestLibImpl2)
         static class SomeStaticSubClass {
         }
 
@@ -166,7 +180,28 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
 
     interface SomeInvalidTestLib {}
 
-    class SomeInvalidTestLibImpl {}
+    class SomeInvalidTestLibImpl1 {}
+
+    class SomeInvalidTestLibImpl2 implements SomeLibrarySpec {
+        @Override
+        String getProjectPath() { return null }
+
+        @Override
+        String getDisplayName() { return null }
+
+        @Override
+        DomainObjectSet<LanguageSourceSet> getSource() { return null }
+
+        @Override
+        void source(Object source) {}
+
+        @Override
+        DomainObjectSet<? extends BinarySpec> getBinaries() { return null }
+
+        @Override
+        String getName() { return null }
+    }
+
 }
 
 

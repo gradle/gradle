@@ -55,15 +55,18 @@ public class ComponentModelInspectionPluginApplicationAction implements PluginAp
         try {
             Class<? extends LibrarySpec> type = componentModel.type();
             if (!LibrarySpec.class.isAssignableFrom(type)) {
-                throw new InvalidComponentModelException("Invalid 'type' parameter for ComponentModel declaration.");
+                throw new InvalidComponentModelException(String.format("ComponentModel type '%s' must extend '%s'.", type.getSimpleName(), LibrarySpec.class.getSimpleName()));
             }
         } catch (IncompleteAnnotationException ex) {
             throw new InvalidComponentModelException("Parameter 'type' not declared in ComponentModel declaration.", ex);
         }
         try {
-            Class<? extends LibrarySpec> type = componentModel.implementation();
-            if (!DefaultLibrarySpec.class.isAssignableFrom(type)) {
-                throw new InvalidComponentModelException("Invalid 'implementation' parameter for ComponentModel declaration.");
+            Class<? extends LibrarySpec> implementation = componentModel.implementation();
+            if(!componentModel.type().isAssignableFrom(implementation)){
+                throw new InvalidComponentModelException(String.format("ComponentModel implementation '%s' must implement '%s'.", implementation.getSimpleName(), componentModel.type().getSimpleName()));
+            }
+            if (!DefaultLibrarySpec.class.isAssignableFrom(implementation)) {
+                throw new InvalidComponentModelException(String.format("ComponentModel implementation '%s' must extend '%s'.", implementation.getSimpleName(), DefaultLibrarySpec.class.getSimpleName()));
             }
         } catch (IncompleteAnnotationException ex) {
             throw new InvalidComponentModelException("Parameter 'implementation' not declared in ComponentModel declaration.", ex);
