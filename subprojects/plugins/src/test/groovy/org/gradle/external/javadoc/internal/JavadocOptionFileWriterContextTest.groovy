@@ -35,7 +35,7 @@ public class JavadocOptionFileWriterContextTest extends Specification {
         then: writer.newLine()
     }
 
-    def quotesAndEscapesOptionValue() {
+    def "quotes and escapes"() {
         when:
         context.writeValueOption("key", "1\\2\\")
 
@@ -48,7 +48,7 @@ public class JavadocOptionFileWriterContextTest extends Specification {
         then: writer.newLine()
     }
 
-    def quotesAndEscapesOptionValues() {
+    def "quotes and escapes multiple values"() {
         when:
         context.writeValuesOption("key", WrapUtil.toList("a\\b", "c"), ":")
 
@@ -57,6 +57,21 @@ public class JavadocOptionFileWriterContextTest extends Specification {
         then: writer.write(" ")
         then: writer.write("'")
         then: writer.write("a\\\\b:c")
+        then: writer.write("'")
+        then: writer.newLine()
+    }
+
+    def "writes multiline value"() {
+        when:
+        context.writeValueOption("key", """Hey
+Joe!""")
+
+        then: writer.write("-")
+        then: writer.write("key")
+        then: writer.write(" ")
+        then: writer.write("'")
+        then: writer.write("""Hey\
+Joe!""")
         then: writer.write("'")
         then: writer.newLine()
     }

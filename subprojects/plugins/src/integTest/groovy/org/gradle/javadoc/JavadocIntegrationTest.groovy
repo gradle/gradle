@@ -46,16 +46,20 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         javadoc.text =~ /(?ms)Serial no. is valid javadoc!/
     }
 
-    def "writes header"() {
+    def "writes multiline header"() {
         buildFile << """
             apply plugin: "java"
-            javadoc.options.header = "<!-- Hey Joe! -->"
+            javadoc.options.header = \"\"\"
+                <!-- Hey
+Joe! -->
+            \"\"\"
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         when: run("javadoc")
         then:
-        file("build/docs/javadoc/Foo.html").text.contains("Hey Joe!")
+        file("build/docs/javadoc/Foo.html").text.contains("""Hey
+Joe!""")
     }
 }

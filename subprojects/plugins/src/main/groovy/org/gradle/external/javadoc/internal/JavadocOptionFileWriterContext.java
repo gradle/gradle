@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
+import static org.gradle.internal.SystemProperties.getLineSeparator;
+
 public class JavadocOptionFileWriterContext {
     private final BufferedWriter writer;
 
@@ -61,7 +63,9 @@ public class JavadocOptionFileWriterContext {
 
     public JavadocOptionFileWriterContext writeValue(String value) throws IOException {
         write("\'");
-        write(value.replaceAll("\\\\", "\\\\\\\\"));
+        //First, we replace slashes because they have special meaning in the javadoc options file
+        //Then, we replace every linebreak with slash+linebreak. Slash is needed according to javadoc options file format
+        write(value.replaceAll("\\\\", "\\\\\\\\").replaceAll(getLineSeparator(), "\\\\" + getLineSeparator()));
         write("\'");
         return this;
     }
