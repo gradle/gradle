@@ -17,11 +17,13 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.tooling.CancellationToken;
 
 import java.io.File;
 
 public interface Distribution {
     String getDisplayName();
 
-    ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir);
+    ClassPath getToolingImplementationClasspath(
+            ProgressLoggerFactory progressLoggerFactory, File userHomeDir, CancellationToken cancellationToken);
 }

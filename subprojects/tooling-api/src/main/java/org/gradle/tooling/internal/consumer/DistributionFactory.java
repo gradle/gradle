@@ -22,6 +22,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
@@ -94,7 +95,7 @@ public class DistributionFactory {
             return String.format("Gradle distribution '%s'", wrapperConfiguration.getDistribution());
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir, CancellationToken cancellationToken) {
             if (installedDistribution == null) {
                 File installDir;
                 try {
@@ -108,7 +109,7 @@ public class DistributionFactory {
                 }
                 installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }
-            return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir);
+            return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir, cancellationToken);
         }
     }
 
@@ -146,7 +147,7 @@ public class DistributionFactory {
             return displayName;
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir, CancellationToken cancellationToken) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
             progressLogger.setDescription("Validate distribution");
             progressLogger.started();
@@ -183,7 +184,7 @@ public class DistributionFactory {
             return "Gradle classpath distribution";
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir, CancellationToken cancellationToken) {
             return new EffectiveClassPath(getClass().getClassLoader());
         }
     }

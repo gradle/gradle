@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.consumer.loader;
 
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -32,12 +33,12 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         this.loader = loader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters) {
-        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, connectionParameters.getGradleUserHomeDir());
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, CancellationToken cancellationToken) {
+        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, connectionParameters.getGradleUserHomeDir(), cancellationToken);
 
         ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {
-            connection = loader.create(distribution, progressLoggerFactory, connectionParameters);
+            connection = loader.create(distribution, progressLoggerFactory, connectionParameters, cancellationToken);
             connections.put(classpath, connection);
         }
 

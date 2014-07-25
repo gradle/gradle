@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.exceptions.BuildCancelledException;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
@@ -82,14 +83,14 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             if (action.getCancellationToken().isCancellationRequested()) {
                 throw new BuildCancelledException("Build cancelled");
             }
-            ConsumerConnection connection = onStartAction();
+            ConsumerConnection connection = onStartAction(action.getCancellationToken());
             return action.run(connection);
         } finally {
             onEndAction();
         }
     }
 
-    private ConsumerConnection onStartAction() {
+    private ConsumerConnection onStartAction(CancellationToken cancellationToken) {
         lock.lock();
         try {
             if (stopped) {
@@ -99,7 +100,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory(), connectionParameters);
+                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory(), connectionParameters, cancellationToken);
             }
             return connection;
         } finally {

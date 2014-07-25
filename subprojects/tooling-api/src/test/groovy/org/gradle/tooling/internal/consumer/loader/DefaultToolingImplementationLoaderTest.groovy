@@ -20,6 +20,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.*
 import org.gradle.tooling.internal.consumer.ConnectionParameters
@@ -39,6 +40,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         getVerboseLogging() >> true
     }
     File userHomeDir = Mock()
+    final CancellationToken cancellationToken = Mock()
     final loader = new DefaultToolingImplementationLoader()
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
@@ -53,7 +55,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters)
+        def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
 
         then:
         adaptedConnection.delegate.class != connectionImplementation //different classloaders
@@ -74,7 +76,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath(
                 getToolingApiResourcesDir(TestR10M3Connection.class),
                 ClasspathUtil.getClasspathForClass(TestConnection.class),
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -84,7 +86,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters)
+        def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
 
         then:
         adaptedConnection.class == ConnectionVersion4BackedConsumerConnection.class
@@ -103,10 +105,10 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
 
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath()
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath()
 
         expect:
-        loader.create(distribution, loggerFactory, connectionParameters) instanceof NoToolingApiConnection
+        loader.create(distribution, loggerFactory, connectionParameters, cancellationToken) instanceof NoToolingApiConnection
     }
 }
 
