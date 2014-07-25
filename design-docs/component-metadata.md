@@ -74,6 +74,10 @@ Users will be able to access the 'branch' attribute when resolving, via the `Ivy
 
 ### Open issues
 
+## Story: Build logic selects the module that matches an external dependency
+
+TBD
+
 ## Use Artifactory properties to determine status of module
 
 This story makes it possible to access published Artifactory properties from within a Component Metadata Rule:
