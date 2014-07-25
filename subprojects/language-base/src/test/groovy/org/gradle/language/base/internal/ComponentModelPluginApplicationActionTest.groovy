@@ -29,17 +29,17 @@ import org.gradle.runtime.base.BinarySpec
 import org.gradle.runtime.base.ComponentModel
 import org.gradle.runtime.base.InvalidComponentModelException
 import org.gradle.runtime.base.LibrarySpec
-import org.gradle.runtime.base.internal.registry.ComponentModelInspectionPluginApplicationAction
+import org.gradle.runtime.base.internal.registry.ComponentModelPluginApplicationAction
 import org.gradle.runtime.base.library.DefaultLibrarySpec
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ComponentModelInspectionPluginApplicationActionTest extends Specification {
+class ComponentModelPluginApplicationActionTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
     PluginApplication pluginApplication = Mock()
     Project project
-    ComponentModelInspectionPluginApplicationAction componentModelInspector
+    ComponentModelPluginApplicationAction componentModelInspector
 
     def "applys ComponentModelBasePlugin if needed"() {
         given:
@@ -89,14 +89,14 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
         project = ProjectBuilder.builder().build()
         _ * pluginApplication.target >> project
         1 * pluginApplication.plugin >> plugin
-        componentModelInspector = new ComponentModelInspectionPluginApplicationAction(instantiator)
+        componentModelInspector = new ComponentModelPluginApplicationAction(instantiator)
     }
 
     def aSettingsPlugin(def plugin) {
         Settings settings = Mock(Settings)
         _ * pluginApplication.target >> settings
         _ * pluginApplication.plugin >> plugin
-        componentModelInspector = new ComponentModelInspectionPluginApplicationAction(instantiator)
+        componentModelInspector = new ComponentModelPluginApplicationAction(instantiator)
     }
 
 

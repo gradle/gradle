@@ -29,11 +29,11 @@ import org.gradle.runtime.base.library.DefaultLibrarySpec;
 
 import java.lang.annotation.IncompleteAnnotationException;
 
-public class ComponentModelInspectionPluginApplicationAction implements PluginApplicationAction {
+public class ComponentModelPluginApplicationAction implements PluginApplicationAction {
 
     private Instantiator instantiator;
 
-    public ComponentModelInspectionPluginApplicationAction(Instantiator instantiator) {
+    public ComponentModelPluginApplicationAction(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
