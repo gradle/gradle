@@ -70,13 +70,6 @@ public class JavadocOptionFileWriterContext {
         return this;
     }
 
-    public JavadocOptionFileWriterContext writeValueOption(String option, Collection<String> values) throws IOException {
-        for (final String value : values) {
-            writeValueOption(option, value);
-        }
-        return this;
-    }
-
     public JavadocOptionFileWriterContext writeValuesOption(String option, Collection<String> values, String joinValuesBy) throws IOException {
         StringBuilder builder = new StringBuilder();
         Iterator<String> valuesIt = values.iterator();
