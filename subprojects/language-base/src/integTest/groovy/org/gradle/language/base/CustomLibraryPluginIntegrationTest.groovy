@@ -34,7 +34,7 @@ class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
         when:
         buildWithCustomComponentPlugin()
         and:
-        buildFile <<"""
+        buildFile << """
 task checkModel << {
     assert project.projectComponents.size() == 1
     def sampleLib = project.projectComponents.sampleLib
@@ -42,6 +42,27 @@ task checkModel << {
     assert sampleLib.projectPath == project.path
     assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
 }
+"""
+        then:
+        succeeds "checkModel"
+    }
+
+    def "can register custom component model without creating"() {
+        when:
+        buildFile << """
+        class MySamplePlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
+            static class Rules {
+            }
+        }
+
+        apply plugin:MySamplePlugin
+
+        task checkModel << {
+            assert project.projectComponents.size() == 0
+        }
 """
 
         then:
@@ -74,6 +95,45 @@ Note: currently not all plugins register their components, so some components ma
 BUILD SUCCESSFUL"""))
     }
 
+    def "can have component declaration and creation in separate plugins"() {
+        when:
+        buildFile << """
+        class MyComponentDeclarationModel implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
+            static class Rules {
+            }
+        }
+
+        class MyComponentCreationPlugin implements Plugin<Project> {
+            void apply(final Project project) {
+                project.apply(plugin:MyComponentDeclarationModel)
+            }
+
+            @RuleSource
+            static class Rules {
+                @Mutate
+                void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
+                    componentSpecs.create("sampleLib")
+                }
+
+            }
+        }
+
+        apply plugin:MyComponentCreationPlugin
+
+        task checkModel << {
+             assert project.projectComponents.size() == 1
+             def sampleLib = project.projectComponents.sampleLib
+             assert sampleLib instanceof SampleLibrary
+             assert sampleLib.projectPath == project.path
+             assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
+        }
+"""
+        then:
+        succeeds "checkModel"
+    }
 
     def buildWithCustomComponentPlugin() {
         buildFile << """
@@ -92,5 +152,9 @@ BUILD SUCCESSFUL"""))
 
         apply plugin:MySamplePlugin
         """
+    }
+
+    def buildWithCustomComponentPluginButNoRule() {
+
     }
 }
