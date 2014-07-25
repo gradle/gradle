@@ -135,9 +135,20 @@ completes, then do not exit. If the build does not complete in this time, exit t
 
 In this story, task graph executor no longer starts executing new tasks when operation is cancelled.
 
+#### Test cases
+
+- Client cancels a build before the start of some task(s) execution
+    - Some time after requesting, the client receives a 'build cancelled' exception and the daemon is still running and the task is not executed.
+
 ### Story: Gradle distribution download is aborted when operation is cancelled
 
 In this story, the Gradle distribution download is stopped when operation is cancelled.
+
+#### Test cases
+
+- Client requests to execute an operation (build, model) using a distribution that needs to be downloaded and cancels the operation during the download
+    - Some time after requesting, the client receives a 'build cancelled' exception and download is terminated and partial downloads are removed
+    - Verify this behavior for regularly processed downloads and for stalled downloads waiting on blocking I/O.
 
 ### Story: Model configuration is aborted when operation is cancelled
 
