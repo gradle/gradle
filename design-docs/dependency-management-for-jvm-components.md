@@ -311,7 +311,7 @@ A custom library implementation:
     - Has a single nested class with both `@Library` and `@RuleSource` annotations
     - Has separate nested classes with `@Library` and `@RuleSource` annotations
 - ~~Rule for adding library instances can be in a separate plugin to the plugin declaring the component model~~
-- Can define and create multiple component types in the same plugin with multiple `@ComponentModel` annotations
+- ~~Can define and create multiple component types in the same plugin with multiple `@ComponentModel` annotations~~
 - ~~Friendly error message when supplied library implementation:~~
     - Does not have a public no-arg constructor
     - Does not implement library type

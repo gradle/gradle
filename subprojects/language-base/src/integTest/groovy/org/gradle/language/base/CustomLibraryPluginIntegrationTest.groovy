@@ -135,6 +135,54 @@ BUILD SUCCESSFUL"""))
         succeeds "checkModel"
     }
 
+    def "Can define and create multiple component types in the same plugin"(){
+        when:
+        buildFile << """
+        interface AnotherSampleLibrary extends LibrarySpec {}
+        class DefaultAnotherSampleLibrary extends DefaultLibrarySpec implements AnotherSampleLibrary {}
+
+        class MySamplePlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
+            static class Rules1 {
+                @Mutate
+                void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
+                    componentSpecs.create("sampleLib")
+                }
+            }
+
+            @RuleSource
+            @ComponentModel(type = AnotherSampleLibrary.class, implementation = DefaultAnotherSampleLibrary.class)
+            static class Rules2 {
+                @Mutate
+                void createSampleLibraryComponents(NamedItemCollectionBuilder<AnotherSampleLibrary> componentSpecs) {
+                    componentSpecs.create("anotherSampleLib")
+                }
+            }
+        }
+
+        apply plugin:MySamplePlugin
+
+        task checkModel << {
+             assert project.projectComponents.size() == 2
+
+             def sampleLib = project.projectComponents.sampleLib
+             assert sampleLib instanceof SampleLibrary
+             assert sampleLib.projectPath == project.path
+             assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
+
+             def anotherSampleLib = project.projectComponents.anotherSampleLib
+             assert anotherSampleLib instanceof AnotherSampleLibrary
+             assert anotherSampleLib.projectPath == project.path
+             assert anotherSampleLib.displayName == "DefaultAnotherSampleLibrary 'anotherSampleLib'"
+        }
+"""
+        then:
+        succeeds "checkModel"
+    }
+
     def buildWithCustomComponentPlugin() {
         buildFile << """
         class MySamplePlugin implements Plugin<Project> {
