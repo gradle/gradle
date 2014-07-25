@@ -66,12 +66,13 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
         ex.message == expectedMessage
 
         where:
-        plugin                   | expectedMessage                                                                             | descr
-        new Invalid1TestPlugin() | "Parameter 'implementation' not declared in ComponentModel declaration."                    | "missing implementation parameter"
-        new InvalidTest2Plugin() | "Parameter 'type' not declared in ComponentModel declaration."                              | "missing type parameter"
-        new InvalidTest3Plugin() | "ComponentModel type 'SomeInvalidTestLib' must extend 'LibrarySpec'."                       | "type not extending LibrarySpec"
-        new InvalidTest4Plugin() | "ComponentModel implementation 'SomeInvalidTestLibImpl1' must implement 'SomeLibrarySpec'." | "implementation not implementing type class"
-        new InvalidTest5Plugin() | "ComponentModel implementation 'SomeInvalidTestLibImpl2' must extend 'DefaultLibrarySpec'." | "implementation not extending DefaultLibrarySpec"
+        plugin                   | expectedMessage                                                                                 | descr
+        new Invalid1TestPlugin() | "Parameter 'implementation' not declared in ComponentModel declaration."                        | "missing implementation parameter"
+        new InvalidTest2Plugin() | "Parameter 'type' not declared in ComponentModel declaration."                                  | "missing type parameter"
+        new InvalidTest3Plugin() | "ComponentModel type 'SomeInvalidTestLib' must extend 'LibrarySpec'."                           | "type not extending LibrarySpec"
+        new InvalidTest4Plugin() | "ComponentModel implementation 'SomeInvalidTestLibImpl1' must implement 'SomeLibrarySpec'."     | "implementation not implementing type class"
+        new InvalidTest5Plugin() | "ComponentModel implementation 'SomeInvalidTestLibImpl2' must extend 'DefaultLibrarySpec'."     | "implementation not extending DefaultLibrarySpec"
+        new InvalidTest6Plugin() | "ComponentModel implementation 'SomeInvalidTestLibImpl3' must have public default constructor." | "implementation with no public default constructor"
     }
 
     def "decent error when ComponentModel declared in non project plugin"() {
@@ -100,7 +101,6 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
 
 
     interface SomeLibrarySpec extends LibrarySpec {}
-
     static class SomeLibrarySpecImpl extends DefaultLibrarySpec implements SomeLibrarySpec {}
 
     class EmptyTestPlugin implements Plugin<Project> {
@@ -166,7 +166,16 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
         @ComponentModel(type = SomeLibrarySpec, implementation = SomeInvalidTestLibImpl2)
         static class SomeStaticSubClass {
         }
+    }
 
+    class InvalidTest6Plugin implements Plugin<Project> {
+        @Override
+        void apply(Project target) {
+        }
+
+        @ComponentModel(type = SomeLibrarySpec, implementation = SomeInvalidTestLibImpl3)
+        static class SomeStaticSubClass {
+        }
     }
 
     class SettingsTestPlugin implements Plugin<Settings> {
@@ -201,6 +210,11 @@ class ComponentModelInspectionPluginApplicationActionTest extends Specification 
         @Override
         String getName() { return null }
     }
+
+    class SomeInvalidTestLibImpl3 extends DefaultLibrarySpec implements SomeLibrarySpec {
+        private SomeInvalidTestLibImpl3() {}
+    }
+
 
 }
 

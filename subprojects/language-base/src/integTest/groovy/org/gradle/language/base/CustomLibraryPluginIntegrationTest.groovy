@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 
 class CustomLibraryPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -31,26 +32,12 @@ class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
 
     def "plugin declares custom library"() {
         when:
-        buildFile << """
-class MySamplePlugin implements Plugin<Project> {
-    void apply(final Project project) {}
-
-    @RuleSource
-    @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
-    static class Rules {
-        @Mutate
-        void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
-            componentSpecs.create("sampleLib")
-        }
-    }
-}
-
-apply plugin:MySamplePlugin
-
+        buildWithCustomComponentPlugin()
+        and:
+        buildFile <<"""
 task checkModel << {
     assert project.projectComponents.size() == 1
     def sampleLib = project.projectComponents.sampleLib
-
     assert sampleLib instanceof SampleLibrary
     assert sampleLib.projectPath == project.path
     assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
@@ -59,5 +46,51 @@ task checkModel << {
 
         then:
         succeeds "checkModel"
+    }
+
+    def "custom component listed in components report"() {
+        given:
+        buildWithCustomComponentPlugin()
+        when:
+        succeeds "components"
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators(""":components
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+DefaultSampleLibrary 'sampleLib'
+--------------------------------
+
+Source sets
+    No source sets.
+
+Binaries
+    No binaries.
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL"""))
+    }
+
+
+    def buildWithCustomComponentPlugin() {
+        buildFile << """
+        class MySamplePlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
+            static class Rules {
+                @Mutate
+                void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
+                    componentSpecs.create("sampleLib")
+                }
+            }
+        }
+
+        apply plugin:MySamplePlugin
+        """
     }
 }

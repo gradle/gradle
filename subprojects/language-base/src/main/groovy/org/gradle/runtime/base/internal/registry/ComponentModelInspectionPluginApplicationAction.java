@@ -29,7 +29,6 @@ import org.gradle.runtime.base.library.DefaultLibrarySpec;
 
 import java.lang.annotation.IncompleteAnnotationException;
 
-
 public class ComponentModelInspectionPluginApplicationAction implements PluginApplicationAction {
 
     private Instantiator instantiator;
@@ -67,6 +66,12 @@ public class ComponentModelInspectionPluginApplicationAction implements PluginAp
             }
             if (!DefaultLibrarySpec.class.isAssignableFrom(implementation)) {
                 throw new InvalidComponentModelException(String.format("ComponentModel implementation '%s' must extend '%s'.", implementation.getSimpleName(), DefaultLibrarySpec.class.getSimpleName()));
+            }
+            try{
+                implementation.getConstructor();
+            }catch(NoSuchMethodException nsmException){
+
+                throw new InvalidComponentModelException(String.format("ComponentModel implementation '%s' must have public default constructor.", implementation.getSimpleName()));
             }
         } catch (IncompleteAnnotationException ex) {
             throw new InvalidComponentModelException("Parameter 'implementation' not declared in ComponentModel declaration.", ex);

@@ -283,18 +283,18 @@ A custom library implementation:
 
 #### Implementation Plan
 
-- Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.
+- ~~Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.~~
 - ~~Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.~~
 - ~~Add a default implementation of `LibrarySpec` named `DefaultLibrarySpec`. All custom library implementations extend this.~~
 - ~~Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere.~~
-- Add a new Sample for a custom plugin that uses model rules to add `SampleLibrary` instances to the `ComponentSpecContainer`
+- ~~Add a new Sample for a custom plugin that uses model rules to add `SampleLibrary` instances to the `ComponentSpecContainer`~~
     - Should apply the `ComponentModelBasePlugin`
     - At the end of the story the sample will be adapted to use the new mechanism introduced
     - Add an integration test for the sample
-- Add a new incubating annotation to the 'language-base' project: `ComponentModel` with parameters defining the Library type and implementation classes
-- Add functionality to the 'language-base' plugin that registers a hook that inspects every applied plugin for a nested (static) class with the @ComponentModel annotation
+- ~~Add a new incubating annotation to the 'language-base' project: `ComponentModel` with parameters defining the Library type and implementation classes~~
+- ~~Add functionality to the 'language-base' plugin that registers a hook that inspects every applied plugin for a nested (static) class with the @ComponentModel annotation~~
     - Implement by making an `Action<? super PluginApplication>` available to the construction of `DefaultPluginContainer`, via `PluginServiceRegistry`.
-- When a plugin is applied that has a nested class with the `@ComponentModel(SampleLibrary)` annotation:
+- ~~When a plugin is applied that has a nested class with the `@ComponentModel(SampleLibrary)` annotation:~~
     - Automatically apply the `ComponentModelBasePlugin` before the plugin is applied
     - Register a factory with the `ComponentSpecContainer` for creating `SampleLibrary` instances with the supplied implementation
         - The factory implementation should generate a `ComponentSpecIdentifier` with the supplied name to instantiate the component
@@ -312,12 +312,12 @@ A custom library implementation:
     - Has separate nested classes with `@Library` and `@RuleSource` annotations
 - Rule for adding library instances can be in a separate plugin to the plugin declaring the component model
 - Can define and create multiple component types in the same plugin with multiple `@ComponentModel` annotations
-- Friendly error message when supplied library implementation:
+- ~~Friendly error message when supplied library implementation:~~
     - Does not have a public no-arg constructor
     - Does not implement library type
     - Does not extend `DefaultLibrarySpec`
 - Friendly error message when attempting to register the same library type with different implementations
-- Custom libraries show up in components report
+- ~~Custom libraries show up in components report~~
 
 #### Open issues
 
