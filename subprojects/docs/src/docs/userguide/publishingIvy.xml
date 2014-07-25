@@ -279,11 +279,11 @@
                 The “<literal>ivy-publish</literal>” plugin leverages some experimental support for late plugin configuration,
                 and the <literal>GenerateIvyDescriptor</literal> task will not be constructed until the publishing extension is configured.
                 The simplest way to ensure that the publishing plugin is configured when you attempt to access the <literal>GenerateIvyDescriptor</literal> task
-                is to place the access inside a <literal>publishing</literal> block, as the example above demonstrates.
+                is to place the access inside a <literal>model</literal> block, as the example above demonstrates.
             </para>
             <para>
                 The same applies to any attempt to access publication-specific tasks like <apilink class="org.gradle.api.publish.ivy.tasks.PublishToIvyRepository" />.
-                These tasks should be referenced from within a <literal>publishing</literal> block.
+                These tasks should be referenced from within a <literal>model</literal> block.
             </para>
         </note>
     </section>
