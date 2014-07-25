@@ -26,10 +26,10 @@ import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
-public class ProjectNativeBinaryInitializer implements Action<NativeBinarySpec> {
+public class NativeBinarySpecInitializer implements Action<NativeBinarySpec> {
     private final File binariesOutputDir;
 
-    public ProjectNativeBinaryInitializer(File buildDir) {
+    public NativeBinarySpecInitializer(File buildDir) {
         binariesOutputDir = new File(buildDir, "binaries");
     }
 

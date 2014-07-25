@@ -23,11 +23,11 @@ import org.gradle.nativebinaries.NativeLibrarySpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
-public class ProjectNativeLibraryFactory implements NamedDomainObjectFactory<NativeLibrarySpec> {
+public class NativeLibrarySpecFactory implements NamedDomainObjectFactory<NativeLibrarySpec> {
     private final Instantiator instantiator;
     private final Project project;
 
-    public ProjectNativeLibraryFactory(Instantiator instantiator, Project project) {
+    public NativeLibrarySpecFactory(Instantiator instantiator, Project project) {
         this.instantiator = instantiator;
         this.project = project;
     }

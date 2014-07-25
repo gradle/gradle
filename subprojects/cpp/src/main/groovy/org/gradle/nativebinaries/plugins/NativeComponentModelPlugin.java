@@ -68,10 +68,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getModelRegistry().create(new RepositoriesFactory("repositories", instantiator, fileResolver));
 
         ComponentSpecContainer components = project.getExtensions().getByType(ComponentSpecContainer.class);
-        components.registerFactory(NativeExecutableSpec.class, new ProjectNativeExecutableFactory(instantiator, project));
+        components.registerFactory(NativeExecutableSpec.class, new NativeExecutableSpecFactory(instantiator, project));
         NamedDomainObjectContainer<NativeExecutableSpec> nativeExecutables = components.containerWithType(NativeExecutableSpec.class);
 
-        components.registerFactory(NativeLibrarySpec.class, new ProjectNativeLibraryFactory(instantiator, project));
+        components.registerFactory(NativeLibrarySpec.class, new NativeLibrarySpecFactory(instantiator, project));
         NamedDomainObjectContainer<NativeLibrarySpec> nativeLibraries = components.containerWithType(NativeLibrarySpec.class);
 
         project.getExtensions().create("nativeRuntime", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
@@ -132,7 +132,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
-            Action<NativeBinarySpec> configureBinaryAction = new ProjectNativeBinaryInitializer(buildDir);
+            Action<NativeBinarySpec> configureBinaryAction = new NativeBinarySpecInitializer(buildDir);
             Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languages);
             Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
