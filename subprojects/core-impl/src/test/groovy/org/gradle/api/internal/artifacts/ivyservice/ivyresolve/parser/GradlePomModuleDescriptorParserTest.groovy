@@ -1945,7 +1945,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def depEjbClient = descriptor.dependencies[4]
         depEjbClient.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-six')
         depEjbClient.moduleConfigurations == ['compile', 'runtime']
-        hasDependencyArtifact(depEjbClient, 'artifact-two', 'ejb-client', 'ejb-client', 'client')
+        hasDependencyArtifact(depEjbClient, 'artifact-two', 'ejb-client', 'jar', 'client')
     }
 
     @Issue("GRADLE-2371")
@@ -2146,5 +2146,99 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.5')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
+    }
+
+    def "handles dependency with type test-jar"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>1.2</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+"""
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['test']
+        hasDependencyArtifact(dep, 'artifact-two', 'test-jar', 'jar', 'tests')
+    }
+
+    def "handles dependency with type ejb"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>1.2</version>
+            <type>ejb</type>
+        </dependency>
+    </dependencies>
+</project>
+"""
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDependencyArtifact(dep, 'artifact-two', 'ejb', 'jar')
+    }
+
+    def "handles dependency with type ejb-client"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>1.2</version>
+            <type>ejb-client</type>
+        </dependency>
+    </dependencies>
+</project>
+"""
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDependencyArtifact(dep, 'artifact-two', 'ejb-client', 'jar', 'client')
     }
 }
