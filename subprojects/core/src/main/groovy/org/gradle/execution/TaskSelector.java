@@ -15,7 +15,7 @@
  */
 package org.gradle.execution;
 
-import org.gradle.TaskExecutionRequest;
+import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -45,11 +45,11 @@ public class TaskSelector {
         return getSelection(path, gradle.getDefaultProject());
     }
 
-    public TaskSelection getSelection(TaskExecutionRequest taskParameter) {
-        ProjectInternal project = taskParameter.getProjectPath() != null
-                ? gradle.getRootProject().findProject(taskParameter.getProjectPath())
+    public TaskSelection getSelection(@Nullable String projectPath, String path) {
+        ProjectInternal project = projectPath != null
+                ? gradle.getRootProject().findProject(projectPath)
                 : gradle.getDefaultProject();
-        return getSelection(taskParameter.getTaskName(), project);
+        return getSelection(path, project);
     }
 
     private TaskSelection getSelection(String path, ProjectInternal project) {

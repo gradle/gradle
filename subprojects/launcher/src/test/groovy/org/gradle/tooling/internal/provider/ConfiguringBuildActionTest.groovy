@@ -108,7 +108,7 @@ class ConfiguringBuildActionTest extends Specification {
     def "accepts launchables from consumer"() {
         given:
         def selector = Mock(LaunchableExecutionRequest)
-        _ * selector.taskName >> 'myTask'
+        _ * selector.args >> ['myTask']
         _ * selector.projectPath >> ':child'
 
         ProviderOperationParameters providerParameters = Mock(ProviderOperationParameters)

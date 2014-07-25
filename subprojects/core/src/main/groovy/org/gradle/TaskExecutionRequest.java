@@ -19,22 +19,24 @@ package org.gradle;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
+import java.util.List;
+
 /**
- * Task name with an optional project path context to provide information necessary to initiate the build.
+ * A request to execute some tasks, along with an optional project path context to provide information necessary to select the tasks
  *
  * @since 2.0
  */
 @Incubating
 public interface TaskExecutionRequest {
     /**
-     * Task path for real tasks, selector name for task selectors.
+     * The arguments to use to select and optionally configure the tasks, as if provided on the command-line.
      *
      * @return task name.
      */
-    String getTaskName();
+    List<String> getArgs();
 
     /**
-     * Project path associated with this task parameter request if any.
+     * Project path associated with this task request if any.
      *
      * @return project path or {@code null} to use the default project path.
      */

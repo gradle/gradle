@@ -20,7 +20,6 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,18 +41,15 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
-        List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
-        Multimap<TaskExecutionRequest, Task> selectedTasks = commandLineTaskParser.parseTasks(taskParameters, selector);
-
         TaskGraphExecuter executer = gradle.getTaskGraph();
-        for (TaskExecutionRequest name : selectedTasks.keySet()) {
-            executer.addTasks(selectedTasks.get(name));
-        }
 
-        if (selectedTasks.keySet().size() == 1) {
-            LOGGER.info("Selected primary task {}", GUtil.toString(selectedTasks.keySet()));
-        } else {
-            LOGGER.info("Selected primary tasks {}", GUtil.toString(selectedTasks.keySet()));
+        List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
+        for (TaskExecutionRequest taskParameter : taskParameters) {
+            Multimap<String, Task> selectedTasks = commandLineTaskParser.parseTasks(taskParameter, selector);
+            for (String name : selectedTasks.keySet()) {
+                LOGGER.info("Selected primary task {}", name);
+                executer.addTasks(selectedTasks.get(name));
+            }
         }
 
         context.proceed();

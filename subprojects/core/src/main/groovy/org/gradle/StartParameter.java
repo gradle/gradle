@@ -16,8 +16,6 @@
 
 package org.gradle;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -224,13 +222,11 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the names of the tasks to execute in this build. Never returns null.
      */
     public List<String> getTaskNames() {
-        return Lists.newArrayList(Iterables.transform(
-                taskRequests,
-                new Function<TaskExecutionRequest, String>() {
-                    public String apply(TaskExecutionRequest input) {
-                        return input.getTaskName();
-                    }
-                }));
+        List<String> taskNames = Lists.newArrayList();
+        for (TaskExecutionRequest taskRequest : taskRequests) {
+            taskNames.addAll(taskRequest.getArgs());
+        }
+        return taskNames;
     }
 
     /**
@@ -240,13 +236,11 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param taskNames the names of the tasks to execute in this build.
      */
     public void setTaskNames(Iterable<String> taskNames) {
-        this.taskRequests = Lists.newArrayList(Iterables.transform(
-                taskNames != null ? taskNames : Collections.<String>emptyList(),
-                    new Function<String, TaskExecutionRequest>() {
-                        public TaskExecutionRequest apply(String input) {
-                            return new DefaultTaskExecutionRequest(input);
-                        }
-                    }));
+        if (taskNames == null) {
+            this.taskRequests = Collections.emptyList();
+        } else {
+            this.taskRequests = Arrays.<TaskExecutionRequest>asList(new DefaultTaskExecutionRequest(taskNames));
+        }
     }
 
     /**

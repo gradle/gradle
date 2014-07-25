@@ -96,7 +96,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                                 // make sure we don't send object graph with whole project structure back
                                 TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
                                 TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(
-                                        originalLaunchable.getTaskName(), originalLaunchable.getProjectPath());
+                                        originalLaunchable.getArgs(), originalLaunchable.getProjectPath());
                                 return launchableImpl;
                             }
                             throw new InternalUnsupportedBuildArgumentException(

@@ -22,6 +22,8 @@ import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.model.TaskSelector;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Data used for {@link org.gradle.tooling.model.TaskSelector}.
@@ -62,8 +64,8 @@ public class LaunchableGradleTaskSelector implements TaskSelector, InternalLaunc
         return this;
     }
 
-    public String getTaskName() {
-        return taskName;
+    public List<String> getArgs() {
+        return Collections.singletonList(taskName);
     }
 
     public LaunchableGradleTaskSelector setTaskName(String taskName) {

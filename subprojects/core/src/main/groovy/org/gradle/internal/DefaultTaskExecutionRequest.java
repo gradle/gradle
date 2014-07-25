@@ -17,29 +17,28 @@
 package org.gradle.internal;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.gradle.TaskExecutionRequest;
+import org.gradle.api.Nullable;
 
 import java.io.Serializable;
+import java.util.List;
 
-/**
- * Adapter to create TaskParameter for a simple task name.
- */
 public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serializable {
-    private final String taskName;
+    private final List<String> args;
     private final String projectPath;
 
-    public DefaultTaskExecutionRequest(String taskName) {
-        this(taskName, null);
+    public DefaultTaskExecutionRequest(Iterable<String> args) {
+        this(args, null);
     }
 
-    public DefaultTaskExecutionRequest(String taskName, String projectPath) {
-        this.taskName = Preconditions.checkNotNull(taskName);
+    public DefaultTaskExecutionRequest(Iterable<String> args, @Nullable String projectPath) {
+        this.args = Lists.newArrayList(args);
         this.projectPath = projectPath;
     }
 
-    public String getTaskName() {
-        return taskName;
+    public List<String> getArgs() {
+        return args;
     }
 
     public String getProjectPath() {
@@ -59,7 +58,7 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
         if (!Objects.equal(projectPath, that.projectPath)) {
             return false;
         }
-        if (!Objects.equal(taskName, that.taskName)) {
+        if (!Objects.equal(args, that.args)) {
             return false;
         }
 
@@ -68,7 +67,7 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
 
     @Override
     public int hashCode() {
-        int result = taskName != null ? taskName.hashCode() : 0;
+        int result = getArgs().hashCode();
         result = 31 * result + (projectPath != null ? projectPath.hashCode() : 0);
         return result;
     }
@@ -76,7 +75,7 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
     @Override
     public String toString() {
         return "DefaultTaskExecutionRequest{"
-                + "taskName='" + taskName + '\''
+                + "args=" + args
                 + ",projectPath='" + projectPath + '\''
                 + '}';
     }

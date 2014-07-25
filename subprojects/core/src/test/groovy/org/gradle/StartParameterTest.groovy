@@ -331,14 +331,15 @@ class StartParameterTest extends Specification {
     }
 
     def 'taskNames getter defaults to taskParameters'() {
-        StartParameter parameter = new StartParameter()
+        def parameter = new StartParameter()
+        def requests = [new DefaultTaskExecutionRequest(['a']), new DefaultTaskExecutionRequest(['b'])]
 
         when:
-        parameter.taskRequests = [ new DefaultTaskExecutionRequest('a'), new DefaultTaskExecutionRequest('b') ]
+        parameter.taskRequests = requests
 
         then:
         parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskRequests == [ new DefaultTaskExecutionRequest('a'), new DefaultTaskExecutionRequest('b') ]
+        parameter.taskRequests == requests
     }
 
     def 'taskNames setter defaults to taskParameters'() {
@@ -349,7 +350,7 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskRequests == [ new DefaultTaskExecutionRequest('a'), new DefaultTaskExecutionRequest('b') ]
+        parameter.taskRequests == [ new DefaultTaskExecutionRequest(['a', 'b']) ]
 
         when:
         parameter.taskNames = null

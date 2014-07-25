@@ -34,16 +34,16 @@ public class CommandLineTaskParser {
         this.taskConfigurer = commandLineTaskConfigurer;
     }
 
-    public Multimap<TaskExecutionRequest, Task> parseTasks(List<TaskExecutionRequest> taskParameters, TaskSelector taskSelector) {
-        SetMultimap<TaskExecutionRequest, Task> out = LinkedHashMultimap.create();
-        List<TaskExecutionRequest> remainingPaths = new LinkedList<TaskExecutionRequest>(taskParameters);
+    public Multimap<String, Task> parseTasks(TaskExecutionRequest taskExecutionRequest, TaskSelector taskSelector) {
+        SetMultimap<String, Task> out = LinkedHashMultimap.create();
+        List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
-            TaskExecutionRequest path = remainingPaths.remove(0);
-            TaskSelector.TaskSelection selection = taskSelector.getSelection(path);
+            String path = remainingPaths.remove(0);
+            TaskSelector.TaskSelection selection = taskSelector.getSelection(taskExecutionRequest.getProjectPath(), path);
             Set<Task> tasks = selection.getTasks();
             remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
 
-            out.putAll(path, tasks);
+            out.putAll(selection.getTaskName(), tasks);
         }
         return out;
     }
