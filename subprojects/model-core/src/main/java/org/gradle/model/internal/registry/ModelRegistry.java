@@ -30,5 +30,5 @@ public interface ModelRegistry extends ModelRuleRegistrar {
 
     void remove(ModelPath path);
 
-    void close() throws UnboundModelRulesException;
+    void validate() throws UnboundModelRulesException;
 }

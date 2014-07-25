@@ -263,7 +263,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    public void close() throws UnboundModelRulesException {
+    public void validate() throws UnboundModelRulesException {
         if (!binders.isEmpty()) {
             throw new UnboundModelRulesException(binders);
         }

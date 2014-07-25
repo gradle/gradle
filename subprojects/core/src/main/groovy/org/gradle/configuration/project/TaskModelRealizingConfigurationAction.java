@@ -29,7 +29,7 @@ public class TaskModelRealizingConfigurationAction implements ProjectConfigureAc
     public void execute(ProjectInternal projectInternal) {
         ModelRegistry modelRegistry = projectInternal.getModelRegistry();
         modelRegistry.get(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED);
-        modelRegistry.close();
+        modelRegistry.validate();
     }
 
 }
