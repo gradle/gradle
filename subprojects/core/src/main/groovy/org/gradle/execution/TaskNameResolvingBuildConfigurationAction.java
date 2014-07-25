@@ -32,11 +32,9 @@ import java.util.List;
 public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildConfigurationAction.class);
     private final CommandLineTaskParser commandLineTaskParser;
-    private final TaskSelector selector;
 
-    public TaskNameResolvingBuildConfigurationAction(CommandLineTaskParser commandLineTaskParser, TaskSelector selector) {
+    public TaskNameResolvingBuildConfigurationAction(CommandLineTaskParser commandLineTaskParser) {
         this.commandLineTaskParser = commandLineTaskParser;
-        this.selector = selector;
     }
 
     public void configure(BuildExecutionContext context) {
@@ -45,9 +43,9 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
 
         List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
         for (TaskExecutionRequest taskParameter : taskParameters) {
-            Multimap<String, Task> selectedTasks = commandLineTaskParser.parseTasks(taskParameter, selector);
+            Multimap<String, Task> selectedTasks = commandLineTaskParser.parseTasks(taskParameter);
             for (String name : selectedTasks.keySet()) {
-                LOGGER.info("Selected primary task {}", name);
+                LOGGER.info("Selected primary task '{}' from project {}", name, taskParameter.getProjectPath());
                 executer.addTasks(selectedTasks.get(name));
             }
         }

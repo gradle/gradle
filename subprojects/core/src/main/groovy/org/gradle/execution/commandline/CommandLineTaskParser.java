@@ -29,12 +29,14 @@ import java.util.Set;
 
 public class CommandLineTaskParser {
     private final CommandLineTaskConfigurer taskConfigurer;
+    private final TaskSelector taskSelector;
 
-    public CommandLineTaskParser(CommandLineTaskConfigurer commandLineTaskConfigurer) {
+    public CommandLineTaskParser(CommandLineTaskConfigurer commandLineTaskConfigurer, TaskSelector taskSelector) {
         this.taskConfigurer = commandLineTaskConfigurer;
+        this.taskSelector = taskSelector;
     }
 
-    public Multimap<String, Task> parseTasks(TaskExecutionRequest taskExecutionRequest, TaskSelector taskSelector) {
+    public Multimap<String, Task> parseTasks(TaskExecutionRequest taskExecutionRequest) {
         SetMultimap<String, Task> out = LinkedHashMultimap.create();
         List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {

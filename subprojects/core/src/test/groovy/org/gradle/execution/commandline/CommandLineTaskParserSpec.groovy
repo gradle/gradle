@@ -30,7 +30,7 @@ class CommandLineTaskParserSpec extends Specification {
     def task = Mock(Task)
     def task2 = Mock(Task)
     def task3 = Mock(Task)
-    def parser = new CommandLineTaskParser(taskConfigurer)
+    def parser = new CommandLineTaskParser(taskConfigurer, selector)
 
     def setup() {
         taskConfigurer.configureTasks(_, _) >> { args -> args[1] }
@@ -42,7 +42,7 @@ class CommandLineTaskParserSpec extends Specification {
         selector.getSelection('project', 'foo') >> new TaskSelector.TaskSelection(':foo', asTaskSelectionResults(task))
 
         when:
-        def out = parser.parseTasks(request, selector)
+        def out = parser.parseTasks(request)
 
         then:
         out.size() == 1
@@ -55,7 +55,7 @@ class CommandLineTaskParserSpec extends Specification {
         selector.getSelection('project', 'foo') >> new TaskSelector.TaskSelection(':foo', asTaskSelectionResults(task, task2))
 
         when:
-        def out = parser.parseTasks(request, selector)
+        def out = parser.parseTasks(request)
 
         then:
         out.size() == 2
@@ -69,7 +69,7 @@ class CommandLineTaskParserSpec extends Specification {
         selector.getSelection(null, 'bar') >> new TaskSelector.TaskSelection(':bar', asTaskSelectionResults(task3))
 
         when:
-        def out = parser.parseTasks(request, selector)
+        def out = parser.parseTasks(request)
 
         then:
         out.size() == 3
@@ -85,7 +85,7 @@ class CommandLineTaskParserSpec extends Specification {
         selector.getSelection(null, 'lastTask') >> new TaskSelector.TaskSelection('last task', asTaskSelectionResults(task3))
 
         when:
-        def out = parser.parseTasks(request, selector)
+        def out = parser.parseTasks(request)
 
         then:
         out.size() == 4
