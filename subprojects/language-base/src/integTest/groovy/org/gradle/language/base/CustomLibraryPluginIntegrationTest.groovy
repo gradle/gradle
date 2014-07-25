@@ -23,11 +23,6 @@ class CustomLibraryPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 import org.gradle.model.*
 import org.gradle.model.collection.*
-import org.gradle.internal.reflect.Instantiator
-
-import javax.inject.Inject
-import org.gradle.api.internal.project.ProjectIdentifier
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 
 interface SampleLibrary extends LibrarySpec {}
 class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {}
@@ -38,20 +33,13 @@ class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
         when:
         buildFile << """
 class MySamplePlugin implements Plugin<Project> {
-    final Instantiator instantiator
-
-    @Inject
-    MySamplePlugin(Instantiator instantiator) {
-        this.instantiator = instantiator
-    }
-
     void apply(final Project project) {}
 
-    @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
     @RuleSource
+    @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
     static class Rules {
         @Mutate
-        void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs, ProjectIdentifier projectIdentifier) {
+        void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
             componentSpecs.create("sampleLib")
         }
     }
