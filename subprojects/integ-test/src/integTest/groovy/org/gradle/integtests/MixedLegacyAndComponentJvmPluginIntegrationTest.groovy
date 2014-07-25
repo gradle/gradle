@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
@@ -39,8 +40,8 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
 
                 assert binaries.size() == 3
                 assert binaries.jvmLibJar instanceof JarBinarySpec
-                assert binaries.mainClasses instanceof ProjectClassDirectoryBinary
-                assert binaries.testClasses instanceof ProjectClassDirectoryBinary
+                assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
+                assert binaries.testClasses instanceof ClassDirectoryBinarySpec
             }
 """
         expect:
@@ -81,7 +82,7 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
 
         then:
         executed ':compileJava', ':processResources', ':classes', ':jar',
-                 ':compileJvmLibJarJvmLibJava', ':processJvmLibJarJvmLibResources', ':createJvmLibJar', ':jvmLibJar'
+                ':compileJvmLibJarJvmLibJava', ':processJvmLibJarJvmLibResources', ':createJvmLibJar', ':jvmLibJar'
 
         and:
         new JarTestFixture(file("build/jars/jvmLibJar/jvmLib.jar")).hasDescendants("org/gradle/test/Component.class", "component.txt");
