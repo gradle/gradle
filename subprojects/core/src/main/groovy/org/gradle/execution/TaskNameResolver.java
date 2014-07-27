@@ -28,7 +28,7 @@ public class TaskNameResolver {
      * Finds tasks that will have exactly the given name, without necessarily creating or configuring the tasks. Returns null if no such match found.
      */
     @Nullable
-    public TaskSelectionResult select(String name, Project project, boolean includeSubProjects) {
+    public TaskSelectionResult selectWithName(String name, Project project, boolean includeSubProjects) {
         if (!includeSubProjects) {
             TaskInternal task = (TaskInternal) project.getTasks().findByName(name);
             if (task != null) {

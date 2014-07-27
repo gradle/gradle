@@ -15,9 +15,7 @@
  */
 package org.gradle.execution;
 
-import com.google.common.collect.Multimap;
 import org.gradle.TaskExecutionRequest;
-import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.slf4j.Logger;
@@ -43,10 +41,10 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
 
         List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
         for (TaskExecutionRequest taskParameter : taskParameters) {
-            Multimap<String, Task> selectedTasks = commandLineTaskParser.parseTasks(taskParameter);
-            for (String name : selectedTasks.keySet()) {
-                LOGGER.info("Selected primary task '{}' from project {}", name, taskParameter.getProjectPath());
-                executer.addTasks(selectedTasks.get(name));
+            List<TaskSelector.TaskSelection> taskSelections = commandLineTaskParser.parseTasks(taskParameter);
+            for (TaskSelector.TaskSelection taskSelection : taskSelections) {
+                LOGGER.info("Selected primary task '{}' from project {}", taskSelection.getTaskName(), taskSelection.getProjectPath());
+                executer.addTasks(taskSelection.getTasks());
             }
         }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.execution
 
-import com.google.common.collect.Multimaps
 import org.gradle.StartParameter
 import org.gradle.TaskExecutionRequest
 import org.gradle.api.Task
@@ -62,23 +61,28 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         def task1 = Stub(Task)
         def task2 = Stub(Task)
         def task3 = Stub(Task)
-        def tasks1 = Multimaps.forMap(["task1": task1, "task3": task3])
-        def tasks2 = Multimaps.forMap(["task2": task2])
+        def selection1 = Stub(TaskSelector.TaskSelection)
+        def selection2 = Stub(TaskSelector.TaskSelection)
 
         given:
         _ * gradle.startParameter >> startParameters
         _ * startParameters.taskRequests >> [request1, request2]
         _ * gradle.taskGraph >> executer
 
+        def tasks1 = [task1, task2] as Set
+        _ * selection1.tasks >> tasks1
+
+        def tasks2 = [task3] as Set
+        _ * selection2.tasks >> tasks2
+
         when:
         action.configure(context)
 
         then:
-        1 * parser.parseTasks(request1) >> tasks1
-        1 * parser.parseTasks(request2) >> tasks2
-        1 * executer.addTasks(tasks1.get('task1'))
-        1 * executer.addTasks(tasks1.get('task3'))
-        1 * executer.addTasks(tasks2.get('task2'))
+        1 * parser.parseTasks(request1) >> [selection1]
+        1 * parser.parseTasks(request2) >> [selection2]
+        1 * executer.addTasks(tasks1)
+        1 * executer.addTasks(tasks2)
         1 * context.proceed()
         _ * context.gradle >> gradle
         0 * context._()

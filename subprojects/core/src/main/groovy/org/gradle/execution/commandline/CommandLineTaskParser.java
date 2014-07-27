@@ -16,9 +16,7 @@
 
 package org.gradle.execution.commandline;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Lists;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Task;
 import org.gradle.execution.TaskSelector;
@@ -36,16 +34,15 @@ public class CommandLineTaskParser {
         this.taskSelector = taskSelector;
     }
 
-    public Multimap<String, Task> parseTasks(TaskExecutionRequest taskExecutionRequest) {
-        SetMultimap<String, Task> out = LinkedHashMultimap.create();
+    public List<TaskSelector.TaskSelection> parseTasks(TaskExecutionRequest taskExecutionRequest) {
+        List<TaskSelector.TaskSelection> out = Lists.newArrayList();
         List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
             String path = remainingPaths.remove(0);
             TaskSelector.TaskSelection selection = taskSelector.getSelection(taskExecutionRequest.getProjectPath(), path);
             Set<Task> tasks = selection.getTasks();
             remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
-
-            out.putAll(selection.getTaskName(), tasks);
+            out.add(selection);
         }
         return out;
     }

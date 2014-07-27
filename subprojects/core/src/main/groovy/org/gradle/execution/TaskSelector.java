@@ -55,28 +55,35 @@ public class TaskSelector {
     private TaskSelection getSelection(String path, ProjectInternal project) {
         ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
 
-        TaskSelectionResult tasks = taskNameResolver.select(taskPath.getTaskName(), taskPath.getProject(), !taskPath.isQualified());
+        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskPath.getTaskName(), taskPath.getProject(), !taskPath.isQualified());
         if (tasks != null) {
             // An exact match
-            return new TaskSelection(path, tasks);
+            return new TaskSelection(taskPath.getProject().getPath(), path, tasks);
         }
 
         Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(taskPath.getProject(), !taskPath.isQualified());
         NameMatcher matcher = new NameMatcher();
         String actualName = matcher.find(taskPath.getTaskName(), tasksByName.keySet());
         if (actualName != null) {
-            return new TaskSelection(taskPath.getPrefix() + actualName, tasksByName.get(actualName));
+            return new TaskSelection(taskPath.getProject().getPath(), taskPath.getPrefix() + actualName, tasksByName.get(actualName));
         }
 
         throw new TaskSelectionException(matcher.formatErrorMessage("task", taskPath.getProject()));
     }
 
     public static class TaskSelection {
-        private String taskName;
-        private TaskSelectionResult taskSelectionResult;
-        public TaskSelection(String taskName, TaskSelectionResult tasks) {
+        private final String projectPath;
+        private final String taskName;
+        private final TaskSelectionResult taskSelectionResult;
+
+        public TaskSelection(String projectPath, String taskName, TaskSelectionResult tasks) {
+            this.projectPath = projectPath;
             this.taskName = taskName;
             taskSelectionResult = tasks;
+        }
+
+        public String getProjectPath() {
+            return projectPath;
         }
 
         public String getTaskName() {

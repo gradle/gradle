@@ -32,7 +32,7 @@ class TaskNameResolverTest extends Specification {
         def task = task('task')
 
         when:
-        def candidates = resolver.select('task', project, false)
+        def candidates = resolver.selectWithName('task', project, false)
 
         then:
         1 * tasks.findByName('task') >> task
@@ -46,7 +46,7 @@ class TaskNameResolverTest extends Specification {
 
     def "returns null when no task with given name for single project"() {
         when:
-        def candidates = resolver.select('task', project, false)
+        def candidates = resolver.selectWithName('task', project, false)
 
         then:
         candidates == null
@@ -64,7 +64,7 @@ class TaskNameResolverTest extends Specification {
         def task2 = task('task')
 
         when:
-        def candidates = resolver.select('task', project, true)
+        def candidates = resolver.selectWithName('task', project, true)
 
         then:
         1 * tasks.findByName('task') >> task1
@@ -89,7 +89,7 @@ class TaskNameResolverTest extends Specification {
         _ * task1.impliesSubProjects >> true
 
         when:
-        def candidates = resolver.select('task', project, true)
+        def candidates = resolver.selectWithName('task', project, true)
 
         then:
         1 * tasks.findByName('task') >> task1
@@ -112,7 +112,7 @@ class TaskNameResolverTest extends Specification {
         def task1 = task('task')
 
         when:
-        def candidates = resolver.select('task', project, true)
+        def candidates = resolver.selectWithName('task', project, true)
 
         then:
         1 * tasks.findByName('task') >> null

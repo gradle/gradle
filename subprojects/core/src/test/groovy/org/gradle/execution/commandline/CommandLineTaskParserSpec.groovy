@@ -36,59 +36,48 @@ class CommandLineTaskParserSpec extends Specification {
         taskConfigurer.configureTasks(_, _) >> { args -> args[1] }
     }
 
-    def "parses a single task"() {
+    def "parses a single task selector"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo'], 'project')
-        selector.getSelection('project', 'foo') >> new TaskSelector.TaskSelection(':foo', asTaskSelectionResults(task))
+        def selection = new TaskSelector.TaskSelection(':project', ':foo', asTaskSelectionResults(task))
+
+        selector.getSelection('project', 'foo') >> selection
 
         when:
         def out = parser.parseTasks(request)
 
         then:
-        out.size() == 1
-        out.get(':foo') == [task] as Set
+        out == [selection]
     }
 
-    def "parses single task with multiple matches"() {
-        given:
-        def request = new DefaultTaskExecutionRequest(['foo'], 'project')
-        selector.getSelection('project', 'foo') >> new TaskSelector.TaskSelection(':foo', asTaskSelectionResults(task, task2))
-
-        when:
-        def out = parser.parseTasks(request)
-
-        then:
-        out.size() == 2
-        out.get(':foo') == [task, task2] as Set
-    }
-
-    def "parses multiple matching tasks"() {
+    def "parses multiple tasks selectors"() {
         given:
         def request = new DefaultTaskExecutionRequest(['foo', 'bar'])
-        selector.getSelection(null, 'foo') >> new TaskSelector.TaskSelection(':foo', asTaskSelectionResults(task, task2))
-        selector.getSelection(null, 'bar') >> new TaskSelector.TaskSelection(':bar', asTaskSelectionResults(task3))
+        def selection1 = new TaskSelector.TaskSelection(':project', ':foo', asTaskSelectionResults(task, task2))
+        def selection2 = new TaskSelector.TaskSelection(':project', ':bar', asTaskSelectionResults(task3))
+
+        selector.getSelection(null, 'foo') >> selection1
+        selector.getSelection(null, 'bar') >> selection2
+
+        when:
+        def out = parser.parseTasks(request)
+
+        then:
+        out == [selection1, selection2]
+    }
+
+    def "configures tasks if configuration options specified"() {
+        given:
+        def request = new DefaultTaskExecutionRequest(['foo', '--all', 'bar', '--include', 'stuff', 'lastTask'])
+        selector.getSelection(null, 'foo') >> new TaskSelector.TaskSelection(':project', 'foo task', asTaskSelectionResults(task, task2))
+        selector.getSelection(null, 'bar') >> new TaskSelector.TaskSelection(':project', 'bar task', asTaskSelectionResults(task3))
+        selector.getSelection(null, 'lastTask') >> new TaskSelector.TaskSelection(':project', 'last task', asTaskSelectionResults(task3))
 
         when:
         def out = parser.parseTasks(request)
 
         then:
         out.size() == 3
-        out.get(':foo') == [task, task2] as Set
-        out.get(':bar') == [task3] as Set
-    }
-
-    def "configures tasks if configuration options specified"() {
-        given:
-        def request = new DefaultTaskExecutionRequest(['foo', '--all', 'bar', '--include', 'stuff', 'lastTask'])
-        selector.getSelection(null, 'foo') >> new TaskSelector.TaskSelection('foo task', asTaskSelectionResults(task, task2))
-        selector.getSelection(null, 'bar') >> new TaskSelector.TaskSelection('bar task', asTaskSelectionResults(task3))
-        selector.getSelection(null, 'lastTask') >> new TaskSelector.TaskSelection('last task', asTaskSelectionResults(task3))
-
-        when:
-        def out = parser.parseTasks(request)
-
-        then:
-        out.size() == 4
         1 * taskConfigurer.configureTasks(newHashSet(task, task2), ['--all', 'bar', '--include', 'stuff', 'lastTask']) >> ['bar', '--include', 'stuff', 'lastTask']
         1 * taskConfigurer.configureTasks(newHashSet(task3), ['--include', 'stuff', 'lastTask']) >> ['lastTask']
         1 * taskConfigurer.configureTasks(newHashSet(task3), []) >> []
