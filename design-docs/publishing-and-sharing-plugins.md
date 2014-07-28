@@ -617,7 +617,7 @@ The plugin portal resolver returns a payload indicating that this plugin is non-
 
 Much of the error handling is shared with handling of declarative plugins.
 
-See “resolution process” section in “implementation plan” for details on how the plugin should be loaded.
+Note: the class loading/visibility required by this story does not reflect the final goal. See the first story of the next milestone.
 
 ### Test Coverage
 
@@ -631,8 +631,6 @@ See “resolution process” section in “implementation plan” for details on
     - Add a `buildscript {}` dependency on java library A @ version 1.0
     - Add a `plugins {}` dependency on a non-declarative plugin that depends on A @ version 2.0
     - Assert that _only_ version 2.0 was resolved
-- Plugin implementation classes are not visible to script plugins applied to target script
-- Plugin implementation classes are not visible to build scripts of child projects
 - ~~Plugin can access classes from Gradle API~~
 - ~~Plugin can access classes from Gradle core plugins~~
 - ~~Plugin cannot access Gradle internal implementation classes~~
@@ -707,6 +705,13 @@ Story is predicated on plugins.gradle.org providing a searchable interface for p
 Note: Plugin authors cannot really contribution to plugins.gradle.org at this point. The content will be “hand curated”.
 
 # Milestone 2 - more flexible usage
+
+## Story: Classes introduced to build script exclusively for use by `plugins {}` are not inherited
+
+### Test Coverage
+
+- Plugin implementation classes are not visible to script plugins applied to target script
+- Plugin implementation classes are not visible to build scripts of child projects
 
 ## Story: Script plugins are able to use `plugins {}`
 
