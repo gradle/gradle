@@ -20,6 +20,8 @@ import org.gradle.util.WrapUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static org.gradle.internal.SystemProperties.getLineSeparator
+
 public class JavadocOptionFileWriterContextTest extends Specification {
 
     def writer = new StringWriter()
@@ -32,31 +34,25 @@ public class JavadocOptionFileWriterContextTest extends Specification {
 
     def "writes new line"() {
         when: context.write("a").newLine().write("b")
-        then: writer.toString() == """a
-b"""
+        then: writer.toString() == "a${getLineSeparator()}b"
     }
 
     def "quotes and escapes"() {
         when: context.writeValueOption("key", "1\\2\\")
-        then: writer.toString() == """-key '1\\\\2\\\\'
-"""
+        then: writer.toString() == "-key '1\\\\2\\\\'${getLineSeparator()}"
     }
 
     def "quotes and escapes multiple values"() {
         when:
         context.writeValuesOption("key", WrapUtil.toList("a\\b", "c"), ":")
 
-        then: writer.toString() == """-key 'a\\\\b:c'
-"""
+        then: writer.toString() == "-key 'a\\\\b:c'${getLineSeparator()}"
     }
 
     def "writes multiline value"() {
         when:
-        context.writeValueOption("key", """Hey
-Joe!""")
+        context.writeValueOption("key", "Hey${getLineSeparator()}Joe!")
 
-        then: writer.toString() == """-key 'Hey\\
-Joe!'
-"""
+        then: writer.toString() == "-key 'Hey\\${getLineSeparator()}Joe!'${getLineSeparator()}"
     }
 }
