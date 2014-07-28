@@ -18,9 +18,10 @@ package org.gradle.internal.nativeplatform.services
 import net.rubygrapefruit.platform.ProcessLauncher
 import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.internal.nativeplatform.console.ConsoleDetector
 import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.console.ConsoleDetector
 import org.gradle.internal.nativeplatform.filesystem.Chmod
+import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.nativeplatform.filesystem.Stat
 import org.gradle.internal.os.OperatingSystem
@@ -44,6 +45,11 @@ class NativeServicesTest extends Specification {
         services.get(FileSystem) != null
         services.get(Chmod) != null
         services.get(Stat) != null
+    }
+
+    def "makes a FileCanonicalizer available"() {
+        expect:
+        services.get(FileCanonicalizer) != null
     }
 
     def "makes a ConsoleDetector available"() {

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.nativeplatform.filesystem;
 
 import java.io.File;
-import java.io.IOException;
 
-public interface FileIdentityChecker {
-    boolean isSameFile(File file1, File file2) throws IOException;
+public interface FileCanonicalizer {
+    File canonicalize(File file) throws FileException;
 }

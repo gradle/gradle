@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.util.jdk7;
-
-import org.gradle.util.FileIdentityChecker;
+package org.gradle.internal.nativeplatform.filesystem;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 
-public class Jdk7FileIdentityChecker implements FileIdentityChecker {
-    public boolean isSameFile(File file1, File file2) throws IOException {
-        return Files.isSameFile(file1.toPath(), file2.toPath());
+class FallbackFileCanonicalizer implements FileCanonicalizer {
+    public File canonicalize(File file) throws FileException {
+        try {
+            return file.getCanonicalFile();
+        } catch (IOException e) {
+            throw new FileException(String.format("Could not canonicalize file %s.", file), e);
+        }
     }
 }

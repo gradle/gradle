@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -34,7 +33,7 @@ public class JvmInstallation {
     public JvmInstallation(JavaVersion javaVersion, String version, File javaHome, boolean jdk, Arch arch) {
         this.javaVersion = javaVersion;
         this.version = VersionNumber.withPatchNumber().parse(version);
-        this.javaHome = GFileUtils.canonicalise(javaHome);
+        this.javaHome = javaHome;
         this.jdk = jdk;
         this.arch = arch;
     }

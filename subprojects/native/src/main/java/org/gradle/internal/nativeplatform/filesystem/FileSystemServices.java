@@ -19,12 +19,18 @@ package org.gradle.internal.nativeplatform.filesystem;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileSystemServices {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
+
+    @SuppressWarnings("UnusedDeclaration")
+    public FileCanonicalizer createFileCanonicalizer() {
+        return (FileCanonicalizer) newInstance("org.gradle.internal.nativeplatform.filesystem.jdk7.Jdk7FileCanonicalizer", FallbackFileCanonicalizer.class);
+    }
 
     @SuppressWarnings("UnusedDeclaration")
     public FileSystem createFileSystem(OperatingSystem operatingSystem) throws Exception {
@@ -47,24 +53,30 @@ public class FileSystemServices {
         LOGGER.debug("Using UnsupportedSymlink implementation.");
         Symlink symlink = new UnsupportedSymlink();
 
+        // Use java 7 APIs, if available, otherwise fallback to no-op
+        Object handler = newInstance("org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler", UnsupportedFilePermissions.class);
+        return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
+    }
+
+    private Object newInstance(String jdk7Type, Class<?> fallbackType) {
         // Use java 7 APIs, if available
+        Class<?> handlerClass = null;
         if (JavaVersion.current().isJava7()) {
-            String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
-            Class<?> handlerClass = null;
             try {
-                handlerClass = FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass);
+                handlerClass = FileSystemServices.class.getClassLoader().loadClass(jdk7Type);
+                LOGGER.debug("Using JDK 7 file service {}", jdk7Type);
             } catch (ClassNotFoundException e) {
-                LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.", jdkFilePermissionclass));
-            }
-            if (handlerClass != null) {
-                LOGGER.debug("Using JDK 7 file services.");
-                Object handler = handlerClass.newInstance();
-                return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
+                // Ignore
             }
         }
-
-        // Fallback to no-op implementations if not available
-        UnsupportedFilePermissions filePermissionsHandler = new UnsupportedFilePermissions();
-        return new GenericFileSystem(filePermissionsHandler, filePermissionsHandler, symlink);
+        if (handlerClass == null) {
+            LOGGER.warn("Unable to load {}. Continuing with fallback {}.", jdk7Type, fallbackType.getName());
+            handlerClass = fallbackType;
+        }
+        try {
+            return handlerClass.newInstance();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

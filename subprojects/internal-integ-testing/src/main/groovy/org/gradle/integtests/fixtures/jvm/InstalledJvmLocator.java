@@ -41,9 +41,9 @@ public class InstalledJvmLocator {
         Collection<JvmInstallation> jvms;
         if (operatingSystem.isMacOsX()) {
             jvms = new OsXInstalledJvmLocator().findJvms();
-        } else if (OperatingSystem.current().isWindows()) {
+        } else if (operatingSystem.isWindows()) {
             jvms = new WindowsOracleJvmLocator(windowsRegistry, systemInfo).findJvms();
-        } else if (OperatingSystem.current().isLinux()) {
+        } else if (operatingSystem.isLinux()) {
             jvms = new UbuntuJvmLocator().findJvms();
         } else {
             jvms = Collections.emptySet();
