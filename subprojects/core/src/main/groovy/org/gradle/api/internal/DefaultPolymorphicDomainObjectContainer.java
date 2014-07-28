@@ -70,6 +70,10 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
             throw new IllegalArgumentException(String.format("Cannot register a factory for type %s because "
                     + "it is not a subtype of container element type %s.", type.getSimpleName(), getTypeDisplayName()));
         }
+        if(factories.containsKey(type)){
+            throw new GradleException(String.format("Cannot register a factory for type %s because "
+                    + "a factory for this type already registered.", type.getSimpleName()));
+        }
         factories.put(type, factory);
     }
 
