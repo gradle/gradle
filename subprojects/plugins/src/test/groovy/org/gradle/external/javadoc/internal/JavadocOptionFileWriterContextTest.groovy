@@ -22,43 +22,32 @@ import spock.lang.Subject
 
 public class JavadocOptionFileWriterContextTest extends Specification {
 
-    def writer = Mock(BufferedWriter)
+    def writer = new StringWriter()
     @Subject context = new JavadocOptionFileWriterContext(writer)
 
     def "writes"() {
         when: context.write("dummy")
-        then: writer.write("dummy")
+        then: writer.toString() == "dummy"
     }
 
     def "writes new line"() {
-        when: context.newLine()
-        then: writer.newLine()
+        when: context.write("a").newLine().write("b")
+        then: writer.toString() == """a
+b"""
     }
 
     def "quotes and escapes"() {
-        when:
-        context.writeValueOption("key", "1\\2\\")
-
-        then: writer.write("-")
-        then: writer.write("key")
-        then: writer.write(" ")
-        then: writer.write("'")
-        then: writer.write("1\\\\2\\\\")
-        then: writer.write("'")
-        then: writer.newLine()
+        when: context.writeValueOption("key", "1\\2\\")
+        then: writer.toString() == """-key '1\\\\2\\\\'
+"""
     }
 
     def "quotes and escapes multiple values"() {
         when:
         context.writeValuesOption("key", WrapUtil.toList("a\\b", "c"), ":")
 
-        then: writer.write("-")
-        then: writer.write("key")
-        then: writer.write(" ")
-        then: writer.write("'")
-        then: writer.write("a\\\\b:c")
-        then: writer.write("'")
-        then: writer.newLine()
+        then: writer.toString() == """-key 'a\\\\b:c'
+"""
     }
 
     def "writes multiline value"() {
@@ -66,13 +55,8 @@ public class JavadocOptionFileWriterContextTest extends Specification {
         context.writeValueOption("key", """Hey
 Joe!""")
 
-        then: writer.write("-")
-        then: writer.write("key")
-        then: writer.write(" ")
-        then: writer.write("'")
-        then: writer.write("""Hey\
-Joe!""")
-        then: writer.write("'")
-        then: writer.newLine()
+        then: writer.toString() == """-key 'Hey\\
+Joe!'
+"""
     }
 }
