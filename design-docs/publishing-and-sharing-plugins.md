@@ -674,12 +674,6 @@ Implementation of handling this response should be cross cutting.
 
 - Unsupported Gradle version response fails build, with message provided by portal forwarded to user.
 
-## Story: User is notified of use of 'deprecated' plugin
-
-## Story: All plugins are resolved before any plugin is applied to a target
-
-Before actually applying plugins (potentially expensive), all required plugins should be resolved in the spirit of fail fast.
-
 ### Test Coverage
 
 - Plugins are applied alphabetically based on name
@@ -687,8 +681,6 @@ Before actually applying plugins (potentially expensive), all required plugins s
 ## Story: Plugin resolution is cached between builds
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
-
-## Story: Script plugins are able to use `plugins {}`
 
 ## Story: Error message for unknown plugin or plugin version includes link to relevant human search interfaces
 
@@ -714,7 +706,20 @@ Story is predicated on plugins.gradle.org providing a searchable interface for p
 
 Note: Plugin authors cannot really contribution to plugins.gradle.org at this point. The content will be “hand curated”.
 
-# Milestone 2 - declarative plugins
+# Milestone 2 - more flexible usage
+
+## Story: Script plugins are able to use `plugins {}`
+
+## Story: All plugins are resolved before any plugin is applied to a target
+
+Before actually applying plugins (potentially expensive), all required plugins should be resolved in the spirit of fail fast.
+
+## Story: User is notified of use of 'deprecated' plugin
+
+
+# Milestone 3 - declarative plugins
+
+## Story: Script plugins are able to use `plugins {}`
 
 ## Story: Plugin author uses plugin development plugin to build a plugin
 
@@ -763,7 +768,7 @@ Plugin authors should be able to write their plugin in such a way that it works 
 
 # Story: Author of declarative plugin builds plugin that depends on non-core declarative plugin
 
-# Milestone 3 - “parkable”
+# Milestone 4 - “parkable”
 
 ## Story: Gradle is routinely tested against real plugins.gradle.org codebase
 
