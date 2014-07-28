@@ -57,7 +57,7 @@ Joe! -->
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
-        when: run("javadoc")
+        when: run("javadoc", "-i")
         then:
         file("build/docs/javadoc/Foo.html").text.contains("""Hey
 Joe!""")

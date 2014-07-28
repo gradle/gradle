@@ -84,6 +84,14 @@ public class GFileUtils {
         }
     }
 
+    public static String readFileQuietly(File file) {
+        try {
+            return readFile(file);
+        } catch (Exception e) {
+            return "Unable to read file '" + file + "' due to: " + e.toString();
+        }
+    }
+
     public static void writeFile(String content, File destination) {
         writeFile(content, destination, Charset.defaultCharset().name());
     }
