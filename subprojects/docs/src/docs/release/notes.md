@@ -69,18 +69,22 @@ Where `file("myConfigScript.groovy")` contains the Groovy code from above.
  
 This feature was contributed by [Cédric Champeau](https://github.com/melix).
 
-### New Plugin Resolution Mechanism (i)
+### Easier use of community plugins (i)
 
-There is a new plugin resolution mechanism that can be used to create more concise and convenient plugin dependency declarations.
-Instead of combining a `buildscript` script block and an `apply`, both statements can be replaced by a
+The new plugin resolution mechanism, backed by the new [Gradle Plugin Portal](http://plugins.gradle.org), makes it easier to use community Gradle plugins.
+Instead of combining a `buildscript` script block and an `apply`, both statements can be replaced by a 
 [plugins script block](dsl/org.gradle.plugin.use.PluginDependenciesSpec.html).
 
     plugins {
         id 'com.company.myplugin' version '1.3'
     }
 
-The plugins block works in conjunction with the new [Gradle plugin portal](http://plugins.gradle.org) to search for, select and apply
-plugins to the build classpath.
+Gradle will query the Plugin Portal for the implementation details of the specified plugins.
+The Plugin Portal's plugin browsing interface provides copy/paste friendly snippets.
+
+Many enhancements and features are planned for both the Plugin Portal and plugins in general.
+The new `plugins {}` block is not yet a complete replacement for the existing `apply()` method that is used to apply plugins.
+Its functionality will be expanded over coming releases.
 
 ### Java Gradle Plugin plugin (i)
 
