@@ -25,6 +25,33 @@ import java.lang.annotation.Target;
 
 /**
  * Declares that the associated class declares a ComponentModel
+ *
+ * The following example demonstrates how to register a custom component using a plugin with a
+ * ComponentModel annotation. Furthermore the plugin creates an instance of SampleLibrary named
+ * 'sampleLib'.
+ *
+ * <pre autoTested=''>
+ * import org.gradle.model.*
+ * import org.gradle.model.collection.*
+ *
+ * interface SampleLibrary extends LibrarySpec {}
+ * class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {}
+ *
+ * apply plugin: MySamplePlugin
+ *
+ * class MySamplePlugin implements Plugin<Project> {
+ *     void apply(final Project project) {}
+ *
+ *     @RuleSource
+ *     @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
+ *     static class Rules {
+ *         @Mutate
+ *         void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
+ *             componentSpecs.create("sampleLib")
+ *         }
+ *     }
+ * }
+ * </pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
