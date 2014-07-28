@@ -171,7 +171,7 @@
             </para>
             <para>
                 Your plugin id should be a combination of components that reflect namespace (a reasonable pointer to you or your organization)
-                and the name of the plugin it provides.  For example if you had a github account named "foo" and your plugin named "bar",
+                and the name of the plugin it provides.  For example if you have a GitHub account named "foo" and your plugin named "bar",
                 a suitable plugin id might be <literal>com.github.foo.bar</literal>.  Similarly, if the plugin was developed at the baz organization,
                 the plugin id might be <literal>org.baz.bar</literal>.
             </para>
