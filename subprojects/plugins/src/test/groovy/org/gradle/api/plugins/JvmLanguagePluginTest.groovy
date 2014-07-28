@@ -17,23 +17,12 @@ package org.gradle.api.plugins
 
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec
 import org.gradle.api.jvm.ClassDirectoryBinarySpec
-import org.gradle.language.jvm.ResourceSet
-import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JvmLanguagePluginTest extends Specification {
     def project = TestUtil.createRootProject()
     def jvmLanguagePlugin = project.plugins.apply(JvmLanguagePlugin)
-
-    def "registers the 'ResourceSet' type for each functional source set added to the 'sources' container"() {
-        when:
-        project.sources.create("custom")
-        project.sources.custom.create("resources", ResourceSet)
-
-        then:
-        project.sources.custom.resources instanceof ResourceSet
-    }
 
     def "registers the ClassDirectoryBinary type with the binaries container"() {
         def binaries = project.extensions.findByName("binaries")
@@ -53,52 +42,5 @@ class JvmLanguagePluginTest extends Specification {
         def task = project.tasks.findByName("prodClasses")
         task != null
         task.description == "Assembles classes 'prod'."
-    }
-
-    def "adds a 'processResources' task for every ResourceSet added to a ClassDirectoryBinary"() {
-        ClassDirectoryBinarySpec binary = project.binaries.create("prod", ClassDirectoryBinarySpec)
-        ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
-
-        when:
-        binary.source.add(resources)
-
-        then:
-        project.tasks.size() == old(project.tasks.size()) + 1
-        def task = project.tasks.findByName("processProdResources")
-        task instanceof ProcessResources
-        task.description == "Processes resources 'main:resources'."
-    }
-
-    def "adds tasks based on short name when ClassDirectoryBinary has name ending in Classes"() {
-        when:
-        ClassDirectoryBinarySpec binary = project.binaries.create("fooClasses", ClassDirectoryBinarySpec)
-        ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
-        binary.source.add(resources)
-
-        then:
-        binary.classesDir == new File("$project.buildDir/classes/foo")
-        def task = project.tasks.findByName("fooClasses")
-        task != null
-        task.description == "Assembles classes 'foo'."
-
-        and:
-        def resourcesTask = project.tasks.findByName("processFooResources")
-        resourcesTask instanceof ProcessResources
-        resourcesTask.description == "Processes resources 'main:resources'."
-    }
-
-    def "binary tasks are available via binary.tasks"() {
-        ClassDirectoryBinarySpec binary = project.binaries.create("prod", ClassDirectoryBinarySpec)
-        ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
-
-        when:
-        binary.source.add(resources)
-
-        then:
-        def classesTask = project.tasks.findByName("prodClasses")
-        def resourcesTask = project.tasks.findByName("processProdResources")
-
-        binary.tasks.build == classesTask
-        binary.tasks as Set == [resourcesTask] as Set
     }
 }

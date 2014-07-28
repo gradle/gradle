@@ -17,7 +17,6 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
@@ -25,12 +24,9 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.jvm.ClassDirectoryBinarySpec;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
-import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
@@ -62,18 +58,6 @@ public class JvmLanguagePlugin implements Plugin<Project> {
 
     public void apply(final Project target) {
         target.getPlugins().apply(LanguageBasePlugin.class);
-
-        ProjectSourceSet projectSourceSet = target.getExtensions().getByType(ProjectSourceSet.class);
-        projectSourceSet.all(new Action<FunctionalSourceSet>() {
-            public void execute(final FunctionalSourceSet functionalSourceSet) {
-                functionalSourceSet.registerFactory(ResourceSet.class, new NamedDomainObjectFactory<ResourceSet>() {
-                    public ResourceSet create(String name) {
-                        return instantiator.newInstance(DefaultResourceSet.class, name,
-                                instantiator.newInstance(DefaultSourceDirectorySet.class, name, fileResolver), functionalSourceSet);
-                    }
-                });
-            }
-        });
 
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
