@@ -18,6 +18,7 @@ package org.gradle.javadoc
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
@@ -46,6 +47,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         javadoc.text =~ /(?ms)Serial no. is valid javadoc!/
     }
 
+    @Ignore
     def "writes multiline header"() {
         buildFile << """
             apply plugin: "java"
