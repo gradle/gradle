@@ -68,6 +68,7 @@ public class JavadocOptionFileWriterContext {
         //First, we replace slashes because they have special meaning in the javadoc options file
         //Then, we replace every linebreak with slash+linebreak. Slash is needed according to javadoc options file format
         write(value.replaceAll("\\\\", "\\\\\\\\")
+                //on windows sometimes I receive single \n instead of \r\n. Hence replacing either \n or the official line separator.
                 .replaceAll("(" + getLineSeparator() + ")|\n", "\\\\" + getLineSeparator()));
         write("\'");
         return this;
