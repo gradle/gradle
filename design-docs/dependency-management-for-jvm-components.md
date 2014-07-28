@@ -427,7 +427,7 @@ A custom binary implementation:
     - Inspect the declared library type for an overloaded `getBinaries()` method, to determine the library binary type.
     - TBD mechanism for iteration rule
 - For each created binary, create the lifecycle task.
-- Document in the user guide how to use this. Include some samples.
+- Update the 'custom components' sample to demonstrate the new mechanism.
 
 #### Test cases
 
@@ -468,7 +468,7 @@ Running `gradle assemble` will execute tasks for each library binary.
     - Inspect any declared rules that take the created binary type as input, and produce Task instances
       via a `CollectionBuilder<Task> parameter.
 - The task-creation rule will be executed for each binary when closing the TaskContainer.
-- Document in the user guide how to use this. Include some samples.
+- Document in the user guide how to define a component, binaries and tasks for a custom model. Include some samples.
 
 #### Open issues
 

@@ -90,11 +90,6 @@ This rule is fired any time a candidate version is compared to see if it matches
 
 ### User visible changes
 
-    interface VersionSelection {
-        ModuleComponentSelector getRequested()
-        ModuleComponentIdentifier getCandidate()
-    }
-
     configurations.all {
         resolutionStrategy {
             versionSelection {
@@ -108,7 +103,31 @@ This rule is fired any time a candidate version is compared to see if it matches
 
 ### Implementation
 
-- Rules will be fired from `NewestVersionComponentChooser.chooseBestMatchingDependency`
+    interface VersionSelectionRules {
+        any(Action<VersionSelection> selection)
+    }
+
+    interface VersionSelectionRulesInternal {
+        apply(VersionSelection selection)
+    }
+
+    interface VersionSelection {
+        ModuleComponentSelector getRequested()
+        ModuleComponentIdentifier getCandidate()
+    }
+
+- Add `VersionSelectionRules` that will be returned by `ResolutionStrategy.getVersionSelection()`
+- When `VersionSelectionRulesInternal.apply()` is called, all Actions added with the `any` method are executed.
+- Supply the VersionSelectionRules instance to the NewestVersionComponentChooser, and apply the rules wherever compare a version against a candidate (`versionMatcher.accept`).
+
+### Test cases
+
+- No version selection rules are fired when resolving a static version
+- Resolve '1.+' against ['2.0', '1.1', '1.0']: rules are fired for ['2.0', '1.1']
+- Resolve 'latest.integration' against ['2.0', '1.1', '1.0]: rules are fired for ['2.0']
+- Resolve 'latest.release' against ['2.0', '1.1', '1.0] where '2.0' has status of 'integration' and '1.1' has status of release: rules are fired for ['2.0', '1.1']
+
+### Open issues
 
 ## Story: Build logic selects the module that matches an external dependency
 
