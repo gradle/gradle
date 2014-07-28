@@ -24,8 +24,6 @@ However, Gradle cannot currently consume modules with custom statuses.
 
 Rich module metadata is an enabler for other interesting features. (What are some good examples?)
 
-# Implementation plan
-
 ## Story: Make branch attribute available when publishing and resolving Ivy modules
 
 The `ivy` metadata file format has a `branch` attribute, which is currently not available to Gradle users. This story makes this
@@ -74,9 +72,98 @@ Users will be able to access the 'branch' attribute when resolving, via the `Ivy
 
 ### Open issues
 
+- Sync up the IvyModuleDescriptor and IvyModuleMetadata: add extra-info and status to descriptor, add
+- Rename IvyModuleDescriptor -> IvyModuleDescriptorSpec, IvyModuleMetadata -> IvyModuleDescriptor
+
+## Story: Build script reports all versions tested for dynamic version
+
+This story takes a step toward allowing a build author to provide logic for selecting the correct version for a dynamic dependency.
+
+A 'versionSelection' rule can be added to `ResolutionStrategy`.
+This rule is fired any time a candidate version is compared to see if it matches a dynamic version.
+
+- Any number of `versionSelection` rules can be added to a `ResolutionStrategy`.
+- All rules are fired.
+- The order in which they are fired is not deterministic.
+
+### User visible changes
+
+    interface VersionSelection {
+        ModuleComponentSelector getRequested()
+        ModuleComponentIdentifier getCandidate()
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            versionSelection {
+                any { VersionSelection selection ->
+                    println "Comparing module ${selection.candidate} to requested version ${selection.requested.version}"
+                }
+            }
+        }
+    }
+
+
+### Implementation
+
+- Rules will be fired from `NewestVersionComponentChooser.chooseBestMatchingDependency`
+
 ## Story: Build logic selects the module that matches an external dependency
 
-TBD
+- If no rule sets the status of the VersionSelection, the default VersionMatcher algorithm is used
+- Failure if 2 rules set the status of the VersionSelection in different ways
+
+### User visible changes
+
+    configurations.all {
+        resolutionStrategy {
+            versionSelection {
+                // Selector 'dev' matches any version ending with 'dev'
+                any { VersionSelection selection ->
+                    if (selection.requested.version == 'dev' && selection.candidate.version.endsWith('dev')) {
+                        selection.accept()
+                    }
+                }
+                // Selector 'not-zero' matches any version that doesn't start with '0'
+                any { VersionSelection selection ->
+                    if (selection.requested.version == 'zero' && !selection.candidate.version.startsWith('0')) {
+                        selection.reject()
+                    }
+                }
+            }
+        }
+    }
+
+## Story: Build script targets versionSelection rule to particular module
+
+### User visible changes
+
+    configurations.all {
+        resolutionStrategy {
+            versionSelection {
+                group "foo" { VersionSelection selection ->
+                }
+                group "foo" module "bar" { VersionSelection selection ->
+                }
+                module "foo:bar" { VersionSelection selection ->
+                }
+            }
+        }
+
+## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input
+
+### User visible changes
+
+    configurations.all {
+        resolutionStrategy {
+            versionSelection {
+                any { VersionSelection selection, ComponentMetadataDetails metadata ->
+                }
+                any { VersionSelection selection, IvyModuleMetadata ivyModule ->
+                }
+            }
+        }
+    }
 
 ## Use Artifactory properties to determine status of module
 
