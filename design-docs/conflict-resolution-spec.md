@@ -86,8 +86,25 @@ There are two things we need to be able to do when traversing the graph:
 
 ## Story: Allow declaring module replacements via module specs
 
-tbd
+Make it possible to declare module replacements flexibly, so that sets of modules can be replaced.
+
+### Use cases:
+
+- modules replaced by a set of modules: spring -> spring-core, spring-aop, ...
+- as above but starting from some version: groovy -> groovy, groovy-ant, groovy-xml only starting from 2.0
+- a set of modules replaced by a single module (hypothetical)
+
+### Implementation plan:
+
+- DependencyGraphBuilder receives Spec<ModuleIdentifier> information for deciding whether given modules are in conflict and for deciding who replaces them.
+
+### Test coverage:
+
+- A replaced by A-api, A-impl
+- B-api, B-impl replaced by B
+- A replaced by A-api, A-impl starting from version 2.0
+- A replaced by B (rule1) and C (rule2). A,B,C in graph
 
 # Open issues
 
-This section is to keep track of assumptions and things we haven't figured out yet.
+- what do we do if 2 replacement rules match given component? Which rule should be chosen?
