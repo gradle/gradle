@@ -83,8 +83,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     /**
      * Adds a repository which looks in Bintray's JCenter repository for dependencies.
      * <p>
-     * The URL used to access this repository is {@literal "http://jcenter.bintray.com/"}.
-     * The behavior of this resolver is otherwise the same as the ones added by {@link #maven(org.gradle.api.Action)}.
+     * The URL used to access this repository is {@literal "https://jcenter.bintray.com/"}.
+     * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
      * <p>
      * Examples:
      * <pre autoTested="">
@@ -108,7 +108,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * Adds a repository which looks in Bintray's JCenter repository for dependencies.
      * <p>
      * The URL used to access this repository is {@literal "https://jcenter.bintray.com/"}.
-     * The behavior of this resolver is otherwise the same as the ones added by {@link #mavenCentral()}.
+     * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
      * <p>
      * Examples:
      * <pre autoTested="">
@@ -126,10 +126,10 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}.
      *
-     * Consider that this URL is HTTP and not HTTPS as the central maven repository does not support HTTPS.
-     * If you need to use a HTTPS enabled central maven repository, you can use #jcenter() instead
+     * <p>You should note that this repository will use HTTP and not an HTTPS as the Maven central repository does not support HTTPS.
+     * If you need to use a HTTPS enabled mirror of Maven central, you can use {@link #jcenter()} instead.
      *
-     * The following parameter are accepted as keys for the map:
+     * <p>The following parameter are accepted as keys for the map:
      *
      * <table summary="Shows property keys and associated values">
      * <tr><th>Key</th>
@@ -164,8 +164,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
-     * Consider that this URL is HTTP and not HTTPS as the central maven repository does not support HTTPS.
-     * If you need to use a HTTPS enabled central maven repository, you can use #jcenter() instead.
+     * <p>You should note that this repository will use HTTP and not an HTTPS as the Maven central repository does not support HTTPS.
+     * If you need to use a HTTPS enabled mirror of Maven central, you can use {@link #jcenter()} instead.
      *
      * <p>Examples:
      * <pre autoTested="">
