@@ -211,6 +211,12 @@
             <tr>
                 <td>org.gradle.api.publish.maven.MavenPom</td>
             </tr>
+            <tr>
+                <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.use.PluginDependencySpec</td>
+            </tr>
         </table>
     </section>
 
@@ -230,12 +236,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugin.use.PluginDependencySpec</td>
             </tr>
         </table>
     </section>
