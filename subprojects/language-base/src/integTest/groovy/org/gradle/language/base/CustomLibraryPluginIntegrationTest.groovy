@@ -18,6 +18,7 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
+import spock.lang.Ignore
 
 class CustomLibraryPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -185,6 +186,7 @@ BUILD SUCCESSFUL"""))
         succeeds "checkModel"
     }
 
+    @Ignore
     def "Cannot register same library type multiple times"(){
         given:
         buildWithCustomComponentPlugin()

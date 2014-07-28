@@ -315,7 +315,7 @@ A custom library implementation:
     - ~~Does not have a public no-arg constructor~~
     - ~~Does not implement library type~~
     - ~~Does not extend `DefaultLibrarySpec`~~
-- ~~Friendly error message when attempting to register the same library type with different implementations~~
+- Friendly error message when attempting to register the same library type with different implementations
 - ~~Custom libraries show up in components report~~
 
 #### Open issues
