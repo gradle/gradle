@@ -16,18 +16,20 @@
 
 package org.gradle.external.javadoc.internal;
 
-import java.io.BufferedWriter;
+import org.gradle.internal.SystemProperties;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
 
 import static org.gradle.internal.SystemProperties.getLineSeparator;
 
 public class JavadocOptionFileWriterContext {
-    private final BufferedWriter writer;
+    private final Writer writer;
 
-    public JavadocOptionFileWriterContext(BufferedWriter writer) {
+    public JavadocOptionFileWriterContext(Writer writer) {
         this.writer = writer;
     }
 
@@ -37,7 +39,7 @@ public class JavadocOptionFileWriterContext {
     }
 
     public JavadocOptionFileWriterContext newLine() throws IOException {
-        writer.newLine();
+        writer.write(SystemProperties.getLineSeparator());
         return this;
     }
 
