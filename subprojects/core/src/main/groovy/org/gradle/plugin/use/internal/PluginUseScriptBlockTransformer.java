@@ -63,7 +63,7 @@ public class PluginUseScriptBlockTransformer {
 
         Expression closureCall = new MethodCallExpression(hydrateMethodCall, "call", ArgumentListExpression.EMPTY_ARGUMENTS);
 
-        closureArg.getCode().visit(new RestrictiveCodeVisitor(sourceUnit, formatMessage(BASE_MESSAGE)) {
+        closureArg.getCode().visit(new RestrictiveCodeVisitor(sourceUnit, formatErrorMessage(BASE_MESSAGE)) {
 
             @Override
             public void visitBlockStatement(BlockStatement block) {
@@ -77,7 +77,7 @@ public class PluginUseScriptBlockTransformer {
                 if (!call.isImplicitThis()) {
                     Expression target = call.getObjectExpression();
                     if (!(target instanceof MethodCallExpression)) {
-                        restrict(target, formatMessage(BASE_MESSAGE));
+                        restrict(target, formatErrorMessage(BASE_MESSAGE));
                         return;
                     }
 
@@ -96,7 +96,7 @@ public class PluginUseScriptBlockTransformer {
 
                             String argStringValue = argumentExpression.getValue().toString();
                             if (argStringValue.length() == 0) {
-                                restrict(argumentExpression, formatMessage(INVALID_ARGUMENT_LIST));
+                                restrict(argumentExpression, formatErrorMessage(INVALID_ARGUMENT_LIST));
                                 return;
                             }
 
@@ -107,28 +107,28 @@ public class PluginUseScriptBlockTransformer {
                                         call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
                                         call.setImplicitThis(false);
                                     } catch (InvalidPluginIdException e) {
-                                        restrict(argumentExpression, formatMessage(e.getReason()));
+                                        restrict(argumentExpression, formatErrorMessage(e.getReason()));
                                     }
                                 } else {
-                                    restrict(call, formatMessage(BASE_MESSAGE));
+                                    restrict(call, formatErrorMessage(BASE_MESSAGE));
                                 }
                             }
 
                             if (methodName.getText().equals("version")) {
                                 Expression objectExpression = call.getObjectExpression();
                                 if (!(objectExpression instanceof MethodCallExpression)) {
-                                    restrict(call, formatMessage(BASE_MESSAGE));
+                                    restrict(call, formatErrorMessage(BASE_MESSAGE));
                                 }
                             }
                         } else {
                             if (!call.isImplicitThis()) {
-                                restrict(methodName, formatMessage(VERSION_MESSAGE));
+                                restrict(methodName, formatErrorMessage(VERSION_MESSAGE));
                             } else {
-                                restrict(methodName, formatMessage(BASE_MESSAGE));
+                                restrict(methodName, formatErrorMessage(BASE_MESSAGE));
                             }
                         }
                     } else {
-                        restrict(methodName, formatMessage(NOT_LITERAL_ID_METHOD_NAME));
+                        restrict(methodName, formatErrorMessage(NOT_LITERAL_ID_METHOD_NAME));
                     }
                 } else {
                     restrict(call);
@@ -144,13 +144,13 @@ public class PluginUseScriptBlockTransformer {
                         if (isString(constantArgumentExpression)) {
                             return constantArgumentExpression;
                         } else {
-                            restrict(constantArgumentExpression, formatMessage(INVALID_ARGUMENT_LIST));
+                            restrict(constantArgumentExpression, formatErrorMessage(INVALID_ARGUMENT_LIST));
                         }
                     } else {
-                        restrict(argumentExpression, formatMessage(INVALID_ARGUMENT_LIST));
+                        restrict(argumentExpression, formatErrorMessage(INVALID_ARGUMENT_LIST));
                     }
                 } else {
-                    restrict(argumentList, formatMessage(INVALID_ARGUMENT_LIST));
+                    restrict(argumentList, formatErrorMessage(INVALID_ARGUMENT_LIST));
                 }
 
                 return null;
@@ -169,7 +169,7 @@ public class PluginUseScriptBlockTransformer {
         return new ExpressionStatement(closureCall);
     }
 
-    private String formatMessage(String message) {
-        return String.format("%s (See %s for information on plugins {} script block constraints)", message, documentationRegistry.getDocumentationFor("plugins", "sec:plugins_block"));
+    public String formatErrorMessage(String message) {
+        return String.format("%s%n%nSee %s for information on the plugins {} block%n%n", message, documentationRegistry.getDocumentationFor("plugins", "sec:plugins_block"));
     }
 }
