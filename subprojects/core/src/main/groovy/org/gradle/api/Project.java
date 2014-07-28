@@ -96,18 +96,10 @@ import java.util.Set;
  *
  * <h3>Plugins</h3>
  *
- * <p>Plugins are used to add additional tasks and configuration to a project.  Plugins can be applied to a
- * project either using the {@link #apply(java.util.Map)} method or using the plugins script block supplied by
- * {@link org.gradle.plugin.use.PluginDependenciesSpec}.</p><p>For example:</p>
- *
- * <pre>
- * plugins {
- *     id 'java'
- * }
- * </pre>
- *
- * <p>The plugins script block must appear before any other statements except for a
- * {@link #buildscript(groovy.lang.Closure)} block.</p>
+ * <p>
+ * Plugins can be used to modularise and reuse project configuration.
+ * Plugins can be applied using the {@link #apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
+ * </p>
  *
  * <a name="properties"/> <h3>Properties</h3>
  *

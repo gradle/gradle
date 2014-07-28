@@ -234,6 +234,9 @@
             <tr>
                 <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
             </tr>
+            <tr>
+                <td>org.gradle.plugin.use.PluginDependencySpec</td>
+            </tr>
         </table>
     </section>
 
