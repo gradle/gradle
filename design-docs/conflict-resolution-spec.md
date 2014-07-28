@@ -53,6 +53,9 @@ There are two things we need to be able to do when traversing the graph:
     - A:1.0, B:1.0, B:2.0, A:2.0, resolve conflict
     - A:1.0, A:2.0, resolve conflict, B:1.0, B:2.0
     - B:1.0, B:2.0, resolve conflict, A:1.0, A:2.0
+- corner cases
+    - A replaces B replaces C, all included in the graph, A is selected
+    - A replaces B, B replaces A - reasonable error is emitted
 
 ## Story: component replacement coexists with exclude rules
 
