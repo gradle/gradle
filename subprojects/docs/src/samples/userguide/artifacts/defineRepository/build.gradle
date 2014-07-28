@@ -46,9 +46,8 @@ repositories {
 
 //START SNIPPET maven-jcenter-http
 repositories {
-    jcenter(){
-        name = "jcenter over http"
-        url = "http://jcenter.bintray.com/"
+    jcenter {
+        url "http://jcenter.bintray.com/"
     }
 }
 //END SNIPPET maven-jcenter-http

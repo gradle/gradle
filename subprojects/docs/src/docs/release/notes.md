@@ -182,8 +182,7 @@ The `jcenter()` repository definition now uses HTTPS instead of HTTP. This shoul
 to use explicitly HTTP for connecting the Bintray's JCenter repository you can simply reconfigure the URL:
  
     repositories {
-        jcenter(){
-            name = "jcenter over http"
+        jcenter {
             url = "http://jcenter.bintray.com/"
         }
     }
