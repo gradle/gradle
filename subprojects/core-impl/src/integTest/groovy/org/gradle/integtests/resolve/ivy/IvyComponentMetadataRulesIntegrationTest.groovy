@@ -121,14 +121,8 @@ resolve.doLast { assert ruleInvoked }
 
         when:
         def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
-        module.ivy.expectMetadataRetrieve()
         module.ivy.expectDownload()
-        module.ivy.expectDownload()
-        module.ivy.sha1.expectGet()
-        module.artifact.expectMetadataRetrieve()
         module.artifact.expectDownload()
-        module.artifact.expectDownload()
-        module.artifact.sha1.expectGet()
 
         buildFile.text = baseScript +
                 """
@@ -152,11 +146,13 @@ resolve.doLast { assert ruleInvoked }
         when:
         repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValueChanged", bar: "barValueChanged").publishWithChangedContent()
 
+        and:
+        server.resetExpectations()
+
         then:
         succeeds 'resolve'
 
         when:
-        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValueChanged", bar: "barValueChanged").publishWithChangedContent()
         args("--refresh-dependencies")
         buildFile.text = baseScript +
 """
@@ -176,6 +172,15 @@ dependencies {
 
 resolve.doLast { assert ruleInvoked }
 """
+
+        and:
+        server.resetExpectations()
+        module.ivy.expectMetadataRetrieve()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectDownload()
+        module.artifact.expectMetadataRetrieve()
+        module.artifact.sha1.expectGet()
+        module.artifact.expectDownload()
 
         then:
         succeeds 'resolve'
