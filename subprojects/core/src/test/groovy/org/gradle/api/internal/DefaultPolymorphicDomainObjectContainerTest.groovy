@@ -16,6 +16,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
@@ -246,5 +247,16 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
         expect:
         container.findAll { it != fred } == [barney] as Set
+    }
+
+    def "cannot register factory for already registered type"() {
+        given:
+        container.registerFactory(Person, { new DefaultPerson(name: it) })
+        when:
+        container.registerFactory(Person, { new DefaultPerson(name: it) })
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Cannot register a factory for type Person because a factory for this type already registered."
     }
 }
