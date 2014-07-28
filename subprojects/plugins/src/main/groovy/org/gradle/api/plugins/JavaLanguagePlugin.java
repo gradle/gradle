@@ -17,23 +17,14 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.jvm.ClassDirectoryBinarySpec;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.jvm.internal.DefaultClasspath;
 
-import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
@@ -43,14 +34,6 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
-    private final Instantiator instantiator;
-    private final FileResolver fileResolver;
-
-    @Inject
-    public JavaLanguagePlugin(Instantiator instantiator, FileResolver fileResolver) {
-        this.instantiator = instantiator;
-        this.fileResolver = fileResolver;
-    }
 
     public void apply(final Project target) {
         target.getPlugins().apply(JvmLanguagePlugin.class);
@@ -66,20 +49,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                         configureCompileTask(compileTask, javaSourceSet, binary);
                         binary.getTasks().add(compileTask);
                         binary.builtBy(compileTask);
-                    }
-                });
-            }
-        });
-
-        ProjectSourceSet projectSourceSet = target.getExtensions().getByType(DefaultProjectSourceSet.class);
-        projectSourceSet.all(new Action<FunctionalSourceSet>() {
-            public void execute(final FunctionalSourceSet functionalSourceSet) {
-                functionalSourceSet.registerFactory(JavaSourceSet.class, new NamedDomainObjectFactory<JavaSourceSet>() {
-                    public JavaSourceSet create(String name) {
-                        return instantiator.newInstance(DefaultJavaSourceSet.class, name,
-                                instantiator.newInstance(DefaultSourceDirectorySet.class, name, fileResolver),
-                                instantiator.newInstance(DefaultClasspath.class, fileResolver,
-                                        target.getTasks()), functionalSourceSet);
                     }
                 });
             }
