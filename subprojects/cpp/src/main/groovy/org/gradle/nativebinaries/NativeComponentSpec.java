@@ -24,9 +24,8 @@ import org.gradle.runtime.base.ComponentSpec;
  */
 @Incubating
 public interface NativeComponentSpec extends ComponentSpec {
-
     /**
-     * The binaries that are built for this component. You can use this to configure the binaries for this component.
+     * {@inheritDoc}
      */
     DomainObjectSet<NativeBinarySpec> getBinaries();
 

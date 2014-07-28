@@ -25,7 +25,7 @@ import org.gradle.runtime.base.test.TestSuiteSpec;
 @Incubating
 public interface NativeTestSuiteSpec extends TestSuiteSpec, NativeComponentSpec {
     /**
-     * The tested component.
+     * {@inheritDoc}
      */
     NativeComponentSpec getTestedComponent();
 }

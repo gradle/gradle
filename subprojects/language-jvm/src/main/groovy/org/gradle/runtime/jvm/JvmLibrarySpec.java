@@ -26,7 +26,7 @@ import org.gradle.runtime.base.LibrarySpec;
 @Incubating
 public interface JvmLibrarySpec extends LibrarySpec {
     /**
-     * The binaries that are built for this component. You can use this to configure the binaries for this component.
+     * {@inheritDoc}
      */
     DomainObjectSet<JvmLibraryBinarySpec> getBinaries();
 }
