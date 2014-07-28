@@ -64,7 +64,11 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 3
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString("all buildscript {} blocks must appear before any plugins {} blocks"))
-        failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
+        includesLinkToUserguide()
+    }
+
+    void includesLinkToUserguide() {
+        assert failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
     }
 
     def "build logic cannot precede plugins block"() {
@@ -81,7 +85,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 3
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
-        failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
+        includesLinkToUserguide()
     }
 
     def "build logic cannot precede any plugins block"() {
@@ -99,7 +103,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 4
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
-        failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
+        includesLinkToUserguide()
     }
 
     def "settings scripts cannot plugin blocks"() {
@@ -112,6 +116,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Settings file '$settingsFile.absolutePath'")
         failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        includesLinkToUserguide()
     }
 
     def "init scripts cannot have plugin blocks"() {
@@ -127,6 +132,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Initialization script '$initScript.absolutePath'")
         failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        includesLinkToUserguide()
     }
 
     def "script plugins cannot have plugin blocks"() {
@@ -142,6 +148,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
         failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        includesLinkToUserguide()
     }
 
     def "script plugins applied to arbitrary objects cannot have plugin blocks"() {
@@ -157,6 +164,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
         failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        includesLinkToUserguide()
     }
 
     @Unroll
@@ -169,7 +177,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber lineNumber
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(msg))
-        failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
+        includesLinkToUserguide()
 
         where:
         lineNumber | code                                   | msg
