@@ -178,6 +178,19 @@ class ComponentModelPluginApplicationActionTest extends Specification {
         }
     }
 
+    class InvalidTest7Plugin implements Plugin<Project> {
+        @Override
+        void apply(Project target) {
+            target.plugins.apply(ValidTestPlugin)
+        }
+
+        @ComponentModel(type = SomeLibrarySpec, implementation = SomeLibrarySpecImpl)
+        static class SomeStaticSubClass {
+        }
+    }
+
+
+
     class SettingsTestPlugin implements Plugin<Settings> {
         @Override
         void apply(Settings target) {}

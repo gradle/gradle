@@ -305,17 +305,17 @@ A custom library implementation:
 #### Test cases
 
 - ~~Can register a component model with @Library without any rules for creating components (does not create components)~~
-- Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` with a plugin that:
-    - Already has the `ComponentModelBasePlugin` applied
-    - Has a single nested class with both `@ComponentModel` and `@RuleSource` annotations
-    - Has separate nested classes with `@ComponentModel` and `@RuleSource` annotations
+- ~~Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` with a plugin that:~~
+    - ~~Already has the `ComponentModelBasePlugin` applied~~
+    - ~~Has a single nested class with both `@ComponentModel` and `@RuleSource` annotations~~
+    - ~~Has separate nested classes with `@ComponentModel` and `@RuleSource` annotations~~
 - ~~Rule for adding library instances can be in a separate plugin to the plugin declaring the component model~~
 - ~~Can define and create multiple component types in the same plugin with multiple `@ComponentModel` annotations~~
 - ~~Friendly error message when supplied library implementation:~~
-    - Does not have a public no-arg constructor
-    - Does not implement library type
-    - Does not extend `DefaultLibrarySpec`
-- Friendly error message when attempting to register the same library type with different implementations
+    - ~~Does not have a public no-arg constructor~~
+    - ~~Does not implement library type~~
+    - ~~Does not extend `DefaultLibrarySpec`~~
+- ~~Friendly error message when attempting to register the same library type with different implementations~~
 - ~~Custom libraries show up in components report~~
 
 #### Open issues

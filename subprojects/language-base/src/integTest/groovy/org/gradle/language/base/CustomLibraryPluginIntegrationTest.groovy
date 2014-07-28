@@ -154,13 +154,15 @@ BUILD SUCCESSFUL"""))
             }
 
             @RuleSource
-            @ComponentModel(type = AnotherSampleLibrary.class, implementation = DefaultAnotherSampleLibrary.class)
             static class Rules2 {
                 @Mutate
                 void createSampleLibraryComponents(NamedItemCollectionBuilder<AnotherSampleLibrary> componentSpecs) {
                     componentSpecs.create("anotherSampleLib")
                 }
             }
+
+            @ComponentModel(type = AnotherSampleLibrary.class, implementation = DefaultAnotherSampleLibrary.class)
+            static class ComponentModelDeclaration {}
         }
 
         apply plugin:MySamplePlugin
@@ -183,6 +185,33 @@ BUILD SUCCESSFUL"""))
         succeeds "checkModel"
     }
 
+    def "Cannot register same library type multiple times"(){
+        given:
+        buildWithCustomComponentPlugin()
+        and:
+        buildFile << """
+        class MyOtherPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
+            static class Rules1 {
+                @Mutate
+                void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
+                    componentSpecs.create("sampleLib")
+                }
+            }
+        }
+
+        apply plugin:MyOtherPlugin
+"""
+        when:
+        fails "tasks"
+        then:
+        errorOutput.contains(TextUtil.toPlatformLineSeparators("""> Failed to apply plugin [class 'MyOtherPlugin']
+   > Cannot register a factory for type SampleLibrary because a factory for this type already registered."""))
+    }
+
     def buildWithCustomComponentPlugin() {
         buildFile << """
         class MySamplePlugin implements Plugin<Project> {
@@ -200,9 +229,5 @@ BUILD SUCCESSFUL"""))
 
         apply plugin:MySamplePlugin
         """
-    }
-
-    def buildWithCustomComponentPluginButNoRule() {
-
     }
 }
