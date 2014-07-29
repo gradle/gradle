@@ -85,12 +85,12 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         CancellationTokenSource tokenSource = new CancellationTokenSource()
         CountDownLatch latch = new CountDownLatch(1)
 
-        server.expect("/custom-dist.zip", false, ['GET'], new SendDataAndCancelAction("/custom-dist.zip", distribution.binDistribution, tokenSource, latch))
+        server.expect("/cancelled-dist.zip", false, ['GET'], new SendDataAndCancelAction("/cancelled-dist.zip", distribution.binDistribution, tokenSource, latch))
         server.expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion()))
 
         and:
         toolingApi.withConnector { GradleConnector connector ->
-            connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+            connector.useDistribution(URI.create("http://localhost:${server.port}/cancelled-dist.zip"))
             connector.useGradleUserHomeDir(userHomeDir)
         }
 
