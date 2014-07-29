@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins
 import org.gradle.api.Project
+import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec
+import org.gradle.api.jvm.ClassDirectoryBinarySpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -27,6 +29,26 @@ class JavaLanguagePluginTest extends Specification {
 
     def "applies jvm-lang plugin"() {
         expect:
-        project.plugins.hasPlugin(JvmLanguagePlugin)
+        project.plugins.hasPlugin(JavaLanguagePlugin)
+    }
+
+    def "registers the ClassDirectoryBinary type with the binaries container"() {
+        def binaries = project.extensions.findByName("binaries")
+        def binary = binaries.create("test", ClassDirectoryBinarySpec)
+
+        expect:
+        binary != null
+        binary instanceof DefaultClassDirectoryBinarySpec
+    }
+
+    def "adds a 'classes' task for every ClassDirectoryBinary added to the container"() {
+        when:
+        def binary = project.binaries.create("prod", ClassDirectoryBinarySpec)
+
+        then:
+        binary.classesDir == new File("$project.buildDir/classes/prod")
+        def task = project.tasks.findByName("prodClasses")
+        task != null
+        task.description == "Assembles classes 'prod'."
     }
 }

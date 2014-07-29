@@ -18,25 +18,92 @@ package org.gradle.api.plugins;
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
+import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.jvm.ClassDirectoryBinarySpec;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
+import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.jvm.toolchain.JavaToolChain;
 
+import javax.inject.Inject;
+import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
- * Plugin for compiling Java code. Applies the {@link JvmLanguagePlugin}.
+ * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
+ *
+ * Base plugin for Java language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
+ * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
+ * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
  * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
  * Registers the {@link JavaSourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  */
 @Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
 
+    private final Instantiator instantiator;
+    private final JavaToolChain toolChain;
+
+    @Inject
+    public JavaLanguagePlugin(Instantiator instantiator, JavaToolChain toolChain) {
+        this.instantiator = instantiator;
+        this.toolChain = toolChain;
+    }
     public void apply(final Project target) {
-        target.getPlugins().apply(JvmLanguagePlugin.class);
+
+        target.getPlugins().apply(LanguageBasePlugin.class);
+
+        BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
+        binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
+            public ClassDirectoryBinarySpec create(String name) {
+                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain);
+            }
+        });
+
+        binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
+            public void execute(ClassDirectoryBinarySpecInternal binary) {
+                Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
+                binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
+                binary.setBuildTask(binaryLifecycleTask);
+            }
+        });
+
+        binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
+            public void execute(final ClassDirectoryBinarySpecInternal binary) {
+                final BinaryNamingScheme namingScheme = binary.getNamingScheme();
+                ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
+                conventionMapping.map("classesDir", new Callable<File>() {
+                    public File call() throws Exception {
+                        return new File(new File(target.getBuildDir(), "classes"), namingScheme.getOutputDirectoryBase());
+                    }
+                });
+                binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
+                    public void execute(ResourceSet resourceSet) {
+                        // TODO: handle case where binary has multiple ResourceSet's
+                        Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
+                        resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
+                        new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
+                            public File call() throws Exception {
+                                return binary.getResourcesDir();
+                            }
+                        });
+                        binary.getTasks().add(resourcesTask);
+                        binary.builtBy(resourcesTask);
+                        resourcesTask.from(resourceSet.getSource());
+                    }
+                });
+            }
+        });
 
         BinaryContainer jvmBinaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         jvmBinaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
