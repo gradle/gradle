@@ -70,7 +70,7 @@ public class FileSystemServices {
             }
         }
         if (handlerClass == null) {
-            LOGGER.warn("Unable to load {}. Continuing with fallback {}.", jdk7Type, fallbackType.getName());
+            LOGGER.debug("Unable to load {}. Continuing with fallback {}.", jdk7Type, fallbackType.getName());
             handlerClass = fallbackType;
         }
         try {
