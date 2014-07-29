@@ -627,7 +627,7 @@ Note: the class loading/visibility required by this story does not reflect the f
 - ~~Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods~~
 - ~~Other classes from plugin implementation jar are visible to build script~~
 - ~~Classes from plugin implementation dependencies are visible to build script~~
-- Plugin dependencies influence conflict resolution in `buildscript.configurations.classpath`
+- ~~Plugin dependencies influence conflict resolution in `buildscript.configurations.classpath`~~
     - Add a `buildscript {}` dependency on java library A @ version 1.0
     - Add a `plugins {}` dependency on a non-declarative plugin that depends on A @ version 2.0
     - Assert that _only_ version 2.0 was resolved
