@@ -152,7 +152,7 @@
     <section>
         <title>Tasks</title>
         <para>
-            For each <apilink class="org.gradle.nativebinaries.NativeBinary"/> that can be produced by a build,
+            For each <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> that can be produced by a build,
             a single <firstterm>lifecycle task</firstterm> is constructed that can be used to create that binary, together with a set of other tasks that do the actual
             work of compiling, linking or assembling the binary.
         </para>
@@ -161,13 +161,13 @@
                 <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
             </thread>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.NativeExecutableBinarySpec"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/></td><td><apilink class="org.gradle.nativebinaries.NativeExecutableBinarySpec"/></td><td><literal><replaceable>${component.name}</replaceable>Executable</literal></td><td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>Executable/<replaceable>${component.name}</replaceable></filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/></td><td><literal><replaceable>${component.name}</replaceable>SharedLibrary</literal></td><td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>SharedLibrary/lib<replaceable>${component.name}</replaceable>.so</filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/></td><td><literal><replaceable>${component.name}</replaceable>StaticLibrary</literal></td><td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>StaticLibrary/<replaceable>${component.name}</replaceable>.a</filename></td>
             </tr>
         </table>
 
@@ -524,12 +524,12 @@
             <title>Building all possible variants</title>
             <para>
                 When a set of build types, target platforms, and flavors is defined for a component,
-                a <apilink class="org.gradle.nativebinaries.NativeBinary"/> model element is created for every possible
+                a <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> model element is created for every possible
                 combination of these. However, in many cases it is not possible to build a particular variant, perhaps because
                 no tool chain is available to build for a particular platform.
             </para>
             <para>
-                If a binary variant cannot be built for any reason, then the <apilink class="org.gradle.nativebinaries.NativeBinary"/>
+                If a binary variant cannot be built for any reason, then the <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/>
                 associated with that variant will not be <literal>buildable</literal>. It is possible to use this property to create a task
                 to generate all possible variants on a particular machine.
             </para>
@@ -656,7 +656,7 @@
         <title>CUnit support</title>
         <para>
             The Gradle <literal>cunit</literal> plugin provides support for compiling and executing CUnit tests in your native-binary project.
-            For each <apilink class="org.gradle.nativebinaries.NativeExecutable"/> and <apilink class="org.gradle.nativebinaries.NativeLibrary"/>
+            For each <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/> and <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/>
             defined in your project, Gradle will create a matching <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec"/> component,
             named <literal>${component.name}Test</literal>.
         </para>
@@ -684,7 +684,7 @@
             <title>Building CUnit executables</title>
             <para>
                 A <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec"/> component has an associated
-                <apilink class="org.gradle.nativebinaries.NativeExecutable"/> or <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component.
+                <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/> or <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/> component.
                 For each <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> configured for the main component, a matching
                 <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
