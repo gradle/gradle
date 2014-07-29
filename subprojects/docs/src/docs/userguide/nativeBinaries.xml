@@ -91,33 +91,61 @@
     <section>
         <title>Component model</title>
         <para>
-            A native binary project defines a set of <apilink class="org.gradle.nativebinaries.NativeExecutable"/> and <apilink class="org.gradle.nativebinaries.NativeLibrary"/> components,
-            each of which Gradle maps to a number of <apilink class="org.gradle.nativebinaries.NativeBinary"/> outputs.
-            For each <literal>executable</literal> or <literal>library</literal> defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
-            Each of these functional source sets will contain a language-specific source set for each of the languages supported by the project.
+            To build native binaries using Gradle, your project should define one or more <firstterm>native components</firstterm>. Each component represents either an
+            executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.
         </para>
         <para>
-            To build either a static or shared native library binary,
-            a <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component is added to the <literal>libraries</literal> container.
-            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/>
-            and at least one <apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/>.
+            For each component, Gradle defines a <firstterm>source set</firstterm> for each language that the component can be built from. A source set is essentially
+            just a set of source directories containing source files. For example, when you apply the <literal>c</literal> plugin and define a library called
+            <literal>helloworld</literal>, Gradle will define, by default, a source set containing the C source files in the <literal>src/helloworld/c</literal> directory.
+            It will use these source files to build the <literal>helloworld</literal> library.
+            This is described in more detail below.
+        </para>
+        <para>
+            For each component, Gradle defines one or more <firstterm>binaries</firstterm> as output. To build a binary, Gradle will take the source files defined for
+            the component, compile them as appropriate for the source language, and link the result into a binary file. For an executable component, Gradle can
+            produce executable binary files. For a library component, Gradle can produce both static and shared library binary files. For example, when you define
+            a library called <literal>helloworld</literal> and build on Linux, Gradle will, by default, produce <filename>libhelloworld.so</filename> and
+            <filename>libhelloworld.a</filename> binaries.
+        </para>
+        <para>
+            In many cases, more than one binary can be produced for a component.
+            These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
+            provided, or additional source files provided. Each native binary produced for a component is referred to as <firstterm>variant</firstterm>.
+            Binary variants are discussed in detail below.
+        </para>
+    </section>
+    <section>
+        <title>Building a library</title>
+        <para>
+            To build either a static or shared native library, you define a library component in the <literal>libraries</literal> container. The following sample
+            defines a library called <literal>hello</literal>:
         </para>
         <sample id="cppLibraries" dir="native-binaries/c" title="Defining a library component">
             <sourcefile file="build.gradle" snippet="libraries"/>
         </sample>
         <para>
-            To build an executable binary,
-            an <apilink class="org.gradle.nativebinaries.NativeExecutable"/> component is added to the <literal>executables</literal> container
-            and associated with a set of sources.
+            A library component is represented using <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/>.
+            Each library component can produce at least one shared library binary (<apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/>)
+            and at least one static library binary (<apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/>).
+        </para>
+    </section>
+    <section>
+        <title>Building an executable</title>
+        <para>
+            To build a native executable, you define an executable component in the <literal>executables</literal> container. The following sample defines
+            an executable called <literal>main</literal>:
         </para>
         <sample id="cppExecutables" dir="native-binaries/c" title="Defining executable components">
             <sourcefile file="build.gradle" snippet="executables"/>
         </sample>
         <para>
-            In many cases, more than one native binary can be produced for a component.
-            These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
-            provided, or additional source files provided. Each native binary produced for a component is referred to as <literal>variant</literal>.
-            Binary variants are discussed in detail below.
+            An executable component is represented using <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/>. Each executable component can
+            produce at least one executable binary (<apilink class="org.gradle.nativebinaries.NativeExecutableBinarySpec"/>).
+        </para>
+        <para>
+            For each component defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
+            Each of these functional source sets will contain a language-specific source set for each of the languages supported by the project.
         </para>
     </section>
 
