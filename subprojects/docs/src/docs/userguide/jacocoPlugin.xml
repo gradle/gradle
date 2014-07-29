@@ -60,7 +60,7 @@
             </thead>
             <tr>
                 <td>reportsDir</td>
-                <td>"<replaceable>$buildDir</replaceable>/reports/jacoco"
+                <td>“<replaceable>$buildDir</replaceable>/reports/jacoco”
                 </td>
             </tr>
         </table>

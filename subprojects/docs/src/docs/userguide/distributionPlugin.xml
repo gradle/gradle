@@ -24,27 +24,27 @@
 
     <para>
         The distribution plugin facilitates building archives that serve as distributions of the project.
-        Distribution archives typically contain then executable application and other supporting files, such as documentation.
+        Distribution archives typically contain the executable application and other supporting files, such as documentation.
 	</para>
 
     <section>
         <title>Usage</title>
-        <para>To use the distribution plugin, include in your build script:</para>
+        <para>To use the distribution plugin, include the following in your build script:</para>
         <sample id="useDistributionPlugin" dir="userguide/distribution" title="Using the distribution plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>
-            The plugin adds an extension named "<literal>distributions</literal>" of type <apilink class="org.gradle.api.distribution.DistributionContainer" /> to the project.
-            It also creates a single distribution in the distributions container extension named "<literal>main</literal>".
+            The plugin adds an extension named “<literal>distributions</literal>” of type <apilink class="org.gradle.api.distribution.DistributionContainer" /> to the project.
+            It also creates a single distribution in the distributions container extension named “<literal>main</literal>”.
             If your build only produces one distribution you only need to configure this distribution (or use the defaults).
         </para>
         <para>
-            You can run "<userinput>gradle distZip</userinput>" to package the main distribution as a ZIP, or "<userinput>gradle distTar</userinput>" to create
-            a GZip compressed TAR file.
-            The files will be created at "<literal><replaceable>$buildDir</replaceable>/distributions/<replaceable>$project.name</replaceable>-<replaceable>$project.version</replaceable>.<replaceable>«ext»</replaceable></literal>".
+            You can run “<userinput>gradle distZip</userinput>” to package the main distribution as a ZIP, or “<userinput>gradle distTar</userinput>” to create
+            a TAR file.
+            The files will be created at “<literal><replaceable>$buildDir</replaceable>/distributions/<replaceable>$project.name</replaceable>-<replaceable>$project.version</replaceable>.<replaceable>«ext»</replaceable></literal>”.
         </para>
         <para>
-            You can run "<userinput>gradle installDist</userinput>" to assembles the distribution content, uncompressed, into "<literal><replaceable>$buildDir</replaceable>/install/<replaceable>main</replaceable></literal>".
+            You can run “<userinput>gradle installDist</userinput>” to assemble the uncompressed distribution into “<literal><replaceable>$buildDir</replaceable>/install/<replaceable>main</replaceable></literal>”.
         </para>
     </section>
 
@@ -86,7 +86,7 @@
                     <apilink class="org.gradle.api.tasks.bundling.Tar"/>
                 </td>
                 <td>
-                    Creates a ZIP archive of the distribution contents
+                    Creates a TAR archive of the distribution contents
                 </td>
             </tr>
             <tr>
@@ -170,28 +170,28 @@
             </itemizedlist>
         </para>
         <para>
-            Given that the project name is "<literal>myproject</literal>" and version "<literal>1.2</literal>", running "<userinput>gradle customDistZip</userinput>" will produce a
-            ZIP file named "<literal>myproject-custom-1.2.zip</literal>".
+            Given that the project name is “<literal>myproject</literal>” and version “<literal>1.2</literal>”, running “<userinput>gradle customDistZip</userinput>” will produce a
+            ZIP file named “<literal>myproject-custom-1.2.zip</literal>”.
         </para>
         <para>
-            Running "<userinput>gradle installCustomDist</userinput>" will install the distribution contents into "<literal><replaceable>$buildDir</replaceable>/install/custom</literal>".
+            Running “<userinput>gradle installCustomDist</userinput>” will install the distribution contents into “<literal><replaceable>$buildDir</replaceable>/install/custom</literal>”.
         </para>
     </section>
     <section>
       <title>Distribution contents</title>
         <para>
-            All of the files in the "<literal>src/<replaceable>$distribution.name</replaceable>/dist</literal>" directory will automatically be included in the distribution.
+            All of the files in the “<literal>src/<replaceable>$distribution.name</replaceable>/dist</literal>” directory will automatically be included in the distribution.
             You can add additional files by configuring the <apilink class="org.gradle.api.distribution.Distribution" /> object that is part of the container.
         </para>
         <sample id="configureDistribution" dir="userguide/distribution" title="Configuring the main distribution">
             <sourcefile file="build.gradle" snippet="configure-distribution"/>
         </sample>
         <para>
-            In the example above, the content of the "<literal>src/readme</literal>" directory will be included in the distribution
-            (along with the files in the "<literal>src/dist/main</literal>" directory which are added by default).
+            In the example above, the content of the “<literal>src/readme</literal>” directory will be included in the distribution
+            (along with the files in the “<literal>src/dist/main</literal>” directory which are added by default).
         </para>
         <para>
-            The "<literal>baseName</literal>" property has also been changed. This will cause the distribution archives to be created with a different name.
+            The “<literal>baseName</literal>” property has also been changed. This will cause the distribution archives to be created with a different name.
         </para>
     </section>
 </chapter>

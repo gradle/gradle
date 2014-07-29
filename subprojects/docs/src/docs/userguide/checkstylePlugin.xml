@@ -6,7 +6,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the Checkstyle plugin, include in your build script:</para>
+        <para>To use the Checkstyle plugin, include the following in your build script:</para>
         <sample id="useCheckstylePlugin" dir="codeQuality" title="Using the Checkstyle plugin">
             <sourcefile file="build.gradle" snippet="use-checkstyle-plugin"/>
         </sample>
@@ -20,7 +20,9 @@
             <thead>
                 <tr>
                     <td>Task name</td>
+                    <td>&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Depends on</td>
+                    <td>&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Type</td>
                     <td>Description</td>
                 </tr>
@@ -29,7 +31,9 @@
                 <td>
                     <literal>checkstyleMain</literal>
                 </td>
+                <td></td>
                 <td><literal>classes</literal></td>
+                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
                 <td>Runs Checkstyle against the production Java source files.</td>
             </tr>
@@ -37,7 +41,9 @@
                 <td>
                     <literal>checkstyleTest</literal>
                 </td>
+                <td></td>
                 <td><literal>testClasses</literal></td>
+                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
                 <td>Runs Checkstyle against the test Java source files.</td>
             </tr>
@@ -45,7 +51,9 @@
                 <td>
                     <literal>checkstyle<replaceable>SourceSet</replaceable></literal>
                 </td>
+                <td></td>
                 <td><literal><replaceable>sourceSet</replaceable>Classes</literal></td>
+                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
                 <td>Runs Checkstyle against the given source set's Java source files.</td>
             </tr>
@@ -107,7 +115,7 @@
 
     <section>
         <title>Configuration</title>
-        <para>See <apilink class="org.gradle.api.plugins.quality.CheckstyleExtension"/>.</para>
+        <para>See the <apilink class="org.gradle.api.plugins.quality.CheckstyleExtension"/> class in the API documentation.</para>
     </section>
 
 </chapter>

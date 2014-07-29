@@ -73,7 +73,11 @@
         </sample>
 
         <para>
-            One thing to note is that a new instance of a given plugin is created for each project it is applied to.
+            One thing to note is that a new instance of a given plugin is created for each project it is applied to. Also
+            note that the <apilink class="org.gradle.api.Plugin"/> class is a generic type. This example has it receiving the
+            <apilink class="org.gradle.api.Plugin"/> type as a type parameter. It's possible to write unusual custom
+            plugins that take different type parameters, but this will be unlikely (until someone figures out more
+            creative things to do here). 
         </para>
     </section>
 
@@ -149,7 +153,7 @@
         </sample>
 
         <para>
-            So how does Gradle find the <apilink class="org.gradle.api.Plugin"/> implementation? The answer is you need to provide a properties file in the jar's
+                So how does Gradle find the <apilink class="org.gradle.api.Plugin"/> implementation? The answer is you need to provide a properties file in the jar's
             <filename>META-INF/gradle-plugins</filename> directory that matches the id of your plugin.
         </para>
 
@@ -158,9 +162,8 @@
         </sample>	
 
         <para>
-            Now, when another build uses this plugin, it will refer to it by its id: <literal>org.samples.greeting</literal>.  Notice that
-            the properties filename matches the plugin id and is placed in the resources folder, and that the <literal>implementation-class</literal>
-            property identifies the <apilink class="org.gradle.api.Plugin"/> implementation class.
+            Notice that the properties filename matches the plugin id and is placed in the resources folder, and
+            that the <literal>implementation-class</literal> property identifies the <apilink class="org.gradle.api.Plugin"/> implementation class.
         </para>
 
         <section>
@@ -171,7 +174,7 @@
             </para>
             <para>
                 Your plugin id should be a combination of components that reflect namespace (a reasonable pointer to you or your organization)
-                and the name of the plugin it provides.  For example if you have a GitHub account named "foo" and your plugin named "bar",
+                and the name of the plugin it provides.  For example if you had a Github account named “foo” and your plugin was named “bar”,
                 a suitable plugin id might be <literal>com.github.foo.bar</literal>.  Similarly, if the plugin was developed at the baz organization,
                 the plugin id might be <literal>org.baz.bar</literal>.
             </para>
@@ -189,7 +192,7 @@
             </itemizedlist>
             <para>
                 Although there are conventional similarities between plugin ids and package names, package names are generally more detailed than is
-                necessary for a plugin id.  For instance, it might seem reasonable to add "gradle" as a component of your plugin id, but since plugin
+                necessary for a plugin id.  For instance, it might seem reasonable to add “gradle” as a component of your plugin id, but since plugin
                 ids are only used for Gradle plugins, this would be superfluous.  Generally, a namespace that identifies ownership and a name are all
                 that are needed for a good plugin id.
             </para>
@@ -213,7 +216,7 @@
         <section>
             <title>Using your plugin in another project</title>
             <para>To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To
-                do this, you use a <literal>buildscript { }</literal> block, as described in <xref linkend="sec:external_dependencies"/>.
+                do this, you use a “<literal>buildscript { }</literal>” block, as described in <xref linkend="sec:external_dependencies"/>.
                 The following example shows how you might do this when the JAR containing the plugin has been published
                 to a local repository:
             </para>
@@ -244,7 +247,7 @@
         <section>
             <title>Using the Java Gradle Plugin development plugin</title>
             <para>You can use the incubating <link linkend="javaGradle_plugin">Java Gradle Plugin development plugin</link>
-                to eliminate some of the boiler-plate declarations in your build script and provide some basic validations
+                to eliminate some of the boilerplate declarations in your build script and provide some basic validations
                 of plugin metadata.  This plugin will automatically apply the <link linkend="java_plugin">Java plugin</link>,
                 add the <literal>gradleApi()</literal> dependency to the compile configuration, and perform plugin metadata
                 validations as part of the <literal>jar</literal> task execution.
@@ -258,7 +261,7 @@
     <section>
         <title>Maintaining multiple domain objects</title>
 
-        <para>Gradle provides some utility classes for maintaining collections of object, which work well with the Gradle build language.</para>
+        <para>Gradle provides some utility classes for maintaining collections of objects, which work well with the Gradle build language.</para>
 
         <sample id="domainObjectContainer" dir="userguide/organizeBuildLogic/customPluginWithDomainObjectContainer" title="Managing domain objects">
             <sourcefile file="build.gradle"/>

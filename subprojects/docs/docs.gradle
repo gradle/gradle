@@ -121,9 +121,9 @@ tasks.withType(UserGuideTransformTask) {
 
     if (name in ["pdfUserguideDocbook", "userguideFragmentSrc"]) {
         // These will only be valid for releases, but that's ok
-        javadocUrl = "http://www.gradle.org/doc/${->version}/javadoc"
-        groovydocUrl = "http://www.gradle.org/doc/${->version}/groovydoc"
-        dsldocUrl = "http://www.gradle.org/doc/${->version}/dsl"
+        javadocUrl = "http://www.gradle.org/docs/${->version}/javadoc"
+        groovydocUrl = "http://www.gradle.org/docs/${->version}/groovydoc"
+        dsldocUrl = "http://www.gradle.org/docs/${->version}/dsl"
     } else {
         javadocUrl = '../javadoc'
         groovydocUrl = '../groovydoc'

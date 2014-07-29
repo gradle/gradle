@@ -6,7 +6,8 @@ initscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'org.apache.commons', name: 'commons-math', version: '2.0'
+        classpath group: 'org.apache.commons', name: 'commons-math',
+		version: '2.0'
     }
 }
 // END SNIPPET declare-classpath

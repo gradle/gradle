@@ -16,7 +16,7 @@
 <chapter id='logging'>
     <title>Logging</title>
     <para>The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden
-        by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle
+        by this. On the other hand you need relevant information for figuring out if things have gone wrong. Gradle
         defines 6 log levels, as shown in <xref linkend="logLevels"/>. There are two Gradle-specific log levels, in
         addition to the ones you might normally see. Those levels are <emphasis>QUIET</emphasis> and
         <emphasis>LIFECYCLE</emphasis>. The latter is the default, and is used to report build progress.

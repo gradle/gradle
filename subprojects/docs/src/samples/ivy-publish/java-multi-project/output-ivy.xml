@@ -2,7 +2,10 @@
 <!-- START SNIPPET content -->
 <?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0">
-  <info organisation="org.gradle.sample" module="project1" revision="1.0" status="integration" publication="«PUBLICATION-TIME-STAMP»">
+  <info organisation="org.gradle.sample"
+  		module="project1" revision="1.0"
+  		status="integration"
+  		publication="«PUBLICATION-TIME-STAMP»">
     <description>The first project</description>
   </info>
   <configurations>
@@ -11,11 +14,13 @@
   </configurations>
   <publications>
     <artifact name="project1" type="jar" ext="jar" conf="runtime"/>
-    <artifact name="project1" type="source" ext="jar" conf="runtime" m:classifier="source" xmlns:m="http://ant.apache.org/ivy/maven"/>
+    <artifact name="project1" type="source" ext="jar" conf="runtime"
+    		  m:classifier="source" xmlns:m="http://ant.apache.org/ivy/maven"/>
   </publications>
   <dependencies>
     <dependency org="junit" name="junit" rev="4.11" conf="runtime-&gt;default"/>
-    <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="runtime-&gt;default"/>
+    <dependency org="org.gradle.sample" name="project2" rev="1.0"
+    			conf="runtime-&gt;default"/>
   </dependencies>
 </ivy-module>
 <!-- END SNIPPET content -->

@@ -18,14 +18,16 @@ compile {
 
 // Use a FileCollection (or FileTree in this case) to specify the source files
 compile {
-    source = fileTree(dir: 'src/main/java').matching { include 'org/gradle/api/**' }
+    source = fileTree(dir: 'src/main/java')
+		.matching { include 'org/gradle/api/**' }
 }
 
 // Using a closure to specify the source files.
 compile {
     source = {
         // Use the contents of each zip file in the src dir
-        file('src').listFiles().findAll {it.name.endsWith('.zip')}.collect { zipTree(it) }
+        file('src').listFiles().findAll {it.name.endsWith('.zip')}
+			.collect { zipTree(it) }
     }
 }
 // END SNIPPET set-input-files

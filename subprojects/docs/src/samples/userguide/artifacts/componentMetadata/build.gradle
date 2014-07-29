@@ -25,7 +25,7 @@ task listFish << {
 
 // START SNIPPET custom-status-scheme
 dependencies {
-    config3 "air.birds:albatros:latest.silver"
+    config3 "air.birds:albatross:latest.silver"
     components {
         eachComponent { ComponentMetadataDetails details ->
             if (details.id.group == "air.birds") {

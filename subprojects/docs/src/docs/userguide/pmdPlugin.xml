@@ -6,7 +6,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the PMD plugin, include in your build script:</para>
+        <para>To use the PMD plugin, include the following in your build script:</para>
         <sample id="usePmdPlugin" dir="codeQuality" title="Using the PMD plugin">
             <sourcefile file="build.gradle" snippet="use-pmd-plugin"/>
         </sample>
@@ -88,7 +88,7 @@
 
     <section>
         <title>Configuration</title>
-        <para>See <apilink class="org.gradle.api.plugins.quality.PmdExtension"/>.</para>
+        <para>See the <apilink class="org.gradle.api.plugins.quality.PmdExtension"/> class in the API documentation.</para>
     </section>
 
 </chapter>

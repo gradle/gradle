@@ -24,7 +24,7 @@
             the command <userinput>gradle compile test</userinput> will execute the <literal>compile</literal> and
             <literal>test</literal> tasks. Gradle will execute the tasks in the order that they are listed on the
             command-line, and will also execute the dependencies for each task. Each task is executed once only,
-            regardless of how it came to be included in the build: whether it was specified on the command-line, or it a
+            regardless of how it came to be included in the build: whether it was specified on the command-line, or as a
             dependency of another task, or both. Let's look at an example.</para>
         <para>
             Below four tasks are defined. Both <literal>dist</literal> and <literal>test</literal> depend on the
@@ -41,8 +41,8 @@
             <output args="dist test"/>
         </sample>
         <para>
-            Because each task is executed once only, executing <userinput>gradle test test</userinput> is exactly the same
-            as executing <userinput>gradle test</userinput>.</para>
+            Each task is executed only once, so <userinput>gradle test test</userinput> is exactly the same
+            as <userinput>gradle test</userinput>.</para>
     </section>
 
     <section id="sec:excluding_tasks_from_the_command_line">
@@ -196,7 +196,7 @@
             <para>
                 This task is extremely useful for investigating the dependency resolution,
                 finding out where certain dependencies are coming from and why certain versions are selected.
-                For more information please see <apilink class="org.gradle.api.tasks.diagnostics.DependencyInsightReportTask"/>.
+                For more information please see the <apilink class="org.gradle.api.tasks.diagnostics.DependencyInsightReportTask"/> class in the API documentation.
             </para>
             <para>
                 The built-in dependencyInsight task is a part of the 'Help' tasks group.
@@ -205,7 +205,7 @@
                 If java related plugin is applied, the dependencyInsight task is pre-configured with 'compile' configuration because typically it's the compile dependencies we are interested in.
                 You should specify the dependency you are interested in via the command line '--dependency' option.
                 If you don't like the defaults you may select the configuration via '--configuration' option.
-                For more information see <apilink class="org.gradle.api.tasks.diagnostics.DependencyInsightReportTask"/>.
+                For more information see the <apilink class="org.gradle.api.tasks.diagnostics.DependencyInsightReportTask"/> class in the API documentation.
             </para>
         </section>
         <section id="sec:listing_properties">
@@ -242,8 +242,8 @@
         <title>Dry Run</title>
         <para>Sometimes you are interested in which tasks are executed in which order for a given set of tasks specified on the
             command line, but you don't want the tasks to be executed. You can use the <option>-m</option> option for this.
-            For example <userinput>gradle -m clean compile</userinput> shows you all tasks to be executed as
-            part of the <literal>clean</literal> and <literal>compile</literal> tasks.
+            For example, if you run “<userinput>gradle -m clean compile</userinput>”, you'll see all the tasks that would be
+            executed as part of the <literal>clean</literal> and <literal>compile</literal> tasks.
             This is complementary to the <option>tasks</option> task, which shows you the tasks which are available for
             execution.
         </para>

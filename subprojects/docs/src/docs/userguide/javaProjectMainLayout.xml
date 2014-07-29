@@ -18,12 +18,14 @@
         <td>
             <filename>src/main/java</filename>
         </td>
+        <td></td>
         <td>Production Java source</td>
     </tr>
     <tr>
         <td>
             <filename>src/main/resources</filename>
         </td>
+        <td></td>
         <td>Production resources</td>
     </tr>
 </tgroup>

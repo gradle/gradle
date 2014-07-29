@@ -12,7 +12,9 @@ model {
             cunit {
                 headers.srcDir "lib/cunit/2.1-2/include"
                 binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("lib/cunit/2.1-2/lib/" + findCUnitLibForPlatform(targetPlatform))
+                    staticLibraryFile =
+						file("lib/cunit/2.1-2/lib/" +
+							 findCUnitLibForPlatform(targetPlatform))
                 }
             }
         }

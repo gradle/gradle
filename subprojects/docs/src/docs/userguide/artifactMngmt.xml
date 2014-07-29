@@ -42,7 +42,7 @@
         the Java plugin.</para></footnote>
         Execution of these tasks will build or upload the artifacts belonging to the respective configuration.
         </para>
-        <para>Table <xref linkend="tab:configurations"/> shows the configurations added by the Java plugin. Two of the
+        <para><xref linkend="tab:configurations"/> shows the configurations added by the Java plugin. Two of the
         configurations are relevant for the usage with artifacts. The <code>archives</code> configuration is the standard
         configuration to assign your artifacts to. The Java plugin automatically assigns the default jar to this
         configuration. We will talk more about the <code>runtime</code> configuration in <xref linkend="project_libraries"/>.
@@ -82,10 +82,10 @@
 
     <section>
         <title>Publishing artifacts</title>
-        <para>We have said that there is a specific upload task for each configuration. But before you can do an upload,
+        <para>We have said that there is a specific upload task for each configuration. Before you can do an upload,
             you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described
-            in <xref linkend="sec:repositories"/>) are not automatically used for uploading. In fact, some of those repositories allow only for artifact downloading.
-            Here is an example how you can configure the upload task of a configuration:
+            in <xref linkend="sec:repositories"/>) are not automatically used for uploading. In fact, some of those repositories only allow downloading artifacts, not uploading.
+            Here is an example of how you can configure the upload task of a configuration:
         </para>
         <sample id="uploading" dir="userguide/artifacts/uploading" title="Configuration of the upload task">
             <sourcefile file="build.gradle" snippet="uploading"/>
@@ -107,10 +107,10 @@
             and what are the dependencies of these artifacts. The Java plugin adds a <code>runtime</code> configuration for
             this purpose, with the implicit assumption that the <code>runtime</code> dependencies are the dependencies of
             the artifact you want to publish. Of course this is fully customizable. You can add your own custom configuration or let the
-            existing configurations extend from other configurations. You might have different group of artifacts which have
+            existing configurations extend from other configurations. You might have a different group of artifacts which have
             a different set of dependencies. This mechanism is very powerful and flexible.
             </para>
-        <para>If someone wants to use your project as a library, she simply needs to declare on which configuration of
+        <para>If someone wants to use your project as a library, she simply needs to declare which configuration of
             the dependency to depend on.
             A Gradle dependency offers the <code>configuration</code> property to declare this. If this
             is not specified, the <code>default</code> configuration is used (see <xref linkend="sec:dependency_configurations"/>).

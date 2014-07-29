@@ -1,7 +1,7 @@
 task printProps << {
-    println commandLineProjectProp
+    println cmdLineProp
     println gradlePropertiesProp
-    println systemProjectProp
+    println sysProp
     println envProjectProp
     println System.properties['system']
 }

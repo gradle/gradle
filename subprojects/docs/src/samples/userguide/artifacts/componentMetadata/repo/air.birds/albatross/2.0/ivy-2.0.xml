@@ -1,6 +1,6 @@
 <ivy-module version="2.0">
     <info organisation="air.birds"
-          module="albatros"
+          module="albatross"
           revision="2.0"
           status="gold"/>
     <publications>

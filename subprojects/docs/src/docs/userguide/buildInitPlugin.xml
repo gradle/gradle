@@ -93,28 +93,28 @@
             If a
             <literal>--type</literal>
             parameter is not supplied, Gradle will attempt to infer the type from the environment. For example, it will
-            infer a type value of "<literal>pom</literal>" if it finds a
+            infer a type value of “<literal>pom</literal>” if it finds a
             <literal>pom.xml</literal>
             to convert to a Gradle build.
         </para>
         <para>
-            If the type could not be inferred, the type "<literal>basic</literal>" will be used.
+            If the type could not be inferred, the type “<literal>basic</literal>” will be used.
         </para>
         <para>All build setup types include the setup of the Gradle Wrapper.</para>
     </section>
     <section>
         <title>Build init types</title>
         <note>
-            As this plugin is currently <link linkend="feature_lifecycle">incubating</link>, only 3 build init types are currently supported.
+            As this plugin is currently <link linkend="feature_lifecycle">incubating</link>, only a few build init types are currently supported.
             More types will be added in future Gradle releases.
         </note>
         <section>
-            <title>"<literal>pom</literal>" (Maven conversion)
+            <title>“<literal>pom</literal>” (Maven conversion)
             </title>
             <para>
-                The "<literal>pom</literal>" type can be used to convert an Apache Maven build to a Gradle build.
+                The “<literal>pom</literal>” type can be used to convert an Apache Maven build to a Gradle build.
                 This works by converting the POM to one or more Gradle files.
-                It is only able to be used if there is a valid "<literal>pom.xml</literal>"
+                It is only able to be used if there is a valid “<literal>pom.xml</literal>”
                 file in the directory that the
                 <literal>init</literal>
                 task is invoked in. This type will be automatically inferred if such a file exists.
@@ -143,20 +143,18 @@
             </itemizedlist>
         </section>
         <section>
-            <title>"<literal>java-library</literal>"
+            <title>“<literal>java-library</literal>”
             </title>
             <para>
-                The "<literal>java-library</literal>" build init type is not inferable. It must be explicitly specified.
+                The “<literal>java-library</literal>” build init type is not inferable. It must be explicitly specified.
             </para>
             <para>
                 It has the following features:
             </para>
             <itemizedlist>
-                <listitem>Uses the "<literal>java</literal>" plugin
+                <listitem>Uses the “<literal>java</literal>” plugin
                 </listitem>
-                <listitem>Uses the "
-                    <literal>mavenCentral()</literal>
-                    dependency repository
+                <listitem>Uses the “<literal>mavenCentral</literal>” dependency repository
                 </listitem>
                 <listitem>Uses <ulink url="http://junit.org">JUnit</ulink>
                  for testing</listitem>
@@ -165,53 +163,49 @@
             </itemizedlist>
         </section>
         <section>
-            <title>"<literal>scala-library</literal>"
+            <title>“<literal>scala-library</literal>”
             </title>
             <para>
-                The "<literal>scala-library</literal>" build init type is not inferable. It must be explicitly specified.
+                The “<literal>scala-library</literal>” build init type is not inferable. It must be explicitly specified.
             </para>
             <para>
                 It has the following features:
             </para>
             <itemizedlist>
-                <listitem>Uses the "<literal>scala</literal>" plugin
+                <listitem>Uses the “<literal>scala</literal>” plugin
                 </listitem>
-                <listitem>Uses the "
-                    <literal>mavenCentral()</literal>
-                    dependency repository
+                <listitem>Uses the “<literal>mavenCentral</literal>” dependency repository
                 </listitem>
                 <listitem>Uses Scala 2.10</listitem>
-                <listitem>Uses <ulink url="http://www.scalatest.org">ScalaTest</ulink> is used for testing</listitem>
+                <listitem>Uses <ulink url="http://www.scalatest.org">ScalaTest</ulink> for testing</listitem>
                 <listitem>Has directories in the conventional locations for source code</listitem>
-                <listitem>Contains a sample scala class and an according ScalaTest test suite, if there are no existing source or test files</listitem>
+                <listitem>Contains a sample scala class and an associated ScalaTest test suite, if there are no existing source or test files</listitem>
             </itemizedlist>
         </section>
         <section>
-            <title>"<literal>groovy-library</literal>"
+            <title>“<literal>groovy-library</literal>”
             </title>
             <para>
-                The "<literal>groovy-library</literal>" build init type is not inferable. It must be explicitly specified.
+                The “<literal>groovy-library</literal>” build init type is not inferable. It must be explicitly specified.
             </para>
             <para>
                 It has the following features:
             </para>
             <itemizedlist>
-                <listitem>Uses the "<literal>groovy</literal>" plugin
+                <listitem>Uses the “<literal>groovy</literal>” plugin
                 </listitem>
-                <listitem>Uses the "
-                    <literal>mavenCentral()</literal>
-                    dependency repository
+                <listitem>Uses the “<literal>mavenCentral</literal>” dependency repository
                 </listitem>
                 <listitem>Uses Groovy 2.x </listitem>
                 <listitem>Uses <ulink url="http://code.google.com/p/spock/">Spock testing framework</ulink> for testing</listitem>
                 <listitem>Has directories in the conventional locations for source code</listitem>
-                <listitem>Contains a sample groovy class and an according Spock specification, if there are no existing source or test files</listitem>
+                <listitem>Contains a sample groovy class and an associated Spock specification, if there are no existing source or test files</listitem>
             </itemizedlist>
         </section>
         <section>
-            <title>"basic"</title>
+            <title>“basic”</title>
             <para>
-                The "<literal>basic</literal>" build init type is useful for creating a fresh new Gradle project.
+                The “<literal>basic</literal>” build init type is useful for creating a fresh new Gradle project.
                 It creates a sample
                 <literal>build.gradle</literal>
                 file, with comments and links to help get started.

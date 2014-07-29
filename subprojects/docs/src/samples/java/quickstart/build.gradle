@@ -10,7 +10,8 @@ sourceCompatibility = 1.5
 version = '1.0'
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'Gradle Quickstart',
+				   'Implementation-Version': version
     }
 }
 // END SNIPPET customization
@@ -23,7 +24,8 @@ repositories {
 
 // START SNIPPET dependencies
 dependencies {
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    compile group: 'commons-collections', name: 'commons-collections',
+			version: '3.2'
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 // END SNIPPET dependencies

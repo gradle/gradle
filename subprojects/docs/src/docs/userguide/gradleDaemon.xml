@@ -31,11 +31,11 @@
                 <listitem>When developing a web application, where the application is assembled many times.</listitem>
                 <listitem>When discovering what a build can do, where <userinput>gradle tasks</userinput> is executed a number of times.</listitem>
             </itemizedlist>
-            For above sorts of workflows, it is important that the startup cost of invoking Gradle is as small as possible.
+            For these workflows, it is important that the startup cost of invoking Gradle is as small as possible.
         </para>
         <para>
             In addition, user interfaces can provide some interesting features if the Gradle model can be built relatively quickly.
-            For example, the daemon might be useful for following scenarios:
+            For example, the daemon might be useful for the following scenarios:
             <itemizedlist>
                 <listitem>Content assistance in the IDE</listitem>
                 <listitem>Live visualisation of the build in a GUI</listitem>
@@ -44,8 +44,7 @@
         </para>
         <para>
             In general, snappy behavior of the build tool is always handy.
-            If you try using the daemon for your local builds it's going to be hard
-            for you to go back to regular use of Gradle.
+            If you try using the daemon for your local builds, you won't want to go back.
         </para>
         <para>
             The Tooling API (see <xref linkend="embedding"/>)
@@ -53,7 +52,7 @@
             This means that whenever you are using the STS Gradle plugin for Eclipse or the Gradle support in Intellij IDEA,
             you're already using the Gradle Daemon.
         </para>
-        <para>In future the daemon will offer more features:
+        <para>In the future, there are plans for more features in the daemon:
             <itemizedlist>
                 <listitem>Snappy up-to-date checks: use native file system change notifications (e.g. via jdk7 nio.2)
                     to preemptively perform up-to-date analysis.</listitem>
@@ -76,37 +75,37 @@
         <para>The basic idea is that the Gradle command forks a daemon process, which performs the actual build.
             Subsequent invocations of the Gradle command will reuse the daemon, avoiding the startup costs.
             Sometimes we cannot use an existing daemon because it is busy or its java version or jvm arguments are different.
-            For exact details on when exactly new daemon process is forked read the dedicated section below.
-            The daemon process automatically expire after 3 hours of idle time.
+            For exact details on when exactly a new daemon process is forked read the dedicated section below.
+            The daemon process automatically expires after 3 hours of idle time.
         </para>
         <para>
-            Here're all situations in which we fork a new daemon process:
+            Here are all situations in which we fork a new daemon process:
             <itemizedlist>
                 <listitem>If the daemon process is currently busy running some job, a brand new daemon process will be started.</listitem>
                 <listitem>We fork a separate daemon process per java home. So even if there is some idle daemon waiting
-                    for build requests but you happen to run build with a different java home then a brand new daemon will be forked.</listitem>
+                    for build requests but you happen to run a build with a different java home then a brand new daemon will be forked.</listitem>
                 <listitem>We fork a separate daemon process if the jvm arguments for the build are sufficiently different.
                     For example we will not fork a new daemon if a some system property has changed.
-                    However if -Xmx memory setting change or some fundamental immutable system property changes (e.g. file.encoding)
-                    then new daemon will be forked.
+                    However if the -Xmx memory setting changed or some fundamental immutable system property changed (e.g. file.encoding)
+                    then a new daemon will be forked.
                 </listitem>
-                <listitem>At the moment daemon is coupled with particular version of Gradle.
+                <listitem>At the moment the daemon is coupled with a particular version of Gradle.
                     This means that even if some daemon is idle but you are running the build
                     with a different version of Gradle, a new daemon will be started.
                     This also has a consequence for the <literal>--stop</literal> command line instruction:
-                    You can only stop daemons that were started with the Gradle version you use when running <literal>--stop</literal>.
+                    You can only stop daemons that were started with the Gradle version you uses when running <literal>--stop</literal>.
                 </listitem>
             </itemizedlist>
-            We plan to improve the ways of managing / pooling the daemons in future.
+            We plan to improve the functionality of managing and pooling the daemons in the future.
         </para>
     </section>
 
     <section id='daemon_usage_and_troubleshooting'>
         <title>Usage and troubleshooting</title>
-        <para>For command line usage take a look dedicated section in <xref linkend="gradle_command_line"/>.
+        <para>For command line usage, look at the dedicated section in <xref linkend="gradle_command_line"/>.
             If you are tired of using the same command line options again and again, take a look at
             <xref linkend="sec:gradle_configuration_properties"/>.
-            The section contains information on how to configure certain behavior of the daemon
+            This section contains information on how to configure certain behavior of the daemon
             (including turning on the daemon by default) in a more 'persistent' way.
         </para>
         <para>

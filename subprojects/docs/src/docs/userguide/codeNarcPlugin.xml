@@ -6,7 +6,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the CodeNarc plugin, include in your build script:</para>
+        <para>To use the CodeNarc plugin, include the following in your build script:</para>
         <sample id="useCodeNarcPlugin" dir="codeQuality" title="Using the CodeNarc plugin">
             <sourcefile file="build.gradle" snippet="use-codenarc-plugin"/>
         </sample>
@@ -21,6 +21,7 @@
             <thead>
                 <tr>
                     <td>Task name</td>
+                    <td>&#160;&#160;&#160;</td>
                     <td>Depends on</td>
                     <td>Type</td>
                     <td>Description</td>
@@ -30,6 +31,7 @@
                 <td>
                     <literal>codenarcMain</literal>
                 </td>
+                <td></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
                 <td>Runs CodeNarc against the production Groovy source files.</td>
@@ -38,6 +40,7 @@
                 <td>
                     <literal>codenarcTest</literal>
                 </td>
+                <td></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
                 <td>Runs CodeNarc against the test Groovy source files.</td>
@@ -46,6 +49,7 @@
                 <td>
                     <literal>codenarc<replaceable>SourceSet</replaceable></literal>
                 </td>
+                <td></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
                 <td>Runs CodeNarc against the given source set's Groovy source files.</td>
@@ -108,7 +112,7 @@
 
     <section>
         <title>Configuration</title>
-        <para>See <apilink class="org.gradle.api.plugins.quality.CodeNarcExtension"/>.</para>
+        <para>See the <apilink class="org.gradle.api.plugins.quality.CodeNarcExtension"/> class in the API documentation.</para>
     </section>
 
 </chapter>

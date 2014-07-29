@@ -17,9 +17,8 @@
     <title>The Project Report Plugin</title>
 
     <para>The Project report plugin adds some tasks to your project which generate reports containing useful
-        information about your build. Those tasks generate exactly the same content as the command line reports triggered
-        by <userinput>gradle tasks</userinput>, <userinput>gradle dependencies</userinput> and
-        <userinput>gradle properties</userinput> (see <xref linkend="sec:obtaining_information_about_your_build"/>).
+        information about your build. These tasks generate the same content that you get by executing the <userinput>tasks</userinput>, <userinput>dependencies</userinput>, and
+        <userinput>properties</userinput> tasks from the command line (see <xref linkend="sec:obtaining_information_about_your_build"/>).
         In contrast to the command line reports, the report plugin generates the reports into a file. There is also an
         aggregating task that depends on all report tasks added by the plugin.
     </para>
@@ -29,7 +28,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the Project report plugin, include in your build script:</para>
+        <para>To use the Project report plugin, include the following in your build script:</para>
 <programlisting language="java">
 apply plugin: 'project-report'
 </programlisting>
@@ -125,7 +124,7 @@ apply plugin: 'project-report'
                     <classname>Set&lt;Project&gt;</classname>
                 </td>
                 <td>
-                    <literal>A one element set with the project the plugin was applied to.</literal>
+                    A one element set with the project the plugin was applied to.
                 </td>
                 <td>
                     The projects to generate the reports for.

@@ -21,7 +21,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the application plugin, include in your build script:</para>
+        <para>To use the application plugin, include the following in your build script:</para>
         <sample id="useApplicationPlugin" dir="application" title="Using the application plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -61,6 +61,7 @@
                 <tr>
                     <td>Task name</td>
                     <td>Depends on</td>
+                    <td>&#160;&#160;&#160;</td>
                     <td>Type</td>
                     <td>Description</td>
                 </tr>
@@ -72,6 +73,7 @@
                 <td>
                     <literal>classes</literal>
                 </td>
+                <td></td>
                 <td><apilink class="org.gradle.api.tasks.JavaExec"/></td>
                 <td>Starts the application.</td>
             </tr>
@@ -82,6 +84,7 @@
                 <td>
                     <literal>jar</literal>
                 </td>
+                <td></td>
                 <td><apilink class="org.gradle.api.tasks.application.CreateStartScripts"/></td>
                 <td>Creates OS specific scripts to run the project as a JVM application.</td>
             </tr>
@@ -92,6 +95,7 @@
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
                 </td>
+                <td></td>
                 <td><apilink class="org.gradle.api.tasks.Sync"/></td>
                 <td>Installs the application into a specified directory.</td>
             </tr>
@@ -102,6 +106,7 @@
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
                 </td>
+                <td></td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
                 <td>Creates a full distribution ZIP archive including runtime libraries and OS specific scripts.</td>
             </tr>
@@ -112,6 +117,7 @@
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
                 </td>
+                <td></td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Tar"/></td>
                 <td>Creates a full distribution TAR archive including runtime libraries and OS specific scripts.</td>
             </tr>
@@ -120,7 +126,8 @@
 
     <section>
             <title>Convention properties</title>
-            <para>The application plugin adds some properties to the project, which you can use to configure its behaviour. See <apilink class="org.gradle.api.Project"/>.
+            <para>The application plugin adds some properties to the project, which you can use to configure
+            its behaviour. See the <apilink class="org.gradle.api.Project"/> class in the API documentation.
             </para>
     </section>
 
@@ -129,7 +136,7 @@
             <para>
                 One of the convention properties added by the plugin is <literal>applicationDistribution</literal> which is a <apilink class="org.gradle.api.file.CopySpec"/>.
                 This specification is used by the <literal>installApp</literal> and <literal>distZip</literal> tasks as the specification of what is to be 
-                include in the distribution. Above copying the starting scripts to the <filename>bin</filename> dir and necessary jars to <filename>lib</filename> 
+                included in the distribution. In addition to copying the start scripts to the <filename>bin</filename> dir and necessary jars to <filename>lib</filename> 
                 in the distribution, all of the files from the <filename>src/dist</filename> directory are also copied. To include any static files in the 
                 distribution, simply arrange them in the <filename>src/dist</filename> directory.
             </para>

@@ -4,7 +4,8 @@ apply plugin: 'cpp'
 model {
     toolChains {
         visualCpp(VisualCpp) {
-            // Specify the installDir if Visual Studio cannot be located by default
+            // Specify the installDir if Visual Studio cannot be located
+			// by default
             // installDir "C:/Apps/Microsoft Visual Studio 10.0"
         }
         gcc(Gcc) {

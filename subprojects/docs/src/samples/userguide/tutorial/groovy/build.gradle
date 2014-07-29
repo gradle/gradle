@@ -29,9 +29,15 @@ list.add('org/gradle/api/**')
 list.add('org/gradle/internal/**')
 test.includes = list
 
-// Map literal
+// This looks like a map literal, but is really
+// just named parameters.
 apply plugin: 'java'
 
+// This is a real map literal.
+def someMap = [stuff:'abc', name:'George']
+
+// This also calls "apply", but without the usual named
+// parameter syntax.
 Map<String, String> map = new HashMap<String, String>()
 map.put('plugin', 'java')
 apply(map)
