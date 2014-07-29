@@ -45,7 +45,7 @@ class LazyConsumerActionExecutorTest extends Specification {
         1 * loggingProvider.progressLoggerFactory >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
         1 * cancellationToken.cancellationRequested >> false
-        1 * action.cancellationToken >> cancellationToken
+        _ * action.cancellationToken >> cancellationToken
         1 * action.run(consumerConnection)
         0 * _._
     }
@@ -72,9 +72,9 @@ class LazyConsumerActionExecutorTest extends Specification {
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
         2 * cancellationToken.cancellationRequested >> false
-        1 * action.cancellationToken >> cancellationToken
+        _ * action.cancellationToken >> cancellationToken
         1 * action.run(consumerConnection)
-        1 * action2.cancellationToken >> cancellationToken
+        _ * action2.cancellationToken >> cancellationToken
         1 * action2.run(consumerConnection)
         0 * _._
     }
@@ -88,7 +88,7 @@ class LazyConsumerActionExecutorTest extends Specification {
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
         1 * cancellationToken.cancellationRequested >> false
-        1 * action.cancellationToken >> cancellationToken
+        _ * action.cancellationToken >> cancellationToken
         1 * action.run(consumerConnection)
         1 * consumerConnection.stop()
         0 * _._
@@ -114,7 +114,7 @@ class LazyConsumerActionExecutorTest extends Specification {
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> { throw failure }
         1 * cancellationToken.cancellationRequested >> false
-        1 * action.cancellationToken >> cancellationToken
+        _ * action.cancellationToken >> cancellationToken
 
         when:
         connection.stop()

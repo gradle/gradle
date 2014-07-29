@@ -36,7 +36,7 @@ class CachingToolingImplementationLoaderTest extends Specification {
         final File userHomeDir = Mock()
 
         when:
-        def impl = loader.create(distribution, loggerFactory, params)
+        def impl = loader.create(distribution, loggerFactory, params, cancellationToken)
 
         then:
         impl == connection
@@ -58,7 +58,7 @@ class CachingToolingImplementationLoaderTest extends Specification {
         then:
         impl == connection
         impl2 == connection
-        1 * target.create(distribution, loggerFactory, params) >> connection
+        1 * target.create(distribution, loggerFactory, params, cancellationToken) >> connection
         2 * params.getGradleUserHomeDir() >> userHomeDir
         _ * distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> { new DefaultClassPath(new File('a.jar')) }
         0 * _._

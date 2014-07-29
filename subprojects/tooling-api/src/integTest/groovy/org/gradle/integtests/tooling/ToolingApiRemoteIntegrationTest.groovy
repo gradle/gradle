@@ -20,8 +20,18 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.CancellationTokenSource
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.exceptions.BuildCancelledException
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+import org.mortbay.jetty.MimeTypes
+
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
@@ -46,9 +56,9 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         server.expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion()))
 
         and:
-        toolingApi.withConnector {
-            it.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
-            it.useGradleUserHomeDir(userHomeDir)
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+            connector.useGradleUserHomeDir(userHomeDir)
         }
 
         when:
@@ -63,5 +73,91 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         then:
         buildOutput.toString().contains('hello')
         userHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
+    }
+
+    def "can cancel distribution download"() {
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
+        def userHomeDir = file("user-home-dir")
+
+        given:
+        settingsFile << "";
+        buildFile << "task hello << { println hello }"
+        CancellationTokenSource tokenSource = new CancellationTokenSource()
+        CountDownLatch latch = new CountDownLatch(1)
+
+        server.expect("/custom-dist.zip", false, ['GET'], new SendDataAndCancelAction("/custom-dist.zip", distribution.binDistribution, tokenSource, latch))
+        server.expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion()))
+
+        and:
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+            connector.useGradleUserHomeDir(userHomeDir)
+        }
+
+        when:
+        ByteArrayOutputStream buildOutput = new ByteArrayOutputStream()
+
+        toolingApi.withConnection { ProjectConnection connection ->
+            BuildLauncher launcher = connection.newBuild().forTasks("hello")
+                .withCancellationToken(tokenSource.token())
+            launcher.standardOutput = buildOutput;
+            launcher.run()
+        }
+
+        then:
+        BuildCancelledException e = thrown()
+        e.printStackTrace()
+        e.message.contains('Distribution download cancelled.')
+
+        cleanup:
+        latch.countDown()
+    }
+
+    class SendDataAndCancelAction extends HttpServer.ActionSupport {
+        private final String path
+        private final File srcFile
+        private final CancellationTokenSource tokenSource
+        private final CountDownLatch latch
+
+        SendDataAndCancelAction(String path, File srcFile, CancellationTokenSource tokenSource, CountDownLatch latch) {
+            super("return contents of $srcFile.name")
+            this.srcFile = srcFile
+            this.path = path
+            this.tokenSource = tokenSource
+            this.latch = latch
+        }
+
+        void handle(HttpServletRequest request, HttpServletResponse response) {
+            def file
+            if (request.pathInfo == path) {
+                file = srcFile
+            } else {
+                def relativePath = request.pathInfo.substring(path.length() + 1)
+                file = new File(srcFile, relativePath)
+            }
+            if (file.isFile()) {
+                sendFile(response, file, interaction.contentType)
+            } else {
+                response.sendError(404, "'$request.pathInfo' does not exist")
+            }
+        }
+
+        private sendFile(HttpServletResponse response, File file, String contentType) {
+            response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
+
+            def content = file.bytes
+            for (int i = 0; i < content.length; i++) {
+                response.outputStream.write(content[i])
+                if (i == 100) {
+                    println('call cancel')
+                    tokenSource.cancel()
+                    latch.await(10, TimeUnit.SECONDS)
+                } else if (i == 10000) {
+                    println('wait for test finish')
+                    latch.await(10, TimeUnit.SECONDS)
+                }
+            }
+            println('server handler done.')
+        }
     }
 }

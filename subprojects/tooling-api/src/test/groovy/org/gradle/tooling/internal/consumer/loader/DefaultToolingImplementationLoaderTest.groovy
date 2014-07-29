@@ -45,7 +45,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath(
                 getToolingApiResourcesDir(connectionImplementation),
                 ClasspathUtil.getClasspathForClass(TestConnection.class),
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),

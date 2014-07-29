@@ -35,7 +35,7 @@ public class ConnectorServices {
             throw UnsupportedJavaRuntimeException.usingUnsupportedVersion("Gradle Tooling API", JavaVersion.VERSION_1_6);
         }
         ConnectionFactory connectionFactory = new ConnectionFactory(singletonRegistry.get(ToolingImplementationLoader.class));
-        return new DefaultGradleConnector(connectionFactory, new DistributionFactory());
+        return new DefaultGradleConnector(connectionFactory, new DistributionFactory(new DefaultExecutorServiceFactory()));
     }
 
     /**
