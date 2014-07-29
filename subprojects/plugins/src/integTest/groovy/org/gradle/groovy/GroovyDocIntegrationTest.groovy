@@ -16,32 +16,25 @@
 
 package org.gradle.groovy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import spock.lang.Issue
 
-class GroovyDocIntegrationTest extends AbstractIntegrationSpec {
+@TargetVersions(['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.2.2', '2.3.3', '2.4.0-beta-2'])
+class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("http://issues.gradle.org//browse/GRADLE-3116")
-    def "can run groovydoc with groovy dependency only"() {
+    def "can run groovydoc"() {
         when:
         buildFile << """
-            apply plugin: "groovy-base"
-
-            sourceSets {
-                main {}
-            }
+            apply plugin: "groovy"
 
             repositories {
                 mavenCentral()
             }
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:2.3.3"
-            }
-
-            task groovydoc(type: Groovydoc){
-                source = sourceSets.main.allSource
-                classpath = sourceSets.main.compileClasspath
+                compile "org.codehaus.groovy:${module}:${version}"
             }
         """
 
@@ -53,6 +46,12 @@ class GroovyDocIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "groovydoc"
+
+        and:
+        file('build/docs/groovydoc/index.html').file
+
+        where:
+        module << ['groovy', 'groovy-all']
     }
 
 }
