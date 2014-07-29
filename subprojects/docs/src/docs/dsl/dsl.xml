@@ -262,6 +262,9 @@
             <tr>
                 <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.reporting.components.ComponentReport</td>
+            </tr>
         </table>
     </section>
 
