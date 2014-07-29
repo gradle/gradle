@@ -17,7 +17,6 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
@@ -46,13 +45,11 @@ import java.util.concurrent.Callable;
 @Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
-    private final FileResolver fileResolver;
     private final JavaToolChain toolChain;
 
     @Inject
-    public JvmLanguagePlugin(Instantiator instantiator, FileResolver fileResolver, JavaToolChain toolChain) {
+    public JvmLanguagePlugin(Instantiator instantiator, JavaToolChain toolChain) {
         this.instantiator = instantiator;
-        this.fileResolver = fileResolver;
         this.toolChain = toolChain;
     }
 
