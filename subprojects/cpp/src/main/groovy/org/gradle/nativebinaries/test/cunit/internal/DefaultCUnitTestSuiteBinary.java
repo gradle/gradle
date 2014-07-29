@@ -19,11 +19,11 @@ package org.gradle.nativebinaries.test.cunit.internal;
 import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinary;
+import org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativebinaries.test.internal.DefaultNativeTestSuiteBinarySpec;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
-public class DefaultCUnitTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements CUnitTestSuiteBinary {
+public class DefaultCUnitTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements CUnitTestSuiteBinarySpec {
     public DefaultCUnitTestSuiteBinary(NativeComponentSpec owner, NativeBinarySpec testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(owner, testedBinary, namingScheme, resolver);
     }

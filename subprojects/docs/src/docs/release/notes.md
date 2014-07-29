@@ -215,6 +215,8 @@ TBD - make this more explicit re. what is actually not longer available.
 - Merged TestSuiteExecutableBinary into NativeTestSuiteBinary
 - Renamed CUnitTestSuiteExecutableBinary -> CUnitTestSuiteBinary
 - Renamed ProjectNativeLibrary -> NativeLibrarySpec
+- Renamed CUnitTestSuite -> CUnitTestSuiteSpec
+- Renamed CUnitTestSuiteBinary -> CUnitTestSuiteBinarySpec
 - TODO: document all of the changes once they are finalised
 
 #### Changes to native cross compilation and custom platforms support

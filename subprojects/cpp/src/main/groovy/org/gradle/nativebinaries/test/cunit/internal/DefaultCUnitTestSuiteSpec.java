@@ -17,13 +17,13 @@ package org.gradle.nativebinaries.test.cunit.internal;
 
 import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.internal.AbstractNativeComponentSpec;
-import org.gradle.nativebinaries.test.cunit.CUnitTestSuite;
+import org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 
-public class DefaultCUnitTestSuite extends AbstractNativeComponentSpec implements CUnitTestSuite {
+public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec implements CUnitTestSuiteSpec {
     private final NativeComponentSpec testedComponent;
 
-    public DefaultCUnitTestSuite(ComponentSpecIdentifier id, NativeComponentSpec testedComponent) {
+    public DefaultCUnitTestSuiteSpec(ComponentSpecIdentifier id, NativeComponentSpec testedComponent) {
         super(id);
         this.testedComponent = testedComponent;
     }

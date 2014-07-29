@@ -562,7 +562,7 @@
                 <td>org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.test.cunit.CUnitTestSuite</td>
+                <td>org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec</td>
             </tr>
             <tr>
                 <td>org.gradle.language.assembler.AssemblerSourceSet</td>
