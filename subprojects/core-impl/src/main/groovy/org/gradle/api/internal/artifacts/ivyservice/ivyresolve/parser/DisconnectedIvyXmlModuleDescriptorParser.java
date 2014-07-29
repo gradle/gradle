@@ -34,8 +34,20 @@ import java.util.Map;
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
 
 public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
+    private ModuleDescriptor moduleDescriptor;
+
     public DisconnectedIvyXmlModuleDescriptorParser(ResolverStrategy resolverStrategy) {
         super(resolverStrategy);
+    }
+
+    public ModuleDescriptor getModuleDescriptor() {
+        return moduleDescriptor;
+    }
+
+    @Override
+    protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
+        super.postProcess(moduleDescriptor);
+        this.moduleDescriptor = moduleDescriptor;
     }
 
     @Override

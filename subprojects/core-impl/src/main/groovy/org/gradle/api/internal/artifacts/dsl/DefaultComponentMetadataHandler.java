@@ -87,7 +87,8 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
                 if (!(metadata instanceof IvyModuleVersionMetaData)) {
                     return;
                 }
-                args.add(new DefaultIvyModuleMetadata(((IvyModuleVersionMetaData) metadata).getExtraInfo()));
+                IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metadata;
+                args.add(new DefaultIvyModuleMetadata(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch()));
             } else {
                 throw new InvalidUserCodeException(String.format("Unsupported parameter type for component metadata rule: %s", parameterType.getName()));
             }

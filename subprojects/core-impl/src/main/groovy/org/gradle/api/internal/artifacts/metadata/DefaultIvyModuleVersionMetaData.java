@@ -47,6 +47,10 @@ public class DefaultIvyModuleVersionMetaData extends AbstractModuleVersionMetaDa
         return copy;
     }
 
+    public String getBranch() {
+        return getDescriptor().getModuleRevisionId().getBranch();
+    }
+
     public Map<String, String> getExtraInfo() {
         return extraInfo;
     }

@@ -21,10 +21,16 @@ import java.util.Collections;
 import java.util.Map;
 
 public class DefaultIvyModuleMetadata implements IvyModuleMetadata {
+    private final String branch;
     private final Map<String, String> extraInfo;
 
-    public DefaultIvyModuleMetadata(Map<String, String> extraInfo) {
+    public DefaultIvyModuleMetadata(Map<String, String> extraInfo, String branch) {
         this.extraInfo = Collections.unmodifiableMap(extraInfo);
+        this.branch = branch;
+    }
+
+    public String getBranch() {
+        return branch;
     }
 
     public Map<String, String> getExtraInfo() {

@@ -33,6 +33,7 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
     private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
     private final IvyPublicationInternal ivyPublication;
     private String status = Module.DEFAULT_STATUS;
+    private String branch;
 
     public DefaultIvyModuleDescriptor(IvyPublicationInternal ivyPublication) {
         this.ivyPublication = ivyPublication;
@@ -44,6 +45,14 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public IvyPublicationIdentity getProjectIdentity() {

@@ -79,6 +79,22 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         ivyXml.info.@status == "my-status"
     }
 
+    def "writes supplied branch"() {
+        when:
+        generator.setBranch("someBranch")
+
+        then:
+        ivyXml.info.@branch == "someBranch"
+    }
+
+    def "does not write branch attribute when branch is null" () {
+        when:
+        generator.setBranch(null)
+
+        then:
+        ivyXml.info.@branch.size() == 0
+    }
+
     def "writes supplied configurations"() {
         when:
         def config1 = new DefaultIvyConfiguration("config1")

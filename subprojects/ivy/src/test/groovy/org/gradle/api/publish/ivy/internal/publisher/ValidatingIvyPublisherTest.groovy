@@ -38,7 +38,7 @@ public class ValidatingIvyPublisherTest extends Specification {
     def "delegates when publication is valid"() {
         when:
         def projectIdentity = this.projectIdentity("the-group", "the-artifact", "the-version")
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("the-group", "the-artifact", "the-version"), emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("the-group", "the-artifact", "the-version", "the-branch"), emptySet())
         def repository = Mock(PublicationAwareRepository)
 
         and:
@@ -91,6 +91,48 @@ public class ValidatingIvyPublisherTest extends Specification {
         "org\t"        | "module"   | "version"       | "organisation cannot contain ISO control character '\\u0009'"
         "organisation" | "module\n" | "version"       | "module name cannot contain ISO control character '\\u000a'"
         "organisation" | "module"   | "version\u0085" | "revision cannot contain ISO control character '\\u0085'"
+    }
+
+    def "validates ivy metadata"() {
+        given:
+        def projectIdentity = projectIdentity("org", "module", "version")
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("org", "module", "version", branch), emptySet())
+        def repository = Stub(PublicationAwareRepository)
+
+        when:
+        publisher.publish(publication, repository)
+
+        then:
+        def e = thrown InvalidIvyPublicationException
+        e.message == "Invalid publication 'pub-name': $message."
+
+        where:
+        branch             | message
+        ""                 | "branch cannot be an empty string. Use null instead"
+        "someBranch\t"     | "branch cannot contain ISO control character '\\u0009'"
+        "someBranch\n"     | "branch cannot contain ISO control character '\\u000a'"
+        "someBranch\u0085" | "branch cannot contain ISO control character '\\u0085'"
+        "someBran\\ch"     | "branch cannot contain '\\'"
+    }
+
+    def "delegates with valid ivy metadata" () {
+        given:
+        def projectIdentity = projectIdentity("org", "module", "version")
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("org", "module", "version", branch), emptySet())
+        def repository = Stub(PublicationAwareRepository)
+
+        when:
+        publisher.publish(publication, repository)
+
+        then:
+        delegate.publish(publication, repository)
+
+        where:
+        branch                  | _
+        null                    | _
+        "someBranch"            | _
+        "feature/someBranch"    | _
+        "someBranch_ぴ₦ガき∆ç√∫" | _
     }
 
     def "project coordinates must match ivy descriptor file"() {
@@ -247,8 +289,13 @@ public class ValidatingIvyPublisherTest extends Specification {
     }
 
     private def ivyFile(def group, def moduleName, def version, Action<XmlProvider> action = null) {
+        return ivyFile(group, moduleName, version, null, action)
+    }
+
+    private def ivyFile(def group, def moduleName, def version, def branch, Action<XmlProvider> action = null) {
         def ivyXmlFile = testDir.file("ivy")
         IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity(group, moduleName, version))
+        ivyFileGenerator.branch = branch
         if (action != null) {
             ivyFileGenerator.withXml(action)
         }

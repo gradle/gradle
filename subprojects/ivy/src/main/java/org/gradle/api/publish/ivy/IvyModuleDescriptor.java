@@ -79,4 +79,13 @@ public interface IvyModuleDescriptor {
      */
     void setStatus(String status);
 
+    /**
+     * Returns the branch for this publication
+     */
+    String getBranch();
+
+    /**
+     * Sets the branch for this publication
+     */
+    void setBranch(String branch);
 }

@@ -24,6 +24,13 @@ import java.util.Map;
  */
 @Incubating
 public interface IvyModuleMetadata {
+    /***
+     * Returns the branch attribute of the info element in this descriptor.
+     *
+     * @return the branch for this descriptor
+     */
+    String getBranch();
+
     /**
      * Returns a read-only map of the extra info declared in this descriptor.
      * <p>

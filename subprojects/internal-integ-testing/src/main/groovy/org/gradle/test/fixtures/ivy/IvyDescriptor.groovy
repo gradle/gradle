@@ -27,6 +27,7 @@ class IvyDescriptor {
     String revision
     String status
     String description
+    String branch
 
     IvyDescriptor(File ivyFile) {
         def ivy = new XmlParser().parse(ivyFile)
@@ -34,6 +35,7 @@ class IvyDescriptor {
         module = ivy.info[0].@module
         revision = ivy.info[0].@revision
         status = ivy.info[0].@status
+        branch = ivy.info[0].@branch
         description = ivy.info[0].description[0]?.text()
 
         ivy.configurations.conf.each {

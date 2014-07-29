@@ -35,6 +35,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
+    String branch = null
     String status = "integration"
     boolean noMetaData
     int publishCount = 1
@@ -115,6 +116,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     IvyFileModule withStatus(String status) {
         this.status = status
+        return this
+    }
+
+    IvyFileModule withBranch(String branch) {
+        this.branch = branch
         return this
     }
 
@@ -213,6 +219,9 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
         def builder = new MarkupBuilder(ivyFileWriter)
         def infoAttrs = [organisation: organisation, module: module, revision: revision, status: status, publication: getPublicationDate()]
+        if (branch) {
+            infoAttrs.branch = branch
+        }
         infoAttrs += extraAttributes.collectEntries {key, value -> ["e:$key", value]}
         builder.info(infoAttrs) {
             if (extendsFrom) {

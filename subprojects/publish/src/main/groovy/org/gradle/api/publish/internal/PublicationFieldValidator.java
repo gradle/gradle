@@ -51,6 +51,14 @@ public abstract class PublicationFieldValidator<T extends PublicationFieldValida
         if (value == null || value.length() == 0) {
             return type.cast(this);
         }
+        doesNotContainSpecialCharacters(false);
+        return type.cast(this);
+    }
+
+    public T doesNotContainSpecialCharacters(boolean allowSlash) {
+        if (value == null || value.length() == 0) {
+            return type.cast(this);
+        }
         // Iterate over unicode characters
         int offset = 0;
         while (offset < value.length()) {
@@ -58,7 +66,7 @@ public abstract class PublicationFieldValidator<T extends PublicationFieldValida
             if (Character.isISOControl(unicodeChar)) {
                 throw failure(String.format("%s cannot contain ISO control character '\\u%04x'.", name, unicodeChar));
             }
-            if ('\\' == unicodeChar || '/' == unicodeChar) {
+            if ('\\' == unicodeChar || ('/' == unicodeChar && !allowSlash)) {
                 throw failure(String.format("%s cannot contain '%c'.", name, (char) unicodeChar));
             }
             offset += Character.charCount(unicodeChar);

@@ -41,6 +41,7 @@ public class IvyDescriptorFileGenerator {
 
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
     private final IvyPublicationIdentity projectIdentity;
+    private String branch;
     private String status;
     private XmlTransformer xmlTransformer = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
@@ -53,6 +54,10 @@ public class IvyDescriptorFileGenerator {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public IvyDescriptorFileGenerator addConfiguration(IvyConfiguration ivyConfiguration) {
@@ -98,6 +103,7 @@ public class IvyDescriptorFileGenerator {
         xmlWriter.startElement("info")
                 .attribute("organisation", projectIdentity.getOrganisation())
                 .attribute("module", projectIdentity.getModule())
+                .attribute("branch", branch)
                 .attribute("revision", projectIdentity.getRevision())
                 .attribute("status", status)
                 .attribute("publication", ivyDateFormat.format(new Date()))

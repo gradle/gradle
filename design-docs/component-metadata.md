@@ -74,6 +74,8 @@ Users will be able to access the 'branch' attribute when resolving, via the `Ivy
 
 - Sync up the IvyModuleDescriptor and IvyModuleMetadata: add extra-info and status to descriptor, add
 - Rename IvyModuleDescriptor -> IvyModuleDescriptorSpec, IvyModuleMetadata -> IvyModuleDescriptor
+- Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
+- No validation rules for status in ValidatingIvyPublisher
 
 ## Story: Build script reports all versions tested for dynamic version
 

@@ -101,6 +101,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
             getExtraInfo() >> [info1: "info1 value", info2: "info2 value"]
+            getBranch() >> "someBranch"
         }
         def capturedDescriptor = null
         handler.eachComponent { details, IvyModuleMetadata descriptor ->
@@ -115,6 +116,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         capturedDescriptor instanceof IvyModuleMetadata
         with(capturedDescriptor) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
+            branch == "someBranch"
         }
     }
 

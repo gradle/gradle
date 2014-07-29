@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -44,6 +45,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         validateIdentity(publication);
+        validateIvyMetadata(publication);
         validateArtifacts(publication);
         checkNoDuplicateArtifacts(publication);
         delegate.publish(publication, repository);
@@ -66,6 +68,16 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
         revision.matches(moduleId.getVersion());
+    }
+
+    private void validateIvyMetadata(IvyNormalizedPublication publication) {
+        if (moduleDescriptorParser.getModuleDescriptor() == null) {
+            parseIvyFile(publication);
+        }
+        ModuleDescriptor descriptor = moduleDescriptorParser.getModuleDescriptor();
+        field(publication, "branch", descriptor.getModuleRevisionId().getBranch())
+                .optionalNotEmpty()
+                .doesNotContainSpecialCharacters(true);
     }
 
     private ModuleVersionIdentifier parseIvyFile(IvyNormalizedPublication publication) {

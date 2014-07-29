@@ -21,6 +21,13 @@ import java.util.Map;
  * Meta-data for a module version resolved from an Ivy repository.
  */
 public interface IvyModuleVersionMetaData extends ModuleVersionMetaData {
+    /***
+     * Returns the branch attribute for the module.
+     *
+     * @return the branch attribute for the module
+     */
+    String getBranch();
+
     /**
      * Returns the extra info for the module.
      *

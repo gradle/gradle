@@ -117,6 +117,11 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         return this
     }
 
+    IvyHttpModule withBranch(String branch) {
+        backingModule.withBranch(branch)
+        return this
+    }
+
     TestFile getIvyFile() {
         return backingModule.ivyFile
     }
