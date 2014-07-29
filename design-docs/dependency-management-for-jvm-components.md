@@ -774,8 +774,8 @@ This story moves definition and configuration of the source sets for a component
     - This is simply a source set that contains other source sets.
     - This step allows arbitrary source sets to be added to the `sources { ... }` container.
 1. Allow a component's source sets to be defined as part of the component definition:
-    - Replace `ProjectComponent.getSource()` with a `getSources()` method return a `CompositeSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
-    - Add a `ProjectComponent.source(Action<? super CompositeSourceSet>)` method.
+    - Replace `ComponentSpec.getSource()` with a `getSources()` method return a `CompositeSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
+    - Add a `ComponentSpec.source(Action<? super CompositeSourceSet>)` method.
     - Change language plugins to add source sets via the component's source container rather than the project's source container.
     - This step allows configuration via `component.source { ... }`.
 1. Review samples to make use of this.
