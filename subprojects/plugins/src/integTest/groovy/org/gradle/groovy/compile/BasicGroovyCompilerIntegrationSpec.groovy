@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.0', '2.2.2', '2.3.3'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.3', '2.4.0-beta-2'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
@@ -49,6 +49,26 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         where:
         module << ["groovy-all", "groovy"]
+    }
+
+    def "groovyToolClassesAreNotVisible"() {
+        if (versionLowerThan("2.0")) {
+            return
+        }
+
+        groovyDependency = "org.codehaus.groovy:groovy:$version"
+
+        expect:
+        fails("compileGroovy")
+        errorOutput.contains('unable to resolve class AntBuilder')
+
+        when:
+        buildFile << "dependencies { compile 'org.codehaus.groovy:groovy-ant:${version}' }"
+
+        then:
+        succeeds("compileGroovy")
+        !errorOutput
+        file("build/classes/main/Thing.class").exists()
     }
 
     def "compileBadCode"() {
