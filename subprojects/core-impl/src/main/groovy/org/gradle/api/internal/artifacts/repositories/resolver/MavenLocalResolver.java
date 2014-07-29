@@ -57,15 +57,12 @@ public class MavenLocalResolver extends MavenResolver {
         }
 
         // check custom packaging
-        if (!metaData.isKnownJarPackaging()) {
-            ModuleVersionArtifactMetaData customArtifactMetaData = metaData.artifact(metaData.getPackaging(), metaData.getPackaging(), null);
-
-            if (artifactResolver.artifactExists(customArtifactMetaData, new DefaultResourceAwareResolveResult())) {
-                return false;
-            }
+        ModuleVersionArtifactMetaData artifact;
+        if (metaData.isKnownJarPackaging()) {
+            artifact = metaData.artifact("jar", "jar", null);
+        } else {
+            artifact = metaData.artifact(metaData.getPackaging(), metaData.getPackaging(), null);
         }
-
-        ModuleVersionArtifactMetaData artifact = metaData.artifact("jar", "jar", null);
 
         if (artifactResolver.artifactExists(artifact, new DefaultResourceAwareResolveResult())) {
             return false;

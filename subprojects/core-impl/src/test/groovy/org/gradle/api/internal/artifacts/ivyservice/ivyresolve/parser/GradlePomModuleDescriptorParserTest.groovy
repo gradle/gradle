@@ -1913,7 +1913,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
             <type>ejb-client</type>
-            <classifier>client</classifier>
             <version>version-six</version>
         </dependency>
     </dependencies>
