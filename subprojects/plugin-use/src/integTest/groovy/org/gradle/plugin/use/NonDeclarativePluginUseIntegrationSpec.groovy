@@ -129,6 +129,59 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         output.contains 'ops = [withId 1, withId 2, withType 1, withType 2]'
     }
 
+    def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
+        given:
+        [1, 2].each { n ->
+            def m = service.m2repo.module("test", "test", n)
+            m.publish().allowAll()
+
+            file("j$n").with {
+                file("d/v.txt") << n
+                m.artifactFile.delete()
+                zipTo(m.artifactFile)
+            }
+
+        }
+
+        when:
+        def pluginModule = publishPlugin """
+            project.task('pluginTask').doLast {
+                println "pluginTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+            }
+        """
+
+        pluginModule.dependsOn("test", "test", "2").publishPom()
+
+        and:
+        buildScript """
+            buildscript {
+                repositories {
+                    maven { url "$service.m2repo.uri" }
+                }
+                dependencies {
+                    classpath "test:test:1"
+                }
+            }
+
+            $USE
+
+            task scriptTask << {
+                println "scriptTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+            }
+
+            task buildscriptDependencies << {
+                println "buildscriptDependencies - " + buildscript.configurations.classpath.resolvedConfiguration.resolvedArtifacts.find { it.name == "test" }.moduleVersion.id.version
+            }
+        """
+
+        then:
+        succeeds "pluginTask", "scriptTask", "buildscriptDependencies"
+
+        and:
+        output.contains "pluginTask - 2"
+        output.contains "scriptTask - 2"
+        output.contains "buildscriptDependencies - 2"
+    }
 
     MavenHttpModule publishPlugin(String impl) {
         service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION) {
