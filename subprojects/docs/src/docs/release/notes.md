@@ -213,10 +213,13 @@ TBD - make this more explicit re. what is actually not longer available.
 - Merged NativeTestSuite and ProjectComponentNativeTestSuite
 - NativeTestSuiteBinary no longer extends NativeExecutableBinary
 - Merged TestSuiteExecutableBinary into NativeTestSuiteBinary
-- Renamed CUnitTestSuiteExecutableBinary -> CUnitTestSuiteBinary
-- Renamed ProjectNativeLibrary -> NativeLibrarySpec
 - Renamed CUnitTestSuite -> CUnitTestSuiteSpec
 - Renamed CUnitTestSuiteBinary -> CUnitTestSuiteBinarySpec
+- Renamed CUnitTestSuiteExecutableBinary -> CUnitTestSuiteBinary
+- Renamed ProjectNativeComponent -> NativeComponentSpec
+- Renamed ProjectNativeExecutable -> NativeExecutableSpec
+- Renamed ProjectNativeTestSuite -> NativeTestSuiteSpec
+- Renamed ProjectNativeLibrary -> NativeLibrarySpec
 - TODO: document all of the changes once they are finalised
 
 #### Changes to native cross compilation and custom platforms support
@@ -284,6 +287,18 @@ For example:
 Very early versions of the `cpp-lib` and `cpp-exe` plugins had rudimentary support for publishing and resolving native components.
 This support was never fully functional, and has now been completely removed in preparation for full support in the upcoming releases.
 
+### Changes to incubating language base plugin
+
+We extracted the creation of the `projectComponents` container and and the LanguageRegistry `languages` out of `LanguageBasePlugin` into `ComponentModelBasePlugin`.
+
+#### Domain model reorganisation
+
+- Renamed ProjectComponent -> ComponentSpec
+- Renamed ProjectComponentContainer -> ComponentSpecContainer
+- Renamed ComponentSpecIdentifier -> NamedProjectComponentIdentifier
+- Renamed ProjectBinary -> BinarySpec
+
+
 ### Changes to incubating Java language plugins
 
 To better support the production of multiple binary outputs for a single set of sources, a new set of Java
@@ -298,7 +313,8 @@ The plugin class `org.gradle.api.plugins.JavaLanguagePlugin` does not register a
 
 #### Domain model reorganisation
 
-- TODO: document all of the changes once they are finalised
+- Renamed ProjectClassDirectoryBinary -> ClassDirectoryBinarySpec
+- Renamed ProjectJarBinary -> JarBinarySpec
 
 ### Generated maven pom contains dependency exclusions
 
