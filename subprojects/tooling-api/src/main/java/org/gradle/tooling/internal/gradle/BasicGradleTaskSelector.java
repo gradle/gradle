@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.gradle;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.Launchable;
-import org.gradle.tooling.model.TaskSelector;
 import org.gradle.tooling.model.internal.Exceptions;
 
 import java.util.SortedSet;
@@ -26,7 +25,7 @@ import java.util.SortedSet;
 /**
  * Data used for {@link org.gradle.tooling.model.TaskSelector} when created in consumer.
  */
-public class BasicGradleTaskSelector implements TaskSelector, TaskListingLaunchable {
+public class BasicGradleTaskSelector implements TaskListingLaunchable {
     private String name;
     private String displayName;
     private String description;
