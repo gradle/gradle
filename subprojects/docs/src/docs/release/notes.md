@@ -143,6 +143,13 @@ This feature addresses [GRADLE-2945] was contributed by [Biswa Dahal](https://gi
 
 Tasks and selectors accessible from Tooling API now carry an information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html).
 
+### Groovy version upgraded to 2.3.6
+
+Gradle 2.1 includes Groovy 2.3.6, where Gradle 2.0 included Groovy 2.3.4.
+
+This is a non breaking change.
+All build scripts and plugins that work with Gradle 2.0 will continue to work without change.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
