@@ -25,6 +25,7 @@ import org.gradle.tooling.internal.consumer.DefaultCancellationToken;
  * <p>This is a client side part of cancellation support:
  * Tooling API clients can create cancellation token using instance of this class and send cancel request to it
  * when needed.</p>
+ * <p>This class is thread safe.</p>
  *
  * @since 2.1
  */

@@ -34,9 +34,10 @@ public interface CancellationToken {
     /**
      * Registers a callback notified synchronously when token is cancelled.
      *
-     * <p>If the token is already</p>
+     * <p>If the token is already cancelled the handler will be called synchronously before this method returns.</p>
+     * <p>Implementation note: it is not guaranteed that all handlers will be executed if on of them throws an exception upon its execution.</p>
      *
-     * @param cancellationHandler
+     * @param cancellationHandler callback executed when cancel is requested.
      * @return current state of cancellation request before callback was added.
      */
     boolean addCallback(Runnable cancellationHandler);
