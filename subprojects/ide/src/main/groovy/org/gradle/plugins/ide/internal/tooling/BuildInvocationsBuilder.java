@@ -59,7 +59,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
                             : String.format("%s task selector", selectorName)).
                     setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
-                    setVisible(visibleTasks.contains(selectorName)));
+                    setPublic(visibleTasks.contains(selectorName)));
         }
         return new DefaultBuildInvocations<LaunchableGradleTask>()
                 .setSelectors(selectors)
@@ -79,7 +79,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     .setName(task.getName())
                     .setDisplayName(task.toString())
                     .setDescription(task.getDescription())
-                    .setVisible(task.getGroup() != null));
+                    .setPublic(task.getGroup() != null));
         }
         return tasks;
     }

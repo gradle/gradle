@@ -141,7 +141,7 @@ This feature addresses [GRADLE-2945] was contributed by [Biswa Dahal](https://gi
 
 ### Task visibility is exposed in Tooling API
 
-Tasks and selectors accessible from Tooling API now carry an information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html).
+Tasks and selectors accessible from Tooling API now expose an information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html) as `public` property.
 
 ### Groovy version upgraded to 2.3.6
 

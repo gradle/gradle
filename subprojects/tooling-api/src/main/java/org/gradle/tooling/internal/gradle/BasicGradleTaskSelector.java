@@ -46,8 +46,8 @@ public class BasicGradleTaskSelector implements TaskSelector, TaskListingLauncha
         return description;
     }
 
-    public boolean isVisible() {
-        throw Exceptions.unsupportedMethod(Launchable.class.getSimpleName() + ".isVisible");
+    public boolean isPublic() {
+        throw Exceptions.unsupportedMethod(Launchable.class.getSimpleName() + ".isPublic");
     }
 
     public BasicGradleTaskSelector setDescription(String description) {

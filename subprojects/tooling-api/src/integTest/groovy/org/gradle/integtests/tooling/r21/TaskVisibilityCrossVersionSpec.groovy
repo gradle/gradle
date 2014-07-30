@@ -68,8 +68,8 @@ project(':b:c') {
         }
 
         then:
-        model.tasks.every { Task t -> publicTasks.contains(t.path) == t.visible }
-        model.taskSelectors.every { TaskSelector ts -> publicSelectors.contains(ts.name) == ts.visible }
+        model.tasks.every { Task t -> publicTasks.contains(t.path) == t.public }
+        model.taskSelectors.every { TaskSelector ts -> publicSelectors.contains(ts.name) == ts.public }
     }
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.1")
@@ -82,7 +82,7 @@ project(':b:c') {
         then:
         model.tasks.every { Task t ->
             try {
-                t.visible
+                t.public
                 false
             } catch (UnsupportedMethodException e) {
                 true
@@ -90,7 +90,7 @@ project(':b:c') {
         }
         model.taskSelectors.every { TaskSelector t ->
             try {
-                t.visible
+                t.public
                 false
             } catch (UnsupportedMethodException e) {
                 true

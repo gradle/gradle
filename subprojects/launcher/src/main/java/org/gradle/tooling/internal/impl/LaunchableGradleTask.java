@@ -29,7 +29,7 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
     private String name;
     private String description;
     private String displayName;
-    private boolean visible;
+    private boolean isPublic;
 
     public String getPath() {
         return path;
@@ -75,17 +75,17 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
         return null;
     }
 
-    public boolean isVisible() {
-        return visible;
+    public boolean isPublic() {
+        return isPublic;
     }
 
-    public LaunchableGradleTask setVisible(boolean visible) {
-        this.visible = visible;
+    public LaunchableGradleTask setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{path='" + path + "',visible=" + visible + "}";
+        return getClass().getSimpleName() + "{path='" + path + "',public=" + isPublic + "}";
     }
 }
