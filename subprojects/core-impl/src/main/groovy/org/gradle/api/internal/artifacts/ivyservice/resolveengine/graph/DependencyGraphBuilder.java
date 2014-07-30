@@ -285,7 +285,7 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleVersionIdentifier getSelected() {
-            return selector.getSelected().getSelectedId();
+            return selector.getSelected().getId();
         }
 
         public ComponentSelectionReason getReason() {
@@ -564,10 +564,6 @@ public class DependencyGraphBuilder {
 
         public void addConfiguration(ConfigurationNode configurationNode) {
             configurations.add(configurationNode);
-        }
-
-        public ModuleVersionIdentifier getSelectedId() {
-            return id;
         }
 
         public ComponentSelectionReason getSelectionReason() {

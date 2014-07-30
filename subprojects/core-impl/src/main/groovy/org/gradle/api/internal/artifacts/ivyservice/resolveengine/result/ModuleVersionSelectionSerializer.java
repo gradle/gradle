@@ -40,7 +40,7 @@ public class ModuleVersionSelectionSerializer implements Serializer<ModuleVersio
     }
 
     public void write(Encoder encoder, ModuleVersionSelection value) throws IOException {
-        idSerializer.write(encoder, value.getSelectedId());
+        idSerializer.write(encoder, value.getId());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());
     }

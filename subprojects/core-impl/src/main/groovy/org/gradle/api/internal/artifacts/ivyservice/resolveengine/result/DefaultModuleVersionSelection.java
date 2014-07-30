@@ -31,7 +31,7 @@ class DefaultModuleVersionSelection implements ModuleVersionSelection {
         this.componentIdentifier = componentIdentifier;
     }
 
-    public ModuleVersionIdentifier getSelectedId() {
+    public ModuleVersionIdentifier getId() {
         return id;
     }
 
