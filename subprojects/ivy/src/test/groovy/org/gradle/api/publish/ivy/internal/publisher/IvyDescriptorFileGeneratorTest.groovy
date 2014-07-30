@@ -48,6 +48,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
             info.@module == "my-name"
             info.@revision == "my-version"
             info.@status.isEmpty()
+            info.@branch.isEmpty()
             configurations.size() == 1
             configurations.conf.isEmpty()
             publications.size() == 1
@@ -85,14 +86,6 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
         then:
         ivyXml.info.@branch == "someBranch"
-    }
-
-    def "does not write branch attribute when branch is null" () {
-        when:
-        generator.setBranch(null)
-
-        then:
-        ivyXml.info.@branch.size() == 0
     }
 
     def "writes supplied configurations"() {

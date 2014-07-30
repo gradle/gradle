@@ -29,6 +29,7 @@ project(":project1") {
                 module 'project1-sample'
                 revision '1.1'
                 descriptor.status = 'milestone'
+                descriptor.branch = 'testing'
 
                 from components.java
             }

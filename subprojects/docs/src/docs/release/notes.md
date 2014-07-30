@@ -150,6 +150,31 @@ Gradle 2.1 includes Groovy 2.3.6, where Gradle 2.0 included Groovy 2.3.4.
 This is a non breaking change.
 All build scripts and plugins that work with Gradle 2.0 will continue to work without change.
 
+### Support for the 'branch' attribute when publishing or resolving Ivy modules
+
+The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports setting the 'branch' attribute on the module being published:
+
+    publishing {
+        publications {
+            ivy(IvyPublication) {
+                descriptor.branch = 'testing'
+            }
+        }
+    }
+
+When resolving Ivy modules, component metadata rules can also access the branch attribute via the
+[IvyModuleMetadata](javadoc/org/gradle/api/artifacts/IvyModuleMetadata.html) interface.
+
+    dependencies {
+        components {
+            eachComponent { ComponentMetadataDetails details, IvyModuleMetadata ivyModule ->
+                if (details.id.group == 'my.org' && ivyModule.branch == 'testing') {
+                    details.changing = true
+                }
+            }
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

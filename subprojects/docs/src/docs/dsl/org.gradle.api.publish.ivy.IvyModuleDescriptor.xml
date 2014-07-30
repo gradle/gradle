@@ -7,6 +7,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>branch</td>
+            </tr>
+            <tr>
+                <td>status</td>
+            </tr>
         </table>
     </section>
     <section>

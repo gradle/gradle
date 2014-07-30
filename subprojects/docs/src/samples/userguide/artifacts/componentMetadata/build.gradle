@@ -39,3 +39,15 @@ task listBirds << {
     configurations.config3.each { println it.name }
 }
 // END SNIPPET custom-status-scheme
+
+// START SNIPPET ivy-component-metadata-rule
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details, IvyModuleMetadata ivyModule ->
+            if (details.id.group == 'my.org' && ivyModule.branch == 'testing') {
+                details.changing = true
+            }
+        }
+    }
+}
+// END SNIPPET ivy-component-metadata-rule

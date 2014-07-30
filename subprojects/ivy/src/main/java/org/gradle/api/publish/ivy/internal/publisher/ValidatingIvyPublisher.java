@@ -44,14 +44,13 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
-        validateIdentity(publication);
-        validateIvyMetadata(publication);
+        validateMetadata(publication);
         validateArtifacts(publication);
         checkNoDuplicateArtifacts(publication);
         delegate.publish(publication, repository);
     }
 
-    private void validateIdentity(IvyNormalizedPublication publication) {
+    private void validateMetadata(IvyNormalizedPublication publication) {
         IvyPublicationIdentity identity = publication.getProjectIdentity();
 
         IvyFieldValidator organisation = field(publication, "organisation", identity.getOrganisation())
@@ -68,12 +67,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
         revision.matches(moduleId.getVersion());
-    }
 
-    private void validateIvyMetadata(IvyNormalizedPublication publication) {
-        if (moduleDescriptorParser.getModuleDescriptor() == null) {
-            parseIvyFile(publication);
-        }
         ModuleDescriptor descriptor = moduleDescriptorParser.getModuleDescriptor();
         field(publication, "branch", descriptor.getModuleRevisionId().getBranch())
                 .optionalNotEmpty()

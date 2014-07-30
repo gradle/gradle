@@ -144,18 +144,20 @@
             <title>Identity values for the published project</title>
             <para>
                 The generated Ivy module descriptor file contains an <literal>&lt;info&gt;</literal> tag that identifies the module.
-                The default identity values are derived from the following project properties:
+                The default identity values are derived from the following:
             </para>
             <itemizedlist>
                 <listitem><literal>organisation</literal> - <apilink class="org.gradle.api.Project" method="getGroup()" /></listitem>
                 <listitem><literal>module</literal> - <apilink class="org.gradle.api.Project" method="getName()" /></listitem>
                 <listitem><literal>revision</literal> - <apilink class="org.gradle.api.Project" method="getVersion()" /></listitem>
                 <listitem><literal>status</literal> - <apilink class="org.gradle.api.Project" method="getStatus()" /></listitem>
+                <listitem><literal>branch</literal> - (not set)</listitem>
             </itemizedlist>
 
             <para>
                 Overriding the default identity values is easy: simply specify the <literal>organisation</literal>, <literal>module</literal>
-                or <literal>revision</literal> attributes when configuring the <literal>IvyPublication</literal>.
+                or <literal>revision</literal> attributes when configuring the <literal>IvyPublication</literal>.  The <literal>status</literal>
+                and <literal>branch</literal> attributes can be set via the <literal>descriptor</literal> property.
             </para>
             <sample dir="ivy-publish/multiple-publications" id="publishing_ivy:publish-customize-identity" title="customizing the publication identity">
                 <sourcefile file="build.gradle" snippet="customize-identity" />
@@ -166,7 +168,8 @@
             </tip>
             <para>
                 Gradle will handle any valid Unicode character for organisation, module and revision (as well as artifact name, extension and classifier).
-                The only values that are explicitly prohibited are '<literal>\</literal>', '<literal>/</literal>' and any ISO control character. The supplied values are validated early in publication.
+                The only values that are explicitly prohibited are '<literal>\</literal>', '<literal>/</literal>' and any ISO control character.
+                The supplied values are validated early during publication.
             </para>
         </section>
         <section>
