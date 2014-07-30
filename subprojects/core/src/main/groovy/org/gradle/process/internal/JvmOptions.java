@@ -168,7 +168,7 @@ public class JvmOptions {
             }
             matcher = BOOTSTRAP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
-                setBootstrapClasspath((Object[])matcher.group(1).split(Pattern.quote(File.pathSeparator)));
+                setBootstrapClasspath((Object[]) matcher.group(1).split(Pattern.quote(File.pathSeparator)));
                 continue;
             }
             if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
