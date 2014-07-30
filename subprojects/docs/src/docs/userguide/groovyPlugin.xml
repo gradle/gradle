@@ -38,42 +38,32 @@
             <thead>
                 <tr>
                     <td>Task name</td>
-                    <td>&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Depends on</td>
-                    <td>&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Type</td>
                     <td>Description</td>
                 </tr>
             </thead>
             <tr>
                 <td><literal>compileGroovy</literal></td>
-                <td></td>
                 <td><literal>compileJava</literal></td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
                 <td>Compiles production Groovy source files.</td>
             </tr>
             <tr>
                 <td><literal>compileTestGroovy</literal></td>
-                <td></td>
                 <td><literal>compileTestJava</literal></td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
                 <td>Compiles test Groovy source files.</td>
             </tr>
             <tr>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Groovy</literal></td>
-                <td></td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
                 <td>Compiles the given source set's Groovy source files.</td>
             </tr>
             <tr>
                 <td><literal>groovydoc</literal></td>
-                <td></td>
                 <td>-</td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.javadoc.Groovydoc"/></td>
                 <td>Generates API documentation for the production Groovy source files.</td>
             </tr>
@@ -125,7 +115,6 @@
             <thead>
                 <tr>
                     <td>Directory</td>
-                    <td>&#160;&#160;&#160;&#160;</td>
                     <td>Meaning</td>
                 </tr>
             </thead>
@@ -134,7 +123,6 @@
                 <td>
                     <filename>src/main/groovy</filename>
                 </td>
-                <td></td>
                 <td>Production Groovy sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectTestLayout.xml"/>
@@ -142,7 +130,6 @@
                 <td>
                     <filename>src/test/groovy</filename>
                 </td>
-                <td></td>
                 <td>Test Groovy sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectGenericLayout.xml"/>
@@ -150,7 +137,6 @@
                 <td>
                     <filename>src/<replaceable>sourceSet</replaceable>/groovy</filename>
                 </td>
-                <td></td>
                 <td>Groovy sources for the given source set. May also contain Java sources for joint compilation.</td>
             </tr>
         </table>
@@ -278,9 +264,6 @@
                     <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/groovy]</literal>
                 </td>
                 <td>
-                	<!-- Yes, this looks ridiculous here, but it looks good when it renders.  Without this, it
-                	renders badly. -->
-                    &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
                     The source directories containing the Groovy source files of this source set. May also contain
                     Java source files for joint compilation.
                 </td>

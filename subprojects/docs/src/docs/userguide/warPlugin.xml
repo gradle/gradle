@@ -114,7 +114,6 @@
                     <td>Property name</td>
                     <td>Type</td>
                     <td>Default value</td>
-                    <td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Description</td>
                 </tr>
             </thead>
@@ -128,7 +127,6 @@
                 <td>
                     <filename>src/main/webapp</filename>
                 </td>
-                <td></td>
                 <td>
                     The name of the web application source directory, relative to the project directory.
                 </td>
@@ -143,7 +141,6 @@
                 <td>
                     <filename><replaceable>projectDir</replaceable>/<replaceable>webAppDirName</replaceable></filename>
                 </td>
-                <td></td>
                 <td>
                     The web application source directory.
                 </td>

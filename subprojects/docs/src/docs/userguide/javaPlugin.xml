@@ -188,7 +188,6 @@
             <thead>
                 <tr>
                     <td>Task name</td>
-                    <td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Depends on</td>
                     <td>Type</td>
                     <td>Description</td>
@@ -198,7 +197,6 @@
                 <td>
                     <literal>compile<replaceable>SourceSet</replaceable>Java</literal>
                 </td>
-                <td>&#160;</td>
                 <td>
                     All tasks which produce the source set's compile classpath.
                 </td>
@@ -209,7 +207,6 @@
                 <td>
                     <literal>process<replaceable>SourceSet</replaceable>Resources</literal>
                 </td>
-                <td>&#160;</td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
                 <td>Copies the given source set's resources into the classes directory.</td>
@@ -218,7 +215,6 @@
                 <td>
                     <literal><replaceable>sourceSet</replaceable>Classes</literal>
                 </td>
-                <td>&#160;</td>
                 <td>
                     The <literal>compile<replaceable>SourceSet</replaceable>Java</literal> task and
                     the <literal>process<replaceable>SourceSet</replaceable>Resources</literal> task.
@@ -429,27 +425,21 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>&#160;&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Extends</td>
                     <td>Used by tasks</td>
-                    <td>&#160;&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Meaning</td>
                 </tr>
             </thead>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
-                <td></td>
                 <td>-</td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
-                <td></td>
                 <td>Compile time dependencies for the given source set</td>
             </tr>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>Runtime</literal></td>
-                <td></td>
                 <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
                 <td>-</td>
-                <td></td>
                 <td>Runtime dependencies for the given source set</td>
             </tr>
         </table>

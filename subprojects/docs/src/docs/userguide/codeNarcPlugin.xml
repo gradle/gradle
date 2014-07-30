@@ -21,7 +21,6 @@
             <thead>
                 <tr>
                     <td>Task name</td>
-                    <td>&#160;&#160;&#160;</td>
                     <td>Depends on</td>
                     <td>Type</td>
                     <td>Description</td>
@@ -31,7 +30,6 @@
                 <td>
                     <literal>codenarcMain</literal>
                 </td>
-                <td></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
                 <td>Runs CodeNarc against the production Groovy source files.</td>
@@ -40,7 +38,6 @@
                 <td>
                     <literal>codenarcTest</literal>
                 </td>
-                <td></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
                 <td>Runs CodeNarc against the test Groovy source files.</td>
@@ -49,7 +46,6 @@
                 <td>
                     <literal>codenarc<replaceable>SourceSet</replaceable></literal>
                 </td>
-                <td></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
                 <td>Runs CodeNarc against the given source set's Groovy source files.</td>

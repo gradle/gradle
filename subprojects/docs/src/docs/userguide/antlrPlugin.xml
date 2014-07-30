@@ -178,7 +178,6 @@
                     <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/antlr]</literal>
                 </td>
                 <td>
-                &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
                     The source directories containing the ANTLR grammar files of this source set.
                 </td>
             </tr>

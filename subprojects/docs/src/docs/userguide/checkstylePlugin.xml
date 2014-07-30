@@ -20,9 +20,7 @@
             <thead>
                 <tr>
                     <td>Task name</td>
-                    <td>&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Depends on</td>
-                    <td>&#160;&#160;&#160;&#160;&#160;</td>
                     <td>Type</td>
                     <td>Description</td>
                 </tr>
@@ -31,9 +29,7 @@
                 <td>
                     <literal>checkstyleMain</literal>
                 </td>
-                <td></td>
                 <td><literal>classes</literal></td>
-                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
                 <td>Runs Checkstyle against the production Java source files.</td>
             </tr>
@@ -41,9 +37,7 @@
                 <td>
                     <literal>checkstyleTest</literal>
                 </td>
-                <td></td>
                 <td><literal>testClasses</literal></td>
-                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
                 <td>Runs Checkstyle against the test Java source files.</td>
             </tr>
@@ -51,9 +45,7 @@
                 <td>
                     <literal>checkstyle<replaceable>SourceSet</replaceable></literal>
                 </td>
-                <td></td>
                 <td><literal><replaceable>sourceSet</replaceable>Classes</literal></td>
-                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
                 <td>Runs Checkstyle against the given source set's Java source files.</td>
             </tr>

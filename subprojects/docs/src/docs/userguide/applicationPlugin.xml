@@ -61,7 +61,6 @@
                 <tr>
                     <td>Task name</td>
                     <td>Depends on</td>
-                    <td>&#160;&#160;&#160;</td>
                     <td>Type</td>
                     <td>Description</td>
                 </tr>
@@ -73,7 +72,6 @@
                 <td>
                     <literal>classes</literal>
                 </td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.JavaExec"/></td>
                 <td>Starts the application.</td>
             </tr>
@@ -84,7 +82,6 @@
                 <td>
                     <literal>jar</literal>
                 </td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.application.CreateStartScripts"/></td>
                 <td>Creates OS specific scripts to run the project as a JVM application.</td>
             </tr>
@@ -95,7 +92,6 @@
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
                 </td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.Sync"/></td>
                 <td>Installs the application into a specified directory.</td>
             </tr>
@@ -106,18 +102,16 @@
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
                 </td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
                 <td>Creates a full distribution ZIP archive including runtime libraries and OS specific scripts.</td>
             </tr>
-	        <tr>
+            <tr>
                 <td>
                     <literal>distTar</literal>
                 </td>
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
                 </td>
-                <td></td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Tar"/></td>
                 <td>Creates a full distribution TAR archive including runtime libraries and OS specific scripts.</td>
             </tr>

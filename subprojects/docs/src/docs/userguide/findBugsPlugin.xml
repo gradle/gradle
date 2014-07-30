@@ -21,9 +21,7 @@
             <thead>
                 <tr>
                     <td>Task name</td>
-                    <td>&#160;&#160;&#160;&#160;</td>
                     <td>Depends on</td>
-                    <td>&#160;&#160;&#160;&#160;</td>
                     <td>Type</td>
                     <td>Description</td>
                 </tr>
@@ -32,9 +30,7 @@
                 <td>
                     <literal>findbugsMain</literal>
                 </td>
-                <td></td>
                 <td><literal>classes</literal></td>
-                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.FindBugs"/></td>
                 <td>Runs FindBugs against the production Java source files.</td>
             </tr>
@@ -42,9 +38,7 @@
                 <td>
                     <literal>findbugsTest</literal>
                 </td>
-                <td></td>
                 <td><literal>testClasses</literal></td>
-                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.FindBugs"/></td>
                 <td>Runs FindBugs against the test Java source files.</td>
             </tr>
@@ -52,11 +46,9 @@
                 <td>
                     <literal>findbugs<replaceable>SourceSet</replaceable></literal>
                 </td>
-                <td></td>
                 <td>
                     <literal><replaceable>sourceSet</replaceable>Classes</literal>
                 </td>
-                <td></td>
                 <td><apilink class="org.gradle.api.plugins.quality.FindBugs"/></td>
                 <td>Runs FindBugs against the given source set's Java source files.</td>
             </tr>
