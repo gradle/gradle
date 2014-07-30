@@ -227,9 +227,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 #### Open issues
 
-- Rework the native & JVM component models for consistency and extensibility.
 - Native package structure needs to be more consistent with JVM package structure.
-- When to document and announce the new JVM plugins?
 - Need to merge `SoftwareComponent` into `ProjectComponent`
 
 ## Feature: Custom plugin defines a custom library type
@@ -770,13 +768,10 @@ For example:
 
 This story moves definition and configuration of the source sets for a component to live with the other component configuration.
 
-1. Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
-    - This is simply a source set that contains other source sets.
-    - This step allows arbitrary source sets to be added to the `sources { ... }` container.
 1. Allow a component's source sets to be defined as part of the component definition:
-    - Replace `ComponentSpec.getSource()` with a `getSources()` method return a `CompositeSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
-    - Add a `ComponentSpec.source(Action<? super CompositeSourceSet>)` method.
-    - Change language plugins to add source sets via the component's source container rather than the project's source container.
+    - Replace `ComponentSpec.getSource()` with a `getSources()` method return a `FunctionalSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
+    - Add a `ComponentSpec.source(Action<? super FunctionalSourceSet>)` method.
+    - Change `ComponentModelBasePlugin.createLanguageSourceSets` to add source sets via the component's source container rather than the project's source container.
     - This step allows configuration via `component.source { ... }`.
 1. Review samples to make use of this.
 
@@ -804,7 +799,11 @@ This story moves definition and configuration of the source sets for a component
 
 #### Open issues
 
+- Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
 - Flatten out all source sets into `project.sources`. Would need to use something other than a named domain object container.
+- Change `ComponentModelBasePlugin.createLanguageSourceSets` to a model rule
+    - This means that source sets will not be created eagerly, which means that access to sources {} will need to be in a model block, or via ComponentSpec.sources()
+    - In order for this to work, we need to be able to reference other model elements in a DSL model rule
 
 ### Story: Only attach source sets of relevant languages to component
 
