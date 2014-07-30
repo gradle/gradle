@@ -634,10 +634,15 @@ Note: the class loading/visibility required by this story does not reflect the f
 - ~~Plugin can access classes from Gradle API~~
 - ~~Plugin can access classes from Gradle core plugins~~
 - ~~Plugin cannot access Gradle internal implementation classes~~
-- Failed resolution of module implementation from specified repository fails, with error message indicating why resolve was happening
 - ~~Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message~~
-- Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message
-- Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message
+- ~~Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message~~
+- ~~Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message~~
+
+### Open Issues
+
+* If a dependency of a plugin fails to resolve, the user may have a hard time working out why that dependency is being downloaded - we should inform them that it's being resolved as part of `buildscript.configurations.classpath` because of a plugin 
+
+> 
 
 ## Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”
 
@@ -721,6 +726,22 @@ Before actually applying plugins (potentially expensive), all required plugins s
 
 ## Story: User is notified of use of 'deprecated' plugin
 
+## Story: User is informed of reason for requirement of “buildscript” dependency due to non declarative plugin
+
+Given:
+
+    plugins {
+      id "foo.bar" version "1.0"
+    }
+    
+Where the `foo.bar` plugin implementation module depends on 'some-library', and some-library is not available in jCenter and is not available in any of the `buildscript.repositories`,
+The user is going to get a dependency resolution error claiming that 'some-library' could not be resolved.
+The user has no way of knowing that 'some-library' is being resolved due to this plugin.
+To diagnose this they would have to have knowledge of each plugin's dependencies.
+
+### Test Coverage 
+
+- Failed resolution of module implementation of non declarative plugin fails with error message indicating why resolve was happening
 
 # Milestone 3 - declarative plugins
 
