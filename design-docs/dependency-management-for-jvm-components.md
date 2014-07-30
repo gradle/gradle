@@ -225,11 +225,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Can combine old and new JVM plugins in the same project
     - `gradle assemble` builds both jars
 
-#### Open issues
-
-- Native package structure needs to be more consistent with JVM package structure.
-- Need to merge `SoftwareComponent` into `ProjectComponent`
-
 ## Feature: Custom plugin defines a custom library type
 
 This features allows the development of a custom plugin that can contribute Library, Binary and Task instances to the language domain.
@@ -478,6 +473,15 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 
 - Uses same conventions as a Java library.
 - No dependencies.
+
+### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
+
+- Rename 'cpp' project to 'language-native'
+- Native package structure needs to be more consistent with JVM package structure.
+
+#### Open issues
+
+- Better naming scheme than 'language-xxx': 'xxx-platform'? 'xxx-runtime'?
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
