@@ -8,9 +8,8 @@ publishing {
     publications {
         ivyCustom(IvyPublication) {
             descriptor.withXml {
-                asNode().info[0].
-				appendNode('description',
-						   'A demonstration of ivy descriptor customization')
+                asNode().info[0].appendNode('description',
+                                            'A demonstration of ivy descriptor customization')
             }
         }
     }

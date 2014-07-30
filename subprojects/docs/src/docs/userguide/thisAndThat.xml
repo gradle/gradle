@@ -77,7 +77,7 @@
         <sample id="properties" dir="userguide/tutorial/properties" title="Setting properties with a gradle.properties file">
             <sourcefile file="gradle.properties"/>
             <sourcefile file="build.gradle"/>
-            <output args="-q -PcmdLineProp=abc -Dorg.gradle.project.sysProp=def printProps"/>
+            <output args="-q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps"/>
         </sample>
         <section id='sub:checking_for_project_properties'>
             <title>Checking for project properties</title>

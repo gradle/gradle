@@ -36,8 +36,7 @@ task generate(type:  MyTaskType) {
 }
 
 artifacts {
-    archives file: generate.destFile, name: 'my-artifact',
-			 type: 'text', builtBy: generate
+    archives file: generate.destFile, name: 'my-artifact', type: 'text', builtBy: generate
 }
 //END SNIPPET map-file-artifact
 
