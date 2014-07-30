@@ -16,6 +16,7 @@
 
 package org.gradle.runtime.base.internal.registry;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.PluginApplication;
@@ -87,12 +88,15 @@ public class ComponentModelPluginApplicationAction implements PluginApplicationA
 
         final Project project = (Project) target;
         ComponentSpecContainer componentSpecs = project.getExtensions().getByType(ComponentSpecContainer.class);
-        componentSpecs.registerFactory(componentModel.type(), new NamedDomainObjectFactory() {
-            public Object create(String name) {
-                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return DefaultLibrarySpec.create((Class<DefaultLibrarySpec>) componentModel.implementation(), id, instantiator);
-            }
-        });
-
+        try{
+            componentSpecs.registerFactory(componentModel.type(), new NamedDomainObjectFactory() {
+                public Object create(String name) {
+                    ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
+                    return DefaultLibrarySpec.create((Class<DefaultLibrarySpec>) componentModel.implementation(), id, instantiator);
+                }
+            });
+        }catch(GradleException ex){
+            throw new InvalidComponentModelException(String.format("Cannot declare component of type '%s'.", componentModel.type().getSimpleName()), ex);
+        }
     }
 }

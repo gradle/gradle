@@ -209,7 +209,7 @@ BUILD SUCCESSFUL"""))
         fails "tasks"
         then:
         errorOutput.contains(TextUtil.toPlatformLineSeparators("""> Failed to apply plugin [class 'MyOtherPlugin']
-   > Cannot register a factory for type SampleLibrary because a factory for this type already registered."""))
+   > Cannot declare component of type 'SampleLibrary'."""))
     }
 
     def buildWithCustomComponentPlugin() {
