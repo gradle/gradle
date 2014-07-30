@@ -404,9 +404,11 @@ We would like to thank the following community members for making contributions 
 * [Stevo Slavić](https://github.com/sslavic) - updates to wrapper sample.
 * [Björn Kautler](https://github.com/Vampire) - Changing rootProject projectDir from settings.gradle does not work (GRADLE-3086)
 * [Viktor Nordling](https://github.com/viktornordling) - Don't re-check repository for missing module every 24 hours (GRADLE-3107)
-* [Harald Schmitt](https://github.com/surfing) - Restrict SFTP authentication attempts to password (GRADLE-3133)
+* [Harald Schmitt](https://github.com/surfing)
+    - Restrict SFTP authentication attempts to password (GRADLE-3133)
+    - Improvements to internal test infrastructure
 * [Joern Huxhorn](https://github.com/huxi) - Documentation improvements.
-* [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements.
+* [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements. 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

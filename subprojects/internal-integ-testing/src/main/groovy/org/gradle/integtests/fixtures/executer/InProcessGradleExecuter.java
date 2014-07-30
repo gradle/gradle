@@ -30,11 +30,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.FixedBuildCancellationToken;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.jvm.Jvm;
@@ -64,9 +60,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
-import static org.gradle.util.Matchers.hasMessage;
-import static org.gradle.util.Matchers.normalizedLineSeparators;
-import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -213,7 +207,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             assertEquals(Charset.forName(defaultEncoding), Charset.defaultCharset());
         }
         String defaultLanguage = getImplicitJvmSystemProperties().get("user.language");
-        if(defaultLanguage != null) {
+        if (defaultLanguage != null) {
             assertEquals(defaultLanguage, Locale.getDefault().getLanguage());
         }
         assertFalse(isRequireGradleHome());
