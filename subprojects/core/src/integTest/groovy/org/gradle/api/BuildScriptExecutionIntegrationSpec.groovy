@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
@@ -37,6 +38,7 @@ task check << {
         succeeds 'check'
     }
 
+    @Ignore
     @Unroll("default language for gradle build switched to #language")
     def "builds can be executed with different default locales"() {
         given:
