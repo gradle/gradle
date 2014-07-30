@@ -7,11 +7,8 @@ task show << {
 }
 // END SNIPPET apply-by-id
 // START SNIPPET apply-by-type
-apply plugin: org.gradle.api.plugins.JavaPlugin
-// END SNIPPET apply-by-type
-// START SNIPPET apply-by-type-with-import
 apply plugin: JavaPlugin
-// END SNIPPET apply-by-type-with-import
+// END SNIPPET apply-by-type
 // START SNIPPET explicit-apply
 apply plugin: 'java'
 apply plugin: 'groovy'
