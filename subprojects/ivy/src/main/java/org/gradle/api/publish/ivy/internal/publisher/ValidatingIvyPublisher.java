@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Disconnect
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedIvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
@@ -63,20 +63,20 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .notEmpty()
                 .validInFileName();
 
-        ModuleVersionIdentifier moduleId = parseIvyFile(publication);
+        MutableModuleVersionMetaData metadata = parseIvyFile(publication);
+        ModuleVersionIdentifier moduleId = metadata.getId();
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
         revision.matches(moduleId.getVersion());
 
-        ModuleDescriptor descriptor = moduleDescriptorParser.getModuleDescriptor();
-        field(publication, "branch", descriptor.getModuleRevisionId().getBranch())
+        field(publication, "branch", metadata.getDescriptor().getModuleRevisionId().getBranch())
                 .optionalNotEmpty()
                 .doesNotContainSpecialCharacters(true);
     }
 
-    private ModuleVersionIdentifier parseIvyFile(IvyNormalizedPublication publication) {
+    private MutableModuleVersionMetaData parseIvyFile(IvyNormalizedPublication publication) {
         try {
-            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getDescriptorFile()).getId();
+            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getDescriptorFile());
         } catch (MetaDataParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         }
