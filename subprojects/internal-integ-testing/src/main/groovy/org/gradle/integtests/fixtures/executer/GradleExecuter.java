@@ -170,6 +170,15 @@ public interface GradleExecuter {
     GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding);
 
     /**
+     * Sets the default language to use.
+     *
+     * Only makes sense for forking executers.
+     *
+     * @return this executer
+     */
+    GradleExecuter withDefaultLanguage(String defaultLanguage);
+
+    /**
      * Set the number of seconds an idle daemon should live for.
      *
      * @param secs

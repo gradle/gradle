@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
     def "build scripts must be encoded using utf-8"() {
@@ -32,8 +33,27 @@ task check << {
 }
 """, "UTF-8")
         assert file('build.gradle').getText("ISO-8859-15") != file('build.gradle').getText("UTF-8")
-
         expect:
         succeeds 'check'
     }
+
+    @Unroll("default language for gradle build switched to #language")
+    def "builds can be executed with different default locales"() {
+        given:
+        executer.withDefaultLanguage(language)
+
+        and:
+        buildFile.setText("""
+task check << {
+    assert Locale.getDefault().language == "${language}"
+}
+""", "UTF-8")
+
+        expect:
+        succeeds 'check'
+
+       where:
+       language << ['de', 'en']
+    }
+
 }
