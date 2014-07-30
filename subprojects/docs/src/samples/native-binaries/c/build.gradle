@@ -51,7 +51,8 @@ binaries.all {
 // END SNIPPET compiler-args
 
 // START SNIPPET all-shared-libraries
-// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+// For any shared library binaries built with Visual C++,
+// define the DLL_EXPORT macro
 binaries.withType(SharedLibraryBinarySpec) {
     if (toolChain in VisualCpp) {
         cCompiler.args "/Zi"

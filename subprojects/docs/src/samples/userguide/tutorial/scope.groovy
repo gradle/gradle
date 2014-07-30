@@ -13,8 +13,16 @@ closure = {
 }
 
 def method() {
-    try {localScope1} catch(MissingPropertyException e) {println 'localScope1NotAvailable' }
-    try {localScope2} catch(MissingPropertyException e) {println 'localScope2NotAvailable' }
+    try {
+        localScope1
+    } catch (MissingPropertyException e) {
+        println 'localScope1NotAvailable'
+    }
+    try {
+        localScope2
+    } catch(MissingPropertyException e) {
+        println 'localScope2NotAvailable'
+    }
     println scriptScope
 }
 

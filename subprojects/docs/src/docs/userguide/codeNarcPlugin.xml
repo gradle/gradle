@@ -6,7 +6,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the CodeNarc plugin, include in your build script:</para>
+        <para>To use the CodeNarc plugin, include the following in your build script:</para>
         <sample id="useCodeNarcPlugin" dir="codeQuality" title="Using the CodeNarc plugin">
             <sourcefile file="build.gradle" snippet="use-codenarc-plugin"/>
         </sample>
@@ -108,7 +108,7 @@
 
     <section>
         <title>Configuration</title>
-        <para>See <apilink class="org.gradle.api.plugins.quality.CodeNarcExtension"/>.</para>
+        <para>See the <apilink class="org.gradle.api.plugins.quality.CodeNarcExtension"/> class in the API documentation.</para>
     </section>
 
 </chapter>

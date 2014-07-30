@@ -402,7 +402,7 @@
                     <literal>GRADLE_USER_HOME</literal>
                 </term>
                 <listitem>
-                    <para>Specifies the Gradle user home directory.</para>
+                    <para>Specifies the Gradle user home directory (which defaults to “<literal>USER_HOME/.gradle</literal>” if not set).</para>
                 </listitem>
             </varlistentry>
             <varlistentry>

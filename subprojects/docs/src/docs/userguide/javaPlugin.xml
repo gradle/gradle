@@ -17,13 +17,13 @@
 <chapter id='java_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Java Plugin</title>
 
-    <para>The Java plugin adds Java compilation, testing and bundling capabilities to a project. It serves as the basis
+    <para>The Java plugin adds Java compilation along with testing and bundling capabilities to a project. It serves as the basis
         for many of the other Gradle plugins.
     </para>
 
     <section>
         <title>Usage</title>
-        <para>To use the Java plugin, include in your build script:</para>
+        <para>To use the Java plugin, include the following in your build script:</para>
         <sample id="useJavaPlugin" dir="java/quickstart" title="Using the Java plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -43,8 +43,9 @@
         </para>
         <para>The Java plugin defines two standard source sets, called <literal>main</literal> and <literal>test</literal>.
             The <literal>main</literal> source set contains your production source code, which is compiled and assembled
-            into a JAR file. The <literal>test</literal> source set contains your unit test source code, which is
-            compiled and executed using JUnit or TestNG.
+            into a JAR file. The <literal>test</literal> source set contains your test source code, which is
+            compiled and executed using JUnit or TestNG.  These can be unit tests, integration tests, acceptance tests,
+            or any combination that is useful to you.
         </para>
     </section>
 
@@ -85,7 +86,7 @@
                     <literal>classes</literal>
                 </td>
                 <td>
-                    <literal>compileJava</literal> and <literal>processResources</literal>.
+                    The <literal>compileJava</literal> task and the <literal>processResources</literal> task.
                     Some plugins add additional compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
@@ -114,7 +115,7 @@
                     <literal>testClasses</literal>
                 </td>
                 <td>
-                    <literal>compileTestJava</literal> and <literal>processTestResources</literal>.
+                    <literal>compileTestJava</literal> task and <literal>processTestResources</literal> task.
                     Some plugins add additional test compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
@@ -158,7 +159,7 @@
                     The tasks which produce the artifacts in the <literal>archives</literal> configuration, including <literal>jar</literal>.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
-                <td>Uploads the artifacts in the <literal>archives</literal> configuration, including the JAR file.</td>
+                <td>Uploads artifacts in the <literal>archives</literal> configuration, including the JAR file.</td>
             </tr>
             <tr>
                 <td>
@@ -174,8 +175,8 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Deletes the output files produced by the specified task. For example <literal>cleanJar</literal>
-                    will delete the JAR file created by the <literal>jar</literal> task, and
+                <td>Deletes files created by specified task. <literal>cleanJar</literal>
+					will delete the JAR file created by the <literal>jar</literal> task, and
                     <literal>cleanTest</literal> will delete the test results created by the <literal>test</literal> task.
                 </td>
             </tr>
@@ -215,8 +216,8 @@
                     <literal><replaceable>sourceSet</replaceable>Classes</literal>
                 </td>
                 <td>
-                    <literal>compile<replaceable>SourceSet</replaceable>Java</literal> and
-                    <literal>process<replaceable>SourceSet</replaceable>Resources</literal>.
+                    The <literal>compile<replaceable>SourceSet</replaceable>Java</literal> task and
+                    the <literal>process<replaceable>SourceSet</replaceable>Resources</literal> task.
                     Some plugins add additional compilation tasks for the source set.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
@@ -273,7 +274,7 @@
                     <literal>buildNeeded</literal>
                 </td>
                 <td>
-                    <literal>build</literal> and <literal>build</literal> tasks in all project lib dependencies of the
+                    <literal>build</literal> and <literal>buildNeeded</literal> tasks in all project lib dependencies of the
                     <literal>testRuntime</literal> configuration.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
@@ -284,7 +285,7 @@
                     <literal>buildDependents</literal>
                 </td>
                 <td>
-                    <literal>build</literal> and <literal>build</literal> tasks in all projects with a project lib
+                    <literal>build</literal> and <literal>buildDependents</literal> tasks in all projects with a project lib
                     dependency on this project in a <literal>testRuntime</literal> configuration.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
@@ -292,10 +293,10 @@
             </tr>
             <tr>
                 <td>
-                    <literal>build<replaceable>ConfigurationName</replaceable></literal>
+                    <literal>build<replaceable>ConfigName</replaceable></literal>
                 </td>
                 <td>
-                    The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
+                    The tasks which produce the artifacts in configuration <replaceable>ConfigName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Assembles the artifacts in the specified configuration.
@@ -304,10 +305,10 @@
             </tr>
             <tr>
                 <td>
-                    <literal>upload<replaceable>ConfigurationName</replaceable></literal>
+                    <literal>upload<replaceable>ConfigName</replaceable></literal>
                 </td>
                 <td>
-                    The tasks which uploads the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
+                    The tasks which uploads the artifacts in configuration <replaceable>ConfigName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
                 <td>Assembles and uploads the artifacts in the specified configuration.
@@ -337,6 +338,7 @@
             <thead>
                 <tr>
                     <td>Directory</td>
+                    <td></td>
                     <td>Meaning</td>
                 </tr>
             </thead>
@@ -429,16 +431,16 @@
                 </tr>
             </thead>
             <tr>
-                <td><replaceable>sourceSet</replaceable>Compile</td>
+                <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
                 <td>-</td>
-                <td>compile<replaceable>SourceSet</replaceable>Java</td>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
                 <td>Compile time dependencies for the given source set</td>
             </tr>
             <tr>
-                <td><replaceable>sourceSet</replaceable>Runtime</td>
-                <td><replaceable>sourceSet</replaceable>Compile</td>
+                <td><literal><replaceable>sourceSet</replaceable>Runtime</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
                 <td>-</td>
-                <td>Runtime time dependencies for the given source set</td>
+                <td>Runtime dependencies for the given source set</td>
             </tr>
         </table>
     </section>
@@ -657,7 +659,7 @@
                 <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, e.g.
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
-                <td>Value of the current used JVM</td>
+                <td>version of the current JVM in use</td>
                 <td>Java version compatibility to use when compiling Java source.</td>
             </tr>
             <tr>
@@ -925,8 +927,8 @@
             <para>
                 The Java plugin also adds a number of tasks which assemble the classes for the
                 source set, as shown in <xref linkend="java_source_set_tasks"/>. For example, for a source set called
-                <literal>intTest</literal>, you can run <userinput>gradle intTestClasses</userinput> to compile the
-                int test classes.
+                <literal>intTest</literal>, compiling the classes for this source set is done by
+                running <userinput>gradle intTestClasses</userinput>.
             </para>
             <sample id="compileSourceSet" dir="userguide/java/sourceSets" title="Compiling a source set">
                 <output args="intTestClasses"/>
@@ -973,7 +975,7 @@
                     <literal>classpath</literal>
                 </td>
                 <td><apilink class="org.gradle.api.file.FileCollection"/></td>
-                <td><literal>sourceSets.main.output + sourceSets.main.compileClasspath</literal></td>
+                <td><literal>sourceSets.main.output</literal> + <literal>sourceSets.main.compileClasspath</literal></td>
             </tr>
             <tr>
                 <td><literal>source</literal></td>
@@ -1102,18 +1104,18 @@
     <section id='sec:incremental_compile'>
         <title>Incremental java compilation</title>
         <para>Starting with Gradle 2.1, it is possible to compile java incrementally. This feature is still incubating.
-            See the <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task for information how to enable it.</para>
+            See the <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task for information on how to enable it.</para>
         <para>
             Main goals for incremental compilations are:
             <itemizedlist>
                 <listitem>Avoid wasting time compiling source classes that don't have to be compiled.
-                    This means faster builds, especially when a change to source class or a jar does not incur recompilation of many source classes that depend on the changed input.</listitem>
-                <listitem>Change as little output classes as possible. Classes that don't need to be recompiled remain unchanged in the output directory.
-                    An example scenario when this is really useful is using JRebel - the less output classes are changed the quicker the jvm can use refreshed classes.</listitem>
+                    This means faster builds, especially when a change to a source class or a jar does not incur recompilation of many source classes that depend on the changed input.</listitem>
+                <listitem>Change as few output classes as possible. Classes that don't need to be recompiled remain unchanged in the output directory.
+                    An example scenario when this is really useful is using JRebel - the fewer output classes are changed the quicker the jvm can use refreshed classes.</listitem>
             </itemizedlist>
             The incremental compilation at a high level:
             <itemizedlist>
-                <listitem>The detection of correct set of stale classes is reliable at some expense of speed.
+                <listitem>The detection of the correct set of stale classes is reliable at some expense of speed.
                     The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc.
                     Example: When a class with a public constant changes, we eagerly compile everything to avoid problems with constants inlined by the compiler.
                     Down the road we will tune the algorithm and caching so that incremental java compilation can be a default setting for every compile task.
@@ -1158,10 +1160,10 @@
                 maximum number of test classes to execute in a test process. The default is to execute an unlimited number
                 of tests in each test process.</para>
             <para>The task has an <literal>ignoreFailures</literal> property to control the behavior when tests fail.
-                Test always executes every test that it detects. It stops the build afterwards if <literal>ignoreFailures</literal>
+                The <literal>Test</literal> task always executes every test that it detects. It stops the build afterwards if <literal>ignoreFailures</literal>
                 is false and there are failing tests. The default value of <literal>ignoreFailures</literal> is false.
             </para>
-            <para>The <literal>testLogging</literal> property allows to configure which test events are going to be logged and at
+            <para>The <literal>testLogging</literal> property allows you to configure which test events are going to be logged and at
                 which detail level. By default, a concise message will be logged for every failed test. See
                 <apilink class="org.gradle.api.tasks.testing.logging.TestLoggingContainer"/> for how to tune test logging to your
                 preferences.
@@ -1188,7 +1190,7 @@
                 (<literal>-Dtest.single</literal>, <literal>test.include</literal> and friends).
                 The latter is based on files, e.g. the physical location of the test implementation class.
                 File-level test selection does not support many interesting scenarios that are possible with test-level filtering.
-                Some of them Gradle handles now and some will be satisfied in the future releases:
+                Some of them Gradle handles now and some will be satisfied in future releases:
                 <itemizedlist>
                     <listitem>Filtering at the level of specific test methods; executing a single test method</listitem>
                     <listitem>Filtering based on custom annotations (future)</listitem>
@@ -1201,15 +1203,15 @@
                 Test filtering feature has following characteristic:
                 <itemizedlist>
                     <listitem>Fully qualified class name or fully qualified method name is supported,
-                        e.g. "org.gradle.SomeTest", "org.gradle.SomeTest.someMethod"</listitem>
+                        e.g. “org.gradle.SomeTest”, “org.gradle.SomeTest.someMethod”</listitem>
                     <listitem>Wildcard '*' is supported for matching any characters</listitem>
-                    <listitem>Command line option "--tests" is provided to conveniently set the test filter.
+                    <listitem>Command line option “--tests” is provided to conveniently set the test filter.
                         Especially useful for the classic 'single test method execution' use case.
                         When the command line option is used, the inclusion filters declared in the build script are ignored.
                     </listitem>
-                    <listitem>Gradle tries best to filter the tests given limitations of particular test framework API.
+                    <listitem>Gradle tries to filter the tests given the limitations of the test framework API.
                         Some advanced, synthetic tests may not be fully compatible with filtering.
-                        However, vast majority of tests and use cases should be handled neatly.
+                        However, the vast majority of tests and use cases should be handled neatly.
                     </listitem>
                     <listitem>Test filtering supersedes the file-based test selection. The latter may be completely replaced in future.
                         We will grow the the test filtering api and add more kinds of filters.
@@ -1257,9 +1259,9 @@
             <note>This mechanism has been superseded by 'Test Filtering', described above.</note>
             <para>Setting a system property of <replaceable>taskName.single</replaceable> = <replaceable>testNamePattern</replaceable>
                   will only execute tests that match the specified <replaceable>testNamePattern</replaceable>.
-                  The <replaceable>taskName</replaceable> can be a full multi-project path like &quot;:sub1:sub2:test&quot;
+                  The <replaceable>taskName</replaceable> can be a full multi-project path like “:sub1:sub2:test”
                   or just the task name.  The <replaceable>testNamePattern</replaceable> will be used to form an include
-                  pattern of &quot;**/testNamePattern*.class&quot;.
+                  pattern of “**/testNamePattern*.class”;.
                   If no tests with this pattern can be found an exception is thrown. This is to shield you from false security.
                   If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception
                   is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the
@@ -1311,17 +1313,16 @@
                 When using TestNG, we scan for methods annotated with <classname>@Test</classname>.
             </para>
             <para>
-                Note that abstract classes are not executed. Gradle also scan up the inheritance tree into jar files
+                Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files
                 on the test classpath.
             </para>
             <para>
-                In case you don't want to use the test class detection, you can disable it by setting
-                <literal>scanForTestClasses</literal> to false. This will make the test task only use the includes /
-                excludes to find test classes.
-
-                If <literal>scanForTestClasses</literal> is disabled and no include or exclude patterns are specified, the
-                respective defaults are used. For include this is <literal>"**/*Tests.class", "**/*Test.class"</literal>
-                and the for exclude it is <literal>"**/Abstract*.class"</literal>.
+                If you don't want to use test class detection, you can disable it by setting
+                <literal>scanForTestClasses</literal> to false. This will make the test task only use includes /
+                excludes to find test classes. If <literal>scanForTestClasses</literal> is false and no include
+                / exclude patterns are specified, the defaults are
+                “<literal>**/*Tests.class</literal>”, “<literal>**/*Test.class</literal>” and 
+                “<literal>**/Abstract*.class</literal>” for include and exclude, respectively.
             </para>
         </section>
 
@@ -1382,8 +1383,8 @@
                     in its reporting of the test method execution.
                 </para>
                 <para>
-                    Given a parameterized test method named <literal>aParameterizedTestMethod</literal> that takes two parameters, it will be reported with the name:
-                    <literal>aParameterizedTestMethod(toStringValueOfParam1, toStringValueOfParam2)</literal>. This makes identifying the parameter values for a
+                    Given a parameterized test method named <literal>aTestMethod</literal> that takes two parameters, it will be reported with the name:
+                    <literal>aTestMethod(toStringValueOfParam1, toStringValueOfParam2)</literal>. This makes identifying the parameter values for a
                     particular iteration easy.
                 </para>
             </section>
@@ -1462,8 +1463,8 @@
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
                 <sourcefile file="build.gradle" snippet="merge"/>
             </sample>
-            <para>Manifest are merged in the order they are declared by the <literal>from</literal> statement. If
-            the based manifest and the merged manifest both define values for the same key, the merged manifest wins by default.
+            <para>Manifests are merged in the order they are declared by the <literal>from</literal> statement. If
+            the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default.
             You can fully customize the merge behavior by adding <literal>eachEntry</literal> actions in which
                 you have access to a <apilink class="org.gradle.api.java.archives.ManifestMergeDetails"/> instance for each entry
                 of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily,

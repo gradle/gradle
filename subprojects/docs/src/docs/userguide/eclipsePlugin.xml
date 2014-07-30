@@ -21,10 +21,10 @@
         making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>).
         Both external dependencies (including associated source and javadoc files) and project dependencies are considered.</para>
 
-    <para>Since 1.0-milestone-4 WTP-generating code was refactored into a separate plugin called <literal>eclipse-wtp</literal>.
-        So if you are interested in WTP integration then only apply the <literal>eclipse-wtp</literal> plugin. Otherwise applying <literal>eclipse</literal> plugin is enough.
-        This change was requested by Eclipse users who take advantage of <literal>war</literal> or <literal>ear</literal> plugin
-        but they don't use Eclipse WTP. Internally, <literal>eclipse-wtp</literal> also applies the <literal>eclipse</literal> plugin so you don't need to apply both of those plugins.
+    <para>Since version 1.0-milestone-4 of Gradle, the WTP-generating code was refactored into a separate plugin called <literal>eclipse-wtp</literal>.
+        So if you are interested in WTP integration then only apply the <literal>eclipse-wtp</literal> plugin. Otherwise applying the <literal>eclipse</literal> plugin is enough.
+        This change was requested by Eclipse users who take advantage of the <literal>war</literal> or <literal>ear</literal> plugins,
+        but who don't use Eclipse WTP. Internally, the <literal>eclipse-wtp</literal> plugin also applies the <literal>eclipse</literal> plugin so you don't need to apply both of those plugins.
     </para>
 
     <para>What exactly the Eclipse plugin generates depends on which other plugins are used:</para>
@@ -281,14 +281,15 @@
             <title>Merging</title>
             <para>Sections of existing Eclipse files that are also the target of generated content will be amended or overwritten,
                  depending on the particular section. The remaining sections will be left as-is.</para>
-            <section id="sec:complete-overwrite">
-                <title>Disabling merging with a complete overwrite</title>
-                <para>To completely overwrite existing Eclipse files, execute a clean task together with its corresponding generation task,
-                    for example <userinput>gradle cleanEclipse eclipse</userinput> (in that order). If you want to make this
-                    the default behavior, add <code>tasks.eclipse.dependsOn(cleanEclipse)</code> to your build script. This makes it
+            <section id="sec:complete-rewrite">
+                <title>Disabling merging with a complete rewrite</title>
+                <para>To completely rewrite existing Eclipse files, execute a clean task together with its corresponding generation task,
+                    like “<userinput>gradle cleanEclipse eclipse</userinput>” (in that order). If you want to make this
+                    the default behavior, add “<code>tasks.eclipse.dependsOn(cleanEclipse)</code>” to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
-                <para>Complete overwrite works equally well for individual files, for example by executing <userinput>gradle cleanEclipseClasspath eclipseClasspath</userinput>.
+                <para>This strategy can also be used for individual files that the plugin would generate.  For instance,
+                this can be done for the “<literal>.classpath</literal>” file with “<userinput>gradle cleanEclipseClasspath eclipseClasspath</userinput>”.
                 </para>
             </section>
         </section>

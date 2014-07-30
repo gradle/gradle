@@ -111,7 +111,6 @@
 
         <section>
             <title>External dependencies</title>
-
             <para>Usually, a Java project will have some dependencies on external JAR files. To reference these JAR
                 files in the project, you need to tell Gradle where to find them. In Gradle, artifacts such as JAR
                 files, are located in a <firstterm>repository</firstterm>. A repository can be used for fetching the
@@ -130,7 +129,7 @@
         </section>
 
         <section>
-            <title>customizing the project</title>
+            <title>Customizing the project</title>
             <para>The Java plugin adds a number of properties to your project. These properties have default values
                 which are usually sufficient to get started. It's easy to change these values if they don't suit. Let's
                 look at this for our sample. Here we will specify the version number for our Java project, along
@@ -169,12 +168,13 @@
         
 		<section>
             <title>Creating an Eclipse project</title>
-            <para>To import your project into Eclipse, you need to add another plugin to your build file:</para>
+            <para>To create the Eclipse-specific descriptor files, like <literal>.project</literal>, you need to add
+            another plugin to your build file:</para>
         	<sample id="javaQuickstart" dir="java/quickstart" title="Eclipse plugin">
             	<sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
         	</sample>
-        	<para>Now execute <userinput>gradle eclipse</userinput> command to generate Eclipse project files. More on Eclipse
-                task can be found in <xref linkend="eclipse_plugin"/>.
+        	<para>Now execute <userinput>gradle eclipse</userinput> command to generate Eclipse project files. More information
+        	about the <literal>eclipse</literal> task can be found in <xref linkend="eclipse_plugin"/>.
             </para>
         </section>
 
@@ -196,12 +196,16 @@
                 api/
                 services/webservice/
                 shared/
+                services/shared/
             </layout>
         </sample>
-        <para>Here we have three projects. Project <literal>api</literal> produces a JAR file which is shipped to the
+        <!--  TODO: Note that the "settings.gradle" lists four projects, also including "services:shared", in addition
+        to "services:webservice". -->
+        <para>Here we have four projects. Project <literal>api</literal> produces a JAR file which is shipped to the
             client to provide them a Java client for your XML webservice. Project <literal>webservice</literal> is a
             webapp which returns XML. Project <literal>shared</literal> contains code used both by <literal>api</literal>
-            and <literal>webservice</literal>.
+            and <literal>webservice</literal>. Project <literal>services/shared</literal> has code that depends on the
+            <literal>shared</literal> project.
         </para>
 
         <section>
@@ -234,13 +238,16 @@
                 configuration properties we have seen in the previous section are available in each subproject.
                 So, you can compile, test, and JAR all the projects by running <userinput>gradle build</userinput> from
                 the root project directory.</para>
+            <para>Also note that these plugins are only applied within the <literal>subprojects</literal> section, not
+            at the root level, so the root build will not expect to find Java source files in the root project,
+            only in the subprojects.</para>
         </section>
 
         <section>
             <title>Dependencies between projects</title>
             <para>You can add dependencies between projects in the same build, so that, for example, the JAR file of one
                 project is used to compile another project. In the <literal>api</literal> build file we will add a dependency
-                on the JAR produced by the <literal>shared</literal> project. Due to this dependency, Gradle will
+                on the <literal>shared</literal> project. Due to this dependency, Gradle will
                 ensure that project <literal>shared</literal> always gets built before project <literal>api</literal>.
             </para>
             <sample id="javaMultiProject" dir="java/multiproject" title="Multi-project build - dependencies between projects">

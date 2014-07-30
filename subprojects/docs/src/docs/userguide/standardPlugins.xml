@@ -746,8 +746,7 @@
     </section>
     <section>
         <title>Third party plugins</title>
-        <para>You can find a list of external plugins on the
-            <ulink url="http://wiki.gradle.org/display/GRADLE/Plugins">wiki</ulink>.
+        <para>You can find a list of external plugins at the <ulink url="http://plugins.gradle.org/">Gradle Plugins site</ulink>.
         </para>
     </section>
 </chapter>

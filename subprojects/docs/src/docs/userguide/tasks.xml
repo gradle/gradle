@@ -15,12 +15,12 @@
   -->
 <chapter id='more_about_tasks'>
     <title>More about Tasks</title>
-    <para>In the introductory tutorial (<xref linkend='tutorial_using_tasks'/>) you have learned how to
-        create simple tasks. You have also learned how to add additional behavior to these tasks later on. And you have
-        learned how to create dependencies between tasks. This was all about simple tasks. But Gradle takes the concept
-        of tasks further. Gradle supports <firstterm>enhanced tasks</firstterm>, that is, tasks which have their own
-        properties and methods. This is really different to what you are used to with Ant targets. Such enhanced tasks are
-        either provided by you or are provided by Gradle.
+    <para>In the introductory tutorial (<xref linkend='tutorial_using_tasks'/>) you learned how to
+        create simple tasks. You also learned how to add additional behavior to these tasks later on, and you 
+        learned how to create dependencies between tasks. This was all about simple tasks, but Gradle takes the concept
+        of tasks further. Gradle supports <firstterm>enhanced tasks</firstterm>, which are tasks that have their own
+        properties and methods. This is really different from what you are used to with Ant targets. Such enhanced tasks are
+        either provided by you or built into Gradle.
     </para>
     <section>
         <title>Defining tasks</title>
@@ -77,10 +77,15 @@
             The task can be configured using its API (see <apilink class="org.gradle.api.tasks.Copy"/>).
 			The following examples show several different ways to achieve the same configuration.
         </para>
+        <para>Just to be clear, realize that the name of this task is “<literal>myCopy</literal>”, but it is of
+        <emphasis>type</emphasis> “<literal>Copy</literal>”.  You can have multiple tasks of the same
+        <emphasis>type</emphasis>, but with different names. You'll find this gives you a lot of power to implement
+        cross-cutting concerns across all tasks of a particular type.
+        </para>
         <sample id="configureUsingVar" dir="userguide/tasks/configureUsingVar" title="Configuring a task - various ways">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>This is similar to the way we would normally configure objects in Java. You have to repeat the context
+        <para>This is similar to the way we would configure objects in Java. You have to repeat the context
             (<literal>myCopy</literal>) in the configuration statement every time. This is a redundancy and not very
             nice to read.
         </para>
@@ -106,7 +111,7 @@
             <xref linkend='sec:task_dependencies'/>
             you were introduced to defining dependencies using task names. Task names can refer to tasks in the same
             project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the
-            name of the task with the path of the project it belongs to. Below is an example which adds a dependency
+            name of the task with the path of the project it belongs to. The following is an example which adds a dependency
             from
             <literal>projectA:taskX</literal>
             to
@@ -157,10 +162,16 @@
             <listitem>A task that aggregates the results of all tasks of a particular type: eg. test report task combines the outputs of all executed test tasks.</listitem>
         </itemizedlist>
         <para>
-            There are two ordering rules available: "<emphasis>must run after</emphasis>" and "<emphasis>should run after</emphasis>".
+            There are two ordering rules available: “<emphasis>must run after</emphasis>” and “<emphasis>should run after</emphasis>”.
         </para>
-        <para>By using 'must run after" ordering rule you can specify that <literal>taskB</literal> must always run after <literal>taskA</literal>,
-            whenever both <literal>taskA</literal> and <literal>taskB</literal> are scheduled for execution. This is expressed as <literal>taskB.mustRunAfter(taskA)</literal>. The 'should run after' ordering rule is similar but less strict as it will be ignored in two situations. Firstly if using that rule introduces an ordering cycle. Secondly when using parallel execution and all dependencies of a task have been satisfied apart from should run after then this task will be run regardless of weather its 'should run after' dependencies have been run or not. You would use 'should run after' rule when ordering preference for faster feedback, where the ordering is helpful but not strictly required.
+        <para>When you use the “must run after” ordering rule you specify that <literal>taskB</literal> must always
+        run after <literal>taskA</literal>, whenever both <literal>taskA</literal> and <literal>taskB</literal> will
+        be run. This is expressed as <literal>taskB.mustRunAfter(taskA)</literal>. The “should run
+        after” ordering rule is similar but less strict as it will be ignored in two situations. Firstly if using
+        that rule introduces an ordering cycle. Secondly when using parallel execution and all dependencies of a
+        task have been satisfied apart from the “should run after” task, then this task will be run regardless of
+        whether its “should run after” dependencies have been run or not. You should use “should run after”
+        where the ordering is helpful but not strictly required.
         </para>
         <para>
             With these rules present it is still possible to execute <literal>taskA</literal> without <literal>taskB</literal> and vice-versa.
@@ -177,17 +188,17 @@
         <sample id="mustRunAfterSingleTask" dir="userguide/tasks/mustRunAfter" title="Task ordering does not imply task execution">
             <output args="-q taskY"/>
         </sample>
-        <para>To specify a "must run after" or "should run after" ordering between 2 tasks, you use the <apilink class="org.gradle.api.Task" method="mustRunAfter"/> and <apilink class="org.gradle.api.Task" method="shouldRunAfter"/> methods.
-            These method accept a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
+        <para>To specify a “must run after” or “should run after” ordering between 2 tasks, you use the <apilink class="org.gradle.api.Task" method="mustRunAfter"/> and <apilink class="org.gradle.api.Task" method="shouldRunAfter"/> methods.
+            These methods accept a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
         </para>
         <para>
-            Note that "<literal>B.mustRunAfter(A)</literal>" or "<literal>B.shouldRunAfter(A)</literal>" does not imply any execution dependency between the tasks:
+            Note that “<literal>B.mustRunAfter(A)</literal>” or “<literal>B.shouldRunAfter(A)</literal>” does not imply any execution dependency between the tasks:
         </para>
         <itemizedlist>
             <listitem>It is possible to execute tasks <literal>A</literal> and <literal>B</literal> independently. The ordering rule only has an effect when both tasks are scheduled for execution.</listitem>
             <listitem>When run with <literal>--continue</literal>, it is possible for <literal>B</literal> to execute in the event that <literal>A</literal> fails.</listitem>
         </itemizedlist>
-        <para>As mentioned before 'should run after' ordering rule will be ignored if it introduces an ordering cycle:</para>
+        <para>As mentioned before, the “should run after” ordering rule will be ignored if it introduces an ordering cycle:</para>
         <sample id="shouldRunAfterWithCycle" dir="userguide/tasks/shouldRunAfterWithCycle" title="A 'should run after' task ordering is ignored if it introduces an ordering cycle">
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
@@ -195,7 +206,7 @@
     </section>
     <section>
         <title>Adding a description to a task</title>
-        <para>You can add a description to your task. This description is for example displayed when executing
+        <para>You can add a description to your task. This description is displayed when executing
             <userinput>gradle tasks</userinput>.
         </para>
         <sample id="describeTask" dir="userguide/tasks/defineAndConfigure" title="Adding a description to a task">
@@ -204,16 +215,16 @@
     </section>
     <section>
         <title>Replacing tasks</title>
-        <para>Sometimes you want to replace a task. For example if you want to exchange a task added by the Java plugin
+        <para>Sometimes you want to replace a task. For example, if you want to exchange a task added by the Java plugin
             with a custom task of a different type. You can achieve this with:
         </para>
         <sample id="replaceTask" dir="userguide/tutorial/replaceTask" title="Overwriting a task">
             <sourcefile file="build.gradle"/>
             <output args="-q copy"/>
         </sample>
-        <para>Here we replace a task of type <literal>Copy</literal> with a simple task. When creating the simple
-            task, you have to set the <literal>overwrite</literal> property to true. Otherwise Gradle throws an
-            exception, saying that a task with such a name already exists.
+        <para>This will replace a task of type <literal>Copy</literal> with the task you've defined, because it
+        uses the same name. When you define the new task, you have to set the <literal>overwrite</literal> property
+        to true. Otherwise Gradle throws an exception, saying that a task with that name already exists.
         </para>
     </section>
     <section>
@@ -236,7 +247,7 @@
 
         <section>
         <title>Using StopExecutionException</title>
-        <para>If the rules for skipping a task can't be expressed with predicate, you can use the
+        <para>If the logic for skipping a task can't be expressed with a predicate, you can use the
             <apilink class="org.gradle.api.tasks.StopExecutionException"/>. If this exception is thrown by an action,
             the further execution of this action as well as the execution of
             any following action of this task is skipped. The build continues with executing the next task.
@@ -259,7 +270,7 @@
 
         <section>
         <title>Enabling and disabling tasks</title>
-        <para>Every task has also an <literal>enabled</literal>
+        <para>Every task has an <literal>enabled</literal>
             flag which defaults to <literal>true</literal>. Setting it to <literal>false</literal> prevents the
             execution of any of the task's actions.
         </para>
@@ -324,14 +335,14 @@
                 Before a task is executed for the first time, Gradle takes a snapshot of the inputs. This snapshot contains
                 the set of input files and a hash of the contents of each file. Gradle then executes the task. If the
                 task completes successfully, Gradle takes a snapshot of the outputs. This snapshot contains the set of
-                output files and a hash of the contents of each file. Gradle persists both snapshots for next time the task
+                output files and a hash of the contents of each file. Gradle persists both snapshots for the next time the task
                 is executed.
             </para>
             <para>
                 Each time after that, before the task is executed, Gradle takes a new snapshot of the inputs and outputs.
                 If the new snapshots are the same as the previous snapshots, Gradle assumes that the outputs are up to
                 date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both snapshots
-                for next time the task is executed.
+                for the next time the task is executed.
             </para>
             <para>
                 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed
@@ -350,16 +361,18 @@
             <sourcefile file="build.gradle" snippet="task-rule"/>
             <output args="-q pingServer1"/>
         </sample>
-        <para>The String parameter is used as a description for the rule. This description is shown when running
-            for example <userinput>gradle tasks</userinput>.
+        <para>The String parameter is used as a description for the rule, which is shown with <userinput>gradle tasks</userinput>.
         </para>
-        <para>Rules not just work when calling tasks from the command line. You can also create dependsOn relations
+        <para>Rules are not only used when calling tasks from the command line. You can also create dependsOn relations
             on rule based tasks:
         </para>
         <sample id="taskRuleDependsOn" dir="userguide/tasks/addRules" title="Dependency on rule based tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q groupPing"/>
         </sample>
+        <para>If you run “<literal>gradle -q tasks</literal>” you won't find a task named
+        “<literal>pingServer1</literal>” or “<literal>pingServer2</literal>”, but this script is executing logic
+        based on the request to run those tasks.</para>
     </section>
 
     <section>
@@ -374,29 +387,29 @@
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
         </sample>
-        <para>Finalizer task will be executed even if the finalized task fails.</para>
+        <para>Finalizer tasks will be executed even if the finalized task fails.</para>
         <sample id="taskFinalizersWithFailure" dir="userguide/tasks/finalizersWithFailure" title="Task finalizer for a failing task">
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
         </sample>
-        <para>On the other hand, finalizer tasks are not executed if the finalized task didn't do any work, for example due to failed
-            task dependency or if it's considered up to date.</para>
-        <para>Finalizer tasks are useful in situations where build creates a resource that has to be cleaned up regardless
-            of the build failing or succeeding. An example of such resource is a web container started before an integration test task
+        <para>On the other hand, finalizer tasks are not executed if the finalized task didn't do any work, for example if it
+        is considered up to date or if a dependent task fails.</para>
+        <para>Finalizer tasks are useful in situations where the build creates a resource that has to be cleaned up regardless
+            of the build failing or succeeding. An example of such a resource is a web container that is started before an integration test task
             and which should be always shut down, even if some of the tests fail.</para>
         <para>To specify a finalizer task you use the <apilink class="org.gradle.api.Task" method="finalizedBy"/> method.
-            This method accepts a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
+            This method accepts a task instance, a task name, or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
         </para>
     </section>
 
     <section id='sec:the_idea_behind_gradle_tasks'>
         <title>Summary</title>
-        <para>If you are coming from Ant, such an enhanced Gradle task as <emphasis>Copy</emphasis> looks like a mixture
-            between an Ant target and an Ant task. And this is actually the case. The separation that Ant does between
-            tasks and targets is not done by Gradle. The simple Gradle tasks are like Ant's targets and the enhanced
-            Gradle tasks also include the Ant task aspects. All of Gradle's tasks share a common API and you can create
-            dependencies between them. Such a task might be nicer to configure than an Ant task.
-            It makes full use of the type system, is more expressive and easier to maintain.
+        <para>If you are coming from Ant, an enhanced Gradle task like <emphasis>Copy</emphasis> seems like a cross
+            between an Ant target and an Ant task. Although Ant's tasks and targets are really different entities,
+            Gradle combines these notions into a single entity. Simple Gradle tasks are like Ant's targets, but enhanced
+            Gradle tasks also include aspects of Ant tasks. All of Gradle's tasks share a common API and you can create
+            dependencies between them. These tasks are much easier to configure than an Ant task.
+            They make full use of the type system, and are more expressive and easier to maintain.
         </para>
     </section>
 </chapter>

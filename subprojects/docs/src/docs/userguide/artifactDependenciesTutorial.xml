@@ -27,6 +27,12 @@
             We call this process <firstterm>dependency resolution</firstterm>.
         </para>
         <para>
+        	Note that this feature provides a major advantage over Ant. With Ant, you only have the ability to
+        	specify absolute or relative paths to specific jars to load. With Gradle, you simply declare the “names”
+        	of your dependencies, and other layers determine where to get those dependencies from. You can get
+        	similar behavior from Ant by adding Apache Ivy, but Gradle does it better.
+        </para>
+        <para>
             Often, the dependencies of a project will themselves have dependencies. For example, Hibernate core requires
             several other libraries to be present on the classpath with it runs. So, when Gradle runs the tests for your
             project, it also needs to find these dependencies and make them available. We call these <firstterm>transitive dependencies</firstterm>.
@@ -38,7 +44,7 @@
         </para>
         <para>These outgoing files form the publications of the project. Gradle also takes care of this important work for you. You declare the
             publications of your project, and Gradle take care of building them and publishing them somewhere.
-            Exactly what "publishing" means depends on what you want to do. You might want to copy the files to a local directory,
+            Exactly what “publishing” means depends on what you want to do. You might want to copy the files to a local directory,
             or upload them to a remote Maven or Ivy repository. Or you might use the files in another project in the same
             multi-project build.
             We call this process <firstterm>publication</firstterm>.
@@ -130,7 +136,7 @@
             An external dependency is identified using <literal>group</literal>, <literal>name</literal> and <literal>version</literal> attributes.
             Depending on which kind of repository you are using, <literal>group</literal> and <literal>version</literal> may be optional.
         </para>
-        <para>There is a shortcut form for declaring external dependencies, which uses a string of the form <literal>"<replaceable>group</replaceable>:<replaceable>name</replaceable>:<replaceable>version</replaceable>"</literal>.
+        <para>The shortcut form for declaring external dependencies looks like “<literal><replaceable>group</replaceable>:<replaceable>name</replaceable>:<replaceable>version</replaceable></literal>”.
         </para>
         <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Shortcut definition of an external dependency">
             <sourcefile file="build.gradle" snippet="define-dependency-shortcut"/>
@@ -191,7 +197,7 @@
             You can also publish to Maven repositories. The syntax is slightly different.<footnote>
                 <para>We are working to make the syntax consistent for resolving from and publishing to Maven repositories.</para>
             </footnote>
-            Note that you also need to apply the Maven plugin in order to publish to a Maven repository. In this instance, Gradle
+            Note that you also need to apply the Maven plugin in order to publish to a Maven repository. when this is in place, Gradle
             will generate and upload a <filename>pom.xml</filename>.
         </para>
         <sample id="publishMavenRepository" dir="userguide/artifacts/maven" title="Publishing to a Maven repository">

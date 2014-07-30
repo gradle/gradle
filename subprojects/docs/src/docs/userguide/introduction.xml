@@ -71,5 +71,8 @@
             guide. You can find out more about contributing to the documentation at the
             <ulink url="website:contribute">Gradle web site</ulink>.
         </para>
+        <para>Throughout the user guide, you will find some diagrams that represent dependency relationships
+        between Gradle tasks. These use something analogous to the UML dependency notation, which renders an
+        arrow from one task to the task that the first task depends on.</para>
     </section>
 </chapter>

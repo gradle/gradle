@@ -235,7 +235,7 @@
             <sourcefile file="build.gradle" snippet="copy-method-with-dependency"/>
         </sample>
         <para>
-            It is preferable to use the <literal>Copy</literal> task wherever possible, as it support incremental building and task dependency inference
+            It is preferable to use the <literal>Copy</literal> task wherever possible, as it supports incremental building and task dependency inference
             without any extra effort on your part. The <literal>copy()</literal> method can be used to copy files as <emphasis>part</emphasis> of a task's
             implementation. That is, the copy method is intended to be used by custom tasks (see <xref linkend="custom_tasks" />) that need to copy files
             as part of their function. In such a scenario, the custom task should sufficiently declare the inputs/outputs relevant to the copy action.
@@ -251,6 +251,8 @@
             <sample id="filterOnCopy" dir="userguide/files/copy" title="Filtering files as they are copied">
                 <sourcefile file="build.gradle" snippet="filter-files"/>
             </sample>
+            <para>A “token” in a source file that both the “expand” and “filter” operations look for, is formatted
+            like “@tokenName@” for a token named “tokenName”.</para>
         </section>
         <section>
             <title>Using the <classname>CopySpec</classname> class</title>
@@ -280,7 +282,7 @@
     <section id="sec:archives">
         <title>Creating archives</title>
         <para>
-            A project can have as many as JAR archives as you want. You can also add WAR, ZIP and TAR archives to your project.
+            A project can have as many JAR archives as you want. You can also add WAR, ZIP and TAR archives to your project.
             Archives are created using the various archive tasks:
             <apilink class="org.gradle.api.tasks.bundling.Zip"/>,
             <apilink class="org.gradle.api.tasks.bundling.Tar"/>,
@@ -311,7 +313,8 @@
         <section>
             <title>Archive naming</title>
 
-            <para>The default name for a generated archive is <filename><replaceable>projectName</replaceable>-<replaceable>version</replaceable>.<replaceable>type</replaceable></filename>
+            <para>The format of <filename><replaceable>projectName</replaceable>-<replaceable>version</replaceable>.<replaceable>type</replaceable></filename>
+            is used for generated archive file names.
                 For example:
             </para>
             <sample id="archiveNaming" dir="userguide/files/archiveNaming" title="Creation of ZIP archive">
@@ -366,8 +369,8 @@
                 <tr>
                     <td><literal>destinationDir</literal></td>
                     <td><classname>File</classname></td>
-                    <td>Depends on the archive type. JARs and WARs are generated into <filename><replaceable>project.buildDir</replaceable>/libraries</filename>.
-                        ZIPs and TARs are generated into <filename><replaceable>project.buildDir</replaceable>/distributions</filename>.
+                    <td>Depends on the archive type. JARs and WARs go into <filename><replaceable>project.buildDir</replaceable>/libraries</filename>.
+                        ZIPs and TARs go into <filename><replaceable>project.buildDir</replaceable>/distributions</filename>.
                     </td>
                     <td>The directory to generate the archive into</td>
                 </tr>

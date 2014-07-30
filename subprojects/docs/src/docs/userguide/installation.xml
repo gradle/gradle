@@ -20,12 +20,12 @@
 <section>
     <title>Prerequisites</title>
 
-    <para>Gradle requires a Java JDK or JRE to be installed. Gradle requires a Java version 6 or higher. Gradle ships with its own
-        Groovy library, therefore no Groovy needs to be installed. Any existing Groovy installation is ignored by Gradle.
+    <para>Gradle requires a Java JDK or JRE to be installed, version 6 or higher (to check, use <userinput>java -version</userinput>).
+    	Gradle ships with its own Groovy library, therefore Groovy does not need to be installed. Any existing Groovy installation is ignored by Gradle.
     </para>
 
-    <para>Gradle uses whichever JDK it finds in your path (to check, use <userinput>java -version</userinput>).
-        Alternatively, you can set the <envar>JAVA_HOME</envar> environment variable to point to the install directory
+    <para>Gradle uses whatever JDK it finds in your path.
+        Alternatively, you can set the <envar>JAVA_HOME</envar> environment variable to point to the installation directory
         of the desired JDK.
     </para>
 </section>
@@ -47,7 +47,7 @@
     <listitem><para>The API documentation (Javadoc and Groovydoc).</para></listitem>
     <listitem>
         <para>Extensive samples, including the examples referenced in the user guide, along with some complete and more
-            complex builds you can use the starting point for your own build.
+            complex builds you can use as a starting point for your own build.
         </para>
     </listitem>
     <listitem>
@@ -70,7 +70,7 @@
 <title>Running and testing your installation</title>
 
 <para>You run Gradle via the <command>gradle</command> command. To check if Gradle is properly installed just type
-<command>gradle -v</command>. The output shows Gradle version and also local environment configuration (groovy and JVM version, etc.).
+<command>gradle -v</command>. The output shows the Gradle version and also the local environment configuration (groovy and JVM version, etc.).
     The displayed Gradle version should match the distribution you have downloaded.
 </para>
 
@@ -79,13 +79,13 @@
 <section>
 <title>JVM options</title>
 
-<para>JVM options for running Gradle can be set via environment variables. You can use <envar>GRADLE_OPTS</envar>
-or <envar>JAVA_OPTS</envar>. Those variables can be used together. <envar>JAVA_OPTS</envar> is by convention an environment
+<para>JVM options for running Gradle can be set via environment variables. You can use either <envar>GRADLE_OPTS</envar>
+or <envar>JAVA_OPTS</envar>, or both. <envar>JAVA_OPTS</envar> is by convention an environment
 variable shared by many Java applications. A typical use case would be to set the HTTP proxy in <envar>JAVA_OPTS</envar>
 and the memory options in <envar>GRADLE_OPTS</envar>. Those variables can also be set at the beginning
 of the <command>gradle</command> or <command>gradlew</command> script.
 </para>
-
+<para>Note that it's not currently possible to set JVM options for Gradle on the command line.</para>
 </section>
 
 <section condition="standalone">

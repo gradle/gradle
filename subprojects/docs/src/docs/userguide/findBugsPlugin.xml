@@ -6,7 +6,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the FindBugs plugin, include in your build script:</para>
+        <para>To use the FindBugs plugin, include the following in your build script:</para>
         <sample id="useFindBugsPlugin" dir="codeQuality" title="Using the FindBugs plugin">
             <sourcefile file="build.gradle" snippet="use-findbugs-plugin"/>
         </sample>
@@ -90,6 +90,6 @@
 
     <section>
         <title>Configuration</title>
-        <para>See <apilink class="org.gradle.api.plugins.quality.FindBugsExtension"/>.</para>
+        <para>See the <apilink class="org.gradle.api.plugins.quality.FindBugsExtension"/> class in the API documentation.</para>
     </section>
 </chapter>

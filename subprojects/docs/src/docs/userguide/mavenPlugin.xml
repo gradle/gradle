@@ -22,7 +22,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the Maven plugin, include in your build script:</para>
+        <para>To use the Maven plugin, include the following in your build script:</para>
         <sample id="useMavenPlugin" dir="maven/quickstart" title="Using the Maven plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -158,23 +158,23 @@
                 <literal>uploadArchives</literal>
                 task will generate the POM and deploys the artifact and the POM to the specified repository.
             </para>
-            <para>There is some more work to do if you need support for other protocols than <literal>file</literal>. In
-                this case the native Maven code we delegate to needs additional libraries. Which libraries depend on the
-                protocol you need. The available protocols and the corresponding libraries are listed in <xref
-                        linkend='wagonLibs'/> (those libraries have again transitive dependencies which have transitive
+            <para>There is more work to do if you need support for protocols other than <literal>file</literal>. In
+                this case the native Maven code we delegate to needs additional libraries. Which libraries are needed depends on what
+                protocol you plan to use. The available protocols and the corresponding libraries are listed in <xref
+                        linkend='wagonLibs'/> (those libraries have transitive dependencies which have transitive
                 dependencies).
                 <footnote>
                     <para>It is planned for a future release to provide out-of-the-box support for this
                     </para>
                 </footnote>
-                For example to use the ssh protocol you can do:
+                For example, to use the ssh protocol you can do:
             </para>
             <sample id="uploadWithSsh" dir="userguide/artifacts/maven" title="Upload of file via SSH">
                 <sourcefile file="build.gradle" snippet="upload-with-ssh"/>
             </sample>
             <para>There are many configuration options for the Maven deployer. The configuration is done via a Groovy builder.
                 All the elements of this tree are Java beans. To configure the simple attributes you pass a map to the bean
-                elements. To add another bean elements to its parent, you use a closure. In the example above <emphasis>repository</emphasis>
+                elements. To add bean elements to its parent, you use a closure. In the example above <emphasis>repository</emphasis>
                 and <emphasis>authentication</emphasis> are such bean elements. <xref linkend='deployerConfig'/>
                 lists the available bean elements and a link to the javadoc of the corresponding class. In the javadoc you
                 can see the possible attributes you can set for a particular element.
@@ -331,7 +331,7 @@
             </para>
             <note>
                 <para>
-                    When you set <literal>archiveTask.baseName</literal> to a value other than the default, make sure to set
+                    When you set the “<literal>archiveTask.baseName</literal>” property to a value other than the default, you'll also have to set
                     <literal>uploadTask.repositories.mavenDeployer.pom.artifactId</literal> to the same value. Otherwise, the project at hand may
                     be referenced with the wrong artifact ID from generated POMs for other projects in the same build.
                 </para>
@@ -356,10 +356,10 @@
             <sample id="pomBuilder" dir="maven/pomGeneration" title="Modifying auto-generated content">
                 <sourcefile file="build.gradle" snippet="when-configured"/>
             </sample>
-            <para>If you have more than one artifact to publish, things work a little bit differently. See<xref
+            <para>If you have more than one artifact to publish, things work a little bit differently. See <xref
                         linkend="sub:multiple_artifacts_per_project"/>.
             </para>
-            <para>To customize the settings for the Maven installer (see<xref
+            <para>To customize the settings for the Maven installer (see <xref
                     linkend='sub:installing_to_the_local_repository'/>), you can do:
             </para>
             <sample id="customizeInstaller" dir="userguide/artifacts/maven" title="Customization of Maven installer">
@@ -388,7 +388,7 @@
                     Java and War plugin and the Maven scopes. Most
                     of the time you don't need to touch this and you can safely skip this section. The mapping
                     works like the following. You can map a configuration to one and only one scope. Different
-                    configurations can be mapped to one or different scopes. One can assign also a priority to a particular
+                    configurations can be mapped to one or different scopes. You can also assign a priority to a particular
                     configuration-to-scope mapping. Have a look at
                     <apilink class="org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer"/>
                     to learn more. To access the mapping configuration you can say:

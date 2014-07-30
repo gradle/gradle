@@ -136,7 +136,7 @@
                 <sourcefile file="build.gradle" snippet="publish-custom-artifact" />
             </sample>
             <para>
-                See <apilink class="org.gradle.api.publish.maven.MavenPublication" /> for more detailed documentation on how artifacts can be customized.
+                See the <apilink class="org.gradle.api.publish.maven.MavenPublication" /> class in the API documentation for more information about how artifacts can be customized.
             </para>
         </section>
 
@@ -174,7 +174,7 @@
         <section>
             <title>Modifying the generated POM</title>
             <para>
-                At times, the POM file generated from the project information will need to be tweaked before publishing. The “<literal>maven-publish</literal>”
+                The generated POM file may need to be tweaked before publishing. The “<literal>maven-publish</literal>”
                 plugin provides a hook to allow such modification.
             </para>
             <sample dir="maven-publish/pomCustomization" id="publishing_maven:pom_modification" title="Modifying the POM file">
@@ -185,7 +185,7 @@
                 For example, you could replace the version range for a dependency with the actual version used to produce the build.
             </para>
             <para>
-                See <apilink class="org.gradle.api.publish.maven.MavenPom" method="withXml(org.gradle.api.Action)" /> for the relevant API reference documentation.
+                See <apilink class="org.gradle.api.publish.maven.MavenPom" method="withXml(org.gradle.api.Action)" /> in the API documentation for more information.
             </para>
             <para>
                 It is possible to modify virtually any aspect of the created POM should you need to.
@@ -235,16 +235,17 @@
             combination in the <literal>publishing.publications</literal> and <literal>publishing.repositories</literal> containers respectively.
         </para>
         <para>
-            The created task is named using the pattern "<literal>publish«<emphasis>NAME OF PUBLICATION</emphasis>»PublicationTo«<emphasis>NAME OF REPOSITORY</emphasis>»Repository</literal>".
+            The created task is named “<literal>publish«<emphasis>PUBNAME</emphasis>»PublicationTo«<emphasis>REPONAME</emphasis>»Repository</literal>”.
         </para>
         <sample dir="maven-publish/quickstart" id="publishingMavenPublishMinimal" title="Publishing a project to a Maven repository">
             <sourcefile file="build.gradle"/>
             <output args="publish"/>
         </sample>
         <para>
-            So in this example a single <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository" /> task is be added, named '<literal>publishMavenJavaPublicationToMavenRepository</literal>'.
+        	In this example, a task named “<literal>publishMavenJavaPublicationToMavenRepository</literal>” is created, which is of type
+            <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository" />. 
             This task is wired into the <literal>publish</literal> lifecycle task.
-            Executing <literal>gradle publish</literal> builds the POM file and all of the artifacts to be published, and transfers them to the repository.
+            Executing “<literal>gradle publish</literal>” builds the POM file and all of the artifacts to be published, and transfers them to the repository.
         </para>
     </section>
     <section id="publishing_maven:install">
@@ -257,15 +258,14 @@
             You do not need to have `mavenLocal` in your `publishing.repositories` section.
         </para>
         <para>
-            The created task is named using the pattern "<literal>publish«<emphasis>NAME OF PUBLICATION</emphasis>»PublicationToMavenLocal</literal>".
+            The created task is named “<literal>publish«<emphasis>PUBNAME</emphasis>»PublicationToMavenLocal</literal>”.
         </para>
         <sample dir="maven-publish/quickstart" id="publishingMavenPublishLocal" title="Publish a project to the Maven local repository">
             <output args="publishToMavenLocal"/>
         </sample>
         <para>
-            So in this example you can see that a single <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenLocal" /> task is be added,
-            named '<literal>publishMavenJavaPublicationToMavenLocal</literal>'. This task is wired into the <literal>publishToMavenLocal</literal> lifecycle task.
-            Executing <literal>gradle publishToMavenLocal</literal> builds the POM file and all of the artifacts to be published, and 'installs' them into the local Maven repository.
+            The resulting task in this example is named “<literal>publishMavenJavaPublicationToMavenLocal</literal>”. This task is wired into the <literal>publishToMavenLocal</literal> lifecycle task.
+            Executing “<literal>gradle publishToMavenLocal</literal>” builds the POM file and all of the artifacts to be published, and “installs” them into the local Maven repository.
         </para>
     </section>
     <section id="publishing_maven:generate-pom">
@@ -276,9 +276,9 @@
         </para>
         <para>
             The task for generating the POM file is of type <apilink class="org.gradle.api.publish.maven.tasks.GenerateMavenPom"/>, and it is given a name based on the name
-            of the publication: "<literal>generatePomFileFor«<emphasis>NAME OF PUBLICATION</emphasis>»Publication</literal>". So in the example below,
-            where the publication is named "<literal>mavenCustom</literal>",
-            the task will be named "<literal>generatePomFileForMavenCustomPublication</literal>".
+            of the publication: “<literal>generatePomFileFor«<emphasis>PUBNAME</emphasis>»Publication</literal>”. So in the example below,
+            where the publication is named “<literal>mavenCustom</literal>”,
+            the task will be named “<literal>generatePomFileForMavenCustomPublication</literal>”.
         </para>
         <sample dir="maven-publish/pomCustomization" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
             <sourcefile file="build.gradle" snippet="generate" />

@@ -1,6 +1,6 @@
 <chapter id='announce_plugin'>
     <title>The Announce Plugin</title>
-    <para>The Gradle announce allows to send custom announcements during a build. The following notification systems are supported:
+    <para>The Gradle announce plugin allows you to send custom announcements during a build. The following notification systems are supported:
 	<itemizedlist>
  		<listitem><ulink url='http://twitter.com'>Twitter</ulink></listitem>
  		<listitem><ulink url='http://manpages.ubuntu.com/manpages/gutsy/man1/notify-send.1.html'>notify-send</ulink> (Ubuntu)</listitem>
@@ -76,6 +76,6 @@
 
     <section>
         <title>Configuration</title>
-        <para>See <apilink class="org.gradle.api.plugins.announce.AnnouncePluginExtension"/>.</para>
+        <para>See the <apilink class="org.gradle.api.plugins.announce.AnnouncePluginExtension"/> class in the API documentation.</para>
     </section>
 </chapter>
