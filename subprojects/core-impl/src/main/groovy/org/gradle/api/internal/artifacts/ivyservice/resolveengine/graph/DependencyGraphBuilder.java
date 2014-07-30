@@ -512,8 +512,8 @@ public class DependencyGraphBuilder {
             return id.getVersion();
         }
 
-        public String getId() {
-            return String.format("%s:%s:%s", id.getGroup(), id.getName(), id.getVersion());
+        public ModuleVersionIdentifier getId() {
+            return id;
         }
 
         public ModuleVersionResolveException getFailure() {
