@@ -197,6 +197,20 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'Bintray communication failure'.")
     }
 
+    def "error message for 4xx is embedded in user error message"() {
+        portal.expectQueryAndReturnError("org.my.myplugin", "1.0", 405) {
+            errorCode = "SOME_STRANGE_ERROR"
+            message = "Some strange error message"
+        }
+
+        buildScript applyAndVerify("org.my.myplugin", "1.0")
+
+        expect:
+        fails("verify")
+        errorResolvingPlugin()
+        failure.assertHasCause("Plugin resolution service returned HTTP 405 with message 'Some strange error message'.")
+    }
+
     def "response can contain utf8"() {
         portal.expectQueryAndReturnError("org.my.myplugin", "1.0", 500) {
             errorCode = "INTERNAL_SERVER_ERROR"
