@@ -34,23 +34,23 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
     }
 
     def "error finding plugin by id"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
         publishPlugin("otherid", "my", "plugin", "1.0")
 
-        buildScript applyPlugin("myplugin", "1.0")
+        buildScript applyPlugin("org.my.myplugin", "1.0")
 
         expect:
         fails("verify")
         failure.assertThatDescription(Matchers.startsWith("A problem occurred configuring root project"))
-        failure.assertHasCause("Plugin with id 'myplugin' not found.")
+        failure.assertHasCause("Plugin with id 'org.my.myplugin' not found.")
 
     }
 
     def "error loading plugin"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishUnloadablePlugin("myplugin", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
+        publishUnloadablePlugin("org.my.myplugin", "my", "plugin", "1.0")
 
-        buildScript applyPlugin("myplugin", "1.0")
+        buildScript applyPlugin("org.my.myplugin", "1.0")
 
         expect:
         fails("verify")
@@ -59,10 +59,10 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
     }
 
     def "error applying plugin"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishFailingPlugin("myplugin", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
+        publishFailingPlugin("org.my.myplugin", "my", "plugin", "1.0")
 
-        buildScript applyPlugin("myplugin", "1.0")
+        buildScript applyPlugin("org.my.myplugin", "1.0")
 
         expect:
         fails("verify")

@@ -34,33 +34,33 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "plugin declared in plugins {} block gets resolved and applied"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
+        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify("org.my.myplugin", "1.0")
 
         expect:
         succeeds("verify")
     }
 
     def "resolution fails if Gradle is in offline mode"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
+        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify("org.my.myplugin", "1.0")
         args("--offline")
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
+        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0'].")
         failure.assertHasCause("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode.")
     }
 
     def "cannot resolve plugin with snapshot version"() {
-        portal.expectPluginQuery("myplugin", "1.0-SNAPSHOT", "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0-SNAPSHOT", "my", "plugin", "1.0")
+        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
 
-        buildScript applyAndVerify("myplugin", "1.0-SNAPSHOT")
+        buildScript applyAndVerify("org.my.myplugin", "1.0-SNAPSHOT")
 
         expect:
         fails("verify")
@@ -69,10 +69,10 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "cannot resolve plugin with dynamic version"() {
-        portal.expectPluginQuery("myplugin", pluginVersion, "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", pluginVersion, "my", "plugin", "1.0")
+        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
 
-        buildScript applyAndVerify("myplugin", pluginVersion)
+        buildScript applyAndVerify("org.my.myplugin", pluginVersion)
 
         expect:
         fails("verify")
@@ -103,7 +103,7 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void pluginNotFound(String version = "1.0") {
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'myplugin', version: '$version'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '$version'] was not found in any of the following sources:"))
     }
 
     void resolutionServiceDetail(String detail) {

@@ -109,6 +109,11 @@ class PluginResolutionServiceTestServer extends ExternalResource {
 
     public void expectPluginQuery(String pluginId, String pluginVersion, String group, String artifact, String version,
                                   @DelegatesTo(value = PluginUseResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer = null) {
+
+        if (!pluginId.contains(".")) {
+            throw new IllegalArgumentException("unqualified plugin id - must be qualified")
+        }
+
         def useResponse = new PluginUseResponse(pluginId, pluginVersion, new PluginUseResponse.Implementation("$group:$artifact:$version", m2repo.uri.toString()), "M2_JAR")
 
         if (configurer) {
