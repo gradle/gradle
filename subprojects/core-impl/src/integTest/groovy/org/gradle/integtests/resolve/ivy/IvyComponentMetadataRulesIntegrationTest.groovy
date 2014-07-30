@@ -16,9 +16,9 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
+import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
-
-import static org.gradle.util.Matchers.containsLine
+import spock.lang.Unroll
 
 class IvyComponentMetadataRulesIntegrationTest extends ComponentMetadataRulesIntegrationTest {
     @Override
@@ -45,7 +45,7 @@ repositories {
     def "can access Ivy metadata by accepting parameter of type IvyModuleMetadata"() {
         def module = repo.module('org.test', 'projectA', '1.0')
                 .withExtraInfo(foo: "fooValue", bar: "barValue")
-                .withBranch(expectedBranch)
+                .withBranch('someBranch')
                 .publish()
         module.ivy.expectDownload()
         module.artifact.expectDownload()
@@ -59,7 +59,7 @@ dependencies {
         eachComponent { details, IvyModuleMetadata descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
-            assert descriptor.branch == '${expectedBranch}'
+            assert descriptor.branch == 'someBranch'
         }
     }
 }
@@ -71,11 +71,38 @@ resolve.doLast { assert ruleInvoked }
         succeeds 'resolve'
         // also works when already cached
         succeeds 'resolve'
+    }
+
+    @Unroll
+    def "can access Ivy metadata with #identifier characters" () {
+        def branch = identifier.safeForBranch().decorate("branch")
+        def module = repo.module('org.test', 'projectA', '1.0')
+                .withBranch(branch)
+                .publish()
+        module.ivy.expectDownload()
+        module.artifact.expectDownload()
+
+        buildFile <<
+                """
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleMetadata descriptor ->
+            ruleInvoked = true
+            assert descriptor.branch == '${sq(branch)}'
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        expect:
+        succeeds 'resolve'
 
         where:
-        expectedBranch          | _
-        'someBranch'            | _
-        'someBranch_ぴ₦ガき∆ç√∫' | _
+        identifier << Identifier.all
     }
 
     def "rule that doesn't initially access Ivy metadata can be changed to get access at any time"() {
@@ -182,12 +209,10 @@ dependencies {
     components {
         eachComponent { details, IvyModuleMetadata descriptor ->
             ruleInvoked = true
-            file("extraInfo").delete()
-            file("branch").delete()
-            descriptor.extraInfo.each { key, value ->
-                file("extraInfo") << "\$key->\$value\\n"
-            }
-            file("branch") << descriptor.branch
+            file("metadata").delete()
+            file("metadata") << descriptor.extraInfo.toString()
+            file("metadata") << "\\n"
+            file("metadata") << descriptor.branch
         }
     }
 }
@@ -206,9 +231,6 @@ resolve.doLast { assert ruleInvoked }
 
         then:
         succeeds 'resolve'
-        def text = file("extraInfo").text
-        assert containsLine(text, "my:foo->fooValueChanged")
-        assert containsLine(text, "my:bar->barValueChanged")
-        assert containsLine(file("branch").text, "differentBranch")
+        assert file("metadata").text == "{my:bar=barValueChanged, my:foo=fooValueChanged}\ndifferentBranch"
     }
 }

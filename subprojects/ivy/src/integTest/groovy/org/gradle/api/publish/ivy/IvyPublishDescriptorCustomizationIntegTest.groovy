@@ -86,31 +86,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIntegrationSpec
         module.parsedIvy.branch == "custom-branch"
     }
 
-    def "can publish custom descriptor metadata with valid values" () {
-        when:
-        buildFile << """
-            publishing {
-                publications {
-                    ivy {
-                        descriptor {
-                            ${field} ${value}
-                        }
-                    }
-                }
-            }
-        """
-        succeeds 'publish'
-
-        then:
-        module.parsedIvy."${field}" == value?.replaceAll("'(.*)'",'$1')
-
-        where:
-        field    | value
-        "branch" | null
-        "branch" | "'someBranch_ぴ₦ガき∆ç√∫'"
-        "branch" | "'feature/someBranch'"
-    }
-
     def "can generate ivy.xml without publishing"() {
         given:
         def moduleName = module.module
@@ -130,32 +105,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIntegrationSpec
         IvyDescriptor ivy = new IvyDescriptor(file('generated-ivy.xml'))
         ivy.expectArtifact(moduleName).hasAttributes("jar", "jar", ["runtime"])
         module.ivyFile.assertDoesNotExist()
-    }
-
-    def "produces sensible error with invalid metadata values" () {
-        when:
-        buildFile << """
-            publishing {
-                publications {
-                    ivy {
-                        descriptor {
-                            ${metadata}
-                        }
-                    }
-                }
-            }
-        """
-        fails 'publish'
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
-        failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause(message)
-
-        where:
-        metadata        | message
-        "branch ''"     | "Invalid publication 'ivy': branch cannot be an empty string. Use null instead"
-        "branch 'a\tb'" | "Invalid publication 'ivy': branch cannot contain ISO control character '\\u0009'"
     }
 
     def "produces sensible error when withXML fails"() {

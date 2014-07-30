@@ -18,16 +18,17 @@ package org.gradle.api.publish.ivy
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
-class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTest {
+class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
     @Unroll
-    def "can publish with project coordinates containing #identifier characters"() {
+    def "can publish with metadata containing #identifier characters"() {
         given:
         file("content-file") << "some content"
         def organisation = identifier.safeForFileName().decorate("org")
         def moduleName = identifier.safeForFileName().decorate("module")
         def version = identifier.safeForFileName().decorate("revision")
         def description = identifier.decorate("description")
+        def branch = identifier.safeForBranch().decorate("branch")
         def module = ivyRepo.module(organisation, moduleName, version)
 
         settingsFile.text = "rootProject.name = '${sq(moduleName)}'"
@@ -39,6 +40,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
             version = '${sq(version)}'
 
             println project.version
+            println '${sq(branch)}'
 
             publishing {
                 repositories {
@@ -47,6 +49,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
                 publications {
                     ivy(IvyPublication) {
                         from components.java
+                        descriptor.branch = '${sq(branch)}'
                         descriptor.withXml {
                             asNode().info[0].appendNode('description', '${sq(description)}')
                         }
@@ -147,4 +150,37 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }
 
+    def "fails with reasonable error message for invalid metadata value" () {
+        when:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'org'
+            version = '2'
+
+            publishing {
+                repositories {
+                    ivy { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        descriptor {
+                            ${metadata}
+                        }
+                    }
+                }
+            }
+        """
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+        failure.assertHasCause(message)
+
+        where:
+        metadata        | message
+        "branch ''"     | "Invalid publication 'ivy': branch cannot be an empty string. Use null instead"
+        "branch 'a\tb'" | "Invalid publication 'ivy': branch cannot contain ISO control character '\\u0009'"
+    }
 }

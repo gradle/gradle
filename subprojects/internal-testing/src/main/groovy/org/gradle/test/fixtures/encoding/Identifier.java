@@ -36,6 +36,10 @@ public class Identifier {
         this.suffix = suffix == null ? "" : suffix;
     }
 
+    public Identifier safeForBranch() {
+        return without(getUnsupportedFileNameCharacters().replace("/", ""));
+    }
+
     public Identifier safeForFileName() {
         return without(getUnsupportedFileNameCharacters());
     }
