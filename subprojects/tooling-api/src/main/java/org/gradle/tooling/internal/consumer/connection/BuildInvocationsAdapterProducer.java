@@ -22,8 +22,6 @@ import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
-import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -42,8 +40,7 @@ public class BuildInvocationsAdapterProducer extends AbstractModelProducer {
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, cancellationToken, operationParameters);
-            DefaultBuildInvocations<DefaultGradleTask> convert = new BuildInvocationsConverter().convert(gradleProject);
-            return adapter.adapt(type, convert);
+            return adapter.adapt(type, new BuildInvocationsConverter().convert(gradleProject));
         }
         return delegate.produceModel(type, cancellationToken, operationParameters);
     }

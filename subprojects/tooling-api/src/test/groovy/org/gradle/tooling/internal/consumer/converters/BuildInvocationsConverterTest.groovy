@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.converters
 
 import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector
-import org.gradle.tooling.internal.gradle.DefaultBuildInvocations
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
@@ -30,9 +29,9 @@ class BuildInvocationsConverterTest extends Specification {
         _ * project.children >> ([] as DomainObjectSet)
         _ * project.tasks >> ([] as DomainObjectSet)
         when:
-        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project)
+        def builds = new BuildInvocationsConverter().convert(project)
         then:
-        builds.selectors.isEmpty()
+        builds.taskSelectors.isEmpty()
     }
 
     def "converts child projects"() {
@@ -45,7 +44,7 @@ class BuildInvocationsConverterTest extends Specification {
         _ * rootProject.children >> ([sub1] as DomainObjectSet)
         _ * rootProject.tasks >> ([] as DomainObjectSet)
         when:
-        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(rootProject)
+        def builds = new BuildInvocationsConverter().convert(rootProject)
         then:
         builds.taskSelectors.size() == 1
         builds.taskSelectors*.name as Set == ['t1'] as Set
@@ -70,7 +69,7 @@ class BuildInvocationsConverterTest extends Specification {
         _ * project.children >> ([child1] as DomainObjectSet)
 
         when:
-        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project)
+        def builds = new BuildInvocationsConverter().convert(project)
 
         then:
         builds.taskSelectors.size() == 2
