@@ -48,13 +48,13 @@ import java.util.concurrent.Callable;
  * Registers the {@link JavaSourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  */
 @Incubating
-public class JavaLanguagePlugin implements Plugin<Project> {
+public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final JavaToolChain toolChain;
 
     @Inject
-    public JavaLanguagePlugin(Instantiator instantiator, JavaToolChain toolChain) {
+    public LegacyJavaComponentPlugin(Instantiator instantiator, JavaToolChain toolChain) {
         this.instantiator = instantiator;
         this.toolChain = toolChain;
     }

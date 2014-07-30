@@ -20,16 +20,16 @@ import org.gradle.api.jvm.ClassDirectoryBinarySpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class JavaLanguagePluginTest extends Specification {
+class LegacyJavaComponentPluginTest extends Specification {
     Project project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(JavaLanguagePlugin)
+        project.plugins.apply(LegacyJavaComponentPlugin)
     }
 
     def "applies jvm-lang plugin"() {
         expect:
-        project.plugins.hasPlugin(JavaLanguagePlugin)
+        project.plugins.hasPlugin(LegacyJavaComponentPlugin)
     }
 
     def "registers the ClassDirectoryBinary type with the binaries container"() {

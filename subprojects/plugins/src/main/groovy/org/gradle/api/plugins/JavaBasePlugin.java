@@ -70,7 +70,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(ReportingBasePlugin.class);
-        project.getPlugins().apply(JavaLanguagePlugin.class);
+        project.getPlugins().apply(LegacyJavaComponentPlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention((ProjectInternal) project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);

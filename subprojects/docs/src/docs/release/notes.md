@@ -315,10 +315,11 @@ language plugins was been introduced in Gradle 1.x. This development continues i
 The existing `java` plugin is unchanged: only users who explicitly applied the `jvm-lang` or `java-lang` plugins
 will be affected by this change.
 
-The plugin class `org.gradle.api.plugins.JvmLanguagePlugin` was merged into `org.gradle.api.plugins.JavaLanguagePlugin`.
+The plugin classes `org.gradle.api.plugins.JvmLanguagePlugin` and `org.gradle.api.plugins.JavaLanguagePlugin` were merged into
+`org.gradle.api.plugins.LegacyJavaComponentPlugin` to avoid confusions with `org.gradle.language.java.plugins.JavaLanguagePlugin`.
 
-The plugin class `org.gradle.api.plugins.JavaLanguagePlugin` does not register a factory for `JavaSourceSet` and `ResourceSourceSet` 
-on each functional source set anymore.
+The plugin class `org.gradle.language.java.plugins.JavaLanguagePlugin` does not register a factory for `JavaSourceSet` 
+and `ResourceSourceSet` on each functional source set anymore.
 
 #### Domain model reorganisation
 

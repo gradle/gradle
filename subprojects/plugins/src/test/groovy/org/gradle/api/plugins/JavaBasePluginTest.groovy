@@ -46,7 +46,7 @@ class JavaBasePluginTest extends Specification {
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
-        project.plugins.hasPlugin(JavaLanguagePlugin)
+        project.plugins.hasPlugin(LegacyJavaComponentPlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
     }
 
