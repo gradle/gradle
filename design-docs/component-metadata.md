@@ -60,6 +60,11 @@ Users will be able to access the 'branch' attribute when resolving, via the `Ivy
 - Add a branch attribute to the generated ivy descriptor if the `IvyModuleDescriptor` has a non-empty branch value.
 - Add read-only 'branch' property to both `IvyModuleMetadata` and `IvyModuleVersionMetaData` (internal).
 - Populate the branch property from the Ivy module descriptor
+- Sync up the IvyModuleDescriptor and IvyModuleMetadata:
+    - add extra-info to descriptor (validate keys as per branch)
+    - add ivyStatus to IvyModuleMetadata (should always return the value from the descriptor, not the value set on ComponentMetadataDetails).
+- Rename IvyModuleDescriptor -> IvyModuleDescriptorSpec, IvyModuleMetadata -> IvyModuleDescriptor
+- Validate status in ValidatingIvyPublisher as for branch
 
 ### Test coverage
 
@@ -69,13 +74,12 @@ Users will be able to access the 'branch' attribute when resolving, via the `Ivy
 - Publish and resolve with branch value that contains non-ascii characters
 - Reasonable error message when publishing with invalid branch value
 - Branch attribute is cached until module is refreshed
+- Test coverage for publishing with extra-info set
+- Test coverage for accessing ivyStatus in component metadata rules
 
 ### Open issues
 
-- Sync up the IvyModuleDescriptor and IvyModuleMetadata: add extra-info and status to descriptor, add
-- Rename IvyModuleDescriptor -> IvyModuleDescriptorSpec, IvyModuleMetadata -> IvyModuleDescriptor
 - Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
-- No validation rules for status in ValidatingIvyPublisher
 
 ## Story: Build script reports all versions tested for dynamic version
 
