@@ -46,7 +46,11 @@ public interface PluginResolutionResult {
      */
     void found(String sourceDescription, PluginResolution pluginResolution);
 
-
+    /**
+     *
+     * @param sourceDescription
+     * @param action
+     */
     void foundLegacy(String sourceDescription, Action<? super LegacyPluginResolveContext> action);
 
     /**

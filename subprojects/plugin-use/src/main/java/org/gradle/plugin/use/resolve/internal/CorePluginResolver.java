@@ -48,7 +48,7 @@ public class CorePluginResolver implements PluginResolver {
                                     + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
                     );
                 }
-                result.found(getDescription(), new SimplePluginResolution(typeForId));
+                result.found(getDescription(), new SimplePluginResolution(id, typeForId));
             } catch (UnknownPluginException e) {
                 result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
             }

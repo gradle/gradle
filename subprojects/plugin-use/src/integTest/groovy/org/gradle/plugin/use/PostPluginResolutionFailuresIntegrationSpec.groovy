@@ -19,8 +19,9 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.hamcrest.Matchers
 import org.junit.Rule
+
+import static org.hamcrest.Matchers.startsWith
 
 class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
@@ -41,9 +42,8 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("A problem occurred configuring root project"))
-        failure.assertHasCause("Plugin with id 'org.my.myplugin' not found.")
-
+        failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.my.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.my.myplugin'"))
+        failure.assertHasLineNumber(3)
     }
 
     def "error loading plugin"() {
@@ -54,8 +54,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("A problem occurred configuring root project"))
-        failure.assertHasCause("Could not create plugin of type 'TestPlugin'.")
+        failure.assertHasDescription("Could not create plugin of type 'TestPlugin'.")
     }
 
     def "error applying plugin"() {
@@ -66,7 +65,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("A problem occurred configuring root project"))
+        failure.assertThatDescription(startsWith("A problem occurred configuring root project"))
         failure.assertHasCause("throwing plugin")
     }
 

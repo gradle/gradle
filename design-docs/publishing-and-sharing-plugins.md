@@ -635,7 +635,7 @@ Note: the class loading/visibility required by this story does not reflect the f
 - ~~Plugin can access classes from Gradle core plugins~~
 - ~~Plugin cannot access Gradle internal implementation classes~~
 - Failed resolution of module implementation from specified repository fails, with error message indicating why resolve was happening
-- Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message
+- ~~Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message~~
 - Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message
 - Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message
 

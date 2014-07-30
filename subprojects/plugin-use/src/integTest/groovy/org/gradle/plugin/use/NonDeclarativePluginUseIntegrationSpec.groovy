@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.junit.Rule
 
+import static org.hamcrest.Matchers.startsWith
+
 class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     public static final String PLUGIN_ID = "org.myplugin"
@@ -183,10 +185,35 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         output.contains "buildscriptDependencies - 2"
     }
 
-    MavenHttpModule publishPlugin(String impl) {
+    def "failure due to no plugin with id in implementation"() {
+        when:
+        expectPluginQuery()
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addPlugin("", "other")
+        pluginBuilder.publishTo(executer, module.artifactFile)
+
+        and:
+        buildScript """
+            $USE
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.myplugin'"))
+        failure.assertHasLineNumber(2)
+    }
+
+    def expectPluginQuery() {
         service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION) {
             legacy = true
         }
+    }
+
+    MavenHttpModule publishPlugin(String impl) {
+        expectPluginQuery()
 
         def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
         module.allowAll()
@@ -196,4 +223,23 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         module
     }
+
+    private void publishUnloadablePlugin() {
+        expectPluginQuery()
+
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addUnloadablePlugin(PLUGIN_ID)
+        pluginBuilder.publishTo(executer, module.artifactFile)
+    }
+
+    private void publishFailingPlugin() {
+        expectPluginQuery()
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addPlugin("throw new Exception('throwing plugin')", PLUGIN_ID)
+        pluginBuilder.publishTo(executer, module.artifactFile)
+    }
+
+
 }

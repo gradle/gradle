@@ -26,7 +26,7 @@ public class NoopPluginResolver implements PluginResolver {
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest.getId().equals(DefaultScriptPluginFactory.NOOP_PLUGIN_ID)) {
-            result.found("noop resolver", new SimplePluginResolution(NoopPlugin.class));
+            result.found("noop resolver", new SimplePluginResolution(DefaultScriptPluginFactory.NOOP_PLUGIN_ID, NoopPlugin.class));
         }
     }
 
