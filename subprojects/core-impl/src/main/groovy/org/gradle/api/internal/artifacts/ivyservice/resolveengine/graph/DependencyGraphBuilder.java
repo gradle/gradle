@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -30,6 +31,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyToCo
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleVersionSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
@@ -48,7 +53,7 @@ public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private final DependencyToModuleVersionIdResolver dependencyResolver;
     private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
-    private final InternalConflictResolver conflictResolver;
+    private final ModuleConflictResolver conflictResolver;
     private final ModuleToModuleVersionResolver moduleResolver;
     private final ArtifactResolver artifactResolver;
 
@@ -60,8 +65,8 @@ public class DependencyGraphBuilder {
         this.dependencyResolver = dependencyResolver;
         this.moduleResolver = moduleResolver;
         this.artifactResolver = artifactResolver;
+        this.conflictResolver = conflictResolver;
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
-        this.conflictResolver = new InternalConflictResolver(conflictResolver);
     }
 
     public void resolve(ConfigurationInternal configuration,
@@ -79,7 +84,9 @@ public class DependencyGraphBuilder {
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver);
-        traverseGraph(resolveState);
+        ConflictHandler conflictHandler = new ConflictHandler(new DirectDependencyForcingResolver(conflictResolver, resolveState.root.moduleRevision));
+
+        traverseGraph(resolveState, conflictHandler);
 
         assembleResult(resolveState, modelVisitor);
     }
@@ -87,13 +94,11 @@ public class DependencyGraphBuilder {
     /**
      * Traverses the dependency graph, resolving conflicts and building the paths from the root configuration.
      */
-    private void traverseGraph(ResolveState resolveState) {
-        Set<ModuleIdentifier> conflicts = new LinkedHashSet<ModuleIdentifier>();
-
+    private void traverseGraph(final ResolveState resolveState, final ConflictHandler conflictHandler) {
         resolveState.onMoreSelected(resolveState.root);
 
         List<DependencyEdge> dependencies = new ArrayList<DependencyEdge>();
-        while (resolveState.peek() != null || !conflicts.isEmpty()) {
+        while (resolveState.peek() != null || conflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
                 ConfigurationNode node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
@@ -118,24 +123,28 @@ public class DependencyGraphBuilder {
                         ModuleResolveState module = resolveState.getModule(moduleId);
 
                         // A new module revision. Check for conflict
-                        Collection<ModuleVersionResolveState> versions = module.getVersions();
-                        if (versions.size() == 1) {
-                            // First version of this module. Select it for now
+                        ModuleConflict c = conflictHandler.registerModule(module);
+                        if (c == null) {
+                            // No conflict. Select it for now
                             LOGGER.debug("Selecting new module version {}", moduleRevision);
                             module.select(moduleRevision);
                         } else {
-                            // Not the first version of this module. We have a new conflict
+                            // We have a conflict
                             LOGGER.debug("Found new conflicting module version {}", moduleRevision);
-                            conflicts.add(moduleId);
 
                             // Deselect the currently selected version, and remove all outgoing edges from the version
                             // This will propagate through the graph and prune configurations that are no longer required
-                            ModuleVersionResolveState previouslySelected = module.clearSelection();
-                            if (previouslySelected != null) {
-                                for (ConfigurationNode configuration : previouslySelected.configurations) {
-                                    configuration.deselect();
+                            // For each module participating in the conflict (many times there is only one participating module that has multiple versions)
+                            c.withAffectedModules(new Action<ModuleIdentifier>() {
+                                public void execute(ModuleIdentifier module) {
+                                    ModuleVersionResolveState previouslySelected = resolveState.getModule(module).clearSelection();
+                                    if (previouslySelected != null) {
+                                        for (ConfigurationNode configuration : previouslySelected.configurations) {
+                                            configuration.deselect();
+                                        }
+                                    }
                                 }
-                            }
+                            });
                         }
                     }
 
@@ -143,15 +152,18 @@ public class DependencyGraphBuilder {
                 }
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
-                ModuleIdentifier moduleId = conflicts.iterator().next();
-                conflicts.remove(moduleId);
-                ModuleResolveState module = resolveState.getModule(moduleId);
-                ModuleVersionResolveState selected = conflictResolver.select(module.getVersions(), resolveState.root.moduleRevision);
-                LOGGER.debug("Selected {} from conflicting modules {}.", selected, module.getVersions());
-
-                // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
-                // matching selected configuration. For the select configuration, this mean traversing its dependencies.
-                module.restart(selected);
+                conflictHandler.resolveNextConflict(new Action<ConflictResolutionResult>() {
+                    public void execute(final ConflictResolutionResult result) {
+                        result.getConflict().withAffectedModules(new Action<ModuleIdentifier>() {
+                            public void execute(ModuleIdentifier moduleIdentifier) {
+                                ModuleVersionResolveState selected = result.getSelected();
+                                // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
+                                // matching selected configuration. For the select configuration, this mean traversing its dependencies.
+                                resolveState.getModule(moduleIdentifier).restart(selected);
+                            }
+                        });
+                    }
+                });
             }
         }
     }
@@ -406,7 +418,7 @@ public class DependencyGraphBuilder {
     /**
      * Resolution state for a given module.
      */
-    private static class ModuleResolveState {
+    private static class ModuleResolveState implements CandidateModule {
         final ModuleIdentifier id;
         final Set<DependencyEdge> unattachedDependencies = new LinkedHashSet<DependencyEdge>();
         final Map<ModuleVersionIdentifier, ModuleVersionResolveState> versions = new LinkedHashMap<ModuleVersionIdentifier, ModuleVersionResolveState>();
@@ -422,6 +434,10 @@ public class DependencyGraphBuilder {
         @Override
         public String toString() {
             return id.toString();
+        }
+
+        public ModuleIdentifier getId() {
+            return id;
         }
 
         public Collection<ModuleVersionResolveState> getVersions() {
@@ -845,19 +861,21 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static class InternalConflictResolver {
+    private static class DirectDependencyForcingResolver implements ModuleConflictResolver {
         private final ModuleConflictResolver resolver;
+        private final ModuleVersionResolveState root;
 
-        private InternalConflictResolver(ModuleConflictResolver resolver) {
+        private DirectDependencyForcingResolver(ModuleConflictResolver resolver, ModuleVersionResolveState root) {
             this.resolver = resolver;
+            this.root = root;
         }
 
-        ModuleVersionResolveState select(Collection<ModuleVersionResolveState> candidates, ModuleVersionResolveState root) {
+        public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
             for (ConfigurationNode configuration : root.configurations) {
                 for (DependencyEdge outgoingEdge : configuration.outgoingEdges) {
                     if (outgoingEdge.dependencyDescriptor.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
                         outgoingEdge.targetModuleRevision.selectionReason = VersionSelectionReasons.FORCED;
-                        return outgoingEdge.targetModuleRevision;
+                        return (T) outgoingEdge.targetModuleRevision;
                     }
                 }
             }
