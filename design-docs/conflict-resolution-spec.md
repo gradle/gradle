@@ -18,11 +18,21 @@ There are two things we need to be able to do when traversing the graph:
 
 ## Story: Allow declaring that certain module is replaced by some other.
 
-    components {
-    	module('com.google.guava:guava') {
-    		replaces 'com.google.collections:google-collections'
-    	}
+DSL mock up:
+
+    dependencies {
+        components {
+            module('com.google.guava:guava') {
+                replacedBy 'com.google.collections:google-collections'
+            }
+        }
     }
+
+This states that module 'com.google.guava:guava' was replaced by 'com.google.collections:google-collections' at some point. This implies
+two things:
+
+- Every version of 'google-collections' and every version of 'guava' conflict with each other.
+- Every version of 'google-collections' is newer than every version of 'guava'.
 
 ### User visible changes
 
@@ -69,7 +79,7 @@ There are two things we need to be able to do when traversing the graph:
 - A replaces B and ResolvedConfiguration API is still happy
 - A replaces B, only A artifact is included in the ResolvedConfiguration's artifacts
 
-## Story: component replacement is explict in the dependency reports
+## Story: component replacement is explicit in the dependency reports
 
 - a:a:1.0 replaces b:b:1.0, the 'dependencies' report shows "a:a:1.0 -> b:b:1.0"
 - a:a:1.0 replaces b:b:1.0, the 'dependencyInsight' report shows "a:a:1.0 -> b:b:1.0 (a:a replaces b:b)"
@@ -94,6 +104,26 @@ Make it possible to declare module replacements flexibly, so that sets of module
 - as above but starting from some version: groovy -> groovy, groovy-ant, groovy-xml only starting from 2.0
 - a set of modules replaced by a single module (hypothetical)
 
+DSL mock up:
+
+    dependencies {
+        components {
+            module('org.springframework:spring') { ComponentMetaData details ->
+                details.replacedBy 'org.springframework:spring-core'
+                details.replacedBy 'org.springframework:spring-aop'
+            }
+        }
+    }
+
+This states that 'org.springframework:spring' was replaced by both 'org.springframework:spring-core' and 'org.springframework:spring-aop' at some point. This implies:
+
+- Every version of 'org.springframework:spring' and every version of 'org.springframework:spring-core' conflict with each other.
+- Every version of 'org.springframework:spring' and every version of 'org.springframework:spring-aop' conflict with each other.
+- Every version of 'org.springframework:spring-core' is newer than every version of 'org.springframework:spring'.
+- Every version of 'org.springframework:spring-aop' is newer than every version of 'org.springframework:spring'.
+- When replacing a version of 'org.springframework:spring' due to a conflict, include both 'org.springframework:spring-core' and 'org.springframework:spring-aop'
+in the result.
+
 ### Implementation plan:
 
 - DependencyGraphBuilder receives Spec<ModuleIdentifier> information for deciding whether given modules are in conflict and for deciding who replaces them.
@@ -101,10 +131,13 @@ Make it possible to declare module replacements flexibly, so that sets of module
 ### Test coverage:
 
 - A replaced by A-api, A-impl
+    - When dependencies on A and A-api:1.2 are present in the graph, the result should contain A-api:1.2 and A-impl:1.2
+    - When dependencies on A and A-api:1.2 and A-impl:1.3 are present in the graph, the result should contain A-api:1.3 and A-impl:1.3
 - B-api, B-impl replaced by B
 - A replaced by A-api, A-impl starting from version 2.0
 - A replaced by B (rule1) and C (rule2). A,B,C in graph
 
 # Open issues
 
+- need to use the same version of A-api and A-impl regardless of whether A is in the graph or not. The DSL above doesn't capture this
 - what do we do if 2 replacement rules match given component? Which rule should be chosen?
