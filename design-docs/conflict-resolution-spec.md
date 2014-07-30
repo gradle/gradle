@@ -112,6 +112,37 @@ DSL mock up:
                 details.replacedBy 'org.springframework:spring-core'
                 details.replacedBy 'org.springframework:spring-aop'
             }
+
+            //More brainstorming - general api:
+            modules(notation).all {}
+
+            //examples (some of them are far into the future)
+            modules('org.springframework:spring').all {
+                replacedBy 'org.springframework:spring-core'
+                replacedBy 'org.springframework:spring-aop'
+            }
+
+            modules('org:api', 'com:impl').all {
+                releasableUnit()
+                //or
+                requiresConsistentVersion()
+                //or
+                consistentVersion()
+            }
+
+            modules { ModuleSelector it -> it.group.startsWith('com.linkedin.') && it.hasSameGroup() }.all {
+                releasableUnit()
+            }
+
+            modules('com.linkedin.*').all {
+                releasableUnit()
+            }
+
+            modules { it.name == 'groovy-all' && it.numericVersion >= 2  }.all {
+                replacedBy 'groovy-core'
+                replacedBy 'groovy-xml'
+                releasableUnit() //ensures 'groovy-core' and 'groovy-xml' will have consistent version
+            }
         }
     }
 
