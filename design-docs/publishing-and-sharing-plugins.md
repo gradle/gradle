@@ -611,7 +611,7 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 
 - Is it worth validating the id/version returned by the service against what we asked for?
 
-## Story: User uses non-declarative plugin from `plugins.gradle.org` of static version with dependency on core plugin
+## ~~Story: User uses non-declarative plugin from `plugins.gradle.org` of static version with dependency on core plugin~~
 
 The plugin portal resolver returns a payload indicating that this plugin is non-declarative and should be loaded as such.
 
@@ -642,7 +642,7 @@ Note: the class loading/visibility required by this story does not reflect the f
 
 * If a dependency of a plugin fails to resolve, the user may have a hard time working out why that dependency is being downloaded - we should inform them that it's being resolved as part of `buildscript.configurations.classpath` because of a plugin 
 
-> 
+> Broken out to later story.
 
 ## Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”
 
