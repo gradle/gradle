@@ -9,14 +9,14 @@ publishing {
         mavenCustom(MavenPublication) {
             pom.withXml {
                 asNode().appendNode('description',
-									'A demonstration of maven POM customization')
+                                    'A demonstration of maven POM customization')
             }
         }
     }
 // END SNIPPET pom-modification
     repositories {
         maven {
-			// change to point to your repo, e.g. http://my.org/repo
+            // change to point to your repo, e.g. http://my.org/repo
             url "$buildDir/repo"
         }
     }

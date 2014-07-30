@@ -165,7 +165,7 @@
         <para>The default behavior of the Ear task is to copy the content of <literal>src/main/application</literal>
             to the root of the archive. If your <literal>application</literal> directory doesn't contain a
             <literal>META-INF/application.xml</literal> deployment descriptor then one will be generated for you.
-		</para>
+        </para>
         <para>The <apilink class="org.gradle.plugins.ear.Ear"/> class in the API documentation has additional useful information.</para>
     </section>
     <section id='sec:customizing'>
@@ -177,7 +177,7 @@
             <test args="assemble"/>
         </sample>
         <para>You can also use customization options that the <apilink class="org.gradle.plugins.ear.Ear"/>
-        	task provides, such as <literal>from</literal> and <literal>metaInf</literal>.
+            task provides, such as <literal>from</literal> and <literal>metaInf</literal>.
         </para>
     </section>
     <section id='sec:using_custom_app_xml'>

@@ -166,15 +166,15 @@
             <para>To publish the JAR file, run <userinput>gradle uploadArchives</userinput>.</para>
         </section>
         
-		<section>
+        <section>
             <title>Creating an Eclipse project</title>
             <para>To create the Eclipse-specific descriptor files, like <literal>.project</literal>, you need to add
             another plugin to your build file:</para>
-        	<sample id="javaQuickstart" dir="java/quickstart" title="Eclipse plugin">
-            	<sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
-        	</sample>
-        	<para>Now execute <userinput>gradle eclipse</userinput> command to generate Eclipse project files. More information
-        	about the <literal>eclipse</literal> task can be found in <xref linkend="eclipse_plugin"/>.
+            <sample id="javaQuickstart" dir="java/quickstart" title="Eclipse plugin">
+                <sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
+            </sample>
+            <para>Now execute <userinput>gradle eclipse</userinput> command to generate Eclipse project files. More information
+            about the <literal>eclipse</literal> task can be found in <xref linkend="eclipse_plugin"/>.
             </para>
         </section>
 

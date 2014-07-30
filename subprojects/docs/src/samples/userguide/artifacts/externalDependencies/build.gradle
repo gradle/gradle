@@ -29,7 +29,7 @@ task listJars << {
 dependencies {
     runtime group: 'org.springframework', name: 'spring-core', version: '2.5'
     runtime 'org.springframework:spring-core:2.5',
-			'org.springframework:spring-aop:2.5'
+            'org.springframework:spring-aop:2.5'
     runtime(
         [group: 'org.springframework', name: 'spring-core', version: '2.5'],
         [group: 'org.springframework', name: 'spring-aop', version: '2.5']
@@ -60,7 +60,7 @@ dependencies {
 
 //START SNIPPET artifact-only
 dependencies {
-	runtime "org.groovy:groovy:2.2.0@jar"
+    runtime "org.groovy:groovy:2.2.0@jar"
     runtime group: 'org.groovy', name: 'groovy', version: '2.2.0', ext: 'jar'
 }
 //END SNIPPET artifact-only
@@ -73,7 +73,7 @@ dependencies {
         }
         module(group: 'org.apache.ant', name: 'ant', version: '1.9.3') {
             dependencies "org.apache.ant:ant-launcher:1.9.3@jar",
-						 "org.apache.ant:ant-junit:1.9.3"
+                         "org.apache.ant:ant-junit:1.9.3"
         }
     }
 }
@@ -91,8 +91,8 @@ List groovy = ["org.codehaus.groovy:groovy-all:2.3.6@jar",
                "commons-cli:commons-cli:1.0@jar",
                "org.apache.ant:ant:1.9.3@jar"]
 List hibernate = ['org.hibernate:hibernate:3.0.5@jar',
-				  'somegroup:someorg:1.0@jar']
+                  'somegroup:someorg:1.0@jar']
 dependencies {
-	runtime groovy, hibernate
+    runtime groovy, hibernate
 }
 //END SNIPPET list-grouping

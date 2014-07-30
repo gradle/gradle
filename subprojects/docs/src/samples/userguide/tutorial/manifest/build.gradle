@@ -5,7 +5,7 @@ version = '1.0'
 jar {
     manifest {
         attributes("Implementation-Title": "Gradle",
-				   "Implementation-Version": version)
+                   "Implementation-Version": version)
     }
 }
 // END SNIPPET add-to-manifest
@@ -13,7 +13,7 @@ jar {
 // START SNIPPET custom-manifest
 ext.sharedManifest = manifest {
     attributes("Implementation-Title": "Gradle",
-			   "Implementation-Version": version)
+               "Implementation-Version": version)
 }
 task fooJar(type: Jar) {
     manifest = project.manifest {
@@ -28,7 +28,7 @@ task barJar(type: Jar) {
         attributes key1: 'value1'
         from sharedManifest, 'src/config/basemanifest.txt'
         from('src/config/javabasemanifest.txt',
-			 'src/config/libbasemanifest.txt') {
+             'src/config/libbasemanifest.txt') {
             eachEntry { details ->
                 if (details.baseValue != details.mergeValue) {
                     details.value = baseValue

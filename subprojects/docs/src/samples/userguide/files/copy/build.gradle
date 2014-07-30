@@ -12,7 +12,7 @@ task copyTaskWithPatterns(type: Copy) {
     include '**/*.html'
     include '**/*.jsp'
     exclude { details -> details.file.name.endsWith('.html') &&
-						 details.file.text.contains('staging') }
+                         details.file.text.contains('staging') }
 }
 // END SNIPPET copy-task-with-patterns
 
@@ -50,7 +50,7 @@ task copyMethod << {
 
 // START SNIPPET copy-method-with-dependency
 task copyMethodWithExplicitDependencies{
-	// up-to-date check for inputs, plus add copyTask as dependency
+    // up-to-date check for inputs, plus add copyTask as dependency
     inputs.file copyTask
     outputs.dir 'some-dir' // up-to-date check for outputs
     doLast{
