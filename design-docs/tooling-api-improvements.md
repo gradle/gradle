@@ -91,7 +91,7 @@ This story allows a custom plugin to expose a tooling model to any tooling API c
 - Generalise `UnsupportedModelFeedbackCrossVersionSpec`.
 - Plugin attempts to register a model that some other plugin already has registered.
 
-## Story: Tooling API client builds a complex tooling model in a single batch operation
+## Story: Tooling API client builds a complex tooling model in a single batch operation (DONE)
 
 This story adds support for a tooling API to query portions of the Gradle model in an efficient way.
 
@@ -193,7 +193,7 @@ Note: there is a breaking change here.
 
 When the `GradleBuild` model is requested, execute only the settings script, and don't configure any of the projects.
 
-## Story: Tooling API client determines whether model is available
+## Story: Tooling API client determines whether model is available (DONE)
 
 This story adds support for conditionally requesting a model, if it is available
 
@@ -211,7 +211,7 @@ This story adds support for conditionally requesting a model, if it is available
 
 Fix the `ClassLoader` caching in the tooling API so that it can deal with changing implementations.
 
-## Story: Tooling API client launches a build using task selectors from different projects
+## Story: Tooling API client launches a build using task selectors from different projects (DONE)
 
 TBD
 
@@ -220,7 +220,7 @@ TBD
 - Can execute task selectors from multiple projects, for all target Gradle versions
 - Can execute overlapping task selectors.
 
-## Story: Tooling API exposes project's implicit tasks as launchable
+## Story: Tooling API exposes project's implicit tasks as launchable (DONE)
 
 Change the building of the `BuildInvocations` model so that:
 
@@ -236,7 +236,7 @@ Change the building of the `BuildInvocations` model so that:
 - A project defines a task placeholder. This should be visible in the `BuildInvocations` model for the project and for the parent of the project.
     - Launching a build using the selector runs the task.
 
-## Story: Expose information about the visibility of a task
+## Story: Expose information about the visibility of a task (DONE)
 
 This story allows the IDE to hide those tasks that are part of the implementation details of a build.
 
@@ -255,7 +255,7 @@ This story allows the IDE to hide those tasks that are part of the implementatio
 
 For example, allow something similar to `gradle test --tests SomePattern`
 
-## Story: Tooling API build action requests a tooling model for a Gradle build
+## Story: Tooling API build action requests a tooling model for a Gradle build (DONE)
 
 This story adds support to build models that have a scope of a whole Gradle build (not just a project)
 
