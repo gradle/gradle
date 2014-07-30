@@ -25,10 +25,8 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
     private final AsyncConsumerActionExecutor connection;
@@ -55,11 +53,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public BuildLauncher forTasks(Iterable<? extends Task> tasks) {
-        List<String> taskPaths = new ArrayList<String>();
-        for (Task task : tasks) {
-            taskPaths.add(task.getPath());
-        }
-        operationParamsBuilder.setTasks(taskPaths);
+        operationParamsBuilder.setLaunchables(tasks);
         return this;
     }
 
