@@ -93,7 +93,7 @@
                     This means that even if some daemon is idle but you are running the build
                     with a different version of Gradle, a new daemon will be started.
                     This also has a consequence for the <literal>--stop</literal> command line instruction:
-                    You can only stop daemons that were started with the Gradle version you uses when running <literal>--stop</literal>.
+                    this command will only stop daemons that were started with Gradle version that is executing <literal>--stop</literal>.
                 </listitem>
             </itemizedlist>
             We plan to improve the functionality of managing and pooling the daemons in the future.

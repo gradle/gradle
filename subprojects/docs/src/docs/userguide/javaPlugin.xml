@@ -297,10 +297,10 @@
             </tr>
             <tr>
                 <td>
-                    <literal>build<replaceable>ConfName</replaceable></literal>
+                    <literal>build<replaceable>ConfigName</replaceable></literal>
                 </td>
                 <td>
-                    The tasks which produce the artifacts in configuration <replaceable>ConfName</replaceable>.
+                    The tasks which produce the artifacts in configuration <replaceable>ConfigName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Assembles the artifacts in the specified configuration.
@@ -309,10 +309,10 @@
             </tr>
             <tr>
                 <td>
-                    <literal>upload<replaceable>ConfName</replaceable></literal>
+                    <literal>upload<replaceable>ConfigName</replaceable></literal>
                 </td>
                 <td>
-                    The tasks which uploads the artifacts in configuration <replaceable>ConfName</replaceable>.
+                    The tasks which uploads the artifacts in configuration <replaceable>ConfigName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
                 <td>Assembles and uploads the artifacts in the specified configuration.

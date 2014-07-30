@@ -206,13 +206,14 @@
         builds with a physical hierarchical or flat layout. For a flat layout you must additionally follow the
         naming convention described above (“<literal>master</literal>”). Gradle supports arbitrary physical layouts
         for a multiproject build, but for such arbitrary layouts you need to execute the build from the directory
-        where the settings file is located. For how to run partial builds from the root see
-        <xref linkend='sec:running_partial_build_from_the_root'/>. In our next release we want to enable partial
-        builds from subprojects by specifying the location of the settings file as a command line parameter. Gradle
-        creates Project objects for every project taking part in the build. For a single project build this is only
-        one project. For a multi-project build these are the projects specified in the Settings object (plus the root
-        project). Each project object has by default a name equal to the name of its top level directory. Every
-        project except the root project has a parent project and might have child projects.
+        where the settings file is located. For information on how to run partial builds from the root see
+        <xref linkend='sec:running_partial_build_from_the_root'/>.
+        </para>
+        <para>
+        Gradle creates a Project object for every project taking part in the build.
+        For a multi-project build these are the projects specified in the Settings object (plus the root
+        project). Each project object has by default a name equal to the name of its top level directory,
+        and every project except the root project has a parent project. Any project may have child projects.
         </para>
     </section>
     <section id='sec:configuration_and_execution_of_a_single_project_build'>

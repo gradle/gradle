@@ -134,7 +134,7 @@
         </sample>
         <para>
             The <filename>buildSrc</filename> project can be a multi-project build, just like any other regular multi-project build. However,
-            you need to make all of the projects that you wish to be on the classpath of the actual build be <literal>runtime</literal> dependencies of the root project in 
+            all of the projects that should be on the classpath of the actual build must be <literal>runtime</literal> dependencies of the root project in
             <filename>buildSrc</filename>. You can do this by adding this to the configuration of each project you wish to export:
         </para>
         <sample id="multiProjectBuildSrc" dir="multiProjectBuildSrc" includeLocation="true" title="Adding subprojects to the root buildSrc project">

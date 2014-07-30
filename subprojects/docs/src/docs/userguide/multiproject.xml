@@ -158,15 +158,12 @@
                 <sourcefile file="build.gradle"/>
                 <output args="-q hello"/>
             </sample>
-	    <para>
-	      You may have seen this pattern before, but I'll call it out. Notice
-	      in this example that there are two definitions for the “<literal>hello</literal>” task.
-	      The first one, which uses the “<literal>task</literal>” keyword, provides
-	      the base definition of the task.  The second piece doesn't use the
-	      “<literal>task</literal>” keyword, but it is still defining part of the “<literal>hello</literal>” task.
-	      There can only be one occurrence of the first pattern in a project,
-	      and there can be multiple occurrences of the second pattern, and a single occurrence of the first pattern is required.
-	    </para>
+            <para>
+                You may notice that there are two code snippets referencing the “<literal>hello</literal>” task.
+                The first one, which uses the “<literal>task</literal>” keyword, constructs the task and provides it's base configuration.
+                The second piece doesn't use the “<literal>task</literal>” keyword, as it is further configuring the existing “<literal>hello</literal>” task.
+                You may only construct a task once in a project, but you may any number of code blocks providing additional configuration.
+            </para>
         </section>
         <section id='sub:adding_specific_behavior'>
             <title>Adding specific behavior</title>

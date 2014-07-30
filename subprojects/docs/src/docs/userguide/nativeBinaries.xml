@@ -336,7 +336,7 @@
             <filename>.rc</filename> source files under <filename>src/${name}/rc</filename>.
         </para>
         <para>
-            As with other source types, you can configure the location of the windows resources that should included in the binary.
+            As with other source types, you can configure the location of the windows resources that should be included in the binary.
         </para>
         <sample id="windowsResourceSet" dir="native-binaries/windows-resources" title="Configuring the location of Windows resource sources">
             <sourcefile file="build-resource-only-dll.gradle" snippet="windows-resource-set"/>
@@ -646,7 +646,7 @@
                 (<literal>src/${component.name}Test/cunit</literal>) or can be configured like any other source set.
             </para>
             <para>
-                Gradle initialises the CUnit test registry and executes the tests, via some generated CUnit launcher sources.
+                Gradle initialises the CUnit test registry and executes the tests, utilising some generated CUnit launcher sources.
                 Gradle will expect and call a function with the signature <literal>void gradle_cunit_register()</literal> that you can use to configure the
                 actual CUnit suites and tests to execute.
             </para>
