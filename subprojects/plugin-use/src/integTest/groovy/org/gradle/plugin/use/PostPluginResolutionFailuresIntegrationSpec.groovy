@@ -54,7 +54,9 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Could not create plugin of type 'TestPlugin'.")
+        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id: 'org.my.myplugin', version: '1.0']"))
+        failure.assertHasLineNumber(3)
+        failure.assertHasCause("Could not create plugin of type 'TestPlugin'.")
     }
 
     def "error applying plugin"() {
@@ -65,7 +67,8 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertThatDescription(startsWith("A problem occurred configuring root project"))
+        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id: 'org.my.myplugin', version: '1.0']"))
+        failure.assertHasLineNumber(3)
         failure.assertHasCause("throwing plugin")
     }
 

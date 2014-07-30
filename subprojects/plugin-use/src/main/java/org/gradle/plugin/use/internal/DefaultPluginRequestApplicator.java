@@ -120,50 +120,40 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         for (final Map.Entry<Result, String> entry : legacyActualPluginIds.entrySet()) {
             final PluginRequest request = entry.getKey().request;
             final String id = entry.getValue();
-            applyPlugin(request, new Runnable() {
+            applyPlugin(request, id, new Runnable() {
                 public void run() {
-                    wrapUnknownPlugin(request, id, new Runnable() {
-                        public void run() {
-                            target.getPlugins().apply(id);
-                        }
-                    });
+                    target.getPlugins().apply(id);
                 }
             });
         }
 
         for (final Result result : nonLegacy) {
-            applyPlugin(result.request, new Runnable() {
+            applyPlugin(result.request, result.found.resolution.getPluginId().toString(), new Runnable() {
                 public void run() {
-                    wrapUnknownPlugin(result.request, result.found.resolution.getPluginId().toString(), new Runnable() {
-                        public void run() {
-                            resolutionApplicator.execute(result.found.resolution);
-                        }
-                    });
+                    resolutionApplicator.execute(result.found.resolution);
                 }
             });
         }
     }
 
-    private void wrapUnknownPlugin(PluginRequest request, String id, Runnable applicator) {
+    private void applyPlugin(PluginRequest request, String id, Runnable applicator) {
         try {
-            applicator.run();
-        } catch (UnknownPluginException e) {
-            throw new InvalidPluginException(
-                    String.format(
-                            "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
-                                    + " This is caused by an incorrect plugin implementation."
-                                    + " Please contact the plugin author(s).",
-                            request, id
-                    ),
-                    e
-            );
-        }
-    }
-
-    private void applyPlugin(PluginRequest request, Runnable applicator) {
-        try {
-            applicator.run();
-        } catch (RuntimeException e) {
+            try {
+                applicator.run();
+            } catch (UnknownPluginException e) {
+                throw new InvalidPluginException(
+                        String.format(
+                                "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
+                                        + " This is caused by an incorrect plugin implementation."
+                                        + " Please contact the plugin author(s).",
+                                request, id
+                        ),
+                        e
+                );
+            } catch (Exception e) {
+                throw new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request), e);
+            }
+        } catch (Exception e) {
             throw new LocationAwareException(e, request.getScriptSource(), request.getLineNumber());
         }
     }

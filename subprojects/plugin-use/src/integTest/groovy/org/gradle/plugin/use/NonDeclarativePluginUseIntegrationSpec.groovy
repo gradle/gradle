@@ -190,7 +190,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         expectPluginQuery()
         def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
         module.allowAll()
-        pluginBuilder.addPlugin("", "other")
+        pluginBuilder.addPlugin(PLUGIN_ID, "other")
         pluginBuilder.publishTo(executer, module.artifactFile)
 
         and:
@@ -203,6 +203,50 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.myplugin'"))
+        failure.assertHasLineNumber(2)
+    }
+
+    def "failure due to plugin class is unloadable"() {
+        when:
+        expectPluginQuery()
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addUnloadablePlugin("org.myplugin", "OtherPlugin")
+        pluginBuilder.publishTo(executer, module.artifactFile)
+
+        and:
+        buildScript """
+            $USE
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasCause("Could not create plugin of type 'OtherPlugin'.")
+        failure.assertHasLineNumber(2)
+    }
+
+    def "failure due to plugin apply throwing"() {
+        when:
+        expectPluginQuery()
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addPlugin("throw new Exception('throwing plugin')", PLUGIN_ID)
+        pluginBuilder.publishTo(executer, module.artifactFile)
+
+        and:
+        buildScript """
+            $USE
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasCause("throwing plugin")
         failure.assertHasLineNumber(2)
     }
 
@@ -223,23 +267,5 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         module
     }
-
-    private void publishUnloadablePlugin() {
-        expectPluginQuery()
-
-        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-        pluginBuilder.addUnloadablePlugin(PLUGIN_ID)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-    }
-
-    private void publishFailingPlugin() {
-        expectPluginQuery()
-        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-        pluginBuilder.addPlugin("throw new Exception('throwing plugin')", PLUGIN_ID)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-    }
-
 
 }
