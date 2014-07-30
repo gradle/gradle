@@ -20,7 +20,6 @@ package org.gradle.initialization;
  * Propagates notification that the build should be cancelled.
  */
 public interface BuildCancellationToken {
-    boolean canBeCancelled();
     boolean isCancellationRequested();
 
     /**

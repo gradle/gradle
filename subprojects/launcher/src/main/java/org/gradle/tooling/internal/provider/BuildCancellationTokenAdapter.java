@@ -26,10 +26,6 @@ public class BuildCancellationTokenAdapter implements BuildCancellationToken {
         this.internalCancellationToken = internalCancellationToken;
     }
 
-    public boolean canBeCancelled() {
-        return internalCancellationToken.canBeCancelled();
-    }
-
     public boolean isCancellationRequested() {
         return internalCancellationToken.isCancellationRequested();
     }
