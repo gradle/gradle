@@ -187,11 +187,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
             final CancelCallback cancelCallback = new CancelCallback(connection.getUid(), buildId);
-            if (cancellationToken.canBeCancelled()) {
-                boolean cancelled = cancellationToken.addCallback(cancelCallback);
-                if (cancelled) {
-                    throw new DaemonClientInterruptedException("Build interrupted");
-                }
+            if (cancellationToken.addCallback(cancelCallback)) {
+                throw new DaemonClientInterruptedException("Build interrupted");
             }
             try {
                 return (T) executeBuild(build, connection, cancelCallback);

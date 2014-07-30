@@ -207,7 +207,6 @@ class DaemonClientTest extends ConcurrentSpecification {
             assert args[0].uidSpec.isSatisfiedBy('1')
             return connection
         }
-        1 * cancellationToken.canBeCancelled() >> true
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             callback.run()
             return false
@@ -241,7 +240,6 @@ class DaemonClientTest extends ConcurrentSpecification {
             assert args[0].uidSpec.isSatisfiedBy('1')
             return connection
         }
-        1 * cancellationToken.canBeCancelled() >> true
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             // simulate cancel request processing
             callback.run()

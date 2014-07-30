@@ -21,7 +21,6 @@ package org.gradle.tooling.internal.protocol;
  * @since 2.1-rc-1
  */
 public interface InternalCancellationToken {
-    boolean canBeCancelled();
     boolean isCancellationRequested();
 
     /**

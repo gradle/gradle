@@ -21,6 +21,8 @@ import org.gradle.tooling.GradleConnectionException;
 /**
  * Thrown when the {@link org.gradle.tooling.LongRunningOperation} execution
  * was cancelled.
+ *
+ * @since 2.1
  */
 public class BuildCancelledException extends GradleConnectionException {
     public BuildCancelledException(String message) {

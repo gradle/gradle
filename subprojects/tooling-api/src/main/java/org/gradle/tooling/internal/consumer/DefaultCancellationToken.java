@@ -38,10 +38,6 @@ public class DefaultCancellationToken implements CancellationToken, InternalCanc
         return cancelled;
     }
 
-    public boolean canBeCancelled() {
-        return true;
-    }
-
     public synchronized void doCancel() {
         if (cancelled) {
             return;
