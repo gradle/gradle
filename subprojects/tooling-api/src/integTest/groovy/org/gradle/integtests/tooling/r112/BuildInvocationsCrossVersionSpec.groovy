@@ -99,9 +99,6 @@ project(':b:c') {
 
     @TargetGradleVersion(">=1.12")
     def "can run build using task selectors from action"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         BuildInvocations projectSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
@@ -115,9 +112,6 @@ project(':b:c') {
     }
 
     def "can run build using task selectors from connection"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
@@ -134,9 +128,6 @@ project(':b:c') {
     }
 
     def "build task selectors from connection in specified order"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
@@ -226,9 +217,6 @@ project(':b:c') {
 
     @TargetGradleVersion(">=1.12")
     def "build tasks from BuildInvocations model as Launchable"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
@@ -244,9 +232,6 @@ project(':b:c') {
     }
 
     def "build task from connection as Launchable"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
@@ -263,9 +248,6 @@ project(':b:c') {
     }
 
     def "build tasks Launchables in order"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         GradleProject model = withConnection { connection ->
             connection.getModel(GradleProject)
@@ -290,9 +272,6 @@ project(':b:c') {
 
     @TargetGradleVersion(">=1.12")
     def "build tasks and selectors in order"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         GradleProject model = withConnection { connection ->
             connection.getModel(GradleProject)
@@ -311,9 +290,6 @@ project(':b:c') {
     }
 
     def "build tasks and selectors in order cross version"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         GradleProject model = withConnection { connection ->
             connection.getModel(GradleProject)
@@ -354,9 +330,6 @@ project(':b:c') {
 
     @TargetGradleVersion(">=2.0")
     def "builds selectors from different projects"() {
-        given:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-
         when:
         BuildInvocations rootSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('test')).run()

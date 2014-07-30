@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.classloader.*;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 import org.objectweb.asm.*;
@@ -34,6 +35,7 @@ public class ModelClassLoaderFactory {
         ClassLoader parent = getClass().getClassLoader();
         FilteringClassLoader filter = new FilteringClassLoader(parent);
         filter.allowPackage("org.gradle.tooling.internal.protocol");
+        filter.allowClass(TaskExecutionRequest.class);
         rootClassLoader = filter;
     }
 
