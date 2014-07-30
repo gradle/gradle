@@ -17,6 +17,8 @@ package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -46,6 +48,21 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         javadoc.text =~ /(?ms)Serial no. is valid javadoc!/
     }
 
+    def "writes header"() {
+        buildFile << """
+            apply plugin: "java"
+            javadoc.options.header = "<!-- Hey Joe! -->"
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when: run("javadoc", "-i")
+        then:
+        file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Issue("GRADLE-3099")
     def "writes multiline header"() {
         buildFile << """
             apply plugin: "java"

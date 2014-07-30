@@ -68,8 +68,10 @@ public class JavadocOptionFileWriterContext {
         //First, we replace slashes because they have special meaning in the javadoc options file
         //Then, we replace every linebreak with slash+linebreak. Slash is needed according to javadoc options file format
         write(value.replaceAll("\\\\", "\\\\\\\\")
-                //on windows sometimes (our test infra?) I receive single \n instead of \r\n. Hence replacing either \n or the official line separator.
-                .replaceAll("(" + getLineSeparator() + ")|\n", "\\\\" + getLineSeparator()));
+                //below does not help on windows environments. I was unable to get plain javadoc utility to work successfully with multiline options _in_ the options file.
+                //at least, it will work out of the box on linux or mac environments.
+                //on windows, the options file will have correct contents according to the javadoc spec but it may not work (the failure will be exactly the same as if we didn't replace line breaks)
+                .replaceAll(getLineSeparator(), "\\\\" + getLineSeparator()));
         write("\'");
         return this;
     }
