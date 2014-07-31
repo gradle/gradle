@@ -87,8 +87,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
      * */
     public withPasswordAuthenticationDisabled(){
         passwordAuthenticationEnabled = false;
-        sshd?.stop()
-        before();
+        restart()
     }
 
     protected void before() throws Throwable {
@@ -106,10 +105,15 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         sshd?.stop()
     }
 
+    public void restart() {
+        stop()
+        before()
+    }
+
     @Override
     protected void after() {
-        passwordAuthenticationEnabled = true
         super.after();
+        passwordAuthenticationEnabled = true
     }
 
     private SshServer setupConfiguredTestSshd() {
