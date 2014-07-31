@@ -61,7 +61,6 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
     public void apply(final Project target) {
 
         target.getPlugins().apply(LanguageBasePlugin.class);
-
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {
@@ -72,8 +71,19 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
             public void execute(ClassDirectoryBinarySpecInternal binary) {
                 createBinaryLifecycleTask(binary, target);
+                setClassesDirConvention(binary, target);
                 createProcessResourcesTaskForBinary(binary, target);
                 createCompileJavaTaskForBinary(binary, target);
+            }
+        });
+    }
+
+    private void setClassesDirConvention(ClassDirectoryBinarySpecInternal binary, final Project target) {
+        final BinaryNamingScheme namingScheme = binary.getNamingScheme();
+        ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
+        conventionMapping.map("classesDir", new Callable<File>() {
+            public File call() throws Exception {
+                return new File(new File(target.getBuildDir(), "classes"), namingScheme.getOutputDirectoryBase());
             }
         });
     }
@@ -93,12 +103,6 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private void createProcessResourcesTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-        ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
-        conventionMapping.map("classesDir", new Callable<File>() {
-            public File call() throws Exception {
-                return new File(new File(target.getBuildDir(), "classes"), namingScheme.getOutputDirectoryBase());
-            }
-        });
         binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
             public void execute(ResourceSet resourceSet) {
                 // TODO: handle case where binary has multiple ResourceSet's
