@@ -76,11 +76,6 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
                 createCompileJavaTaskForBinary(binary, target);
             }
         });
-
-        binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
-            public void execute(final ClassDirectoryBinarySpecInternal binary) {
-            }
-        });
     }
 
     private void createCompileJavaTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
