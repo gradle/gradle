@@ -89,6 +89,8 @@ The plan will be to include this coverage for HTTP transport in a later story.
 
 ### Open issues
 
+- At the moment we can't differentiate between "password auth not supported" and "invalid credentials". 
+    - The ssh library we use (Jsch + underlaying apache sshd library) does not expose this information.
 - Add an `AbstractMultiTestRunner` implementation to permit a test to be run with different repository transports.
 
 ## Support resolving from a maven repository declared with 'sftp' as the URL scheme, using password credentials
