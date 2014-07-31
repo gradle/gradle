@@ -120,6 +120,6 @@ public abstract class GradleConnector {
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
      * @since 1.0-milestone-3
      */
-    public abstract ProjectConnection connect() throws GradleConnectionException, UnsupportedVersionException;
+    public abstract ProjectConnection connect() throws GradleConnectionException;
 
 }

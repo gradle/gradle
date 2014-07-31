@@ -16,14 +16,15 @@
 
 package org.gradle.tooling.exceptions;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.GradleConnectionException;
 
 /**
- * Thrown when the {@link org.gradle.tooling.LongRunningOperation} execution
- * was cancelled.
+ * Thrown when a {@link org.gradle.tooling.LongRunningOperation} is cancelled before the operation completes.
  *
  * @since 2.1
  */
+@Incubating
 public class BuildCancelledException extends GradleConnectionException {
     public BuildCancelledException(String message) {
         super(message);
