@@ -65,9 +65,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    public ExecSpec commandLine(Iterable<?> args) {
+    public T commandLine(Iterable<?> args) {
         execAction.commandLine(args);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -81,9 +81,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    public ExecSpec args(Iterable<?> args) {
+    public T args(Iterable<?> args) {
         execAction.args(args);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -252,9 +252,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    public ExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+    public T setIgnoreExitValue(boolean ignoreExitValue) {
         execAction.setIgnoreExitValue(ignoreExitValue);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
