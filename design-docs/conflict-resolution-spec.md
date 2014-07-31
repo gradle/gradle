@@ -32,7 +32,7 @@ This states that module 'com.google.guava:guava' was replaced by 'com.google.col
 two things:
 
 - Every version of 'google-collections' and every version of 'guava' conflict with each other.
-- Every version of 'google-collections' is newer than every version of 'guava'.
+- Every version of 'google-collections' is older than any version of 'guava'.
 
 ### User visible changes
 
@@ -118,10 +118,13 @@ DSL mock up:
                 details.replacedBy 'org.springframework:spring-aop'
             }
 
-            //More brainstorming - general DSL on a high level
+            //More brainstorming - general DSL on a high level, ideas:
             modules(notation).all { SomeModuleMetadata details -> ... }
             modules.matching(notation).all { SomeModuleMetadata details -> ... }
             modules(notation) {}
+            module(notation) {}
+            //the 'modules' closure is evaluated during the configuration time
+            //so it declares various information about the modules, this information is consumed during project configuration and later used during resolution
 
             //examples (some of them are far into the future)
             modules('org.springframework:spring').all {
