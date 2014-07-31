@@ -289,7 +289,7 @@ task showMissing << { println configurations.missing.files }
         run "resolveConfig1", "resolveConfig2"
     }
 
-    def "does not hit remote repositories if version is available in local repo"() {
+    def "does not hit remote repositories if version is available in local repo and missing from remote repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def repo1Module = repo1.module("group", "projectA", "1.0")
@@ -328,6 +328,7 @@ task showMissing << { println configurations.missing.files }
 
         when:
         server.resetExpectations()
+
         then:
         run 'retrieve'
     }

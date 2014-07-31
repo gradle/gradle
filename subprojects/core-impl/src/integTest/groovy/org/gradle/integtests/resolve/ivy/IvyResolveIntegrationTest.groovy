@@ -143,7 +143,7 @@ task check << {
 
     def "dependency that references a classifier can resolve module with no metadata"() {
         given:
-        def ivyModule = ivyRepo.module("org.gradle", "test", "1.45").withNoMetaData().artifact(classifier: "classifier").publish()
+        ivyRepo.module("org.gradle", "test", "1.45").withNoMetaData().artifact(classifier: "classifier").publish()
 
         and:
         buildFile << """
@@ -159,7 +159,6 @@ task check << {
 """
 
         expect:
-        ivyModule.jarFile.assertDoesNotExist()
         succeeds "check"
     }
 
@@ -200,10 +199,12 @@ task check << {
         succeeds "check"
     }
 
-    def "uses correct artifact name for jar-only module where artifact name does not match module name"() {
+    def "uses correct artifact name for module with no metadata where artifact name does not match module name"() {
         given:
         def module = ivyHttpRepo.module("org.gradle", "test", "1.45")
-                .artifact(name: 'my-test-artifact').publish()
+                .withNoMetaData()
+                .artifact(name: 'my-test-artifact')
+                .publish()
 
         and:
         buildFile << """
