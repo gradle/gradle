@@ -27,7 +27,7 @@
         a more concrete definition for what a project is.
     </para>
     <para>Each project is made up of one or more <firstterm>tasks</firstterm>. A task represents some atomic piece
-        of work which a build performs. This might be compiling some classes, creating a JAR, generating javadoc,
+        of work which a build performs. This might be compiling some classes, creating a JAR, generating Javadoc,
         or publishing some archives to a repository.</para>
     <para>For now, we will look at defining some simple tasks in a build with one project. Later chapters will look at
         working with multiple projects and more about working with projects and tasks.</para>

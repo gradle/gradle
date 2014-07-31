@@ -19,7 +19,7 @@
 
     <para>The IDEA plugin generates files that are used by <ulink url="http://www.jetbrains.com/idea/">IntelliJ IDEA</ulink>, thus
         making it possible to open the project from IDEA (<guimenuitem>File</guimenuitem> - <guimenuitem>Open Project</guimenuitem>).
-        Both external dependencies (including associated source and javadoc files) and project dependencies are considered.</para>
+        Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.</para>
 
     <para>What exactly the IDEA plugin generates depends on which other plugins are used:</para>
     <table>

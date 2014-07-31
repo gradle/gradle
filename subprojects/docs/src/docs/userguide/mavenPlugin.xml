@@ -176,7 +176,7 @@
                 All the elements of this tree are Java beans. To configure the simple attributes you pass a map to the bean
                 elements. To add bean elements to its parent, you use a closure. In the example above <emphasis>repository</emphasis>
                 and <emphasis>authentication</emphasis> are such bean elements. <xref linkend='deployerConfig'/>
-                lists the available bean elements and a link to the javadoc of the corresponding class. In the javadoc you
+                lists the available bean elements and a link to the Javadoc of the corresponding class. In the Javadoc you
                 can see the possible attributes you can set for a particular element.
             </para>
             <para>In Maven you can define repositories and optionally snapshot repositories. If no snapshot repository

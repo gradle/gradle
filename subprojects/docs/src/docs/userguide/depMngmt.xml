@@ -551,7 +551,7 @@
                 The dependency reports (see the previous paragraph) are using this API under the covers.
                 The API lets you walk the resolved dependency graph and provides information about the dependencies.
                 In future releases the API will grow to provide more information about the resolution result.
-                For more information about the API please refer to the javadocs on
+                For more information about the API please refer to the Javadocs on
                 <apilink class="org.gradle.api.artifacts.ResolvableDependencies" method="getResolutionResult"/>.
                 Potential usages of the <apilink class="org.gradle.api.artifacts.result.ResolutionResult"/> API:
                 <itemizedlist>
