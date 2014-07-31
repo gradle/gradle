@@ -101,12 +101,12 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         allowInit()
     }
 
-    public void stop() {
-        sshd?.stop()
+    public void stop(boolean immediately = false) {
+        sshd?.stop(immediately);
     }
 
     public void restart() {
-        stop()
+        stop(true)
         before()
     }
 
