@@ -40,7 +40,6 @@ public class JvmOptions {
     private static final String USER_LANGUAGE_KEY = "user.language";
     private static final String USER_COUNTRY_KEY = "user.country";
     private static final String USER_VARIANT_KEY = "user.variant";
-    private static final String USER_SCRIPT_KEY = "user.script";
     private static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
 
     // Store this because Locale.default is mutable and we want the unchanged default
@@ -62,7 +61,6 @@ public class JvmOptions {
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
         immutableSystemProperties.put(USER_VARIANT_KEY, DEFAULT_LOCALE.getVariant());
-        immutableSystemProperties.put(USER_SCRIPT_KEY, DEFAULT_LOCALE.getScript());
     }
 
     /**

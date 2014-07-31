@@ -291,7 +291,7 @@ public class DefaultJavaForkOptionsTest {
     }
 
     private static List<String> localeProperties(Locale locale = Locale.default) {
-        ["country", "language", "script", "variant"].sort().collectEntries {
+        ["country", "language", "variant"].sort().collectEntries {
             ["user.$it", locale."$it"]
         }.collect {
             it.value ? "-D$it.key=$it.value" : "-D$it.key"

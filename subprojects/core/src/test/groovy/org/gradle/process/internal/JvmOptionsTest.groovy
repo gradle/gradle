@@ -222,7 +222,7 @@ class JvmOptionsTest extends Specification {
     }
 
     private static Map<String, String> localeProperties(Locale locale = Locale.default) {
-        ["country", "language", "script", "variant"].sort().collectEntries {
+        ["country", "language", "variant"].sort().collectEntries {
             ["user.$it".toString(), locale."$it".toString()]
         }
     }

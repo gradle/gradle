@@ -532,7 +532,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put("user.language", locale.getLanguage());
             properties.put("user.country", locale.getCountry());
             properties.put("user.variant", locale.getVariant());
-            properties.put("user.script", locale.getScript());
         }
 
         if (eagerClassLoaderCreationChecksOn) {
