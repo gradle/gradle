@@ -32,7 +32,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface IvyModuleDescriptor {
+public interface IvyModuleDescriptorSpec {
 
     /**
      * Allow configuration of the descriptor, after it has been generated according to the input data.

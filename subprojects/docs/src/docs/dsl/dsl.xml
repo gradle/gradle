@@ -197,7 +197,7 @@
                 <td>org.gradle.api.publish.ivy.IvyArtifactSet</td>
             </tr>
             <tr>
-                <td>org.gradle.api.publish.ivy.IvyModuleDescriptor</td>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorSpec</td>
             </tr>
             <tr>
                 <td>org.gradle.api.publish.maven.MavenPublication</td>

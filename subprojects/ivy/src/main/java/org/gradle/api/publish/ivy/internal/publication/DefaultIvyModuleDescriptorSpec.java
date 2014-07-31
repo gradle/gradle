@@ -28,14 +28,14 @@ import org.gradle.listener.ActionBroadcast;
 
 import java.util.Set;
 
-public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
+public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecInternal {
 
     private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
     private final IvyPublicationInternal ivyPublication;
     private String status = Module.DEFAULT_STATUS;
     private String branch;
 
-    public DefaultIvyModuleDescriptor(IvyPublicationInternal ivyPublication) {
+    public DefaultIvyModuleDescriptorSpec(IvyPublicationInternal ivyPublication) {
         this.ivyPublication = ivyPublication;
     }
 

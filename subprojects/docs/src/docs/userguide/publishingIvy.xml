@@ -186,7 +186,7 @@
                 of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
             </para>
             <para>
-                See <apilink class="org.gradle.api.publish.ivy.IvyModuleDescriptor" method="withXml(org.gradle.api.Action)" /> in the API documentation for more information.
+                See <apilink class="org.gradle.api.publish.ivy.IvyModuleDescriptorSpec" method="withXml(org.gradle.api.Action)" /> in the API documentation for more information.
             </para>
             <para>
                 It is possible to modify virtually any aspect of the created descriptor should you need to.

@@ -57,7 +57,7 @@ import org.gradle.api.publish.Publication;
  * Together, these methods give you full control over the artifacts to be published.
  * </p><p>
  * For any other tweaks to the publication, it is possible to modify the generated Ivy descriptor file prior to publication. This is done using
- * the {@link IvyModuleDescriptor#withXml(org.gradle.api.Action)} method, normally via a Closure passed to the {@link #descriptor(org.gradle.api.Action)} method.
+ * the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method, normally via a Closure passed to the {@link #descriptor(org.gradle.api.Action)} method.
  * </p>
  * <h4>Example of publishing a java component with an added source jar and custom module description</h4>
  *
@@ -98,16 +98,16 @@ public interface IvyPublication extends Publication {
      *
      * @return The module descriptor that will be published.
      */
-    IvyModuleDescriptor getDescriptor();
+    IvyModuleDescriptorSpec getDescriptor();
 
     /**
      * Configures the descriptor that will be published.
      * <p>
-     * The descriptor XML can be modified by using the {@link IvyModuleDescriptor#withXml(org.gradle.api.Action)} method.
+     * The descriptor XML can be modified by using the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method.
      *
      * @param configure The configuration action.
      */
-    void descriptor(Action<? super IvyModuleDescriptor> configure);
+    void descriptor(Action<? super IvyModuleDescriptorSpec> configure);
 
     /**
      * Provides the software component that should be published.

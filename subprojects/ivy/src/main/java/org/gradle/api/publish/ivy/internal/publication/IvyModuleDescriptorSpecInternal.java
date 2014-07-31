@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
 import java.util.Set;
 
-public interface IvyModuleDescriptorInternal extends IvyModuleDescriptor {
+public interface IvyModuleDescriptorSpecInternal extends IvyModuleDescriptorSpec {
 
     IvyPublicationIdentity getProjectIdentity();
 
