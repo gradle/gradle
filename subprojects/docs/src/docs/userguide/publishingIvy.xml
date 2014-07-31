@@ -116,7 +116,7 @@
             <para>
                  In the following example, artifacts and runtime dependencies are taken from the `java` component, which is added by the <literal>Java Plugin</literal>.
              </para>
-            <sample dir="ivy-publish/quickstart" id="publishing_ivy:publish-component-snippet" title="Publishing a java module to Ivy">
+            <sample dir="ivy-publish/quickstart" id="publishing_ivy:publish-component-snippet" title="Publishing a Java module to Ivy">
                 <sourcefile file="build.gradle" snippet="publish-component" />
             </sample>
         </section>
@@ -294,10 +294,10 @@
     <section id="publishing_ivy:example">
         <title>Complete example</title>
         <para>
-            The following example demonstrates publishing with a multi-project build. Each project publishes a java component and a configured additional source artifact.
+            The following example demonstrates publishing with a multi-project build. Each project publishes a Java component and a configured additional source artifact.
             The descriptor file is customized to include the project description for each project.
         </para>
-        <sample dir="ivy-publish/java-multi-project" id="publishing_ivy:complete_example" title="Publishing a java module">
+        <sample dir="ivy-publish/java-multi-project" id="publishing_ivy:complete_example" title="Publishing a Java module">
             <sourcefile file="build.gradle" />
         </sample>
         <para>
@@ -305,7 +305,7 @@
         </para>
         <itemizedlist>
             <listitem>The Ivy module descriptor file: “<filename>ivy-1.0.xml</filename>”.</listitem>
-           <listitem>The primary “jar” artifact for the java component: “<filename>project1-1.0.jar</filename>”.</listitem>
+           <listitem>The primary “jar” artifact for the Java component: “<filename>project1-1.0.jar</filename>”.</listitem>
            <listitem>The source “jar” artifact that has been explicitly configured: “<filename>project1-1.0-source.jar</filename>”.</listitem>
        </itemizedlist>
         <para>

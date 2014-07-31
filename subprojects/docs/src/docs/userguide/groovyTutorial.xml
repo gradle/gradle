@@ -33,7 +33,7 @@
             extends the <literal>compile</literal> task to look for source files in directory
             <filename>src/main/groovy</filename>, and the <literal>compileTest</literal> task to look for test source
             files in directory <filename>src/test/groovy</filename>. The compile tasks use joint compilation for these
-            directories, which means they can contain a mixture of java and groovy source files.
+            directories, which means they can contain a mixture of Java and Groovy source files.
         </para>
         <para>To use the Groovy compilation tasks, you must also declare the Groovy version to use and where to find the
             Groovy libraries. You do this by adding a dependency to the <literal>groovy</literal> configuration.

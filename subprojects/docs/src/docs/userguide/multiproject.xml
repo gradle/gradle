@@ -30,7 +30,7 @@
         </para>
         <para>
             Let's start with a very simple multi-project build. Gradle is a general purpose build tool at
-            its core, so the projects don't have to be java projects. Our first examples are about marine life.
+            its core, so the projects don't have to be Java projects. Our first examples are about marine life.
         </para>
         <section>
             <title>Configuration and execution</title>

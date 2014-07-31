@@ -250,7 +250,7 @@
                     <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseJdt"/>
                 </td>
                 <td><literal>eclipse.jdt</literal></td>
-                <td>Allows configuring jdt information (source/target java compatibility)</td>
+                <td>Allows configuring jdt information (source/target Java compatibility)</td>
             </tr>
             <tr>
                 <td>
