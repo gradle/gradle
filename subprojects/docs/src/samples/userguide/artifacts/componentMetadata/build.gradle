@@ -43,7 +43,7 @@ task listBirds << {
 // START SNIPPET ivy-component-metadata-rule
 dependencies {
     components {
-        eachComponent { ComponentMetadataDetails details, IvyModuleMetadata ivyModule ->
+        eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
             if (details.id.group == 'my.org' && ivyModule.branch == 'testing') {
                 details.changing = true
             }

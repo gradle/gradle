@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
-import org.gradle.api.artifacts.IvyModuleMetadata
+import org.gradle.api.artifacts.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData
@@ -95,7 +95,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
     }
 
-    def "supports rule with typed IvyModuleMetadata parameter"() {
+    def "supports rule with typed IvyModuleDescriptor parameter"() {
         def metadata = Stub(TestIvyMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
@@ -104,7 +104,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getBranch() >> "someBranch"
         }
         def capturedDescriptor = null
-        handler.eachComponent { details, IvyModuleMetadata descriptor ->
+        handler.eachComponent { details, IvyModuleDescriptor descriptor ->
             capturedDescriptor = descriptor
         }
 
@@ -113,14 +113,14 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
         then:
         noExceptionThrown()
-        capturedDescriptor instanceof IvyModuleMetadata
+        capturedDescriptor instanceof IvyModuleDescriptor
         with(capturedDescriptor) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
             branch == "someBranch"
         }
     }
 
-    def "rule with IvyModuleMetadata parameter does not get invoked for non-Ivy components"() {
+    def "rule with IvyModuleDescriptor parameter does not get invoked for non-Ivy components"() {
         def metadata = Stub(MutableModuleVersionMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
@@ -128,7 +128,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         def invoked = false
-        handler.eachComponent { details, IvyModuleMetadata descriptor ->
+        handler.eachComponent { details, IvyModuleDescriptor descriptor ->
             invoked = true
         }
 
@@ -194,7 +194,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def capturedDescriptor1 = null
         def capturedDescriptor2 = null
 
-        handler.eachComponent { ComponentMetadataDetails details1, IvyModuleMetadata descriptor1, IvyModuleMetadata descriptor2  ->
+        handler.eachComponent { ComponentMetadataDetails details1, IvyModuleDescriptor descriptor1, IvyModuleDescriptor descriptor2  ->
             capturedDetails1 = details1
             capturedDescriptor1 = descriptor1
             capturedDescriptor2 = descriptor2
@@ -213,11 +213,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             status == "integration"
             statusScheme == ["integration", "release"]
         }
-        capturedDescriptor1 instanceof IvyModuleMetadata
+        capturedDescriptor1 instanceof IvyModuleDescriptor
         with(capturedDescriptor1) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
         }
-        capturedDescriptor2 instanceof IvyModuleMetadata
+        capturedDescriptor2 instanceof IvyModuleDescriptor
         with(capturedDescriptor2) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
         }

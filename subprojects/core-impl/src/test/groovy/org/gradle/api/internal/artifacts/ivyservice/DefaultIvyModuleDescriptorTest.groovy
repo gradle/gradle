@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import spock.lang.Specification
 
-class DefaultIvyModuleMetadataTest extends Specification {
+class DefaultIvyModuleDescriptorTest extends Specification {
     def "getExtraInfo returns immutable map"() {
         setup:
         def map = ['some': 'value']
-        def ivyModuleMetadata = new DefaultIvyModuleMetadata(map, null)
+        def ivyModuleDescriptor = new DefaultIvyModuleDescriptor(map, null)
 
         when:
-        ivyModuleMetadata.getExtraInfo().put('new', 'value')
+        ivyModuleDescriptor.getExtraInfo().put('new', 'value')
 
         then:
         thrown(UnsupportedOperationException)
@@ -33,9 +33,9 @@ class DefaultIvyModuleMetadataTest extends Specification {
 
     def "getBranch returns branch" () {
         given:
-        def ivyModuleMetadata = new DefaultIvyModuleMetadata([:], 'someBranch')
+        def ivyModuleDescriptor = new DefaultIvyModuleDescriptor([:], 'someBranch')
 
         expect:
-        ivyModuleMetadata.getBranch() == 'someBranch'
+        ivyModuleDescriptor.getBranch() == 'someBranch'
     }
 }

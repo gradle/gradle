@@ -23,7 +23,7 @@ import java.util.Map;
  * The metadata about an Ivy module that acts as an input to a component metadata rule.
  */
 @Incubating
-public interface IvyModuleMetadata {
+public interface IvyModuleDescriptor {
     /***
      * Returns the branch attribute of the info element in this descriptor.
      *

@@ -42,7 +42,7 @@ repositories {
         "integration"
     }
 
-    def "can access Ivy metadata by accepting parameter of type IvyModuleMetadata"() {
+    def "can access Ivy metadata by accepting parameter of type IvyModuleDescriptor"() {
         def module = repo.module('org.test', 'projectA', '1.0')
                 .withExtraInfo(foo: "fooValue", bar: "barValue")
                 .withBranch('someBranch')
@@ -56,7 +56,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
             assert descriptor.branch == 'someBranch'
@@ -88,7 +88,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.branch == '${sq(branch)}'
         }
@@ -141,7 +141,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
             assert descriptor.branch == 'someBranch'
@@ -173,7 +173,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
             assert descriptor.branch == 'someBranch'
@@ -207,7 +207,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             file("metadata").delete()
             file("metadata") << descriptor.extraInfo.toString()

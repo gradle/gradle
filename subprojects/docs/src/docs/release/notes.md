@@ -163,11 +163,11 @@ The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports 
     }
 
 When resolving Ivy modules, component metadata rules can also access the branch attribute via the
-[IvyModuleMetadata](javadoc/org/gradle/api/artifacts/IvyModuleMetadata.html) interface.
+[IvyModuleDescriptor](javadoc/org/gradle/api/artifacts/IvyModuleDescriptor.html) interface.
 
     dependencies {
         components {
-            eachComponent { ComponentMetadataDetails details, IvyModuleMetadata ivyModule ->
+            eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
                 if (details.id.group == 'my.org' && ivyModule.branch == 'testing') {
                     details.changing = true
                 }

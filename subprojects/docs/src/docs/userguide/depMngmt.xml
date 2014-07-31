@@ -1113,7 +1113,7 @@ someroot/[artifact]-[revision].[ext]
             </sample>
             <para>
                 Gradle can also create component metadata rules utilizing Ivy-specific metadata for modules resolved from an Ivy repository.
-                Values from the Ivy descriptor are made available via the <apilink class="org.gradle.api.artifacts.IvyModuleMetadata"/> interface.
+                Values from the Ivy descriptor are made available via the <apilink class="org.gradle.api.artifacts.IvyModuleDescriptor"/> interface.
             </para>
             <sample id="ivyComponentMetadataRule" dir="userguide/artifacts/componentMetadata" title="Ivy component metadata rule">
                 <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule" />

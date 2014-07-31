@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.IvyModuleMetadata;
+import org.gradle.api.artifacts.IvyModuleDescriptor;
 
 import java.util.Collections;
 import java.util.Map;
 
-public class DefaultIvyModuleMetadata implements IvyModuleMetadata {
+public class DefaultIvyModuleDescriptor implements IvyModuleDescriptor {
     private final String branch;
     private final Map<String, String> extraInfo;
 
-    public DefaultIvyModuleMetadata(Map<String, String> extraInfo, String branch) {
+    public DefaultIvyModuleDescriptor(Map<String, String> extraInfo, String branch) {
         this.extraInfo = Collections.unmodifiableMap(extraInfo);
         this.branch = branch;
     }
