@@ -52,7 +52,7 @@ class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     protected ExecutionFailure doRunWithFailure() {
-        return (ExecutionFailure)doRun(true);
+        return (ExecutionFailure) doRun(true);
     }
 
     protected ExecutionResult doRun(boolean expectFailure) {

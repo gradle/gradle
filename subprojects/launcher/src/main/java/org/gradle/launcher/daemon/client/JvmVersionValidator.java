@@ -23,7 +23,6 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.*;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

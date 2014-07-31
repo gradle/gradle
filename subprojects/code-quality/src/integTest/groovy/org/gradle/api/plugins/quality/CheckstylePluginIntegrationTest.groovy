@@ -184,6 +184,6 @@ dependencies {
     }
 
     private void defaultLanguage(String defaultLanguage) {
-        executer.withDefaultLanguage(defaultLanguage)
+        executer.withDefaultLocale(defaultLanguage)
     }
 }

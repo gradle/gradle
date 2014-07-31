@@ -30,11 +30,11 @@ class DaemonCompatibilitySpecSpec extends Specification {
     def clientConfigure = {}
     def serverConfigure = {}
 
-    def client(Closure c) {
+    def client(@DelegatesTo(DaemonContextBuilder) Closure c) {
         clientConfigure = c
     }
 
-    def server(Closure c) {
+    def server(@DelegatesTo(DaemonContextBuilder) Closure c) {
         serverConfigure = c
     }
 

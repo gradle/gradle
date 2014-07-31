@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
@@ -38,24 +37,23 @@ task check << {
         succeeds 'check'
     }
 
-    @Ignore
-    @Unroll("default language for gradle build switched to #language")
+    @Unroll("default locale for gradle build switched to #locale")
     def "builds can be executed with different default locales"() {
         given:
-        executer.withDefaultLanguage(language)
+        executer.withDefaultLocale(locale)
 
         and:
         buildFile.setText("""
 task check << {
-    assert Locale.getDefault().language == "${language}"
+    assert Locale.getDefault().toString() == "${locale}"
 }
 """, "UTF-8")
 
         expect:
         succeeds 'check'
 
-       where:
-       language << ['de', 'en']
+        where:
+        locale << [new Locale('de'), new Locale('en')]
     }
 
 }

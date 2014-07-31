@@ -40,7 +40,7 @@ class DaemonParametersTest extends Specification {
         assert parameters.baseDir == baseDir
         assert parameters.systemProperties.isEmpty()
         assert parameters.effectiveJvmArgs.containsAll(parameters.defaultJvmArgs)
-        assert parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size() + 1 // + 1 because effective JVM args contains -Dfile.encoding
+        assert parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size() + 1 + 4 // + 1 because effective JVM args contains -Dfile.encoding, +4 for locale props
         assert parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
         assert parameters.usingDefaultJvmArgs
     }

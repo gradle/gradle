@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 import org.gradle.logging.LoggingServiceRegistry
@@ -43,4 +44,10 @@ class DaemonClientServicesTest extends Specification {
         expect:
         services.get(DaemonClient) != null
     }
+
+    def "context includes locale"() {
+        expect:
+        services.get(DaemonContext).daemonOpts.contains("-Duser.language=${Locale.default.language}".toString())
+    }
+
 }

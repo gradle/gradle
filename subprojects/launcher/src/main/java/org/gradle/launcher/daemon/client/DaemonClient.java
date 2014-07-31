@@ -293,8 +293,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         //if he's really dead we should deregister it if it is not already deregistered.
         //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
         LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
-                + "\nBuild request sent: " + build
-                + "\nAttempting to read last messages from the daemon log...");
+                     + "\nBuild request sent: " + build
+                     + "\nAttempting to read last messages from the daemon log...");
 
         LOGGER.error(diagnostics.describe());
         if (cancelCallback != null && cancelCallback.wasCancelled()) {
@@ -309,6 +309,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         //TODO diagnostics could be included in the exception (they might be available).
         return new IllegalStateException(String.format(
                 "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle."
-                        + "Earlier, '%s' request was sent to the daemon.", response, command));
+                + "Earlier, '%s' request was sent to the daemon.", response, command));
     }
 }

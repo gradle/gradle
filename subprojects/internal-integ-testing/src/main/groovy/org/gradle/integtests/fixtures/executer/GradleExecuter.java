@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public interface GradleExecuter {
@@ -170,13 +171,13 @@ public interface GradleExecuter {
     GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding);
 
     /**
-     * Sets the default language to use.
+     * Sets the default locale to use.
      *
      * Only makes sense for forking executers.
      *
      * @return this executer
      */
-    GradleExecuter withDefaultLanguage(String defaultLanguage);
+    GradleExecuter withDefaultLocale(Locale defaultLocale);
 
     /**
      * Set the number of seconds an idle daemon should live for.

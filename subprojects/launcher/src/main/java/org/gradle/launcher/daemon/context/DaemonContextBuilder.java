@@ -23,6 +23,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 import static org.gradle.util.GFileUtils.canonicalise;
 
@@ -39,6 +40,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private File daemonRegistryDir;
     private Long pid;
     private Integer idleTimeout;
+    private Locale locale = Locale.getDefault();
     private List<String> daemonOpts = Lists.newArrayList();
 
     public DaemonContextBuilder(ProcessEnvironment processEnvironment) {
@@ -84,6 +86,14 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     
     public void setIdleTimeout(Integer idleTimeout) {
         this.idleTimeout = idleTimeout;
+    }
+
+    public Locale getLocale() {
+        return locale;
+    }
+
+    public void setLocale(Locale locale) {
+        this.locale = locale;
     }
 
     public List<String> getDaemonOpts() {
