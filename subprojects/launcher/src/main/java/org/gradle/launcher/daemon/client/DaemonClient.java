@@ -34,7 +34,7 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.tooling.exceptions.BuildCancelledException;
+import org.gradle.tooling.BuildCancelledException;
 
 import java.io.InputStream;
 import java.util.HashSet;

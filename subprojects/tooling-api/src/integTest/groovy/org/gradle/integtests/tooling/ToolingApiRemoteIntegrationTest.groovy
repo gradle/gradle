@@ -23,7 +23,7 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.exceptions.BuildCancelledException
+import org.gradle.tooling.BuildCancelledException
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.mortbay.jetty.MimeTypes

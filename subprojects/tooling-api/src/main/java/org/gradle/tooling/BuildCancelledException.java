@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.exceptions;
+package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.GradleConnectionException;
 
 /**
  * Thrown when a {@link org.gradle.tooling.LongRunningOperation} is cancelled before the operation completes.

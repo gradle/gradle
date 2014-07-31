@@ -25,7 +25,7 @@ import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.exceptions.BuildCancelledException
+import org.gradle.tooling.BuildCancelledException
 import org.gradle.util.ConcurrentSpecification
 
 class DaemonClientTest extends ConcurrentSpecification {

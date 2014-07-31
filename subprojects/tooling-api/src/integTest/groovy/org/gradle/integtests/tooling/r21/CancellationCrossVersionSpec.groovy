@@ -26,7 +26,7 @@ import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.exceptions.BuildCancelledException
+import org.gradle.tooling.BuildCancelledException
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

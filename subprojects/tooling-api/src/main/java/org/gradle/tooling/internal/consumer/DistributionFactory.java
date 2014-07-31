@@ -26,7 +26,7 @@ import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.exceptions.BuildCancelledException;
+import org.gradle.tooling.BuildCancelledException;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.Download;

@@ -21,7 +21,10 @@ import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 
 import java.util.SortedSet;
 
-public class DefaultGradleTask implements TaskListingLaunchable {
+/**
+ * A consumer-side implementation of {@link org.gradle.tooling.model.Task}.
+ */
+public class ConsumerProvidedTask implements TaskListingLaunchable {
 
     private String path;
     private String name;
@@ -32,7 +35,7 @@ public class DefaultGradleTask implements TaskListingLaunchable {
         return path;
     }
 
-    public DefaultGradleTask setPath(String path) {
+    public ConsumerProvidedTask setPath(String path) {
         this.path = path;
         return this;
     }
@@ -41,7 +44,7 @@ public class DefaultGradleTask implements TaskListingLaunchable {
         return name;
     }
 
-    public DefaultGradleTask setName(String name) {
+    public ConsumerProvidedTask setName(String name) {
         this.name = name;
         return this;
     }
@@ -50,7 +53,7 @@ public class DefaultGradleTask implements TaskListingLaunchable {
         return displayName;
     }
 
-    public DefaultGradleTask setDisplayName(String displayName) {
+    public ConsumerProvidedTask setDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
@@ -59,7 +62,7 @@ public class DefaultGradleTask implements TaskListingLaunchable {
         return description;
     }
 
-    public DefaultGradleTask setDescription(String description) {
+    public ConsumerProvidedTask setDescription(String description) {
         this.description = description;
         return this;
     }

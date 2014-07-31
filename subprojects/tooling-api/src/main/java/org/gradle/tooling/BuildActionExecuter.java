@@ -36,7 +36,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *          {@link #setJvmArguments(String...)}.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws BuildActionFailureException When the build action fails with an exception.
-     * @throws org.gradle.tooling.exceptions.BuildCancelledException When the operation was cancelled before it completed successfully.
+     * @throws BuildCancelledException When the operation was cancelled before it completed successfully.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.

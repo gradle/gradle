@@ -44,7 +44,7 @@ public final class CancellationTokenSource {
      * <p>It is assumed that the implementation will do 'best-effort' attempt to perform cancellation.
      * This method returns immediately and if the cancellation is successful the cancelled operation
      * will notify its {@link org.gradle.tooling.ResultHandler#onFailure(GradleConnectionException)}
-     * with a {@link org.gradle.tooling.exceptions.BuildCancelledException} describing how it was cancelled.
+     * with a {@link BuildCancelledException} describing how it was cancelled.
      * </p>
      */
     public void cancel() {

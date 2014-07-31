@@ -21,9 +21,9 @@ import org.gradle.api.Nullable;
 import java.util.SortedSet;
 
 /**
- * Data used for {@link org.gradle.tooling.model.TaskSelector} when created in consumer.
+ * A consumer-side implementation of {@link org.gradle.tooling.model.TaskSelector}
  */
-public class BasicGradleTaskSelector implements TaskListingLaunchable {
+public class ConsumerProvidedTaskSelector implements TaskListingLaunchable {
     private String name;
     private String displayName;
     private String description;
@@ -33,7 +33,7 @@ public class BasicGradleTaskSelector implements TaskListingLaunchable {
         return name;
     }
 
-    public BasicGradleTaskSelector setName(String name) {
+    public ConsumerProvidedTaskSelector setName(String name) {
         this.name = name;
         return this;
     }
@@ -43,7 +43,7 @@ public class BasicGradleTaskSelector implements TaskListingLaunchable {
         return description;
     }
 
-    public BasicGradleTaskSelector setDescription(String description) {
+    public ConsumerProvidedTaskSelector setDescription(String description) {
         this.description = description;
         return this;
     }
@@ -52,7 +52,7 @@ public class BasicGradleTaskSelector implements TaskListingLaunchable {
         return displayName;
     }
 
-    public BasicGradleTaskSelector setDisplayName(String displayName) {
+    public ConsumerProvidedTaskSelector setDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
@@ -61,14 +61,14 @@ public class BasicGradleTaskSelector implements TaskListingLaunchable {
         return tasks;
     }
 
-    public BasicGradleTaskSelector setTaskNames(SortedSet<String> tasks) {
+    public ConsumerProvidedTaskSelector setTaskNames(SortedSet<String> tasks) {
         this.tasks = tasks;
         return this;
     }
 
     @Override
     public String toString() {
-        return "BasicGradleTaskSelector{"
+        return "ConsumerProvidedTaskSelector{"
                 + "name='" + name + "' "
                 + "description='" + description + "'}";
     }

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.converters
 
-import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector
+import org.gradle.tooling.internal.gradle.ConsumerProvidedTaskSelector
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
@@ -73,10 +73,10 @@ class BuildInvocationsConverterTest extends Specification {
 
         then:
         builds.taskSelectors.size() == 2
-        builds.taskSelectors.find { BasicGradleTaskSelector it ->
+        builds.taskSelectors.find { ConsumerProvidedTaskSelector it ->
             it.name == 't1'
         }?.taskNames == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
-        builds.taskSelectors.find { BasicGradleTaskSelector it ->
+        builds.taskSelectors.find { ConsumerProvidedTaskSelector it ->
             it.name == 't2'
         }?.taskNames == [':child1:child1b:t2'] as Set
         builds.taskSelectors*.name.each { it != null }

@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.exceptions.BuildCancelledException;
+import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;

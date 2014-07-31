@@ -16,28 +16,28 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector;
-import org.gradle.tooling.internal.gradle.DefaultGradleTask;
+import org.gradle.tooling.internal.gradle.ConsumerProvidedTask;
+import org.gradle.tooling.internal.gradle.ConsumerProvidedTaskSelector;
 
 import java.util.List;
 
 /**
- * A client side implementation of {@link org.gradle.tooling.model.gradle.BuildInvocations}
+ * A consumer-side implementation of {@link org.gradle.tooling.model.gradle.BuildInvocations}
  */
 public class ConsumerProvidedBuildInvocations {
-    private final List<? extends BasicGradleTaskSelector> selectors;
-    private final List<? extends DefaultGradleTask> tasks;
+    private final List<? extends ConsumerProvidedTaskSelector> selectors;
+    private final List<? extends ConsumerProvidedTask> tasks;
 
-    public ConsumerProvidedBuildInvocations(List<? extends BasicGradleTaskSelector> selectors, List<? extends DefaultGradleTask> tasks) {
+    public ConsumerProvidedBuildInvocations(List<? extends ConsumerProvidedTaskSelector> selectors, List<? extends ConsumerProvidedTask> tasks) {
         this.selectors = selectors;
         this.tasks = tasks;
     }
 
-    public List<? extends BasicGradleTaskSelector> getTaskSelectors() {
+    public List<? extends ConsumerProvidedTaskSelector> getTaskSelectors() {
         return selectors;
     }
 
-    public List<? extends DefaultGradleTask> getTasks() {
+    public List<? extends ConsumerProvidedTask> getTasks() {
         return tasks;
     }
 }
