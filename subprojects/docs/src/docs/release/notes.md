@@ -343,7 +343,7 @@ will be affected by this change.
 The plugin classes `org.gradle.api.plugins.JvmLanguagePlugin` and `org.gradle.api.plugins.JavaLanguagePlugin` were merged into
 `org.gradle.api.plugins.LegacyJavaComponentPlugin` to avoid confusions with `org.gradle.language.java.plugins.JavaLanguagePlugin`.
 
-The plugin class `org.gradle.language.java.plugins.JavaLanguagePlugin` does not register a factory for `JavaSourceSet` 
+The plugin class `org.gradle.language.java.plugins.LegacyJavaComponentPlugin` does not register a factory for `JavaSourceSet` 
 and `ResourceSourceSet` on each functional source set anymore.
 
 #### Domain model reorganisation
