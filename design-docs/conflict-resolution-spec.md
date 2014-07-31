@@ -118,8 +118,10 @@ DSL mock up:
                 details.replacedBy 'org.springframework:spring-aop'
             }
 
-            //More brainstorming - general api:
-            modules(notation).all {}
+            //More brainstorming - general DSL on a high level
+            modules(notation).all { SomeModuleMetadata details -> ... }
+            modules.matching(notation).all { SomeModuleMetadata details -> ... }
+            modules(notation) {}
 
             //examples (some of them are far into the future)
             modules('org.springframework:spring').all {
