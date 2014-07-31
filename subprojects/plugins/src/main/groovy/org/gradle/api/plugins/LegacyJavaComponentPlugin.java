@@ -45,7 +45,6 @@ import java.util.concurrent.Callable;
  * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
  * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
  * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
- * Registers the {@link JavaSourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  */
 @Incubating
 public class LegacyJavaComponentPlugin implements Plugin<Project> {
