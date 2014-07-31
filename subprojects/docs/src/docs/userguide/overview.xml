@@ -125,7 +125,7 @@
                         the abstractions Gradle (or you) provide. Gradle provides some standard stories but they are not
                         privileged in any form. This is for us a major distinguishing feature compared to other declarative
                         build systems. Our Groovy support is not just sugar coating. The whole Gradle API
-                        is fully groovyized. Adding Groovy results in an enjoyable and productive experience.
+                        is fully Groovy-ized. Adding Groovy results in an enjoyable and productive experience.
                     </para>
                 </listitem>
             </varlistentry>
