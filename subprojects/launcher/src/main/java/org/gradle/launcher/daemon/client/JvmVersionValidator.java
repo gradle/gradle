@@ -23,6 +23,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,11 +51,12 @@ public class JvmVersionValidator {
     private JavaVersion parse(BufferedReader reader) {
         try {
             String versionStr = reader.readLine();
-            if (versionStr != null) {
+            while (versionStr != null) {
                 Matcher matcher = Pattern.compile("java version \"(.+?)\"").matcher(versionStr);
                 if (matcher.matches()) {
                     return JavaVersion.toVersion(matcher.group(1));
                 }
+                versionStr = reader.readLine();
             }
         } catch (IOException e) {
             throw new org.gradle.api.UncheckedIOException(e);
