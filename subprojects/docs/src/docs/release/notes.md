@@ -314,6 +314,9 @@ For example:
         }
     }
 
+* The `RunTestExecutable` task now implements `ExecSpec`, allow test execution to be further configured.
+    * The `RunTestExecutable.testExecutable` property has been removed and replaced by `RunTestExecutable.executable`.
+
 #### Removed old mechanism for declaring dependencies
 
 Very early versions of the `cpp-lib` and `cpp-exe` plugins had rudimentary support for publishing and resolving native components.
