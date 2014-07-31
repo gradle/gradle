@@ -153,6 +153,42 @@ DSL mock up:
                 replacedBy 'groovy-xml'
                 releasableUnit() //ensures 'groovy-core' and 'groovy-xml' will have consistent version
             }
+
+            //alternative DSL, based off an existing API for configuring module metadata:
+            eachComponent { ComponentMetadataDetails details ->
+                if (details.id.group == 'com.google.google-collections' && details.id.name == 'google-collections') {
+                    details.replacedBy 'com.google.guava:guava'
+                }
+            }
+            eachComponent { ComponentMetadataDetails details ->
+                if (details.id.group == 'org.springframework' && details.id.name == 'spring') {
+                    details.replacedBy 'org.springframework:spring-core', 'org.springframework:spring-aop'
+                }
+            }
+            eachComponent { ComponentMetadataDetails details ->
+                if (details.id.group == 'com.foo' && details.id.name == 'foo-impl') {
+                    //api and impl will use consistent version
+                    details.bundledWith 'com.foo:foo-api'
+                }
+            }
+            eachComponent { ComponentMetadataDetails details ->
+                if (details.id.group.startsWith('com.linkedin.')) {
+                    //all components from the matching group will use consistent version:
+                    details.bundledWith details.id.group
+                }
+            }
+            eachComponent { ComponentMetadataDetails details ->
+                //all components from the same 'group' will use consistent version:
+                details.bundledWith details.id.group
+            }
+            eachComponent { ComponentMetadataDetails details ->
+                if (details.id.group == 'org.springframework') {
+                    details.bundledWith 'org.springframework'
+                    if (details.id.name == 'spring') {
+                        details.replacedBy { it.group == 'org.springframework' && it.name.startsWith('spring-') }
+                    }
+                }
+            }
         }
     }
 
