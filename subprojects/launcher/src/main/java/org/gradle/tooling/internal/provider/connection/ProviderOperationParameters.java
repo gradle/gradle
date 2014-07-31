@@ -64,5 +64,5 @@ public interface ProviderOperationParameters {
 
     List<String> getTasks();
 
-    List<InternalLaunchable> getLaunchables();
+    List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables);
 }

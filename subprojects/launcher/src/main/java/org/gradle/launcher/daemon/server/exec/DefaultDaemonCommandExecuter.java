@@ -15,11 +15,12 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Command;
+import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.LoggingOutputInternal;
 
@@ -33,17 +34,17 @@ import java.util.List;
  */
 public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     private final LoggingOutputInternal loggingOutput;
-    private final GradleLauncherFactory launcherFactory;
+    private final BuildActionExecuter<BuildActionParameters> actionExecuter;
     private DaemonCommandAction hygieneAction;
     private final ProcessEnvironment processEnvironment;
     private final File daemonLog;
 
-    public DefaultDaemonCommandExecuter(GradleLauncherFactory launcherFactory, ProcessEnvironment processEnvironment,
+    public DefaultDaemonCommandExecuter(BuildActionExecuter<BuildActionParameters> actionExecuter, ProcessEnvironment processEnvironment,
                                         LoggingManagerInternal loggingOutput, File daemonLog, DaemonCommandAction hygieneAction) {
         this.processEnvironment = processEnvironment;
         this.daemonLog = daemonLog;
         this.loggingOutput = loggingOutput;
-        this.launcherFactory = launcherFactory;
+        this.actionExecuter = actionExecuter;
         this.hygieneAction = hygieneAction;
     }
 
@@ -73,7 +74,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new StartStopIfBuildAndStop(),
             new ResetDeprecationLogger(),
             new WatchForDisconnection(),
-            new ExecuteBuild(launcherFactory)
+            new ExecuteBuild(actionExecuter)
         ));
     }
 }

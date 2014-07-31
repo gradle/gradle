@@ -29,7 +29,6 @@ import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
 import java.io.Serializable;
@@ -39,15 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
-    private static List<InternalLaunchable> getLaunchables(ProviderOperationParameters parameters) {
-        try {
-            return parameters.getLaunchables();
-        } catch (UnsupportedMethodException ume) {
-            // older consumer version
-            return null;
-        }
-    }
-
     private LogLevel buildLogLevel;
     private List<String> arguments;
     private List<String> tasks;
@@ -71,7 +61,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         this.buildLogLevel = parameters.getBuildLogLevel();
         this.arguments = parameters.getArguments(Collections.<String>emptyList());
         this.tasks = parameters.getTasks();
-        this.launchables = getLaunchables(parameters);
+        this.launchables = parameters.getLaunchables(null);
         this.action = action;
     }
 

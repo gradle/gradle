@@ -32,6 +32,7 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
 import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction
 import org.gradle.launcher.exec.DefaultBuildActionParameters
+import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -71,7 +72,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(get(GradleLauncherFactory),
+                return new DefaultDaemonCommandExecuter(new InProcessBuildActionExecuter(get(GradleLauncherFactory)),
                         get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
                         new File("dummy"), new NoOpDaemonCommandAction()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {

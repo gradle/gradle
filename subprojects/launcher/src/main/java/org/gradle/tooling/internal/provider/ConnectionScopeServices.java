@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
@@ -40,7 +41,7 @@ public class ConnectionScopeServices {
     ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory) {
         return new ProviderConnection(
                 loggingServices,
-                gradleLauncherFactory,
+                new InProcessBuildActionExecuter(gradleLauncherFactory),
                 new PayloadSerializer(
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(

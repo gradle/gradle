@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -24,6 +23,7 @@ import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
@@ -32,6 +32,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DaemonHygieneAction;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
@@ -81,7 +82,7 @@ public class DaemonServices extends DefaultServiceRegistry {
                 get(DaemonContext.class),
                 "password",
                 new DefaultDaemonCommandExecuter(
-                        get(GradleLauncherFactory.class),
+                        new InProcessBuildActionExecuter(get(GradleLauncherFactory.class)),
                         get(ProcessEnvironment.class),
                         loggingManager,
                         getDaemonLogFile(), new DaemonHygieneAction()),
