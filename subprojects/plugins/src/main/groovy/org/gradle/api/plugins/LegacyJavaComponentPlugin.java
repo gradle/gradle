@@ -71,55 +71,61 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
         binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
             public void execute(ClassDirectoryBinarySpecInternal binary) {
-                Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
-                binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-                binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
-                binary.setBuildTask(binaryLifecycleTask);
+                createBinaryLifecycleTask(binary, target);
+                createProcessResourcesTaskForBinary(binary, target);
+                createCompileJavaTaskForBinary(binary, target);
             }
         });
 
         binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
             public void execute(final ClassDirectoryBinarySpecInternal binary) {
-                final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-                ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
-                conventionMapping.map("classesDir", new Callable<File>() {
-                    public File call() throws Exception {
-                        return new File(new File(target.getBuildDir(), "classes"), namingScheme.getOutputDirectoryBase());
-                    }
-                });
-                binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
-                    public void execute(ResourceSet resourceSet) {
-                        // TODO: handle case where binary has multiple ResourceSet's
-                        Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
-                        resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
-                        new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
-                            public File call() throws Exception {
-                                return binary.getResourcesDir();
-                            }
-                        });
-                        binary.getTasks().add(resourcesTask);
-                        binary.builtBy(resourcesTask);
-                        resourcesTask.from(resourceSet.getSource());
-                    }
-                });
             }
         });
+    }
 
-        BinaryContainer jvmBinaryContainer = target.getExtensions().getByType(BinaryContainer.class);
-        jvmBinaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
-            public void execute(final ClassDirectoryBinarySpecInternal binary) {
-                final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-                binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
-                    public void execute(JavaSourceSet javaSourceSet) {
-                        // TODO: handle case where binary has multiple JavaSourceSet's
-                        JavaCompile compileTask = target.getTasks().create(namingScheme.getTaskName("compile", "java"), JavaCompile.class);
-                        configureCompileTask(compileTask, javaSourceSet, binary);
-                        binary.getTasks().add(compileTask);
-                        binary.builtBy(compileTask);
-                    }
-                });
+    private void createCompileJavaTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
+        final BinaryNamingScheme namingScheme = binary.getNamingScheme();
+        binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
+            public void execute(JavaSourceSet javaSourceSet) {
+                // TODO: handle case where binary has multiple JavaSourceSet's
+                JavaCompile compileTask = target.getTasks().create(namingScheme.getTaskName("compile", "java"), JavaCompile.class);
+                configureCompileTask(compileTask, javaSourceSet, binary);
+                binary.getTasks().add(compileTask);
+                binary.builtBy(compileTask);
             }
         });
+    }
+
+    private void createProcessResourcesTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
+        final BinaryNamingScheme namingScheme = binary.getNamingScheme();
+        ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
+        conventionMapping.map("classesDir", new Callable<File>() {
+            public File call() throws Exception {
+                return new File(new File(target.getBuildDir(), "classes"), namingScheme.getOutputDirectoryBase());
+            }
+        });
+        binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
+            public void execute(ResourceSet resourceSet) {
+                // TODO: handle case where binary has multiple ResourceSet's
+                Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
+                resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
+                new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
+                    public File call() throws Exception {
+                        return binary.getResourcesDir();
+                    }
+                });
+                binary.getTasks().add(resourcesTask);
+                binary.builtBy(resourcesTask);
+                resourcesTask.from(resourceSet.getSource());
+            }
+        });
+    }
+
+    private void createBinaryLifecycleTask(ClassDirectoryBinarySpecInternal binary, Project target) {
+        Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
+        binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+        binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
+        binary.setBuildTask(binaryLifecycleTask);
     }
 
 
