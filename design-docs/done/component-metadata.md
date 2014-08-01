@@ -151,3 +151,21 @@ simply attempt to introduce a DSL to declare such rules.
 * Component metadata rule is not evaluated for non-ivy module when rule declares ivy attributes as input
 * Resolve with rule that does not have ivy extra attributes as input. Modify rule to include those inputs and resolve again
   Attributes are made available to rule (extra HTTP requests are OK, but not required).
+
+## GRADLE-2903 - Component metadata respects changes to metadata rule implementation
+
+It should be possible to change the implementation of a metadata rule and have those changes reflected in the meta-data components, regardless of
+whether the component is cached or not, as if the rule is evaluated on each resolution (and this is certainly one possible implementation).
+
+### Implementation
+
+Whenever `CachingMavenRepository` needs to query the changing flag for a component, component metadata rules are evaluated just beforehand. Rules are
+evaluated at most twice per dependency to be resolved (not counting any rule evaluations performed by other classes). Rules are evaluated after writing into
+the metadata cache, hence any changes made by rules won't be cached.
+
+### Test coverage
+
+* Changes made to the changing flag by a component metadata rule aren't cached.
+    * Add a rule that makes a non-changing component changing
+    * Resolve the component
+    * Verify that on the next resolve, component is again presented as non-changing to metadata rule

@@ -1,28 +1,3 @@
-An Ivy module has a *status*, declared in the module's descriptor, which indicates the module's maturity. The status can be used
-in a version selector of the form `latest.someStatus`, which resolves to the highest version with the given or a more mature status.
-By default, the list of Ivy statuses is `release`, `milestone`, `integration`, with the latter being the least mature. If a module descriptor
-has no status, it defaults to `integration`. It's possible to specify a user-defined list of statuses (and a user-defined default status)
-in the Ivy settings file.
-
-To support user-defined module statuses in Gradle, we introduce the concept of *Gradle component metadata*, Gradle's own model
-for component metadata. Initially, this type of metadata will be declared in the build script. In the future, it might also come from other places
-(repository, custom descriptor, external service, etc.). Initially, the model will contain two properties:
-
-* `status`: The status of a component.
-* `statusScheme`: A list of valid statuses for a component, ordered from least to most mature.
-
-`statusScheme` defaults to [`integration`, `milestone`, `release`]. `status` defaults to the status declared in the (Ivy) descriptor, or
-`integration` if no status has been declared.
-
-# Use cases
-
-Some users have existing Ivy repositories containing modules with custom statuses. To facilitate coexistence and stepwise
-(i.e. build-by-build) migration from Ant to Gradle, the latter needs to be able to publish and consume modules with custom statuses.
-
-Publishing modules with custom statuses is already possible, as Gradle allows to fully customize the generated Ivy descriptor.
-However, Gradle cannot currently consume modules with custom statuses.
-
-Rich module metadata is an enabler for other interesting features. (What are some good examples?)
 
 ## Story: Make branch attribute available when publishing and resolving Ivy modules
 
@@ -190,6 +165,8 @@ This rule is fired any time a candidate version is compared to see if it matches
         }
     }
 
+# Later milestones
+
 ## Use Artifactory properties to determine status of module
 
 This story makes it possible to access published Artifactory properties from within a Component Metadata Rule:
@@ -249,24 +226,6 @@ Publishing a different component multiple times with the same id is not generall
 metadata like this is important for composing a sophisticated build pipeline.
 
 This story will allow the pipeline metadata for a component to be treated as 'changing', while the module metadata is not.
-
-## GRADLE-2903 - Component metadata respects changes to metadata rule implementation
-
-It should be possible to change the implementation of a metadata rule and have those changes reflected in the meta-data components, regardless of
-whether the component is cached or not, as if the rule is evaluated on each resolution (and this is certainly one possible implementation).
-
-### Implementation
-
-Whenever `CachingMavenRepository` needs to query the changing flag for a component, component metadata rules are evaluated just beforehand. Rules are
-evaluated at most twice per dependency to be resolved (not counting any rule evaluations performed by other classes). Rules are evaluated after writing into
-the metadata cache, hence any changes made by rules won't be cached.
-
-### Test coverage
-
-* Changes made to the changing flag by a component metadata rule aren't cached.
-    * Add a rule that makes a non-changing component changing
-    * Resolve the component
-    * Verify that on the next resolve, component is again presented as non-changing to metadata rule
 
 ## Consume a "latest" version of an Ivy module with custom status that exists in multiple Ivy repositories
 
