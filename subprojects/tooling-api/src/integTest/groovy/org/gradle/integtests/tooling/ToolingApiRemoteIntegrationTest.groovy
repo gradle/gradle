@@ -83,7 +83,6 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         CountDownLatch latch = new CountDownLatch(1)
 
         server.expect("/cancelled-dist.zip", false, ['GET'], new SendDataAndCancelAction("/cancelled-dist.zip", distribution.binDistribution, tokenSource, latch))
-        server.expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion()))
 
         and:
         toolingApi.withConnector { GradleConnector connector ->
