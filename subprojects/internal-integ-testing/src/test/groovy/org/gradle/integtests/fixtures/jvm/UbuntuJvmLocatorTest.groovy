@@ -19,9 +19,11 @@ import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.VersionNumber
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 class UbuntuJvmLocatorTest extends Specification {
+
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def libDir = tmpDir.file("lib")
     def locator = new UbuntuJvmLocator(libDir)
@@ -77,6 +79,7 @@ class UbuntuJvmLocatorTest extends Specification {
         jvms[1].jdk
     }
 
+    @IgnoreIf({ System.properties['os.name'] != 'Linux' })
     def "locates JDK in canonicalized directory"() {
         given:
         jdk("real-install/java-1.7-openjdk-amd64")
