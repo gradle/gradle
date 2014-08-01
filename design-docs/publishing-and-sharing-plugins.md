@@ -673,10 +673,6 @@ Implementation of handling this response should be cross cutting.
 
 - Unsupported Gradle version response fails build, with message provided by portal forwarded to user.
 
-### Test Coverage
-
-- Plugins are applied alphabetically based on name
-
 ## Story: Plugin resolution is cached between builds
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
