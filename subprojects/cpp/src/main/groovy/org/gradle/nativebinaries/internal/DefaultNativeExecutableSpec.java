@@ -15,12 +15,13 @@
  */
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativebinaries.NativeExecutableSpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 
 public class DefaultNativeExecutableSpec extends AbstractTargetedNativeComponentSpec implements NativeExecutableSpec {
-    public DefaultNativeExecutableSpec(ComponentSpecIdentifier id) {
-        super(id);
+    public DefaultNativeExecutableSpec(ComponentSpecIdentifier id, FunctionalSourceSet functionalSourceSet) {
+        super(id, functionalSourceSet);
     }
 
     public String getDisplayName() {

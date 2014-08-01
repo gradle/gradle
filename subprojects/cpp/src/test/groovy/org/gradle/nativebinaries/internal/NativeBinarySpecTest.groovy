@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.DependentSourceSet
+import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
@@ -36,7 +37,9 @@ import spock.lang.Specification
 class NativeBinarySpecTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = new TestNativeComponentSpec(id)
+    def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator())
+    def component = new TestNativeComponentSpec(id, sourceSet)
+
     def toolChain1 = Stub(ToolChainInternal) {
         getName() >> "ToolChain1"
     }
@@ -183,8 +186,8 @@ class NativeBinarySpecTest extends Specification {
     }
 
     class TestNativeComponentSpec extends AbstractNativeComponentSpec {
-        TestNativeComponentSpec(ComponentSpecIdentifier id) {
-            super(id)
+        TestNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet sourceSet) {
+            super(id, sourceSet)
         }
 
         String getDisplayName() {

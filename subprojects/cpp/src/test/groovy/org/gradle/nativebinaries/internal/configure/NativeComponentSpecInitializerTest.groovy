@@ -17,6 +17,8 @@
 package org.gradle.nativebinaries.internal.configure
 
 import org.gradle.api.Named
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Flavor
@@ -38,7 +40,8 @@ class NativeComponentSpecInitializerTest extends Specification {
     def flavor = createStub(Flavor, "flavor1")
 
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = new DefaultNativeExecutableSpec(id)
+    def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
+    def component = new DefaultNativeExecutableSpec(id, mainSourceSet)
 
     def "does not use variant dimension names for single valued dimensions"() {
         when:

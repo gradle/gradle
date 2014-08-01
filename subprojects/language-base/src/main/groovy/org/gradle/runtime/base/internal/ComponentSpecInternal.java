@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.jvm.internal
+package org.gradle.runtime.base.internal;
 
-import org.gradle.runtime.base.ComponentSpecIdentifier
-import spock.lang.Specification
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.runtime.base.ComponentSpec;
 
-class DefaultProjectJvmLibraryTest extends Specification {
-    def libraryId = Mock(ComponentSpecIdentifier)
+public interface ComponentSpecInternal extends ComponentSpec {
 
-    def "library has name and path"() {
-        def library = new DefaultJvmLibrarySpec(libraryId)
-
-        when:
-        _ * libraryId.name >> "jvm-lib"
-        _ * libraryId.projectPath >> ":project-path"
-
-        then:
-        library.name == "jvm-lib"
-        library.projectPath == ":project-path"
-    }
+    FunctionalSourceSet getMainSource();
 }

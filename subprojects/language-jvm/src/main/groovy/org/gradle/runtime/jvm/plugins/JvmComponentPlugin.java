@@ -19,6 +19,7 @@ import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
@@ -51,10 +52,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
 
         ComponentSpecContainer projectComponents = project.getExtensions().getByType(ComponentSpecContainer.class);
+
+        final ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
         projectComponents.registerFactory(JvmLibrarySpec.class, new NamedDomainObjectFactory<JvmLibrarySpec>() {
             public JvmLibrarySpec create(String name) {
                 ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return new DefaultJvmLibrarySpec(id);
+                return new DefaultJvmLibrarySpec(id, sources.maybeCreate(name));
             }
         });
 

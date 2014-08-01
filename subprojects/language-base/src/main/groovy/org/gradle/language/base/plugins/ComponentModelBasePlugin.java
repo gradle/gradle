@@ -40,12 +40,10 @@ import org.gradle.runtime.base.ComponentSpec;
 import org.gradle.runtime.base.ComponentSpecContainer;
 import org.gradle.runtime.base.internal.BinarySpecInternal;
 import org.gradle.runtime.base.internal.DefaultComponentSpecContainer;
-import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Base plugin for language support.
@@ -136,31 +134,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Model
         LanguageRegistry languages(ExtensionContainer extensions) {
             return extensions.getByType(LanguageRegistry.class);
-        }
-
-        @Model
-        Set<String> projectComponentNames(ExtensionContainer extensions) {
-            ComponentSpecContainer components = extensions.getByType(ComponentSpecContainer.class);
-            return CollectionUtils.collect(components, new Transformer<String, ComponentSpec>() {
-                public String transform(ComponentSpec original) {
-                    return original.getName();
-                }
-            });
-        }
-
-        @Mutate
-        void createProjectSourceSetForEachComponent(ProjectSourceSet sources, @Path("projectComponentNames") Set<String> componentNames) {
-            // Create a functionalSourceSet for each native component, with the same name
-            for (String componentName : componentNames) {
-                sources.maybeCreate(componentName);
-            }
-        }
-
-        @Mutate
-        void attachFunctionalSourceSetToComponents(ComponentSpecContainer components, ProjectSourceSet sources) {
-            for (ComponentSpec component : components) {
-                component.source(sources.getByName(component.getName()));
-            }
         }
 
         // Required because creation of Binaries from Components is not yet wired into the infrastructure

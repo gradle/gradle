@@ -16,22 +16,31 @@
 
 package org.gradle.runtime.jvm.internal;
 
-
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.runtime.base.internal.ComponentSpecInternal;
 import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 import org.gradle.runtime.jvm.JvmLibrarySpec;
 
-public class DefaultJvmLibrarySpec implements JvmLibrarySpec {
+public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
+    private final FunctionalSourceSet mainSourceSet;
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
 
-    public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier) {
+    public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
+        this.mainSourceSet = mainSourceSet;
+        this.mainSourceSet.all(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                source(languageSourceSet);
+            }
+        });
     }
 
     public String getName() {
@@ -55,11 +64,15 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec {
         return sourceSets;
     }
 
-    public void source(Object sources) {
-        sourceSets.source(sources);
+    public void source(Object source) {
+        sourceSets.source(source);
     }
 
     public DomainObjectSet<JvmLibraryBinarySpec> getBinaries() {
         return binaries;
+    }
+
+    public FunctionalSourceSet getMainSource() {
+        return mainSourceSet;
     }
 }

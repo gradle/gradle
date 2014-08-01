@@ -371,7 +371,7 @@ There were test failures:
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "build/src/helloTest/cunitLauncher/headers;src/helloTest/headers;src/hello/headers;libs/cunit/2.1-2/include"
+            includePath == "src/helloTest/headers;build/src/helloTest/cunitLauncher/headers;src/hello/headers;libs/cunit/2.1-2/include"
         }
     }
 

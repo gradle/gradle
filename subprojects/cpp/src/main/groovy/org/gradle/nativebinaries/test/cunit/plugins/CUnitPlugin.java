@@ -48,6 +48,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.ComponentSpecInternal;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
@@ -74,34 +75,31 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         private static final String CUNIT_LAUNCHER_SOURCE_SET = "cunitLauncher";
 
         @Mutate
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, NamedDomainObjectSet<NativeComponentSpec> components, ServiceRegistry serviceRegistry) {
+        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, NamedDomainObjectSet<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             for (NativeComponentSpec component : components) {
-                testSuites.add(createCUnitTestSuite(component, instantiator));
+                testSuites.add(createCUnitTestSuite(component, instantiator, projectSourceSet));
             }
         }
 
-        private CUnitTestSuiteSpec createCUnitTestSuite(final NativeComponentSpec testedComponent, Instantiator instantiator) {
+        private CUnitTestSuiteSpec createCUnitTestSuite(final NativeComponentSpec testedComponent, Instantiator instantiator, ProjectSourceSet projectSourceSet) {
             String suiteName = String.format("%sTest", testedComponent.getName());
             String path = testedComponent.getProjectPath();
             ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
-            return instantiator.newInstance(DefaultCUnitTestSuiteSpec.class, id, testedComponent);
+            FunctionalSourceSet testSuiteSourceSet = projectSourceSet.maybeCreate(suiteName);
+            return instantiator.newInstance(DefaultCUnitTestSuiteSpec.class, id, testedComponent, testSuiteSourceSet);
         }
 
         @Mutate
         public void configureCUnitTestSuiteSources(ProjectSourceSet projectSourceSet, TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
 
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
-                FunctionalSourceSet suiteSourceSet = projectSourceSet.maybeCreate(suite.getName());
-
+                FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal)suite).getMainSource();
                 CSourceSet launcherSources = suiteSourceSet.maybeCreate(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class);
                 File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
                 launcherSources.getSource().srcDir(new File(baseDir, "c"));
                 launcherSources.getExportedHeaders().srcDir(new File(baseDir, "headers"));
-                suite.source(launcherSources);
-
                 CSourceSet testSources = suiteSourceSet.maybeCreate("c", CSourceSet.class);
-                suite.source(testSources);
                 testSources.lib(launcherSources);
             }
         }

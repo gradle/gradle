@@ -23,6 +23,8 @@ import org.gradle.api.internal.plugins.PluginApplication;
 import org.gradle.api.internal.plugins.PluginApplicationAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.runtime.base.*;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
@@ -87,12 +89,14 @@ public class ComponentModelPluginApplicationAction implements PluginApplicationA
         target.getPlugins().apply(ComponentModelBasePlugin.class);
 
         final Project project = (Project) target;
+        final ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
         ComponentSpecContainer componentSpecs = project.getExtensions().getByType(ComponentSpecContainer.class);
         try{
             componentSpecs.registerFactory(componentModel.type(), new NamedDomainObjectFactory() {
                 public Object create(String name) {
+                    FunctionalSourceSet componentSourceSet = projectSourceSet.maybeCreate(name);
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                    return DefaultLibrarySpec.create((Class<DefaultLibrarySpec>) componentModel.implementation(), id, instantiator);
+                    return DefaultLibrarySpec.create((Class<DefaultLibrarySpec>) componentModel.implementation(), id, componentSourceSet, instantiator);
                 }
             });
         }catch(GradleException ex){

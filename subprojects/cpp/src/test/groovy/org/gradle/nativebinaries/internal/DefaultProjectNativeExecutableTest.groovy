@@ -16,11 +16,14 @@
 
 package org.gradle.nativebinaries.internal
 
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultProjectNativeExecutableTest extends Specification {
-    def executable = new DefaultNativeExecutableSpec(new DefaultComponentSpecIdentifier("project-path", "someExe"))
+    def mainSourceSet = new DefaultFunctionalSourceSet("testFS", new DirectInstantiator())
+    def executable = new DefaultNativeExecutableSpec(new DefaultComponentSpecIdentifier("project-path", "someExe"), mainSourceSet)
 
     def "has useful string representation"() {
         expect:

@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.platform.Platform;
@@ -33,8 +34,8 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
     private final Set<String> buildTypes = new HashSet<String>();
     private final Set<String> flavors = new HashSet<String>();
 
-    public AbstractTargetedNativeComponentSpec(ComponentSpecIdentifier id) {
-        super(id);
+    public AbstractTargetedNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet sourceSet) {
+        super(id, sourceSet);
     }
 
     public void targetFlavors(String... flavorSelectors) {

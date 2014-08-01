@@ -17,6 +17,8 @@
 package org.gradle.runtime.base.library
 
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.ComponentSpecIdentifier
 import org.gradle.runtime.base.ModelInstantiationException
 import spock.lang.Specification
@@ -24,9 +26,10 @@ import spock.lang.Specification
 class DefaultLibrarySpecTest extends Specification {
     def instantiator = new DirectInstantiator()
     def libraryId = Mock(ComponentSpecIdentifier)
+    def functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
 
     def "library has name and path"() {
-        def library = DefaultLibrarySpec.create(DefaultLibrarySpec, libraryId, instantiator)
+        def library = DefaultLibrarySpec.create(DefaultLibrarySpec, libraryId, functionalSourceSet, instantiator)
 
         when:
         _ * libraryId.name >> "jvm-lib"
@@ -39,7 +42,7 @@ class DefaultLibrarySpecTest extends Specification {
     }
 
     def "has sensible display name"() {
-        def library = DefaultLibrarySpec.create(MySampleLibrary, libraryId, instantiator)
+        def library = DefaultLibrarySpec.create(MySampleLibrary, libraryId, functionalSourceSet, instantiator)
 
         when:
         _ * libraryId.name >> "jvm-lib"
@@ -51,7 +54,7 @@ class DefaultLibrarySpecTest extends Specification {
     def "create fails if subtype does not have a public no-args constructor"() {
 
         when:
-        DefaultLibrarySpec.create(MyConstructedLibrary, libraryId, instantiator)
+        DefaultLibrarySpec.create(MyConstructedLibrary, libraryId, functionalSourceSet, instantiator)
 
         then:
         def e = thrown ModelInstantiationException

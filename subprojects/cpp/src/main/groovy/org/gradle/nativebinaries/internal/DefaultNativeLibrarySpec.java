@@ -16,13 +16,14 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativebinaries.NativeLibrarySpec;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 
 public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpec implements NativeLibrarySpec {
-    public DefaultNativeLibrarySpec(ComponentSpecIdentifier id) {
-        super(id);
+    public DefaultNativeLibrarySpec(ComponentSpecIdentifier id, FunctionalSourceSet sourceSet) {
+        super(id, sourceSet);
     }
 
     public String getDisplayName() {

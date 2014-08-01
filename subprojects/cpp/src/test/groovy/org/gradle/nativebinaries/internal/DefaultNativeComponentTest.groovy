@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.internal
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.ComponentSpecIdentifier
@@ -28,9 +29,25 @@ import spock.lang.Specification
 class DefaultNativeComponentTest extends Specification {
     def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = new TestNativeComponentSpec(id)
+    FunctionalSourceSet mainSourceSet
+    def component
 
-    def "uses all source sets from a functional source set"() {
+    def setup(){
+        mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator())
+        component = new TestNativeComponentSpec(id, mainSourceSet)
+    }
+
+    def "uses all languageSourceSet of main SourceSet"(){
+        when:
+        def sourceSet1 = Stub(LanguageSourceSet) {
+            getName() >> "ss1"
+        }
+        mainSourceSet.add(sourceSet1)
+        then:
+        component.source.contains(sourceSet1)
+    }
+
+    def "can add additional functional source set"() {
         given:
         def functionalSourceSet = new DefaultFunctionalSourceSet("func", instantiator)
         def sourceSet1 = Stub(LanguageSourceSet) {
@@ -64,8 +81,8 @@ class DefaultNativeComponentTest extends Specification {
     }
 
     class TestNativeComponentSpec extends AbstractTargetedNativeComponentSpec {
-        TestNativeComponentSpec(ComponentSpecIdentifier id) {
-            super(id)
+        TestNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet mainSourceSet) {
+            super(id, mainSourceSet)
         }
 
         String getDisplayName() {

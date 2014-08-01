@@ -59,11 +59,12 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         this.buildType = buildType;
         this.buildable = true;
         this.resolver = resolver;
-        owner.getSource().all(new Action<LanguageSourceSet>() {
+        component.getSource().all(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet sourceSet) {
                 sourceSets.add(sourceSet);
             }
         });
+
     }
 
     @Override

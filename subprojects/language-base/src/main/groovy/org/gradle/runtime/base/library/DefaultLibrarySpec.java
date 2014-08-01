@@ -16,32 +16,37 @@
 
 package org.gradle.runtime.base.library;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.BinarySpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.LibrarySpec;
 import org.gradle.runtime.base.ModelInstantiationException;
+import org.gradle.runtime.base.internal.ComponentSpecInternal;
 
 /**
  * Base class for custom library implementations.
  * A custom implementation of {@link LibrarySpec} must extend this type.
  */
 @Incubating
-public class DefaultLibrarySpec implements LibrarySpec {
+public class DefaultLibrarySpec implements LibrarySpec, ComponentSpecInternal {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
+
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
     private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
+    private final FunctionalSourceSet mainSourceSet;
 
-    public static <T extends DefaultLibrarySpec> T create(Class<T> type, ComponentSpecIdentifier identifier, Instantiator instantiator) {
-        nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName()));
+    public static <T extends DefaultLibrarySpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
+        nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName(), mainSourceSet));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -60,6 +65,12 @@ public class DefaultLibrarySpec implements LibrarySpec {
     private DefaultLibrarySpec(ComponentInfo info) {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
+        this.mainSourceSet = info.sourceSets;
+        this.mainSourceSet.all(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                sourceSets.source(languageSourceSet);
+            }
+        });
     }
 
     public String getName() {
@@ -91,13 +102,21 @@ public class DefaultLibrarySpec implements LibrarySpec {
         return binaries;
     }
 
+    public FunctionalSourceSet getMainSource() {
+        return mainSourceSet;
+    }
+
     private static class ComponentInfo {
         final ComponentSpecIdentifier componentIdentifier;
         final String typeName;
+        final FunctionalSourceSet sourceSets;
 
-        private ComponentInfo(ComponentSpecIdentifier componentIdentifier, String typeName) {
+        private ComponentInfo(ComponentSpecIdentifier componentIdentifier,
+                              String typeName,
+                              FunctionalSourceSet sourceSets) {
             this.componentIdentifier = componentIdentifier;
             this.typeName = typeName;
+            this.sourceSets = sourceSets;
         }
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.internal.configure
 
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultNativeExecutableSpec
 import org.gradle.nativebinaries.internal.DefaultNativeLibrarySpec
@@ -40,11 +41,13 @@ class DefaultNativeBinariesFactoryTest extends Specification {
     def id = new DefaultComponentSpecIdentifier("project", "name")
 
     def namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder().withComponentName("test")
-    def factory = new DefaultNativeBinariesFactory(new DirectInstantiator(), configAction, resolver)
+    def instantiator = new DirectInstantiator();
+    def factory = new DefaultNativeBinariesFactory(instantiator, configAction, resolver)
+    def mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator);
 
     def "creates binaries for executable"() {
         given:
-        def executable = new DefaultNativeExecutableSpec(id)
+        def executable = new DefaultNativeExecutableSpec(id, mainSourceSet)
 
         when:
         1 * configAction.execute(_)
@@ -64,7 +67,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for library"() {
         given:
-        def library = new DefaultNativeLibrarySpec(id)
+        def library = new DefaultNativeLibrarySpec(id, mainSourceSet)
 
         when:
         2 * configAction.execute(_)

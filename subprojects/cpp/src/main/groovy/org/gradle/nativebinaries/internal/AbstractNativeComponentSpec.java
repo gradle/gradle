@@ -15,23 +15,33 @@
  */
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.runtime.base.internal.ComponentSpecInternal;
 import org.gradle.util.GUtil;
 
-public abstract class AbstractNativeComponentSpec implements NativeComponentSpec {
+public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier id;
     private final DefaultDomainObjectSet<NativeBinarySpec> binaries;
+    private final FunctionalSourceSet mainSourceSet;
 
     private String baseName;
 
-    public AbstractNativeComponentSpec(ComponentSpecIdentifier id) {
+    public AbstractNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet mainSourceSet) {
+        this.mainSourceSet = mainSourceSet;
+        this.mainSourceSet.all(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                source(languageSourceSet);
+            }
+        });
         this.id = id;
         binaries = new DefaultDomainObjectSet<NativeBinarySpec>(NativeBinarySpec.class);
     }
@@ -67,5 +77,9 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
+    }
+
+    public FunctionalSourceSet getMainSource() {
+        return mainSourceSet;
     }
 }

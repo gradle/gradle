@@ -17,6 +17,7 @@
 package org.gradle.runtime.jvm.internal.plugins
 
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.ComponentSpecIdentifier
@@ -38,6 +39,8 @@ class CreateJvmBinariesTest extends Specification {
     def toolChain = Mock(JavaToolChain)
     def rule = new JvmComponentPlugin.Rules()
     def binaries = Mock(BinaryContainer)
+    def mainSourceSet = Mock(FunctionalSourceSet)
+
     def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
         JavaToolChain createToolChain() {
             toolChain
@@ -45,7 +48,7 @@ class CreateJvmBinariesTest extends Specification {
     }).build()
 
     def "adds a binary for each jvm library"() {
-        def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"))
+        def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"), mainSourceSet)
         def namingScheme = Mock(BinaryNamingScheme)
 
         when:
@@ -68,7 +71,7 @@ class CreateJvmBinariesTest extends Specification {
     }
 
     def "created binary has sources from jvm library"() {
-        def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"))
+        def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"), mainSourceSet)
         def namingScheme = Mock(BinaryNamingScheme)
         def source1 = Mock(LanguageSourceSet)
         def source2 = Mock(LanguageSourceSet)

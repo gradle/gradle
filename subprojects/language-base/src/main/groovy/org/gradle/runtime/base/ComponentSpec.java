@@ -19,12 +19,14 @@ package org.gradle.runtime.base;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A software component that is built by a Gradle project.
  */
 @Incubating
+@HasInternalProtocol
 public interface ComponentSpec extends Named {
     /**
      * The path the the project containing this component.
