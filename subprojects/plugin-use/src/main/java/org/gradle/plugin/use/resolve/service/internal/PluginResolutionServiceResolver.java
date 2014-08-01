@@ -101,7 +101,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
                         }
                         result.notFound(getDescription(), detail);
                     } else {
-                        throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", response.getStatusCode(), errorResponse.message));
+                        throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s' (url: %s)", response.getStatusCode(), errorResponse.message, response.getUrl()));
                     }
                 } else {
                     PluginUseMetaData metaData = response.getResponse();

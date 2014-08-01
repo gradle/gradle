@@ -147,6 +147,10 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         })
     }
 
+    String pluginUrl(String pluginId, String pluginVersion) {
+        "$http.address/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion"
+    }
+
     void start() {
         http.start()
     }

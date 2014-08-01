@@ -32,6 +32,8 @@ import static org.gradle.util.Matchers.containsText
  * Tests the communication aspects of working with the plugin resolution service.
  */
 public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegrationSpec {
+    public static final String PLUGIN_ID = "org.my.myplugin"
+    public static final String PLUGIN_VERSION = "1.0"
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
@@ -45,31 +47,30 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     @Unroll
     def "response that is not an expected service response is fatal to plugin resolution - status = #statusCode"() {
         def responseBody = "<html><bogus/></html>"
-        portal.expectPluginQuery("org.my.myplugin", "1.0") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             status = statusCode
             contentType = "text/html"
+            characterEncoding = "UTF-8"
             writer.withWriter {
                 it << responseBody
             }
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
-        fails("verify", "-i")
+        fails("verify")
         errorResolvingPlugin()
-        failure.assertThatCause(containsText("Response from 'http://localhost.+? was not a valid plugin resolution service response"))
-        failure.assertThatCause(containsText("returned content type 'text/html.+, not 'application/json.+"))
-        output.contains("content:\n" + responseBody)
+        outOfProtocolCause("content type is 'text/html; charset=utf-8', expected 'application/json'")
 
         where:
         statusCode << [200, 404, 500]
     }
 
     def "404 plugin resolution service response is not fatal to plugin resolution, but indicates plugin is not available in service"() {
-        portal.expectNotFound("org.my.myplugin", "1.0")
+        portal.expectNotFound(PLUGIN_ID, PLUGIN_VERSION)
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
@@ -77,12 +78,12 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     }
 
     def "404 resolution that indicates plugin is known but not by that version produces indicative message"() {
-        portal.expectQueryAndReturnError("org.my.myplugin", "1.0", 404) {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 404) {
             errorCode = ErrorResponse.Code.UNKNOWN_PLUGIN_VERSION
             message = "anything"
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
@@ -91,9 +92,9 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     }
 
     def "failed module resolution fails plugin resolution"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "my", "plugin", PLUGIN_VERSION)
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
@@ -103,49 +104,53 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     }
 
     def "portal JSON response with unknown implementation type fails plugin resolution"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "foo", "foo", "foo") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "foo", "foo", "foo") {
             implementationType = "SUPER_GREAT"
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Invalid plugin metadata: Unsupported implementation type: SUPER_GREAT.")
+        outOfProtocolCause("invalid plugin metadata - unsupported implementation type 'SUPER_GREAT'")
+    }
+
+    void outOfProtocolCause(String cause) {
+        failure.assertHasCause("The response from ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)} was not a valid response from a Gradle Plugin Resolution Service: $cause")
     }
 
     def "portal JSON response with missing repo fails plugin resolution"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "foo", "bar", "1.0") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "foo", "bar", PLUGIN_VERSION) {
             implementation.repo = null
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0'].")
-        failure.assertHasCause("Invalid plugin metadata: No module repository specified.")
+        outOfProtocolCause("invalid plugin metadata - no module repository specified")
     }
 
     def "portal JSON response with invalid JSON syntax fails plugin resolution"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             contentType = "application/json"
             outputStream.withStream { it << "[}".getBytes("utf8") }
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Failed to parse plugin resolution service JSON response.")
+        outOfProtocolCause("could not parse response JSON")
     }
 
     def "extra information in portal JSON response is tolerated (and neglected)"() {
-        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
+        publishPlugin(PLUGIN_ID, "my", "plugin", PLUGIN_VERSION)
 
-        portal.expectPluginQuery("org.my.myplugin", "1.0") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             contentType = "application/json"
             outputStream.withStream {
                 it << """
@@ -164,14 +169,14 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
             }
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         succeeds("verify")
     }
 
     def "portal redirects are being followed"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             sendRedirect("/api/gradle/${GradleVersion.current().version}/plugin/use/org.my.otherplugin/2.0")
         }
         portal.expectPluginQuery("org.my.otherplugin", "2.0", "other", "plugin", "2.0")
@@ -184,22 +189,22 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     }
 
     def "error message is embedded in user error message"() {
-        portal.expectQueryAndReturnError("org.my.myplugin", "1.0", 500) {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 500) {
             errorCode = "INTERNAL_SERVER_ERROR"
             message = "Bintray communication failure"
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'Bintray communication failure'.")
+        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'Bintray communication failure' (url: ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)})")
     }
 
     @Unroll
-    def "incompatible error message schema"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0") {
+    def "incompatible error message schema - status #errorStatusCode"() {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             status = errorStatusCode
             contentType = "application/json"
             outputStream.withStream {
@@ -211,43 +216,43 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
             }
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Invalid error response: No error code specified.")
+        outOfProtocolCause("invalid error response - no error code specified")
 
         where:
         errorStatusCode << [500, 410]
     }
 
     def "error message for 4xx is embedded in user error message"() {
-        portal.expectQueryAndReturnError("org.my.myplugin", "1.0", 405) {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 405) {
             errorCode = "SOME_STRANGE_ERROR"
             message = "Some strange error message"
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Plugin resolution service returned HTTP 405 with message 'Some strange error message'.")
+        failure.assertHasCause("Plugin resolution service returned HTTP 405 with message 'Some strange error message' (url: ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)})")
     }
 
     def "response can contain utf8"() {
-        portal.expectQueryAndReturnError("org.my.myplugin", "1.0", 500) {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 500) {
             errorCode = "INTERNAL_SERVER_ERROR"
             message = "\u00E9"
         }
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'é'.")
+        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'é' (url: ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)})")
     }
 
     def ExecutionFailure errorResolvingPlugin() {
@@ -258,7 +263,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         portal.injectUrlOverride(executer) // have to do this, because only happens by default if test server is running
         portal.stop()
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
@@ -275,9 +280,9 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         def address = httpServer.address
         httpServer.stop()
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify()
 
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "foo", "bar", "1.0")  {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "foo", "bar", PLUGIN_VERSION)  {
             implementation.repo = address
         }
 
@@ -295,7 +300,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         pluginBuilder.publishTo(executer, module.artifactFile)
     }
 
-    private String applyAndVerify(String id, String version) {
+    private static String applyAndVerify(String id = PLUGIN_ID, String version = PLUGIN_VERSION) {
         """
             plugins {
                 id "$id" version "$version"

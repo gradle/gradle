@@ -21,8 +21,6 @@ import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -40,6 +38,7 @@ import java.net.URISyntaxException;
 public class PluginResolutionServiceClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginResolutionServiceClient.class);
     private static final String REQUEST_URL = "/api/gradle/%s/plugin/use/%s/%s";
+    private static final String JSON = "application/json";
 
     private final HttpResourceAccessor resourceAccessor;
 
@@ -61,21 +60,9 @@ public class PluginResolutionServiceClient {
         try {
             response = resourceAccessor.getRawResource(requestUri);
             final int statusCode = response.getStatusCode();
-            if (!response.getContentType().equalsIgnoreCase("application/json")) {
-                final String message = String.format("Response from '%s' was not a valid plugin resolution service response (returned content type '%s', not 'application/json')", requestUri, response.getContentType());
-                if (LOGGER.isInfoEnabled()) {
-                    response.withContent(new Action<InputStream>() {
-                        public void execute(InputStream inputStream) {
-                            try {
-                                String content = IOUtils.toString(inputStream, "utf8"); // might not be UTF8, but good enough
-                                LOGGER.info("{}, content:\n{}", message, content);
-                            } catch (IOException e) {
-                                LOGGER.info(String.format("exception raised while trying to log response from %s", requestUri), e);
-                            }
-                        }
-                    });
-                }
-                throw new GradleException(message);
+            if (!response.getContentType().equalsIgnoreCase(JSON)) {
+                final String message = String.format("content type is '%s', expected '%s'", response.getContentType(), JSON);
+                throw new OutOfProtocolException(requestUrl, message);
             }
 
             return response.withContent(new Transformer<Response<PluginUseMetaData>, InputStream>() {
@@ -88,18 +75,18 @@ public class PluginResolutionServiceClient {
                     }
                     try {
                         if (statusCode == 200) {
-                            PluginUseMetaData metadata = validate(new Gson().fromJson(reader, PluginUseMetaData.class));
-                            return new SuccessResponse<PluginUseMetaData>(metadata, statusCode);
+                            PluginUseMetaData metadata = validate(requestUrl, new Gson().fromJson(reader, PluginUseMetaData.class));
+                            return new SuccessResponse<PluginUseMetaData>(metadata, statusCode, requestUrl);
                         } else if (statusCode >= 400 && statusCode < 600) {
-                            ErrorResponse errorResponse = validate(new Gson().fromJson(reader, ErrorResponse.class));
-                            return new ErrorResponseResponse<PluginUseMetaData>(errorResponse, statusCode);
+                            ErrorResponse errorResponse = validate(requestUrl, new Gson().fromJson(reader, ErrorResponse.class));
+                            return new ErrorResponseResponse<PluginUseMetaData>(errorResponse, statusCode, requestUrl);
                         } else {
-                            throw new GradleException("Received unexpected HTTP response status " + statusCode + " from " + requestUrl);
+                            throw new OutOfProtocolException(requestUrl, "unexpected HTTP response status " + statusCode);
                         }
                     } catch (JsonSyntaxException e) {
-                        throw new GradleException("Failed to parse plugin resolution service JSON response.", e);
+                        throw new OutOfProtocolException(requestUrl, "could not parse response JSON", e);
                     } catch (JsonIOException e) {
-                        throw new GradleException("Failed to read plugin resolution service JSON response.", e);
+                        throw new OutOfProtocolException(requestUrl, "could not parse response JSON", e);
                     }
                 }
             });
@@ -116,29 +103,29 @@ public class PluginResolutionServiceClient {
         }
     }
 
-    private PluginUseMetaData validate(PluginUseMetaData pluginUseMetaData) {
+    private PluginUseMetaData validate(String url, PluginUseMetaData pluginUseMetaData) {
         if (pluginUseMetaData.implementationType == null) {
-            throw new GradleException("Invalid plugin metadata: No implementation type specified.");
+            throw new OutOfProtocolException(url, "invalid plugin metadata - no implementation type specified");
         }
         if (!pluginUseMetaData.implementationType.equals(PluginUseMetaData.M2_JAR)) {
-            throw new GradleException(String.format("Invalid plugin metadata: Unsupported implementation type: %s.", pluginUseMetaData.implementationType));
+            throw new OutOfProtocolException(url, String.format("invalid plugin metadata - unsupported implementation type '%s'", pluginUseMetaData.implementationType));
         }
         if (pluginUseMetaData.implementation == null) {
-            throw new GradleException("Invalid plugin metadata: No implementation specified.");
+            throw new OutOfProtocolException(url, "invalid plugin metadata - no implementation specified");
         }
         if (pluginUseMetaData.implementation.get("gav") == null) {
-            throw new GradleException("Invalid plugin metadata: No module coordinates specified.");
+            throw new OutOfProtocolException(url, "invalid plugin metadata - no module coordinates specified");
         }
         if (pluginUseMetaData.implementation.get("repo") == null) {
-            throw new GradleException("Invalid plugin metadata: No module repository specified.");
+            throw new OutOfProtocolException(url, "invalid plugin metadata - no module repository specified");
         }
 
         return pluginUseMetaData;
     }
 
-    private ErrorResponse validate(ErrorResponse errorResponse) {
+    private ErrorResponse validate(String url, ErrorResponse errorResponse) {
         if (errorResponse.errorCode == null) {
-            throw new GradleException("Invalid error response: No error code specified.");
+            throw new OutOfProtocolException(url, "invalid error response - no error code specified");
         }
 
         return errorResponse;
@@ -160,15 +147,23 @@ public class PluginResolutionServiceClient {
         ErrorResponse getErrorResponse();
 
         T getResponse();
+
+        String getUrl();
     }
 
     private static class ErrorResponseResponse<T> implements Response<T> {
         private final ErrorResponse errorResponse;
         private final int statusCode;
+        private final String url;
 
-        private ErrorResponseResponse(ErrorResponse errorResponse, int statusCode) {
+        private ErrorResponseResponse(ErrorResponse errorResponse, int statusCode, String url) {
             this.errorResponse = errorResponse;
             this.statusCode = statusCode;
+            this.url = url;
+        }
+
+        public String getUrl() {
+            return url;
         }
 
         public boolean isError() {
@@ -191,10 +186,16 @@ public class PluginResolutionServiceClient {
     private static class SuccessResponse<T> implements Response<T> {
         private final T response;
         private final int statusCode;
+        private final String url;
 
-        private SuccessResponse(T response, int statusCode) {
+        private SuccessResponse(T response, int statusCode, String url) {
             this.response = response;
             this.statusCode = statusCode;
+            this.url = url;
+        }
+
+        public String getUrl() {
+            return url;
         }
 
         public boolean isError() {
@@ -211,6 +212,20 @@ public class PluginResolutionServiceClient {
 
         public T getResponse() {
             return response;
+        }
+    }
+
+    private static class OutOfProtocolException extends GradleException {
+        private OutOfProtocolException(String requestUrl, String message) {
+            super(toMessage(requestUrl, message));
+        }
+
+        private OutOfProtocolException(String requestUrl, String message, Throwable cause) {
+            super(toMessage(requestUrl, message), cause);
+        }
+
+        private static String toMessage(String requestUrl, String message) {
+            return String.format("The response from %s was not a valid response from a Gradle Plugin Resolution Service: %s", requestUrl, message);
         }
     }
 }
