@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -123,7 +124,7 @@ public class DependencyGraphBuilder {
                         ModuleResolveState module = resolveState.getModule(moduleId);
 
                         // A new module revision. Check for conflict
-                        ModuleConflict c = conflictHandler.registerModule(module);
+                        ModuleConflict c = conflictHandler.registerModule(module, moduleRevision.preferredTarget);
                         if (c == null) {
                             // No conflict. Select it for now
                             LOGGER.debug("Selecting new module version {}", moduleRevision);
@@ -513,6 +514,7 @@ public class DependencyGraphBuilder {
         private ModuleVersionIdResolveResult idResolveResult;
         private ComponentResolveResult resolveResult;
         private ModuleVersionResolveException failure;
+        @Nullable private ModuleIdentifier preferredTarget;
 
         private ModuleVersionResolveState(ModuleResolveState module, ModuleVersionIdentifier id) {
             this.module = module;
@@ -849,6 +851,7 @@ public class DependencyGraphBuilder {
             targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             targetModuleRevision.addResolver(this);
             targetModuleRevision.selectionReason = idResolveResult.getSelectionReason();
+            targetModuleRevision.preferredTarget = idResolveResult.getPreferredTarget();
             targetModule = targetModuleRevision.module;
             targetModule.addSelector(this);
 

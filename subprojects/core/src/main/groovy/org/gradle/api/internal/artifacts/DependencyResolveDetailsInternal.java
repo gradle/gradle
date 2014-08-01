@@ -23,4 +23,9 @@ public interface DependencyResolveDetailsInternal extends DependencyResolveDetai
 
     void useVersion(String version, ComponentSelectionReason selectionReason);
 
+    /**
+     * Declare a preferred replacement target for this dependency. TODO SF: preferReplacement
+     * @param notation
+     */
+    void prefer(Object notation);
 }

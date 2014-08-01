@@ -21,29 +21,46 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.Set;
 
 class DefaultModuleConflict implements ModuleConflict {
 
-    private final Collection<? extends ModuleRevisionResolveState> moduleVersions;
-    private final Set<ModuleIdentifier> affectedModules = new LinkedHashSet<ModuleIdentifier>();
+    private final Collection<ModuleRevisionResolveState> moduleVersions = new LinkedHashSet<ModuleRevisionResolveState>();
+    private final Collection<ModuleRevisionResolveState> replacedVersions = new LinkedHashSet<ModuleRevisionResolveState>();
 
     public DefaultModuleConflict(Collection<? extends ModuleRevisionResolveState> moduleVersions) {
-        this.moduleVersions = moduleVersions;
-        //Collect modules participating in the conflict. Many times, it will be just a single module (that happen to have multiple candidate versions).
-        for (ModuleRevisionResolveState m : moduleVersions) {
-            affectedModules.add(m.getId().getModule());
-        }
+        addVersions(moduleVersions);
+    }
+
+    public void addVersions(Collection<? extends ModuleRevisionResolveState> moduleVersions) {
+        this.moduleVersions.addAll(moduleVersions);
     }
 
     public Collection<? extends ModuleRevisionResolveState> getVersions() {
+        if (!replacedVersions.isEmpty()) {
+            return replacedVersions;
+        }
         return moduleVersions;
     }
 
     public void withAffectedModules(Action<ModuleIdentifier> affectedModulesAction) {
-        for (ModuleIdentifier m : affectedModules) {
-            affectedModulesAction.execute(m);
+        //walk through all modules involved in the conflict. Many times, there will be only one involved module
+        HashSet<ModuleIdentifier> visited = new HashSet<ModuleIdentifier>();
+        withAffectedModules(moduleVersions, affectedModulesAction, visited);
+        withAffectedModules(replacedVersions, affectedModulesAction, visited);
+    }
+
+    private static void withAffectedModules(Collection<ModuleRevisionResolveState> versions, Action<ModuleIdentifier> affectedModulesAction, HashSet<ModuleIdentifier> visited) {
+        for (ModuleRevisionResolveState v : versions) {
+            ModuleIdentifier module = v.getId().getModule();
+            if (visited.add(module)) {
+                affectedModulesAction.execute(module);
+            }
         }
+    }
+
+    public void replacedBy(Collection<? extends ModuleRevisionResolveState> versions) {
+        replacedVersions.addAll(versions);
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -82,6 +83,10 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
         public ComponentSelectionReason getSelectionReason() {
             return VersionSelectionReasons.REQUESTED;
+        }
+
+        public ModuleIdentifier getPreferredTarget() {
+            return null;
         }
 
         protected void checkDescriptor(ComponentMetaData metaData) {
