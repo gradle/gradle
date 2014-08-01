@@ -6,7 +6,7 @@ attribute available in ivy-specific APIs within Gradle.
 
 ### User visible changes
 
-Users will be able to set the 'branch' attribute when publishing with `IvyPublication`
+Users will be able to set the `branch` attribute when publishing with `IvyPublication`
 
     publishing {
         publications {
@@ -16,16 +16,22 @@ Users will be able to set the 'branch' attribute when publishing with `IvyPublic
         }
     }
 
-Users will be able to access the 'branch' attribute when resolving, via the `IvyModuleMetadata`
+Users will be able to access the `branch` attribute when resolving, via the `IvyModuleMetadata`
 
     dependencies {
         components {
             eachComponent { ComponentMetadataDetails details, IvyModuleMetadata ivyModule ->
-                if (ivyModule.branch == 'testing') {
-                    details.status == 'testing'
+                if (ivyModule.branch == 'some-feature') {
+                    details.status = 'testing'
+                } else {
+                    details.status = 'master'
                 }
             }
         }
+
+        // can use status to select the appropriate branch
+        compile 'group:module:latest.testing'
+        compile 'group:other-module:latest.master'
     }
 
 ### Implementation
@@ -50,7 +56,7 @@ Users will be able to access the 'branch' attribute when resolving, via the `Ivy
 - Reasonable error message when publishing with invalid branch value
 - Branch attribute is cached until module is refreshed
 - Test coverage for publishing with extra-info set
-- Test coverage for accessing ivyStatus in component metadata rules
+- Test coverage for accessing ivy status in component metadata rules
 
 ### Open issues
 
@@ -108,6 +114,11 @@ This rule is fired any time a candidate version is compared to see if it matches
 
 ### Open issues
 
+- Should fire the rule for static version selector, to allow the rule to reject the version based on whatever criteria is uses to select from the candidates
+for a dynamic version.
+- Need some way to fall back to some other version if preferred version is not available, eg use something from 'master' branch if none from 'feature' branch is available.
+Could do this using two rules, if there were some guarantee to the order of rule executions.
+
 ## Story: Build logic selects the module that matches an external dependency
 
 - If no rule sets the status of the VersionSelection, the default VersionMatcher algorithm is used
@@ -136,6 +147,8 @@ This rule is fired any time a candidate version is compared to see if it matches
 
 ## Story: Build script targets versionSelection rule to particular module
 
+This story adds some convenience DSL to target a selection rule a particular group or module:
+
 ### User visible changes
 
     configurations.all {
@@ -152,6 +165,8 @@ This rule is fired any time a candidate version is compared to see if it matches
 
 ## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input
 
+This story makes available the component and Ivy meta-data as optional read only inputs to a version selection rule:
+
 ### User visible changes
 
     configurations.all {
@@ -160,10 +175,17 @@ This rule is fired any time a candidate version is compared to see if it matches
                 any { VersionSelection selection, ComponentMetadataDetails metadata ->
                 }
                 any { VersionSelection selection, IvyModuleMetadata ivyModule ->
+                    if (ivyModule.branch == 'testing' ) {
+                        selection.accept()
+                    }
                 }
             }
         }
     }
+
+### Open issues
+
+- Need to present a read-only view of the component meta-data.
 
 # Later milestones
 
