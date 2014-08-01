@@ -22,27 +22,22 @@ DSL mock up:
 
     dependencies {
         components {
-            module('com.google.guava:guava') {
-                replacedBy 'com.google.collections:google-collections'
+            modules('com.google.collections:google-collections') {
+                replacedBy 'com.google.guava:guava'
             }
         }
     }
 
-This states that module 'com.google.guava:guava' was replaced by 'com.google.collections:google-collections' at some point. This implies
+This states that module 'com.google.collections:google-collections' was replaced/superseded/deprecated by 'com.google.guava:guava' at some point. This implies
 two things:
 
-- Every version of 'google-collections' and every version of 'guava' conflict with each other.
+- Every version of 'google-collections' and every version of 'guava' conflicts with each other.
 - Every version of 'google-collections' is older than any version of 'guava'.
 
 ### User visible changes
 
 1. New DSL API (see above)
 2. Smarter conflict resolution, for example: no more guava and google-collections together in the classpaths.
-
-### Implementation
-
-- Extra input to DependencyGraphBuilder
-- New incubating api in the 'components' DSL element
 
 ### Test coverage
 
@@ -109,7 +104,7 @@ Make it possible to declare module replacements flexibly, so that sets of module
 - as above but starting from some version: groovy -> groovy, groovy-ant, groovy-xml only starting from 2.0
 - a set of modules replaced by a single module (hypothetical)
 
-DSL mock up:
+DSL mock-up:
 
     dependencies {
         components {
@@ -118,11 +113,24 @@ DSL mock up:
                 details.replacedBy 'org.springframework:spring-aop'
             }
 
-            //More brainstorming - general DSL on a high level, ideas:
+This states that 'org.springframework:spring' was replaced by both 'org.springframework:spring-core' and 'org.springframework:spring-aop' at some point. This implies:
+
+- Every version of 'org.springframework:spring' and every version of 'org.springframework:spring-core' conflict with each other.
+- Every version of 'org.springframework:spring' and every version of 'org.springframework:spring-aop' conflict with each other.
+- Every version of 'org.springframework:spring-core' is newer than every version of 'org.springframework:spring'.
+- Every version of 'org.springframework:spring-aop' is newer than every version of 'org.springframework:spring'.
+- When replacing a version of 'org.springframework:spring' due to a conflict, include both 'org.springframework:spring-core' and 'org.springframework:spring-aop'
+in the result.
+
+DSL brainstorming, other ideas:
+
+    dependencies {
+        components {
+            //use 'modules' instead of 'module'
             modules(notation).all { SomeModuleMetadata details -> ... }
             modules.matching(notation).all { SomeModuleMetadata details -> ... }
             modules(notation) {}
-            module(notation) {}
+
             //the 'modules' closure is evaluated during the configuration time
             //so it declares various information about the modules, this information is consumed during project configuration and later used during resolution
 
@@ -154,7 +162,32 @@ DSL mock up:
                 releasableUnit() //ensures 'groovy-core' and 'groovy-xml' will have consistent version
             }
 
-            //alternative DSL, based off an existing API for configuring module metadata:
+More brainstorming, based on the dependency resolve rules:
+
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.target.name == 'google-collections') {
+            details.prefer "com.google.guava:guava"
+        }
+        if (details.target.name == 'spring') {
+            details.prefer "org.springframework:spring-*"
+        }
+        if (details.target.name == 'spring') {
+            details.prefer { it.group = "org.springframework" && it.name.startsWith("spring-") }
+        }
+        if (details.target.group == 'foo' && details.target.name == 'foo-impl') {
+            details.useSameVersionAs('foo:foo-api')
+        }
+        if (details.target.group.startsWith('com.linkedin')) {
+            details.useSameVersionAs(group: details.target.group, name: details.target.name)
+        }
+    }
+}
+
+More brainstorming, based on an existing API for configuring module metadata:
+
+    dependencies {
+        components {
             eachComponent { ComponentMetadataDetails details ->
                 if (details.id.group == 'com.google.google-collections' && details.id.name == 'google-collections') {
                     details.replacedBy 'com.google.guava:guava'
@@ -191,19 +224,6 @@ DSL mock up:
             }
         }
     }
-
-This states that 'org.springframework:spring' was replaced by both 'org.springframework:spring-core' and 'org.springframework:spring-aop' at some point. This implies:
-
-- Every version of 'org.springframework:spring' and every version of 'org.springframework:spring-core' conflict with each other.
-- Every version of 'org.springframework:spring' and every version of 'org.springframework:spring-aop' conflict with each other.
-- Every version of 'org.springframework:spring-core' is newer than every version of 'org.springframework:spring'.
-- Every version of 'org.springframework:spring-aop' is newer than every version of 'org.springframework:spring'.
-- When replacing a version of 'org.springframework:spring' due to a conflict, include both 'org.springframework:spring-core' and 'org.springframework:spring-aop'
-in the result.
-
-### Implementation plan:
-
-- DependencyGraphBuilder receives Spec<ModuleIdentifier> information for deciding whether given modules are in conflict and for deciding who replaces them.
 
 ### Test coverage:
 
