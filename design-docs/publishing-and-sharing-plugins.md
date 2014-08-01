@@ -662,10 +662,6 @@ The detail of the error response differentiates the response from a generic 404.
 - ~~Response advertised as structured error response is malformed JSON~~
 - ~~Response advertised as structured error response is of compatible schema, but has extra unexpected elements~~
 
-### Open questions
-
-- What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level?
-
 ## Story: User is notified that Gradle version is not supported by plugin portal
 
 The plugin portal may respond with a structured error response indicating that the Gradle version is unsupported. See plugin portal api-endpoints-general.md.
