@@ -17,6 +17,8 @@
 package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import java.util.regex.Pattern;
  */
 public class UbuntuJvmLocator {
     private static final Pattern JAVA_HOME_DIR_PATTERN = Pattern.compile("java-(\\d+.\\d+(?:\\.\\d+)?)-\\w+-(\\w+)");
+    private final FileCanonicalizer fileCanonicalizer = NativeServices.getInstance().get(FileCanonicalizer.class);
     private final File libDir;
 
     public UbuntuJvmLocator() {
@@ -54,7 +57,7 @@ public class UbuntuJvmLocator {
                 String version = matcher.group(1);
                 String arch = matcher.group(2);
                 boolean jdk = new File(javaHome, "bin/javac").isFile();
-                jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, javaHome, jdk, toArch(arch)));
+                jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, fileCanonicalizer.canonicalize(javaHome), jdk, toArch(arch)));
             }
         }
         return jvms;

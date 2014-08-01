@@ -77,6 +77,20 @@ class UbuntuJvmLocatorTest extends Specification {
         jvms[1].jdk
     }
 
+    def "locates JDK in canonicalized directory"() {
+        given:
+        jdk("real-install/java-1.7-openjdk-amd64")
+        libDir.file("java-1.7.0-openjdk-amd64").createLink("real-install/java-1.7-openjdk-amd64")
+
+        expect:
+        def jvms = locator.findJvms()
+        jvms.size() == 1
+
+        jvms[0].javaVersion == JavaVersion.VERSION_1_7
+        jvms[0].jdk
+        jvms[0].javaHome == libDir.file("real-install/java-1.7-openjdk-amd64")
+    }
+
     def jre(String name) {
         libDir.createFile("${name}/bin/java")
         libDir.createFile("${name}/jre/bin/java")
