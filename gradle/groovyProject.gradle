@@ -42,8 +42,10 @@ if (!javaVersion.java7) {
 }
 
 testTasks.all { task ->
-    if (isCiServer && ['launcher', 'toolingApi'].contains(project.name) && task.name.endsWith('ntegTest')) {
+    if (isCiServer && 'launcher'.equals(project.name) && task.name.endsWith('ntegTest')) {
         maxParallelForks = Math.min(3, rootProject.maxParallelForks)
+    } else if (isCiServer && 'toolingApi'.contains(project.name) && task.name.endsWith('ntegTest')) {
+        maxParallelForks = Math.min(2, rootProject.maxParallelForks)
     } else {
         maxParallelForks = rootProject.maxParallelForks
     }
