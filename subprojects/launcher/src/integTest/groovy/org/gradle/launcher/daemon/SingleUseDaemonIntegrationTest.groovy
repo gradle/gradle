@@ -26,6 +26,8 @@ import org.spockframework.runtime.SpockTimeoutError
 import spock.lang.IgnoreIf
 import spock.util.concurrent.PollingConditions
 
+import java.nio.charset.Charset
+
 @IgnoreIf({ GradleContextualExecuter.isDaemon() })
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     PollingConditions pollingConditions = new PollingConditions()
@@ -141,6 +143,25 @@ assert System.getProperty('some-prop') == 'some-value'
 
         then:
         failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
+    }
+
+    def "single use daemon is not used if immutable system property is set on command line with non different value"() {
+        def encoding = Charset.defaultCharset().name()
+
+        given:
+        buildScript """
+            task encoding {
+                doFirst { println "encoding = " + java.nio.charset.Charset.defaultCharset().name() }
+            }
+        """
+        when:
+        run "encoding", "-Dfile.encoding=$encoding"
+
+        then:
+        output.contains "encoding = $encoding"
+
+        and:
+        !wasForked()
     }
 
     private def requireJvmArg(String jvmArg) {

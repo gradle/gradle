@@ -115,7 +115,7 @@ class BuildActionsFactory implements CommandLineAction {
         propertiesToStartParameterConverter.convert(properties, startParameter);
         commandLineConverter.convert(commandLine, startParameter);
 
-        DaemonParameters daemonParameters = new DaemonParameters(layout);
+        DaemonParameters daemonParameters = new DaemonParameters(layout, startParameter.getSystemPropertiesArgs());
         propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
         daemonConverter.convert(commandLine, daemonParameters);
 
