@@ -298,10 +298,10 @@ Cunit test suite 'someExeTest'
 ------------------------------
 
 Source sets
-    C source 'someExeTest:cunitLauncher'
-        build/src/someExeTest/cunitLauncher/c
     C source 'someExeTest:c'
         src/someExeTest/c
+    C source 'someExeTest:cunitLauncher'
+        build/src/someExeTest/cunitLauncher/c
 
 Binaries
     C unit exe 'someExeTest:cUnitExe'
