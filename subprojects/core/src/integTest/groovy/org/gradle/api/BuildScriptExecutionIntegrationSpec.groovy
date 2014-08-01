@@ -53,7 +53,11 @@ task check << {
         succeeds 'check'
 
         where:
-        locale << [new Locale('de'), new Locale('en')]
+        locale << [nonDefaultLocale, Locale.default]
+    }
+
+    Locale getNonDefaultLocale() {
+        [new Locale('de'), new Locale('en')].find { it != Locale.default }
     }
 
 }

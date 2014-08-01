@@ -55,6 +55,7 @@ public class CurrentProcessTest extends Specification {
         !currentProcess.configureForBuild(buildParameters(["-XX:SomethingElse"]))
         !currentProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
         !currentProcess.configureForBuild(buildParameters(['-Dfile.encoding=UTF8']))
+        !currentProcess.configureForBuild(buildParameters(['-Duser.lanaguage=es']))
     }
 
     def "sets all mutable system properties before running build"() {

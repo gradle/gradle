@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -41,6 +42,10 @@ public class JvmOptions {
     private static final String USER_COUNTRY_KEY = "user.country";
     private static final String USER_VARIANT_KEY = "user.variant";
     private static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
+
+    private static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
+            FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY
+    );
 
     // Store this because Locale.default is mutable and we want the unchanged default
     // We are assuming this class will be initialized before any code has a chance to change the default
@@ -232,7 +237,7 @@ public class JvmOptions {
     }
 
     public void systemProperty(String name, Object value) {
-        if (name.equals(FILE_ENCODING_KEY) || name.equals(JMX_REMOTE_KEY)) {
+        if (IMMUTABLE_SYSTEM_PROPERTIES.contains(name)) {
             immutableSystemProperties.put(name, value);
         } else {
             systemProperties.put(name, value);
