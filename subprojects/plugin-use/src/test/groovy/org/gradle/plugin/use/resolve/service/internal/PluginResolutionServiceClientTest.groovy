@@ -96,7 +96,7 @@ class PluginResolutionServiceClientTest extends Specification {
             getStatusCode() >> 500
             getContentType() >> "application/json"
             withContent(_) >> { Transformer<PluginUseMetaData, InputStream> action ->
-                action.transform(new ByteArrayInputStream("{errorCode: 'FOO'}".getBytes("utf8")))
+                action.transform(new ByteArrayInputStream("{errorCode: 'FOO', message: 'BAR'}".getBytes("utf8")))
             }
         }
         0 * resourceAccessor.getRawResource(_)
