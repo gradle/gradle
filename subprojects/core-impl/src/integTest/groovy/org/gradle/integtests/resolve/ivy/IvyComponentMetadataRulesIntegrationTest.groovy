@@ -46,6 +46,7 @@ repositories {
         def module = repo.module('org.test', 'projectA', '1.0')
                 .withExtraInfo(foo: "fooValue", bar: "barValue")
                 .withBranch('someBranch')
+                .withStatus('release')
                 .publish()
         module.ivy.expectDownload()
         module.artifact.expectDownload()
@@ -60,6 +61,7 @@ dependencies {
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
             assert descriptor.branch == 'someBranch'
+            assert descriptor.ivyStatus == 'release'
         }
     }
 }
@@ -76,8 +78,10 @@ resolve.doLast { assert ruleInvoked }
     @Unroll
     def "can access Ivy metadata with #identifier characters" () {
         def branch = identifier.safeForBranch().decorate("branch")
+        def status = identifier.safeForFileName().decorate("status")
         def module = repo.module('org.test', 'projectA', '1.0')
                 .withBranch(branch)
+                .withStatus(status)
                 .publish()
         module.ivy.expectDownload()
         module.artifact.expectDownload()
@@ -91,6 +95,8 @@ dependencies {
         eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.branch == '${sq(branch)}'
+            details.statusScheme = [ '${sq(status)}' ]
+            assert descriptor.ivyStatus == '${sq(status)}'
         }
     }
 }
@@ -109,6 +115,7 @@ resolve.doLast { assert ruleInvoked }
         def module = repo.module('org.test', 'projectA', '1.0')
                 .withExtraInfo(foo: "fooValue", bar: "barValue")
                 .withBranch("someBranch")
+                .withStatus("release")
                 .publish()
         module.ivy.expectDownload()
         module.artifact.expectDownload()
@@ -145,6 +152,7 @@ dependencies {
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
             assert descriptor.branch == 'someBranch'
+            assert descriptor.ivyStatus == 'release'
         }
     }
 }
@@ -163,6 +171,7 @@ resolve.doLast { assert ruleInvoked }
         def module = repo.module('org.test', 'projectA', '1.0')
                 .withExtraInfo(foo: "fooValue", bar: "barValue")
                 .withBranch('someBranch')
+                .withStatus('release')
                 .publish()
         module.ivy.expectDownload()
         module.artifact.expectDownload()
@@ -177,6 +186,7 @@ dependencies {
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
             assert descriptor.branch == 'someBranch'
+            assert descriptor.ivyStatus == 'release'
         }
     }
 }
@@ -191,6 +201,7 @@ resolve.doLast { assert ruleInvoked }
         repo.module('org.test', 'projectA', '1.0')
                 .withExtraInfo(foo: "fooValueChanged", bar: "barValueChanged")
                 .withBranch('differentBranch')
+                .withStatus('milestone')
                 .publishWithChangedContent()
 
         and:
@@ -213,6 +224,8 @@ dependencies {
             file("metadata") << descriptor.extraInfo.toString()
             file("metadata") << "\\n"
             file("metadata") << descriptor.branch
+            file("metadata") << "\\n"
+            file("metadata") << descriptor.ivyStatus
         }
     }
 }
@@ -231,6 +244,6 @@ resolve.doLast { assert ruleInvoked }
 
         then:
         succeeds 'resolve'
-        assert file("metadata").text == "{my:bar=barValueChanged, my:foo=fooValueChanged}\ndifferentBranch"
+        assert file("metadata").text == "{my:bar=barValueChanged, my:foo=fooValueChanged}\ndifferentBranch\nmilestone"
     }
 }

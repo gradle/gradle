@@ -88,7 +88,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
                     return;
                 }
                 IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metadata;
-                args.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch()));
+                args.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
             } else {
                 throw new InvalidUserCodeException(String.format("Unsupported parameter type for component metadata rule: %s", parameterType.getName()));
             }

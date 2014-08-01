@@ -72,6 +72,10 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         field(publication, "branch", metadata.getDescriptor().getModuleRevisionId().getBranch())
                 .optionalNotEmpty()
                 .doesNotContainSpecialCharacters(true);
+
+        field(publication, "status", metadata.getStatus())
+                .optionalNotEmpty()
+                .validInFileName();
     }
 
     private MutableModuleVersionMetaData parseIvyFile(IvyNormalizedPublication publication) {

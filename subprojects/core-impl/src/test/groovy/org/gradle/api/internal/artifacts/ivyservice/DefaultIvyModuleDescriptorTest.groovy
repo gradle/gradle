@@ -22,7 +22,7 @@ class DefaultIvyModuleDescriptorTest extends Specification {
     def "getExtraInfo returns immutable map"() {
         setup:
         def map = ['some': 'value']
-        def ivyModuleDescriptor = new DefaultIvyModuleDescriptor(map, null)
+        def ivyModuleDescriptor = new DefaultIvyModuleDescriptor(map, null, null)
 
         when:
         ivyModuleDescriptor.getExtraInfo().put('new', 'value')
@@ -33,9 +33,17 @@ class DefaultIvyModuleDescriptorTest extends Specification {
 
     def "getBranch returns branch" () {
         given:
-        def ivyModuleDescriptor = new DefaultIvyModuleDescriptor([:], 'someBranch')
+        def ivyModuleDescriptor = new DefaultIvyModuleDescriptor([:], 'someBranch', null)
 
         expect:
         ivyModuleDescriptor.getBranch() == 'someBranch'
+    }
+
+    def "getIvyStatus returns status"() {
+        given:
+        def ivyModuleDescriptor = new DefaultIvyModuleDescriptor([:], null, 'release')
+
+        expect:
+        ivyModuleDescriptor.getIvyStatus() == 'release'
     }
 }

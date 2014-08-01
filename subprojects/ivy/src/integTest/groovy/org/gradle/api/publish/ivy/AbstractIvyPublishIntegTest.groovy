@@ -29,7 +29,11 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
         doResolveArtifacts("group: '${sq(module.organisation)}', name: '${sq(module.module)}', version: '${sq(module.revision)}', configuration: '${sq(configuration)}'")
     }
 
-    private def doResolveArtifacts(def dependency) {
+    protected def resolveArtifactsWithStatus(IvyFileModule module, def status) {
+        doResolveArtifacts("group: '${sq(module.organisation)}', name: '${sq(module.module)}', version: '${sq(module.revision)}'", status)
+    }
+
+    private def doResolveArtifacts(def dependency, def status=null) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         buildFile.text = """
@@ -48,8 +52,16 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
                 from configurations.resolve
                 into "artifacts"
             }
+        """
 
-"""
+        if (status != null) {
+            buildFile.text = buildFile.text + """
+
+                dependencies.components.eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
+                    details.statusScheme = [ '${sq(status)}' ]
+                }
+            """
+        }
 
         run "resolveArtifacts"
         def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []

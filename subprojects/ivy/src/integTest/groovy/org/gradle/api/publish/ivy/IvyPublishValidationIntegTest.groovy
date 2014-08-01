@@ -29,6 +29,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         def version = identifier.safeForFileName().decorate("revision")
         def description = identifier.decorate("description")
         def branch = identifier.safeForBranch().decorate("branch")
+        def status = identifier.safeForFileName().decorate("status")
         def module = ivyRepo.module(organisation, moduleName, version)
 
         settingsFile.text = "rootProject.name = '${sq(moduleName)}'"
@@ -50,6 +51,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
                     ivy(IvyPublication) {
                         from components.java
                         descriptor.branch = '${sq(branch)}'
+                        descriptor.status = '${sq(status)}'
                         descriptor.withXml {
                             asNode().info[0].appendNode('description', '${sq(description)}')
                         }
@@ -65,7 +67,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         module.parsedIvy.description == description.toString()
 
         and:
-        resolveArtifacts(module) == [moduleName + '-' + version + '.jar']
+        resolveArtifactsWithStatus(module, status) == [moduleName + '-' + version + '.jar']
 
         where:
         identifier << Identifier.all
@@ -182,5 +184,8 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         metadata        | message
         "branch ''"     | "Invalid publication 'ivy': branch cannot be an empty string. Use null instead"
         "branch 'a\tb'" | "Invalid publication 'ivy': branch cannot contain ISO control character '\\u0009'"
+        "status ''"     | "Invalid publication 'ivy': status cannot be an empty string. Use null instead"
+        "status 'a\tb'" | "Invalid publication 'ivy': status cannot contain ISO control character '\\u0009'"
+        "status 'a/b'"  | "Invalid publication 'ivy': status cannot contain '/'"
     }
 }

@@ -32,6 +32,13 @@ public interface IvyModuleDescriptor {
     String getBranch();
 
     /**
+     * Returns the status attribute of the info element in this descriptor.
+     *
+     * @return the status for this descriptor
+     */
+    String getIvyStatus();
+
+    /**
      * Returns a read-only map of the extra info declared in this descriptor.
      * <p>
      * The extra info is the set of all non-standard subelements of the <em>info</em> element.

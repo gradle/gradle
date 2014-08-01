@@ -22,15 +22,21 @@ import java.util.Map;
 
 public class DefaultIvyModuleDescriptor implements IvyModuleDescriptor {
     private final String branch;
+    private final String ivyStatus;
     private final Map<String, String> extraInfo;
 
-    public DefaultIvyModuleDescriptor(Map<String, String> extraInfo, String branch) {
+    public DefaultIvyModuleDescriptor(Map<String, String> extraInfo, String branch, String ivyStatus) {
         this.extraInfo = Collections.unmodifiableMap(extraInfo);
         this.branch = branch;
+        this.ivyStatus = ivyStatus;
     }
 
     public String getBranch() {
         return branch;
+    }
+
+    public String getIvyStatus() {
+        return ivyStatus;
     }
 
     public Map<String, String> getExtraInfo() {

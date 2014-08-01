@@ -117,6 +117,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         with(capturedDescriptor) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
             branch == "someBranch"
+            ivyStatus == "integration"
         }
     }
 

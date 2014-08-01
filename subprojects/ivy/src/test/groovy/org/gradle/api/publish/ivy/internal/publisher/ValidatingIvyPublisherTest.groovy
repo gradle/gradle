@@ -38,7 +38,10 @@ public class ValidatingIvyPublisherTest extends Specification {
     def "delegates when publication is valid"() {
         when:
         def projectIdentity = this.projectIdentity("the-group", "the-artifact", "the-version")
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("the-group", "the-artifact", "the-version", "the-branch"), emptySet())
+        def generator = ivyGenerator("the-group", "the-artifact", "the-version")
+                            .withBranch("the-branch")
+                            .withStatus("release")
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
         def repository = Mock(PublicationAwareRepository)
 
         and:
@@ -50,11 +53,12 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     def "does not attempt to resolve extended ivy descriptor when validating"() {
         when:
-        def ivyFile = ivyFile("the-group", "the-artifact", "the-version", new Action<XmlProvider>() {
-            void execute(XmlProvider t) {
-                t.asNode().info[0].appendNode("extends", ["organisation": "parent-org", "module": "parent-module", "revision": "parent-revision"])
-            }
-        })
+        def ivyFile = ivyFile(ivyGenerator("the-group", "the-artifact", "the-version")
+                .withAction(new Action<XmlProvider>() {
+                    void execute(XmlProvider t) {
+                        t.asNode().info[0].appendNode("extends", ["organisation": "parent-org", "module": "parent-module", "revision": "parent-revision"])
+                    }
+                }))
 
         and:
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
@@ -96,7 +100,10 @@ public class ValidatingIvyPublisherTest extends Specification {
     def "validates ivy metadata"() {
         given:
         def projectIdentity = projectIdentity("org", "module", "version")
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("org", "module", "version", branch), emptySet())
+        def generator = ivyGenerator("org", "module", "version")
+                            .withBranch(branch)
+                            .withStatus(status)
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
         def repository = Stub(PublicationAwareRepository)
 
         when:
@@ -107,18 +114,27 @@ public class ValidatingIvyPublisherTest extends Specification {
         e.message == "Invalid publication 'pub-name': $message."
 
         where:
-        branch             | message
-        ""                 | "branch cannot be an empty string. Use null instead"
-        "someBranch\t"     | "branch cannot contain ISO control character '\\u0009'"
-        "someBranch\n"     | "branch cannot contain ISO control character '\\u000a'"
-        "someBranch\u0085" | "branch cannot contain ISO control character '\\u0085'"
-        "someBran\\ch"     | "branch cannot contain '\\'"
+        branch             | status          | message
+        ""                 | "release"       | "branch cannot be an empty string. Use null instead"
+        "someBranch"       | ""              | "status cannot be an empty string. Use null instead"
+        "someBranch\t"     | "release"       | "branch cannot contain ISO control character '\\u0009'"
+        "someBranch"       | "release\t"     | "status cannot contain ISO control character '\\u0009'"
+        "someBranch\n"     | "release"       | "branch cannot contain ISO control character '\\u000a'"
+        "someBranch"       | "release\n"     | "status cannot contain ISO control character '\\u000a'"
+        "someBranch\u0085" | "release"       | "branch cannot contain ISO control character '\\u0085'"
+        "someBranch"       | "release\u0085" | "status cannot contain ISO control character '\\u0085'"
+        "someBran\\ch"     | "release"       | "branch cannot contain '\\'"
+        "someBranch"       | "relea\\se"     | "status cannot contain '\\'"
+        "someBranch"       | "relea/se"      | "status cannot contain '/'"
     }
 
     def "delegates with valid ivy metadata" () {
         given:
         def projectIdentity = projectIdentity("org", "module", "version")
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("org", "module", "version", branch), emptySet())
+        def generator = ivyGenerator("org", "module", "version")
+                            .withBranch(branch)
+                            .withStatus(status)
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
         def repository = Stub(PublicationAwareRepository)
 
         when:
@@ -128,11 +144,11 @@ public class ValidatingIvyPublisherTest extends Specification {
         delegate.publish(publication, repository)
 
         where:
-        branch                  | _
-        null                    | _
-        "someBranch"            | _
-        "feature/someBranch"    | _
-        "someBranch_ぴ₦ガき∆ç√∫" | _
+        branch                  | status
+        null                    | null
+        "someBranch"            | "release"
+        "feature/someBranch"    | "release"
+        "someBranch_ぴ₦ガき∆ç√∫" | "release_ぴ₦ガき∆ç√∫"
     }
 
     def "project coordinates must match ivy descriptor file"() {
@@ -288,18 +304,38 @@ public class ValidatingIvyPublisherTest extends Specification {
         }
     }
 
-    private def ivyFile(def group, def moduleName, def version, Action<XmlProvider> action = null) {
-        return ivyFile(group, moduleName, version, null, action)
+    private TestIvyDescriptorFileGenerator ivyGenerator(def group, def moduleName, def version) {
+        return new TestIvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity(group, moduleName, version))
     }
 
-    private def ivyFile(def group, def moduleName, def version, def branch, Action<XmlProvider> action = null) {
+    private def ivyFile(def group, def moduleName, def version) {
+        return ivyFile(ivyGenerator(group, moduleName, version))
+    }
+
+    private def ivyFile(IvyDescriptorFileGenerator ivyFileGenerator) {
         def ivyXmlFile = testDir.file("ivy")
-        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity(group, moduleName, version))
-        ivyFileGenerator.branch = branch
-        if (action != null) {
-            ivyFileGenerator.withXml(action)
-        }
         ivyFileGenerator.writeTo(ivyXmlFile)
         return ivyXmlFile
+    }
+
+    class TestIvyDescriptorFileGenerator extends IvyDescriptorFileGenerator {
+        TestIvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
+            super(projectIdentity)
+        }
+
+        TestIvyDescriptorFileGenerator withBranch(String branch) {
+            this.branch = branch
+            return this
+        }
+
+        TestIvyDescriptorFileGenerator withStatus(String status) {
+            this.status = status
+            return this
+        }
+
+        TestIvyDescriptorFileGenerator withAction(Action<XmlProvider> action) {
+            this.withXml(action)
+            return this
+        }
     }
 }
