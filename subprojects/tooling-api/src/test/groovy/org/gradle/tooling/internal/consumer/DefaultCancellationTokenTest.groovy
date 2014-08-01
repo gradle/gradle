@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.CancellationTokenSource
 import spock.lang.Specification
 
 class DefaultCancellationTokenTest extends Specification {
     def 'can cancel token'() {
-        def source = new CancellationTokenSource()
+        def source = new DefaultCancellationTokenSource()
 
         when:
         def token = source.token()
@@ -37,7 +36,7 @@ class DefaultCancellationTokenTest extends Specification {
     }
 
     def 'cancel notifies callbacks'() {
-        def source = new CancellationTokenSource()
+        def source = new DefaultCancellationTokenSource()
 
         def callback1 = Mock(Runnable)
         def callback2 = Mock(Runnable)
@@ -55,7 +54,7 @@ class DefaultCancellationTokenTest extends Specification {
     }
 
     def 'addCallback after cancel notifies'() {
-        def source = new CancellationTokenSource()
+        def source = new DefaultCancellationTokenSource()
 
         def callback = Mock(Runnable)
         def token = source.token()

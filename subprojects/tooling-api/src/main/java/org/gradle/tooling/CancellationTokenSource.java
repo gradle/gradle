@@ -17,7 +17,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.internal.consumer.DefaultCancellationToken;
 
 /**
  * Object that creates {@link CancellationToken}, and also issues cancellation request passed to this token.
@@ -30,13 +29,7 @@ import org.gradle.tooling.internal.consumer.DefaultCancellationToken;
  * @since 2.1
  */
 @Incubating
-public final class CancellationTokenSource {
-    private DefaultCancellationToken token = new DefaultCancellationToken();
-
-    public CancellationTokenSource() {
-    }
-
-    // TODO exception handling from callbacks (aggregate into one exception and rethrow?)
+public interface CancellationTokenSource {
     /**
      * Initiates cancel request that is passed to {@link org.gradle.tooling.CancellationToken}
      * where it will be handled.
@@ -47,9 +40,7 @@ public final class CancellationTokenSource {
      * with a {@link BuildCancelledException} describing how it was cancelled.
      * </p>
      */
-    public void cancel() {
-        token.doCancel();
-    }
+    void cancel();
 
     /**
      * Returns a token associated with this {@code CancellationTokenSource}.
@@ -57,7 +48,5 @@ public final class CancellationTokenSource {
      *
      * @return The cancellation token.
      */
-    public CancellationToken token() {
-        return token;
-    }
+    CancellationToken token();
 }

@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling
+package org.gradle.tooling.internal.consumer;
 
-import spock.lang.Specification
+import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.CancellationTokenSource;
 
-class CancellationTokenSourceTest extends Specification {
-    def 'token operation idempotent'() {
-        def source = new CancellationTokenSource()
+public final class DefaultCancellationTokenSource implements CancellationTokenSource {
+    private final DefaultCancellationToken token = new DefaultCancellationToken();
 
-        when:
-        def token1 = source.token()
-        def token2 = source.token()
+    // TODO exception handling from callbacks (aggregate into one exception and rethrow?)
+    public void cancel() {
+        token.doCancel();
+    }
 
-        then:
-        token1 == token2
+    public CancellationToken token() {
+        return token;
     }
 }

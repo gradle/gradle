@@ -21,12 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.BuildException
-import org.gradle.tooling.CancellationTokenSource
-import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.*
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -61,7 +56,7 @@ task notExecuted(dependsOn: hang) << {
     println "__should_not_run__"
 }
 """
-        def cancel = new CancellationTokenSource()
+        def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
         def error = new TestOutputStream()
@@ -104,7 +99,7 @@ task hang << {
     println "__finished__"
 }
 """
-        def cancel = new CancellationTokenSource()
+        def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
         def error = new TestOutputStream()
@@ -146,7 +141,7 @@ task hang << {
     println "__finished__"
 }
 """
-        def cancel = new CancellationTokenSource()
+        def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
 
@@ -183,7 +178,7 @@ task t << {
     println "finished"
 }
 """
-        def cancel = new CancellationTokenSource()
+        def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler(false)
         def output = new TestOutputStream()
 
@@ -213,7 +208,7 @@ task hang << {
     throw new GradleException("should not run")
 }
 """
-        def cancel = new CancellationTokenSource()
+        def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
 
         when:
@@ -235,7 +230,7 @@ task hang << {
 
     @TargetGradleVersion(">=2.1")
     def "early cancel stops model retrieval before beginning"() {
-        def cancel = new CancellationTokenSource()
+        def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
 
         when:
@@ -253,7 +248,7 @@ task hang << {
     @TargetGradleVersion(">=2.1")
     def "can cancel action"() {
         def marker = file("marker.txt")
-        def cancel = new CancellationTokenSource()
+        def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
 
@@ -281,7 +276,7 @@ task hang << {
 
     @TargetGradleVersion(">=2.1")
     def "early cancel stops the action before beginning"() {
-        def cancel = new CancellationTokenSource()
+        def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
 
         when:

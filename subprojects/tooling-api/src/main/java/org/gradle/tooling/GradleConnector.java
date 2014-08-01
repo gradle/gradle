@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.tooling.internal.consumer.ConnectorServices;
+import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
 
 import java.io.File;
 import java.net.URI;
@@ -64,6 +65,15 @@ public abstract class GradleConnector {
         return new ConnectorServices().createConnector();
     }
 
+    /**
+     * Creates new {@link CancellationTokenSource} to be used with {@link org.gradle.tooling.LongRunningOperation}.
+     *
+     * @return The instance. Never returns {@code null}.
+     * @since 2.1
+     */
+    public static CancellationTokenSource newCancellationTokenSource() {
+        return new DefaultCancellationTokenSource();
+    }
     /**
      * Specifies which Gradle installation to use. This replaces any value specified using {@link #useDistribution(java.net.URI)} or {@link #useGradleVersion(String)}. Defaults to a project-specific
      * Gradle version.
