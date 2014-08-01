@@ -662,16 +662,19 @@ The detail of the error response differentiates the response from a generic 404.
 - ~~Response advertised as structured error response is malformed JSON~~
 - ~~Response advertised as structured error response is of compatible schema, but has extra unexpected elements~~
 
-## Story: User is notified that Gradle version is not supported by plugin portal
+## Story: User is notified that Gradle version is deprecated for use with plugin portal
 
-The plugin portal may respond with a structured error response indicating that the Gradle version is unsupported. See plugin portal api-endpoints-general.md.
+The plugin portal may include http headers that indicate that the client is to be deprecated. See plugin portal api-endpoints-general.md.
 
 All requests to the portal API can potentially respond in this manner.
 Implementation of handling this response should be cross cutting.
 
+At this stage, a message can be constructed based on the information in the headers and logged using our `DeprecationLogger` infrastructure.
+
 ### Test Coverage
 
-- Unsupported Gradle version response fails build, with message provided by portal forwarded to user.
+- Success response with appropriate headers causes deprecation message
+- 404 not found response with appropriate headers causes deprecation message 
 
 ## Story: Plugin resolution is cached between builds
 
