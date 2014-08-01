@@ -128,6 +128,10 @@ public class PluginResolutionServiceClient {
             throw new OutOfProtocolException(url, "invalid error response - no error code specified");
         }
 
+        if (errorResponse.message == null) {
+            throw new OutOfProtocolException(url, "invalid error response - no message specified");
+        }
+
         return errorResponse;
     }
 

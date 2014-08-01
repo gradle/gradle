@@ -644,7 +644,7 @@ Note: the class loading/visibility required by this story does not reflect the f
 
 > Broken out to later story.
 
-## Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”
+## ~~Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”~~
 
 The plugin portal has a standardised JSON payload for errors.
 This story adds understanding of this to Gradle's interactions with the portal, by way of extracting the error information and presenting it to the user instead of a generic failure message.
@@ -658,9 +658,9 @@ The detail of the error response differentiates the response from a generic 404.
 
 - ~~4xx..5xx response that is not specifically handled (e.g. PLUGIN\_NOT_FOUND) is forwarded to user~~
 - ~~4xx..500 response that isn't a structured error response (e.g. HTML) is handled~~
-- Response advertised as structured error response is of incompatible schema
-- Response advertised as structured error response is malformed JSON
-- Response advertised as structured error response is of compatible schema, but has extra unexpected elements
+- ~~Response advertised as structured error response is of incompatible schema~~
+- ~~Response advertised as structured error response is malformed JSON~~
+- ~~Response advertised as structured error response is of compatible schema, but has extra unexpected elements~~
 
 ### Open questions
 

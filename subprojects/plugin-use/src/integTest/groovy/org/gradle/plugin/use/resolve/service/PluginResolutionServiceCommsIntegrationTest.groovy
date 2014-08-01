@@ -133,10 +133,12 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         outOfProtocolCause("invalid plugin metadata - no module repository specified")
     }
 
-    def "portal JSON response with invalid JSON syntax fails plugin resolution"() {
+    @Unroll
+    def "portal JSON response with invalid JSON syntax fails plugin resolution - #statusCode"() {
         portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             contentType = "application/json"
             outputStream.withStream { it << "[}".getBytes("utf8") }
+            status = statusCode
         }
 
         buildScript applyAndVerify()
@@ -145,6 +147,9 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         fails("verify")
         errorResolvingPlugin()
         outOfProtocolCause("could not parse response JSON")
+
+        where:
+        statusCode << [200, 500, 410]
     }
 
     def "extra information in portal JSON response is tolerated (and neglected)"() {
@@ -222,6 +227,34 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         fails("verify")
         errorResolvingPlugin()
         outOfProtocolCause("invalid error response - no error code specified")
+
+        where:
+        errorStatusCode << [500, 410]
+    }
+
+    @Unroll
+    def "error message schema is relaxed- status #errorStatusCode"() {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
+            status = errorStatusCode
+            contentType = "application/json"
+            outputStream.withStream {
+                it << """
+                {
+                    "errorCode": "foo",
+                    "message": "bar",
+                    "extra": "boom!"
+
+                }
+                """.getBytes("utf8")
+            }
+        }
+
+        buildScript applyAndVerify()
+
+        expect:
+        fails("verify")
+        errorResolvingPlugin()
+        failure.assertHasCause("Plugin resolution service returned HTTP $errorStatusCode with message 'bar' (url: ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)})")
 
         where:
         errorStatusCode << [500, 410]
