@@ -22,7 +22,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.resource.transport.http.HttpResponseResource;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -101,7 +104,7 @@ public class PluginResolutionServiceClient {
                 }
             });
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new org.gradle.api.UncheckedIOException(e);
         } finally {
             try {
                 if (response != null) {
