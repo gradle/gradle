@@ -18,6 +18,7 @@ package org.gradle.runtime.base.library
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.ComponentSpecIdentifier
 import org.gradle.runtime.base.ModelInstantiationException
@@ -26,7 +27,10 @@ import spock.lang.Specification
 class DefaultLibrarySpecTest extends Specification {
     def instantiator = new DirectInstantiator()
     def libraryId = Mock(ComponentSpecIdentifier)
-    def functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
+    FunctionalSourceSet functionalSourceSet;
+    def setup(){
+        functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
+    }
 
     def "library has name and path"() {
         def library = DefaultLibrarySpec.create(DefaultLibrarySpec, libraryId, functionalSourceSet, instantiator)
@@ -61,6 +65,30 @@ class DefaultLibrarySpecTest extends Specification {
         e.message == "Could not create library of type MyConstructedLibrary"
         e.cause instanceof IllegalArgumentException
         e.cause.message.startsWith "Could not find any public constructor for class"
+    }
+
+    def "contains sources of associated mainsourceSet"() {
+
+        when:
+        DefaultLibrarySpec.create(MyConstructedLibrary, libraryId, functionalSourceSet, instantiator)
+
+        then:
+        def e = thrown ModelInstantiationException
+        e.message == "Could not create library of type MyConstructedLibrary"
+        e.cause instanceof IllegalArgumentException
+        e.cause.message.startsWith "Could not find any public constructor for class"
+    }
+
+    def "contains all languageSourceSet of main SourceSet"(){
+        given:
+        def library = DefaultLibrarySpec.create(MySampleLibrary, libraryId, functionalSourceSet, instantiator)
+        when:
+        def sourceSet1 = Stub(LanguageSourceSet) {
+            getName() >> "ss1"
+        }
+        functionalSourceSet.add(sourceSet1)
+        then:
+        library.source.contains(sourceSet1)
     }
 
     static class MySampleLibrary extends DefaultLibrarySpec {}
