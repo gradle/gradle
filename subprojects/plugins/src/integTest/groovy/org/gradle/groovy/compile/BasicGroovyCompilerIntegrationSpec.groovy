@@ -25,7 +25,8 @@ import org.junit.Rule
 
 @TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.6', '2.4.0-beta-2'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
-    @Rule TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
 
     String groovyDependency = "org.codehaus.groovy:groovy-all:$version"
 
@@ -103,17 +104,25 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !errorOutput
     }
 
-    def "compileBadTypeCheckedCode"() {
+    def "configurationScriptNotSupported"() {
+        if (!versionLowerThan("2.1")) {
+            return
+        }
+
         expect:
         fails("compileGroovy")
-        // for some reasons, line breaks occur in different places when running this
-        // test in different environments; hence we only check for short snippets
+        compileErrorOutput.contains("Groovy configuration script")
+        compileErrorOutput.contains("requires Groovy 2.1+ but found Groovy $groovyVersionNumber")
+    }
+
+    def "useConfigurationScript"() {
         if (versionLowerThan("2.1")) {
-            assert compileErrorOutput.contains("Groovy configuration script")
-            assert compileErrorOutput.contains("requires Groovy 2.1+ but found Groovy $groovyVersionNumber")
-        } else {
-            assert compileErrorOutput.contains('Cannot find matching method')
+            return
         }
+
+        expect:
+        fails("compileGroovy")
+        compileErrorOutput.contains('Cannot find matching method')
     }
 
     def "failsBecauseOfMissingConfigFile"() {
@@ -186,7 +195,7 @@ ${compilerConfiguration()}
     int compareToVersion(String other) {
         def versionParts = groovyVersionNumber.split("\\.") as List
         def otherParts = other.split("\\.") as List
-        def ordering = Ordering.<Integer>natural().lexicographical()
+        def ordering = Ordering.<Integer> natural().lexicographical()
         ordering.compare(versionParts, otherParts)
     }
 }
