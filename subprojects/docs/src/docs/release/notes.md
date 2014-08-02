@@ -437,7 +437,10 @@ We would like to thank the following community members for making contributions 
     - Restrict SFTP authentication attempts to password (GRADLE-3133)
     - Improvements to internal test infrastructure
 * [Joern Huxhorn](https://github.com/huxi) - Documentation improvements.
-* [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements. 
+* [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements.
+* [Daniel Lacasse](https://github.com/Shad0w1nk-
+    - Specific subtype for `CUnit` executable binary
+    - `RunTestExecutable` task implements `ExecSpec`
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
