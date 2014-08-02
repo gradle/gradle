@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.NamespaceId
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
@@ -86,6 +87,19 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
         then:
         ivyXml.info.@branch == "someBranch"
+    }
+
+    def "writes supplied extra info elements" () {
+        when:
+        generator.setExtraInfo([(ns('foo')): 'fooValue', (ns('bar')): 'barValue'])
+
+        then:
+        ivyXml.info."foo".size() == 1
+        ivyXml.info."foo"[0].namespaceURI() == ns('foo').namespace
+        ivyXml.info."foo"[0].text() == 'fooValue'
+        ivyXml.info."bar".size() == 1
+        ivyXml.info."bar"[0].namespaceURI() == ns('bar').namespace
+        ivyXml.info."bar"[0].text() == 'barValue'
     }
 
     def "writes supplied configurations"() {
@@ -245,5 +259,9 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         def ivyFile = testDirectoryProvider.testDirectory.file("ivy.xml")
         generator.writeTo(ivyFile)
         return ivyFile
+    }
+
+    private NamespaceId ns(String name) {
+        return new NamespaceId("http://my.extra.info/${name}", name)
     }
 }

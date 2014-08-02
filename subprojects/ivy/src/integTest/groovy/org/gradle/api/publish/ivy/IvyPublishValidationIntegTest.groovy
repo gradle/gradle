@@ -15,6 +15,8 @@
  */
 
 package org.gradle.api.publish.ivy
+
+import org.gradle.api.artifacts.NamespaceId
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
@@ -27,7 +29,8 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         def organisation = identifier.safeForFileName().decorate("org")
         def moduleName = identifier.safeForFileName().decorate("module")
         def version = identifier.safeForFileName().decorate("revision")
-        def description = identifier.decorate("description")
+        def extraValue = identifier.decorate("extra")
+        def resolver = identifier.decorate("description")
         def branch = identifier.safeForBranch().decorate("branch")
         def status = identifier.safeForFileName().decorate("status")
         def module = ivyRepo.module(organisation, moduleName, version)
@@ -52,8 +55,10 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
                         from components.java
                         descriptor.branch = '${sq(branch)}'
                         descriptor.status = '${sq(status)}'
+                        descriptor.extraInfo 'http://my.extra.info1', 'foo', '${sq(extraValue)}'
+                        descriptor.extraInfo 'http://my.extra.info2', 'bar', '${sq(extraValue)}'
                         descriptor.withXml {
-                            asNode().info[0].appendNode('description', '${sq(description)}')
+                            asNode().info[0].@resolver = '${sq(resolver)}'
                         }
                     }
                 }
@@ -64,7 +69,11 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         module.assertPublished()
-        module.parsedIvy.description == description.toString()
+        module.parsedIvy.resolver == resolver.toString()
+        module.parsedIvy.extraInfo == [
+                (new NamespaceId('http://my.extra.info1', 'foo')): extraValue.toString(),
+                (new NamespaceId('http://my.extra.info2', 'bar')): extraValue.toString(),
+        ]
 
         and:
         resolveArtifactsWithStatus(module, status) == [moduleName + '-' + version + '.jar']

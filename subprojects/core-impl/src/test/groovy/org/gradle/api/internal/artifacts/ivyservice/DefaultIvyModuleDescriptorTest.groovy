@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.artifacts.NamespaceId
 import spock.lang.Specification
 
 class DefaultIvyModuleDescriptorTest extends Specification {
@@ -25,7 +26,7 @@ class DefaultIvyModuleDescriptorTest extends Specification {
         def ivyModuleDescriptor = new DefaultIvyModuleDescriptor(map, null, null)
 
         when:
-        ivyModuleDescriptor.getExtraInfo().put('new', 'value')
+        ivyModuleDescriptor.getExtraInfo().put(new NamespaceId('namespace', 'new'), 'value')
 
         then:
         thrown(UnsupportedOperationException)

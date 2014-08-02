@@ -19,7 +19,10 @@ package org.gradle.api.publish.ivy;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.artifacts.NamespaceId;
 import org.gradle.internal.HasInternalProtocol;
+
+import java.util.Map;
 
 /**
  * The descriptor of any Ivy publication.
@@ -88,4 +91,14 @@ public interface IvyModuleDescriptorSpec {
      * Sets the branch for this publication
      */
     void setBranch(String branch);
+
+    /**
+     * Returns the extra info elements for this publication
+     */
+    Map<NamespaceId, String> getExtraInfo();
+
+    /**
+     * Adds a new extra info element to the publication
+     */
+    void extraInfo(String namespace, String elementName, String value);
 }

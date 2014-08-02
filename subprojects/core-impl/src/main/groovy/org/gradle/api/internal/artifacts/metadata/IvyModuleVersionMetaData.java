@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.gradle.api.artifacts.NamespaceId;
+
 import java.util.Map;
 
 /**
@@ -33,5 +35,5 @@ public interface IvyModuleVersionMetaData extends ModuleVersionMetaData {
      *
      * @return the extra info for the module
      */
-    Map<String, String> getExtraInfo();
+    Map<NamespaceId, String> getExtraInfo();
 }

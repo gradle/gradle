@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
+import org.gradle.api.artifacts.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -233,7 +234,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                 md.getDescription().replaceAll("\r\n", "\n").replace('\r', '\n'))
 
         assertEquals(1, md.getExtraInfo().size())
-        assertEquals("56576", md.getExtraInfo().get("e:someExtra"))
+        assertEquals("56576", md.getExtraInfo().get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")))
 
         Configuration[] confs = md.getConfigurations()
         assertNotNull(confs)
@@ -626,8 +627,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         descriptor.moduleRevisionId.qualifiedExtraAttributes['b:b'] == "2"
         descriptor.moduleRevisionId.qualifiedExtraAttributes['c:a'] == "3"
         descriptor.extraInfo.size() == 2
-        descriptor.extraInfo['b:a'] == "info 1"
-        descriptor.extraInfo['c:a'] == "info 2"
+        descriptor.extraInfo[new NamespaceId("namespace-b", "a")] == "info 1"
+        descriptor.extraInfo[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {

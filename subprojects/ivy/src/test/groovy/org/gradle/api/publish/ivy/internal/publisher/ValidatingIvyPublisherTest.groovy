@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
+import org.gradle.api.artifacts.NamespaceId
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
@@ -149,6 +150,27 @@ public class ValidatingIvyPublisherTest extends Specification {
         "someBranch"            | "release"
         "feature/someBranch"    | "release"
         "someBranch_ぴ₦ガき∆ç√∫" | "release_ぴ₦ガき∆ç√∫"
+    }
+
+    def "delegates with valid extra info elements" () {
+        given:
+        def projectIdentity = projectIdentity("org", "module", "version")
+        def generator = ivyGenerator("org", "module", "version")
+        elements.each { generator.withExtraInfo(it, "${it}Value") }
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
+        def repository = Stub(PublicationAwareRepository)
+
+        when:
+        publisher.publish(publication, repository)
+
+        then:
+        delegate.publish(publication, repository)
+
+        where:
+        elements | _
+        [ ]                  | _
+        [ 'foo' ]            | _
+        [ 'foo', 'bar' ]     | _
     }
 
     def "project coordinates must match ivy descriptor file"() {
@@ -318,6 +340,10 @@ public class ValidatingIvyPublisherTest extends Specification {
         return ivyXmlFile
     }
 
+    private NamespaceId ns(String name) {
+        return new NamespaceId("http://my.extra.info/${name}", name)
+    }
+
     class TestIvyDescriptorFileGenerator extends IvyDescriptorFileGenerator {
         TestIvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
             super(projectIdentity)
@@ -335,6 +361,16 @@ public class ValidatingIvyPublisherTest extends Specification {
 
         TestIvyDescriptorFileGenerator withAction(Action<XmlProvider> action) {
             this.withXml(action)
+            return this
+        }
+
+        TestIvyDescriptorFileGenerator withExtraInfo(String name, String value) {
+            Map<NamespaceId, String> extraInfo = this.getExtraInfo()
+            if (extraInfo == null) {
+                extraInfo = new LinkedHashMap<NamespaceId, String>()
+                this.setExtraInfo(extraInfo)
+            }
+            extraInfo.put(ns(name), value)
             return this
         }
     }

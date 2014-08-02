@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.NamespaceId;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.UncheckedException;
 
@@ -382,7 +383,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             if (extraDescr.getValue() == null || ((String) extraDescr.getValue()).length() == 0) {
                 continue;
             }
-            writer.startElement(extraDescr.getKey().toString());
+            if (extraDescr.getKey() instanceof NamespaceId) {
+                NamespaceId id = (NamespaceId) extraDescr.getKey();
+                writer.startElement(String.format("ns:%s", id.getName()));
+                writer.attribute("xmlns:ns", id.getNamespace());
+            } else {
+                writer.startElement(extraDescr.getKey().toString());
+            }
             writer.characters(extraDescr.getValue().toString());
             writer.endElement();
         }

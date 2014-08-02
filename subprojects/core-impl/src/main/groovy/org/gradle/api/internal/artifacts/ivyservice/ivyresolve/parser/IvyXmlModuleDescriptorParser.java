@@ -27,11 +27,12 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
+import org.apache.ivy.util.url.URLHandlerRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.NamespaceId;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
@@ -46,13 +47,13 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+import org.xml.sax.*;
+import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -483,7 +484,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     InputSource inSrc = new InputSource(inputStream);
                     inSrc.setSystemId(descriptorURL.toExternalForm());
                     try {
-                        XMLHelper.parse(inSrc, schemaURL, Parser.this, null);
+                        ParserHelper.parse(inSrc, schemaURL, Parser.this, null);
                     } catch (Exception e) {
                         throw new MetaDataParseException("Ivy file", getResource(), e);
                     }
@@ -765,7 +766,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             // create a new temporary parser to read the configurations from
             // the specified file.
             Parser parser = newParser(new UrlExternalResource(url), url);
-            XMLHelper.parse(url , null, parser);
+            ParserHelper.parse(url , null, parser, null);
 
             // add the configurations from this temporary parser to this module descriptor
             Configuration[] configs = parser.getModuleDescriptor().getConfigurations();
@@ -1139,7 +1140,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.EXTRA_INFO) {
-                getMd().addExtraInfo(qName, buffer == null ? "" : buffer.toString());
+                getMd().getExtraInfo().put(new NamespaceId(uri, localName), buffer == null ? "" : buffer.toString());
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.DESCRIPTION) {
@@ -1199,6 +1200,100 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         private PatternMatcher getMatcher(String matcherName) {
             return resolverStrategy.getPatternMatcher(matcherName);
+        }
+    }
+
+    public static class ParserHelper {
+        static final String JAXP_SCHEMA_LANGUAGE
+                = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
+
+        static final String JAXP_SCHEMA_SOURCE
+                = "http://java.sun.com/xml/jaxp/properties/schemaSource";
+
+        static final String XML_NAMESPACE_PREFIXES
+                = "http://xml.org/sax/features/namespace-prefixes";
+
+        static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+
+        private static SAXParser newNonValidatingSAXParser() throws ParserConfigurationException, SAXException {
+            SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+            parserFactory.setValidating(false);
+            parserFactory.setNamespaceAware(true);
+            SAXParser parser = parserFactory.newSAXParser();
+            parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES, true);
+            return parser;
+        }
+
+        private static SAXParser newSAXParser(URL schema, InputStream schemaStream)
+                throws ParserConfigurationException, SAXException {
+            if (schema == null) {
+                return newNonValidatingSAXParser();
+            }
+            try {
+                SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+                parserFactory.setNamespaceAware(true);
+                parserFactory.setValidating(true);
+                SAXParser parser = parserFactory.newSAXParser();
+                parser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
+                parser.setProperty(JAXP_SCHEMA_SOURCE, schemaStream);
+                parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES, true);
+                return parser;
+            } catch (SAXNotRecognizedException ex) {
+                System.err.println(
+                        "WARNING: problem while setting JAXP validating property on SAXParser... "
+                                + "XML validation will not be done: " + ex.getMessage());
+                return newNonValidatingSAXParser();
+            }
+        }
+
+        public static void parse(
+                URL xmlURL, URL schema, DefaultHandler handler, LexicalHandler lHandler)
+                throws SAXException, IOException, ParserConfigurationException {
+            InputStream xmlStream = URLHandlerRegistry.getDefault().openStream(xmlURL);
+            try {
+                InputSource inSrc = new InputSource(xmlStream);
+                inSrc.setSystemId(xmlURL.toExternalForm());
+                parse(inSrc, schema, handler, lHandler);
+            } finally {
+                try {
+                    xmlStream.close();
+                } catch (IOException e) {
+                    // ignored
+                }
+            }
+        }
+
+        public static void parse(
+                InputSource xmlStream, URL schema, DefaultHandler handler, LexicalHandler lHandler)
+                throws SAXException, IOException, ParserConfigurationException {
+            InputStream schemaStream = null;
+            try {
+                if (schema != null) {
+                    schemaStream = URLHandlerRegistry.getDefault().openStream(schema);
+                }
+                SAXParser parser = newSAXParser(schema, schemaStream);
+
+                if (lHandler != null) {
+                    try {
+                        parser.setProperty("http://xml.org/sax/properties/lexical-handler", lHandler);
+                    } catch (SAXException ex) {
+                        System.err.println(
+                                "WARNING: problem while setting the lexical handler property on SAXParser: "
+                                        + ex.getMessage());
+                        // continue without the lexical handler
+                    }
+                }
+
+                parser.parse(xmlStream, handler);
+            } finally {
+                if (schemaStream != null) {
+                    try {
+                        schemaStream.close();
+                    } catch (IOException ex) {
+                        // ignored
+                    }
+                }
+            }
         }
     }
 

@@ -17,13 +17,14 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.NamespaceId;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 
 import java.util.Map;
 
 public class DefaultIvyModuleVersionMetaData extends AbstractModuleVersionMetaData implements IvyModuleVersionMetaData {
-    private final Map<String, String> extraInfo;
+    private final Map<NamespaceId, String> extraInfo;
 
     public DefaultIvyModuleVersionMetaData(ModuleDescriptor moduleDescriptor) {
         super(moduleDescriptor);
@@ -51,7 +52,7 @@ public class DefaultIvyModuleVersionMetaData extends AbstractModuleVersionMetaDa
         return getDescriptor().getModuleRevisionId().getBranch();
     }
 
-    public Map<String, String> getExtraInfo() {
+    public Map<NamespaceId, String> getExtraInfo() {
         return extraInfo;
     }
 }

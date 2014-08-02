@@ -42,20 +42,11 @@ public interface IvyModuleDescriptor {
      * Returns a read-only map of the extra info declared in this descriptor.
      * <p>
      * The extra info is the set of all non-standard subelements of the <em>info</em> element.
-     * For each such element, the returned map contains one entry. The entry's key is the name
-     * (i.e. tag) of the element, including any namespace prefix. The entry's value is the contents of
-     * the element.
-     * <p>
-     * Example: Given an <em>info</em> element with the following non-standard subelements:
-     * <p>
-     * <pre>&lt;info&gt;
-     *   &lt;ns1:expires&gt;2015-09-23&lt;/ns1:expires&gt;
-     *   &lt;ns2:popularity&gt;high&lt;/ns2:popularity&gt;
-     * &lt;/info&gt;</pre>
-     * <p>
-     * Then the returned map will be {@code ["ns1:expires": "2015-09-23", "ns2:popularity": "high"]}.
+     * For each such element, the returned map contains one entry. The entry's key is a
+     * {@link NamespaceId} describing the namespace and name
+     * of the extra element. The entry's value is the contents of the element.
      *
      * @return a read-only map of the extra info declared in this descriptor
      */
-    Map<String, String> getExtraInfo();
+    Map<NamespaceId, String> getExtraInfo();
 }

@@ -17,8 +17,10 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.NamespaceId;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -26,6 +28,9 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.listener.ActionBroadcast;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecInternal {
@@ -34,6 +39,7 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     private final IvyPublicationInternal ivyPublication;
     private String status = Module.DEFAULT_STATUS;
     private String branch;
+    private Map<NamespaceId, String> extraInfo = new LinkedHashMap<NamespaceId, String>();
 
     public DefaultIvyModuleDescriptorSpec(IvyPublicationInternal ivyPublication) {
         this.ivyPublication = ivyPublication;
@@ -53,6 +59,20 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
 
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public Map<NamespaceId, String> getExtraInfo() {
+        return Collections.unmodifiableMap(extraInfo);
+    }
+
+    public void extraInfo(String namespace, String elementName, String value) {
+        if (elementName == null) {
+            throw new InvalidUserDataException("Cannot add an extra info element with null element name");
+        }
+        if (namespace == null) {
+            throw new InvalidUserDataException("Cannot add an extra info element with null namespace");
+        }
+        extraInfo.put(new NamespaceId(namespace, elementName), value);
     }
 
     public IvyPublicationIdentity getProjectIdentity() {

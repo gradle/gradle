@@ -175,6 +175,19 @@ When resolving Ivy modules, component metadata rules can also access the branch 
         }
     }
 
+### Support for publishing extra 'info' elements when publishing Ivy modules
+
+The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports publishing extra 'info' elements to the ivy.xml file generated.
+These elements are added as children of the ivy 'info' element.
+
+    publishing {
+        publications {
+            ivy(IvyPublication) {
+                descriptor.extraInfo 'http://my.namespace', 'myElement', 'Some value'
+            }
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -416,6 +429,15 @@ TODO - replacement (@RuleSource) detail
 
 - Incubating class `TaskParameter` has been replaced with `TaskExecutionRequest`.
 - Incubating property `StartParameter.taskParameters` has been replaced with `StartParameter.taskRequests`.
+
+### IvyModuleDescriptor renamed to IvyModuleDescriptorSpec
+
+- Incubating class `IvyModuleDescriptor` has been renamed to `IvyModuleDescriptorSpec`
+
+### IvyModuleMetadata renamed to IvyModuleDescriptorSpec
+
+- Incubating class `IvyModuleMetadata` has been renamed to `IvyModuleDescriptor`
+- Incubating method `IvyModuleMetadata.getExtraInfo()` now returns Map<NamespaceId, String> instead of Map<String, String>
 
 ## External contributions
 

@@ -244,6 +244,18 @@ public class SimpleMarkupWriter extends Writer {
     }
 
     private static boolean isValidXmlName(String name) {
+        // element names can only contain 0 or 1 colon
+        // See http://www.w3.org/TR/2004/REC-xml-names11-20040204/#Conformance
+        if (name.indexOf(':') != name.lastIndexOf(':')) {
+            return false;
+        }
+
+        // If the name has a prefix, evaluate both prefix and name
+        if (name.indexOf(':') != -1 && name.charAt(0) != ':') {
+            return isValidXmlName(name.substring(0, name.indexOf(':')))
+                    && isValidXmlName(name.substring(name.indexOf(':')+1));
+        }
+
         int length = name.length();
         if (length == 0) {
             return false;

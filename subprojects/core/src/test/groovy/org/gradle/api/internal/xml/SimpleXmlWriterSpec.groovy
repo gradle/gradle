@@ -374,7 +374,7 @@ class SimpleXmlWriterSpec extends Specification {
         notThrown(IllegalArgumentException)
 
         where:
-        name << ["name", "NAME", "with-dashes", "with.dots", "with123digits", ":", "_", "\u037f\u0300"]
+        name << ["name", "NAME", "with-dashes", "with.dots", "with123digits", ":", "_", "\u037f\u0300", "ns:foo"]
     }
 
     def "validates tag names"() {
@@ -386,7 +386,7 @@ class SimpleXmlWriterSpec extends Specification {
         ex.message == "Invalid element name: '$name'"
 
         where:
-        name << ["tag with space", "", "-invalid-start-char", "  ", "912", "\u00d7"]
+        name << ["tag with space", "", "-invalid-start-char", "  ", "912", "\u00d7", "ns:foo:bar"]
     }
 
     def "allows valid attribute names"() {
@@ -397,7 +397,7 @@ class SimpleXmlWriterSpec extends Specification {
         notThrown(IllegalArgumentException)
 
         where:
-        name << ["name", "NAME", "with-dashes", "with.dots", "with123digits", ":", "_", "\u037f\u0300"]
+        name << ["name", "NAME", "with-dashes", "with.dots", "with123digits", ":", "_", "\u037f\u0300", "ns:foo"]
     }
 
     def "validates attribute names"() {
@@ -409,6 +409,6 @@ class SimpleXmlWriterSpec extends Specification {
         ex.message == "Invalid attribute name: '$name'"
 
         where:
-        name << ["attribute with space", "", "-invalid-start-char", "  ", "912", "\u00d7"]
+        name << ["attribute with space", "", "-invalid-start-char", "  ", "912", "\u00d7", "ns:foo:bar"]
     }
 }

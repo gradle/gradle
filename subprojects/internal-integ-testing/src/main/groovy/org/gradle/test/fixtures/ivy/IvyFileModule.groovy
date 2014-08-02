@@ -203,6 +203,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         publish(ivyFile) { Writer writer ->
             transformer.transform(writer, { writeTo(it) } as Action)
         }
+
         return this
     }
 
@@ -211,9 +212,6 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 <ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven" """
         if (extraAttributes) {
             ivyFileWriter << ' xmlns:e="http://ant.apache.org/ivy/extra"'
-        }
-        if (extraInfo) {
-            ivyFileWriter << ' xmlns:my="http://my.extra.info"'
         }
         ivyFileWriter << "><!--" + artifactContent + "-->"
 
@@ -228,7 +226,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 "extends"(extendsFrom)
             }
             extraInfo.each { key, value ->
-                "my:$key"(value)
+                "ns:${key.name}"('xmlns:ns': "${key.namespace}", value)
             }
         }
         builder.configurations {

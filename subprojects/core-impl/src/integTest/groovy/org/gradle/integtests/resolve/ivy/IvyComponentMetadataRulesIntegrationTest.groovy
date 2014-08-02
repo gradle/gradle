@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.api.artifacts.NamespaceId
 import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
@@ -44,7 +45,7 @@ repositories {
 
     def "can access Ivy metadata by accepting parameter of type IvyModuleDescriptor"() {
         def module = repo.module('org.test', 'projectA', '1.0')
-                .withExtraInfo(foo: "fooValue", bar: "barValue")
+                .withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
                 .withBranch('someBranch')
                 .withStatus('release')
                 .publish()
@@ -59,7 +60,7 @@ dependencies {
     components {
         eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+            assert descriptor.extraInfo == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
             assert descriptor.ivyStatus == 'release'
         }
@@ -113,7 +114,7 @@ resolve.doLast { assert ruleInvoked }
 
     def "rule that doesn't initially access Ivy metadata can be changed to get access at any time"() {
         def module = repo.module('org.test', 'projectA', '1.0')
-                .withExtraInfo(foo: "fooValue", bar: "barValue")
+                .withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
                 .withBranch("someBranch")
                 .withStatus("release")
                 .publish()
@@ -150,7 +151,7 @@ dependencies {
     components {
         eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+            assert descriptor.extraInfo == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
             assert descriptor.ivyStatus == 'release'
         }
@@ -169,7 +170,7 @@ resolve.doLast { assert ruleInvoked }
 
         when:
         def module = repo.module('org.test', 'projectA', '1.0')
-                .withExtraInfo(foo: "fooValue", bar: "barValue")
+                .withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
                 .withBranch('someBranch')
                 .withStatus('release')
                 .publish()
@@ -184,7 +185,7 @@ dependencies {
     components {
         eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+            assert descriptor.extraInfo == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
             assert descriptor.ivyStatus == 'release'
         }
@@ -199,7 +200,7 @@ resolve.doLast { assert ruleInvoked }
 
         when:
         repo.module('org.test', 'projectA', '1.0')
-                .withExtraInfo(foo: "fooValueChanged", bar: "barValueChanged")
+                .withExtraInfo((ns('foo')): "fooValueChanged", (ns('bar')): "barValueChanged")
                 .withBranch('differentBranch')
                 .withStatus('milestone')
                 .publishWithChangedContent()
@@ -244,6 +245,14 @@ resolve.doLast { assert ruleInvoked }
 
         then:
         succeeds 'resolve'
-        assert file("metadata").text == "{my:bar=barValueChanged, my:foo=fooValueChanged}\ndifferentBranch\nmilestone"
+        assert file("metadata").text == "{bar=barValueChanged, foo=fooValueChanged}\ndifferentBranch\nmilestone"
+    }
+
+    def ns(String name) {
+        return new NamespaceId("http://my.extra.info/${name}", name)
+    }
+
+    def declareNS(String name) {
+        return "(new NamespaceId('http://my.extra.info/${name}', '${name}'))"
     }
 }
