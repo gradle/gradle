@@ -75,6 +75,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     def "can cancel distribution download"() {
         assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
         def userHomeDir = file("user-home-dir")
+        server.server.setGracefulShutdown(2 * 1000)
 
         given:
         settingsFile << "";
@@ -147,6 +148,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
                 if (i == 100) {
                     println('call cancel')
                     tokenSource.cancel()
+                    println('cancel request processed')
                     latch.await(10, TimeUnit.SECONDS)
                 } else if (i == 10000) {
                     println('wait for test finish')
