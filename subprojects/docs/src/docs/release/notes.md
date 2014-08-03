@@ -189,6 +189,10 @@ Configured extra info elements are added as children of the ivy 'info' element.
         }
     }
 
+Note that the [ivy schema](http://ant.apache.org/ivy/schemas/ivy.xsd) demands that any extra info elements be added after any child elements
+of 'info' that are defined in the schema (e.g. description or ivyauthor).  This means that any [withXml()](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html#withXml%28org.gradle.api.Action%29)
+actions must take care to insert any schema-defined 'info' child elements before any extra 'info' elements that may have been added.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
