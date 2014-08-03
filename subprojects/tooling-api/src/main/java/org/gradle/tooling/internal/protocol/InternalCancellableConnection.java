@@ -31,7 +31,6 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
  */
 public interface InternalCancellableConnection extends InternalProtocolInterface {
-    // TODO do we need getModel()?
     /**
      * Performs some action against a build and returns the requested model.
      *

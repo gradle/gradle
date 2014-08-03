@@ -67,4 +67,20 @@ class DefaultCancellationTokenTest extends Specification {
         token.cancellationRequested
         1 * callback.run()
     }
+
+    def 'cancel drops references'() {
+        def source = new DefaultCancellationTokenSource()
+
+        def callback1 = Mock(Runnable)
+        def token = source.token()
+        token.addCallback(callback1)
+
+        when:
+        source.cancel()
+
+        then:
+        token.cancellationRequested
+        1 * callback1.run()
+        token.callbacks.empty
+    }
 }

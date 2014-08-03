@@ -19,12 +19,12 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class DefaultCancellationToken implements CancellationToken, InternalCancellationToken {
     private boolean cancelled;
-    private List<Runnable> callbacks = new ArrayList<Runnable>();
+    private Queue<Runnable> callbacks = new LinkedList<Runnable>();
 
     public synchronized boolean isCancellationRequested() {
         return cancelled;
@@ -38,13 +38,15 @@ public class DefaultCancellationToken implements CancellationToken, InternalCanc
         return cancelled;
     }
 
-    public synchronized void doCancel() {
+    synchronized void doCancel() {
         if (cancelled) {
             return;
         }
         cancelled = true;
-        for (Runnable runnable : callbacks) {
+        Runnable runnable = callbacks.poll();
+        while (runnable != null) {
             runnable.run();
+            runnable = callbacks.poll();
         }
     }
 }
