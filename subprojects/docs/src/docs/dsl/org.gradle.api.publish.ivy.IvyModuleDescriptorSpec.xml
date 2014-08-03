@@ -26,6 +26,12 @@
             <tr>
                 <td>withXml</td>
             </tr>
+            <tr>
+                <td>getExtraInfo</td>
+            </tr>
+            <tr>
+                <td>extraInfo</td>
+            </tr>
         </table>
     </section>
 </section>

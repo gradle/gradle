@@ -198,6 +198,11 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         'foo\uf8ff' | _
         'foo\ufdd0' | _
         'foo\ufffe' | _
+        '-foo'      | _
+        '1foo'      | _
+        '.foo'      | _
+        '\u0300foo' | _
+        '\u203ffoo' | _
      }
 
     def "produces sensible error with extra info containing null values" () {

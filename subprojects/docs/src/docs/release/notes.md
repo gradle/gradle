@@ -177,8 +177,9 @@ When resolving Ivy modules, component metadata rules can also access the branch 
 
 ### Support for publishing extra 'info' elements when publishing Ivy modules
 
-The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports publishing extra 'info' elements to the ivy.xml file generated.
-These elements are added as children of the ivy 'info' element.
+The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports publishing extra 'info' elements to the ivy.xml file generated
+via the [IvyModuleDescriptorSpec](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html) interface.
+Configured extra info elements are added as children of the ivy 'info' element.
 
     publishing {
         publications {
@@ -437,7 +438,7 @@ TODO - replacement (@RuleSource) detail
 ### IvyModuleMetadata renamed to IvyModuleDescriptorSpec
 
 - Incubating class `IvyModuleMetadata` has been renamed to `IvyModuleDescriptor`
-- Incubating method `IvyModuleMetadata.getExtraInfo()` now returns Map<NamespaceId, String> instead of Map<String, String>
+- Incubating method `IvyModuleDescriptor.getExtraInfo()` now returns Map<[NamespaceId](javadoc/org/gradle/api/artifacts/NamespaceId.html), String> instead of Map<String, String>
 
 ## External contributions
 
@@ -460,7 +461,7 @@ We would like to thank the following community members for making contributions 
     - Improvements to internal test infrastructure
 * [Joern Huxhorn](https://github.com/huxi) - Documentation improvements.
 * [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements.
-* [Daniel Lacasse](https://github.com/Shad0w1nk-
+* [Daniel Lacasse](https://github.com/Shad0w1nk)
     - Specific subtype for `CUnit` executable binary
     - `RunTestExecutable` task implements `ExecSpec`
 

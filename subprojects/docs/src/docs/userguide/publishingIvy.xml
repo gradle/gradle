@@ -143,7 +143,7 @@
         <section>
             <title>Identity values for the published project</title>
             <para>
-                The generated Ivy module descriptor file contains an <literal>&lt;info&gt;</literal> tag that identifies the module.
+                The generated Ivy module descriptor file contains an <literal>&lt;info&gt;</literal> element that identifies the module.
                 The default identity values are derived from the following:
             </para>
             <itemizedlist>
@@ -157,7 +157,9 @@
             <para>
                 Overriding the default identity values is easy: simply specify the <literal>organisation</literal>, <literal>module</literal>
                 or <literal>revision</literal> attributes when configuring the <literal>IvyPublication</literal>.  The <literal>status</literal>
-                and <literal>branch</literal> attributes can be set via the <literal>descriptor</literal> property.
+                and <literal>branch</literal> attributes can be set via the <literal>descriptor</literal> property (see
+                <apilink class="org.gradle.api.publish.ivy.IvyModuleDescriptorSpec" />).  The <literal>descriptor</literal> property can also be
+                used to add additional custom elements as children of the <literal>&lt;info&gt;</literal> element.
             </para>
             <sample dir="ivy-publish/multiple-publications" id="publishing_ivy:publish-customize-identity" title="customizing the publication identity">
                 <sourcefile file="build.gradle" snippet="customize-identity" />
