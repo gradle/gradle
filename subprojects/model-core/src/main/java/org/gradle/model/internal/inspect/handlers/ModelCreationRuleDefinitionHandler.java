@@ -35,7 +35,7 @@ public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionH
         return "annotated with @Model";
     }
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry) {
+    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, Object target) {
 
         // TODO validate model name
         String modelName = determineModelName(ruleDefinition);

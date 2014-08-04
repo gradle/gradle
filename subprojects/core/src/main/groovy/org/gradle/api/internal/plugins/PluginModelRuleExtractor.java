@@ -43,7 +43,7 @@ public class PluginModelRuleExtractor implements PluginApplicationAction {
 
             ModelRegistry modelRegistry = ((ModelRegistryScope) target).getModelRegistry();
             for (Class<?> source : sources) {
-                inspector.inspect(source, modelRegistry);
+                inspector.inspect(source, modelRegistry, target);
             }
         }
     }

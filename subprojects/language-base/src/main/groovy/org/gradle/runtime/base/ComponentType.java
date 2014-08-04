@@ -24,11 +24,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that the associated class declares a ComponentModel
+ * Declares that a custom {@link org.gradle.runtime.base.ComponentSpec} type.
  *
- * The following example demonstrates how to register a custom component using a plugin with a
- * ComponentModel annotation. Furthermore the plugin creates an instance of SampleLibrary named
- * 'sampleLib'.
+ * The following example demonstrates how to register a custom component type using a plugin with a
+ * {@link ComponentType} annotation.
+ * Furthermore the plugin creates an instance of SampleLibrary named 'sampleLib'.
  *
  * <pre autoTested=''>
  * import org.gradle.model.*
@@ -43,8 +43,12 @@ import java.lang.annotation.Target;
  *     void apply(final Project project) {}
  *
  *     @RuleSource
- *     @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
  *     static class Rules {
+ *         @ComponentType
+ *         void register(ComponentTypeBuilder<SampleLibrary> builder) {
+ *             builder.setDefaultImplementation(DefaultSampleLibrary)
+ *         }
+ *
  *         @Mutate
  *         void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
  *             componentSpecs.create("sampleLib")
@@ -54,16 +58,7 @@ import java.lang.annotation.Target;
  * </pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Incubating
-public @interface ComponentModel {
-    /**
-     * Denotes the type of the LibrarySpec.
-     */
-    Class<? extends LibrarySpec> type();
-
-    /**
-     * Denotes the implementation class of the LibrarySpec.
-     */
-    Class<? extends LibrarySpec> implementation();
+public @interface ComponentType {
 }

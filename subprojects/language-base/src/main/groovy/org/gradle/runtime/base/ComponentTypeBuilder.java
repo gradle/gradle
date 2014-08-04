@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.runtime.base;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.registry.ModelRegistry;
+/**
+ * Allows a plugin to register a custom component type.
+ * @param <C> The component type.
+ */
+public interface ComponentTypeBuilder<C extends ComponentSpec> {
 
-public interface MethodRuleDefinitionHandler extends Spec<MethodRuleDefinition> {
-    String getDescription();
-
-    // TODO:DAZ target must die
-    void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, Object target);
+    /**
+     * Allows the plugin to register the component implementation type.
+     */
+    void setDefaultImplementation(Class<? extends C> implementation);
 }

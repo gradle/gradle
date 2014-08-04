@@ -32,11 +32,15 @@ class MySamplePlugin implements Plugin<Project> {
     }
 
     @RuleSource
-    @ComponentModel(type=SampleLibrary.class, implementation=DefaultSampleLibrary.class)
     static class Rules {
         @Model("mySample")
         SampleExtension createSampleExtension() {
              return new SampleExtension()
+        }
+
+        @ComponentType
+        void register(ComponentTypeBuilder<SampleLibrary> builder) {
+            builder.setDefaultImplementation(DefaultSampleLibrary)
         }
 
         @Mutate

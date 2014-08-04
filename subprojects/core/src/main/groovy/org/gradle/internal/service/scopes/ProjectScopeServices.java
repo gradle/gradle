@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
@@ -65,7 +64,6 @@ import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegi
 
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Contains the services for a given project.
@@ -128,8 +126,20 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project, allPluginApplyActions);
     }
 
+    protected MethodRuleDefinitionHandler createModelAnnotationHandler() {
+        return new ModelCreationRuleDefinitionHandler();
+    }
+
+    protected MethodRuleDefinitionHandler createFinalizeAnnotationHandler() {
+        return new FinalizeRuleDefinitionHandler();
+    }
+
+    protected MethodRuleDefinitionHandler createMutateAnnotationHandler() {
+        return new MutateRuleDefinitionHandler();
+    }
+
     protected PluginApplicationAction createPluginModelRuleExtractor() {
-        Set<MethodRuleDefinitionHandler> handlers = Sets.newHashSet(new ModelCreationRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler(), new MutateRuleDefinitionHandler());
+        List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
         ModelRuleInspector inspector = new ModelRuleInspector(handlers);
         return new PluginModelRuleExtractor(inspector);
     }

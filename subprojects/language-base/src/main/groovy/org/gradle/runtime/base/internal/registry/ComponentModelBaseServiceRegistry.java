@@ -16,10 +16,10 @@
 
 package org.gradle.runtime.base.internal.registry;
 
-import org.gradle.api.internal.plugins.PluginApplicationAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 
 public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry {
 
@@ -34,8 +34,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class ProjectScopeServices {
-        PluginApplicationAction createComponentModelPluginInspector(Instantiator instantiator) {
-            return new ComponentModelPluginApplicationAction(instantiator);
+        MethodRuleDefinitionHandler createComponentModelPluginInspector(Instantiator instantiator) {
+            return new ComponentModelRuleDefinitionHandler(instantiator);
         }
     }
 }

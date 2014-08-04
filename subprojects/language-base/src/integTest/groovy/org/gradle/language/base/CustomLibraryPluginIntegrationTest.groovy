@@ -53,8 +53,12 @@ task checkModel << {
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
+            @RuleSource
             static class Rules {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrary> builder) {
+                    builder.setDefaultImplementation(DefaultSampleLibrary)
+                }
             }
         }
 
@@ -101,8 +105,12 @@ BUILD SUCCESSFUL"""))
         class MyComponentDeclarationModel implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
+            @RuleSource
             static class Rules {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrary> builder) {
+                    builder.setDefaultImplementation(DefaultSampleLibrary)
+                }
             }
         }
 
@@ -145,24 +153,27 @@ BUILD SUCCESSFUL"""))
             void apply(final Project project) {}
 
             @RuleSource
-            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
-            static class Rules1 {
+            static class Rules {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrary> builder) {
+                    builder.setDefaultImplementation(DefaultSampleLibrary)
+                }
+
+                @ComponentType
+                void registerAnother(ComponentTypeBuilder<AnotherSampleLibrary> builder) {
+                    builder.setDefaultImplementation(DefaultAnotherSampleLibrary)
+                }
+
                 @Mutate
                 void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
-            }
 
-            @RuleSource
-            static class Rules2 {
                 @Mutate
-                void createSampleLibraryComponents(NamedItemCollectionBuilder<AnotherSampleLibrary> componentSpecs) {
+                void createAnotherSampleLibraryComponents(NamedItemCollectionBuilder<AnotherSampleLibrary> componentSpecs) {
                     componentSpecs.create("anotherSampleLib")
                 }
             }
-
-            @ComponentModel(type = AnotherSampleLibrary.class, implementation = DefaultAnotherSampleLibrary.class)
-            static class ComponentModelDeclaration {}
         }
 
         apply plugin:MySamplePlugin
@@ -194,8 +205,11 @@ BUILD SUCCESSFUL"""))
             void apply(final Project project) {}
 
             @RuleSource
-            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
             static class Rules1 {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrary> builder) {
+                    builder.setDefaultImplementation(DefaultSampleLibrary)
+                }
                 @Mutate
                 void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
                     componentSpecs.create("sampleLib")
@@ -208,8 +222,9 @@ BUILD SUCCESSFUL"""))
         when:
         fails "tasks"
         then:
-        errorOutput.contains(TextUtil.toPlatformLineSeparators("""> Failed to apply plugin [class 'MyOtherPlugin']
-   > Cannot declare component of type 'SampleLibrary'."""))
+        errorOutput.contains(TextUtil.toPlatformLineSeparators("""
+> Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleLibrary>)
+   > Cannot register a factory for type SampleLibrary because a factory for this type already registered."""))
     }
 
     def buildWithCustomComponentPlugin() {
@@ -218,8 +233,11 @@ BUILD SUCCESSFUL"""))
             void apply(final Project project) {}
 
             @RuleSource
-            @ComponentModel(type = SampleLibrary.class, implementation = DefaultSampleLibrary.class)
             static class Rules {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrary> builder) {
+                    builder.setDefaultImplementation(DefaultSampleLibrary)
+                }
                 @Mutate
                 void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
                     componentSpecs.create("sampleLib")
