@@ -73,7 +73,8 @@ public class IvyMDArtifact {
         for (Artifact existing : allArtifacts) {
             if (artifactsEqual(existing, newArtifact)) {
                 if (!(existing instanceof MDArtifact)) {
-                    throw new IllegalArgumentException("Cannot add artifact that is not instance of MDArtifact to " + target);
+                    throw new IllegalArgumentException("Cannot update an existing artifact (" + existing + ") in provided module descriptor (" + target + ")"
+                            + " because the artifact is not an instance of MDArtifact." + target);
                 }
                 addArtifact((MDArtifact) existing, this.configurations, target);
                 return; //there is only one matching artifact
