@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyMDArtifact;
 
 public class BuildableIvyModuleVersionMetaData extends DefaultIvyModuleVersionMetaData {
     private final DefaultModuleDescriptor moduleDescriptor;
@@ -27,7 +27,7 @@ public class BuildableIvyModuleVersionMetaData extends DefaultIvyModuleVersionMe
         this.moduleDescriptor = moduleDescriptor;
     }
 
-    public void addArtifact(IvyArtifact artifact) {
+    public void addArtifact(IvyMDArtifact artifact) {
         artifact.addTo(moduleDescriptor);
     }
 }

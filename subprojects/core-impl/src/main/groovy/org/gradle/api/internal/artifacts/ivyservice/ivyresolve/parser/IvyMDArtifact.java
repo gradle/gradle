@@ -29,7 +29,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Arrays.asList;
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.artifactsEqual;
 
-public class IvyArtifact {
+public class IvyMDArtifact {
 
     private Set<String> configurations = new LinkedHashSet<String>();
     private final DefaultModuleDescriptor md;
@@ -39,7 +39,7 @@ public class IvyArtifact {
     private final URL url;
     private final Map extraAttributes;
 
-    public IvyArtifact(DefaultModuleDescriptor md, String artName, String type, String ext, URL url, Map extraAttributes) {
+    public IvyMDArtifact(DefaultModuleDescriptor md, String artName, String type, String ext, URL url, Map extraAttributes) {
         this.md = md;
         this.artName = artName;
         this.type = type;
@@ -48,7 +48,7 @@ public class IvyArtifact {
         this.extraAttributes = extraAttributes;
     }
 
-    public IvyArtifact(DefaultModuleDescriptor md, String artName, String type, String ext) {
+    public IvyMDArtifact(DefaultModuleDescriptor md, String artName, String type, String ext) {
         this(md, artName, type, ext, null, null);
     }
 

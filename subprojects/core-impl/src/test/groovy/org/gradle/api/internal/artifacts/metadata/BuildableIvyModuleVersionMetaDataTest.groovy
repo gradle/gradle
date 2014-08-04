@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.metadata
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyArtifact
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyMDArtifact
 import spock.lang.Specification
 
 class BuildableIvyModuleVersionMetaDataTest extends Specification {
@@ -27,7 +27,7 @@ class BuildableIvyModuleVersionMetaDataTest extends Specification {
     def metaData = new BuildableIvyModuleVersionMetaData(descriptor)
 
     def "can attach artifacts to meta-data"() { //TODO SF move those tests
-        def artifact = new IvyArtifact(descriptor, "thing", "type", "ext")
+        def artifact = new IvyMDArtifact(descriptor, "thing", "type", "ext")
         artifact.addConfiguration("conf")
         descriptor.addConfiguration(new Configuration("conf"))
 
