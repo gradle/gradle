@@ -7,7 +7,6 @@ dependencies {
         ivy {
             artifactPattern projectDir.absolutePath + '/[artifact]-[revision].jar'
             ivyPattern projectDir.absolutePath + '/[module]-[revision]-ivy.xml'
-            ivyPattern projectDir.absolutePath + '/[module]-[revision]-ivy.xml'
         }
     }
     compile group: 'test', name: 'projectA', version: '1.2', configuration: 'api'
