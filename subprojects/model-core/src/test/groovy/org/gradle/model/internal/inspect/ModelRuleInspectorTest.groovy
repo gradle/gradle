@@ -20,6 +20,9 @@ import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.inspect.handlers.FinalizeRuleDefinitionHandler
+import org.gradle.model.internal.inspect.handlers.ModelCreationRuleDefinitionHandler
+import org.gradle.model.internal.inspect.handlers.MutateRuleDefinitionHandler
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Requires
@@ -32,7 +35,8 @@ class ModelRuleInspectorTest extends Specification {
 
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector()
+    def handlers = [new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler(), new ModelCreationRuleDefinitionHandler()]
+    def inspector = new ModelRuleInspector(handlers)
 
     static class ModelThing {
         final String name
@@ -91,7 +95,7 @@ class ModelRuleInspectorTest extends Specification {
     @Unroll
     def "find model rule sources - #clazz"() {
         expect:
-        new ModelRuleInspector().getDeclaredSources(clazz) == expected.toSet()
+        new ModelRuleInspector(handlers).getDeclaredSources(clazz) == expected.toSet()
 
         where:
         clazz         | expected
@@ -113,7 +117,23 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "$HasGenericModelRule.name#thing() is not a valid model creation rule: cannot have type variables (i.e. cannot be a generic method)"
+        e.message == "$HasGenericModelRule.name#thing() is not a valid model rule method: cannot have type variables (i.e. cannot be a generic method)"
+    }
+
+    static class HasMultipleRuleAnnotations {
+        @Model @Mutate
+        static String thing() {
+            ""
+        }
+    }
+
+    def "model rule method cannot be annotated with multiple rule annotations"() {
+        when:
+        inspector.inspect(HasMultipleRuleAnnotations, registry)
+
+        then:
+        def e = thrown(InvalidModelRuleDeclarationException)
+        e.message == "$HasMultipleRuleAnnotations.name#thing() is not a valid model rule method: can only be one of [annotated with @Mutate, annotated with @Finalize, annotated with @Model]"
     }
 
     static class ConcreteGenericModelType {

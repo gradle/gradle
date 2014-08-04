@@ -24,13 +24,15 @@ import org.gradle.model.Model
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.ModelCreator
 import org.gradle.model.internal.inspect.ModelRuleInspector
+import org.gradle.model.internal.inspect.handlers.ModelCreationRuleDefinitionHandler
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.registry.ModelRegistryScope
 import spock.lang.Specification
 
 class PluginModelRuleExtractorTest extends Specification {
 
-    def inspector = new ModelRuleInspector()
+    def handler = new ModelCreationRuleDefinitionHandler()
+    def inspector = new ModelRuleInspector([handler])
     def extractor = new PluginModelRuleExtractor(inspector)
     def registry = Mock(ModelRegistry)
 
