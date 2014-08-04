@@ -73,10 +73,24 @@ class BaseSerializerFactoryTest extends Specification {
         s.read(new InputStreamBackedDecoder(new ByteArrayInputStream(os.toByteArray()))).length == 5
     }
 
+    def "can serialize string maps"() {
+        def s = BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER
+        def os = new ByteArrayOutputStream()
+        s.write(new OutputStreamBackedEncoder(os), map)
+
+        expect:
+        s.read(new InputStreamBackedDecoder(new ByteArrayInputStream(os.toByteArray()))) == map
+
+        where:
+        map << [
+                [:], ["foo": "bar"], [a: "a", "b": "b"]
+        ]
+    }
+
     def "uses Java serialization for unknown type"() {
         expect:
         factory.getSerializerFor(Thing) instanceof DefaultSerializer
     }
 
-    class Thing { }
+    class Thing {}
 }

@@ -33,14 +33,17 @@ import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 
 class PluginResolutionServiceTestServer extends ExternalResource {
 
-    private final HttpServer http
+    final HttpServer http
 
     final MavenHttpRepository m2repo
 
     PluginResolutionServiceTestServer(GradleExecuter executer, MavenFileRepository repo) {
         this.http = new HttpServer()
         this.m2repo = new MavenHttpRepository(http, repo)
+        configure(executer)
+    }
 
+    public <T extends GradleExecuter> T configure(T executer) {
         executer.beforeExecute(new Action<GradleExecuter>() {
             void execute(GradleExecuter e) {
                 if (http.running) {
@@ -48,6 +51,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
                 }
             }
         })
+        executer
     }
 
     void injectUrlOverride(GradleExecuter e) {
@@ -161,6 +165,6 @@ class PluginResolutionServiceTestServer extends ExternalResource {
 
     @Override
     protected void after() {
-        stop()
+        http.after()
     }
 }

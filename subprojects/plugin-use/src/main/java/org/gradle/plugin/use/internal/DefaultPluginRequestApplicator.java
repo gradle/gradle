@@ -164,7 +164,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             pluginResolver.resolve(request, result);
         } catch (Exception e) {
             throw new LocationAwareException(
-                    new GradleException(String.format("Error resolving plugin %s.", request.getDisplayName()), e),
+                    new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
                     request.getScriptSource(), request.getLineNumber());
         }
 

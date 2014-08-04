@@ -95,6 +95,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "my", "plugin", PLUGIN_VERSION)
 
         buildScript applyAndVerify()
+        portal.m2repo.module("my", "plugin", PLUGIN_VERSION).missing()
 
         expect:
         fails("verify")
@@ -129,7 +130,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0'].")
+        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
         outOfProtocolCause("invalid plugin metadata - no module repository specified")
     }
 
@@ -184,13 +185,16 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             sendRedirect("/api/gradle/${GradleVersion.current().version}/plugin/use/org.my.otherplugin/2.0")
         }
-        portal.expectPluginQuery("org.my.otherplugin", "2.0", "other", "plugin", "2.0")
-        publishPlugin("org.my.otherplugin", "other", "plugin", "2.0")
+        portal.expectQueryAndReturnError("org.my.otherplugin", "2.0", 500) {
+            errorCode = "REDIRECTED"
+            message = "redirected"
+        }
 
-        buildScript applyAndVerify("org.my.otherplugin", "2.0")
+        buildScript applyAndVerify()
 
         expect:
-        succeeds("verify")
+        fails("verify")
+        failure.assertThatCause(Matchers.startsWith("Plugin resolution service returned HTTP 500 with message 'redirected'"))
     }
 
     def "error message is embedded in user error message"() {
@@ -289,7 +293,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     }
 
     def ExecutionFailure errorResolvingPlugin() {
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0'].")
+        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
     }
 
     def "non contactable resolution service produces error"() {

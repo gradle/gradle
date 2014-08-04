@@ -680,6 +680,19 @@ At this stage, a message can be constructed based on the information in the head
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
+* Caching is eternal, for “success” responses (i.e. plugin version is known). 
+* --refresh-dependencies invalidates cache
+* --offline should not error if response is cached
+
+### Test Coverage
+
+- ~~Subsequent build after build resolving plugin does not query plugin portal~~
+- ~~--refresh-dependencies causes request to plugin portal even if resolution is already cached~~
+- ~~--refresh-dependencies does not cause error when plugin is not cached~~
+- ~~Not found response is not cached (plugin can be “found” in a subsequent build)~~
+- ~~Error response is not cached~~
+- ~~Unexpected response is not cached
+
 ## Story: Error message for unknown plugin or plugin version includes link to relevant human search interfaces
 
 ### Test Coverage

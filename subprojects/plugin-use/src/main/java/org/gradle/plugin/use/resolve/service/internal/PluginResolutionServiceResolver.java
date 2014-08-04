@@ -82,16 +82,12 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         if (pluginRequest.getVersion() == null) {
             result.notFound(getDescription(), "plugin dependency must include a version number for this source");
         } else {
-            if (startParameter.isOffline()) {
-                throw new GradleException(String.format("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode."));
-            }
-
             if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
                 result.notFound(getDescription(), "snapshot plugin versions are not supported");
             } else if (isDynamicVersion(pluginRequest.getVersion())) {
                 result.notFound(getDescription(), "dynamic plugin versions are not supported");
             } else {
-                PluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
+                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
                 if (response.isError()) {
                     ErrorResponse errorResponse = response.getErrorResponse();
                     if (response.getStatusCode() == 404) {

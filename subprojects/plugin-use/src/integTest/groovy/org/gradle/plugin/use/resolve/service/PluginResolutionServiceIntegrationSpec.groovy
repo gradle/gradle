@@ -44,22 +44,16 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "resolution fails if Gradle is in offline mode"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
-
         buildScript applyAndVerify("org.my.myplugin", "1.0")
         args("--offline")
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0'].")
-        failure.assertHasCause("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode.")
+        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
+        failure.assertHasCause("Plugin cannot be resolved from $portal.http.address because Gradle is running in offline mode")
     }
 
     def "cannot resolve plugin with snapshot version"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0-SNAPSHOT", "my", "plugin", "1.0")
-        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
-
         buildScript applyAndVerify("org.my.myplugin", "1.0-SNAPSHOT")
 
         expect:
@@ -69,9 +63,6 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "cannot resolve plugin with dynamic version"() {
-        portal.expectPluginQuery("org.my.myplugin", pluginVersion, "my", "plugin", "1.0")
-        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
-
         buildScript applyAndVerify("org.my.myplugin", pluginVersion)
 
         expect:

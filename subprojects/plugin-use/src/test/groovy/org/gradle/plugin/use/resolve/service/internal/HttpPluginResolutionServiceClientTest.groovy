@@ -26,17 +26,17 @@ import org.gradle.plugin.use.internal.PluginRequest
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
-class PluginResolutionServiceClientTest extends Specification {
+class HttpPluginResolutionServiceClientTest extends Specification {
     public static final String URL = "http://plugin.portal"
     private resourceAccessor = Mock(HttpResourceAccessor)
-    private client = new PluginResolutionServiceClient(resourceAccessor)
+    private client = new HttpPluginResolutionServiceClient(resourceAccessor)
     private request = Stub(PluginRequest) {
         getId() >> PluginId.of("foo")
     }
 
     def "returns plugin metadata for successful query"() {
         given:
-        def metaData = new PluginUseMetaData(id: "foo", version: "bar", implementation: [gav: "foo:bar:baz", repo: "http://repo.com"], implementationType: PluginUseMetaData.M2_JAR)
+        def metaData = new PluginUseMetaData("foo", "bar", [gav: "foo:bar:baz", repo: "http://repo.com"], PluginUseMetaData.M2_JAR, false)
 
         when:
         stubResponse(200, toJson(metaData))
