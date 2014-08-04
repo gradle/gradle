@@ -206,7 +206,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         if (defaultEncoding != null) {
             assertEquals(Charset.forName(defaultEncoding), Charset.defaultCharset());
         }
-        assertNull(getDefaultLocale());
+        Locale defaultLocale = getDefaultLocale();
+        if (defaultLocale != null) {
+            assertEquals(defaultLocale, Locale.getDefault());
+        }
         assertFalse(isRequireGradleHome());
     }
 
