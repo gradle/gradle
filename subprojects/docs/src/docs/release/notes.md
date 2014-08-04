@@ -31,6 +31,14 @@ Class dependency analysis of compiled classes is really useful for many other sc
 * detection of tests to execute
 * and more
 
+### Use of HTTPS for mavenCentral() and jcenter() dependency repositories
+
+The commonly used Maven Central and Bintray jCenter repositories are now accessed over the HTTPS protocol.
+No change is required to builds to take advantage of this change.
+
+If you are using the `mavenCentral()` or `jcenter()` [repository notations](dsl/org.gradle.api.artifacts.dsl.RepositoryHandler.html) 
+your build will now access these repositories via HTTPS.
+
 ### Child processes started by Gradle are better described
 
 At the [Gradle Summit 2014 Conference](http://www.gradlesummit.com/conference/santa_clara/2014/06/home)
@@ -226,7 +234,7 @@ compilation. Previously it would use the old Ant-based Java compiler integration
 
 This change should be backwards compatible for all users, and should improve compilation time when compiling Java and Scala together.
 
-### jcenter now uses HTTPS instead of HTTP
+### jcenter() repository notation now uses HTTPS instead of HTTP
 
 The `jcenter()` repository definition now uses HTTPS instead of HTTP. This should be backwards compatible for all users. If for any reason you want 
 to use explicitly HTTP for connecting the Bintray's JCenter repository you can simply reconfigure the URL:
@@ -234,6 +242,18 @@ to use explicitly HTTP for connecting the Bintray's JCenter repository you can s
     repositories {
         jcenter {
             url = "http://jcenter.bintray.com/"
+        }
+    }
+
+### mavenCentral() repository notation now uses HTTPS instead of HTTP
+
+The `mavenCentral()` repository definition now uses HTTPS instead of HTTP. 
+This should be backwards compatible for all users. 
+If for any reason you want to use explicitly HTTP for connecting the Maven Central repository you can simply add the repo with the HTTP protocol explicitly:
+ 
+    repositories {
+        maven {
+            url = "http://repo1.maven.org/maven2/"
         }
     }
 

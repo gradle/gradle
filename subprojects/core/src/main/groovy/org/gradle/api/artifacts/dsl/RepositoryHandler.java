@@ -164,9 +164,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
-     * <p>You should note that this repository will use HTTP and not an HTTPS as the Maven central repository does not support HTTPS.
-     * If you need to use a HTTPS enabled mirror of Maven central, you can use {@link #jcenter()} instead.
-     *
      * <p>Examples:
      * <pre autoTested="">
      * repositories {

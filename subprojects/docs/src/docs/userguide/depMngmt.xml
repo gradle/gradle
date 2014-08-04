@@ -1251,7 +1251,7 @@ someroot/[artifact]-[revision].[ext]
     </section>
     <section id='sec:strategies_of_transitive_dependency_management'>
         <title>Strategies for transitive dependency management</title>
-        <para>Many projects rely on the <ulink url='http://repo1.maven.org/maven2'>Maven Central repository</ulink>. This is not without problems.
+        <para>Many projects rely on the <ulink url='https://repo1.maven.org/maven2'>Maven Central repository</ulink>. This is not without problems.
         </para>
         <itemizedlist>
             <listitem>
