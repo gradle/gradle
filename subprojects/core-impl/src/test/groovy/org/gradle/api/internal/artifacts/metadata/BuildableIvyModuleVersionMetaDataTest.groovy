@@ -18,16 +18,16 @@ package org.gradle.api.internal.artifacts.metadata
 
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.MDArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyArtifact
 import spock.lang.Specification
 
 class BuildableIvyModuleVersionMetaDataTest extends Specification {
     def descriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "module", "rev"), "broken", null)
     def metaData = new BuildableIvyModuleVersionMetaData(descriptor)
 
-    def "can attach artifacts to meta-data"() {
-        def artifact = new MDArtifact(descriptor, "thing", "type", "ext")
+    def "can attach artifacts to meta-data"() { //TODO SF move those tests
+        def artifact = new IvyArtifact(descriptor, "thing", "type", "ext")
         artifact.addConfiguration("conf")
         descriptor.addConfiguration(new Configuration("conf"))
 
@@ -37,7 +37,7 @@ class BuildableIvyModuleVersionMetaDataTest extends Specification {
         then:
         metaData.artifacts.size() == 1
         metaData.getConfiguration("conf").artifacts.size() == 1
-        metaData.descriptor.allArtifacts == [artifact]
-        metaData.descriptor.getArtifacts("conf") == [artifact]
+        metaData.descriptor.allArtifacts*.toString() == ["org#module;rev!thing.ext(type)"]
+        metaData.descriptor.getArtifacts("conf")*.toString() == ["org#module;rev!thing.ext(type)"]
     }
 }

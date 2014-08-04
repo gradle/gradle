@@ -601,6 +601,28 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         descriptor.getArtifacts("d")*.name == ['mymodule', 'art2']
     }
 
+    def "accumulates configurations if the same artifact listed more than once"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0">
+                <info organisation="myorg" module="mymodule" revision="myrev"/>
+                <configurations><conf name="a"/><conf name="b"/><conf name="c"/><conf name="d"/><conf name="e"/></configurations>
+                <publications>
+                    <artifact name='art' type='type' ext='ext' conf='a,b'/>
+                    <artifact name='art' type='type' ext='ext' conf='b,c'/>
+                </publications>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+
+        then:
+        descriptor.allArtifacts.length == 1
+        descriptor.allArtifacts[0].configurations == ['a', 'b', 'c']
+    }
+
     def "parses extra attributes and extra info"() {
         given:
         def file = temporaryFolder.createFile("ivy.xml")

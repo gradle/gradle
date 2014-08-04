@@ -442,7 +442,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private PatternMatcher defaultMatcher;
         private DefaultDependencyDescriptor dd;
         private ConfigurationAware confAware;
-        private MDArtifact artifact;
+        private IvyArtifact artifact;
         private String conf;
         private boolean artifactsDeclared;
         private StringBuffer buffer;
@@ -495,7 +495,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             replaceConfigurationWildcards();
             if (!artifactsDeclared) {
                 String[] configurationNames = getMd().getConfigurationsNames();
-                MDArtifact implicitArtifact = new MDArtifact(getMd(), getMd().getModuleRevisionId().getName(), "jar", "jar");
+                IvyArtifact implicitArtifact = new IvyArtifact(getMd(), getMd().getModuleRevisionId().getName(), "jar", "jar");
                 for (String configurationName : configurationNames) {
                     implicitArtifact.addConfiguration(configurationName);
                 }
@@ -889,7 +889,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
                 String url = substitute(attributes.getValue("url"));
                 Map extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
-                artifact = new MDArtifact(getMd(), artName, type, ext, url == null ? null : new URL(url), extraAttributes);
+                artifact = new IvyArtifact(getMd(), artName, type, ext, url == null ? null : new URL(url), extraAttributes);
                 String confs = substitute(attributes.getValue("conf"));
                 
                 // Only add confs if they are specified. if they aren't, endElement will handle this only if there are no conf defined in sub elements
@@ -1095,7 +1095,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         public void endElement(String uri, String localName, String qName) throws SAXException {
             if (state == State.PUB && "artifact".equals(qName)) {
-                if (artifact.getConfigurations().length == 0) {
+                if (artifact.getConfigurations().isEmpty()) {
                     String[] confs = publicationsDefaultConf == null ? getMd().getConfigurationsNames() : publicationsDefaultConf;
                     for (String confName : confs) {
                         artifact.addConfiguration(confName.trim());

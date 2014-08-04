@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
@@ -81,5 +82,16 @@ public class IvyUtil {
         DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(dependencyDescriptor.getDependencyRevisionId(), dependencyDescriptor.getAllDependencyArtifacts());
         moduleDescriptor.setStatus("integration");
         return moduleDescriptor;
+    }
+
+    //TODO SF coverage
+    public static boolean artifactsEqual(Artifact left, Artifact right) {
+        return left.getModuleRevisionId().equals(left.getModuleRevisionId())
+                && (left.getPublicationDate() == null ? (right.getPublicationDate() == null) : left.getPublicationDate().equals(
+                right.getPublicationDate()))
+                && left.getName().equals(right.getName())
+                && left.getExt().equals(right.getExt())
+                && left.getType().equals(right.getType())
+                && left.getQualifiedExtraAttributes().equals(right.getQualifiedExtraAttributes());
     }
 }
