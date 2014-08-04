@@ -52,8 +52,9 @@ public class IvyMDArtifact {
         this(md, artName, type, ext, null, null);
     }
 
-    public void addConfiguration(String confName) {
+    public IvyMDArtifact addConfiguration(String confName) {
         configurations.add(confName);
+        return this;
     }
 
     public Set<String> getConfigurations() {
