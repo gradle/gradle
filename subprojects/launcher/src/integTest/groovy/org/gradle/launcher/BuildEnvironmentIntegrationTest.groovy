@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,110 @@
  * limitations under the License.
  */
 
-package org.gradle.api
+package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
-class BuildDefaultCharacterEncodingIntegrationTest extends AbstractIntegrationSpec {
+class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
+
+    @Unroll("default locale for gradle build switched to #locale")
+    def "builds can be executed with different default locales"() {
+        given:
+        executer.withDefaultLocale(locale)
+
+        and:
+        buildFile.setText("""
+task check << {
+    assert Locale.getDefault().toString() == "${locale}"
+}
+""", "UTF-8")
+
+        expect:
+        succeeds 'check'
+
+        where:
+        locale << [nonDefaultLocale, Locale.default]
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-3145")
+    def "locale props given on the command line are respected"() {
+        given:
+        def nonDefaultLocale = getNonDefaultLocale()
+        executer.requireGradleHome()
+        executer.withArguments("-Duser.language=$nonDefaultLocale.language", "-Duser.country=$nonDefaultLocale.country")
+
+        and:
+        buildFile.setText("""
+task check << {
+    assert Locale.getDefault().toString() == "${nonDefaultLocale}"
+}
+""", "UTF-8")
+
+        expect:
+        succeeds 'check'
+    }
+
+    def "locale props given in gradle.properties are respected"() {
+        given:
+        def nonDefaultLocale = getNonDefaultLocale()
+        executer.requireGradleHome()
+        file("gradle.properties") << "org.gradle.jvmargs=-Duser.language=$nonDefaultLocale.language -Duser.country=$nonDefaultLocale.country"
+
+        and:
+        buildFile.setText("""
+task check << {
+    assert Locale.getDefault().toString() == "${nonDefaultLocale}"
+}
+""", "UTF-8")
+
+        expect:
+        succeeds 'check'
+    }
+
+    def "default file encoding set in gradle.properties is respected"() {
+        given:
+        def nonDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) }.find { it != Charset.defaultCharset() }
+
+        executer.requireGradleHome()
+        file("gradle.properties") << "org.gradle.jvmargs=-Dfile.encoding=${nonDefaultEncoding.name()}"
+
+        and:
+        buildFile.setText("""
+task check << {
+    assert ${Charset.class.name}.defaultCharset().name() == "${nonDefaultEncoding}"
+}
+""", "UTF-8")
+
+        expect:
+        succeeds 'check'
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-3145")
+    def "default file encoding set on command line is respected"() {
+        given:
+        def nonDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) }.find { it != Charset.defaultCharset() }
+
+        executer.requireGradleHome()
+        executer.withArgument("-Dfile.encoding=${nonDefaultEncoding.name()}")
+
+        and:
+        buildFile.setText("""
+task check << {
+    assert ${Charset.class.name}.defaultCharset().name() == "${nonDefaultEncoding}"
+}
+""", "UTF-8")
+
+        expect:
+        succeeds 'check'
+    }
+
+    Locale getNonDefaultLocale() {
+        [new Locale('de'), new Locale('en')].find { it != Locale.default }
+    }
 
     def executerEncoding(String inputEncoding) {
         if (inputEncoding) {
@@ -75,7 +171,7 @@ class BuildDefaultCharacterEncodingIntegrationTest extends AbstractIntegrationSp
             }
         """, executer.getDefaultCharacterEncoding()
 
-        
+
         and:
         buildFile.write """
             apply plugin: "java"
@@ -98,6 +194,5 @@ class BuildDefaultCharacterEncodingIntegrationTest extends AbstractIntegrationSp
         "US-ASCII"    | "US-ASCII"
         null          | Charset.defaultCharset().name()
     }
-
 
 }
