@@ -24,10 +24,14 @@ import org.gradle.language.base.LanguageSourceSet;
  * <pre autoTested="true">
  * apply plugin: "assembler"
  *
+ * executables{
+ *     main{}
+ * }
+ *
  * sources {
  *     main {
- *         // Configure an existing AssemblerSourceSet
- *         asm {
+ *         // Create and configure an AssemblerSourceSet
+ *         asm(AssemblerSourceSet) {
  *             source {
  *                 srcDirs "src/main/i386", "src/shared/asm"
  *                 include "**{@literal /}*.s"

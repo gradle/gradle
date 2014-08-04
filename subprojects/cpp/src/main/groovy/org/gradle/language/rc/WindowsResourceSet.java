@@ -27,6 +27,10 @@ import org.gradle.language.base.LanguageSourceSet;
  * <pre autoTested="true">
  * apply plugin: "windows-resources"
  *
+ * executables {
+ *     main {}
+ * }
+ *
  * sources {
  *     main {
  *         // Configure an existing WindowsResourceSet

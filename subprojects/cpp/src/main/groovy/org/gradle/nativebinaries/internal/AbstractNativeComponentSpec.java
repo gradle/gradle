@@ -19,20 +19,26 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.language.internal.ObjectFileLanguageOutputType;
 import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.internal.ComponentSpecInternal;
 import org.gradle.util.GUtil;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier id;
     private final DefaultDomainObjectSet<NativeBinarySpec> binaries;
-    private final FunctionalSourceSet mainSourceSet;
+    private final Set<Class<? extends LanguageOutputType>> inputTypes = new HashSet<Class<? extends LanguageOutputType>>();
 
+    private final FunctionalSourceSet mainSourceSet;
     private String baseName;
 
     public AbstractNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet mainSourceSet) {
@@ -43,7 +49,8 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
             }
         });
         this.id = id;
-        binaries = new DefaultDomainObjectSet<NativeBinarySpec>(NativeBinarySpec.class);
+        this.binaries = new DefaultDomainObjectSet<NativeBinarySpec>(NativeBinarySpec.class);
+        this.inputTypes.add(ObjectFileLanguageOutputType.class);
     }
 
     @Override
@@ -81,5 +88,10 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
 
     public FunctionalSourceSet getMainSource() {
         return mainSourceSet;
+    }
+
+
+    public Set<Class<? extends LanguageOutputType>> getInputTypes() {
+        return inputTypes;
     }
 }

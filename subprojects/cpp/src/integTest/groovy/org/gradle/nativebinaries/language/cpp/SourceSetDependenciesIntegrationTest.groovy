@@ -34,17 +34,18 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
 
         buildFile << """
     apply plugin: 'c'
-    sources {
-        main {}
-        library {}
-    }
-    sources {
-        main.c.lib sources.library.c
+
+    libraries{
+        library{}
     }
     executables {
         main {
             source sources.library
         }
+    }
+
+    sources {
+        main.c.lib sources.library.c
     }
 """
         when:
@@ -63,12 +64,15 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
     apply plugin: 'c'
     // library not required in executable: only headers are used
+
+    libraries{
+        library {}
+    }
+
     executables {
         main {}
     }
-    sources {
-        library {}
-    }
+
     sources {
         main.c.lib sources.library.c
     }
@@ -88,18 +92,21 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
     apply plugin: 'cpp'
     apply plugin: 'c'
-    sources {
-        main {}
+
+    libraries{
         library {}
     }
-    sources {
-        main.cpp.lib sources.library.c
-    }
+
     executables {
         main {
             source sources.library
         }
     }
+
+    sources {
+        main.cpp.lib sources.library.c
+    }
+
 """
         when:
         succeeds "mainExecutable"
@@ -122,9 +129,11 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
     executables {
         main {}
     }
-    sources {
+
+    libraries{
         extra {}
     }
+
     sources {
         main.cpp.lib sources.extra.cpp
     }
@@ -144,9 +153,11 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
 
         buildFile << """
     apply plugin: 'cpp'
-    sources {
+
+    libraries{
         extra {}
     }
+
     executables {
         main {
             binaries.all {

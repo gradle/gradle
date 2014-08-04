@@ -161,6 +161,18 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         buildFile << """
             apply plugin: "cpp"
 
+            libraries {
+                util {}
+            }
+
+            executables {
+                main {
+                    binaries.all {
+                        source sources.util.cpp
+                    }
+                }
+            }
+
             sources {
                 main {
                     cpp {
@@ -170,13 +182,6 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                 util {
                     cpp {
                         exportedHeaders.srcDir "src/shared/headers"
-                    }
-                }
-            }
-            executables {
-                main {
-                    binaries.all {
-                        source sources.util.cpp
                     }
                 }
             }

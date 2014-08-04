@@ -160,8 +160,8 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: "c"
             apply plugin: "cpp"
-            sources {
-                test {}
+            libraries {
+                test{}
             }
             executables {
                 main {
@@ -186,9 +186,10 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: "c"
             apply plugin: "cpp"
-            sources {
-                test {}
+            libraries {
+                test{}
             }
+
             executables {
                 main {}
             }
@@ -213,8 +214,8 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: "c"
             apply plugin: "cpp"
-            sources {
-                test {}
+            libraries {
+                test{}
             }
             executables {
                 main {}
@@ -243,6 +244,10 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             apply plugin: "c"
             apply plugin: "cpp"
             apply plugin: "java"
+
+            libraries {
+                test {}
+            }
 
             executables {
                 main {

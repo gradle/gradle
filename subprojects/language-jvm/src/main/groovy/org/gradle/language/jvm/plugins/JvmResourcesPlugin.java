@@ -17,6 +17,7 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
+import org.gradle.language.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -29,7 +30,9 @@ import org.gradle.runtime.base.BinarySpec;
 import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
@@ -58,6 +61,16 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
+        }
+
+        Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
+
+        public JvmResources(){
+            languageOutputTypes.add(JvmResourcesOutput.class);
+        }
+
+        public Set<Class<? extends LanguageOutputType>> getOutputTypes() {
+            return languageOutputTypes;
         }
 
         public SourceTransformTaskConfig getTransformTask() {

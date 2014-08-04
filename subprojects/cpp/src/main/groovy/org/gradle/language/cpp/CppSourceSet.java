@@ -28,6 +28,10 @@ import org.gradle.language.HeaderExportingSourceSet;
  * <pre autoTested="true">
  * apply plugin: "cpp"
  *
+ * executables{
+ *     main{}
+ * }
+ *
  * sources {
  *     main {
  *         // Configure an existing CppSourceSet

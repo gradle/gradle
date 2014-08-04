@@ -66,18 +66,19 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
             libraries {
                 lib1
             }
+
+            executables {
+                main {}
+            }
+
+            libraries {
+                other {}
+            }
+
             sources {
                 main {
                     cpp(CppSourceSet)
                     cpp1(CppSourceSet)
-                }
-                other {
-                    cpp(CppSourceSet)
-                }
-            }
-            executables {
-                main {
-                    source sources.main
                 }
             }
 """

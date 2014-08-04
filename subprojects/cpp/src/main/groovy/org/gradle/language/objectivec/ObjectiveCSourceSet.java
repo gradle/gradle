@@ -30,6 +30,10 @@ import org.gradle.language.base.LanguageSourceSet;
  * <pre autoTested="true">
  * apply plugin: "objective-c"
  *
+ * executables{
+ *     main{}
+ * }
+ *
  * sources {
  *     main {
  *         // Configure an existing ObjectiveCSourceSet

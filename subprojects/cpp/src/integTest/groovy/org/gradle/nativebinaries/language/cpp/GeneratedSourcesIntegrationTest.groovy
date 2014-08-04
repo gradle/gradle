@@ -131,7 +131,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     }
     sources {
         generated {
-            c {
+            c(CSourceSet) {
                 generatedBy tasks.generateCSources
             }
         }

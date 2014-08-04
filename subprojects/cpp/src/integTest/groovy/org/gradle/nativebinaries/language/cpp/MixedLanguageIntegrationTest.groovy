@@ -27,6 +27,10 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "can have all source files co-located in a common directory"() {
         given:
         buildFile << """
+            executables {
+                main {}
+            }
+
             sources {
                 main {
                     cpp {
@@ -52,9 +56,6 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
-            executables {
-                main {}
-            }
         """
 
         and:
@@ -74,7 +75,11 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build and execute program with non-conventional source layout"() {
         given:
         buildFile << """
-            sources {
+            executables {
+                main {}
+            }
+
+                        sources {
                 main {
                     cpp {
                         source {
@@ -95,9 +100,6 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                         }
                     }
                 }
-            }
-            executables {
-                main {}
             }
         """
         settingsFile << "rootProject.name = 'test'"

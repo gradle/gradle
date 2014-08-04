@@ -94,6 +94,8 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
             buildFile << "apply plugin: '$plugin'\n"
         }
 
+        buildFile << "executables { main {} }"
+
         testApp.functionalSourceSets.each { name, filterPattern ->
                 buildFile << """
                 sources {
@@ -122,9 +124,7 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
                 }
             }
         }
-        executables {
-            main {}
-        }
+
 
         """
         expect:

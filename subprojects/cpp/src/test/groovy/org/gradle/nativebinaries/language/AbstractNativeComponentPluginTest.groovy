@@ -71,6 +71,14 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         given:
         dsl {
             apply plugin: pluginClass
+            libraries{
+                lib {}
+            }
+
+            executables {
+                exe {}
+            }
+
             sources {
                 exe {
                     "$pluginName" {

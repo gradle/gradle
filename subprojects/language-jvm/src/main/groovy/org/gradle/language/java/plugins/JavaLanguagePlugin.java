@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.language.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -34,8 +35,7 @@ import org.gradle.runtime.base.BinarySpec;
 import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
@@ -62,8 +62,18 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
             return DefaultJavaSourceSet.class;
         }
 
+        Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
+
+        public Java(){
+            languageOutputTypes.add(JvmByteCodeOutput.class);
+        }
+
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
+        }
+
+        public Set<Class<? extends LanguageOutputType>> getOutputTypes() {
+            return languageOutputTypes;
         }
 
         public SourceTransformTaskConfig getTransformTask() {

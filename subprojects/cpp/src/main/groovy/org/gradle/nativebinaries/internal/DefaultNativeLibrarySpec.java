@@ -41,4 +41,5 @@ public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpe
     public NativeLibraryRequirement getApi() {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "api");
     }
+
 }

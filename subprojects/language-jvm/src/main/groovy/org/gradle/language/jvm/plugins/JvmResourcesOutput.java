@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.language.jvm.plugins;
 
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageOutputType;
-import org.gradle.runtime.base.ComponentSpec;
-
-import java.util.Set;
-
-public interface ComponentSpecInternal extends ComponentSpec {
-
-    FunctionalSourceSet getMainSource();
-
-    Set<Class<? extends LanguageOutputType>> getInputTypes();
+/**
+ * LanguageOutputType marking Jvm Resource Output
+ * */
+public class JvmResourcesOutput implements org.gradle.language.base.LanguageOutputType {
 }

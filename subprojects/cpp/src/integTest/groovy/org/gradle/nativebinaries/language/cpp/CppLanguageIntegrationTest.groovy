@@ -71,9 +71,12 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         file("src/main/cpp2/hello.cpp") << helloWorldApp.librarySources[0].content
         file("src/main/sum-sources/sum.cpp") << helloWorldApp.librarySources[1].content
 
-
         and:
         buildFile << """
+            executables {
+                main {}
+            }
+
             sources {
                 main {
                     cpp {
@@ -95,9 +98,6 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                         }
                     }
                 }
-            }
-            executables {
-                main {}
             }
 """
 

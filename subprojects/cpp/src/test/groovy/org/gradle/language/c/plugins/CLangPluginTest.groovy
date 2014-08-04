@@ -30,13 +30,4 @@ class CLangPluginTest extends Specification {
         then:
         project.sources.test.create("test_c", CSourceSet) in CSourceSet
     }
-
-    def "adds conventional CSourceSet"() {
-        when:
-        project.plugins.apply(CLangPlugin)
-        project.sources.create "test"
-
-        then:
-        project.sources.test.c in CSourceSet
-    }
 }

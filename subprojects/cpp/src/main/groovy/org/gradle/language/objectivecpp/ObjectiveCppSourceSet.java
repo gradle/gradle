@@ -29,6 +29,10 @@ import org.gradle.language.base.LanguageSourceSet;
  * <pre autoTested="true">
  * apply plugin: "objective-cpp"
  *
+ * executables{
+ *     main{}
+ * }
+ *
  * sources {
  *     main {
  *         // Configure an existing ObjectiveCppSourceSet

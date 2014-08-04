@@ -52,9 +52,12 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         file("src/main/c2/hello.c") << helloWorldApp.librarySources[0].content
         file("src/main/sum-sources/sum.c") << helloWorldApp.librarySources[1].content
 
-
         and:
         buildFile << """
+            executables {
+                main {}
+            }
+
             sources {
                 main {
                     c {
@@ -76,9 +79,6 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                         }
                     }
                 }
-            }
-            executables {
-                main {}
             }
 """
 

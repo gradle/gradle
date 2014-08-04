@@ -30,13 +30,4 @@ class CppLangPluginTest extends Specification {
         then:
         project.sources.test.create("test_cpp", CppSourceSet) in CppSourceSet
     }
-
-    def "adds conventional CppSourceSet"() {
-        when:
-        project.plugins.apply(CppLangPlugin)
-        project.sources.create "test"
-
-        then:
-        project.sources.test.cpp in CppSourceSet
-    }
 }

@@ -67,6 +67,14 @@ class AssemblerPluginTest extends Specification {
         given:
         dsl {
             apply plugin: AssemblerPlugin
+            libraries {
+                lib {}
+            }
+
+            executables {
+                exe {}
+            }
+
             sources {
                 exe {
                     asm {

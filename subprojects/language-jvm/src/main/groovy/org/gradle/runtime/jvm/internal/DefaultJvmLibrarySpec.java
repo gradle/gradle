@@ -20,19 +20,25 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.language.java.plugins.JvmByteCodeOutput;
+import org.gradle.language.jvm.plugins.JvmResourcesOutput;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.internal.ComponentSpecInternal;
 import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 import org.gradle.runtime.jvm.JvmLibrarySpec;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final FunctionalSourceSet mainSourceSet;
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
-
+    private final Set<Class<? extends LanguageOutputType>> languageOutputs = new HashSet<Class<? extends LanguageOutputType>>();
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
         this.mainSourceSet = mainSourceSet;
@@ -41,6 +47,8 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
                 source(languageSourceSet);
             }
         });
+        this.languageOutputs.add(JvmResourcesOutput.class);
+        this.languageOutputs.add(JvmByteCodeOutput.class);
     }
 
     public String getName() {
@@ -74,5 +82,9 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
 
     public FunctionalSourceSet getMainSource() {
         return mainSourceSet;
+    }
+
+    public Set<Class<? extends LanguageOutputType>> getInputTypes() {
+        return languageOutputs;
     }
 }

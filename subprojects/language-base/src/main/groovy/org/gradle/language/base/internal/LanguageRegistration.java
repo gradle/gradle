@@ -17,10 +17,12 @@
 package org.gradle.language.base.internal;
 
 
+import org.gradle.language.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.runtime.base.BinarySpec;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A registered language.
@@ -45,6 +47,11 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
      * The tool extensions that should be added to any binary with these language sources.
      */
     Map<String, Class<?>> getBinaryTools();
+
+    /**
+     * A set of output types generated from these language sources.
+     */
+    Set<Class<? extends LanguageOutputType>> getOutputTypes();
 
     /**
      * The task used to transform sources into code for the target runtime.

@@ -141,11 +141,15 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             }
             sources {
                 main.cpp.lib library: 'util'
-                debug.cpp {
-                    exportedHeaders.srcDir "src/util/debug"
+                debug {
+                    cpp(CppSourceSet) {
+                        exportedHeaders.srcDir "src/util/debug"
+                    }
                 }
-                release.cpp {
-                    exportedHeaders.srcDir "src/util/release"
+                release {
+                    cpp(CppSourceSet) {
+                        exportedHeaders.srcDir "src/util/release"
+                    }
                 }
             }
 """

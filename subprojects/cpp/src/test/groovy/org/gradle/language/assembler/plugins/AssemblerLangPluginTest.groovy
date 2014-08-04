@@ -30,13 +30,4 @@ class AssemblerLangPluginTest extends Specification {
         then:
         project.sources.test.create("test_asm", AssemblerSourceSet) in AssemblerSourceSet
     }
-
-    def "adds conventional AssemblerSourceSet"() {
-        when:
-        project.plugins.apply(AssemblerLangPlugin)
-        project.sources.create "test"
-
-        then:
-        project.sources.test.asm in AssemblerSourceSet
-    }
 }

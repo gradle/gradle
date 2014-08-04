@@ -690,13 +690,19 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.writeSources(file("src/win32"))
         app.alternate.writeSources(file("src/x64"))
         buildFile << """
-    sources {
-        win32 {}
-        x64 {}
-    }
     executables {
         main {}
     }
+
+    sources {
+        win32 {
+            cpp(CppSourceSet)
+        }
+        x64 {
+            cpp(CppSourceSet)
+        }
+    }
+
     binaries.all {
         source sources[it.targetPlatform.name]
     }

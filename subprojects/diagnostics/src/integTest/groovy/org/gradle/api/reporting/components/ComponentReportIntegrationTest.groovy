@@ -115,10 +115,10 @@ JVM library 'someLib'
 ---------------------
 
 Source sets
-    Java source 'someLib:java'
-        src/someLib/java
     Resources 'someLib:resources'
         src/someLib/resources
+    Java source 'someLib:java'
+        src/someLib/java
 
 Binaries
     Jar 'someLib:jar'
@@ -298,10 +298,10 @@ Cunit test suite 'someExeTest'
 ------------------------------
 
 Source sets
-    C source 'someExeTest:c'
-        src/someExeTest/c
     C source 'someExeTest:cunitLauncher'
         build/src/someExeTest/cunitLauncher/c
+    C source 'someExeTest:c'
+        src/someExeTest/c
 
 Binaries
     C unit exe 'someExeTest:cUnitExe'
@@ -360,12 +360,12 @@ Native library 'someLib'
 ------------------------
 
 Source sets
-    Assembler source 'someLib:asm'
-        src/someLib/asm
     C source 'someLib:c'
         src/someLib/c
     C++ source 'someLib:cpp'
         src/someLib/cpp
+    Assembler source 'someLib:asm'
+        src/someLib/asm
 
 Binaries
     Shared library 'someLib:amd64:free:sharedLibrary'

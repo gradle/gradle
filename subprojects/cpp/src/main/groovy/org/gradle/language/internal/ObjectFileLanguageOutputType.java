@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.language.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageOutputType;
-import org.gradle.runtime.base.ComponentSpec;
-
-import java.util.Set;
-
-public interface ComponentSpecInternal extends ComponentSpec {
-
-    FunctionalSourceSet getMainSource();
-
-    Set<Class<? extends LanguageOutputType>> getInputTypes();
+public class ObjectFileLanguageOutputType implements org.gradle.language.base.LanguageOutputType {
 }

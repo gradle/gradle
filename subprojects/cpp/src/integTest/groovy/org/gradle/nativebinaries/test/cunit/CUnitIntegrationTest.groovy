@@ -55,12 +55,10 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     private void useStandardConfig() {
         buildFile << """
-            sources {
-                hello
-            }
             libraries {
                 hello {}
             }
+
             binaries.withType(CUnitTestSuiteBinarySpec) {
                 lib library: "cunit", linkage: "static"
             }
@@ -179,10 +177,12 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            sources {
-                helloTest {
-                    c {
-                        source.srcDir "src/alternateHelloTest/c"
+            model{
+                sources {
+                    helloTest {
+                        c {
+                            source.srcDir "src/alternateHelloTest/c"
+                        }
                     }
                 }
             }
@@ -200,10 +200,12 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            sources {
-                helloTest {
-                    c {
-                        source.srcDir "src/alternateHelloTest/c"
+            model{
+                sources {
+                    helloTest {
+                        c {
+                            source.srcDir "src/alternateHelloTest/c"
+                        }
                     }
                 }
             }
@@ -224,13 +226,16 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            sources {
-                variant {
-                    c {
-                        lib sources.hello.c
+            model{
+                sources {
+                    variant {
+                        c(CSourceSet) {
+                            lib sources.hello.c
+                        }
                     }
                 }
             }
+
             binaries.withType(NativeLibraryBinary) {
                 source sources.variant
             }
@@ -252,7 +257,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
             model {
                 sources {
                     variantTest {
-                        c {
+                        c(CSourceSet) {
                             lib sources.hello.c
                             lib sources.helloTest.cunitLauncher
                         }
@@ -371,7 +376,7 @@ There were test failures:
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "src/helloTest/headers;build/src/helloTest/cunitLauncher/headers;src/hello/headers;libs/cunit/2.1-2/include"
+            includePath == "build/src/helloTest/cunitLauncher/headers;src/helloTest/headers;src/hello/headers;libs/cunit/2.1-2/include"
         }
     }
 
