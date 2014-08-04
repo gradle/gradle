@@ -27,6 +27,7 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.resource.transport.http.HttpResponseResource;
 import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,9 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpPluginResolutionServiceClient.class);
     private static final String REQUEST_URL = "/api/gradle/%s/plugin/use/%s/%s";
     private static final String JSON = "application/json";
+
+    public static final String DEPRECATION_MESSAGE_HEADER = "X-Client-Deprecation-Message";
+    public static final String DEPRECATION_DEADLINE_HEADER = "X-Client-Deprecation-Deadline";
 
     private final HttpResourceAccessor resourceAccessor;
 
@@ -65,6 +69,8 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
                 final String message = String.format("content type is '%s', expected '%s'", contentType == null ? "" : contentType, JSON);
                 throw new OutOfProtocolException(requestUrl, message);
             }
+
+            checkForDeprecationMessageHeader(response);
 
             return response.withContent(new Transformer<Response<PluginUseMetaData>, InputStream>() {
                 public Response<PluginUseMetaData> transform(InputStream inputStream) {
@@ -101,6 +107,15 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
             } catch (IOException e) {
                 LOGGER.warn("Error closing HTTP resource", e);
             }
+        }
+    }
+
+    private void checkForDeprecationMessageHeader(HttpResponseResource response) {
+        String message = response.getHeaderValue(DEPRECATION_MESSAGE_HEADER);
+        if (message != null) {
+            String deadline = response.getHeaderValue(DEPRECATION_DEADLINE_HEADER);
+            String deadlineFormat = (deadline != null) ? " It is scheduled to be removed after %s." : "";
+            DeprecationLogger.nagUserWith(String.format("%s has been deprecated." + deadlineFormat, message, deadline));
         }
     }
 

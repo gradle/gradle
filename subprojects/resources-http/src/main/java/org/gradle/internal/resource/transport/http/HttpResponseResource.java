@@ -96,6 +96,11 @@ public class HttpResponseResource extends AbstractExternalResource {
         }
     }
 
+    public String getHeaderValue(String name) {
+        Header header = response.getFirstHeader(name);
+        return header != null ? header.getValue() : null;
+    }
+
     public String getContentType() {
         final Header header = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
         return header == null ? null : header.getValue();
