@@ -676,7 +676,7 @@ At this stage, a message can be constructed based on the information in the head
 - Success response with appropriate headers causes deprecation message
 - 404 not found response with appropriate headers causes deprecation message 
 
-## Story: Plugin resolution is cached between builds
+## ~~Story: Plugin resolution is cached between builds~~
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
@@ -691,13 +691,23 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 - ~~--refresh-dependencies does not cause error when plugin is not cached~~
 - ~~Not found response is not cached (plugin can be “found” in a subsequent build)~~
 - ~~Error response is not cached~~
-- ~~Unexpected response is not cached
+- ~~Unexpected response is not cached~~
+- ~~`--offline` can be used if response is cached~~
+- ~~`--offline` fails build if plugin is not cached~~
+- ~~cached resolution by previous version is used~~
 
 ## Story: Error message for unknown plugin or plugin version includes link to relevant human search interfaces
 
+The “not found” responses from the portal include an arbitrary message. 
+This should be displayed to the user, as it can provide more information.
+
+e.g. when a plugin is not found, the URL of the search interface can be displayed.
+When a particular version is not found, the URL for the plugin can be displayed (which provides the available versions)
+
 ### Test Coverage
 
-- Not found messages from resolution service include link to search UI (to help user find the plugin they are after) - (this URL should be provided by the resolution service response, not hardcoded into Gradle)
+- ~~When a plugin is not found, the message provided by the resolution service is displayed~~
+- ~~When a plugin version is not found, the message provided by the resolution service is displayed~~
 
 ## Story: Make new plugin resolution mechanism public
 

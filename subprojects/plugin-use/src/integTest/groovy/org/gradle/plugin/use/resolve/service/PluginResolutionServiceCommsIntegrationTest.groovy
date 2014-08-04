@@ -80,7 +80,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     def "404 resolution that indicates plugin is known but not by that version produces indicative message"() {
         portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 404) {
             errorCode = ErrorResponse.Code.UNKNOWN_PLUGIN_VERSION
-            message = "anything"
+            message = "portal message"
         }
 
         buildScript applyAndVerify()
@@ -88,7 +88,21 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         expect:
         fails("verify")
         failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources:"))
-        failure.assertThatDescription(Matchers.containsString("version '1.0' of this plugin does not exist"))
+        failure.assertThatDescription(Matchers.containsString("portal message"))
+    }
+
+    def "404 resolution that indicates plugin is unknown produces indicative message"() {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 404) {
+            errorCode = ErrorResponse.Code.UNKNOWN_PLUGIN
+            message = "portal message"
+        }
+
+        buildScript applyAndVerify()
+
+        expect:
+        fails("verify")
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.containsString("portal message"))
     }
 
     def "failed module resolution fails plugin resolution"() {
@@ -319,7 +333,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         buildScript applyAndVerify()
 
-        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "foo", "bar", PLUGIN_VERSION)  {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "foo", "bar", PLUGIN_VERSION) {
             implementation.repo = address
         }
 
