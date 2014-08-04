@@ -728,7 +728,7 @@
 
         <section id='sub:maven_central'>
             <title>Maven central repository</title>
-            <para>To add the central Maven 2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply add this to your build script:
+            <para>To add the central Maven 2 repository (<ulink url='https://repo1.maven.org/maven2'/>) simply add this to your build script:
             </para>
             <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
                 <sourcefile file="build.gradle" snippet="maven-central"/>
@@ -1251,7 +1251,7 @@ someroot/[artifact]-[revision].[ext]
     </section>
     <section id='sec:strategies_of_transitive_dependency_management'>
         <title>Strategies for transitive dependency management</title>
-        <para>Many projects rely on the <ulink url='http://repo1.maven.org/maven2'>Maven Central repository</ulink>. This is not without problems.
+        <para>Many projects rely on the <ulink url='https://repo1.maven.org/maven2'>Maven Central repository</ulink>. This is not without problems.
         </para>
         <itemizedlist>
             <listitem>
