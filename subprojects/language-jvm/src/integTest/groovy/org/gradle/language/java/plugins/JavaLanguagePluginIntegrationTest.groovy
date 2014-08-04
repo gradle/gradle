@@ -107,8 +107,12 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     apply plugin: 'java-lang'
 
     sources {
-        myExtraSources
+        myExtraSources {
+            java(JavaSourceSet)
+            resources(ResourceSet)
+        }
     }
+
 
     jvm {
         libraries {

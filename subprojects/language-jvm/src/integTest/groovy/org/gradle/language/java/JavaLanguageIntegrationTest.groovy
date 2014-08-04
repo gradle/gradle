@@ -63,15 +63,15 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
-    sources {
-        myLib {
-            extraResources(ResourceSet)
-        }
-    }
-
     jvm {
         libraries {
             myLib
+        }
+    }
+
+    sources {
+        myLib {
+            extraResources(ResourceSet)
         }
     }
 """
@@ -103,15 +103,15 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
-    sources {
-        myLib {
-            extraJava(JavaSourceSet)
-        }
-    }
-
     jvm {
         libraries {
             myLib
+        }
+    }
+
+    sources {
+        myLib {
+            extraJava(JavaSourceSet)
         }
     }
 """
@@ -142,6 +142,12 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
+    jvm {
+        libraries {
+            myLib
+        }
+    }
+
     sources {
         myLib {
             java {
@@ -153,11 +159,6 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    jvm {
-        libraries {
-            myLib
-        }
-    }
 """
         and:
         succeeds "assemble"
@@ -177,6 +178,12 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
+    jvm {
+        libraries {
+            myLib
+        }
+    }
+
     sources {
         myLib {
             java {
@@ -186,12 +193,6 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
                 srcDir "src/myLib"
                 exclude "**/*.java"
             }
-        }
-    }
-
-    jvm {
-        libraries {
-            myLib
         }
     }
 """
