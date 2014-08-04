@@ -696,7 +696,7 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 - ~~`--offline` fails build if plugin is not cached~~
 - ~~cached resolution by previous version is used~~
 
-## Story: Error message for unknown plugin or plugin version includes link to relevant human search interfaces
+## Story: ~~Error message for unknown plugin or plugin version includes link to relevant human search interfaces~~
 
 The “not found” responses from the portal include an arbitrary message. 
 This should be displayed to the user, as it can provide more information.
