@@ -32,7 +32,7 @@ You can then build a Gradle based project with this installation:
 
     /usr/local/gradle-source-build/bin/gradle «some task»
 
-To create a full installation (includes docs)…
+To create a full installation (includes docs):
 
     ./gradlew installAll -Pgradle_installPath=/usr/local/gradle-source-build
 
