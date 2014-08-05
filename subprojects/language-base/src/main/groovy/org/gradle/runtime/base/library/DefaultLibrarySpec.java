@@ -110,7 +110,8 @@ public class DefaultLibrarySpec implements LibrarySpec, ComponentSpecInternal {
         return mainSourceSet;
     }
 
-    //TODO handle input types for custom libraries
+    // To declare a custom spec we currently need to override this method in the Library.
+    // implementation. We need a more generic way for this in the future.
     public Set<Class<? extends LanguageOutputType>> getInputTypes() {
         return new HashSet<Class<? extends LanguageOutputType>>();
     }
