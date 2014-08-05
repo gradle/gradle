@@ -201,6 +201,12 @@ Note that the [ivy schema](http://ant.apache.org/ivy/schemas/ivy.xsd) demands th
 of 'info' that are defined in the schema (e.g. description or ivyauthor).  This means that any [withXml()](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html#withXml%28org.gradle.api.Action%29)
 actions must take care to insert any schema-defined 'info' child elements before any extra 'info' elements that may have been added.
 
+### Cancellation support in Tooling API (i)
+
+The Tooling API now allows to cancel [operations](javadoc/org/gradle/tooling/LongRunningOperation.html) by submitting a cancel request
+through [CancellationTokenSource](http://www.gradle.org/docs/nightly/javadoc/org/gradle/tooling/CancellationTokenSource.html).
+Current implementation attempts to cancel the build first and can fall back to stopping the daemon.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
