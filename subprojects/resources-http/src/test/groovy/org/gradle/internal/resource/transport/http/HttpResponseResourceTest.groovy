@@ -20,7 +20,6 @@ import org.apache.http.Header
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpResponse
 import org.apache.http.message.BasicHeader
-import org.gradle.internal.resource.ExternalResource
 import spock.lang.Specification
 import org.apache.http.HttpEntity
 
@@ -56,7 +55,24 @@ class HttpResponseResourceTest extends Specification {
         ex.message == "Unable to open Stream as it was opened before."
     }
 
-    ExternalResource resource() {
+    def "provides access to arbitrary headers"() {
+        given:
+        addHeader(name, value)
+
+        expect:
+        resource().getHeaderValue(name) == value
+
+        where:
+        name = "X-Client-Deprecation-Message"
+        value = "Some message"
+    }
+
+    def "returns null when accessing value of a non existing header"() {
+        expect:
+        resource().getHeaderValue("X-No-Such-Header") == null
+    }
+
+    HttpResponseResource resource() {
         new HttpResponseResource(method, sourceUrl, response)
     }
 
