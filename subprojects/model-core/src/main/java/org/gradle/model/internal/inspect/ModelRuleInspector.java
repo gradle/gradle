@@ -83,7 +83,7 @@ public class ModelRuleInspector {
     }
 
     // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)
-    public <T> void inspect(Class<T> source, ModelRegistry modelRegistry, Object target) {
+    public <T> void inspect(Class<T> source, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         validate(source);
         final Method[] methods = source.getDeclaredMethods();
 
@@ -99,7 +99,7 @@ public class ModelRuleInspector {
             MethodRuleDefinition ruleDefinition = new DefaultMethodRuleDefinition(method);
             MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
-                handler.register(ruleDefinition, modelRegistry, target);
+                handler.register(ruleDefinition, modelRegistry, dependencies);
             }
         }
     }

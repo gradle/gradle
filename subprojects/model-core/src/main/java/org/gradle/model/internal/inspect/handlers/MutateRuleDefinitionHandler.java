@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect.handlers;
 
 import org.gradle.model.Mutate;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.lang.annotation.Annotation;
@@ -28,7 +29,7 @@ public class MutateRuleDefinitionHandler extends AbstractMutationRuleDefinitionH
         return Mutate.class;
     }
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, Object target) {
+    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         mutationMethod(modelRegistry, ruleDefinition, false);
     }
 }

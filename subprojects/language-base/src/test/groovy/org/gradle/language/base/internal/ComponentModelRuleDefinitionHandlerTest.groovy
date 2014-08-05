@@ -15,14 +15,13 @@
  */
 
 package org.gradle.language.base.internal
-
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.plugins.PluginApplication
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
+import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.runtime.base.*
 import org.gradle.runtime.base.internal.registry.ComponentModelRuleDefinitionHandler
@@ -35,10 +34,9 @@ import java.lang.reflect.Method
 
 class ComponentModelRuleDefinitionHandlerTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
-    PluginApplication pluginApplication = Mock()
     def ruleDefinition = Mock(MethodRuleDefinition)
     def modelRegistry = Mock(ModelRegistry)
-    def project = ProjectBuilder.builder().build()
+    def ruleDependencies = Mock(RuleSourceDependencies)
 
     ComponentModelRuleDefinitionHandler componentRuleHandler = new ComponentModelRuleDefinitionHandler(instantiator)
 
@@ -59,10 +57,10 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
 
     def "applies ComponentModelBasePlugin and creates component type rule"() {
         when:
-        componentRuleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, project)
+        componentRuleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
 
         then:
-        project.plugins.hasPlugin(ComponentModelBasePlugin)
+        1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
         1 * modelRegistry.mutate(_)
@@ -80,7 +78,7 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
     @Unroll
     def "decent error message for #descr"() {
         when:
-        componentRuleHandler.register(ruleDefinitionForMethod(methodName), modelRegistry, project)
+        componentRuleHandler.register(ruleDefinitionForMethod(methodName), modelRegistry, ruleDependencies)
 
         then:
         def ex = thrown(InvalidComponentModelException)
@@ -99,8 +97,8 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
     }
 
     def aProjectPlugin() {
-        project = ProjectBuilder.builder().build()
-        _ * pluginApplication.target >> project
+        ruleDependencies = ProjectBuilder.builder().build()
+        _ * pluginApplication.target >> ruleDependencies
     }
 
     def aSettingsPlugin(def plugin) {

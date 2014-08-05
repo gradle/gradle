@@ -37,7 +37,7 @@ class ModelRuleInspectorTest extends Specification {
     def registryMock = Mock(ModelRegistry)
     def handlers = [new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler(), new ModelCreationRuleDefinitionHandler()]
     def inspector = new ModelRuleInspector(handlers)
-    def target = new Object()
+    def dependencies = Mock(RuleSourceDependencies)
 
     static class ModelThing {
         final String name
@@ -51,7 +51,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "can inspect class with no rules"() {
         when:
-        inspector.inspect(EmptyClass, registryMock, target)
+        inspector.inspect(EmptyClass, registryMock, dependencies)
 
         then:
         0 * registryMock._
@@ -66,7 +66,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "can inspect class with simple model creation rule"() {
         when:
-        inspector.inspect(SimpleModelCreationRuleInferredName, registry, target)
+        inspector.inspect(SimpleModelCreationRuleInferredName, registry, dependencies)
 
         then:
         def state = registry.state(new ModelPath("modelPath"))
@@ -114,7 +114,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "model creation rule cannot be generic"() {
         when:
-        inspector.inspect(HasGenericModelRule, registry, target)
+        inspector.inspect(HasGenericModelRule, registry, dependencies)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -130,7 +130,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "model rule method cannot be annotated with multiple rule annotations"() {
         when:
-        inspector.inspect(HasMultipleRuleAnnotations, registry, target)
+        inspector.inspect(HasMultipleRuleAnnotations, registry, dependencies)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -146,7 +146,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "type variables of model type are captured"() {
         when:
-        inspector.inspect(ConcreteGenericModelType, registry, target)
+        inspector.inspect(ConcreteGenericModelType, registry, dependencies)
         def element = registry.element(new ModelPath("strings"))
         def type = element.adapter.asReadOnly(new ModelType<List<String>>() {}).type
 
@@ -168,7 +168,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "type variables of model type are captured when method is generic in interface"() {
         when:
-        inspector.inspect(ConcreteGenericModelTypeImplementingGenericInterface, registry, target)
+        inspector.inspect(ConcreteGenericModelTypeImplementingGenericInterface, registry, dependencies)
         def element = registry.element(new ModelPath("strings"))
         def type = element.adapter.asReadOnly(new ModelType<List<String>>() {}).type
 
@@ -185,7 +185,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "rule cannot be of more than one type"() {
         when:
-        inspector.inspect(HasRuleWithIdentityCrisis, registry, target)
+        inspector.inspect(HasRuleWithIdentityCrisis, registry, dependencies)
 
         then:
         thrown InvalidModelRuleDeclarationException
@@ -198,7 +198,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "mutation rule cannot be generic"() {
         when:
-        inspector.inspect(GenericMutationRule, registry, target)
+        inspector.inspect(GenericMutationRule, registry, dependencies)
 
         then:
         thrown InvalidModelRuleDeclarationException
@@ -232,7 +232,7 @@ class ModelRuleInspectorTest extends Specification {
         registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
 
         when:
-        inspector.inspect(MutationRules, registry, target)
+        inspector.inspect(MutationRules, registry, dependencies)
 
         then:
         registry.element(path).adapter.asReadOnly(type).instance.sort() == ["1", "2"]
@@ -266,7 +266,7 @@ class ModelRuleInspectorTest extends Specification {
         registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
 
         when:
-        inspector.inspect(MutationAndFinalizeRules, registry, target)
+        inspector.inspect(MutationAndFinalizeRules, registry, dependencies)
 
         then:
         registry.element(path).adapter.asReadOnly(type).instance == ["1", "2"]
@@ -281,7 +281,7 @@ class ModelRuleInspectorTest extends Specification {
         registry.create(InstanceBackedModelCreator.of(ModelReference.of(ModelPath.path("integers"), new ModelType<List<Integer>>() {}), new SimpleModelRuleDescriptor("integers"), []))
 
         when:
-        inspector.inspect(MutationAndFinalizeRules, registryMock, target)
+        inspector.inspect(MutationAndFinalizeRules, registryMock, dependencies)
 
         then:
         1 * registryMock.finalize({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })

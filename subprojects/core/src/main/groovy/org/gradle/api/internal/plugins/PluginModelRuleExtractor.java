@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
@@ -43,8 +44,23 @@ public class PluginModelRuleExtractor implements PluginApplicationAction {
 
             ModelRegistry modelRegistry = ((ModelRegistryScope) target).getModelRegistry();
             for (Class<?> source : sources) {
-                inspector.inspect(source, modelRegistry, target);
+                inspector.inspect(source, modelRegistry, new PluginRuleSourceDependencies(target));
             }
+        }
+    }
+
+    private static class PluginRuleSourceDependencies implements RuleSourceDependencies {
+        private final PluginAware plugins;
+
+        private PluginRuleSourceDependencies(PluginAware plugins) {
+            this.plugins = plugins;
+        }
+
+        public void add(Class<?> source) {
+            if (!Plugin.class.isAssignableFrom(source)) {
+                throw new IllegalArgumentException("Only plugin classes are valid as rule source dependencies.");
+            }
+            plugins.getPlugins().apply((Class<? extends Plugin>) source);
         }
     }
 

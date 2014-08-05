@@ -22,6 +22,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.ModelRuleInvoker;
+import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionH
         return "annotated with @Model";
     }
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, Object target) {
+    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
 
         // TODO validate model name
         String modelName = determineModelName(ruleDefinition);

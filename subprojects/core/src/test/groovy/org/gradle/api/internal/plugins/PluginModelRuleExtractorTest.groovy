@@ -22,16 +22,16 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.core.ModelCreator
+import org.gradle.model.internal.inspect.MethodRuleDefinition
+import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler
 import org.gradle.model.internal.inspect.ModelRuleInspector
-import org.gradle.model.internal.inspect.handlers.ModelCreationRuleDefinitionHandler
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.registry.ModelRegistryScope
 import spock.lang.Specification
 
 class PluginModelRuleExtractorTest extends Specification {
 
-    def handler = new ModelCreationRuleDefinitionHandler()
+    def handler = Mock(MethodRuleDefinitionHandler)
     def inspector = new ModelRuleInspector([handler])
     def extractor = new PluginModelRuleExtractor(inspector)
     def registry = Mock(ModelRegistry)
@@ -92,7 +92,7 @@ class PluginModelRuleExtractorTest extends Specification {
         extractor.execute(application(new NoSources(), new ModelAwareTarget()))
 
         then:
-        0 * registry._
+        0 * handler._
     }
 
     static class Thing {}
@@ -115,7 +115,10 @@ class PluginModelRuleExtractorTest extends Specification {
         extractor.execute(application(new HasSource(), new ModelAwareTarget()))
 
         then:
-        1 * registry.create(_ as ModelCreator)
+        handler.isSatisfiedBy(_) >> { MethodRuleDefinition definition -> definition.getAnnotation(Model) != null }
+
+        and:
+        1 * handler.register({it.methodName == "thing"}, registry, _ as PluginModelRuleExtractor.PluginRuleSourceDependencies)
     }
 
     def "target is not model capable"() {

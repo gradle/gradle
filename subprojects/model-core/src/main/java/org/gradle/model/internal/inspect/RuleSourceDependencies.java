@@ -16,11 +16,9 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.registry.ModelRegistry;
-
-public interface MethodRuleDefinitionHandler extends Spec<MethodRuleDefinition> {
-    String getDescription();
-
-    void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies);
+/**
+ * Allows a rule to declare dependencies on the rules from another plugin/source.
+ */
+public interface RuleSourceDependencies {
+    void add(Class<?> source);
 }

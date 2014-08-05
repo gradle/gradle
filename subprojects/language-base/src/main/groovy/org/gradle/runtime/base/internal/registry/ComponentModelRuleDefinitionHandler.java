@@ -18,7 +18,6 @@ package org.gradle.runtime.base.internal.registry;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -32,6 +31,7 @@ import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
+import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.*;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
@@ -55,11 +55,11 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
         return "annotated with @ComponentType";
     }
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, Object target) {
+    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         Class<? extends LibrarySpec> type = readComponentType(ruleDefinition);
         Class<? extends DefaultLibrarySpec> implementation = determineImplementationType(ruleDefinition, type);
 
-        registerComponentType(target, type, implementation, modelRegistry, ruleDefinition.getDescriptor());
+        registerComponentType(dependencies, type, implementation, modelRegistry, ruleDefinition.getDescriptor());
     }
 
     private Class<? extends LibrarySpec> readComponentType(MethodRuleDefinition ruleDefinition) {
@@ -104,13 +104,8 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
         return (Class<? extends DefaultLibrarySpec>) implementation;
     }
 
-    private void registerComponentType(final Object target, final Class<? extends LibrarySpec> type, final Class<? extends DefaultLibrarySpec> implementation, ModelRegistry modelRegistry, ModelRuleDescriptor descriptor) {
-        if (!(target instanceof Project)) {
-            throw new UnsupportedOperationException(String.format("Cannot declare component type '%s' as the target '%s' is not a project", type.getName(), target));
-        }
-
-        final Project project = (Project) target;
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
+    private void registerComponentType(final RuleSourceDependencies dependencies, final Class<? extends LibrarySpec> type, final Class<? extends DefaultLibrarySpec> implementation, ModelRegistry modelRegistry, ModelRuleDescriptor descriptor) {
+        dependencies.add(ComponentModelBasePlugin.class);
 
         modelRegistry.mutate(new ComponentTypeModelMutator(descriptor, type, implementation));
     }
