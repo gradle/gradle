@@ -82,7 +82,7 @@ class HashUtilTest extends Specification {
 
     def "createCompactMD5 returns correct String" () {
         expect:
-        HashUtil.createCompactMD5(stringToHash) == new BigInteger(md5HashString, 16).toString(32)
+        HashUtil.createCompactMD5(stringToHash) == new BigInteger(md5HashString, 16).toString(36)
     }
 
     def "sha1 from byteArray returns SHA1 hash" () {
