@@ -158,7 +158,7 @@ Gradle 2.1 includes Groovy 2.3.6, where Gradle 2.0 included Groovy 2.3.4.
 This is a non breaking change.
 All build scripts and plugins that work with Gradle 2.0 will continue to work without change.
 
-### Support for the 'branch' attribute when publishing or resolving Ivy modules
+### Support for the 'branch' attribute when publishing or resolving Ivy modules (i)
 
 The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports setting the 'branch' attribute on the module being published:
 
@@ -183,7 +183,7 @@ When resolving Ivy modules, component metadata rules can also access the branch 
         }
     }
 
-### Support for publishing extra 'info' elements when publishing Ivy modules
+### Support for publishing extra 'info' elements when publishing Ivy modules (i)
 
 The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports publishing extra 'info' elements to the ivy.xml file generated
 via the [IvyModuleDescriptorSpec](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html) interface.
@@ -226,6 +226,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ## Potential breaking changes
+
+### Upgraded to Groovy 2.3.6
+
+TBD
 
 ### Changed Java compiler integration for joint Java - Scala compilation
 
@@ -371,7 +375,6 @@ We extracted the creation of the `projectComponents` container and and the Langu
 - Renamed ComponentSpecIdentifier -> NamedProjectComponentIdentifier
 - Renamed ProjectBinary -> BinarySpec
 
-
 ### Changes to incubating Java language plugins
 
 To better support the production of multiple binary outputs for a single set of sources, a new set of Java
@@ -459,7 +462,7 @@ TODO - replacement (@RuleSource) detail
 
 - Incubating class `IvyModuleDescriptor` has been renamed to `IvyModuleDescriptorSpec`
 
-### IvyModuleMetadata renamed to IvyModuleDescriptorSpec
+### IvyModuleMetadata renamed to IvyModuleDescriptor
 
 - Incubating class `IvyModuleMetadata` has been renamed to `IvyModuleDescriptor`
 - Incubating method `IvyModuleDescriptor.getExtraInfo()` now returns Map<[NamespaceId](javadoc/org/gradle/api/artifacts/NamespaceId.html), String> instead of Map<String, String>
