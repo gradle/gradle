@@ -38,10 +38,11 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     DefaultTaskExecutionPlan executionPlan
     DefaultProject root;
+    def cancellationHandler = Mock(BuildCancellationToken)
 
     def setup() {
         root = createRootProject();
-        executionPlan = new DefaultTaskExecutionPlan()
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler)
     }
 
     private void addToGraphAndPopulate(List tasks) {
@@ -532,8 +533,6 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     def "stops returning tasks when build is cancelled"() {
-        def cancellationHandler = Mock(BuildCancellationToken)
-        executionPlan.useCancellationHandler(cancellationHandler)
         2 * cancellationHandler.cancellationRequested >>> [false, true]
         Task a = task("a");
         Task b = task("b");

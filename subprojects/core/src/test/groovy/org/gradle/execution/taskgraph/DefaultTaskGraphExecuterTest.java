@@ -70,8 +70,9 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
+            allowing(cancellationToken).isCancellationRequested();
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor());
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), cancellationToken);
     }
 
     @Test
@@ -361,30 +362,6 @@ public class DefaultTaskGraphExecuterTest {
             fail();
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(wrappedFailure));
-        }
-
-        assertThat(executedTasks, equalTo(toList(a)));
-    }
-
-    @Test
-    public void testStopsExecutionWhenCancelled() {
-        final Task a = task("a");
-        final Task b = task("b");
-
-        taskExecuter.useCancellationHandler(cancellationToken);
-        taskExecuter.addTasks(toList(a, b));
-
-        context.checking(new Expectations(){{
-            one(cancellationToken).isCancellationRequested();
-            will(returnValue(Boolean.FALSE));
-            one(cancellationToken).isCancellationRequested();
-            will(returnValue(Boolean.TRUE));
-        }});
-        try {
-            taskExecuter.execute();
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("Build cancelled.", e.getMessage());
         }
 
         assertThat(executedTasks, equalTo(toList(a)));

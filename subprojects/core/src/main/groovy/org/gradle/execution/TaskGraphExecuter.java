@@ -18,7 +18,6 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.specs.Spec;
-import org.gradle.initialization.BuildCancellationToken;
 
 public interface TaskGraphExecuter extends TaskExecutionGraph {
     /**
@@ -42,9 +41,4 @@ public interface TaskGraphExecuter extends TaskExecutionGraph {
      * Sets the handler to use when a task fails.
      */
     void useFailureHandler(TaskFailureHandler handler);
-
-    /**
-     * Sets the cancellation token to determine if the build is cancelled.
-     */
-    void useCancellationHandler(BuildCancellationToken cancellationToken);
 }
