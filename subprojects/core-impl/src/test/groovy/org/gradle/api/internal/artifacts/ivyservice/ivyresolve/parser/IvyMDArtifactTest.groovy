@@ -37,7 +37,6 @@ class IvyMDArtifactTest extends Specification {
         then:
         md.allArtifacts*.toString() == ["org#foo;1.0!foo.ext(jar)"]
         md.getArtifacts("runtime")*.toString() == ["org#foo;1.0!foo.ext(jar)"]
-        IvyUtil.artifactsEqual(md.allArtifacts[0], new MDArtifact(md, "foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b']))
     }
 
     def "can be added to metadata that already contains artifacts"() {
