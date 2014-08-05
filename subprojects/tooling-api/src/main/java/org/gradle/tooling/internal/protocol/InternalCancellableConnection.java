@@ -27,7 +27,7 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * <p>Consumer compatibility: This interface is used by all consumer versions from 2.1-rc-1.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 2.1-rc-1.</p>
  *
- * @since 1.6-rc-1
+ * @since 2.1-rc-1
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
  */
 public interface InternalCancellableConnection extends InternalProtocolInterface {

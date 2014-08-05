@@ -21,10 +21,11 @@ package org.gradle.tooling.internal.protocol;
  * <p>The following constraints apply to implementations:
  * <ul>
  * <li>Implementations must be thread-safe.
- * <li>Implementations should implement {@link ModelBuilder}. This is used by all consumer versions from 1.6-rc-1.
+ * <li>Implementations should implement {@link InternalCancellableConnection}. This is used by all consumer versions from 2.1-rc-1.
  * <li>Implementations should implement {@link InternalBuildActionExecutor}. This is used by all consumer versions from 1.8-rc-1.
  * <li>Implementations should implement {@link ConfigurableConnection}. This is used by all consumer versions from 1.2-rc-1.
  * <li>Implementations should provide a zero-args constructor. This is used by all consumer versions from 1.0-milestone-3.
+ * <li>For backwards compatibility, implementations should implement {@link ModelBuilder}. This is used by all consumer versions from 1.6-rc-1 to 2.0.
  * <li>For backwards compatibility, implementations should implement {@link BuildActionRunner}. This is used by consumer versions from 1.2-rc-1 to 1.5.
  * <li>For backwards compatibility, implementations should implement {@link InternalConnection}. This is used by consumer versions from 1.0-milestone-8 to 1.1.
  * <li>For backwards compatibility, implementations should provide a {@code void configureLogging(boolean verboseLogging)} method. This is used by consumer versions
@@ -64,14 +65,14 @@ public interface ConnectionVersion4 {
      * <p>Fetches a snapshot of the model for the project.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3 to 1.0-milestone-7. It is also used by later consumers when the provider
-     * does not implement {@link InternalConnection} or {@link BuildActionRunner}
+     * does not implement newer interfaces.
      * </p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Versions 2.0 and later fail with a 'no longer supported' exception.</p>
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.0-milestone-3
-     * @deprecated 1.0-milestone-8. Use {@link ModelBuilder#getModel(ModelIdentifier, BuildParameters)} instead.
+     * @deprecated 1.0-milestone-8. Use {@link InternalCancellableConnection#getModel(ModelIdentifier, InternalCancellationToken, BuildParameters)} instead.
      */
     @Deprecated
     ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
@@ -80,14 +81,14 @@ public interface ConnectionVersion4 {
      * <p>Executes a build.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3 to 1.1. It is also used by later consumers when the provider
-     * does not implement {@link BuildActionRunner}
+     * does not implement newer interfaces.
      * </p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Versions 2.0 and later fail with a 'no longer supported' exception.</p>
      *
      * @param buildParameters The parameters for the build.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.0-milestone-3
-     * @deprecated 1.2-rc-1. Use {@link ModelBuilder#getModel(ModelIdentifier, BuildParameters)} instead.
+     * @deprecated 1.2-rc-1. Use {@link InternalCancellableConnection#getModel(ModelIdentifier, InternalCancellationToken, BuildParameters)} instead.
      */
     @Deprecated
     void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws IllegalStateException;
