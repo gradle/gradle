@@ -83,15 +83,4 @@ public class IvyUtil {
         moduleDescriptor.setStatus("integration");
         return moduleDescriptor;
     }
-
-    //TODO SF coverage
-    public static boolean artifactsEqual(Artifact left, Artifact right) {
-        return left.getModuleRevisionId().equals(left.getModuleRevisionId())
-                && (left.getPublicationDate() == null ? (right.getPublicationDate() == null) : left.getPublicationDate().equals(
-                right.getPublicationDate()))
-                && left.getName().equals(right.getName())
-                && left.getExt().equals(right.getExt())
-                && left.getType().equals(right.getType())
-                && left.getQualifiedExtraAttributes().equals(right.getQualifiedExtraAttributes());
-    }
 }

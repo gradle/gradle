@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName;
 
 import java.net.URL;
 import java.util.LinkedHashSet;
@@ -27,7 +28,6 @@ import java.util.Set;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Arrays.asList;
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.artifactsEqual;
 
 public class IvyMDArtifact {
 
@@ -82,6 +82,10 @@ public class IvyMDArtifact {
             }
         }
         addArtifact(newArtifact, this.configurations, target);
+    }
+
+    private boolean artifactsEqual(Artifact a, Artifact b) {
+        return new DefaultIvyArtifactName(a).equals(new DefaultIvyArtifactName(b));
     }
 
     private static void addArtifact(MDArtifact artifact, Set<String> configurations, DefaultModuleDescriptor target) {
