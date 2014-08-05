@@ -31,9 +31,10 @@ public class DefaultCancellationToken implements CancellationToken, InternalCanc
     }
 
     public synchronized boolean addCallback(Runnable cancellationHandler) {
-        callbacks.add(cancellationHandler);
         if (cancelled) {
             cancellationHandler.run();
+        } else {
+            callbacks.add(cancellationHandler);
         }
         return cancelled;
     }
