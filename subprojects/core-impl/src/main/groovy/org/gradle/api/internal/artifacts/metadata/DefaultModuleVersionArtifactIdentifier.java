@@ -45,7 +45,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
     }
 
     public String getDisplayName() {
-        return String.format("%s:%s", componentIdentifier, name);
+        return String.format("%s (%s)", name, componentIdentifier);
     }
 
     public IvyArtifactName getName() {
