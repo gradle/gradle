@@ -144,6 +144,62 @@ The method rule can't be generic so the only other possible cases are bounded ty
 
 > UNANSWERED.
 
+## Story: Plugin author unit tests plugin that declares model elements
+
+This story adds a mechanism that plugin authors can use to test that their model declaring plugin is interpreted by Gradle in the way that they expect.
+
+Mock up:
+
+    package org.gradle.model.test
+    
+    abstract class ModelFixture {      
+      
+      static interface class Builder {
+          Builder addSource(Class<?> source); // throws if source is invalid
+          ModelFixture build();
+        }
+      }
+      
+      static Builder builder() {
+        // …
+      }
+      
+      // Methods return fully configured/finalized object
+      
+      Object get(String path);
+      <T> get(Class<T> type);
+      <T> get(Class<T> type, String path);
+      <T> get(ModelType<T> type);
+      <T> get(ModelType<T> type, String path);
+    }
+
+Example test:
+
+    when:
+    def builder = ModelFixture.builder()
+    builder.add(MyPlugin)
+    def fixture = builder.build()
+    
+    then:
+    fixture.get(MyModelElement).var == "value"
+
+To make this more useful the builder should be able to take mocks and other kinds of object _instances_ (not possible with the current APIs because rule sources are static). 
+This will happen later.
+
+This story will require making `ModelType` (or some facade) public. 
+
+### Test Coverage
+
+- Can add one or more plugin sources, and successfully retrieve model element
+- Can add one or more plugin sources, and successfully retrieve model element by one of its many readable views
+- model rule execution failure (e.g. attempt to execute rule where not all inputs can be bound) throws useful exception
+- Can retrieve model element via compatible generic type
+- Methods not taking a model path fail when multiple candidates for type exist
+
+### Open Questions
+
+- Shortcut methods for building from a list of sources? (i.e. instead of additive builder)
+
 ## Story: Plugin defines tasks using model as input
 
 Introduce some mechanism where a plugin can static declare a rule to define tasks using its model object as input.
