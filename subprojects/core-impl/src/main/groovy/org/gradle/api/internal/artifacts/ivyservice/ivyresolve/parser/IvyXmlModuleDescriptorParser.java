@@ -854,7 +854,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String revConstraint = substitute(attributes.getValue("revConstraint"));
 
             String[] ignoredAttributeNames = DEPENDENCY_REGULAR_ATTRIBUTES;
-            Map extraAttributes = getExtraAttributes(attributes, ignoredAttributeNames);
+            Map<String, String> extraAttributes = getExtraAttributes(attributes, ignoredAttributeNames);
 
             ModuleRevisionId revId = createModuleRevisionId(org, name, branch, rev, extraAttributes);
             ModuleRevisionId dynamicId;
@@ -888,7 +888,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String type = elvis(substitute(attributes.getValue("type")), "jar");
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
                 String url = substitute(attributes.getValue("url"));
-                Map extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
+                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
                 artifact = new IvyMDArtifact(getMd(), artName, type, ext, url == null ? null : new URL(url), extraAttributes);
                 String confs = substitute(attributes.getValue("conf"));
                 
@@ -942,7 +942,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String module = substitute(attributes.getValue("module"));
             String revision = substitute(attributes.getValue("revision"));
             String branch = substitute(attributes.getValue("branch"));
-            Map extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
+            Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
             getMd().setModuleRevisionId(createModuleRevisionId(org, module, branch, revision, extraAttributes));
 
             getMd().setStatus(elvis(substitute(attributes.getValue("status")), "integration"));
@@ -1027,21 +1027,21 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ext = ext != null ? ext : type;
             if (state == State.DEP_ARTIFACT) {
                 String url = substitute(attributes.getValue("url"));
-                Map extraAttributes = getExtraAttributes(attributes, new String[]{"name", "type", "ext", "url", "conf"});
+                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"name", "type", "ext", "url", "conf"});
                 confAware = new DefaultDependencyArtifactDescriptor(dd, name, type, ext, url == null ? null : new URL(url), extraAttributes);
             } else if (state == State.ARTIFACT_INCLUDE) {
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
                 ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
-                Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
+                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultIncludeRule(aid, matcher, extraAttributes);
             } else { // _state == ARTIFACT_EXCLUDE || EXCLUDE
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
                 ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
-                Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
+                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultExcludeRule(aid, matcher, extraAttributes);
             }
             String confs = substitute(attributes.getValue("conf"));
@@ -1180,8 +1180,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return IvyPatternHelper.substituteVariables(name, properties);
         }
 
-        private Map getExtraAttributes(Attributes attributes, String[] ignoredAttributeNames) {
-            Map ret = new HashMap();
+        private Map<String, String> getExtraAttributes(Attributes attributes, String[] ignoredAttributeNames) {
+            Map<String, String> ret = new HashMap<String, String>();
             Collection ignored = Arrays.asList(ignoredAttributeNames);
             for (int i = 0; i < attributes.getLength(); i++) {
                 if (!ignored.contains(attributes.getQName(i))) {
@@ -1192,9 +1192,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         private void fillExtraAttributes(DefaultExtendableItem item, Attributes attributes, String[] ignoredAttNames) {
-            Map extraAttributes = getExtraAttributes(attributes, ignoredAttNames);
-            for (Object name : extraAttributes.keySet()) {
-                item.setExtraAttribute((String) name, (String) extraAttributes.get(name));
+            Map<String, String> extraAttributes = getExtraAttributes(attributes, ignoredAttNames);
+            for (String name : extraAttributes.keySet()) {
+                item.setExtraAttribute(name, extraAttributes.get(name));
             }
         }
 

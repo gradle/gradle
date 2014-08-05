@@ -37,9 +37,9 @@ public class IvyMDArtifact {
     private final String type;
     private final String ext;
     private final URL url;
-    private final Map extraAttributes;
+    private final Map<String, String> extraAttributes;
 
-    public IvyMDArtifact(DefaultModuleDescriptor md, String artName, String type, String ext, URL url, Map extraAttributes) {
+    public IvyMDArtifact(DefaultModuleDescriptor md, String artName, String type, String ext, URL url, Map<String, String> extraAttributes) {
         this.md = md;
         this.artName = artName;
         this.type = type;
