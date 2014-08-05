@@ -28,7 +28,7 @@ To create an install from the source tree you can run either of the following:
 
 This will create a minimal installation; just what's needed to run Gradle (i.e. no docs). Note that the `-Pgradle_installPath` denotes where to install to. 
 
-You can then build a Gradle built project with this installation:
+You can then build a Gradle based project with this installation:
 
     /usr/local/gradle-source-build/bin/gradle «some task»
 
