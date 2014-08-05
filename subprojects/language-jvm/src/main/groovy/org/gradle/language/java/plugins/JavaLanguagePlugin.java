@@ -62,7 +62,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
             return DefaultJavaSourceSet.class;
         }
 
-        Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
+        private Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
 
         public Java(){
             languageOutputTypes.add(JvmByteCodeOutput.class);
