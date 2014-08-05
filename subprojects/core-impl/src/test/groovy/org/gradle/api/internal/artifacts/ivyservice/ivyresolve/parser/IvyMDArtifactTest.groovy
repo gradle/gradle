@@ -28,7 +28,7 @@ class IvyMDArtifactTest extends Specification {
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
 
     def "adds correct artifact to meta-data"() {
-        def a = new IvyMDArtifact(md, "foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
+        def a = new IvyMDArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
         a.addConfiguration("runtime")
         md.addConfiguration(new Configuration("runtime"))
 

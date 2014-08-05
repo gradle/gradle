@@ -889,7 +889,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
                 String url = substitute(attributes.getValue("url"));
                 Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
-                artifact = new IvyMDArtifact(getMd(), artName, type, ext, url == null ? null : new URL(url), extraAttributes);
+                artifact = new IvyMDArtifact(artName, type, ext, url == null ? null : new URL(url), extraAttributes);
                 String confs = substitute(attributes.getValue("conf"));
                 
                 // Only add confs if they are specified. if they aren't, endElement will handle this only if there are no conf defined in sub elements

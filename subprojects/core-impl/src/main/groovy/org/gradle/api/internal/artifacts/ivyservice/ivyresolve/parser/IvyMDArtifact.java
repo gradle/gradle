@@ -32,15 +32,13 @@ import static java.util.Arrays.asList;
 public class IvyMDArtifact {
 
     private Set<String> configurations = new LinkedHashSet<String>();
-    private final DefaultModuleDescriptor md;
     private final String artName;
     private final String type;
     private final String ext;
     private final URL url;
     private final Map<String, String> extraAttributes;
 
-    public IvyMDArtifact(DefaultModuleDescriptor md, String artName, String type, String ext, URL url, Map<String, String> extraAttributes) {
-        this.md = md;
+    public IvyMDArtifact(String artName, String type, String ext, URL url, Map<String, String> extraAttributes) {
         this.artName = artName;
         this.type = type;
         this.ext = ext;
@@ -49,7 +47,7 @@ public class IvyMDArtifact {
     }
 
     public IvyMDArtifact(DefaultModuleDescriptor md, String artName, String type, String ext) {
-        this(md, artName, type, ext, null, null);
+        this(artName, type, ext, null, null);
     }
 
     public IvyMDArtifact addConfiguration(String confName) {
@@ -66,7 +64,7 @@ public class IvyMDArtifact {
             throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
         }
 
-        MDArtifact newArtifact = new MDArtifact(md, artName, type, ext, url, extraAttributes);
+        MDArtifact newArtifact = new MDArtifact(target, artName, type, ext, url, extraAttributes);
         //Adding the artifact will replace any existing artifact
         //This potentially leads to loss of information - the configurations of the replaced artifact are lost (see GRADLE-123)
         //Hence we attempt to find an existing artifact and merge the information
