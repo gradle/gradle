@@ -67,7 +67,6 @@ class BuildableIvyModuleVersionMetaDataTest extends Specification {
     def "can be added to metadata that already contains the same artifact in different configuration"() {
         def a1 = new BuildableIvyArtifact("foo", "jar", "jar").addConfiguration("archives")
         //some publishers create ivy metadata that contains separate entries for the same artifact but different configurations
-        //Gradle no longer does it TODO SF - integ test
         def a2 = new BuildableIvyArtifact("foo", "jar", "jar").addConfiguration("runtime")
 
         md.addConfiguration(new Configuration("runtime"))
