@@ -495,7 +495,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             replaceConfigurationWildcards();
             if (!artifactsDeclared) {
                 String[] configurationNames = getMd().getConfigurationsNames();
-                IvyMDArtifact implicitArtifact = new IvyMDArtifact(getMd(), getMd().getModuleRevisionId().getName(), "jar", "jar");
+                IvyMDArtifact implicitArtifact = new IvyMDArtifact(getMd().getModuleRevisionId().getName(), "jar", "jar");
                 for (String configurationName : configurationNames) {
                     implicitArtifact.addConfiguration(configurationName);
                 }

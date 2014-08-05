@@ -16,38 +16,33 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName;
 
 import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Sets.newLinkedHashSet;
-import static java.util.Arrays.asList;
-
 public class IvyMDArtifact {
 
-    private Set<String> configurations = new LinkedHashSet<String>();
-    private final String artName;
+    private final Set<String> configurations = new LinkedHashSet<String>();
+    private final String name;
     private final String type;
     private final String ext;
     private final URL url;
     private final Map<String, String> extraAttributes;
 
-    public IvyMDArtifact(String artName, String type, String ext, URL url, Map<String, String> extraAttributes) {
-        this.artName = artName;
+    public IvyMDArtifact(String name, String type, String ext, URL url, Map<String, String> extraAttributes) {
+        this.name = name;
         this.type = type;
         this.ext = ext;
         this.url = url;
         this.extraAttributes = extraAttributes;
     }
 
-    public IvyMDArtifact(DefaultModuleDescriptor md, String artName, String type, String ext) {
-        this(artName, type, ext, null, null);
+    public IvyMDArtifact(String name, String type, String ext) {
+        this(name, type, ext, null, null);
     }
 
     public IvyMDArtifact addConfiguration(String confName) {
@@ -59,41 +54,7 @@ public class IvyMDArtifact {
         return configurations;
     }
 
-    public void addTo(DefaultModuleDescriptor target) {
-        if (configurations.isEmpty()) {
-            throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
-        }
-
-        MDArtifact newArtifact = new MDArtifact(target, artName, type, ext, url, extraAttributes);
-        //Adding the artifact will replace any existing artifact
-        //This potentially leads to loss of information - the configurations of the replaced artifact are lost (see GRADLE-123)
-        //Hence we attempt to find an existing artifact and merge the information
-        Artifact[] allArtifacts = target.getAllArtifacts();
-        for (Artifact existing : allArtifacts) {
-            if (artifactsEqual(existing, newArtifact)) {
-                if (!(existing instanceof MDArtifact)) {
-                    throw new IllegalArgumentException("Cannot update an existing artifact (" + existing + ") in provided module descriptor (" + target + ")"
-                            + " because the artifact is not an instance of MDArtifact." + target);
-                }
-                addArtifact((MDArtifact) existing, this.configurations, target);
-                return; //there is only one matching artifact
-            }
-        }
-        addArtifact(newArtifact, this.configurations, target);
-    }
-
-    private boolean artifactsEqual(Artifact a, Artifact b) {
-        return new DefaultIvyArtifactName(a).equals(new DefaultIvyArtifactName(b));
-    }
-
-    private static void addArtifact(MDArtifact artifact, Set<String> configurations, DefaultModuleDescriptor target) {
-        //The existing artifact configurations will be first
-        Set<String> existingConfigurations = newLinkedHashSet(asList(artifact.getConfigurations()));
-        for (String c : configurations) {
-            if (!existingConfigurations.contains(c)) {
-                artifact.addConfiguration(c);
-                target.addArtifact(c, artifact);
-            }
-        }
+    public MDArtifact toIvyArtifact(DefaultModuleDescriptor moduleDescriptor) {
+        return new MDArtifact(moduleDescriptor, name, type, ext, url, extraAttributes);
     }
 }

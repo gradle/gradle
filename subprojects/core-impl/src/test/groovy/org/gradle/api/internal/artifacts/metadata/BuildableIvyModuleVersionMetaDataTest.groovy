@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+package org.gradle.api.internal.artifacts.metadata
 
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.MDArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyMDArtifact
 import spock.lang.Specification
 
-class IvyMDArtifactTest extends Specification {
+class BuildableIvyModuleVersionMetaDataTest extends Specification {
 
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
+    def meta = new BuildableIvyModuleVersionMetaData(md)
 
     def "adds correct artifact to meta-data"() {
         def a = new IvyMDArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
         a.addConfiguration("runtime")
         md.addConfiguration(new Configuration("runtime"))
 
-        when: a.addTo(md)
+        when: meta.addArtifact(a)
 
         then:
         md.allArtifacts*.toString() == ["org#foo;1.0!foo.ext(jar)"]
@@ -40,15 +40,15 @@ class IvyMDArtifactTest extends Specification {
     }
 
     def "can be added to metadata that already contains artifacts"() {
-        def a1 = new IvyMDArtifact(md, "foo", "jar", "jar").addConfiguration("runtime")
-        def a2 = new IvyMDArtifact(md, "foo-all", "zip", "zip").addConfiguration("testUtil")
+        def a1 = new IvyMDArtifact("foo", "jar", "jar").addConfiguration("runtime")
+        def a2 = new IvyMDArtifact("foo-all", "zip", "zip").addConfiguration("testUtil")
 
         md.addConfiguration(new Configuration("runtime"))
         md.addConfiguration(new Configuration("testUtil"))
 
         when:
-        a1.addTo(md)
-        a2.addTo(md)
+        meta.addArtifact(a1)
+        meta.addArtifact(a2)
 
         then:
         md.allArtifacts*.toString() == ["org#foo;1.0!foo.jar", "org#foo;1.0!foo-all.zip"]
@@ -57,17 +57,17 @@ class IvyMDArtifactTest extends Specification {
     }
 
     def "can be added to metadata that already contains the same artifact in different configuration"() {
-        def a1 = new IvyMDArtifact(md, "foo", "jar", "jar").addConfiguration("archives")
+        def a1 = new IvyMDArtifact("foo", "jar", "jar").addConfiguration("archives")
         //some publishers create ivy metadata that contains separate entries for the same artifact but different configurations
         //Gradle no longer does it TODO SF - integ test
-        def a2 = new IvyMDArtifact(md, "foo", "jar", "jar").addConfiguration("runtime")
+        def a2 = new IvyMDArtifact("foo", "jar", "jar").addConfiguration("runtime")
 
         md.addConfiguration(new Configuration("runtime"))
         md.addConfiguration(new Configuration("archives"))
 
         when:
-        a1.addTo(md)
-        a2.addTo(md)
+        meta.addArtifact(a1)
+        meta.addArtifact(a2)
 
         then:
         md.allArtifacts*.toString() == ["org#foo;1.0!foo.jar"]
