@@ -111,8 +111,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         fails("compileGroovy")
-        compileErrorOutput.contains("Groovy configuration script")
-        compileErrorOutput.contains("requires Groovy 2.1+ but found Groovy $groovyVersionNumber")
+        failure.assertHasCause("Using a Groovy compiler configuration script requires Groovy 2.1+ but found Groovy $groovyVersionNumber")
     }
 
     def "useConfigurationScript"() {
@@ -122,7 +121,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         fails("compileGroovy")
-        compileErrorOutput.contains('Cannot find matching method')
+        compileErrorOutput.contains('Cannot find matching method java.lang.String#bar()')
     }
 
     def "failsBecauseOfMissingConfigFile"() {
@@ -131,9 +130,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         }
         expect:
         fails("compileGroovy")
-        // for some reasons, line breaks occur in different places when running this
-        // test in different environments; hence we only check for short snippets
-        assert compileErrorOutput.contains('specified for property \'groovyOptions.configurationScript\' does not exist')
+        failure.assertHasCause("File '${file('groovycompilerconfig.groovy')}' specified for property 'groovyOptions.configurationScript' does not exist.")
     }
 
     def "failsBecauseOfInvalidConfigFile"() {
@@ -142,10 +139,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         }
         expect:
         fails("compileGroovy")
-        // for some reasons, line breaks occur in different places when running this
-        // test in different environments; hence we only check for short snippets
-        assert compileErrorOutput.contains('Error while executing Groovy compiler configuration script')
-        assert compileErrorOutput.contains('No such property: TypeChecked for class: groovycompilerconfig')
+        failure.assertHasCause("Could not execute Groovy compiler configuration script: ${file('groovycompilerconfig.groovy')}")
     }
 
     protected ExecutionResult run(String... tasks) {
