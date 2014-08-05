@@ -42,7 +42,6 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     private static final String JSON = "application/json";
 
     public static final String DEPRECATION_MESSAGE_HEADER = "X-Client-Deprecation-Message";
-    public static final String DEPRECATION_DEADLINE_HEADER = "X-Client-Deprecation-Deadline";
 
     private final HttpResourceAccessor resourceAccessor;
 
@@ -113,9 +112,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     private void checkForDeprecationMessageHeader(HttpResponseResource response) {
         String message = response.getHeaderValue(DEPRECATION_MESSAGE_HEADER);
         if (message != null) {
-            String deadline = response.getHeaderValue(DEPRECATION_DEADLINE_HEADER);
-            String deadlineFormat = (deadline != null) ? " It is scheduled to be removed after %s." : "";
-            DeprecationLogger.nagUserWith(String.format("%s has been deprecated." + deadlineFormat, message, deadline));
+            DeprecationLogger.nagUserWith(message);
         }
     }
 
