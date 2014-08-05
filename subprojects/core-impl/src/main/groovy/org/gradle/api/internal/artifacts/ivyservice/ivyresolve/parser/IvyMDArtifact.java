@@ -54,7 +54,10 @@ public class IvyMDArtifact {
         return configurations;
     }
 
-    public MDArtifact toIvyArtifact(DefaultModuleDescriptor moduleDescriptor) {
+    /**
+     * Ivy Artifact instance that is not attached to any configurations yet
+     */
+    public MDArtifact unattachedArtifact(DefaultModuleDescriptor moduleDescriptor) {
         return new MDArtifact(moduleDescriptor, name, type, ext, url, extraAttributes);
     }
 }

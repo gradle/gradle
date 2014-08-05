@@ -34,34 +34,34 @@ public class BuildableIvyModuleVersionMetaData extends DefaultIvyModuleVersionMe
         this.module = module;
     }
 
-    public void addArtifact(IvyMDArtifact artifact) {
-        if (artifact.getConfigurations().isEmpty()) {
+    public void addArtifact(IvyMDArtifact newArtifact) {
+        if (newArtifact.getConfigurations().isEmpty()) {
             throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
         }
 
-        MDArtifact newArtifact = artifact.toIvyArtifact(module);
+        MDArtifact unattached = newArtifact.unattachedArtifact(module);
         //Adding the artifact will replace any existing artifact
         //This potentially leads to loss of information - the configurations of the replaced artifact are lost (see GRADLE-123)
         //Hence we attempt to find an existing artifact and merge the information
         Artifact[] allArtifacts = module.getAllArtifacts();
         for (Artifact existing : allArtifacts) {
-            if (artifactsEqual(existing, newArtifact)) {
+            if (artifactsEqual(unattached, existing)) {
                 if (!(existing instanceof MDArtifact)) {
                     throw new IllegalArgumentException("Cannot update an existing artifact (" + existing + ") in provided module descriptor (" + module + ")"
                             + " because the artifact is not an instance of MDArtifact." + module);
                 }
-                addArtifact((MDArtifact) existing, artifact.getConfigurations(), module);
+                attachArtifact((MDArtifact) existing, newArtifact.getConfigurations(), module);
                 return; //there is only one matching artifact
             }
         }
-        addArtifact(newArtifact, artifact.getConfigurations(), module);
+        attachArtifact(unattached, newArtifact.getConfigurations(), module);
     }
 
     private boolean artifactsEqual(Artifact a, Artifact b) {
         return new DefaultIvyArtifactName(a).equals(new DefaultIvyArtifactName(b));
     }
 
-    private static void addArtifact(MDArtifact artifact, Set<String> configurations, DefaultModuleDescriptor target) {
+    private static void attachArtifact(MDArtifact artifact, Set<String> configurations, DefaultModuleDescriptor target) {
         //The existing artifact configurations will be first
         Set<String> existingConfigurations = newLinkedHashSet(asList(artifact.getConfigurations()));
         for (String c : configurations) {

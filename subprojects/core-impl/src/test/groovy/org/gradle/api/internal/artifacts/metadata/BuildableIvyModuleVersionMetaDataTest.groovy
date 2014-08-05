@@ -39,6 +39,15 @@ class BuildableIvyModuleVersionMetaDataTest extends Specification {
         md.getArtifacts("runtime")*.toString() == ["org#foo;1.0!foo.ext(jar)"]
     }
 
+    def "prevents adding artifact without configurations"() {
+        def unattached = new IvyMDArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
+        md.addConfiguration(new Configuration("runtime"))
+
+        when: meta.addArtifact(unattached)
+
+        then: thrown(IllegalArgumentException)
+    }
+
     def "can be added to metadata that already contains artifacts"() {
         def a1 = new IvyMDArtifact("foo", "jar", "jar").addConfiguration("runtime")
         def a2 = new IvyMDArtifact("foo-all", "zip", "zip").addConfiguration("testUtil")
