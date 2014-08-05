@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.base.internal
+
 import org.gradle.api.initialization.Settings
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -66,6 +67,17 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         1 * modelRegistry.mutate(_)
     }
 
+    def "applies ComponentModelBasePlugin only when implementation not set"() {
+        when:
+        componentRuleHandler.register(ruleDefinitionForMethod("noImplementationSet"), modelRegistry, ruleDependencies)
+
+        then:
+        1 * ruleDependencies.add(ComponentModelBasePlugin)
+
+        and:
+        0 * modelRegistry._
+    }
+
     def ruleDefinitionForMethod(String methodName) {
         for (Method candidate : Rules.class.getDeclaredMethods()) {
             if (candidate.getName().equals(methodName)) {
@@ -87,7 +99,8 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         where:
         methodName                         | expectedMessage                                                                                 | descr
         "extraParameter"                   | "ComponentType method must have a single parameter of type ComponentTypeBuilder."               | "additional rule parameter"
-        "noImplementationSet"              | "ComponentType method must set default implementation."                        | "missing implementation parameter"
+        "returnValue"                      | "ComponentType method must not have a return value."                                            | "method with return type"
+        "implementationSetMultipleTimes"   | "ComponentType method cannot set default implementation multiple times."                               | "implementation set multiple times"
         "noTypeParam"                      | "ComponentTypeBuilder parameter must declare a type parameter (must be generified)."            | "missing type parameter"
         "notLibrarySpec"                   | "Component type 'NotLibrarySpec' must extend 'LibrarySpec'."                                    | "type not extending LibrarySpec"
         "notCustomLibrary"                 | "Component type must be a subtype of 'LibrarySpec'."                                            | "type is LibrarySpec"
@@ -113,6 +126,8 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
 
     static class SomeLibrarySpecImpl extends DefaultLibrarySpec implements SomeLibrarySpec {}
 
+    static class SomeLibrarySpecOtherImpl extends SomeLibrarySpecImpl {}
+
     interface NotLibrarySpec extends ComponentSpec {}
 
     static class NotImplementingSampleLibrary extends DefaultLibrarySpec implements LibrarySpec {}
@@ -135,7 +150,17 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         }
 
         @ComponentType
+        static String returnValue(ComponentTypeBuilder<SomeLibrarySpec> builder) {
+        }
+
+        @ComponentType
         static void noImplementationSet(ComponentTypeBuilder<SomeLibrarySpec> builder) {
+        }
+
+        @ComponentType
+        static void implementationSetMultipleTimes(ComponentTypeBuilder<SomeLibrarySpec> builder) {
+            builder.setDefaultImplementation(SomeLibrarySpecImpl)
+            builder.setDefaultImplementation(SomeLibrarySpecOtherImpl)
         }
 
         @ComponentType

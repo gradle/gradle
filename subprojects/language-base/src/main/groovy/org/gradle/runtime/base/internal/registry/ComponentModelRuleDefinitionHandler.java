@@ -59,12 +59,19 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
         Class<? extends LibrarySpec> type = readComponentType(ruleDefinition);
         Class<? extends DefaultLibrarySpec> implementation = determineImplementationType(ruleDefinition, type);
 
-        registerComponentType(dependencies, type, implementation, modelRegistry, ruleDefinition.getDescriptor());
+        dependencies.add(ComponentModelBasePlugin.class);
+
+        if (implementation != null) {
+            modelRegistry.mutate(new RegisterComponentTypeRule(ruleDefinition.getDescriptor(), type, implementation));
+        }
     }
 
     private Class<? extends LibrarySpec> readComponentType(MethodRuleDefinition ruleDefinition) {
         if (ruleDefinition.getReferences().size() != 1) {
             throw new InvalidComponentModelException(String.format("ComponentType method must have a single parameter of type %s.", ComponentTypeBuilder.class.getSimpleName()));
+        }
+        if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
+            throw new InvalidComponentModelException("ComponentType method must not have a return value.");
         }
         ModelType<?> componentBuilderType = ruleDefinition.getReferences().get(0).getType();
         if (!ComponentTypeBuilder.class.isAssignableFrom(componentBuilderType.getRawClass())) {
@@ -87,45 +94,41 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
         MyComponentTypeBuilder builder = new MyComponentTypeBuilder();
         ruleDefinition.getRuleInvoker().invoke(builder);
         Class<? extends LibrarySpec> implementation = builder.implementation;
-        if (implementation == null) {
-            throw new InvalidComponentModelException("ComponentType method must set default implementation.");
-        }
-        if (!DefaultLibrarySpec.class.isAssignableFrom(implementation)) {
-            throw new InvalidComponentModelException(String.format("Component implementation '%s' must extend '%s'.", implementation.getSimpleName(), DefaultLibrarySpec.class.getSimpleName()));
-        }
-        if (!type.isAssignableFrom(implementation)) {
-            throw new InvalidComponentModelException(String.format("Component implementation '%s' must implement '%s'.", implementation.getSimpleName(), type.getSimpleName()));
-        }
-        try {
-            implementation.getConstructor();
-        } catch (NoSuchMethodException nsmException) {
-            throw new InvalidComponentModelException(String.format("Component implementation '%s' must have public default constructor.", implementation.getSimpleName()));
+        if (implementation != null) {
+            if (!DefaultLibrarySpec.class.isAssignableFrom(implementation)) {
+                throw new InvalidComponentModelException(String.format("Component implementation '%s' must extend '%s'.", implementation.getSimpleName(), DefaultLibrarySpec.class.getSimpleName()));
+            }
+            if (!type.isAssignableFrom(implementation)) {
+                throw new InvalidComponentModelException(String.format("Component implementation '%s' must implement '%s'.", implementation.getSimpleName(), type.getSimpleName()));
+            }
+            try {
+                implementation.getConstructor();
+            } catch (NoSuchMethodException nsmException) {
+                throw new InvalidComponentModelException(String.format("Component implementation '%s' must have public default constructor.", implementation.getSimpleName()));
+            }
         }
         return (Class<? extends DefaultLibrarySpec>) implementation;
-    }
-
-    private void registerComponentType(final RuleSourceDependencies dependencies, final Class<? extends LibrarySpec> type, final Class<? extends DefaultLibrarySpec> implementation, ModelRegistry modelRegistry, ModelRuleDescriptor descriptor) {
-        dependencies.add(ComponentModelBasePlugin.class);
-
-        modelRegistry.mutate(new ComponentTypeModelMutator(descriptor, type, implementation));
     }
 
     private static class MyComponentTypeBuilder<T extends LibrarySpec> implements ComponentTypeBuilder<T> {
         Class<? extends T> implementation;
 
         public void setDefaultImplementation(Class<? extends T> implementation) {
+            if (this.implementation != null) {
+                throw new InvalidComponentModelException("ComponentType method cannot set default implementation multiple times.");
+            }
             this.implementation = implementation;
         }
     }
 
-    private class ComponentTypeModelMutator implements ModelMutator<ExtensionContainer> {
+    private class RegisterComponentTypeRule implements ModelMutator<ExtensionContainer> {
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<ExtensionContainer> subject;
         private final List<ModelReference<?>> inputs = Lists.newArrayList();
         private final Class<? extends LibrarySpec> type;
         private final Class<? extends DefaultLibrarySpec> implementation;
 
-        private ComponentTypeModelMutator(ModelRuleDescriptor descriptor, Class<? extends LibrarySpec> type, Class<? extends DefaultLibrarySpec> implementation) {
+        private RegisterComponentTypeRule(ModelRuleDescriptor descriptor, Class<? extends LibrarySpec> type, Class<? extends DefaultLibrarySpec> implementation) {
             this.descriptor = descriptor;
             this.type = type;
             this.implementation = implementation;

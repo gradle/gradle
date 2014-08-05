@@ -319,11 +319,11 @@ A custom library implementation:
 ### Story: Custom plugin uses rule to declare custom library type
 
 To avoid a future explosion of nested annotations, this story switches the mechanism for declaring a custom library type to use an
-annotated method, rather than an annotation.
+annotated method, rather than a type annotation.
 
 When a rule method with the `@ComponentType` annotation is found, the method is inspected to determine the type based on the generic
-type of the `ComponentTypeBuilder` input. The ComponentTypeBuilder implementation will then register a factory with the `ComponentSpecContainer`
-when the default implementation is set.
+type of the `ComponentTypeBuilder` input. The ComponentTypeBuilder implementation will then register a rule that will
+register a factory with the `ComponentSpecContainer` when the default implementation is set.
 
 ### User visible changes
 
@@ -340,8 +340,8 @@ when the default implementation is set.
 ### Test cases
 
 - Fails if a method with @ComponentType does not have a single parameter of type `ComponentTypeBuilder`
+- Fails if a method with @ComponentType has a return type
 - Fails if `setDefaultImplementation` is called multiple times
-    (should update `ComponentSpecContainer` to fail on attempt to register multiple factories for same type)
 - Empty @ComponentType method implementation is ok: no factory registered
 
 ### Story: Custom plugin defines binaries for each custom library
