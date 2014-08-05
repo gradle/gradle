@@ -246,18 +246,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void subprojectTasksTaskIsRunnable() {
-        TestFile settingsFile = testFile("settings.gradle");
-        settingsFile.writelns(
-            "include 'sub'",
-            "project(':sub').projectDir = new File(settingsDir, 'root/sub')"
-        );
-
-        inTestDirectory().withTasks(":sub:tasks").run().assertTasksExecuted(":sub:tasks");
-    }
-
-    @Test
-    public void subprojectTasksTaskIsRunnableWhenRootProjectProjectDirIsChanged() {
+    public void multiProjectBuildCanHaveAllProjectsAsChildrenOfSettingsDir() {
         TestFile settingsFile = testFile("settings.gradle");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, 'root')",
@@ -265,7 +254,23 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
             "project(':sub').projectDir = new File(settingsDir, 'root/sub')"
         );
 
-        getTestDirectory().createDir("root").createFile("build.gradle");
-        inTestDirectory().withTasks(":sub:tasks").run().assertTasksExecuted(":sub:tasks");
+        getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
+
+        inTestDirectory().withTasks(":thing").run().assertTasksExecuted(":thing");
+        inTestDirectory().withTasks(":sub:thing").run().assertTasksExecuted(":sub:thing");
+    }
+
+    @Test
+    public void usesRootProjectAsDefaultProjectWhenInSettingsDir() {
+        TestFile settingsDir = testFile("gradle");
+        TestFile settingsFile = settingsDir.file("settings.gradle");
+        settingsFile.writelns(
+            "rootProject.projectDir = new File(settingsDir, '../root')",
+            "include 'sub'",
+            "project(':sub').projectDir = new File(settingsDir, '../root/sub')"
+        );
+        getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
+
+        inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":thing", ":sub:thing");
     }
 }
