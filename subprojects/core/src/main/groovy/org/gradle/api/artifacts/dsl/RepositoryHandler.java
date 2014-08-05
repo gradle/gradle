@@ -126,9 +126,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}.
      *
-     * <p>You should note that this repository will use HTTP and not an HTTPS as the Maven central repository does not support HTTPS.
-     * If you need to use a HTTPS enabled mirror of Maven central, you can use {@link #jcenter()} instead.
-     *
      * <p>The following parameter are accepted as keys for the map:
      *
      * <table summary="Shows property keys and associated values">
