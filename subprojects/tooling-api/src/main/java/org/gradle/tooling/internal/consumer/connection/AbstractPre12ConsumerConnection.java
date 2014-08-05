@@ -54,7 +54,6 @@ public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerCo
     protected abstract <T> T doGetModel(Class<T> modelType, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters);
 
     protected void doRunBuild(CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) {
-        handleCancellationPreOperation(cancellationToken, operationParameters);
         getDelegate().executeBuild(operationParameters, operationParameters);
     }
 }

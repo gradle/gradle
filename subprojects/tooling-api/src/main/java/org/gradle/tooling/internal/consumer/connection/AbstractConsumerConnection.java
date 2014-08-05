@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import com.google.common.base.Charsets;
-import org.gradle.api.GradleException;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
@@ -25,8 +23,6 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.internal.Exceptions;
-
-import java.io.IOException;
 
 public abstract class AbstractConsumerConnection implements ConsumerConnection {
     private final ConnectionVersion4 delegate;
@@ -57,19 +53,5 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
 
     public <T> T run(BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw Exceptions.unsupportedFeature("execution of build actions provided by the tooling API client", getVersionDetails().getVersion(), "1.8");
-    }
-
-    protected void handleCancellationPreOperation(CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) {
-        if (!getVersionDetails().supportsCancellation()) {
-            cancellationToken.addCallback(new Runnable() {
-                public void run() {
-                    try {
-                        operationParameters.getStandardOutput().write("Warning: Version of Gradle provider does not support cancellation. Upgrade your Gradle build.".getBytes(Charsets.UTF_8));
-                    } catch (IOException e) {
-                        throw new GradleException("Failed to log cancellation warning", e);
-                    }
-                }
-            });
-        }
     }
 }

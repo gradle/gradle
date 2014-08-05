@@ -49,7 +49,6 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
 
     @Override
     protected <T> T doGetModel(Class<T> modelType, CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) {
-        handleCancellationPreOperation(cancellationToken, operationParameters);
         return modelProducer.produceModel(modelType, cancellationToken, operationParameters);
     }
 
