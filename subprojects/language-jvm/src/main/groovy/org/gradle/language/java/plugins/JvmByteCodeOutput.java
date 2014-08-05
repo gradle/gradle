@@ -16,8 +16,11 @@
 
 package org.gradle.language.java.plugins;
 
+import org.gradle.api.Incubating;
+
 /**
  * LanguageOutputType marking Jvm byte code.
  * */
-public class JvmByteCodeOutput implements org.gradle.language.base.LanguageOutputType {
+@Incubating
+ public class JvmByteCodeOutput implements org.gradle.language.base.LanguageOutputType {
 }

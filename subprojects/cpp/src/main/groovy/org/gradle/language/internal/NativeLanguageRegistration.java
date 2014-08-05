@@ -16,6 +16,7 @@
 
 package org.gradle.language.internal;
 
+import org.gradle.language.ObjectFileLanguageOutputType;
 import org.gradle.language.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;

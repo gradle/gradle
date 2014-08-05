@@ -16,8 +16,11 @@
 
 package org.gradle.language.base;
 
+import org.gradle.api.Incubating;
+
 /**
  * The output type of a language
  * */
+@Incubating
 public interface LanguageOutputType {
 }

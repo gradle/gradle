@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.internal;
+package org.gradle.language;
 
-public class ObjectFileLanguageOutputType implements org.gradle.language.base.LanguageOutputType {
+import org.gradle.api.Incubating;
+import org.gradle.language.base.LanguageOutputType;
+
+/**
+ * LanguageOutputType marking object file output type.
+ * */
+@Incubating
+public class ObjectFileLanguageOutputType implements LanguageOutputType {
 }

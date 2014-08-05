@@ -16,8 +16,13 @@
 
 package org.gradle.language.jvm.plugins;
 
+import org.gradle.api.Incubating;
+import org.gradle.language.base.LanguageOutputType;
+
 /**
  * LanguageOutputType marking Jvm Resource Output
- * */
-public class JvmResourcesOutput implements org.gradle.language.base.LanguageOutputType {
+ */
+
+@Incubating
+public class JvmResourcesOutput implements LanguageOutputType {
 }

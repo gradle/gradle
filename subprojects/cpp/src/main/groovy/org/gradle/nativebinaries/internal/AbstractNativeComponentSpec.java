@@ -22,7 +22,7 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.language.internal.ObjectFileLanguageOutputType;
+import org.gradle.language.ObjectFileLanguageOutputType;
 import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
