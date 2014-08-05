@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -389,7 +390,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         try {
             while (true) {
                 if (cancellationToken.isCancellationRequested()) {
-                    failures.add(new RuntimeException("Build cancelled."));
+                    failures.add(new BuildCancelledException("Build cancelled."));
                     abortExecution();
                 }
                 TaskInfo nextMatching = null;

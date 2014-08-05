@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
@@ -547,7 +548,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.awaitCompletion()
 
         then:
-        RuntimeException e = thrown()
+        BuildCancelledException e = thrown()
+        e.message == 'Build cancelled.'
     }
 
     protected TaskInfo getTaskToExecute() {

@@ -123,6 +123,7 @@ task hang << {
         new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted(':hang')
 
         resultHandler.failure instanceof BuildException
+        resultHandler.failure.cause.cause.class.name == org.gradle.api.BuildCancelledException.name
         resultHandler.failure.cause.cause.message.contains('Build cancelled.')
     }
 
