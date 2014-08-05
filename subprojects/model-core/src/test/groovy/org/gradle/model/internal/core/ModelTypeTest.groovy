@@ -31,5 +31,31 @@ class ModelTypeTest extends Specification {
         type.typeVariables[1].typeVariables[1] == ModelType.of(Float)
     }
 
-    // TODO test isAssignableFrom of generic and bound types
+    def "generic type compatibility"() {
+        def chars = new ModelType<List<CharSequence>>() {}
+        def strings = new ModelType<List<String>>() {}
+        def extendsChars = new ModelType<List<? extends CharSequence>>() {}
+        def superStrings = new ModelType<List<? super String>>() {}
+
+        expect:
+        !chars.isAssignableFrom(strings)
+
+        strings.isAssignableFrom(strings)
+        !strings.isAssignableFrom(extendsChars)
+        !strings.isAssignableFrom(superStrings)
+
+        chars.isAssignableFrom(chars)
+        !chars.isAssignableFrom(extendsChars)
+        !chars.isAssignableFrom(superStrings)
+
+        extendsChars.isAssignableFrom(chars)
+        extendsChars.isAssignableFrom(strings)
+        extendsChars.isAssignableFrom(extendsChars)
+        !extendsChars.isAssignableFrom(superStrings)
+
+        superStrings.isAssignableFrom(chars)
+        superStrings.isAssignableFrom(strings)
+        superStrings.isAssignableFrom(superStrings)
+        !superStrings.isAssignableFrom(extendsChars)
+    }
 }
