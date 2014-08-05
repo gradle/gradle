@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.artifacts.NamespaceId
+import org.gradle.api.artifacts.ivy.NamespaceId
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration

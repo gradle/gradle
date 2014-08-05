@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.IvyModuleDescriptor;
-import org.gradle.api.artifacts.NamespaceId;
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.artifacts.ivy.NamespaceId;
 
 import java.util.Collections;
 import java.util.Map;

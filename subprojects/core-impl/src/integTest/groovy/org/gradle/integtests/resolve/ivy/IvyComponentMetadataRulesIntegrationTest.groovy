@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.api.artifacts.NamespaceId
+import org.gradle.api.artifacts.ivy.NamespaceId
 import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpRepository

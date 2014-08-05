@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
+package org.gradle.api.artifacts.ivy;
 
 import org.gradle.api.Incubating;
 
@@ -32,7 +32,9 @@ public interface IvyModuleDescriptor {
     String getBranch();
 
     /**
-     * Returns the status attribute of the info element in this descriptor.
+     * Returns the status attribute of the info element in this descriptor.  Note that this <i>always</i> represents
+     * the status from the ivy.xml for this module.  It is not affected by changes to the status made via
+     * the {@link org.gradle.api.artifacts.ComponentMetadataDetails} interface in a component metadata rule.
      *
      * @return the status for this descriptor
      */

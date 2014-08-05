@@ -1,3 +1,5 @@
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+
 repositories {
     ivy {
         url "$projectDir/repo"

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.artifacts.NamespaceId
+import org.gradle.api.artifacts.ivy.NamespaceId
 import spock.lang.Specification
 
 class DefaultIvyModuleDescriptorTest extends Specification {

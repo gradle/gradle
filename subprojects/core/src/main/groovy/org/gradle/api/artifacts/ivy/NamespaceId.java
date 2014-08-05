@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts;
+package org.gradle.api.artifacts.ivy;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;

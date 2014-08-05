@@ -17,7 +17,7 @@
 package org.gradle.test.fixtures.ivy
 import groovy.xml.QName
 import org.apache.commons.lang.StringUtils
-import org.gradle.api.artifacts.NamespaceId
+import org.gradle.api.artifacts.ivy.NamespaceId
 
 class IvyDescriptor {
     Map<String, IvyDescriptorConfiguration> configurations = [:]

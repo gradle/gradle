@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.dsl
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
-import org.gradle.api.artifacts.IvyModuleDescriptor
-import org.gradle.api.artifacts.NamespaceId
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+import org.gradle.api.artifacts.ivy.NamespaceId
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData

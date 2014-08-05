@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.NamespaceId;
+import org.gradle.api.artifacts.ivy.NamespaceId;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;

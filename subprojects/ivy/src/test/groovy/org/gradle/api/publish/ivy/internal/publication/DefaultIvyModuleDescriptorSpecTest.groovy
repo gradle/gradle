@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publication
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.NamespaceId
+import org.gradle.api.artifacts.ivy.NamespaceId
 import spock.lang.Specification
 
 class DefaultIvyModuleDescriptorSpecTest extends Specification {

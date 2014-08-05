@@ -67,7 +67,7 @@ public interface ComponentMetadataHandler {
      *
      * <p>Presently, the following additional parameter types are supported:
      * <ul>
-     *     <li>{@link org.gradle.api.artifacts.IvyModuleDescriptor} Additional Ivy-specific
+     *     <li>{@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor} Additional Ivy-specific
      *     metadata. Rules declaring this parameter will only be invoked for Ivy components.</li>
      * </ul>
      *

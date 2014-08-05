@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.*;
 import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.NamespaceId;
+import org.gradle.api.artifacts.ivy.NamespaceId;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;

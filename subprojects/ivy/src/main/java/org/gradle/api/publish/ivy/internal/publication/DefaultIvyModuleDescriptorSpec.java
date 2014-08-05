@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.NamespaceId;
+import org.gradle.api.artifacts.ivy.NamespaceId;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;

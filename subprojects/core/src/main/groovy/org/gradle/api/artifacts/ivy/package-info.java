@@ -13,27 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.metadata;
-
-import org.gradle.api.artifacts.ivy.NamespaceId;
-
-import java.util.Map;
 
 /**
- * Meta-data for a module version resolved from an Ivy repository.
+ * Classes for declaring and using Ivy modules.
  */
-public interface IvyModuleVersionMetaData extends ModuleVersionMetaData {
-    /***
-     * Returns the branch attribute for the module.
-     *
-     * @return the branch attribute for the module
-     */
-    String getBranch();
-
-    /**
-     * Returns the extra info for the module.
-     *
-     * @return the extra info for the module
-     */
-    Map<NamespaceId, String> getExtraInfo();
-}
+package org.gradle.api.artifacts.ivy;
