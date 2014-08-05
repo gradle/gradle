@@ -36,6 +36,7 @@ import org.gradle.api.artifacts.NamespaceId;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.metadata.BuildableIvyArtifact;
 import org.gradle.api.internal.artifacts.metadata.BuildableIvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
@@ -442,7 +443,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private PatternMatcher defaultMatcher;
         private DefaultDependencyDescriptor dd;
         private ConfigurationAware confAware;
-        private IvyMDArtifact artifact;
+        private BuildableIvyArtifact artifact;
         private String conf;
         private boolean artifactsDeclared;
         private StringBuffer buffer;
@@ -495,7 +496,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             replaceConfigurationWildcards();
             if (!artifactsDeclared) {
                 String[] configurationNames = getMd().getConfigurationsNames();
-                IvyMDArtifact implicitArtifact = new IvyMDArtifact(getMd().getModuleRevisionId().getName(), "jar", "jar");
+                BuildableIvyArtifact implicitArtifact = new BuildableIvyArtifact(getMd().getModuleRevisionId().getName(), "jar", "jar");
                 for (String configurationName : configurationNames) {
                     implicitArtifact.addConfiguration(configurationName);
                 }
@@ -889,7 +890,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
                 String url = substitute(attributes.getValue("url"));
                 Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
-                artifact = new IvyMDArtifact(artName, type, ext, url == null ? null : new URL(url), extraAttributes);
+                artifact = new BuildableIvyArtifact(artName, type, ext, url == null ? null : new URL(url), extraAttributes);
                 String confs = substitute(attributes.getValue("conf"));
                 
                 // Only add confs if they are specified. if they aren't, endElement will handle this only if there are no conf defined in sub elements

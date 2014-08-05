@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.metadata
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyMDArtifact
 import spock.lang.Specification
 
 class BuildableIvyModuleVersionMetaDataTest extends Specification {
@@ -28,7 +27,7 @@ class BuildableIvyModuleVersionMetaDataTest extends Specification {
     def meta = new BuildableIvyModuleVersionMetaData(md)
 
     def "adds correct artifact to meta-data"() {
-        def a = new IvyMDArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
+        def a = new BuildableIvyArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
         a.addConfiguration("runtime")
         md.addConfiguration(new Configuration("runtime"))
 
@@ -40,7 +39,7 @@ class BuildableIvyModuleVersionMetaDataTest extends Specification {
     }
 
     def "prevents adding artifact without configurations"() {
-        def unattached = new IvyMDArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
+        def unattached = new BuildableIvyArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
         md.addConfiguration(new Configuration("runtime"))
 
         when: meta.addArtifact(unattached)
@@ -49,8 +48,8 @@ class BuildableIvyModuleVersionMetaDataTest extends Specification {
     }
 
     def "can be added to metadata that already contains artifacts"() {
-        def a1 = new IvyMDArtifact("foo", "jar", "jar").addConfiguration("runtime")
-        def a2 = new IvyMDArtifact("foo-all", "zip", "zip").addConfiguration("testUtil")
+        def a1 = new BuildableIvyArtifact("foo", "jar", "jar").addConfiguration("runtime")
+        def a2 = new BuildableIvyArtifact("foo-all", "zip", "zip").addConfiguration("testUtil")
 
         md.addConfiguration(new Configuration("runtime"))
         md.addConfiguration(new Configuration("testUtil"))
@@ -66,10 +65,10 @@ class BuildableIvyModuleVersionMetaDataTest extends Specification {
     }
 
     def "can be added to metadata that already contains the same artifact in different configuration"() {
-        def a1 = new IvyMDArtifact("foo", "jar", "jar").addConfiguration("archives")
+        def a1 = new BuildableIvyArtifact("foo", "jar", "jar").addConfiguration("archives")
         //some publishers create ivy metadata that contains separate entries for the same artifact but different configurations
         //Gradle no longer does it TODO SF - integ test
-        def a2 = new IvyMDArtifact("foo", "jar", "jar").addConfiguration("runtime")
+        def a2 = new BuildableIvyArtifact("foo", "jar", "jar").addConfiguration("runtime")
 
         md.addConfiguration(new Configuration("runtime"))
         md.addConfiguration(new Configuration("archives"))

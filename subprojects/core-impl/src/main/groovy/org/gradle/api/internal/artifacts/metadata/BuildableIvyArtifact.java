@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
+package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class IvyMDArtifact {
+public class BuildableIvyArtifact {
 
     private final Set<String> configurations = new LinkedHashSet<String>();
     private final String name;
@@ -33,7 +33,7 @@ public class IvyMDArtifact {
     private final URL url;
     private final Map<String, String> extraAttributes;
 
-    public IvyMDArtifact(String name, String type, String ext, URL url, Map<String, String> extraAttributes) {
+    public BuildableIvyArtifact(String name, String type, String ext, URL url, Map<String, String> extraAttributes) {
         this.name = name;
         this.type = type;
         this.ext = ext;
@@ -41,11 +41,11 @@ public class IvyMDArtifact {
         this.extraAttributes = extraAttributes;
     }
 
-    public IvyMDArtifact(String name, String type, String ext) {
+    public BuildableIvyArtifact(String name, String type, String ext) {
         this(name, type, ext, null, null);
     }
 
-    public IvyMDArtifact addConfiguration(String confName) {
+    public BuildableIvyArtifact addConfiguration(String confName) {
         configurations.add(confName);
         return this;
     }

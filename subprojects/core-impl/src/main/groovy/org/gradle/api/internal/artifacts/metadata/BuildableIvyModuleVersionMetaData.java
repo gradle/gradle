@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.metadata;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyMDArtifact;
 
 import java.util.Set;
 
@@ -34,7 +33,7 @@ public class BuildableIvyModuleVersionMetaData extends DefaultIvyModuleVersionMe
         this.module = module;
     }
 
-    public void addArtifact(IvyMDArtifact newArtifact) {
+    public void addArtifact(BuildableIvyArtifact newArtifact) {
         if (newArtifact.getConfigurations().isEmpty()) {
             throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
         }
