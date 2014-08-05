@@ -27,6 +27,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -45,6 +46,7 @@ rootProject.name = 'cancelling'
 '''
     }
 
+    @Ignore
     @TargetGradleVersion("<2.1 >=1.0-milestone-8")
     def "cancel with older provider issues warning only"() {
         def marker = file("warning.txt")
