@@ -451,7 +451,10 @@ This applies to all named domain object containers in Gradle.
  
 ### ModelRule, ModelFinalizer, ModelRules removed
 
-TODO - replacement (@RuleSource) detail
+These, incubating, classes formed the API being used to manage model configuration by plugins.
+They have been removed in favor of a different approach.
+
+The replacement mechanism is currently undocumented and not yet designed for public use.
 
 ### TaskParameter replaced with TaskExecutionRequest
 
