@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer;
-import org.gradle.internal.nativeplatform.services.NativeServices;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,15 +31,16 @@ import java.util.regex.Pattern;
  */
 public class UbuntuJvmLocator {
     private static final Pattern JAVA_HOME_DIR_PATTERN = Pattern.compile("java-(\\d+.\\d+(?:\\.\\d+)?)-\\w+-(\\w+)");
-    private final FileCanonicalizer fileCanonicalizer = NativeServices.getInstance().get(FileCanonicalizer.class);
+    private final FileCanonicalizer fileCanonicalizer;
     private final File libDir;
 
-    public UbuntuJvmLocator() {
-        this(new File("/usr/lib/jvm"));
+    public UbuntuJvmLocator(FileCanonicalizer fileCanonicalizer) {
+        this(new File("/usr/lib/jvm"), fileCanonicalizer);
     }
 
-    public UbuntuJvmLocator(File libDir) {
+    UbuntuJvmLocator(File libDir, FileCanonicalizer fileCanonicalizer) {
         this.libDir = libDir;
+        this.fileCanonicalizer = fileCanonicalizer;
     }
 
     public Collection<JvmInstallation> findJvms() {
