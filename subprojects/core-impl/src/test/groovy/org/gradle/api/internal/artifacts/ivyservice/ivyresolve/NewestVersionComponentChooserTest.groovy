@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
@@ -29,8 +30,9 @@ import spock.lang.Specification
 class NewestVersionComponentChooserTest extends Specification {
     def versionMatcher = Mock(VersionMatcher)
     def latestStrategy = Mock(LatestStrategy)
+    def versionSelectionRules = Mock(VersionSelectionRulesInternal)
 
-    def chooser = new NewestVersionComponentChooser(latestStrategy, versionMatcher)
+    def chooser = new NewestVersionComponentChooser(latestStrategy, versionMatcher, versionSelectionRules)
 
     def "uses version matcher to determine if selector can select multiple components"() {
         def selector = Mock(ModuleVersionSelector)
@@ -59,12 +61,14 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> -1
+        0 * versionSelectionRules.apply(_)
 
         then:
         chooser.choose(one, two) == two
 
         when:
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 1
+        0 * versionSelectionRules.apply(_)
 
         then:
         chooser.choose(one, two) == one
@@ -82,6 +86,7 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 0
         1 * one.generated >> true
         1 * two.generated >> false
+        0 * versionSelectionRules.apply(_)
 
         then:
         chooser.choose(one, two) == two
@@ -89,6 +94,7 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 0
         1 * one.generated >> false
+        0 * versionSelectionRules.apply(_)
 
         then:
         chooser.choose(one, two) == one
@@ -109,6 +115,7 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * latestStrategy.sort(_) >> versions
         1 * versionMatcher.accept("1.+", "2.0") >> false
         1 * versionMatcher.accept("1.+", "1.3") >> true
+        2 * versionSelectionRules.apply(_)
         0 * _
 
         then:
