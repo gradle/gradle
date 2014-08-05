@@ -17,10 +17,12 @@
 package org.gradle.model;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 
 /**
  * Thrown when a model rule, or source of model rules, is declared in an invalid way.
  */
+@Incubating
 public class InvalidModelRuleDeclarationException extends GradleException {
 
     public InvalidModelRuleDeclarationException(String message) {

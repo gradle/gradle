@@ -17,12 +17,14 @@
 package org.gradle.model.collection;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 /**
  * Allows the adding of items to a named collection where instantiation is managed.
  *
  * @param <T> the contract type for all items
  */
+@Incubating
 public interface NamedItemCollectionBuilder<T> {
 
     /*

@@ -17,10 +17,12 @@
 package org.gradle.model;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+@Incubating
 public class ModelViewClosedException extends GradleException {
 
     public ModelViewClosedException(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {

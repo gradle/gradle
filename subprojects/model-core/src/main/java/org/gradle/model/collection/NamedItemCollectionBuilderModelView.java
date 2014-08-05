@@ -17,12 +17,14 @@
 package org.gradle.model.collection;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+@Incubating
 public class NamedItemCollectionBuilderModelView<T> implements ModelView<NamedItemCollectionBuilder<T>> {
 
     private final ModelType<NamedItemCollectionBuilder<T>> type;
