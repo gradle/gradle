@@ -80,6 +80,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 return new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter);
             }
             adaptedConnection.configure(connectionParameters);
+            if (!adaptedConnection.getVersionDetails().supportsCancellation()) {
+                return new NonCancellableConsumerConnectionAdapter(adaptedConnection);
+            }
             return adaptedConnection;
         } catch (UnsupportedVersionException e) {
             throw e;
