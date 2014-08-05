@@ -311,6 +311,8 @@ In [PlatformConfigurableToolChain](dsl/org.gradle.nativebinaries.toolchain.Platf
 
 As part of our migration to use model rules, there have been some changes to the behaviour of the `sources` container.
 
+TODO: double check as this has changed in last stories.
+
 The primary `FunctionalSourceSet` for a component is not created eagerly when the component is defined. This means that you cannot
 reference these source sets directly via dot-notation, but should instead use the `sources` container to optionally create them when configuring.
 
@@ -366,7 +368,34 @@ This support was never fully functional, and has now been completely removed in 
 
 ### Changes to incubating language base plugin
 
-We extracted the creation of the `projectComponents` container and and the LanguageRegistry `languages` out of `LanguageBasePlugin` into `ComponentModelBasePlugin`.
+The `projectComponents` container was renamed to `componentSpecs`. 
+We extracted the creation of the `componentSpecs` container and the LanguageRegistry `languages` out of `LanguageBasePlugin` 
+into `ComponentModelBasePlugin`.
+
+#### Default creation of SourceSets
+
+Each declared component in the build creates an according functional source set in the build tight to the component.
+
+    executables {
+        main
+    }
+
+
+Creates a native executable component and will also create a functional sourceset named `main`. 
+
+In prior Gradle versions each language registered in the LanguageRegistry caused the creation of an according default language sourceset for each
+FunctionalSourceSet in the project. With Gradle 2.1 LanguageSourceSets are created only for sourceSets coupled to a component. 
+The component knows it's relevant LanguageSourceSets. 
+
+For the native executable component declared above for example there will be no default java sourceSet as it's a native component. 
+Vice versa the following component declaration of a jvm library named `myLib` will not cause the creation of a `c` or `cpp` sourceSet for `myLib`
+when the `C` and `CPP` plugin is applied.
+
+    jvm {
+        libraries {
+            myLib
+        }
+    }
 
 #### Domain model reorganisation
 

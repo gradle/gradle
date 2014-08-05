@@ -37,18 +37,18 @@ import spock.lang.Specification
 class ComponentModelBasePluginTest extends Specification {
     def project = TestUtil.createRootProject()
 
-    def "adds projectComponents extension"() {
+    def "adds componentSpecs extension"() {
         when:
         project.apply(plugin: ComponentModelBasePlugin)
         then:
-        project.projectComponents != null
+        project.componentSpecs != null
     }
 
-    def "adds projectComponents model"() {
+    def "adds componentSpecs model"() {
         when:
         project.apply(plugin: ComponentModelBasePlugin)
         then:
-        project.modelRegistry.get(ModelPath.path("projectComponents")) != null
+        project.modelRegistry.get(ModelPath.path("componentSpecs")) != null
     }
 
     def "registers language sourceset factory per functional sourceset"() {
@@ -61,7 +61,6 @@ class ComponentModelBasePluginTest extends Specification {
 
         then:
         fSourceSet.create("test", TestSourceSet) != null
-
     }
 
     def "creates default sourceSets for component"() {
@@ -77,7 +76,7 @@ class ComponentModelBasePluginTest extends Specification {
         _ * componentSpecInternal.mainSource >> componentFunctionalSourceSet
 
         when:
-        project.projectComponents.add(componentSpecInternal)
+        project.componentSpecs.add(componentSpecInternal)
 
         then:
 
@@ -85,9 +84,7 @@ class ComponentModelBasePluginTest extends Specification {
         0 * componentFunctionalSourceSet._
     }
 
-
     public static class TestLanguageRegistration implements LanguageRegistration {
-
         @Override
         String getName() {
             return "test"

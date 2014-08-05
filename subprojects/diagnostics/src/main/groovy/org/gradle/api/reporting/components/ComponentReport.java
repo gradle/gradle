@@ -68,9 +68,9 @@ public class ComponentReport extends DefaultTask {
         renderer.startProject(project);
 
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
-        ComponentSpecContainer projectComponents = project.getExtensions().findByType(ComponentSpecContainer.class);
-        if (projectComponents != null) {
-            components.addAll(projectComponents);
+        ComponentSpecContainer componentSpecs = project.getExtensions().findByType(ComponentSpecContainer.class);
+        if (componentSpecs != null) {
+            components.addAll(componentSpecs);
         }
 
         try {
