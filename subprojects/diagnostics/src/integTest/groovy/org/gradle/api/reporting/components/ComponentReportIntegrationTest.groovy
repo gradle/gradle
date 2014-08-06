@@ -470,11 +470,47 @@ Root project
 
 JVM library 'jvmLib'
 --------------------
-"""))
-        output.contains(expected("""
+
+Source sets
+    Resources 'jvmLib:resources'
+        src/jvmLib/resources
+    Java source 'jvmLib:java'
+        src/jvmLib/java
+
+Binaries
+    Jar 'jvmLib:jar'
+        build using task: :jvmLibJar
+        tool chain: current JDK (1.7)
+        Jar file: build/jars/jvmLibJar/jvmLib.jar
 
 Native library 'nativeLib'
 --------------------------
+
+Source sets
+    C++ source 'nativeLib:cpp'
+        src/nativeLib/cpp
+    C source 'nativeLib:c'
+        src/nativeLib/c
+
+Binaries
+    Shared library 'nativeLib:sharedLibrary'
+        build using task: :nativeLibSharedLibrary
+        platform: current
+        build type: debug
+        flavor: default
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/nativeLibSharedLibrary/libnativeLib.dylib
+    Static library 'nativeLib:staticLibrary'
+        build using task: :nativeLibStaticLibrary
+        platform: current
+        build type: debug
+        flavor: default
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/nativeLibStaticLibrary/libnativeLib.a
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
 """))
     }
 
