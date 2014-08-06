@@ -253,7 +253,8 @@ Define a sample plugin that declares a custom library type:
             @Mutate
             void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
                 for (String libraryName : sampleExtension.getLibraryNames()) {
-                    sampleLibraries.create(libraryName);
+                    sampleLibraries.create(libraryName)
+                }
             }
         }
     }
@@ -315,6 +316,7 @@ A custom library implementation:
 
 - Interaction with the `model { }` block.
 - Injection of inputs into component constructor.
+- Need to be able to register any type of component, not just libraries
 
 ### Story: Custom plugin uses rule to declare custom library type
 
@@ -432,6 +434,13 @@ A custom binary implementation:
 
 #### Open issues
 
+- Should split this up into several stories:
+    - Plugin declares the binary types and default implementations.
+    - Plugin defines the binaries for a library. These binaries are not visible to the build script author for configuration.
+    - Build author uses `libraries { }` DSL to configure binaries for a given component. Adds capability to configure a child object after the parent object has been configured.
+    - Build author uses `binaries { }` DSL to configure binaries for multiple components. Adds capability for an object to appear in multiple locations in the model.
+- Should use an annotation on the component spec to determine which property defines the binaries of the component, to allow component specific terminology for
+  the outputs, and to allow various different output types and groupings.
 - Add 'plugin declares custom platform' story.
 - General mechanism to register a model collection and have rules that apply to each element of that collection.
 - Migrate the JVM and natives plugins to use this.
@@ -457,9 +466,9 @@ Running `gradle assemble` will execute tasks for each library binary.
 
 #### Implementation Plan
 
-- For a library-producing plugin:
+- For a component-producing plugin:
     - Inspect any declared rules that take the created binary type as input, and produce Task instances
-      via a `CollectionBuilder<Task> parameter.
+      via a `CollectionBuilder<Task>` parameter.
 - The task-creation rule will be executed for each binary when closing the TaskContainer.
 - Document in the user guide how to define a component, binaries and tasks for a custom model. Include some samples.
 
