@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.metadata;
 
-import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+package org.gradle.api.publish.ivy;
 
-import java.util.Map;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ivy.IvyExtraInfo;
 
 /**
- * Meta-data for a module version resolved from an Ivy repository.
+ * Represents a modifiable form of IvyExtraInfo so that "extra" info elements
+ * can be configured on an Ivy publication.
  */
-public interface IvyModuleVersionMetaData extends ModuleVersionMetaData {
-    /***
-     * Returns the branch attribute for the module.
-     *
-     * @return the branch attribute for the module
-     */
-    String getBranch();
+@Incubating
+public interface IvyExtraInfoSpec extends IvyExtraInfo {
 
     /**
-     * Returns the extra info for the module.
+     * Puts the specified extra element into the list of extra info elements.
      *
-     * @return the extra info for the module
+     * @param namespace The namespace of the element to add
+     * @param name The name of the element to add
+     * @param value The value of the element to add
      */
-    Map<NamespaceId, String> getExtraInfo();
+    void put(String namespace, String name, String value);
 }

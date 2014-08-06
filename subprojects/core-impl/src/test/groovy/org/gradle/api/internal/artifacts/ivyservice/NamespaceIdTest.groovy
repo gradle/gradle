@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.ivy
+package org.gradle.api.internal.artifacts.ivyservice
 
 import spock.lang.Specification
 

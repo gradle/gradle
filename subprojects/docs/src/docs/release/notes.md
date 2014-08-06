@@ -503,7 +503,7 @@ The replacement mechanism is currently undocumented and not yet designed for pub
 ### IvyModuleMetadata renamed to IvyModuleDescriptor
 
 - Incubating class `IvyModuleMetadata` has been renamed to `IvyModuleDescriptor`
-- Incubating method `IvyModuleDescriptor.getExtraInfo()` now returns Map<[NamespaceId](javadoc/org/gradle/api/artifacts/NamespaceId.html), String> instead of Map<String, String>
+- Incubating method `IvyModuleDescriptor.getExtraInfo()` now returns an [IvyExtraInfo](javadoc/org/gradle/api/artifacts/ivy/IvyExtraInfo.html) instead of Map<String, String>
 
 ## External contributions
 

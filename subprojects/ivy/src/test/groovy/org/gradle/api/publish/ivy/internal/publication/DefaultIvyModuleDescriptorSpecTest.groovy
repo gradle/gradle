@@ -16,16 +16,16 @@
 
 package org.gradle.api.publish.ivy.internal.publication
 
+import groovy.xml.QName
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ivy.NamespaceId
 import spock.lang.Specification
 
 class DefaultIvyModuleDescriptorSpecTest extends Specification {
-    def "getExtraInfo returns immutable map" () {
+    def "getExtraInfo returns IvyExtraInfo with immutable map" () {
         def spec = new DefaultIvyModuleDescriptorSpec(Stub(IvyPublicationInternal))
 
         when:
-        spec.getExtraInfo().put(new NamespaceId('http://some.namespace', 'foo'), 'fooValue')
+        spec.getExtraInfo().asMap().put(new QName('http://some.namespace', 'foo'), 'fooValue')
 
         then:
         thrown(UnsupportedOperationException)
@@ -38,7 +38,7 @@ class DefaultIvyModuleDescriptorSpecTest extends Specification {
         spec.extraInfo 'http://some.namespace', 'foo', 'fooValue'
 
         then:
-        spec.getExtraInfo().get(new NamespaceId('http://some.namespace', 'foo')) == 'fooValue'
+        spec.getExtraInfo().get('foo') == 'fooValue'
     }
 
     def "cannot add extra info elements with null values" () {

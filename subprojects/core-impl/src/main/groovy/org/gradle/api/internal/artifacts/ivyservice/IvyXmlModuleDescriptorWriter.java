@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.ivy.NamespaceId;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.UncheckedException;
 

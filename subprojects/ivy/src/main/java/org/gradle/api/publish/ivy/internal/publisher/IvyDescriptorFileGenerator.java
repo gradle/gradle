@@ -16,9 +16,9 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import groovy.xml.QName;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ivy.NamespaceId;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -43,7 +43,7 @@ public class IvyDescriptorFileGenerator {
     private final IvyPublicationIdentity projectIdentity;
     private String branch;
     private String status;
-    private Map<NamespaceId, String> extraInfo;
+    private Map<QName, String> extraInfo;
     private XmlTransformer xmlTransformer = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
@@ -61,11 +61,11 @@ public class IvyDescriptorFileGenerator {
         this.branch = branch;
     }
 
-    public Map<NamespaceId, String> getExtraInfo() {
+    public Map<QName, String> getExtraInfo() {
         return extraInfo;
     }
 
-    public void setExtraInfo(Map<NamespaceId, String> extraInfo) {
+    public void setExtraInfo(Map<QName, String> extraInfo) {
         this.extraInfo = extraInfo;
     }
 
@@ -118,15 +118,15 @@ public class IvyDescriptorFileGenerator {
                 .attribute("publication", ivyDateFormat.format(new Date()));
 
         if (extraInfo != null) {
-            for (Map.Entry<NamespaceId, String> entry : extraInfo.entrySet()) {
+            for (Map.Entry<QName, String> entry : extraInfo.entrySet()) {
                 if (entry.getKey() != null) {
                     try {
-                        xmlWriter.startElement(String.format("ns:%s", entry.getKey().getName()))
-                                .attribute("xmlns:ns", entry.getKey().getNamespace())
+                        xmlWriter.startElement(String.format("ns:%s", entry.getKey().getLocalPart()))
+                                .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
                                 .characters(entry.getValue())
                                 .endElement();
                     } catch (Exception e) {
-                        throw new InvalidUserCodeException(String.format("Failed to add extra info element '%s'", entry.getKey().getName()), e);
+                        throw new InvalidUserCodeException(String.format("Failed to add extra info element '%s'", entry.getKey().getLocalPart()), e);
                     }
                 }
             }

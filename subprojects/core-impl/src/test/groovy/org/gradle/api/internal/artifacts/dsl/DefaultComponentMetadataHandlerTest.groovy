@@ -15,10 +15,12 @@
  */
 
 package org.gradle.api.internal.artifacts.dsl
+
+import groovy.xml.QName
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
-import org.gradle.api.artifacts.ivy.NamespaceId
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData
@@ -118,7 +120,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         noExceptionThrown()
         capturedDescriptor instanceof IvyModuleDescriptor
         with(capturedDescriptor) {
-            extraInfo == [(id1): "info1 value", (id2): "info2 value"]
+            extraInfo.asMap() == [(new QName(id1.namespace, id1.name)): "info1 value", (new QName(id2.namespace, id2.name)): "info2 value"]
             branch == "someBranch"
             ivyStatus == "integration"
         }
@@ -221,11 +223,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
         capturedDescriptor1 instanceof IvyModuleDescriptor
         with(capturedDescriptor1) {
-            extraInfo == [(id1): "info1 value", (id2): "info2 value"]
+            extraInfo.asMap() == [(new QName(id1.namespace, id1.name)): "info1 value", (new QName(id2.namespace, id2.name)): "info2 value"]
         }
         capturedDescriptor2 instanceof IvyModuleDescriptor
         with(capturedDescriptor2) {
-            extraInfo == [(id1): "info1 value", (id2): "info2 value"]
+            extraInfo.asMap() == [(new QName(id1.namespace, id1.name)): "info1 value", (new QName(id2.namespace, id2.name)): "info2 value"]
         }
     }
 

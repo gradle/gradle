@@ -17,8 +17,6 @@ package org.gradle.api.artifacts.ivy;
 
 import org.gradle.api.Incubating;
 
-import java.util.Map;
-
 /**
  * The metadata about an Ivy module that acts as an input to a component metadata rule.
  */
@@ -41,14 +39,12 @@ public interface IvyModuleDescriptor {
     String getIvyStatus();
 
     /**
-     * Returns a read-only map of the extra info declared in this descriptor.
+     * Returns an {@link org.gradle.api.artifacts.ivy.IvyExtraInfo} representing the "extra" info declared
+     * in this descriptor.
      * <p>
      * The extra info is the set of all non-standard subelements of the <em>info</em> element.
-     * For each such element, the returned map contains one entry. The entry's key is a
-     * {@link NamespaceId} describing the namespace and name
-     * of the extra element. The entry's value is the contents of the element.
      *
-     * @return a read-only map of the extra info declared in this descriptor
+     * @return an {@link org.gradle.api.artifacts.ivy.IvyExtraInfo} representing the extra info declared in this descriptor
      */
-    Map<NamespaceId, String> getExtraInfo();
+    IvyExtraInfo getExtraInfo();
 }
