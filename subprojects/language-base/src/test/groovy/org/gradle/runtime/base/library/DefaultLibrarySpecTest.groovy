@@ -79,18 +79,6 @@ class DefaultLibrarySpecTest extends Specification {
         e.cause.message.startsWith "Could not find any public constructor for class"
     }
 
-    def "contains all languageSourceSet of main SourceSet"(){
-        given:
-        def library = DefaultLibrarySpec.create(MySampleLibrary, libraryId, functionalSourceSet, instantiator)
-        when:
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        functionalSourceSet.add(sourceSet1)
-        then:
-        library.source.contains(sourceSet1)
-    }
-
     static class MySampleLibrary extends DefaultLibrarySpec {}
     static class MyConstructedLibrary extends DefaultLibrarySpec {
         MyConstructedLibrary(String arg) {}

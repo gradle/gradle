@@ -16,7 +16,6 @@
 
 package org.gradle.runtime.base.library;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -70,11 +69,6 @@ public class DefaultLibrarySpec implements LibrarySpec, ComponentSpecInternal {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
-        this.mainSourceSet.all(new Action<LanguageSourceSet>() {
-            public void execute(LanguageSourceSet languageSourceSet) {
-                sourceSets.source(languageSourceSet);
-            }
-        });
     }
 
     public String getName() {

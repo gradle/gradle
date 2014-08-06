@@ -15,7 +15,6 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.ObjectFile;
@@ -43,11 +42,6 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
 
     public AbstractNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet mainSourceSet) {
         this.mainSourceSet = mainSourceSet;
-        this.mainSourceSet.all(new Action<LanguageSourceSet>() {
-            public void execute(LanguageSourceSet languageSourceSet) {
-                source(languageSourceSet);
-            }
-        });
         this.id = id;
         this.binaries = new DefaultDomainObjectSet<NativeBinarySpec>(NativeBinarySpec.class);
         this.inputTypes.add(ObjectFile.class);

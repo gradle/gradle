@@ -42,17 +42,4 @@ class DefaultJvmLibrarySpecTest extends Specification {
         library.name == "jvm-lib"
         library.projectPath == ":project-path"
     }
-
-    def "contains all languageSourceSet of main SourceSet"(){
-        given:
-        def library = new DefaultJvmLibrarySpec(libraryId, mainSourceSet)
-
-        when:
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        mainSourceSet.add(sourceSet1)
-        then:
-        library.source.contains(sourceSet1)
-    }
 }

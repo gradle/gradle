@@ -22,7 +22,10 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.runtime.base.ComponentSpecIdentifier
 import org.gradle.runtime.base.LanguageOutputType
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.LanguageRegistration
@@ -81,7 +84,30 @@ class ComponentModelBasePluginTest extends Specification {
         then:
 
         1 * componentFunctionalSourceSet.maybeCreate("test", _)
+        1 * componentFunctionalSourceSet.all(_)
         0 * componentFunctionalSourceSet._
+    }
+
+    def "links component functional sourceSets with sources"() {
+        setup:
+        project.apply(plugin: ComponentModelBasePlugin)
+        project.languages.add(new TestLanguageRegistration())
+
+        def testSourceSet = Mock(TestSourceSet)
+        _ * testSourceSet.name >> "test"
+        def componentFunctionalSourceSet = new DefaultFunctionalSourceSet("testComponent", new DirectInstantiator());
+        def componentSpecIdentifier = Mock(ComponentSpecIdentifier)
+        _ * componentSpecIdentifier.name >> "testComponent"
+
+        when:
+
+        def testComponent = DefaultLibrarySpec.create(TestComponentSpec, componentSpecIdentifier, componentFunctionalSourceSet, new DirectInstantiator())
+        project.componentSpecs.add(testComponent)
+        componentFunctionalSourceSet.add(testSourceSet)
+
+        then:
+        testComponent.getSource().size() == 1
+        testComponent.getSource()[0] == testSourceSet
     }
 
     public static class TestLanguageRegistration implements LanguageRegistration {

@@ -37,16 +37,6 @@ class DefaultNativeComponentTest extends Specification {
         component = new TestNativeComponentSpec(id, mainSourceSet)
     }
 
-    def "uses all languageSourceSet of main SourceSet"(){
-        when:
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        mainSourceSet.add(sourceSet1)
-        then:
-        component.source.contains(sourceSet1)
-    }
-
     def "can add additional functional source set"() {
         given:
         def functionalSourceSet = new DefaultFunctionalSourceSet("func", instantiator)
