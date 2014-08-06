@@ -37,12 +37,12 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
 
     public static <D> IdeDependencyKey<IdeProjectDependency, D> forProjectDependency(
             IdeProjectDependency dependency, DependencyBuilder<IdeProjectDependency, D> dependencyBuilder) {
-        return new ProjectDependencyKey(dependency, dependencyBuilder);
+        return new ProjectDependencyKey<D>(dependency, dependencyBuilder);
     }
 
     public static <D> IdeDependencyKey<IdeLocalFileDependency, D> forLocalFileDependency(
             IdeLocalFileDependency dependency, DependencyBuilder<IdeLocalFileDependency, D> dependencyBuilder) {
-        return new LocalFileDependencyKey(dependency, dependencyBuilder);
+        return new LocalFileDependencyKey<D>(dependency, dependencyBuilder);
     }
 
     protected final T ideDependency;
@@ -58,6 +58,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
     }
 
     protected abstract boolean isSameDependency(IdeDependency otherDependency);
+
     protected abstract int dependencyHashCode();
 
     @Override
