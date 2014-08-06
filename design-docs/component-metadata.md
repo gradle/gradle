@@ -58,10 +58,6 @@ Users will be able to access the `branch` attribute when resolving, via the `Ivy
 - Test coverage for publishing with extra-info set
 - Test coverage for accessing ivy status in component metadata rules
 
-### Open issues
-
-- Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
-
 ## Story: Build script reports all versions tested for dynamic version
 
 This story takes a step toward allowing a build author to provide logic for selecting the correct version for a dynamic dependency.
@@ -104,27 +100,37 @@ This rule is fired any time a candidate version is compared to see if it matches
 - Add `VersionSelectionRules` that will be returned by `ResolutionStrategy.getVersionSelection()`
 - When `VersionSelectionRulesInternal.apply()` is called, all Actions added with the `any` method are executed.
 - Supply the VersionSelectionRules instance to the NewestVersionComponentChooser, and apply the rules wherever compare a version against a candidate (`versionMatcher.accept`).
+- When custom version selection rules are involved, treat any version as a dynamic version
 
 ### Test cases
 
-- No version selection rules are fired when resolving a static version
 - Resolve '1.+' against ['2.0', '1.1', '1.0']: rules are fired for ['2.0', '1.1']
 - Resolve 'latest.integration' against ['2.0', '1.1', '1.0]: rules are fired for ['2.0']
 - Resolve 'latest.release' against ['2.0', '1.1', '1.0] where '2.0' has status of 'integration' and '1.1' has status of release: rules are fired for ['2.0', '1.1']
+- Resolve '1.0' against ['2.0', '1.1', '1.0']: rules are fired for ['2.0', '1.1', '1.0']
+- Each of multiple declared rules are fired.
 
 ### Open issues
 
-- Should fire the rule for static version selector, to allow the rule to reject the version based on whatever criteria is uses to select from the candidates
-for a dynamic version.
 - Need some way to fall back to some other version if preferred version is not available, eg use something from 'master' branch if none from 'feature' branch is available.
 Could do this using two rules, if there were some guarantee to the order of rule executions.
 
 ## Story: Build logic selects the module that matches an external dependency
 
+This story allows the build script to provide logic that can specify if a particular module version satisfies a particular version
+selector.
+
 - If no rule sets the status of the VersionSelection, the default VersionMatcher algorithm is used
-- Failure if 2 rules set the status of the VersionSelection in different ways
+- If 2 rules set the status of the VersionSelection in different ways, the resolution will fail
 
 ### User visible changes
+
+    interface VersionSelection {
+        ModuleComponentSelector getRequested()
+        ModuleComponentIdentifier getCandidate()
+        void accept()
+        void reject()
+    }
 
     configurations.all {
         resolutionStrategy {
@@ -145,6 +151,58 @@ Could do this using two rules, if there were some guarantee to the order of rule
         }
     }
 
+### Implementation
+
+Something like...
+
+    interface VersionSelectionInternal {
+        public enum State {
+            NOT_SET,
+            ACCEPTED,
+            REJECTED
+        }
+        State getState()
+    }
+
+- Add accept() and reject() method to VersionSelection
+- After applying rules against the VersionSelection instance, check to see if the state is ACCEPTED or REJECTED.
+    - Don't use the default version matching strategy in these cases
+- Add a sample for using version selection rules to implement semantic version matching:
+    - 1.1+ should match [1.1, 1.1.0, 1.1.1, 1.1.0.1] but not [1.10]
+
+### Test cases
+
+- Resolution fails if 2 rules set the VersionSelection to different values
+- Can use hard-coded version selection rule so that:
+    - '1.0' does not select any of [2.0, 1.1, 1.0] (override default behaviour)
+    - '1.0' selects '2.0' (override default behaviour)
+    - use custom syntax to select a particular version
+    - use custom syntax to reject a particular version (accepting the next default)
+
+## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input
+
+This story makes available the component and Ivy meta-data as optional read only inputs to a version selection rule:
+
+### User visible changes
+
+    configurations.all {
+        resolutionStrategy {
+            versionSelection {
+                any { VersionSelection selection, ComponentMetadata metadata ->
+                }
+                any { VersionSelection selection, IvyModuleMetadata ivyModule ->
+                    println "Got version with branch ${ivyModule.branch}"
+                }
+            }
+        }
+    }
+
+### Implementation
+
+- Add ComponentMetadata as read-only view of ComponentMetadataDetails
+    - Rename internal ComponentMetaData -> ModuleComponentMetaData
+- TBD
+
 ## Story: Build script targets versionSelection rule to particular module
 
 This story adds some convenience DSL to target a selection rule a particular group or module:
@@ -162,30 +220,9 @@ This story adds some convenience DSL to target a selection rule a particular gro
                 }
             }
         }
+## Open issues
 
-## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input
-
-This story makes available the component and Ivy meta-data as optional read only inputs to a version selection rule:
-
-### User visible changes
-
-    configurations.all {
-        resolutionStrategy {
-            versionSelection {
-                any { VersionSelection selection, ComponentMetadataDetails metadata ->
-                }
-                any { VersionSelection selection, IvyModuleMetadata ivyModule ->
-                    if (ivyModule.branch == 'testing' ) {
-                        selection.accept()
-                    }
-                }
-            }
-        }
-    }
-
-### Open issues
-
-- Need to present a read-only view of the component meta-data.
+- Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
 
 # Later milestones
 
