@@ -181,6 +181,10 @@ Something like...
     - '1.0' selects '2.0' (override default behaviour)
     - use custom syntax to select a particular version
     - use custom syntax to reject a particular version (accepting the next default)
+- When rules do not accept or reject, default strategy is used, for:
+    - Static version: '1.0'
+    - Dynamic version that doesn't require metadata: '1.+', 'latest.integration'
+    - Dynamic version that requires metadata: 'latest.milestone'
 
 ## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input
 

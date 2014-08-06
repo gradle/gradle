@@ -315,19 +315,20 @@ A custom library implementation:
 #### Open issues
 
 - Interaction with the `model { }` block.
-- Injection of inputs into component constructor.
 - Need to be able to register any type of component, not just libraries
 
-### Story: Custom plugin uses rule to declare custom library type
+### Story: Custom plugin uses rule to declare custom component type
 
 To avoid a future explosion of nested annotations, this story switches the mechanism for declaring a custom library type to use an
 annotated method, rather than a type annotation.
+
+This story also expands on the previous one by expanding the functionality to include any component type, not just `LibrarySpec` subtypes.
 
 When a rule method with the `@ComponentType` annotation is found, the method is inspected to determine the type based on the generic
 type of the `ComponentTypeBuilder` input. The ComponentTypeBuilder implementation will then register a rule that will
 register a factory with the `ComponentSpecContainer` when the default implementation is set.
 
-### User visible changes
+#### User visible changes
 
     class MySamplePlugin implements Plugin<Project> {
         @RuleSource
@@ -339,50 +340,111 @@ register a factory with the `ComponentSpecContainer` when the default implementa
         }
     }
 
-### Test cases
+#### Test cases
 
+- Can register type that is not a subtype of `LibrarySpec`
 - Fails if a method with @ComponentType does not have a single parameter of type `ComponentTypeBuilder`
 - Fails if a method with @ComponentType has a return type
 - Fails if `setDefaultImplementation` is called multiple times
 - Empty @ComponentType method implementation is ok: no factory registered
 
-### Story: Custom plugin defines binaries for each custom library
+### Story: Plugin declares the binary types and default implementations for a custom component
 
-This story introduces a mechanism by this a developer can declare the binaries that should be built for a custom library.
-This has 2 purposes:
+This story provides a simple way for developers to specify the binary types that are relevant for a particular custom component.
 
-1. Provide a simple way for developers to specify the binaries that are relevant for a particular custom library
-2. Allow developers to declare the type of binaries produced for their custom plugin so they can be integrated with dependency management.
-
-While the first purpose is the primary one covered by this story, it is important that the mechanism also address the second point.
+#### User visible changes
 
 Add a binary type to the sample plugin:
 
-    // Define the library
-    interface SampleLibrary extends LibrarySpec {
-        // Overload the getBinaries() method to declare the base binary type
-        DomainObjectSet<SampleBinary> getBinaries()
-    }
-    class DefaultSampleLibrary extends DefaultLibrarySpec<SampleBinary> implements SampleLibrary {}
+    // Define some binary types and reference them from the component
+    interface SampleBinary extends BinarySpec {}
+    interface OtherSampleBinary extends SampleBinary {}
 
-    // Define some binary types
-    interface SampleBinary extends LibraryBinarySpec {}
-    interface SampleBinarySubType extends SampleBinary {}
+    interface SampleComponent extends ComponentSpec {
+        @Binaries
+        Collection<SampleBinary> getSampleBinaries()
+
+        @Binaries
+        Collection<OtherSampleBinary> getOtherBinaries()
+    }
 
     // Define implementations for the binary types - these will go away at some point
-    class DefaultSampleBinary extends DefaultLibraryBinarySpec implements SampleBinary {}
-    class DefaultSampleBinarySubType extends DefaultLibraryBinarySpec implements SampleBinarySubType {}
+    class DefaultSampleBinary extends DefaultBinarySpec implements SampleBinary {}
+    class DefaultOtherSampleBinary extends DefaultBinarySpec implements OtherSampleBinary {}
 
     class MySamplePlugin implements Plugin<Project> {
-        @ComponentModel(type = SampleLibrary, implementation = DefaultSampleLibrary)
-        @ComponentModelType(type = SampleBinary, implementation = DefaultSampleBinary)
-        @ComponentModelType(type = SampleBinarySubType, implementation = DefaultSampleBinarySubType)
         @RuleSource
         static class ComponentModel {
-            @Mutate
+            @BinaryType
+            void defineBinaryType(BinaryTypeBuilder<SampleBinary> builder) {
+                builder.setDefaultImplementation(DefaultSampleBinary)
+            }
+
+            @BinaryType
+            void defineBinarySubType(BinaryTypeBuilder<OtherSampleBinary> builder) {
+                builder.setDefaultImplementation(DefaultOtherSampleBinary)
+            }
+        }
+    }
+
+A custom binary type:
+- Extends public `BinarySpec` type.
+- Has no sources.
+- Is buildable.
+- Has some lifecycle task to build its outputs.
+
+A custom binary implementation:
+- Implements the custom binary type.
+- Extends `DefaultBinarySpec`.
+- Has a public no-arg constructor.
+
+#### Implementation Plan
+
+- Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of binary subtypes.
+- Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
+    - Similarly, add `ApplicationBinarySpec`.
+- Add a `DefaultBinarySpec` implementation or `BinarySpec` that has a no-arg constructor.
+- Introduce a `@BinaryType` rule type for registering a binary type and implementation
+    - Assert that the implementation class extends `DefaultBinarySpec`, has a no-arg constructor and implements the type.
+    - Register a factory for the type with the `BinaryContainer`.
+- Introduce a `@Binaries` annotation that can be used to determine the allowable binary types for a component
+    - This mechanism will be used to verify the binary definitions in the next story.
+
+#### Test cases
+
+- Friendly error message when annotated `@BinaryType` rule method:
+    - Does not have a single parameter of type BinaryTypeBuilder
+    - Parameter does not have a generic type
+    - Has a non-void return value
+- Friendly error message when supplied binary type:
+    - Does not extend `BinarySpec`
+    - Equals `BinarySpec` (must be a subtype)
+- Friendly error message when supplied binary implementation:
+    - Does not have a public no-arg constructor
+    - Does not implement binary type
+    - Does not extend `DefaultBinarySpec`
+- Friendly error message when attempting to register the same binary type with different implementations
+
+### Story: Custom plugin defines binaries for each custom component
+
+This story introduces a mechanism by this a developer can define the binaries that should be built for a custom library.
+
+These binaries are not visible to the build script author for configuration.
+
+#### User visible changes
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @ComponentBinaries
             void createBinariesForSampleLibrary(NamedItemCollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
                 binaries.create("${library.name}Binary")
-                binaries.create("${library.name}BinarySubType", SampleBinarySubType)
+                binaries.create("${library.name}OtherBinary", OtherSampleBinary)
+            }
+
+            @ComponentBinaries
+            void createBinariesForSampleLibrary(NamedItemCollectionBuilder<OtherSampleBinary> binaries, SampleLibrary library) {
+                binaries.create("${library.name}OtherBinary2")
             }
         }
     }
@@ -392,36 +454,21 @@ Binaries are now visible in the appropriate containers:
     // Binaries are visible in the appropriate containers
     // (assume 2 libraries & 2 binaries per library)
     assert binaries.withType(SampleBinary).size() == 4
-    assert binaries.withType(SampleBinarySubType).size() == 2
-    projectComponents.withType(LibrarySpec).each { assert binaries.size() == 2 }
+    assert binaries.withType(OtherSampleBinary).size() == 2
+    projectComponents.withType(SampleLibrary).each { assert binaries.size() == 2 }
 
-Running `gradle assemble` will execute lifecycle task for each library binary.
-
-A custom binary type:
-- Extends public `LibraryBinarySpec` type.
-- Has no sources.
-- Is buildable.
-- Has some lifecycle task to build its outputs.
-
-A custom binary implementation:
-- Implements the custom binary type.
-- Extends `DefaultLibraryBinarySpec`.
-- Has a public no-arg constructor.
+Running `gradle assemble` will execute lifecycle task for each binary.
 
 #### Implementation Plan
 
-- Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of subtypes.
-- Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
-    - Similarly, add `ApplicationBinarySpec`.
-    - Add a `DefaultLibraryBinarySpec` implementation that has a no-arg constructor.
-- Introduce a `@ComponentModelType` annotation that permits a factory to be registered for a type with the appropriate container
-    - For now, only types that extend `LibraryBinarySpec` are handled: anything else is an error.
-    - Assert that the implementation class extends `DefaultLibraryBinarySpec`, has a no-arg constructor and implements the type.
-    - Register a factory with the `BinaryContainer`.
-- When registering a library type from a `@ComponentModel` annotation
-    - Inspect the declared library type for an overloaded `getBinaries()` method, to determine the library binary type.
-    - TBD mechanism for iteration rule
-- For each created binary, create the lifecycle task.
+- Introduce a `@ComponentBinaries` rule type
+    - Subject must be of type `NamedItemCollectionBuilder` with a generic type parameter extending `BinarySpec`
+    - Exactly one input must be a type extending `ComponentSpec`
+    - The binary type declared in the subject must be assignable to one of the binary types declared on the component input type
+    - Other inputs are permitted
+- For each `@ComponentBinaries` rule, register a mutate rule that iterates over all components conforming to the requested component type
+    - Any created binaries should be added to the set of binaries for the component, as well as being added to the `BinaryContainer`
+- For each created binary, create and register a lifecycle task with the same name as the binary
 - Update the 'custom components' sample to demonstrate the new mechanism.
 
 #### Test cases
@@ -430,25 +477,40 @@ A custom binary implementation:
     - `NamedItemCollectionBuilder<BinarySpec>`
     - `NamedItemCollectionBuilder<SampleBinary>`
     - `NamedItemCollectionBuilder<SampleBinarySubType>`
-- TBD
+- Can execute lifecycle task of each created binary, individually and via 'assemble' task
+- Can access lifecycle task of binary via BinarySpec.buildTask
+- Friendly error message when annotated binary rule method:
+    - Does not have a single parameter of type BinaryTypeBuilder
+    - Parameter does not have a generic type
+    - Has a non-void return value
+- Friendly error message when supplied binary type:
+    - Does not extend `LibraryBinarySpec`
+    - Equals `LibraryBinarySpec`
+- Friendly error message when supplied binary implementation:
+    - Does not have a public no-arg constructor
+    - Does not implement binary type
+    - Does not extend `DefaultLibraryBinarySpec`
+- Friendly error message when attempting to register the same binary type with different implementations
 
 #### Open issues
 
-- Should split this up into several stories:
-    - Plugin declares the binary types and default implementations.
-    - Plugin defines the binaries for a library. These binaries are not visible to the build script author for configuration.
-    - Build author uses `libraries { }` DSL to configure binaries for a given component. Adds capability to configure a child object after the parent object has been configured.
-    - Build author uses `binaries { }` DSL to configure binaries for multiple components. Adds capability for an object to appear in multiple locations in the model.
-- Should use an annotation on the component spec to determine which property defines the binaries of the component, to allow component specific terminology for
-  the outputs, and to allow various different output types and groupings.
+- Could use a single `@ComponentModel` annotation for all methods, and inspect signature to determine type
+- DefaultLibraryBinarySpec will expose internal api. Need a mechanism to provide binary implementation without subclassing.
 - Add 'plugin declares custom platform' story.
 - General mechanism to register a model collection and have rules that apply to each element of that collection.
 - Migrate the JVM and natives plugins to use this.
     - Need to be able to declare the target platform for the component type.
-    - Need to declare default implementation.
     - Need to expose general DSL for defining components of a given type.
     - Need to attach source sets to components.
 - Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
+
+### Story: Build author uses `libraries { }` DSL to configure binaries for a custom component
+
+Adds capability to configure a child object after the parent object has been configured.
+
+### Story: Build author uses `binaries { }` DSL to configure binaries for multiple components
+
+Adds capability for an object to appear in multiple locations in the model.
 
 ### Story: Custom plugin defines tasks from binaries
 
@@ -457,8 +519,8 @@ Add a rule to the sample plugin:
     class MySamplePlugin {
         ...
 
-        @Mutate
-        void createTasksForSampleBinary(CollectionBuilder<Task> tasks, SampleBinary binary) {
+        @BinaryTasks
+        void createTasksForSampleBinary(NamedItemCollectionBuilder<Task> tasks, SampleBinary binary) {
             ... Add tasks that create this binary. Create additional tasks where signing is required.
         }
     }
@@ -467,13 +529,18 @@ Running `gradle assemble` will execute tasks for each library binary.
 
 #### Implementation Plan
 
-- For a component-producing plugin:
-    - Inspect any declared rules that take the created binary type as input, and produce Task instances
-      via a `CollectionBuilder<Task>` parameter.
+- Introduce a `@BinaryTasks` rule type:
+    - Subject must be of type `NamedItemCollectionBuilder<Tasks>`
+    - Exactly one input must be a type extending `LibraryBinarySpec`
+    - Other inputs are permitted
+- For each `@BinaryTasks` rule, register a mutate rule that iterates over all binaries conforming to the requested binary type
+    - Any created tasks should be added to the binary.tasks for this binary, and the binary will be `builtBy` those tasks
 - The task-creation rule will be executed for each binary when closing the TaskContainer.
 - Document in the user guide how to define a component, binaries and tasks for a custom model. Include some samples.
 
 #### Open issues
+
+- Needs to be easy to construct a task graph. The binary is 'builtBy' some assembling task, which then depend on a bunch of compile tasks.
 
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
