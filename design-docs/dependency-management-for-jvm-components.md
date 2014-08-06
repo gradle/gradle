@@ -827,6 +827,16 @@ This story will involve defining 'input-type' for each component type: e.g. JvmB
 A language plugin will need to register the compiled output type for each source set. Then it will be possible for a component to only
 attach to those language source sets that have an appropriate output type.
 
+#### Test cases
+
+- Fail when an unsupported language is used as input to a binary. eg Can't use a JavaSourceSet as input to a native binary.
+
+#### Open issues
+
+- Plugin should be able to declare the file types that a custom binary can be assembled from
+    - Infrastructure would take care of linking up the appropriate source languages based on this.
+- Plugin should to be able to declare custom language implementations.
+
 ## Feature: Build author declares dependencies for custom library
 
 Change the sample plugin so that it allows Java and custom libraries to be used as dependencies:
