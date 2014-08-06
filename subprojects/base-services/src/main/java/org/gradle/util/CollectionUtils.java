@@ -260,9 +260,7 @@ public abstract class CollectionUtils {
         }
 
         List<T> list = new ArrayList<T>(things.length);
-        for (T thing : things) {
-            list.add(thing);
-        }
+        Collections.addAll(list, things);
         return list;
     }
 
@@ -372,9 +370,7 @@ public abstract class CollectionUtils {
      * @return t1
      */
     public static <T> Collection<T> addAll(Collection<T> t1, T... t2) {
-        for (T t : t2) {
-            t1.add(t);
-        }
+        Collections.addAll(t1, t2);
         return t1;
     }
 
