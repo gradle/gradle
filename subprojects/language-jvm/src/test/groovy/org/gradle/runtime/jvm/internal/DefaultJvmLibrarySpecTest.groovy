@@ -18,7 +18,6 @@ package org.gradle.runtime.jvm.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.ComponentSpecIdentifier
 import spock.lang.Specification
