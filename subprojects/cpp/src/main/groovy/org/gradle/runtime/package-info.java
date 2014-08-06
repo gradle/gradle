@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.language;
+/**
+ * native related types for runtime support.
+ */
+@Incubating
+package org.gradle.runtime;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.LanguageOutputType;
-
-/**
- * LanguageOutputType marking object file output type.
- * */
-@Incubating
-public class ObjectFile implements LanguageOutputType {
-}
