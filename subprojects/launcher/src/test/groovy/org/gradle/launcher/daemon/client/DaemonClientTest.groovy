@@ -24,9 +24,11 @@ import org.gradle.launcher.daemon.context.DaemonUidCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.ConcurrentSpecification
+
+import java.util.concurrent.atomic.AtomicReference
 
 class DaemonClientTest extends ConcurrentSpecification {
     final DaemonConnector connector = Mock()
@@ -255,6 +257,40 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [ Stub(BuildStarted), new CommandFailure(cancelledException)]
+        1 * connection.dispatch({it instanceof CloseInput})
+        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.stop()
+        0 * _
+    }
+
+    def "cancelling when it cannot connect to daemon any longer just finishes the build"() {
+        BuildCancellationToken cancellationToken = Mock()
+        BuildCancelledException cancelledException = Mock()
+        AtomicReference<Runnable> cancelCallback = new AtomicReference<Runnable>()
+
+        when:
+        client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
+
+        then:
+        1 * connector.connect(compatibilitySpec) >> connection
+        1 * connection.getUid() >> '1'
+        1 * connector.maybeConnect(_) >> { args ->
+            assert args[0] instanceof DaemonUidCompatibilitySpec
+            assert args[0].uidSpec.isSatisfiedBy('1')
+            return null
+        }
+        1 * cancellationToken.addCallback(_) >> { Runnable callback ->
+            cancelCallback.getAndSet(callback)
+            return false
+        }
+        1 * connection.dispatch({it instanceof Build})
+        1 * connection.receive() >> Stub(BuildStarted)
+        1 * connection.receive() >> {
+            def callback = cancelCallback.get()
+            assert callback != null
+            callback.run()
+            new Success('')
+        }
         1 * connection.dispatch({it instanceof CloseInput})
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
