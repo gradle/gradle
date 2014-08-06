@@ -23,7 +23,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.LanguageOutputType
+import org.gradle.runtime.base.LanguageOutputType
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.LanguageRegistration
 import org.gradle.language.base.internal.SourceTransformTaskConfig

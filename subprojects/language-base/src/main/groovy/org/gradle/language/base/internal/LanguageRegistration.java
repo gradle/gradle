@@ -17,7 +17,7 @@
 package org.gradle.language.base.internal;
 
 
-import org.gradle.language.base.LanguageOutputType;
+import org.gradle.runtime.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.runtime.base.BinarySpec;
 

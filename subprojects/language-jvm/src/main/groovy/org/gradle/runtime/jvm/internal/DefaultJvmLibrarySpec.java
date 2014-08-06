@@ -20,11 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageOutputType;
+import org.gradle.runtime.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.language.java.plugins.JvmByteCodeOutput;
-import org.gradle.language.jvm.plugins.JvmResourcesOutput;
+import org.gradle.runtime.jvm.JvmByteCode;
+import org.gradle.runtime.jvm.JvmResources;
 import org.gradle.runtime.base.ComponentSpecIdentifier;
 import org.gradle.runtime.base.internal.ComponentSpecInternal;
 import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
@@ -47,8 +47,8 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
                 source(languageSourceSet);
             }
         });
-        this.languageOutputs.add(JvmResourcesOutput.class);
-        this.languageOutputs.add(JvmByteCodeOutput.class);
+        this.languageOutputs.add(JvmResources.class);
+        this.languageOutputs.add(JvmByteCode.class);
     }
 
     public String getName() {

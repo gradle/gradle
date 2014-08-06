@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language;
+package org.gradle.runtime.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.base.LanguageOutputType;
+import org.gradle.runtime.base.LanguageOutputType;
 
 /**
- * LanguageOutputType marking object file output type.
+ * LanguageOutputType marking Jvm byte code.
  * */
 @Incubating
-public class ObjectFileLanguageOutputType implements LanguageOutputType {
+ public class JvmByteCode implements LanguageOutputType {
 }
