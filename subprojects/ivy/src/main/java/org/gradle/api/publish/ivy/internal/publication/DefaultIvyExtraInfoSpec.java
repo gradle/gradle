@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
-import org.gradle.api.artifacts.ivy.IvyExtraInfo;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyExtraInfo;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
@@ -33,9 +32,5 @@ public class DefaultIvyExtraInfoSpec extends DefaultIvyExtraInfo implements IvyE
 
     public void put(String namespace, String name, String value) {
         extraInfo.put(new NamespaceId(namespace, name), value);
-    }
-
-    public IvyExtraInfo asIvyExtraInfo() {
-        return new DefaultIvyExtraInfo(extraInfo);
     }
 }

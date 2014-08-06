@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publisher
 
-import groovy.xml.QName
+import javax.xml.namespace.QName
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository

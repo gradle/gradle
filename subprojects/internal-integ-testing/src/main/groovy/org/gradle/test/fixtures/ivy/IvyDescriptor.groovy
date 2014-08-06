@@ -43,7 +43,7 @@ class IvyDescriptor {
 
         extraInfo = [:]
         ivy.info[0].children().findAll { it.name() instanceof QName }.each {
-            extraInfo[new QName(it.name().namespaceURI, it.name().localPart)] = it.text()
+            extraInfo[new javax.xml.namespace.QName(it.name().namespaceURI, it.name().localPart)] = it.text()
         }
 
         ivy.configurations.conf.each {

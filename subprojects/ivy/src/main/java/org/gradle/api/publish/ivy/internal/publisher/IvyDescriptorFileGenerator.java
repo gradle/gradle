@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import groovy.xml.QName;
+import javax.xml.namespace.QName;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.internal.xml.SimpleXmlWriter;

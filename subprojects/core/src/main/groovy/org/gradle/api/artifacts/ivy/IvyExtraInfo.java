@@ -16,9 +16,9 @@
 
 package org.gradle.api.artifacts.ivy;
 
-import groovy.xml.QName;
 import org.gradle.api.Incubating;
 
+import javax.xml.namespace.QName;
 import java.util.Map;
 
 /**
@@ -47,7 +47,7 @@ public interface IvyExtraInfo {
     String get(String namespace, String name);
 
     /**
-     * Returns a map view of the 'extra' info elements such that each key is a groovy.xml.QName
+     * Returns a map view of the 'extra' info elements such that each key is a javax.xml.namespace.QName
      * representing the namespace and name of the element and each value is the content of the element.
      *
      * @return The map view of the extra info elements

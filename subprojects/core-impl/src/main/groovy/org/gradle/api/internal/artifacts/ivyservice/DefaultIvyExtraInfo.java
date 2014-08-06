@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import groovy.xml.QName;
+import javax.xml.namespace.QName;
+
+import com.google.common.base.Joiner;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ivy.IvyExtraInfo;
+import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
@@ -41,13 +45,12 @@ public class DefaultIvyExtraInfo implements IvyExtraInfo {
             }
         }
         if (foundEntries.size() > 1) {
-            StringBuffer allNamespaces = new StringBuffer();
-            allNamespaces.append(foundEntries.get(0).getKey().getNamespace());
-            for (int i=1; i<foundEntries.size(); i++) {
-                allNamespaces.append(", ");
-                allNamespaces.append(foundEntries.get(i).getKey().getNamespace());
-            }
-            throw new InvalidUserDataException(String.format("Cannot get extra info element named '%s' by name since elements with this name were found from multiple namespaces (%s).  Use get(namespace, name) instead.", name, allNamespaces));
+            String allNamespaces = Joiner.on(", ").join(CollectionUtils.collect(foundEntries, new Transformer<String, Map.Entry<NamespaceId, String>>() {
+                public String transform(Map.Entry<NamespaceId, String> original) {
+                    return original.getKey().getNamespace();
+                }
+            }));
+            throw new InvalidUserDataException(String.format("Cannot get extra info element named '%s' by name since elements with this name were found from multiple namespaces (%s).  Use get(String namespace, String name) instead.", name, allNamespaces));
         }
         return foundEntries.size() == 0 ? null : foundEntries.get(0).getValue();
     }

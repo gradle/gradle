@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.ivy.IvyExtraInfo;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -91,9 +90,9 @@ public interface IvyModuleDescriptorSpec {
     void setBranch(String branch);
 
     /**
-     * Returns the extra info elements for this publication
+     * Returns the extra info element spec for this publication
      */
-    IvyExtraInfo getExtraInfo();
+    IvyExtraInfoSpec getExtraInfo();
 
     /**
      * Adds a new extra info element to the publication

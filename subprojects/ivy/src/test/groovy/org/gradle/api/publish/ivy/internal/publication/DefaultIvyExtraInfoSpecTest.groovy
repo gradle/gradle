@@ -16,8 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publication
 
-import groovy.xml.QName
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyExtraInfo
+import javax.xml.namespace.QName
 import spock.lang.Specification
 
 class DefaultIvyExtraInfoSpecTest extends Specification {
@@ -29,12 +28,5 @@ class DefaultIvyExtraInfoSpecTest extends Specification {
 
         then:
         extraInfo.asMap() == [ (new QName("http://my.extra.info", "foo")): "fooValue" ]
-    }
-
-    def "asIvyExtraInfo returns a DefaultIvyExtraInfo class" () {
-        def DefaultIvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec()
-
-        expect:
-        extraInfo.asIvyExtraInfo().class == DefaultIvyExtraInfo
     }
 }

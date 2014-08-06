@@ -20,11 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.ivy.IvyExtraInfo;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 
+import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.listener.ActionBroadcast;
@@ -37,7 +37,7 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     private final IvyPublicationInternal ivyPublication;
     private String status = Module.DEFAULT_STATUS;
     private String branch;
-    private DefaultIvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
+    private IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
 
     public DefaultIvyModuleDescriptorSpec(IvyPublicationInternal ivyPublication) {
         this.ivyPublication = ivyPublication;
@@ -59,8 +59,8 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
         this.branch = branch;
     }
 
-    public IvyExtraInfo getExtraInfo() {
-        return extraInfo.asIvyExtraInfo();
+    public IvyExtraInfoSpec getExtraInfo() {
+        return extraInfo;
     }
 
     public void extraInfo(String namespace, String elementName, String value) {

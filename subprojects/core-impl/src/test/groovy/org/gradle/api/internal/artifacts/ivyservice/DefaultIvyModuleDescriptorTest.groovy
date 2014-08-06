@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import groovy.xml.QName
+import javax.xml.namespace.QName
 import spock.lang.Specification
 
 class DefaultIvyModuleDescriptorTest extends Specification {

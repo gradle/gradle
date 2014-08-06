@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import groovy.xml.QName
+import javax.xml.namespace.QName
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 

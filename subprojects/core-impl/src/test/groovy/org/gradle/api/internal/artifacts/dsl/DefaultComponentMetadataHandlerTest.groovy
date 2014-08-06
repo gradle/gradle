@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-import groovy.xml.QName
+import javax.xml.namespace.QName
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor

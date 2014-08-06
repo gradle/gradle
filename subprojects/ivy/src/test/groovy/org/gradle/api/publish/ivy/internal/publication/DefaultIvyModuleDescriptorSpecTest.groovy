@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publication
 
-import groovy.xml.QName
+import javax.xml.namespace.QName
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 

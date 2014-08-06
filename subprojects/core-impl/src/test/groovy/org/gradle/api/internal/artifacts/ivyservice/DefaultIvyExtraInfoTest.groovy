@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import groovy.xml.QName
+import javax.xml.namespace.QName
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
@@ -42,7 +42,7 @@ class DefaultIvyExtraInfoTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message.equals('Cannot get extra info element named \'foo\' by name since elements with this name were found from multiple namespaces (http://my.extra.info, http://some.extra.info).  Use get(namespace, name) instead.')
+        e.message.equals('Cannot get extra info element named \'foo\' by name since elements with this name were found from multiple namespaces (http://my.extra.info, http://some.extra.info).  Use get(String namespace, String name) instead.')
     }
 
     def "can get name by name and namespace" () {
