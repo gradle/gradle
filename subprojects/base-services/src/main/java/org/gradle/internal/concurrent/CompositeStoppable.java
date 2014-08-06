@@ -25,6 +25,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
+ * {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close/stop
+ * method is called on that object, otherwise the element is ignored. Elements may be {@code null}, in which case they
+ * are ignored.
+ *
+ * <p>Attempts to stop as many elements as possible in the presence of failures.</p>
+ */
 public class CompositeStoppable implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeStoppable.class);
     public static final Stoppable NO_OP_STOPPABLE = new Stoppable() {
