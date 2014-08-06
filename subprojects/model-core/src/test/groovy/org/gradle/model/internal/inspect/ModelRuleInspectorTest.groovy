@@ -25,8 +25,6 @@ import org.gradle.model.internal.inspect.handlers.ModelCreationRuleDefinitionHan
 import org.gradle.model.internal.inspect.handlers.MutateRuleDefinitionHandler
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -121,7 +119,8 @@ class ModelRuleInspectorTest extends Specification {
     }
 
     static class HasMultipleRuleAnnotations {
-        @Model @Mutate
+        @Model
+        @Mutate
         static String thing() {
             ""
         }
