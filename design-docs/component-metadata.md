@@ -51,11 +51,13 @@ Users will be able to access the `branch` attribute when resolving, via the `Ivy
 
 - Publish an ivy module with a branch value specified
     - Verify published ivy.xml file
-    - Resolve and verify branch value is correct in `IvyModuleMetadata`.
+    - Resolve and verify branch value is correct in `IvyModuleDescriptor`.
 - Publish and resolve with branch value that contains non-ascii characters
 - Reasonable error message when publishing with invalid branch value
 - Branch attribute is cached until module is refreshed
 - Test coverage for publishing with extra-info set
+    - Resolve and verify extra-info values are correct in `IvyModuleDescriptor`.
+- Publish and resolve with extra-info key and value that contains non-ascii characters
 - Test coverage for accessing ivy status in component metadata rules
 
 ## Story: Build script reports all versions tested for dynamic version
@@ -112,6 +114,7 @@ This rule is fired any time a candidate version is compared to see if it matches
 
 ### Open issues
 
+- Rules should be fired after the built in version matching rules are executed
 - Need some way to fall back to some other version if preferred version is not available, eg use something from 'master' branch if none from 'feature' branch is available.
 Could do this using two rules, if there were some guarantee to the order of rule executions.
 
@@ -203,6 +206,10 @@ This story makes available the component and Ivy meta-data as optional read only
     - Rename internal ComponentMetaData -> ModuleComponentMetaData
 - TBD
 
+### Open issues
+
+- Need a Java API as well.
+
 ## Story: Build script targets versionSelection rule to particular module
 
 This story adds some convenience DSL to target a selection rule a particular group or module:
@@ -220,11 +227,22 @@ This story adds some convenience DSL to target a selection rule a particular gro
                 }
             }
         }
+
 ## Open issues
 
 - Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
 
 # Later milestones
+
+## Add DSL to allow resolution strategy to be applied to all resolution
+
+A mock up:
+
+    dependencies {
+        eachResolution { details ->
+            // Can tweak the inputs to the resolution, eg the strategy, repositories, etc
+        }
+    }
 
 ## Use Artifactory properties to determine status of module
 
