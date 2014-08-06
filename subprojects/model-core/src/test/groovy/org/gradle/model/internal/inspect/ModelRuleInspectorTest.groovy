@@ -153,10 +153,6 @@ class ModelRuleInspectorTest extends Specification {
         type.typeVariables[0] == ModelType.of(String)
     }
 
-    static interface HasStrings<T> {
-        List<T> strings()
-    }
-
     static class ConcreteGenericModelTypeImplementingGenericInterface implements HasStrings<String> {
         @Model
         List<String> strings() {
