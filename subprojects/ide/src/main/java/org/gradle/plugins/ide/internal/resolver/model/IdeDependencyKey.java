@@ -72,11 +72,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
 
         IdeDependencyKey that = (IdeDependencyKey) o;
 
-        if (!isSameDependency(that.ideDependency)) {
-            return false;
-        }
-
-        return true;
+        return isSameDependency(that.ideDependency);
     }
 
     @Override
@@ -96,10 +92,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
 
         @Override
         protected boolean isSameDependency(IdeDependency otherDependency) {
-            if (!(otherDependency instanceof IdeLocalFileDependency)) {
-                return false;
-            }
-            return Objects.equal(ideDependency.getFile(), ((IdeLocalFileDependency) otherDependency).getFile());
+            return otherDependency instanceof IdeLocalFileDependency && Objects.equal(ideDependency.getFile(), ((IdeLocalFileDependency) otherDependency).getFile());
         }
 
         public String toString() {
@@ -119,10 +112,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
 
         @Override
         protected boolean isSameDependency(IdeDependency otherDependency) {
-            if (!(otherDependency instanceof IdeProjectDependency)) {
-                return false;
-            }
-            return Objects.equal(ideDependency.getProject(), ((IdeProjectDependency) otherDependency).getProject());
+            return otherDependency instanceof IdeProjectDependency && Objects.equal(ideDependency.getProject(), ((IdeProjectDependency) otherDependency).getProject());
         }
 
         public String toString() {
