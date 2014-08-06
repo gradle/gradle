@@ -19,14 +19,11 @@ package org.gradle.integtests.tooling.r21
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestAppender
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
-import org.junit.Rule
 import spock.lang.Ignore
 
 import java.util.concurrent.CountDownLatch
@@ -35,8 +32,8 @@ import java.util.concurrent.TimeUnit
 @ToolingApiVersion(">=2.1")
 @TargetGradleVersion(">=1.0-milestone-8")
 class PreCancellationCrossVersionSpec extends ToolingApiSpecification {
-    final appender = new TestAppender()
-    @Rule ConfigureLogging logging = new ConfigureLogging(appender)
+//    final appender = new TestAppender()
+//    @Rule ConfigureLogging logging = new ConfigureLogging(appender)
 
     def setup() {
         // in-process call does not support cancelling (yet)
@@ -78,7 +75,7 @@ task t << {
         }
 
         then:
-        appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
+//        appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
         resultHandler.failure == null
         output.toString().contains("finished")
     }
