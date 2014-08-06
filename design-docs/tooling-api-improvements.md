@@ -276,6 +276,10 @@ This story adds support to build models that have a scope of a whole Gradle buil
   - And get result from `ToolingModelBuilder` for project scope if passing one of parameters describing project.
 - Client receives decent feedback when requests an unknown model.
 
+### Open issues
+
+- A model builder should simply be a rule with some tooling model as output, and whatever it needs declared as inputs.
+
 ## Feature: Expose more details about the project
 
 ## Story: Expose the IDE output directories
