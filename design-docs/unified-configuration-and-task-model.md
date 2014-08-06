@@ -288,11 +288,12 @@ Later stories cover making something like this public and documenting when/where
 - `Plugin` impl can include rule source class
 - Attempt to load rule source class that violates rule source constraints produces reasonable error message
 
-### Open Questions
+### Open issues
 
 - How to deal with the breaking API changes to `PluginContainer` (e.g. apply(id) returns `Plugin`, same for getPlugin(), more or less every method)
 - Do we support the same kind of “plugin detection” mechanisms for these kinds of plugins (e.g. `withId()`, `withType()`, `whenPluginAdded()`)
 - Replacement for current use of `RuleSource` to allow `Plugin` impl to include rules
+- Need a story to allow these rule source plugins to be applied to any `PluginAware`, and for the `plugins { }` DSL to work for settings and init scripts.
 
 ## Story: Build script configures tasks defined using configuration rule
 
