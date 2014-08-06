@@ -30,7 +30,6 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.NOT_JDK_IBM)
 class ModelRuleInspectorTest extends Specification {
 
     ModelRegistry registry = new DefaultModelRegistry()
