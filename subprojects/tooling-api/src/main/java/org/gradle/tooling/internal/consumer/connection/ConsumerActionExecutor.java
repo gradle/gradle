@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.internal.concurrent.Stoppable;
+
 /**
  * Implementations must be thread-safe.
  */
-public interface ConsumerActionExecutor {
+public interface ConsumerActionExecutor extends Stoppable {
 
     void stop();
     
