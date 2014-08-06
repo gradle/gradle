@@ -193,6 +193,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
     def "throws an exception when build is cancelled and breaks connection"() {
         BuildCancellationToken cancellationToken = Mock()
+        def cancellingConnection = Mock(DaemonClientConnection)
 
         when:
         client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
@@ -205,26 +206,28 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connector.maybeConnect(_) >> { args ->
             assert args[0] instanceof DaemonUidCompatibilitySpec
             assert args[0].uidSpec.isSatisfiedBy('1')
-            return connection
+            return cancellingConnection
         }
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             callback.run()
             return false
         }
-        1 * connection.dispatch({it instanceof Cancel})
-        1 * connection.receive() >>> [ new Success('[cancelled]')]
-        1 * connection.dispatch({it instanceof Finished})
+        1 * cancellingConnection.dispatch({it instanceof Cancel})
+        1 * cancellingConnection.receive() >>> [ new Success('[cancelled]')]
+        1 * cancellingConnection.dispatch({it instanceof Finished})
+        1 * cancellingConnection.stop()
 
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [ Stub(BuildStarted), null]
         1 * connection.dispatch({it instanceof CloseInput})
-        2 * connection.stop()
+        1 * connection.stop()
         0 * _
     }
 
     def "throws an exception when build is cancelled and correctly finishes build"() {
         BuildCancellationToken cancellationToken = Mock()
         BuildCancelledException cancelledException = Mock()
+        def cancellingConnection = Mock(DaemonClientConnection)
 
         when:
         client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
@@ -238,22 +241,23 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connector.maybeConnect(_) >> { args ->
             assert args[0] instanceof DaemonUidCompatibilitySpec
             assert args[0].uidSpec.isSatisfiedBy('1')
-            return connection
+            return cancellingConnection
         }
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             // simulate cancel request processing
             callback.run()
             return false
         }
-        1 * connection.dispatch({it instanceof Cancel})
-        1 * connection.receive() >>> [ new Success('[cancelled]')]
-        1 * connection.dispatch({it instanceof Finished})
+        1 * cancellingConnection.dispatch({it instanceof Cancel})
+        1 * cancellingConnection.receive() >>> [ new Success('[cancelled]')]
+        1 * cancellingConnection.dispatch({it instanceof Finished})
+        1 * cancellingConnection.stop()
 
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [ Stub(BuildStarted), new CommandFailure(cancelledException)]
         1 * connection.dispatch({it instanceof CloseInput})
         1 * connection.dispatch({it instanceof Finished})
-        2 * connection.stop()
+        1 * connection.stop()
         0 * _
     }
 
