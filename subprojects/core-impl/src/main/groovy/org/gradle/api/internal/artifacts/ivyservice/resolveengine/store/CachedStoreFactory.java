@@ -23,12 +23,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 
+import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.gradle.util.Clock.prettyTime;
 
-public class CachedStoreFactory<T> {
+public class CachedStoreFactory<T> implements Closeable {
 
     private static final Logger LOG = Logging.getLogger(CachedStoreFactory.class);
 

@@ -24,11 +24,12 @@ import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.VersionNumber;
 
+import java.io.Closeable;
 import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultCacheLockingManager implements CacheLockingManager {
+public class DefaultCacheLockingManager implements CacheLockingManager, Closeable {
 
     public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
 

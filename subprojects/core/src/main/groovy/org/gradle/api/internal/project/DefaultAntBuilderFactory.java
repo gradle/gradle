@@ -21,7 +21,9 @@ import org.gradle.api.Project;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
-public class DefaultAntBuilderFactory implements Factory<AntBuilder> {
+import java.io.Closeable;
+
+public class DefaultAntBuilderFactory implements Factory<AntBuilder>, Closeable {
     private final BuildListener buildListener;
     private final Project project;
     private final CompositeStoppable stoppable = new CompositeStoppable();
