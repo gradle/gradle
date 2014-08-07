@@ -16,9 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Incubating;
-
-@Incubating
 public class ModelPath {
 
     public static final String SEPARATOR = ".";
@@ -40,11 +37,7 @@ public class ModelPath {
 
         ModelPath modelPath = (ModelPath) o;
 
-        if (!path.equals(modelPath.path)) {
-            return false;
-        }
-
-        return true;
+        return path.equals(modelPath.path);
     }
 
     @Override
@@ -85,6 +78,6 @@ public class ModelPath {
 
     public boolean isDirectChild(ModelPath other) {
         ModelPath otherParent = other.getParent();
-        return otherParent == null ? false : otherParent.equals(this);
+        return otherParent != null && otherParent.equals(this);
     }
 }
