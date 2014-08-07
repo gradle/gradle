@@ -270,16 +270,16 @@ The presented `exclude` rule is only an example. It may change per scenario as o
 
 The result is to be expected if the exclude has the following attribute combinations:
 
-    <exclude artifact="b"/>
-    <exclude artifact="b" type="jar"/>
-    <exclude artifact="b" ext="jar"/>
-    <exclude artifact="b" type="jar" ext="jar"/>
-    <exclude org="org.gradle.test" artifact="b"/>
-    <exclude org="org.gradle.test" artifact="b" type="jar"/>
-    <exclude org="org.gradle.test" artifact="b" type="jar" ext="jar"/>
-    <exclude org="org.gradle.test" module="b" artifact="b"/>
-    <exclude org="org.gradle.test" module="b" artifact="b" type="jar"/>
-    <exclude org="org.gradle.test" module="b" artifact="b" type="jar" ext="jar"/>
+* `<exclude artifact="b"/>`
+* `<exclude artifact="b" type="jar"/>`
+* `<exclude artifact="b" ext="jar"/>`
+* `<exclude artifact="b" type="jar" ext="jar"/>`
+* `<exclude org="org.gradle.test" artifact="b"/>`
+* `<exclude org="org.gradle.test" artifact="b" type="jar"/>`
+* `<exclude org="org.gradle.test" artifact="b" type="jar" ext="jar"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b" type="jar"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b" type="jar" ext="jar"/>`
 
 ### Multiple artifacts, no transitive dependencies
 
@@ -299,16 +299,16 @@ The result is to be expected if the exclude has the following attribute combinat
 
 The result is to be expected if the exclude has the following attribute combinations:
 
-    <exclude artifact="b"/>
-    <exclude artifact="b" type="jar"/>
-    <exclude artifact="b" ext="jar"/>
-    <exclude artifact="b" type="jar" ext="jar"/>
-    <exclude org="org.gradle.test" artifact="b"/>
-    <exclude org="org.gradle.test" artifact="b" type="jar"/>
-    <exclude org="org.gradle.test" artifact="b" type="jar" ext="jar"/>
-    <exclude org="org.gradle.test" module="b" artifact="b"/>
-    <exclude org="org.gradle.test" module="b" artifact="b" type="jar"/>
-    <exclude org="org.gradle.test" module="b" artifact="b" type="jar" ext="jar"/>
+* `<exclude artifact="b"/>`
+* `<exclude artifact="b" type="jar"/>`
+* `<exclude artifact="b" ext="jar"/>`
+* `<exclude artifact="b" type="jar" ext="jar"/>`
+* `<exclude org="org.gradle.test" artifact="b"/>`
+* `<exclude org="org.gradle.test" artifact="b" type="jar"/>`
+* `<exclude org="org.gradle.test" artifact="b" type="jar" ext="jar"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b" type="jar"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b" type="jar" ext="jar"/>`
 
 ### Multiple artifacts, transitive dependencies
 
@@ -332,13 +332,13 @@ The result is to be expected if the exclude has the following attribute combinat
 
 The result is to be expected if the exclude has the following attribute combinations:
 
-    <exclude artifact="b"/>
-    <exclude artifact="b" type="jar"/>
-    <exclude artifact="b" ext="jar"/>
-    <exclude artifact="b" type="jar" ext="jar"/>
-    <exclude org="org.gradle.test" artifact="b"/>
-    <exclude org="org.gradle.test" artifact="b" type="jar"/>
-    <exclude org="org.gradle.test" artifact="b" type="jar" ext="jar"/>
-    <exclude org="org.gradle.test" module="b" artifact="b"/>
-    <exclude org="org.gradle.test" module="b" artifact="b" type="jar"/>
-    <exclude org="org.gradle.test" module="b" artifact="b" type="jar" ext="jar"/>
+* `<exclude artifact="b"/>`
+* `<exclude artifact="b" type="jar"/>`
+* `<exclude artifact="b" ext="jar"/>`
+* `<exclude artifact="b" type="jar" ext="jar"/>`
+* `<exclude org="org.gradle.test" artifact="b"/>`
+* `<exclude org="org.gradle.test" artifact="b" type="jar"/>`
+* `<exclude org="org.gradle.test" artifact="b" type="jar" ext="jar"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b" type="jar"/>`
+* `<exclude org="org.gradle.test" module="b" artifact="b" type="jar" ext="jar"/>`
