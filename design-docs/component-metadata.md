@@ -76,7 +76,7 @@ This rule is fired any time a candidate version is compared to see if it matches
     configurations.all {
         resolutionStrategy {
             versionSelection {
-                any { VersionSelection selection ->
+                all { VersionSelection selection ->
                     println "Comparing module ${selection.candidate} to requested version ${selection.requested.version}"
                 }
             }
@@ -139,13 +139,13 @@ selector.
         resolutionStrategy {
             versionSelection {
                 // Selector 'dev' matches any version ending with 'dev'
-                any { VersionSelection selection ->
+                all { VersionSelection selection ->
                     if (selection.requested.version == 'dev' && selection.candidate.version.endsWith('dev')) {
                         selection.accept()
                     }
                 }
                 // Selector 'not-zero' matches any version that doesn't start with '0'
-                any { VersionSelection selection ->
+                all { VersionSelection selection ->
                     if (selection.requested.version == 'zero' && !selection.candidate.version.startsWith('0')) {
                         selection.reject()
                     }
@@ -195,10 +195,9 @@ This story makes available the component and Ivy meta-data as optional read only
     configurations.all {
         resolutionStrategy {
             versionSelection {
-                any { VersionSelection selection, ComponentMetadata metadata ->
+                all { VersionSelection selection, ComponentMetadata metadata ->
                 }
-                any { VersionSelection selection, IvyModuleMetadata ivyModule ->
-                    println "Got version with branch ${ivyModule.branch}"
+                all { VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata metadata ->
                 }
             }
         }
@@ -206,13 +205,41 @@ This story makes available the component and Ivy meta-data as optional read only
 
 ### Implementation
 
+    interface MetadataRule<T> {
+        Class<T> getSubjectType()
+        List<Class<?>> getInputTypes()
+        void execute(T subject, List<?> inputs)
+    }
+
 - Add ComponentMetadata as read-only view of ComponentMetadataDetails
     - Rename internal ComponentMetaData -> ModuleComponentMetaData
-- TBD
+- Add `VersionSelectionRules.all(MetadataRule<VersionSelection> rule)
+    - Only allowable input types are `ComponentMetadata` and `IvyModuleDescriptor`
+    - Provide a `ModuleComponentRepositoryAccess` to `VersionSelectionRulesInternal.apply()`
+    - Look up and supply the module metadata for any rule that requires it.
+- Add `VersionSelectionRules.all(Closure)` : See ComponentMetadataHandler for example
+    - Convert closure to `MetadataRule`
+- Add `ComponentMetadataHandler.eachComponent(MetadataRule<ComponentMetadataDetails>) as Java API for component metadata rule
+    - Map closure method to `MetadataRule`
+
+### Test cases
+
+- Component metadata is not requested for rule that doesn't require it
+- Using closure parameter, create custom selector scheme that:
+    - matches on Ivy `branch` attribute
+    - matches on `ComponentMetadata.status`
+    - uses information from both `IvyModuleDescriptor` and `ComponentMetadata`
+- Can use Java API for creating metadata rule
+- For custom rule that uses `ComponentMetadata` combined with `latest.release`, component metadata is only requested once for each version (is cached)
+- Reasonable error message if:
+    - First parameter is not VersionSelection
+    - Unsupported other parameter type
+    - No closure parameter
+    - Rule action throws exception
 
 ### Open issues
 
-- Need a Java API as well.
+- Convert the default version matching strategy to `MetadataRule` instances?
 
 ## Story: Build script targets versionSelection rule to particular module
 
