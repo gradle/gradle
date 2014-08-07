@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime;
+package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 import org.gradle.runtime.base.TransformationFileType;

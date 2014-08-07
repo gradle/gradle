@@ -17,7 +17,7 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.runtime.ObjectFile;
+import org.gradle.nativebinaries.ObjectFile;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
