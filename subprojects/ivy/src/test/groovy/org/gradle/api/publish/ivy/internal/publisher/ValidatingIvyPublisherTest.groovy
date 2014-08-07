@@ -15,9 +15,10 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publisher
+
+import javax.xml.namespace.QName
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
-import org.gradle.api.artifacts.NamespaceId
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
@@ -167,7 +168,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         delegate.publish(publication, repository)
 
         where:
-        elements | _
+        elements             | _
         [ ]                  | _
         [ 'foo' ]            | _
         [ 'foo', 'bar' ]     | _
@@ -340,8 +341,8 @@ public class ValidatingIvyPublisherTest extends Specification {
         return ivyXmlFile
     }
 
-    private NamespaceId ns(String name) {
-        return new NamespaceId("http://my.extra.info/${name}", name)
+    private QName ns(String name) {
+        return new QName("http://my.extra.info/${name}", name)
     }
 
     class TestIvyDescriptorFileGenerator extends IvyDescriptorFileGenerator {
@@ -365,9 +366,9 @@ public class ValidatingIvyPublisherTest extends Specification {
         }
 
         TestIvyDescriptorFileGenerator withExtraInfo(String name, String value) {
-            Map<NamespaceId, String> extraInfo = this.getExtraInfo()
+            Map<QName, String> extraInfo = this.getExtraInfo()
             if (extraInfo == null) {
-                extraInfo = new LinkedHashMap<NamespaceId, String>()
+                extraInfo = new LinkedHashMap<QName, String>()
                 this.setExtraInfo(extraInfo)
             }
             extraInfo.put(ns(name), value)

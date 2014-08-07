@@ -16,7 +16,8 @@
 
 package org.gradle.language.internal;
 
-import org.gradle.language.base.LanguageOutputType;
+import org.gradle.runtime.ObjectFile;
+import org.gradle.runtime.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.nativebinaries.NativeBinarySpec;
@@ -32,7 +33,7 @@ public abstract class NativeLanguageRegistration<U extends LanguageSourceSet> im
     private Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
 
     public NativeLanguageRegistration(){
-        languageOutputTypes.add(ObjectFileLanguageOutputType.class);
+        languageOutputTypes.add(ObjectFile.class);
     }
 
     public Set<Class<? extends LanguageOutputType>> getOutputTypes() {

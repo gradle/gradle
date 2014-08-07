@@ -17,7 +17,7 @@
 package org.gradle.runtime.base.internal;
 
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageOutputType;
+import org.gradle.runtime.base.LanguageOutputType;
 import org.gradle.runtime.base.ComponentSpec;
 
 import java.util.Set;

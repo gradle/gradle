@@ -15,19 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.IvyModuleDescriptor;
-import org.gradle.api.artifacts.NamespaceId;
+import org.gradle.api.artifacts.ivy.IvyExtraInfo;
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class DefaultIvyModuleDescriptor implements IvyModuleDescriptor {
     private final String branch;
     private final String ivyStatus;
-    private final Map<NamespaceId, String> extraInfo;
+    private final IvyExtraInfo extraInfo;
 
     public DefaultIvyModuleDescriptor(Map<NamespaceId, String> extraInfo, String branch, String ivyStatus) {
-        this.extraInfo = Collections.unmodifiableMap(extraInfo);
+        this.extraInfo = new DefaultIvyExtraInfo(extraInfo);
         this.branch = branch;
         this.ivyStatus = ivyStatus;
     }
@@ -40,7 +39,7 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptor {
         return ivyStatus;
     }
 
-    public Map<NamespaceId, String> getExtraInfo() {
+    public IvyExtraInfo getExtraInfo() {
         return extraInfo;
     }
 }

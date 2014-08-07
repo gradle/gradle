@@ -58,20 +58,23 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
 
         then:
-        adaptedConnection.delegate.class != connectionImplementation //different classloaders
-        adaptedConnection.delegate.class.name == connectionImplementation.name
-        adaptedConnection.delegate.configured
+        def consumerConnection = wrappedToNonCancellableAdapter ? adaptedConnection.delegate : adaptedConnection
+        consumerConnection.delegate.class != connectionImplementation //different classloaders
+        consumerConnection.delegate.class.name == connectionImplementation.name
+        consumerConnection.delegate.configured
 
         and:
-        adaptedConnection.class == adapter
+        wrappedToNonCancellableAdapter || adaptedConnection.class == adapter
+        !wrappedToNonCancellableAdapter || adaptedConnection.class == NonCancellableConsumerConnectionAdapter
+        !wrappedToNonCancellableAdapter || adaptedConnection.delegate.class == adapter
 
         where:
-        connectionImplementation  | adapter
-        TestConnection.class      | CancellableConsumerConnection.class
-        TestR18Connection.class   | ActionAwareConsumerConnection.class
-        TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class
-        TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class
-        TestR10M8Connection.class | InternalConnectionBackedConsumerConnection.class
+        connectionImplementation  | adapter                                          | wrappedToNonCancellableAdapter
+        TestConnection.class      | CancellableConsumerConnection.class              | false
+        TestR18Connection.class   | ActionAwareConsumerConnection.class              | true
+        TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class       | true
+        TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class  | true
+        TestR10M8Connection.class | InternalConnectionBackedConsumerConnection.class | true
     }
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
@@ -113,8 +116,14 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 }
 
 class TestMetaData implements ConnectionMetaDataVersion1 {
+    private final String version;
+
+    TestMetaData(String version) {
+        this.version = version
+    }
+
     String getVersion() {
-        return "1.1"
+        return version
     }
 
     String getDisplayName() {
@@ -134,17 +143,29 @@ class TestConnection extends TestR18Connection implements InternalCancellableCon
             throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, InternalBuildActionFailureException, IllegalStateException {
         throw new UnsupportedOperationException();
     }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData('2.1')
+    }
 }
 
 class TestR18Connection extends TestR16Connection implements InternalBuildActionExecutor {
     def <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData('1.8')
+    }
 }
 
 class TestR16Connection extends TestR12Connection implements ModelBuilder {
     BuildResult<Object> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw new UnsupportedOperationException()
+    }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData('1.6')
     }
 }
 
@@ -156,6 +177,10 @@ class TestR12Connection extends TestR10M8Connection implements BuildActionRunner
     @Override
     void configureLogging(boolean verboseLogging) {
         throw new UnsupportedOperationException()
+    }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData('1.2')
     }
 
     def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
@@ -171,6 +196,10 @@ class TestR10M8Connection extends TestR10M3Connection implements InternalConnect
     void configureLogging(boolean verboseLogging) {
         configured = verboseLogging
     }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData('1.0-milestone-8')
+    }
 }
 
 class TestR10M3Connection implements ConnectionVersion4 {
@@ -185,7 +214,7 @@ class TestR10M3Connection implements ConnectionVersion4 {
     }
 
     ConnectionMetaDataVersion1 getMetaData() {
-        return new TestMetaData()
+        return new TestMetaData('1.0-milestone-3')
     }
 
     ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {

@@ -35,39 +35,6 @@ Calling `cancel()` when the provider does not support it can
 - throw an exception
 - method can be changed to return boolean flag signaling if the cancel request was acknowledged.
 
-Note there there is an alternative proposal using a `Future` to perform cancellation differently:
-
-    interface BuildFuture<T> extends Future<T> {
-        void onSuccess(Action<? super T> action); // called immediately if the operation has completed successfully
-        void onFailure(Action<? super GradleConnectionException> action); // called immediately if the operation has failed
-        void onComplete(ResultHandler<? super T> handler); // called immediately if the operation has completed successfully
-    }
-
-    interface ModelBuilder<T> {
-        BuildFuture<T> fetch(); // starts building the model, does not block
-        ...
-    }
-
-    interface BuildLauncher {
-        BuildFuture<Void> start(); // starts running the build, does not block
-        ...
-    }
-
-    interface BuildActionExecuter<T> {
-        BuildFuture<T> start(); // starts running the build, does not block
-        ...
-    }
-
-    // TBD - fetch() should be called start() as well?
-    BuildFuture<GradleProject> model = connection.model(GradleProject.class).fetch();
-    model.cancel(true);
-
-    BuildFuture<Void> build = connection.newBuild().forTasks('a').start();
-    build.get();
-
-    BuildFuture<CustomModel> action = connection.action(new MyAction()).start();
-    CustomModel m = action.get();
-
 ### Story: Client uses internal API to request cancellation of long running operation
 
 This story adds an API to allow a client to request the cancellation of a long running operation. For this story, the
@@ -90,10 +57,15 @@ subsequent story.
 - Client can cancel operation after operation has completed:
     - Successful operation
     - Failed operation
+- Client cancels operation from `ResultHandler`
 - Client can cancel operation before its start and it won't be executed:
     - Building model
     - Running tasks
     - Running build action
+
+#### Open issues
+
+- Behaviour when cancellation is not supported.
 
 ### Story: Daemon exits when operation is cancelled
 
@@ -150,7 +122,7 @@ In this story, the Gradle distribution download is stopped when operation is can
     - Some time after requesting, the client receives a 'build cancelled' exception and download is terminated and partial downloads are removed
     - Verify this behavior for regularly processed downloads and for stalled downloads waiting on blocking I/O.
 
-### Story: Model configuration is aborted when operation is cancelled
+### Story: Project configuration is aborted when operation is cancelled
 
 In this story, no further projects are configured when operation is cancelled.
 
@@ -161,3 +133,13 @@ In this story, a `BuildAction` receives an exception when it is using or uses a 
 ### Story: Make cancellation API public
 
 Add to public API and document.
+
+## Later stories
+
+### Story: Model rule execution is aborted when operation is cancelled
+
+In this story, the `ModelRegistry` implementation stops executing rules when operation is cancelled.
+
+### Story: Nested operations started using tooling API are cancelled when outer operation is cancelled
+
+When build logic uses the tooling API to start further operations, these nested operations should also be cancelled.

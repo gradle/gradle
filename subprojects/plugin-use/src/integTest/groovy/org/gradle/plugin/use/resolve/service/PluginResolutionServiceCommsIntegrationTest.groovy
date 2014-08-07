@@ -26,6 +26,8 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient.DEPRECATION_MESSAGE_HEADER
+import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 import static org.gradle.util.Matchers.containsText
 
 /**
@@ -361,5 +363,45 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
                 assert pluginApplied
             }
         """
+    }
+
+    def "a suitable message is displayed to the user if portal responds with a deprecation message header"() {
+        publishPlugin(PLUGIN_ID, "my", "plugin", PLUGIN_VERSION)
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
+            def implementation = new PluginResolutionServiceTestServer.PluginUseResponse.Implementation("my:plugin:$PLUGIN_VERSION", portal.m2repo.uri.toString())
+            def pluginUseResponse = new PluginResolutionServiceTestServer.PluginUseResponse(PLUGIN_ID, PLUGIN_VERSION, implementation, "M2_JAR")
+            addHeader(DEPRECATION_MESSAGE_HEADER, message)
+            json(delegate, pluginUseResponse)
+        }
+
+        buildScript applyAndVerify()
+
+        executer.withDeprecationChecksDisabled()
+
+        expect:
+        succeeds("verify")
+        output.contains(message)
+
+        where:
+        message = "Some deprecation message"
+    }
+
+    def "deprecation messages are also displayed when portal responds with a deprecation message header on an error response"() {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
+            status = 404
+            addHeader(DEPRECATION_MESSAGE_HEADER, message)
+            json(delegate, new PluginResolutionServiceTestServer.MutableErrorResponse())
+        }
+
+        buildScript applyAndVerify()
+
+        executer.withDeprecationChecksDisabled()
+
+        expect:
+        fails("verify")
+        output.contains(message)
+
+        where:
+        message = "Some deprecation message for an error response"
     }
 }

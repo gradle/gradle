@@ -45,22 +45,18 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final TaskPlanExecutor taskPlanExecutor;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final DefaultTaskExecutionPlan taskExecutionPlan = new DefaultTaskExecutionPlan();
+    private final DefaultTaskExecutionPlan taskExecutionPlan;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken) {
         this.taskPlanExecutor = taskPlanExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {
         taskExecutionPlan.useFailureHandler(handler);
-    }
-
-    public void useCancellationHandler(BuildCancellationToken cancellationToken) {
-        taskExecutionPlan.useCancellationHandler(cancellationToken);
-
     }
 
     public void useFilter(Spec<? super Task> filter) {

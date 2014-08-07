@@ -83,4 +83,89 @@ class DefaultCancellationTokenTest extends Specification {
         1 * callback1.run()
         token.callbacks.empty
     }
+
+    def 'cancel notifies callbacks even if exception is thrown'() {
+        def source = new DefaultCancellationTokenSource()
+        def ex = new IllegalStateException('testing')
+
+        def callback1 = Mock(Runnable)
+        def callback2 = Mock(Runnable)
+        def token = source.token()
+        token.addCallback(callback1)
+        token.addCallback(callback2)
+
+        when:
+        source.cancel()
+
+        then:
+        RuntimeException e = thrown()
+        e.cause == ex
+        token.cancellationRequested
+
+        and:
+        1 * callback1.run() >> { throw ex }
+        1 * callback2.run()
+    }
+
+    def 'cancel notification stop when error is encountered'() {
+        def source = new DefaultCancellationTokenSource()
+        def ex = new Error('testing')
+
+        def callback1 = Mock(Runnable)
+        def callback2 = Mock(Runnable)
+        def token = source.token()
+        token.addCallback(callback1)
+        token.addCallback(callback2)
+
+        when:
+        source.cancel()
+
+        then:
+        Error e = thrown()
+        e == ex
+        token.cancellationRequested
+
+        and:
+        1 * callback1.run() >> { throw ex }
+        0 * callback2.run()
+    }
+
+    def 'cancel notifies callbacks and preserves exceptions'() {
+        def source = new DefaultCancellationTokenSource()
+        def ex1 = new IllegalStateException('testing', new IOException('something happened'))
+        def ex2 = new IllegalStateException('testing')
+
+        def callback1 = Mock(Runnable)
+        def callback2 = Mock(Runnable)
+        def callback3 = Mock(Runnable)
+        def token = source.token()
+        token.addCallback(callback1)
+        token.addCallback(callback2)
+        token.addCallback(callback3)
+
+        when:
+        source.cancel()
+
+        then:
+        RuntimeException e = thrown()
+        containsExceptionAsCause(e, ex1)
+        containsExceptionAsCause(e, ex2)
+        token.cancellationRequested
+
+        and:
+        1 * callback1.run() >> { throw ex1 }
+        1 * callback2.run() >> { throw ex2 }
+        1 * callback3.run()
+    }
+
+    def containsExceptionAsCause(def thrown, def cause) {
+        def e = thrown
+        while (e != null) {
+            if (e == cause) {
+                return true
+            }
+            e = e.cause
+        }
+        false
+    }
 }

@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.ivy
 import groovy.xml.QName
 import org.apache.commons.lang.StringUtils
-import org.gradle.api.artifacts.NamespaceId
 
 class IvyDescriptor {
     Map<String, IvyDescriptorConfiguration> configurations = [:]
@@ -30,7 +29,7 @@ class IvyDescriptor {
     String description
     String branch
     String resolver
-    Map<NamespaceId, String> extraInfo
+    Map<QName, String> extraInfo
 
     IvyDescriptor(File ivyFile) {
         def ivy = new XmlParser().parse(ivyFile)
@@ -44,7 +43,7 @@ class IvyDescriptor {
 
         extraInfo = [:]
         ivy.info[0].children().findAll { it.name() instanceof QName }.each {
-            extraInfo[new NamespaceId(it.name().namespaceURI, it.name().localPart)] = it.text()
+            extraInfo[new javax.xml.namespace.QName(it.name().namespaceURI, it.name().localPart)] = it.text()
         }
 
         ivy.configurations.conf.each {

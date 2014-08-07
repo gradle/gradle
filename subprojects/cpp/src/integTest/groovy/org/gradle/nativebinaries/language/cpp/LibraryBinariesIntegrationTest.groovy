@@ -276,12 +276,17 @@ include 'exe', 'lib'
         buildFile << """
             apply plugin: "cpp"
 
+            sources {
+                helloLib {
+                    cpp(CppSourceSet)
+                }
+            }
+
             executables {
                 main {}
             }
 
             libraries {
-                helloLib {}
                 hello {
                     binaries.all {
                         source sources.helloLib.cpp

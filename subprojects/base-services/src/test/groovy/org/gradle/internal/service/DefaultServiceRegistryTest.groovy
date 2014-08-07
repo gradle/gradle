@@ -18,6 +18,7 @@ package org.gradle.internal.service
 
 import org.gradle.api.Action
 import org.gradle.internal.Factory
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -840,20 +841,20 @@ class DefaultServiceRegistryTest extends Specification {
     def closeClosesServicesInDependencyOrder() {
         def service1 = Mock(TestCloseService)
         def service2 = Mock(TestStopService)
-        def service3 = Mock(Closeable)
+        def service3 = Mock(ClosableService)
         def registry = new DefaultServiceRegistry()
 
         given:
         registry.addProvider(new Object() {
-            TestStopService createService2(Closeable b) {
+            TestStopService createService2(ClosableService b) {
                 return service2
             }
-            Closeable createService3() {
+            ClosableService createService3() {
                 return service3
             }
         })
         registry.addProvider(new Object() {
-            TestCloseService createService1(TestStopService a, Closeable b) {
+            TestCloseService createService1(TestStopService a, ClosableService b) {
                 return service1
             }
         })
@@ -876,19 +877,19 @@ class DefaultServiceRegistryTest extends Specification {
     def closeContinuesToCloseServicesAfterFailingToStopSomeService() {
         def service1 = Mock(TestCloseService)
         def service2 = Mock(TestStopService)
-        def service3 = Mock(Closeable)
+        def service3 = Mock(ClosableService)
         def failure = new RuntimeException()
         def registry = new DefaultServiceRegistry()
 
         given:
         registry.addProvider(new Object() {
-            TestStopService createService2(Closeable b) {
+            TestStopService createService2(ClosableService b) {
                 return service2
             }
-            TestCloseService createService1(TestStopService a, Closeable b) {
+            TestCloseService createService1(TestStopService a) {
                 return service1
             }
-            Closeable createService3() {
+            ClosableService createService3() {
                 return service3
             }
         })
@@ -1209,16 +1210,12 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    public interface TestCloseService {
+    public interface TestCloseService extends Closeable {
         void close()
     }
 
-    public interface TestStopService {
+    public interface TestStopService extends Stoppable {
         void stop()
-    }
-
-    public interface ClosableServiceRegistry extends ServiceRegistry {
-        void close()
     }
 
     static class ClassWithBrokenConstructor {
@@ -1229,7 +1226,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    static class ClosableService {
+    static class ClosableService implements Closeable {
         boolean closed
 
         void close() {

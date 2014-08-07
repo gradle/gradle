@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.plugins;
+package org.gradle.runtime.base;
+
+import org.gradle.api.Incubating;
 
 /**
- * LanguageOutputType marking Jvm Resource Output
+ * The output type of a language
  * */
-public class JvmResourcesOutput implements org.gradle.language.base.LanguageOutputType {
+@Incubating
+public interface LanguageOutputType {
 }

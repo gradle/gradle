@@ -18,7 +18,9 @@ package org.gradle.testfixtures.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.FixedBuildCancellationToken;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -30,6 +32,10 @@ public class TestBuildScopeServices extends BuildScopeServices {
     public TestBuildScopeServices(ServiceRegistry parent, StartParameter startParameter, File homeDir) {
         super(parent, startParameter);
         this.homeDir = homeDir;
+    }
+
+    protected BuildCancellationToken createBuildCancellationToken() {
+        return new FixedBuildCancellationToken();
     }
 
     protected BuildClientMetaData createClientMetaData() {

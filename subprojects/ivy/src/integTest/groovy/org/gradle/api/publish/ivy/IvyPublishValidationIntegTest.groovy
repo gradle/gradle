@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.api.artifacts.NamespaceId
+import javax.xml.namespace.QName
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
@@ -71,8 +71,8 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         module.assertPublished()
         module.parsedIvy.resolver == resolver.toString()
         module.parsedIvy.extraInfo == [
-                (new NamespaceId('http://my.extra.info1', 'foo')): extraValue.toString(),
-                (new NamespaceId('http://my.extra.info2', 'bar')): extraValue.toString(),
+                (new QName('http://my.extra.info1', 'foo')): extraValue.toString(),
+                (new QName('http://my.extra.info2', 'bar')): extraValue.toString(),
         ]
 
         and:

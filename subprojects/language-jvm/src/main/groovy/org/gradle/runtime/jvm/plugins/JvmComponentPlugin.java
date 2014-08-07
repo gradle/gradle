@@ -51,17 +51,17 @@ public class JvmComponentPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
 
-        ComponentSpecContainer projectComponents = project.getExtensions().getByType(ComponentSpecContainer.class);
+        ComponentSpecContainer componentSpecs = project.getExtensions().getByType(ComponentSpecContainer.class);
 
         final ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
-        projectComponents.registerFactory(JvmLibrarySpec.class, new NamedDomainObjectFactory<JvmLibrarySpec>() {
+        componentSpecs.registerFactory(JvmLibrarySpec.class, new NamedDomainObjectFactory<JvmLibrarySpec>() {
             public JvmLibrarySpec create(String name) {
                 ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
                 return new DefaultJvmLibrarySpec(id, sources.maybeCreate(name));
             }
         });
 
-        final NamedDomainObjectContainer<JvmLibrarySpec> jvmLibraries = projectComponents.containerWithType(JvmLibrarySpec.class);
+        final NamedDomainObjectContainer<JvmLibrarySpec> jvmLibraries = componentSpecs.containerWithType(JvmLibrarySpec.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
     }
 

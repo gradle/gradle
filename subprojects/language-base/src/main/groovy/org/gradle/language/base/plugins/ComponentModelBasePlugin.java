@@ -53,7 +53,7 @@ import java.util.List;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.runtime.base.ComponentSpecContainer} named {@code projectComponents} to the project. Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the
+ * Adds a {@link org.gradle.runtime.base.ComponentSpecContainer} named {@code componentSpecs} to the project. Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the
  * project.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
@@ -76,14 +76,14 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
-        DefaultComponentSpecContainer components = project.getExtensions().create("projectComponents", DefaultComponentSpecContainer.class, instantiator);
+        DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         final PolymorphicDomainObjectContainerModelAdapter<ComponentSpec, ComponentSpecContainer> componentSpecContainerAdapter = new PolymorphicDomainObjectContainerModelAdapter<ComponentSpec, ComponentSpecContainer>(
                 components, ModelType.of(ComponentSpecContainer.class), ComponentSpec.class
         );
 
         modelRegistry.create(new ModelCreator() {
             public ModelPath getPath() {
-                return ModelPath.path("projectComponents");
+                return ModelPath.path("componentSpecs");
             }
 
             public ModelPromise getPromise() {
@@ -99,7 +99,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
 
             public ModelRuleDescriptor getDescriptor() {
-                return new SimpleModelRuleDescriptor("Project.<init>.projectComponents()");
+                return new SimpleModelRuleDescriptor("Project.<init>.componentSpecs()");
             }
         });
 
@@ -118,7 +118,14 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     private void createDefaultSourceSetForComponents(final LanguageRegistration languageRegistration, ComponentSpecContainer components) {
         components.withType(ComponentSpecInternal.class).all(new Action<ComponentSpecInternal>() {
-            public void execute(ComponentSpecInternal componentSpecInternal) {
+            public void execute(final ComponentSpecInternal componentSpecInternal) {
+                FunctionalSourceSet mainSource = componentSpecInternal.getMainSource();
+                mainSource.all(new Action<LanguageSourceSet>() {
+                    public void execute(LanguageSourceSet languageSourceSet) {
+                        componentSpecInternal.source(languageSourceSet);
+                    }
+                });
+
                 final FunctionalSourceSet functionalSourceSet = componentSpecInternal.getMainSource();
                 if(CollectionUtils.containsAny(languageRegistration.getOutputTypes(), componentSpecInternal.getInputTypes())){
                     functionalSourceSet.maybeCreate(languageRegistration.getName(), languageRegistration.getSourceSetType());

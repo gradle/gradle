@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
@@ -24,7 +25,7 @@ import java.io.File;
  * Controls the lifecycle of the compiler daemon and provides access to it.
  */
 @ThreadSafe
-public class CompilerDaemonManager implements CompilerDaemonFactory {
+public class CompilerDaemonManager implements CompilerDaemonFactory, Stoppable {
 
     private CompilerClientsManager clientsManager;
 

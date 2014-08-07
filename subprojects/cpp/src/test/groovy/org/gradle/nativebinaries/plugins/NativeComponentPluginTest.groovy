@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.plugins
 
 import org.gradle.api.tasks.TaskDependencyMatchers
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
@@ -90,39 +89,5 @@ class NativeComponentPluginTest extends Specification {
         and:
         def staticLibTask = project.tasks.testStaticLibrary
         staticLibTask TaskDependencyMatchers.dependsOn("createTestStaticLibrary")
-    }
-
-    def "attaches existing functional source set with same name to component"() {
-        def languageSourceSet = Stub(LanguageSourceSet) {
-            getName() >> "languageSourceSet"
-        }
-
-        when:
-        project.sources.create "testExe"
-        project.sources.testExe.add languageSourceSet
-
-        project.nativeRuntime.executables.create "testExe"
-        project.evaluate()
-
-        then:
-        project.nativeRuntime.executables.testExe.source == [languageSourceSet] as Set
-    }
-
-    def "creates and attaches functional source set with same name to component"() {
-        def languageSourceSet = Stub(LanguageSourceSet) {
-            getName() >> "languageSourceSet"
-        }
-
-        when:
-        // Ensure that any created functional source set has a language source set
-        project.sources.all { functionalSourceSet ->
-            functionalSourceSet.add languageSourceSet
-        }
-
-        project.nativeRuntime.executables.create "testExe"
-        project.evaluate()
-
-        then:
-        project.nativeRuntime.executables.testExe.source == [languageSourceSet] as Set
     }
 }

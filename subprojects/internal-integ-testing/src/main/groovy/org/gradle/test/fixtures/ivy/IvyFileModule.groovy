@@ -135,7 +135,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     /**
-     * Keys in extra info will be prefixed with namespace prefix "my" in this fixture.
+     * Keys in extra info will be prefixed with namespace prefix "ns" in this fixture.
      */
     IvyFileModule withExtraInfo(Map extraInfo) {
         this.extraInfo.putAll(extraInfo)

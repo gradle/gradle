@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.gradle.api.artifacts.NamespaceId;
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 
 import java.util.Map;
 

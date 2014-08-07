@@ -16,14 +16,13 @@
 
 package org.gradle.runtime.base.library;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageOutputType;
+import org.gradle.runtime.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.base.BinarySpec;
@@ -70,11 +69,6 @@ public class DefaultLibrarySpec implements LibrarySpec, ComponentSpecInternal {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
-        this.mainSourceSet.all(new Action<LanguageSourceSet>() {
-            public void execute(LanguageSourceSet languageSourceSet) {
-                sourceSets.source(languageSourceSet);
-            }
-        });
     }
 
     public String getName() {
@@ -110,7 +104,8 @@ public class DefaultLibrarySpec implements LibrarySpec, ComponentSpecInternal {
         return mainSourceSet;
     }
 
-    //TODO handle input types for custom libraries
+    // To declare a custom spec we currently need to override this method in the Library.
+    // implementation. We need a more generic way for this in the future.
     public Set<Class<? extends LanguageOutputType>> getInputTypes() {
         return new HashSet<Class<? extends LanguageOutputType>>();
     }

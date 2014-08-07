@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
@@ -38,10 +39,11 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     DefaultTaskExecutionPlan executionPlan
     DefaultProject root;
+    def cancellationHandler = Mock(BuildCancellationToken)
 
     def setup() {
         root = createRootProject();
-        executionPlan = new DefaultTaskExecutionPlan()
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler)
     }
 
     private void addToGraphAndPopulate(List tasks) {
@@ -532,8 +534,6 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     def "stops returning tasks when build is cancelled"() {
-        def cancellationHandler = Mock(BuildCancellationToken)
-        executionPlan.useCancellationHandler(cancellationHandler)
         2 * cancellationHandler.cancellationRequested >>> [false, true]
         Task a = task("a");
         Task b = task("b");
@@ -548,7 +548,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.awaitCompletion()
 
         then:
-        RuntimeException e = thrown()
+        BuildCancelledException e = thrown()
+        e.message == 'Build cancelled.'
     }
 
     protected TaskInfo getTaskToExecute() {

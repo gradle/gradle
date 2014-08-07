@@ -97,6 +97,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         executables {
             main
         }
+
         libraries {
             hello
         }
@@ -160,8 +161,11 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: "c"
             apply plugin: "cpp"
-            libraries {
-                test{}
+            sources {
+                test{
+                    c(CSourceSet)
+                    cpp(CppSourceSet)
+                }
             }
             executables {
                 main {
@@ -186,13 +190,18 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: "c"
             apply plugin: "cpp"
-            libraries {
-                test{}
+
+            sources {
+                test{
+                    c(CSourceSet)
+                    cpp(CppSourceSet)
+                }
             }
 
             executables {
                 main {}
             }
+
             binaries.all {
                 source sources.test.cpp
                 source sources.test.c

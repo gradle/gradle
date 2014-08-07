@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.api.artifacts.NamespaceId
+import javax.xml.namespace.QName
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 
 class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishIntegTest {
@@ -87,8 +87,8 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         module.parsedIvy.status == "custom-status"
         module.parsedIvy.branch == "custom-branch"
         module.parsedIvy.extraInfo.size() == 2
-        module.parsedIvy.extraInfo[new NamespaceId('http://my.extra.info1', 'foo')] == 'fooValue'
-        module.parsedIvy.extraInfo[new NamespaceId('http://my.extra.info2', 'bar')] == 'barValue'
+        module.parsedIvy.extraInfo[new QName('http://my.extra.info1', 'foo')] == 'fooValue'
+        module.parsedIvy.extraInfo[new QName('http://my.extra.info2', 'bar')] == 'barValue'
     }
 
     def "can generate ivy.xml without publishing"() {

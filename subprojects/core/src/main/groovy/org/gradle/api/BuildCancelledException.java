@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base;
+package org.gradle.api;
 
 /**
- * The output type of a language
- * */
-public interface LanguageOutputType {
+ * <p>A <code>BuildCancelledException</code> is thrown when a build is interrupted due to cancellation request.
+ *
+ * @since 2.1
+ */
+@Incubating
+public class BuildCancelledException extends GradleException {
+    public BuildCancelledException() {
+    }
+
+    public BuildCancelledException(String message) {
+        super(message);
+    }
+
+    public BuildCancelledException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

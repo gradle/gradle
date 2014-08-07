@@ -448,6 +448,7 @@ A custom binary implementation:
     - Need to declare default implementation.
     - Need to expose general DSL for defining components of a given type.
     - Need to attach source sets to components.
+- Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
 
 ### Story: Custom plugin defines tasks from binaries
 
@@ -971,6 +972,7 @@ Present to the user some information about how a given project is composed.
 #### Implementation
 
 - Add new task type to DSL guide.
+- Rendering for custom types.
 - Display install task for executables, test task for test suites.
 - Display native language header directories.
 - Display native tool locations and versions.

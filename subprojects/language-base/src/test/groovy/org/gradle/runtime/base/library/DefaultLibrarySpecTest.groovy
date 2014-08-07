@@ -18,7 +18,6 @@ package org.gradle.runtime.base.library
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.ComponentSpecIdentifier
 import org.gradle.runtime.base.ModelInstantiationException
@@ -77,18 +76,6 @@ class DefaultLibrarySpecTest extends Specification {
         e.message == "Could not create library of type MyConstructedLibrary"
         e.cause instanceof IllegalArgumentException
         e.cause.message.startsWith "Could not find any public constructor for class"
-    }
-
-    def "contains all languageSourceSet of main SourceSet"(){
-        given:
-        def library = DefaultLibrarySpec.create(MySampleLibrary, libraryId, functionalSourceSet, instantiator)
-        when:
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        functionalSourceSet.add(sourceSet1)
-        then:
-        library.source.contains(sourceSet1)
     }
 
     static class MySampleLibrary extends DefaultLibrarySpec {}

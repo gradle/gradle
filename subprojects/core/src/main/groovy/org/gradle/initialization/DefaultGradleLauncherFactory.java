@@ -89,6 +89,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         final BuildScopeServices serviceRegistry = new BuildScopeServices(sharedServices, startParameter);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
+        serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.setLevel(startParameter.getLogLevel());
@@ -135,7 +136,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 listenerManager.getBroadcaster(TasksCompletionListener.class),
                 gradle.getServices().get(BuildExecuter.class),
                 listenerManager.getBroadcaster(BuildCompletionListener.class),
-                cancellationToken,
                 serviceRegistry
         );
     }

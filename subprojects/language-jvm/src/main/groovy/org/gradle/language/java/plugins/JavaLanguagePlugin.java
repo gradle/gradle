@@ -22,7 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.language.base.LanguageOutputType;
+import org.gradle.runtime.base.LanguageOutputType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -32,6 +32,7 @@ import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.jvm.JvmByteCode;
 import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
 import java.io.File;
@@ -62,10 +63,10 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
             return DefaultJavaSourceSet.class;
         }
 
-        Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
+        private Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
 
         public Java(){
-            languageOutputTypes.add(JvmByteCodeOutput.class);
+            languageOutputTypes.add(JvmByteCode.class);
         }
 
         public Map<String, Class<?>> getBinaryTools() {

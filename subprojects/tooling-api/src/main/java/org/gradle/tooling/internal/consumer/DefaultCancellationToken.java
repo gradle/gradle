@@ -31,9 +31,10 @@ public class DefaultCancellationToken implements CancellationToken, InternalCanc
     }
 
     public synchronized boolean addCallback(Runnable cancellationHandler) {
-        callbacks.add(cancellationHandler);
         if (cancelled) {
             cancellationHandler.run();
+        } else {
+            callbacks.add(cancellationHandler);
         }
         return cancelled;
     }
@@ -43,10 +44,26 @@ public class DefaultCancellationToken implements CancellationToken, InternalCanc
             return;
         }
         cancelled = true;
+
+        Exception failure = null;
         Runnable runnable = callbacks.poll();
         while (runnable != null) {
-            runnable.run();
+            try {
+                runnable.run();
+            } catch (Exception ex) {
+                if (failure != null) {
+                    Throwable lastEx = ex;
+                    while (lastEx.getCause() != null) {
+                        lastEx = lastEx.getCause();
+                    }
+                    lastEx.initCause(failure);
+                }
+                failure = ex;
+            }
             runnable = callbacks.poll();
+        }
+        if (failure != null) {
+            throw new RuntimeException(failure);
         }
     }
 }

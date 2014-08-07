@@ -79,7 +79,6 @@ public class DefaultGradleLauncherTest {
     private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
     private TasksCompletionListener tasksCompletionListener = context.mock(TasksCompletionListener.class);
     private BuildCompletionListener buildCompletionListener = context.mock(BuildCompletionListener.class);
-    private BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     private Closeable buildServices = context.mock(Closeable.class);
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
@@ -111,7 +110,7 @@ public class DefaultGradleLauncherTest {
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock,
-                modelListenerMock, tasksCompletionListener, buildExecuter, buildCompletionListener, cancellationToken, buildServices);
+                modelListenerMock, tasksCompletionListener, buildExecuter, buildCompletionListener, buildServices);
 
         context.checking(new Expectations() {
             {
@@ -299,7 +298,7 @@ public class DefaultGradleLauncherTest {
             {
                 one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, baseClassLoaderScope);
                 one(buildConfigurerMock).configure(gradleMock);
-                one(buildExecuter).select(gradleMock, cancellationToken);
+                one(buildExecuter).select(gradleMock);
             }
         });
     }

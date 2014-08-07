@@ -21,11 +21,12 @@ import org.apache.tools.ant.Target;
 import org.gradle.api.internal.file.ant.AntFileResource;
 import org.gradle.api.internal.file.ant.BaseDirSelector;
 
+import java.io.Closeable;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-public class BasicAntBuilder extends org.gradle.api.AntBuilder {
+public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closeable {
     private final Field nodeField;
     private final List children;
 

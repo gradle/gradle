@@ -96,11 +96,13 @@ public class CompositeStoppable implements Stoppable {
             public void stop() {
                 try {
                     invoke(object.getClass().getMethod("stop"), object);
+                    throw new UnsupportedOperationException("Can't use reflection to stop: " + object + " (" + object.getClass().getSimpleName() + ")");
                 } catch (NoSuchMethodException e) {
                     // ignore
                 }
                 try {
                     invoke(object.getClass().getMethod("close"), object);
+                    throw new UnsupportedOperationException("Can't use reflection to close: " + object + " (" + object.getClass().getSimpleName() + ")");
                 } catch (NoSuchMethodException e) {
                     // ignore
                 }

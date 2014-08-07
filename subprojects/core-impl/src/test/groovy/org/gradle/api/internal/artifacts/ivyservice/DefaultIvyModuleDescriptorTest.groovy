@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.artifacts.NamespaceId
+import javax.xml.namespace.QName
 import spock.lang.Specification
 
 class DefaultIvyModuleDescriptorTest extends Specification {
     def "getExtraInfo returns immutable map"() {
         setup:
-        def map = ['some': 'value']
+        def map = [(new NamespaceId('http://my.extra.info', 'some')): 'value']
         def ivyModuleDescriptor = new DefaultIvyModuleDescriptor(map, null, null)
 
         when:
-        ivyModuleDescriptor.getExtraInfo().put(new NamespaceId('namespace', 'new'), 'value')
+        ivyModuleDescriptor.getExtraInfo().asMap().put(new QName('namespace', 'new'), 'value')
 
         then:
         thrown(UnsupportedOperationException)

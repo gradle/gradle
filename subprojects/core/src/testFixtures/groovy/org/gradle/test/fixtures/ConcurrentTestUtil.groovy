@@ -77,7 +77,7 @@ class ConcurrentTestUtil extends ExternalResource {
                     throw t
                 }
                 sleepTime = Math.min(250, (long) (sleepTime * 1.2))
-                Thread.sleep(100);
+                Thread.sleep(sleepTime);
             }
         }
     }

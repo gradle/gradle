@@ -36,8 +36,8 @@ class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {
         and:
         buildFile << """
 task checkModel << {
-    assert project.projectComponents.size() == 1
-    def sampleLib = project.projectComponents.sampleLib
+    assert project.componentSpecs.size() == 1
+    def sampleLib = project.componentSpecs.sampleLib
     assert sampleLib instanceof SampleLibrary
     assert sampleLib.projectPath == project.path
     assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
@@ -65,7 +65,7 @@ task checkModel << {
         apply plugin:MySamplePlugin
 
         task checkModel << {
-            assert project.projectComponents.size() == 0
+            assert project.componentSpecs.size() == 0
         }
 """
 
@@ -132,8 +132,8 @@ BUILD SUCCESSFUL"""))
         apply plugin:MyComponentCreationPlugin
 
         task checkModel << {
-             assert project.projectComponents.size() == 1
-             def sampleLib = project.projectComponents.sampleLib
+             assert project.componentSpecs.size() == 1
+             def sampleLib = project.componentSpecs.sampleLib
              assert sampleLib instanceof SampleLibrary
              assert sampleLib.projectPath == project.path
              assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
@@ -179,14 +179,14 @@ BUILD SUCCESSFUL"""))
         apply plugin:MySamplePlugin
 
         task checkModel << {
-             assert project.projectComponents.size() == 2
+             assert project.componentSpecs.size() == 2
 
-             def sampleLib = project.projectComponents.sampleLib
+             def sampleLib = project.componentSpecs.sampleLib
              assert sampleLib instanceof SampleLibrary
              assert sampleLib.projectPath == project.path
              assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
 
-             def anotherSampleLib = project.projectComponents.anotherSampleLib
+             def anotherSampleLib = project.componentSpecs.anotherSampleLib
              assert anotherSampleLib instanceof AnotherSampleLibrary
              assert anotherSampleLib.projectPath == project.path
              assert anotherSampleLib.displayName == "DefaultAnotherSampleLibrary 'anotherSampleLib'"

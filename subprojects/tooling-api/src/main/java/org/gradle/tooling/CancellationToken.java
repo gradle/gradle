@@ -38,7 +38,9 @@ public interface CancellationToken {
      * and therefore the call to {@link CancellationTokenSource#cancel()} does not return until the callback returns.</p>
      *
      * <p>If the token is already cancelled the handler will be called synchronously before this method returns.</p>
-     * <p>Implementation note: it is not guaranteed that all handlers will be executed if on of them throws an exception upon its execution.</p>
+     * <p>Implementation note: an attempt to execute all handlers will be made even if some of them throw an exception.
+     * The exception(s) will be rethrown to the caller.
+     * Errors or other throwables will break the execution immediately.</p>
      *
      * @param cancellationHandler callback executed when cancel is requested.
      * @return current state of cancellation request before callback was added.

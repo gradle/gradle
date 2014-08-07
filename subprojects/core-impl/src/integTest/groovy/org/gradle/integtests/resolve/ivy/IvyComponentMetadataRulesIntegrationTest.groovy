@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.api.artifacts.NamespaceId
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
@@ -60,7 +60,9 @@ dependencies {
     components {
         eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
+            assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
+            assert descriptor.extraInfo.get('foo') == 'fooValue'
+            assert descriptor.extraInfo.get('${ns('foo').namespace}', 'foo') == 'fooValue'
             assert descriptor.branch == 'someBranch'
             assert descriptor.ivyStatus == 'release'
         }
@@ -74,6 +76,38 @@ resolve.doLast { assert ruleInvoked }
         succeeds 'resolve'
         // also works when already cached
         succeeds 'resolve'
+    }
+
+    def "produces sensible error when accessing non-unique extra info element name" () {
+        def module = repo.module('org.test', 'projectA', '1.0')
+                .withExtraInfo((ns('foo')): "fooValue", (new NamespaceId('http://some.other.ns', 'foo')): "barValue")
+                .publish()
+        module.ivy.expectDownload()
+
+        buildFile <<
+                """
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleDescriptor descriptor ->
+            ruleInvoked = true
+            descriptor.extraInfo.get('foo')
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        when:
+        fails 'resolve'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasLineNumber(33)
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")
     }
 
     @Unroll
@@ -151,7 +185,7 @@ dependencies {
     components {
         eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
+            assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
             assert descriptor.ivyStatus == 'release'
         }
@@ -185,7 +219,7 @@ dependencies {
     components {
         eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
+            assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
             assert descriptor.ivyStatus == 'release'
         }
@@ -222,7 +256,7 @@ dependencies {
         eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             file("metadata").delete()
-            file("metadata") << descriptor.extraInfo.toString()
+            file("metadata") << descriptor.extraInfo.asMap().toString()
             file("metadata") << "\\n"
             file("metadata") << descriptor.branch
             file("metadata") << "\\n"
@@ -245,7 +279,7 @@ resolve.doLast { assert ruleInvoked }
 
         then:
         succeeds 'resolve'
-        assert file("metadata").text == "{bar=barValueChanged, foo=fooValueChanged}\ndifferentBranch\nmilestone"
+        assert file("metadata").text == "{{http://my.extra.info/bar}bar=barValueChanged, {http://my.extra.info/foo}foo=fooValueChanged}\ndifferentBranch\nmilestone"
     }
 
     def ns(String name) {
@@ -253,6 +287,6 @@ resolve.doLast { assert ruleInvoked }
     }
 
     def declareNS(String name) {
-        return "(new NamespaceId('http://my.extra.info/${name}', '${name}'))"
+        return "(new javax.xml.namespace.QName('http://my.extra.info/${name}', '${name}'))"
     }
 }

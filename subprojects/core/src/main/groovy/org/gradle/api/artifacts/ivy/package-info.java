@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.internal;
-
-public class ObjectFileLanguageOutputType implements org.gradle.language.base.LanguageOutputType {
-}
+/**
+ * Classes for declaring and using Ivy modules.
+ */
+package org.gradle.api.artifacts.ivy;

@@ -19,6 +19,12 @@ dependencies {
 
 useTestFixtures()
 
+integTestTasks.all {
+    if (isCiServer) {
+        maxParallelForks = Math.min(3, rootProject.maxParallelForks)
+    }
+}
+
 jar {
     manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
     doFirst {

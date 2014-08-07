@@ -27,6 +27,7 @@ import org.gradle.internal.hash.HashUtil;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +35,7 @@ import java.util.Map;
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
-public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
+public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, Closeable {
     private final ScriptCompilationHandler scriptCompilationHandler;
     private ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;

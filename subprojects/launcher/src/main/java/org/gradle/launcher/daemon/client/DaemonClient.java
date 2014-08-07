@@ -218,10 +218,14 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
         public void run() {
             LOGGER.info("Request daemon stop to handle build cancellation...");
+            wasCancelled = true;
             DaemonClientConnection connection = connector.maybeConnect(executingCompatibilitySpec);
+            if (connection == null) {
+                LOGGER.error("Cannot connect to daemon process to cancel the build.");
+                return;
+            }
             new CancelDispatcher(idGenerator).dispatch(connection, buildId);
             LOGGER.lifecycle("Gradle build stopped.");
-            wasCancelled = true;
             connection.stop();
         }
 

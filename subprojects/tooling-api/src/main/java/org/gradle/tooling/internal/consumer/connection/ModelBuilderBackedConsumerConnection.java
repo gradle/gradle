@@ -47,6 +47,9 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
     public static VersionDetails getVersionDetails(String versionString) {
         GradleVersion version = GradleVersion.version(versionString);
+        if (version.compareTo(GradleVersion.version("2.0")) > 0) {
+            return new R21VersionDetails(version.getVersion());
+        }
         if (version.compareTo(GradleVersion.version("1.11")) > 0) {
             return new R112VersionDetails(version.getVersion());
         }
@@ -57,7 +60,6 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
     }
 
     public <T> T run(Class<T> type, CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        handleCancellationPreOperation(cancellationToken, operationParameters);
         return modelProducer.produceModel(type, cancellationToken, operationParameters);
     }
 
@@ -107,6 +109,17 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
         @Override
         public boolean supportsTaskDisplayName() {
+            return true;
+        }
+    }
+
+    private static class R21VersionDetails extends R112VersionDetails {
+        private R21VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean supportsCancellation() {
             return true;
         }
     }

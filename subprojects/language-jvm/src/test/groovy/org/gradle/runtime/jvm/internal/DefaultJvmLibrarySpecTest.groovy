@@ -18,7 +18,6 @@ package org.gradle.runtime.jvm.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.ComponentSpecIdentifier
 import spock.lang.Specification
@@ -41,18 +40,5 @@ class DefaultJvmLibrarySpecTest extends Specification {
         then:
         library.name == "jvm-lib"
         library.projectPath == ":project-path"
-    }
-
-    def "contains all languageSourceSet of main SourceSet"(){
-        given:
-        def library = new DefaultJvmLibrarySpec(libraryId, mainSourceSet)
-
-        when:
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        mainSourceSet.add(sourceSet1)
-        then:
-        library.source.contains(sourceSet1)
     }
 }

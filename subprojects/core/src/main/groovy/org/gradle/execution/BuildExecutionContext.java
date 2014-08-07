@@ -16,12 +16,9 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.initialization.BuildCancellationToken;
 
 public interface BuildExecutionContext {
     GradleInternal getGradle();
 
     void proceed();
-
-    BuildCancellationToken getCancellationToken();
 }
