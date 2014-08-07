@@ -124,7 +124,15 @@ In this story, the Gradle distribution download is stopped when operation is can
 
 ### Story: Project configuration is aborted when operation is cancelled
 
-In this story, no further projects are configured when operation is cancelled.
+In this story, no further projects should be configured after the operation is cancelled. Any project configuration
+action that is currently executing should continue, similar to the task graph exececution.
+
+Implementation-wise, change `DefaultBuildConfigurer` to stop configuring projects one the cancellation
+token has been activated.
+
+### Story: Tooling API client receives BuildCancelledException as the result of a cancelled operation
+
+This story ensures that consistent behaviour is seen by the client as the result of a cancelled operation.
 
 ### Story: Build action receives exception when operation is cancelled
 
@@ -135,6 +143,13 @@ In this story, a `BuildAction` receives an exception when it is using or uses a 
 Add to public API and document.
 
 ## Later stories
+
+### Story: Tooling API client receives feedback after cancellation is requested
+
+Add some mechanism to inform the client when cancellation is or is not available, and also to inform 
+the client about the state of a cancellation request.
+
+### Story: Task graph assembly is aborted when operation is cancelled
 
 ### Story: Model rule execution is aborted when operation is cancelled
 
