@@ -101,21 +101,14 @@ should be internal at this stage, eg add a `ModelRegistry.find()` or throw a spe
     
 - Should assert that every model object is decorated, however it happens to be created.
 
-> UNANSWERED.
+> UNANSWERED - deferring until we get into the persistence side of things as that is likely to have an impact here. 
+> Also, don't really know exactly what we are going to need decoration for at this point.
 
 - Also add an API where a plugin can declare models dynamically?
 
 > Later, if the use case arises.
 
 - DSL reference documents the model.
-
-> Later story.
-
-- Another plugin or build script configures model.
-
-> Later story.
-
-- Creation rule should be able to declare inputs, including (stateless) services.
 
 > Later story.
 
@@ -129,7 +122,7 @@ should be internal at this stage, eg add a `ModelRegistry.find()` or throw a spe
 
 - How would a user verify that they got the signature/annotation correct in a unit test?
 
-> UNANSWERED.
+> Later story.
 
 - What are the rules for valid model element names?
 
@@ -142,7 +135,7 @@ The method rule can't be generic so the only other possible cases are bounded ty
 
 - How much thread safety do we build in right now? e.g. could two plugins be registered concurrently? 
 
-> UNANSWERED.
+> Out of scope for this story. Model rules are strictly within the project boundary and assuming serial execution at this time.
 
 ## Story: Plugin author unit tests plugin that declares model elements
 
@@ -376,6 +369,7 @@ A mock up:
 - Change the native language, jvm language and the publication plugins, to use this mechanism to define tasks from their models.
 
 ## Story: Build author is informed when model rule targets unknown model object
+
 
 # Implementation plan - milestone 2
 
