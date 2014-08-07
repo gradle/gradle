@@ -24,7 +24,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
-import org.gradle.launcher.exec.DefaultBuildCancellationToken;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.slf4j.Logger;
 
 import java.util.Date;

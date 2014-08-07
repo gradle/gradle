@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.consumer.DefaultCancellationToken
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
@@ -60,7 +59,7 @@ class CancellableModelBuilderBackedModelProducerTest extends Specification {
         ModelIdentifier someModelIdentifier = Mock(ModelIdentifier)
         1 * mapping.getModelIdentifierFromModelType(SomeModel.class) >> someModelIdentifier
         BuildResult buildResult = Mock(BuildResult)
-        CancellationToken cancellationToken = new DefaultCancellationToken()
+        CancellationToken cancellationToken = Mock(CancellationToken)
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
         when:
         SomeModel model = modelProducer.produceModel(SomeModel.class, cancellationToken, operationParameters)

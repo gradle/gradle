@@ -14,38 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer
+package org.gradle.initialization
 
 import spock.lang.Specification
 
-class DefaultCancellationTokenTest extends Specification {
+class DefaultBuildCancellationTokenSpec extends Specification {
     def 'can cancel token'() {
-        def source = new DefaultCancellationTokenSource()
-
         when:
-        def token = source.token()
+        def token = new DefaultBuildCancellationToken()
 
         then:
         !token.cancellationRequested
 
         when:
-        source.cancel()
+        token.doCancel()
 
         then:
         token.cancellationRequested
     }
 
     def 'cancel notifies callbacks'() {
-        def source = new DefaultCancellationTokenSource()
+        def token = new DefaultBuildCancellationToken()
 
         def callback1 = Mock(Runnable)
         def callback2 = Mock(Runnable)
-        def token = source.token()
         token.addCallback(callback1)
         token.addCallback(callback2)
 
         when:
-        source.cancel()
+        token.doCancel()
 
         then:
         token.cancellationRequested
@@ -54,11 +51,10 @@ class DefaultCancellationTokenTest extends Specification {
     }
 
     def 'addCallback after cancel notifies'() {
-        def source = new DefaultCancellationTokenSource()
+        def token = new DefaultBuildCancellationToken()
 
         def callback = Mock(Runnable)
-        def token = source.token()
-        source.cancel()
+        token.doCancel()
 
         when:
         token.addCallback(callback)
@@ -69,14 +65,13 @@ class DefaultCancellationTokenTest extends Specification {
     }
 
     def 'cancel drops references'() {
-        def source = new DefaultCancellationTokenSource()
+        def token = new DefaultBuildCancellationToken()
 
         def callback1 = Mock(Runnable)
-        def token = source.token()
         token.addCallback(callback1)
 
         when:
-        source.cancel()
+        token.doCancel()
 
         then:
         token.cancellationRequested
@@ -85,17 +80,16 @@ class DefaultCancellationTokenTest extends Specification {
     }
 
     def 'cancel notifies callbacks even if exception is thrown'() {
-        def source = new DefaultCancellationTokenSource()
+        def token = new DefaultBuildCancellationToken()
         def ex = new IllegalStateException('testing')
 
         def callback1 = Mock(Runnable)
         def callback2 = Mock(Runnable)
-        def token = source.token()
         token.addCallback(callback1)
         token.addCallback(callback2)
 
         when:
-        source.cancel()
+        token.doCancel()
 
         then:
         RuntimeException e = thrown()
@@ -108,17 +102,16 @@ class DefaultCancellationTokenTest extends Specification {
     }
 
     def 'cancel notification stop when error is encountered'() {
-        def source = new DefaultCancellationTokenSource()
+        def token = new DefaultBuildCancellationToken()
         def ex = new Error('testing')
 
         def callback1 = Mock(Runnable)
         def callback2 = Mock(Runnable)
-        def token = source.token()
         token.addCallback(callback1)
         token.addCallback(callback2)
 
         when:
-        source.cancel()
+        token.doCancel()
 
         then:
         Error e = thrown()
@@ -131,22 +124,22 @@ class DefaultCancellationTokenTest extends Specification {
     }
 
     def 'cancel notifies callbacks and preserves exceptions'() {
-        def source = new DefaultCancellationTokenSource()
+        def token = new DefaultBuildCancellationToken()
         def ex1 = new IllegalStateException('testing', new IOException('something happened'))
         def ex2 = new IllegalStateException('testing')
 
         def callback1 = Mock(Runnable)
         def callback2 = Mock(Runnable)
         def callback3 = Mock(Runnable)
-        def token = source.token()
         token.addCallback(callback1)
         token.addCallback(callback2)
         token.addCallback(callback3)
 
         when:
-        source.cancel()
+        token.doCancel()
 
         then:
+        // TODO use MultiCauseException
         RuntimeException e = thrown()
         containsExceptionAsCause(e, ex1)
         containsExceptionAsCause(e, ex2)

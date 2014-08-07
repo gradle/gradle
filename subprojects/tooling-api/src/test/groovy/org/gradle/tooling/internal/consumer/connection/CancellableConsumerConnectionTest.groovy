@@ -19,9 +19,9 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.api.Action
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
+import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.SourceObjectMapping
-import org.gradle.tooling.internal.consumer.DefaultCancellationToken
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
@@ -41,7 +41,7 @@ class CancellableConsumerConnectionTest extends Specification {
         def action = Mock(BuildAction)
         def parameters = Stub(ConsumerOperationParameters)
         def buildController = Mock(InternalBuildController)
-        def cancellation = new DefaultCancellationToken()
+        def cancellation = Mock(CancellationToken)
 
         when:
         def result = connection.run(action, cancellation, parameters)
@@ -62,7 +62,7 @@ class CancellableConsumerConnectionTest extends Specification {
     def "adapts build action failure"() {
         def action = Mock(BuildAction)
         def parameters = Stub(ConsumerOperationParameters)
-        def cancellation = new DefaultCancellationToken()
+        def cancellation = Mock(CancellationToken)
         def failure = new RuntimeException()
 
         when:
@@ -79,7 +79,7 @@ class CancellableConsumerConnectionTest extends Specification {
 
     def "runs build using connection's getModel() method"() {
         def parameters = Stub(ConsumerOperationParameters)
-        def cancellation = new DefaultCancellationToken()
+        def cancellation = Mock(CancellationToken)
         ModelIdentifier modelIdentifier = Mock()
 
         when:

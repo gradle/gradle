@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
-
-import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.internal.protocol.InternalCancellationToken;
+package org.gradle.initialization;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class DefaultCancellationToken implements CancellationToken, InternalCancellationToken {
+public class DefaultBuildCancellationToken implements BuildCancellationToken {
     private boolean cancelled;
     private Queue<Runnable> callbacks = new LinkedList<Runnable>();
 
@@ -39,7 +36,7 @@ public class DefaultCancellationToken implements CancellationToken, InternalCanc
         return cancelled;
     }
 
-    synchronized void doCancel() {
+    public synchronized void doCancel() {
         if (cancelled) {
             return;
         }

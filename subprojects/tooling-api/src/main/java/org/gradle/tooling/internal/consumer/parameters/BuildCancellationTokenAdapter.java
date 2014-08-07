@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.consumer.parameters;
 
-import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
-public class BuildCancellationTokenAdapter implements BuildCancellationToken {
-    private final InternalCancellationToken internalCancellationToken;
+public class BuildCancellationTokenAdapter implements InternalCancellationToken {
+    private final CancellationToken cancellationToken;
 
-    public BuildCancellationTokenAdapter(InternalCancellationToken internalCancellationToken) {
-        this.internalCancellationToken = internalCancellationToken;
+    public BuildCancellationTokenAdapter(CancellationToken internalCancellationToken) {
+        this.cancellationToken = internalCancellationToken;
     }
 
     public boolean isCancellationRequested() {
-        return internalCancellationToken.isCancellationRequested();
+        return cancellationToken.isCancellationRequested();
     }
 
     public boolean addCallback(Runnable cancellationHandler) {
-        return internalCancellationToken.addCallback(cancellationHandler);
+        return cancellationToken.addCallback(cancellationHandler);
     }
 }
