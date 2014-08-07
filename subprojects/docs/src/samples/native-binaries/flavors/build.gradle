@@ -1,5 +1,13 @@
 apply plugin: 'cpp'
 
+sources {
+    exe {
+        cpp(CppSourceSet)
+    }
+    lib {
+        cpp(CppSourceSet)
+    }
+}
 // START SNIPPET flavors
 model {
     flavors {
@@ -9,7 +17,6 @@ model {
 }
 
 libraries {
-    lib {}
     hello {
         binaries.all {
             if (flavor == flavors.french) {
@@ -25,7 +32,6 @@ binaries.withType(SharedLibraryBinarySpec) {
 }
 
 executables {
-    exe {}
     main {
         source sources.exe
         binaries.all {

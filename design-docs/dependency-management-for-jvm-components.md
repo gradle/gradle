@@ -819,6 +819,17 @@ This story will involve defining 'input-type' for each component type: e.g. JvmB
 A language plugin will need to register the compiled output type for each source set. Then it will be possible for a component to only
 attach to those language source sets that have an appropriate output type.
 
+#### Open issues
+- custom sourceSets declared via 'sources' DSL must always be declared with their type (even its type is obvious) e.g:
+
+    apply plugin:'cpp'
+    
+    sources {
+        lib {
+            cpp(CppSourceSet)
+        }
+    }
+        
 ## Feature: Build author declares dependencies for custom library
 
 Change the sample plugin so that it allows Java and custom libraries to be used as dependencies:

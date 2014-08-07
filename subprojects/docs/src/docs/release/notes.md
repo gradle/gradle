@@ -334,6 +334,19 @@ For example:
     sources {
         main.cpp.lib library: 'foo'
     }
+    
+If a language plugin is applied, an according language source set is not automatically 
+added to all functional sourcet set declared using the `sources` DSL. Instead it must be declared 
+manually with name and type.
+
+    apply plugin:'cpp'
+    
+    sources {
+        lib {
+            // explicitly create a cpp source set of type CppSourceSet
+            cpp(CppSourceSet)
+        }
+    }
 
 #### Changes to CUnit configuration DSL
 
