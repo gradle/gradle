@@ -22,6 +22,8 @@ import org.gradle.api.Incubating;
  * Token that propagates notification that an operation should be cancelled.
  * <p>Tooling API implementation is expected to monitor the status of this token to perform the cancellation.</p>
  *
+ * <p>All implementations of this interface are required to be thread safe.</p>
+ *
  * @since 2.1
  */
 @Incubating
@@ -31,6 +33,7 @@ public interface CancellationToken {
      * @return Cancellation status.
      */
     boolean isCancellationRequested();
+
     /**
      * Registers a callback notified synchronously when token is cancelled.
      *
