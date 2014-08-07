@@ -33,5 +33,5 @@ public interface IvyExtraInfoSpec extends IvyExtraInfo {
      * @param name The name of the element to add
      * @param value The value of the element to add
      */
-    void put(String namespace, String name, String value);
+    void add(String namespace, String name, String value);
 }

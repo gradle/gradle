@@ -19,18 +19,13 @@ package org.gradle.api.publish.ivy.internal.publication;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyExtraInfo;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
-import java.util.Map;
 
 public class DefaultIvyExtraInfoSpec extends DefaultIvyExtraInfo implements IvyExtraInfoSpec {
     public DefaultIvyExtraInfoSpec() {
         super();
     }
 
-    public DefaultIvyExtraInfoSpec(Map<NamespaceId, String> extraInfo) {
-        super(extraInfo);
-    }
-
-    public void put(String namespace, String name, String value) {
+    public void add(String namespace, String name, String value) {
         extraInfo.put(new NamespaceId(namespace, name), value);
     }
 }
