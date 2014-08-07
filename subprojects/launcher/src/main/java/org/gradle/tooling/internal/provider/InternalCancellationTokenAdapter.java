@@ -19,18 +19,22 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
-public class BuildCancellationTokenAdapter implements BuildCancellationToken {
-    private final InternalCancellationToken internalCancellationToken;
+public class InternalCancellationTokenAdapter implements BuildCancellationToken {
+    private final InternalCancellationToken cancellationToken;
 
-    public BuildCancellationTokenAdapter(InternalCancellationToken internalCancellationToken) {
-        this.internalCancellationToken = internalCancellationToken;
+    public InternalCancellationTokenAdapter(InternalCancellationToken cancellationToken) {
+        this.cancellationToken = cancellationToken;
     }
 
     public boolean isCancellationRequested() {
-        return internalCancellationToken.isCancellationRequested();
+        return cancellationToken.isCancellationRequested();
     }
 
     public boolean addCallback(Runnable cancellationHandler) {
-        return internalCancellationToken.addCallback(cancellationHandler);
+        return cancellationToken.addCallback(cancellationHandler);
+    }
+
+    public void removeCallback(Runnable cancellationHandler) {
+        cancellationToken.removeCallback(cancellationHandler);
     }
 }

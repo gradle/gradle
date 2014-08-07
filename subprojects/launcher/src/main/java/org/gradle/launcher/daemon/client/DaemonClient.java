@@ -197,6 +197,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 LOGGER.info(e.getMessage() + " Trying a different daemon...");
             } finally {
                 connection.stop();
+                cancellationToken.removeCallback(cancelCallback);
             }
         }
         //TODO it would be nice if below includes the errors that were accumulated above.

@@ -17,9 +17,9 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.runtime.ObjectFile;
+import org.gradle.nativebinaries.ObjectFile;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.nativebinaries.NativeComponentSpec;
@@ -35,7 +35,7 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier id;
     private final DefaultDomainObjectSet<NativeBinarySpec> binaries;
-    private final Set<Class<? extends LanguageOutputType>> inputTypes = new HashSet<Class<? extends LanguageOutputType>>();
+    private final Set<Class<? extends TransformationFileType>> inputTypes = new HashSet<Class<? extends TransformationFileType>>();
 
     private final FunctionalSourceSet mainSourceSet;
     private String baseName;
@@ -85,7 +85,7 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
     }
 
 
-    public Set<Class<? extends LanguageOutputType>> getInputTypes() {
+    public Set<Class<? extends TransformationFileType>> getInputTypes() {
         return inputTypes;
     }
 }

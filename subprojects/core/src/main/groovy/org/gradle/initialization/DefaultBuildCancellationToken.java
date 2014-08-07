@@ -14,42 +14,62 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.initialization;
 
-import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.internal.protocol.InternalCancellationToken;
-
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
-public class DefaultCancellationToken implements CancellationToken, InternalCancellationToken {
+public class DefaultBuildCancellationToken implements BuildCancellationToken {
+    private final Object lock = new Object();
     private boolean cancelled;
     private Queue<Runnable> callbacks = new LinkedList<Runnable>();
 
-    public synchronized boolean isCancellationRequested() {
-        return cancelled;
+    public boolean isCancellationRequested() {
+        synchronized (lock) {
+            return cancelled;
+        }
     }
 
-    public synchronized boolean addCallback(Runnable cancellationHandler) {
-        if (cancelled) {
+    public boolean addCallback(Runnable cancellationHandler) {
+        boolean returnValue;
+        synchronized (lock) {
+            returnValue = cancelled;
+            if (!cancelled) {
+                callbacks.add(cancellationHandler);
+            }
+        }
+        if (returnValue) {
             cancellationHandler.run();
-        } else {
-            callbacks.add(cancellationHandler);
         }
-        return cancelled;
+        return returnValue;
     }
 
-    synchronized void doCancel() {
-        if (cancelled) {
-            return;
+    public void removeCallback(Runnable cancellationHandler) {
+        synchronized (lock) {
+            callbacks.remove(cancellationHandler);
         }
-        cancelled = true;
+    }
 
+    public void doCancel() {
+        List<Runnable> toCall = new ArrayList<Runnable>();
+        synchronized (lock) {
+            if (cancelled) {
+                return;
+            }
+            cancelled = true;
+
+            Runnable runnable = callbacks.poll();
+            while (runnable != null) {
+                toCall.add(runnable);
+                runnable = callbacks.poll();
+            }
+        }
         Exception failure = null;
-        Runnable runnable = callbacks.poll();
-        while (runnable != null) {
+        for (Runnable callback : toCall) {
             try {
-                runnable.run();
+                callback.run();
             } catch (Exception ex) {
                 if (failure != null) {
                     Throwable lastEx = ex;
@@ -60,7 +80,6 @@ public class DefaultCancellationToken implements CancellationToken, InternalCanc
                 }
                 failure = ex;
             }
-            runnable = callbacks.poll();
         }
         if (failure != null) {
             throw new RuntimeException(failure);

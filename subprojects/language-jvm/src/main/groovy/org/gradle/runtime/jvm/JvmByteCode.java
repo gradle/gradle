@@ -17,11 +17,11 @@
 package org.gradle.runtime.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 
 /**
  * LanguageOutputType marking Jvm byte code.
  * */
 @Incubating
- public class JvmByteCode implements LanguageOutputType {
+ public class JvmByteCode implements TransformationFileType {
 }

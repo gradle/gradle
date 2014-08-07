@@ -904,7 +904,16 @@ attach to those language source sets that have an appropriate output type.
 - Plugin should be able to declare the file types that a custom binary can be assembled from
     - Infrastructure would take care of linking up the appropriate source languages based on this.
 - Plugin should to be able to declare custom language implementations.
+- custom sourceSets declared via 'sources' DSL must always be declared with their type (even its type is obvious) e.g:
 
+    apply plugin:'cpp'
+    
+    sources {
+        lib {
+            cpp(CppSourceSet)
+        }
+    }
+        
 ## Feature: Build author declares dependencies for custom library
 
 Change the sample plugin so that it allows Java and custom libraries to be used as dependencies:

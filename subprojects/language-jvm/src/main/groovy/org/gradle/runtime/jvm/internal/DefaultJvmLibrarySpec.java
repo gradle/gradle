@@ -19,7 +19,7 @@ package org.gradle.runtime.jvm.internal;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.runtime.jvm.JvmByteCode;
@@ -37,7 +37,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     private final FunctionalSourceSet mainSourceSet;
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
-    private final Set<Class<? extends LanguageOutputType>> languageOutputs = new HashSet<Class<? extends LanguageOutputType>>();
+    private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
         this.mainSourceSet = mainSourceSet;
@@ -78,7 +78,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
         return mainSourceSet;
     }
 
-    public Set<Class<? extends LanguageOutputType>> getInputTypes() {
+    public Set<Class<? extends TransformationFileType>> getInputTypes() {
         return languageOutputs;
     }
 }

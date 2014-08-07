@@ -24,7 +24,7 @@ class DefaultIvyExtraInfoSpecTest extends Specification {
         def DefaultIvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec()
 
         when:
-        extraInfo.put("http://my.extra.info", "foo", "fooValue")
+        extraInfo.add("http://my.extra.info", "foo", "fooValue")
 
         then:
         extraInfo.asMap() == [ (new QName("http://my.extra.info", "foo")): "fooValue" ]

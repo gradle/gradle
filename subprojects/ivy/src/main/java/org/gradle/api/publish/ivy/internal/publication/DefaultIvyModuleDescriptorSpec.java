@@ -70,7 +70,7 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
         if (namespace == null) {
             throw new InvalidUserDataException("Cannot add an extra info element with null namespace");
         }
-        extraInfo.put(namespace, elementName, value);
+        extraInfo.add(namespace, elementName, value);
     }
 
     public IvyPublicationIdentity getProjectIdentity() {

@@ -24,7 +24,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
-import org.gradle.launcher.exec.DefaultBuildCancellationToken;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.slf4j.Logger;
 
 import java.util.Date;
@@ -206,17 +206,22 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     public void cancelBuild(Object cancellationTokenId) {
+        ScopedBuildCancellationToken currentToken = cancellationToken;
+        if (!Objects.equal(currentToken.cancellationId, cancellationTokenId)
+                && !Objects.equal(currentToken.cancellationId.toString(), cancellationTokenId)) {
+            LOGGER.info("Cancel request does not match current build ({}). Ignoring", currentToken.cancellationId);
+            return;
+        }
+        long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
+        LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
+        try {
+            currentToken.token.doCancel();
+        } catch (Exception ex) {
+            LOGGER.error("Cancel processing failed. Will continue.", ex);
+        }
+
         lock.lock();
         try {
-            ScopedBuildCancellationToken currentToken = cancellationToken;
-            if (!Objects.equal(currentToken.cancellationId, cancellationTokenId)
-                    && !Objects.equal(currentToken.cancellationId.toString(), cancellationTokenId)) {
-                LOGGER.info("Cancel request does not match current build ({}). Ignoring", currentToken.cancellationId);
-                return;
-            }
-            long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
-            LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
-            currentToken.token.doCancel();
             while (System.currentTimeMillis() < waitUntil) {
                 try {
                     switch (state) {

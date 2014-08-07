@@ -17,7 +17,7 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -63,13 +63,13 @@ public class JvmResourcesPlugin implements Plugin<Project> {
             return Collections.emptyMap();
         }
 
-        Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
+        Set<Class<? extends TransformationFileType>> languageOutputTypes = new HashSet<Class<? extends TransformationFileType>>();
 
         public JvmResources(){
             languageOutputTypes.add(org.gradle.runtime.jvm.JvmResources.class);
         }
 
-        public Set<Class<? extends LanguageOutputType>> getOutputTypes() {
+        public Set<Class<? extends TransformationFileType>> getOutputTypes() {
             return languageOutputTypes;
         }
 

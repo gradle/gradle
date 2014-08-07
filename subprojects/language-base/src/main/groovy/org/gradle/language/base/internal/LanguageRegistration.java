@@ -17,7 +17,7 @@
 package org.gradle.language.base.internal;
 
 
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.runtime.base.BinarySpec;
 
@@ -51,7 +51,7 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
     /**
      * A set of output types generated from these language sources.
      */
-    Set<Class<? extends LanguageOutputType>> getOutputTypes();
+    Set<Class<? extends TransformationFileType>> getOutputTypes();
 
     /**
      * The task used to transform sources into code for the target runtime.

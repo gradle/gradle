@@ -22,7 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -63,7 +63,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
             return DefaultJavaSourceSet.class;
         }
 
-        private Set<Class<? extends LanguageOutputType>> languageOutputTypes = new HashSet<Class<? extends LanguageOutputType>>();
+        private Set<Class<? extends TransformationFileType>> languageOutputTypes = new HashSet<Class<? extends TransformationFileType>>();
 
         public Java(){
             languageOutputTypes.add(JvmByteCode.class);
@@ -73,7 +73,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
             return Collections.emptyMap();
         }
 
-        public Set<Class<? extends LanguageOutputType>> getOutputTypes() {
+        public Set<Class<? extends TransformationFileType>> getOutputTypes() {
             return languageOutputTypes;
         }
 

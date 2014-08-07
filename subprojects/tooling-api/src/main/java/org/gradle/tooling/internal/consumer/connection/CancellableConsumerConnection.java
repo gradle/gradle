@@ -20,6 +20,7 @@ import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
@@ -46,7 +47,7 @@ public class CancellableConsumerConnection extends ModelBuilderBackedConsumerCon
         BuildResult<T> result;
         try {
             // TODO use adapt instead of casting?
-            result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), (InternalCancellationToken) cancellationToken, operationParameters);
+            result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), new BuildCancellationTokenAdapter(cancellationToken), operationParameters);
         } catch (InternalBuildActionFailureException e) {
             throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
         }

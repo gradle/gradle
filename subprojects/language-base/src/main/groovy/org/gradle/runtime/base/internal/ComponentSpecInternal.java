@@ -17,7 +17,7 @@
 package org.gradle.runtime.base.internal;
 
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.runtime.base.ComponentSpec;
 
 import java.util.Set;
@@ -26,5 +26,5 @@ public interface ComponentSpecInternal extends ComponentSpec {
 
     FunctionalSourceSet getMainSource();
 
-    Set<Class<? extends LanguageOutputType>> getInputTypes();
+    Set<Class<? extends TransformationFileType>> getInputTypes();
 }

@@ -26,9 +26,30 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.BuildActionRunner;
+import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildParameters;
+import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.ConfigurableConnection;
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionParameters;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
+import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
+import org.gradle.tooling.internal.protocol.InternalCancellationToken;
+import org.gradle.tooling.internal.protocol.InternalConnection;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelBuilder;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
-import org.gradle.tooling.internal.provider.connection.*;
+import org.gradle.tooling.internal.provider.connection.AdaptedOperationParameters;
+import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
+import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,7 +163,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
         validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
-        BuildCancellationToken buildCancellationToken = new BuildCancellationTokenAdapter(cancellationToken);
+        BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object result = connection.run(modelIdentifier.getName(), buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(result);
     }
@@ -164,7 +185,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
             throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
-        BuildCancellationToken buildCancellationToken = new BuildCancellationTokenAdapter(cancellationToken);
+        BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.run(action, buildCancellationToken, providerParameters);
         return new ProviderBuildResult<T>((T) results);
     }

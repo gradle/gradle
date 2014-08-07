@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.tooling.internal.consumer.parameters;
 
-/**
- * Implementation used for toolingApi requests from consumer without cancellation support.
- */
-public class FixedBuildCancellationToken implements BuildCancellationToken {
+import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.internal.protocol.InternalCancellationToken;
+
+public class BuildCancellationTokenAdapter implements InternalCancellationToken {
+    private final CancellationToken cancellationToken;
+
+    public BuildCancellationTokenAdapter(CancellationToken internalCancellationToken) {
+        this.cancellationToken = internalCancellationToken;
+    }
+
     public boolean isCancellationRequested() {
-        return false;
+        return cancellationToken.isCancellationRequested();
     }
 
     public boolean addCallback(Runnable cancellationHandler) {
-        return false;
+        return cancellationToken.addCallback(cancellationHandler);
     }
 
     public void removeCallback(Runnable cancellationHandler) {
+        cancellationToken.removeCallback(cancellationHandler);
     }
 }

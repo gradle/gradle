@@ -21,6 +21,7 @@ import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
+import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -44,7 +45,7 @@ public class CancellableModelBuilderBackedModelProducer extends AbstractModelPro
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         BuildResult<?> result;
         try {
-            result = builder.getModel(modelIdentifier, (InternalCancellationToken) cancellationToken, operationParameters);
+            result = builder.getModel(modelIdentifier, new BuildCancellationTokenAdapter(cancellationToken), operationParameters);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }

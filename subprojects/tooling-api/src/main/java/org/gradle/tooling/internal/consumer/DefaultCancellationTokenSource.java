@@ -16,15 +16,22 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.CancellationTokenSource;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 public final class DefaultCancellationTokenSource implements CancellationTokenSource {
-    private final DefaultCancellationToken token = new DefaultCancellationToken();
+    private final DefaultBuildCancellationToken tokenImpl;
+    private final CancellationToken token;
 
-    // TODO exception handling from callbacks (aggregate into one exception and rethrow?)
+    public DefaultCancellationTokenSource() {
+        tokenImpl = new DefaultBuildCancellationToken();
+        token = new ProtocolToModelAdapter().adapt(CancellationToken.class, tokenImpl);
+    }
+
     public void cancel() {
-        token.doCancel();
+        tokenImpl.doCancel();
     }
 
     public CancellationToken token() {

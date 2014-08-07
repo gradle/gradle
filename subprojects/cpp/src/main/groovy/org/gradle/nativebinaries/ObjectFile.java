@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime;
+package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 
 /**
  * LanguageOutputType marking object file output type.
  * */
 @Incubating
-public class ObjectFile implements LanguageOutputType {
+public class ObjectFile implements TransformationFileType {
 }

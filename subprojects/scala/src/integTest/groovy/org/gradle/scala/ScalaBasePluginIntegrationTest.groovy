@@ -15,13 +15,17 @@
  */
 package org.gradle.scala
 
+import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import org.junit.Rule
 
 import static org.hamcrest.Matchers.startsWith
 
 @TargetVersions(["2.10.4", "2.11.1"])
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
+    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+
     def "defaults scalaClasspath to inferred Scala compiler dependency"() {
         file("build.gradle") << """
 apply plugin: "scala-base"
