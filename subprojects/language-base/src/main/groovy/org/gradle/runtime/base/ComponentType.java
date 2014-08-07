@@ -28,14 +28,14 @@ import java.lang.annotation.Target;
  *
  * The following example demonstrates how to register a custom component type using a plugin with a
  * {@link ComponentType} annotation.
- * Furthermore the plugin creates an instance of SampleLibrary named 'sampleLib'.
+ * Furthermore the plugin creates an instance of SampleComponent named 'sampleComponent'.
  *
  * <pre autoTested=''>
  * import org.gradle.model.*
  * import org.gradle.model.collection.*
  *
- * interface SampleLibrary extends LibrarySpec {}
- * class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {}
+ * interface SampleComponent extends ComponentSpec {}
+ * class DefaultSampleComponent extends DefaultComponentSpec implements SampleComponent {}
  *
  * apply plugin: MySamplePlugin
  *
@@ -45,13 +45,13 @@ import java.lang.annotation.Target;
  *     @RuleSource
  *     static class Rules {
  *         @ComponentType
- *         void register(ComponentTypeBuilder<SampleLibrary> builder) {
- *             builder.setDefaultImplementation(DefaultSampleLibrary)
+ *         void register(ComponentTypeBuilder<SampleComponent> builder) {
+ *             builder.setDefaultImplementation(DefaultSampleComponent)
  *         }
  *
  *         @Mutate
- *         void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
- *             componentSpecs.create("sampleLib")
+ *         void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleComponent> componentSpecs) {
+ *             componentSpecs.create("sampleComponent")
  *         }
  *     }
  * }

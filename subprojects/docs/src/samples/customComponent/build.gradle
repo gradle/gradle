@@ -21,7 +21,7 @@ import org.gradle.model.RuleSource
 import org.gradle.model.collection.NamedItemCollectionBuilder
 
 interface SampleLibrary extends LibrarySpec { }
-class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary {}
+class DefaultSampleLibrary extends DefaultComponentSpec implements SampleLibrary {}
 
 class SampleExtension {
     List<String> libraryNames = new ArrayList<String>()

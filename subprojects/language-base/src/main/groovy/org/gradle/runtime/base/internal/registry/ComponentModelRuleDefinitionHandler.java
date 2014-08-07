@@ -34,8 +34,8 @@ import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.*;
+import org.gradle.runtime.base.component.DefaultComponentSpec;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
-import org.gradle.runtime.base.library.DefaultLibrarySpec;
 
 import java.util.List;
 
@@ -56,8 +56,8 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
     }
 
     public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
-        Class<? extends LibrarySpec> type = readComponentType(ruleDefinition);
-        Class<? extends DefaultLibrarySpec> implementation = determineImplementationType(ruleDefinition, type);
+        Class<? extends ComponentSpec> type = readComponentType(ruleDefinition);
+        Class<? extends DefaultComponentSpec> implementation = determineImplementationType(ruleDefinition, type);
 
         dependencies.add(ComponentModelBasePlugin.class);
 
@@ -66,7 +66,7 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
         }
     }
 
-    private Class<? extends LibrarySpec> readComponentType(MethodRuleDefinition ruleDefinition) {
+    private Class<? extends ComponentSpec> readComponentType(MethodRuleDefinition ruleDefinition) {
         if (ruleDefinition.getReferences().size() != 1) {
             throw new InvalidComponentModelException(String.format("ComponentType method must have a single parameter of type %s.", ComponentTypeBuilder.class.getSimpleName()));
         }
@@ -81,22 +81,22 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
             throw new InvalidComponentModelException("ComponentTypeBuilder parameter must declare a type parameter (must be generified).");
         }
         Class<?> componentType = componentBuilderType.getTypeVariables().get(0).getRawClass();
-        if (!LibrarySpec.class.isAssignableFrom(componentType)) {
-            throw new InvalidComponentModelException(String.format("Component type '%s' must extend '%s'.", componentType.getSimpleName(), LibrarySpec.class.getSimpleName()));
+        if (!ComponentSpec.class.isAssignableFrom(componentType)) {
+            throw new InvalidComponentModelException(String.format("Component type '%s' must extend '%s'.", componentType.getSimpleName(), ComponentSpec.class.getSimpleName()));
         }
-        if (componentType.equals(LibrarySpec.class)) {
-            throw new InvalidComponentModelException(String.format("Component type must be a subtype of '%s'.", LibrarySpec.class.getSimpleName()));
+        if (componentType.equals(ComponentSpec.class)) {
+            throw new InvalidComponentModelException(String.format("Component type must be a subtype of '%s'.", ComponentSpec.class.getSimpleName()));
         }
-        return (Class<? extends LibrarySpec>) componentType;
+        return (Class<? extends ComponentSpec>) componentType;
     }
 
-    private Class<? extends DefaultLibrarySpec> determineImplementationType(MethodRuleDefinition ruleDefinition, Class<? extends LibrarySpec> type) {
+    private Class<? extends DefaultComponentSpec> determineImplementationType(MethodRuleDefinition ruleDefinition, Class<? extends ComponentSpec> type) {
         MyComponentTypeBuilder builder = new MyComponentTypeBuilder();
         ruleDefinition.getRuleInvoker().invoke(builder);
-        Class<? extends LibrarySpec> implementation = builder.implementation;
+        Class<? extends ComponentSpec> implementation = builder.implementation;
         if (implementation != null) {
-            if (!DefaultLibrarySpec.class.isAssignableFrom(implementation)) {
-                throw new InvalidComponentModelException(String.format("Component implementation '%s' must extend '%s'.", implementation.getSimpleName(), DefaultLibrarySpec.class.getSimpleName()));
+            if (!DefaultComponentSpec.class.isAssignableFrom(implementation)) {
+                throw new InvalidComponentModelException(String.format("Component implementation '%s' must extend '%s'.", implementation.getSimpleName(), DefaultComponentSpec.class.getSimpleName()));
             }
             if (!type.isAssignableFrom(implementation)) {
                 throw new InvalidComponentModelException(String.format("Component implementation '%s' must implement '%s'.", implementation.getSimpleName(), type.getSimpleName()));
@@ -107,10 +107,10 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
                 throw new InvalidComponentModelException(String.format("Component implementation '%s' must have public default constructor.", implementation.getSimpleName()));
             }
         }
-        return (Class<? extends DefaultLibrarySpec>) implementation;
+        return (Class<? extends DefaultComponentSpec>) implementation;
     }
 
-    private static class MyComponentTypeBuilder<T extends LibrarySpec> implements ComponentTypeBuilder<T> {
+    private static class MyComponentTypeBuilder<T extends ComponentSpec> implements ComponentTypeBuilder<T> {
         Class<? extends T> implementation;
 
         public void setDefaultImplementation(Class<? extends T> implementation) {
@@ -125,10 +125,10 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<ExtensionContainer> subject;
         private final List<ModelReference<?>> inputs = Lists.newArrayList();
-        private final Class<? extends LibrarySpec> type;
-        private final Class<? extends DefaultLibrarySpec> implementation;
+        private final Class<? extends ComponentSpec> type;
+        private final Class<? extends DefaultComponentSpec> implementation;
 
-        private RegisterComponentTypeRule(ModelRuleDescriptor descriptor, Class<? extends LibrarySpec> type, Class<? extends DefaultLibrarySpec> implementation) {
+        private RegisterComponentTypeRule(ModelRuleDescriptor descriptor, Class<? extends ComponentSpec> type, Class<? extends DefaultComponentSpec> implementation) {
             this.descriptor = descriptor;
             this.type = type;
             this.implementation = implementation;
@@ -154,7 +154,7 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
                 public Object create(String name) {
                     FunctionalSourceSet componentSourceSet = projectSourceSet.maybeCreate(name);
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return DefaultLibrarySpec.create(implementation, id, componentSourceSet, instantiator);
+                    return DefaultComponentSpec.create(implementation, id, componentSourceSet, instantiator);
                 }
             });
         }

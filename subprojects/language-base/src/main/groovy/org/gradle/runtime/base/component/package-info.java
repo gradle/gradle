@@ -18,6 +18,6 @@
  * General purpose types for library support.
  */
 @Incubating
-package org.gradle.runtime.base.library;
+package org.gradle.runtime.base.component;
 
 import org.gradle.api.Incubating;

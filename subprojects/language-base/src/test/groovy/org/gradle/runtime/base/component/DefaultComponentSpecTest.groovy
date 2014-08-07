@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.library
+package org.gradle.runtime.base.component
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
@@ -23,45 +23,45 @@ import org.gradle.runtime.base.ComponentSpecIdentifier
 import org.gradle.runtime.base.ModelInstantiationException
 import spock.lang.Specification
 
-class DefaultLibrarySpecTest extends Specification {
+class DefaultComponentSpecTest extends Specification {
     def instantiator = new DirectInstantiator()
-    def libraryId = Mock(ComponentSpecIdentifier)
+    def componentId = Mock(ComponentSpecIdentifier)
     FunctionalSourceSet functionalSourceSet;
     def setup(){
         functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
     }
 
     def "library has name and path"() {
-        def library = DefaultLibrarySpec.create(DefaultLibrarySpec, libraryId, functionalSourceSet, instantiator)
+        def component = DefaultComponentSpec.create(DefaultComponentSpec, componentId, functionalSourceSet, instantiator)
 
         when:
-        _ * libraryId.name >> "jvm-lib"
-        _ * libraryId.projectPath >> ":project-path"
+        _ * componentId.name >> "jvm-lib"
+        _ * componentId.projectPath >> ":project-path"
 
         then:
-        library.name == "jvm-lib"
-        library.projectPath == ":project-path"
-        library.displayName == "DefaultLibrarySpec 'jvm-lib'"
+        component.name == "jvm-lib"
+        component.projectPath == ":project-path"
+        component.displayName == "DefaultComponentSpec 'jvm-lib'"
     }
 
     def "has sensible display name"() {
-        def library = DefaultLibrarySpec.create(MySampleLibrary, libraryId, functionalSourceSet, instantiator)
+        def component = DefaultComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
 
         when:
-        _ * libraryId.name >> "jvm-lib"
+        _ * componentId.name >> "jvm-lib"
 
         then:
-        library.displayName == "MySampleLibrary 'jvm-lib'"
+        component.displayName == "MySampleComponent 'jvm-lib'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
 
         when:
-        DefaultLibrarySpec.create(MyConstructedLibrary, libraryId, functionalSourceSet, instantiator)
+        DefaultComponentSpec.create(MyConstructedComponent, componentId, functionalSourceSet, instantiator)
 
         then:
         def e = thrown ModelInstantiationException
-        e.message == "Could not create library of type MyConstructedLibrary"
+        e.message == "Could not create component of type MyConstructedComponent"
         e.cause instanceof IllegalArgumentException
         e.cause.message.startsWith "Could not find any public constructor for class"
     }
@@ -69,17 +69,17 @@ class DefaultLibrarySpecTest extends Specification {
     def "contains sources of associated mainsourceSet"() {
 
         when:
-        DefaultLibrarySpec.create(MyConstructedLibrary, libraryId, functionalSourceSet, instantiator)
+        DefaultComponentSpec.create(MyConstructedComponent, componentId, functionalSourceSet, instantiator)
 
         then:
         def e = thrown ModelInstantiationException
-        e.message == "Could not create library of type MyConstructedLibrary"
+        e.message == "Could not create component of type MyConstructedComponent"
         e.cause instanceof IllegalArgumentException
         e.cause.message.startsWith "Could not find any public constructor for class"
     }
 
-    static class MySampleLibrary extends DefaultLibrarySpec {}
-    static class MyConstructedLibrary extends DefaultLibrarySpec {
-        MyConstructedLibrary(String arg) {}
+    static class MySampleComponent extends DefaultComponentSpec {}
+    static class MyConstructedComponent extends DefaultComponentSpec {
+        MyConstructedComponent(String arg) {}
     }
 }

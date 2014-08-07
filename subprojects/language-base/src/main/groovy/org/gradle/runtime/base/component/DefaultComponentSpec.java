@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.library;
+package org.gradle.runtime.base.component;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
@@ -22,18 +22,19 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.runtime.base.*;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.runtime.base.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Base class for custom library implementations.
- * A custom implementation of {@link LibrarySpec} must extend this type.
+ * Base class for custom component implementations.
+ * A custom implementation of {@link ComponentSpec} must extend this type.
  */
 @Incubating
-public class DefaultLibrarySpec implements LibrarySpec {
+public class DefaultComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
 
@@ -42,24 +43,24 @@ public class DefaultLibrarySpec implements LibrarySpec {
     private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
     private final FunctionalSourceSet mainSourceSet;
 
-    public static <T extends DefaultLibrarySpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
+    public static <T extends DefaultComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
         nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName(), mainSourceSet));
         try {
             try {
                 return instantiator.newInstance(type);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create library of type %s", type.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(String.format("Could not create component of type %s", type.getSimpleName()), e.getCause());
             }
         } finally {
             nextComponentInfo.set(null);
         }
     }
 
-    public DefaultLibrarySpec() {
+    public DefaultComponentSpec() {
         this(nextComponentInfo.get());
     }
 
-    private DefaultLibrarySpec(ComponentInfo info) {
+    private DefaultComponentSpec(ComponentInfo info) {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
@@ -98,7 +99,7 @@ public class DefaultLibrarySpec implements LibrarySpec {
         return mainSourceSet;
     }
 
-    // To declare a custom spec we currently need to override this method in the Library.
+    // To declare a custom spec we currently need to override this method in the Component.
     // implementation. We need a more generic way for this in the future.
     public Set<Class<? extends TransformationFileType>> getInputTypes() {
         return new HashSet<Class<? extends TransformationFileType>>(0);

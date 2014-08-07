@@ -24,9 +24,12 @@ import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.runtime.base.*
+import org.gradle.runtime.base.ComponentSpec
+import org.gradle.runtime.base.ComponentType
+import org.gradle.runtime.base.ComponentTypeBuilder
+import org.gradle.runtime.base.InvalidComponentModelException
+import org.gradle.runtime.base.component.DefaultComponentSpec
 import org.gradle.runtime.base.internal.registry.ComponentModelRuleDefinitionHandler
-import org.gradle.runtime.base.library.DefaultLibrarySpec
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -97,16 +100,16 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         ex.message == expectedMessage
 
         where:
-        methodName                         | expectedMessage                                                                                 | descr
-        "extraParameter"                   | "ComponentType method must have a single parameter of type ComponentTypeBuilder."               | "additional rule parameter"
-        "returnValue"                      | "ComponentType method must not have a return value."                                            | "method with return type"
-        "implementationSetMultipleTimes"   | "ComponentType method cannot set default implementation multiple times."                               | "implementation set multiple times"
-        "noTypeParam"                      | "ComponentTypeBuilder parameter must declare a type parameter (must be generified)."            | "missing type parameter"
-        "notLibrarySpec"                   | "Component type 'NotLibrarySpec' must extend 'LibrarySpec'."                                    | "type not extending LibrarySpec"
-        "notCustomLibrary"                 | "Component type must be a subtype of 'LibrarySpec'."                                            | "type is LibrarySpec"
-        "notImplementingLibraryType"       | "Component implementation 'NotImplementingSampleLibrary' must implement 'SomeLibrarySpec'."     | "implementation not implementing type class"
-        "notExtendingDefaultSampleLibrary" | "Component implementation 'NotExtendingDefaultSampleLibrary' must extend 'DefaultLibrarySpec'." | "implementation not extending DefaultLibrarySpec"
-        "noDefaultConstructor"             | "Component implementation 'NoDefaultConstructor' must have public default constructor."         | "implementation with no public default constructor"
+        methodName                         | expectedMessage                                                                                   | descr
+        "extraParameter"                   | "ComponentType method must have a single parameter of type ComponentTypeBuilder."                 | "additional rule parameter"
+        "returnValue"                      | "ComponentType method must not have a return value."                                              | "method with return type"
+        "implementationSetMultipleTimes"   | "ComponentType method cannot set default implementation multiple times."                          | "implementation set multiple times"
+        "noTypeParam"                      | "ComponentTypeBuilder parameter must declare a type parameter (must be generified)."              | "missing type parameter"
+        "notComponentSpec"                 | "Component type 'NotComponentSpec' must extend 'ComponentSpec'."                                  | "type not extending ComponentSpec"
+        "notCustomComponent"               | "Component type must be a subtype of 'ComponentSpec'."                                            | "type is ComponentSpec"
+        "notImplementingLibraryType"       | "Component implementation 'NotImplementingCustomComponent' must implement 'SomeComponentSpec'."   | "implementation not implementing type class"
+        "notExtendingDefaultSampleLibrary" | "Component implementation 'NotExtendingDefaultComponentSpec' must extend 'DefaultComponentSpec'." | "implementation not extending DefaultComponentSpec"
+        "noDefaultConstructor"             | "Component implementation 'NoDefaultConstructor' must have public default constructor."           | "implementation with no public default constructor"
     }
 
     def aProjectPlugin() {
@@ -121,46 +124,45 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         componentRuleHandler = new ComponentModelRuleDefinitionHandler(instantiator)
     }
 
+    interface SomeComponentSpec extends ComponentSpec {}
 
-    interface SomeLibrarySpec extends LibrarySpec {}
+    static class SomeComponentSpecImpl extends DefaultComponentSpec implements SomeComponentSpec {}
 
-    static class SomeLibrarySpecImpl extends DefaultLibrarySpec implements SomeLibrarySpec {}
+    static class SomeComponentSpecOtherImpl extends SomeComponentSpecImpl {}
 
-    static class SomeLibrarySpecOtherImpl extends SomeLibrarySpecImpl {}
+    interface NotComponentSpec {}
 
-    interface NotLibrarySpec extends ComponentSpec {}
+    static class NotImplementingCustomComponent extends DefaultComponentSpec implements ComponentSpec {}
 
-    static class NotImplementingSampleLibrary extends DefaultLibrarySpec implements LibrarySpec {}
+    abstract static class NotExtendingDefaultComponentSpec implements SomeComponentSpec {}
 
-    abstract static class NotExtendingDefaultSampleLibrary implements SomeLibrarySpec {}
-
-    static class NoDefaultConstructor extends DefaultLibrarySpec implements SomeLibrarySpec {
+    static class NoDefaultConstructor extends DefaultComponentSpec implements SomeComponentSpec {
         NoDefaultConstructor(String arg) {
         }
     }
 
     static class Rules {
         @ComponentType
-        static void validTypeRule(ComponentTypeBuilder<SomeLibrarySpec> builder) {
-            builder.setDefaultImplementation(SomeLibrarySpecImpl)
+        static void validTypeRule(ComponentTypeBuilder<SomeComponentSpec> builder) {
+            builder.setDefaultImplementation(SomeComponentSpecImpl)
         }
 
         @ComponentType
-        static void extraParameter(ComponentTypeBuilder<SomeLibrarySpec> builder, String otherParam) {
+        static void extraParameter(ComponentTypeBuilder<SomeComponentSpec> builder, String otherParam) {
         }
 
         @ComponentType
-        static String returnValue(ComponentTypeBuilder<SomeLibrarySpec> builder) {
+        static String returnValue(ComponentTypeBuilder<SomeComponentSpec> builder) {
         }
 
         @ComponentType
-        static void noImplementationSet(ComponentTypeBuilder<SomeLibrarySpec> builder) {
+        static void noImplementationSet(ComponentTypeBuilder<SomeComponentSpec> builder) {
         }
 
         @ComponentType
-        static void implementationSetMultipleTimes(ComponentTypeBuilder<SomeLibrarySpec> builder) {
-            builder.setDefaultImplementation(SomeLibrarySpecImpl)
-            builder.setDefaultImplementation(SomeLibrarySpecOtherImpl)
+        static void implementationSetMultipleTimes(ComponentTypeBuilder<SomeComponentSpec> builder) {
+            builder.setDefaultImplementation(SomeComponentSpecImpl)
+            builder.setDefaultImplementation(SomeComponentSpecOtherImpl)
         }
 
         @ComponentType
@@ -168,25 +170,25 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         }
 
         @ComponentType
-        static void notLibrarySpec(ComponentTypeBuilder<NotLibrarySpec> builder) {
+        static void notComponentSpec(ComponentTypeBuilder<NotComponentSpec> builder) {
         }
 
         @ComponentType
-        static void notCustomLibrary(ComponentTypeBuilder<LibrarySpec> builder) {
+        static void notCustomComponent(ComponentTypeBuilder<ComponentSpec> builder) {
         }
 
         @ComponentType
-        static void notImplementingLibraryType(ComponentTypeBuilder<SomeLibrarySpec> builder) {
-            builder.setDefaultImplementation(NotImplementingSampleLibrary)
+        static void notImplementingLibraryType(ComponentTypeBuilder<SomeComponentSpec> builder) {
+            builder.setDefaultImplementation(NotImplementingCustomComponent)
         }
 
         @ComponentType
-        static void notExtendingDefaultSampleLibrary(ComponentTypeBuilder<SomeLibrarySpec> builder) {
-            builder.setDefaultImplementation(NotExtendingDefaultSampleLibrary)
+        static void notExtendingDefaultSampleLibrary(ComponentTypeBuilder<SomeComponentSpec> builder) {
+            builder.setDefaultImplementation(NotExtendingDefaultComponentSpec)
         }
 
         @ComponentType
-        static void noDefaultConstructor(ComponentTypeBuilder<SomeLibrarySpec> builder) {
+        static void noDefaultConstructor(ComponentTypeBuilder<SomeComponentSpec> builder) {
             builder.setDefaultImplementation(NoDefaultConstructor)
         }
     }

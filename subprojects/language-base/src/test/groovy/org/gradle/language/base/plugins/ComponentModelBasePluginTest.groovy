@@ -33,7 +33,7 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.runtime.base.BinarySpec
 import org.gradle.runtime.base.internal.ComponentSpecInternal
-import org.gradle.runtime.base.library.DefaultLibrarySpec
+import org.gradle.runtime.base.component.DefaultComponentSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -101,7 +101,7 @@ class ComponentModelBasePluginTest extends Specification {
 
         when:
 
-        def testComponent = DefaultLibrarySpec.create(TestComponentSpec, componentSpecIdentifier, componentFunctionalSourceSet, new DirectInstantiator())
+        def testComponent = DefaultComponentSpec.create(TestComponentSpec, componentSpecIdentifier, componentFunctionalSourceSet, new DirectInstantiator())
         project.componentSpecs.add(testComponent)
         componentFunctionalSourceSet.add(testSourceSet)
 
@@ -111,7 +111,7 @@ class ComponentModelBasePluginTest extends Specification {
         when:
         def componentSpecIdentifier2 = Mock(ComponentSpecIdentifier)
         _ * componentSpecIdentifier2.name >> "testComponentInternal"
-        def testComponentInternal = DefaultLibrarySpec.create(TestComponentSpecInternal, componentSpecIdentifier2, componentFunctionalSourceSet, new DirectInstantiator())
+        def testComponentInternal = DefaultComponentSpec.create(TestComponentSpecInternal, componentSpecIdentifier2, componentFunctionalSourceSet, new DirectInstantiator())
         project.componentSpecs.add(testComponentInternal)
         componentFunctionalSourceSet.add(testSourceSet)
 
@@ -299,7 +299,7 @@ class ComponentModelBasePluginTest extends Specification {
     public static interface TestSourceSet extends LanguageSourceSet{
     }
 
-    public static class TestComponentSpecInternal extends DefaultLibrarySpec implements ComponentSpecInternal{
+    public static class TestComponentSpecInternal extends DefaultComponentSpec implements ComponentSpecInternal {
             public TestComponentSpecInternal(){
             }
 
@@ -309,7 +309,7 @@ class ComponentModelBasePluginTest extends Specification {
         }
     }
 
-    public static class TestComponentSpec extends DefaultLibrarySpec {
+    public static class TestComponentSpec extends DefaultComponentSpec {
         public TestComponentSpec(){
         }
 
