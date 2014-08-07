@@ -207,6 +207,16 @@ The Tooling API now allows to cancel [operations](javadoc/org/gradle/tooling/Lon
 through [CancellationTokenSource](http://www.gradle.org/docs/nightly/javadoc/org/gradle/tooling/CancellationTokenSource.html).
 Current implementation attempts to cancel the build first and can fall back to stopping the daemon.
 
+### Command line report to show details of the components produced by the build (i)
+
+Sometimes it can be difficult to figure out exactly how Gradle has been configured and what a given build produces.
+To help address this, Gradle now includes a new command line report that shows you some useful details about the components
+that your project produces. To use the report, simply run `gradle components`.
+
+In this release, the report shows details of the native libraries and executables defined by the native language plugins. It also shows
+some basic details about the components defined by the Jvm language plugins. Over the next few releases, this report will grow to include more
+information about other types of components.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
