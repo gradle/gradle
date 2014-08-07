@@ -73,6 +73,39 @@ class ModelRuleInspectorTest extends Specification {
         element.name == "foo"
     }
 
+    static class ParameterizedModel {
+        @Model
+        List<String> strings() {
+            Arrays.asList("foo")
+        }
+
+        @Model
+        List<? super String> superStrings() {
+            Arrays.asList("foo")
+        }
+
+        @Model
+        List<? extends String> extendsStrings() {
+            Arrays.asList("foo")
+        }
+
+        @Model
+        List<?> wildcard() {
+            Arrays.asList("foo")
+        }
+    }
+
+    def "can inspect class with model creation rule for paramaterized type"() {
+        when:
+        inspector.inspect(ParameterizedModel, registry, dependencies)
+
+        then:
+        registry.element(ModelPath.path("strings")).promise.asReadOnly(new ModelType<List<String>>() {})
+        registry.element(ModelPath.path("superStrings")).promise.asReadOnly(new ModelType<List<? super String>>() {})
+        registry.element(ModelPath.path("extendsStrings")).promise.asReadOnly(new ModelType<List<? extends String>>() {})
+        registry.element(ModelPath.path("wildcard")).promise.asReadOnly(new ModelType<List<?>>() {})
+    }
+
     static class HasOneSource {
         @RuleSource
         static class Source {}

@@ -78,6 +78,7 @@ A mock up:
 - ~~Creation rule returns null.~~
 - ~~Rule can declare parameterized type with concrete type vars~~
 - ~~Model type cannot be generic~~
+- ~~Model type can contain type params~~
 
 ### Open issues
 
