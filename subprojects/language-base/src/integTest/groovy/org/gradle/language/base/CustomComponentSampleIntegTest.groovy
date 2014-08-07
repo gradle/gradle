@@ -26,9 +26,6 @@ class CustomComponentSampleIntegTest extends AbstractIntegrationSpec {
     def "can create custom component"() {
         given:
         sample customComponent
-
-        println buildFile.absolutePath
-        println customComponent.dir.absolutePath
         customComponent.dir.file("build.gradle") << """
 
 
