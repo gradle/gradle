@@ -161,4 +161,19 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         }
         false
     }
+
+    def 'removed callback is not notified'() {
+        def token = new DefaultBuildCancellationToken()
+
+        def callback = Mock(Runnable)
+        token.addCallback(callback)
+        token.removeCallback(callback)
+
+        when:
+        token.doCancel()
+
+        then:
+        token.cancellationRequested
+        0 * callback.run()
+    }
 }

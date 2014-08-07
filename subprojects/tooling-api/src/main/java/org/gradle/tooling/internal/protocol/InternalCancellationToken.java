@@ -31,4 +31,11 @@ public interface InternalCancellationToken {
      * @return current state of cancellation request before callback was added.
      */
     boolean addCallback(Runnable cancellationHandler);
+
+    /**
+     * Removes a callback from a set of handlers called when cancel is requested.
+     *
+     * @param cancellationHandler removed callback.
+     */
+    void removeCallback(Runnable cancellationHandler);
 }

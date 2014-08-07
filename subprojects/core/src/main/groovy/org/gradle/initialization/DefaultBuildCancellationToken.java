@@ -46,6 +46,12 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
         return returnValue;
     }
 
+    public void removeCallback(Runnable cancellationHandler) {
+        synchronized (lock) {
+            callbacks.remove(cancellationHandler);
+        }
+    }
+
     public void doCancel() {
         List<Runnable> toCall = new ArrayList<Runnable>();
         synchronized (lock) {

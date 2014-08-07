@@ -33,4 +33,8 @@ public class InternalCancellationTokenAdapter implements BuildCancellationToken 
     public boolean addCallback(Runnable cancellationHandler) {
         return cancellationToken.addCallback(cancellationHandler);
     }
+
+    public void removeCallback(Runnable cancellationHandler) {
+        cancellationToken.removeCallback(cancellationHandler);
+    }
 }

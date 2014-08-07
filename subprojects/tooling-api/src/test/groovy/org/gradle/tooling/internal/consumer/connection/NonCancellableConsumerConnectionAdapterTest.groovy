@@ -65,4 +65,22 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
             'result'
         }
     }
+
+    def "no logging when cancelled after action"() {
+        def action = Mock(BuildAction)
+        def parameters = Stub(ConsumerOperationParameters)
+        def cancellation = GradleConnector.newCancellationTokenSource()
+
+        when:
+        def result = connection.run(action, cancellation.token(), parameters)
+        cancellation.cancel()
+
+        then:
+        result == 'result'
+        cancellation.token().isCancellationRequested()
+        !appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
+
+        and:
+        1 * target.run(action, cancellation.token(), parameters) >> 'result'
+    }
 }

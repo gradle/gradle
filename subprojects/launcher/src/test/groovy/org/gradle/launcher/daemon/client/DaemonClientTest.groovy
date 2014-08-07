@@ -218,6 +218,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * cancellingConnection.receive() >>> [ new Success('[cancelled]')]
         1 * cancellingConnection.dispatch({it instanceof Finished})
         1 * cancellingConnection.stop()
+        1 * cancellationToken.removeCallback(_)
 
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [ Stub(BuildStarted), null]
@@ -254,6 +255,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * cancellingConnection.receive() >>> [ new Success('[cancelled]')]
         1 * cancellingConnection.dispatch({it instanceof Finished})
         1 * cancellingConnection.stop()
+        1 * cancellationToken.removeCallback(_)
 
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [ Stub(BuildStarted), new CommandFailure(cancelledException)]
@@ -294,6 +296,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connection.dispatch({it instanceof CloseInput})
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
+        1 * cancellationToken.removeCallback(_)
         0 * _
     }
 

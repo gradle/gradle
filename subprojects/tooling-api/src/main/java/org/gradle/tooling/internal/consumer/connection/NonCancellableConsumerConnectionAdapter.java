@@ -40,20 +40,34 @@ public class NonCancellableConsumerConnectionAdapter implements ConsumerConnecti
     }
 
     public <T> T run(BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        handleCancellationPreOperation(cancellationToken);
-        return delegate.run(action, cancellationToken, operationParameters);
+        Runnable callback = handleCancellationPreOperation(cancellationToken);
+        try {
+            return delegate.run(action, cancellationToken, operationParameters);
+        } finally {
+            handleCancellationPostOperation(cancellationToken, callback);
+        }
     }
 
     public <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        handleCancellationPreOperation(cancellationToken);
-        return delegate.run(type, cancellationToken, operationParameters);
+        Runnable callback = handleCancellationPreOperation(cancellationToken);
+        try {
+            return delegate.run(type, cancellationToken, operationParameters);
+        } finally {
+            handleCancellationPostOperation(cancellationToken, callback);
+        }
     }
 
-    protected void handleCancellationPreOperation(CancellationToken cancellationToken) {
-        cancellationToken.addCallback(new Runnable() {
+    private Runnable handleCancellationPreOperation(CancellationToken cancellationToken) {
+        Runnable callback = new Runnable() {
             public void run() {
                 LOGGER.info("Note: Version of Gradle provider does not support cancellation. Upgrade your Gradle build.");
             }
-        });
+        };
+        cancellationToken.addCallback(callback);
+        return callback;
+    }
+
+    private void handleCancellationPostOperation(CancellationToken cancellationToken, Runnable callback) {
+        cancellationToken.removeCallback(callback);
     }
 }

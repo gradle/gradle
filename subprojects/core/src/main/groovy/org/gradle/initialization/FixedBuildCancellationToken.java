@@ -20,15 +20,14 @@ package org.gradle.initialization;
  * Implementation used for toolingApi requests from consumer without cancellation support.
  */
 public class FixedBuildCancellationToken implements BuildCancellationToken {
-    public boolean canBeCancelled() {
-        return false;
-    }
-
     public boolean isCancellationRequested() {
         return false;
     }
 
     public boolean addCallback(Runnable cancellationHandler) {
         return false;
+    }
+
+    public void removeCallback(Runnable cancellationHandler) {
     }
 }

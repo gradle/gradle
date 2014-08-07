@@ -46,4 +46,11 @@ public interface CancellationToken {
      * @return current state of cancellation request before callback was added.
      */
     boolean addCallback(Runnable cancellationHandler);
+    /**
+     * Removes a callback called when cancellation request happens.
+     * It has no effect if the cancel request already happened.
+     *
+     * @param cancellationHandler removed callback.
+     */
+    void removeCallback(Runnable cancellationHandler);
 }
