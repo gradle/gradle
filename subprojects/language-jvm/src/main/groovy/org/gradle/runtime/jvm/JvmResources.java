@@ -17,12 +17,12 @@
 package org.gradle.runtime.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.LanguageOutputType;
+import org.gradle.runtime.base.TransformationFileType;
 
 /**
  * LanguageOutputType marking Jvm Resource Output
  */
 
 @Incubating
-public class JvmResources implements LanguageOutputType {
+public class JvmResources implements TransformationFileType {
 }

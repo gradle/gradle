@@ -19,8 +19,8 @@ package org.gradle.runtime.base;
 import org.gradle.api.Incubating;
 
 /**
- * The output type of a language
+ * The type of a file of a transformation
  * */
 @Incubating
-public interface LanguageOutputType {
+public interface TransformationFileType {
 }
