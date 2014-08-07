@@ -44,7 +44,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
     }
 
     public boolean canSelectMultipleComponents(ModuleVersionSelector selector) {
-        return versionMatcher.isDynamic(selector.getVersion());
+        return versionMatcher.isDynamic(selector.getVersion()) || versionSelectionRules.hasRules();
     }
 
     public ComponentMetaData choose(ComponentMetaData one, ComponentMetaData two) {

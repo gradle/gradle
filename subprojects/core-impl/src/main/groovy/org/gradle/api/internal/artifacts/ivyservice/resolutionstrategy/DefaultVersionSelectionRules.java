@@ -34,6 +34,10 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
         }
     }
 
+    public boolean hasRules() {
+        return versionSelectionActions.size() > 0;
+    }
+
     public VersionSelectionRules anyVersion(Action<? super VersionSelection> selectionAction) {
         versionSelectionActions.add(new UserCodeAction<VersionSelection>("Could not apply version selection rule with any()", selectionAction));
         return this;

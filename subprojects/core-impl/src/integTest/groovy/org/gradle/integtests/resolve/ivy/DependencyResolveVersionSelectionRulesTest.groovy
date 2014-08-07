@@ -31,8 +31,10 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
         """
     }
 
-    def "no version selection rules are applied when resolving a static version" () {
+    def "resolving a static version with version selection rules resolves properly" () {
+        ivyRepo.module("org.utils", "api", "2.0").publish()
         ivyRepo.module("org.utils", "api", "1.3").publish()
+        ivyRepo.module("org.utils", "api", "1.1").publish()
 
         buildFile << """
             $baseBuildFile
@@ -41,18 +43,20 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
                 conf "org.utils:api:1.3"
             }
 
-            def ruleInvoked = false
             configurations.all {
                 resolutionStrategy {
                     versionSelection {
                         anyVersion { selection ->
-                            ruleInvoked = true
+                            println selection.candidate.version
                         }
                     }
                 }
             }
 
-            resolveConf.doLast { assert ! ruleInvoked }
+            resolveConf.doLast {
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '1.3'
+            }
         """
 
         expect:
@@ -60,7 +64,7 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
     }
 
     @Unroll
-    def "version selection rules are applied when resolving #versionRequested" () {
+    def "all version selection rules are applied when resolving #versionRequested" () {
         versionsAvailable.each { v ->
             if (v instanceof List) {
                 ivyRepo.module("org.utils", "api", v[0]).withStatus(v[1])publish()
@@ -76,12 +80,18 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
                 conf "org.utils:api:${versionRequested}"
             }
 
-            def versionsInvoked = []
+            def rule1VersionsInvoked = []
+            def rule2VersionsInvoked = []
             configurations.all {
                 resolutionStrategy {
                     versionSelection {
+                        // Rule 1
                         anyVersion { VersionSelection selection ->
-                            versionsInvoked.add(selection.candidate.version)
+                            rule1VersionsInvoked.add(selection.candidate.version)
+                        }
+                        // Rule 2
+                        anyVersion { VersionSelection selection ->
+                            rule2VersionsInvoked.add(selection.candidate.version)
                         }
                     }
                 }
@@ -89,8 +99,10 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
 
             resolveConf.doLast {
                 def versionsExpected = ${versionsExpected}
-                assert versionsInvoked.size() == versionsExpected.size()
-                assert versionsInvoked.containsAll(versionsExpected)
+                assert rule1VersionsInvoked.size() == versionsExpected.size()
+                assert rule1VersionsInvoked.containsAll(versionsExpected)
+                assert rule2VersionsInvoked.size() == versionsExpected.size()
+                assert rule2VersionsInvoked.containsAll(versionsExpected)
             }
         """
 
@@ -102,5 +114,7 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
         '1.+'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"
         'latest.integration' | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0' ]"
         'latest.release'     | [['2.0', 'integration'], ['1.1', 'release'], ['1.0', 'release']] | "[ '2.0', '1.1' ]"
+        '1.0'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1', '1.0' ]"
+        '1.1'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"
     }
 }

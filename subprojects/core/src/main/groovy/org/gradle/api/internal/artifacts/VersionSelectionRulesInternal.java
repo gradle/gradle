@@ -21,4 +21,5 @@ import org.gradle.api.artifacts.VersionSelectionRules;
 
 public interface VersionSelectionRulesInternal extends VersionSelectionRules {
     void apply(VersionSelection selection);
+    boolean hasRules();
 }
