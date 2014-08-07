@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.CharMatcher;
+import org.gradle.api.GradleException;
+
 public class ModelPath {
 
     public static final String SEPARATOR = ".";
@@ -79,5 +82,35 @@ public class ModelPath {
     public boolean isDirectChild(ModelPath other) {
         ModelPath otherParent = other.getParent();
         return otherParent != null && otherParent.equals(this);
+    }
+
+    public static class InvalidNameException extends GradleException { // TODO: better exception?
+
+        public InvalidNameException(String message) {
+            super(message);
+        }
+    }
+
+    private static final CharMatcher VALID_FIRST_CHAR_MATCHER = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.is('_'));
+    private final static CharMatcher INVALID_FIRST_CHAR_MATCHER = VALID_FIRST_CHAR_MATCHER.negate().precomputed();
+    private final static CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9').or(VALID_FIRST_CHAR_MATCHER).negate().precomputed();
+
+    public static void validateName(String name) {
+        if (name.isEmpty()) {
+            throw new InvalidNameException("Cannot use an empty string as a model element name");
+        }
+
+        char firstChar = name.charAt(0);
+
+        if (INVALID_FIRST_CHAR_MATCHER.matches(firstChar)) {
+            throw new InvalidNameException(String.format("Model element name '%s' has illegal first character '%s' (names must start with an ASCII letter or underscore)", name, firstChar));
+        }
+
+        for (int i = 1; i < name.length(); ++i) {
+            char character = name.charAt(i);
+            if (INVALID_CHAR_MATCHER.matches(character)) {
+                throw new InvalidNameException(String.format("Model element name '%s' contains illegal character '%s' (only ASCII letters, numbers and the underscore are allowed)", name, character));
+            }
+        }
     }
 }

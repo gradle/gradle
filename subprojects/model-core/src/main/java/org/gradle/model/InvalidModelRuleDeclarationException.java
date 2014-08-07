@@ -18,11 +18,13 @@ package org.gradle.model;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.internal.exceptions.Contextual;
 
 /**
  * Thrown when a model rule, or source of model rules, is declared in an invalid way.
  */
 @Incubating
+@Contextual
 public class InvalidModelRuleDeclarationException extends GradleException {
 
     public InvalidModelRuleDeclarationException(String message) {

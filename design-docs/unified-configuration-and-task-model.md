@@ -79,6 +79,7 @@ A mock up:
 - ~~Rule can declare parameterized type with concrete type vars~~
 - ~~Model type cannot be generic~~
 - ~~Model type can contain type params~~
+- ~~Model element declared with illegal name produces reasonable error message~~
 
 ### Open issues
 
@@ -124,10 +125,6 @@ should be internal at this stage, eg add a `ModelRegistry.find()` or throw a spe
 - How would a user verify that they got the signature/annotation correct in a unit test?
 
 > Later story.
-
-- What are the rules for valid model element names?
-
-> UNANSWERED.
 
 - Do we support generic types? including wildcard, covariant and contravariant types?
 

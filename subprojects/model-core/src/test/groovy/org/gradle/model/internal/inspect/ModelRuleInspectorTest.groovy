@@ -320,4 +320,18 @@ class ModelRuleInspectorTest extends Specification {
         1 * registryMock.mutate({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
     }
 
+    static class InvalidModelNameViaAnnotation {
+        @Model(" ")
+        String foo() {
+            "foo"
+        }
+    }
+
+    def "invalid model name is not allowed"() {
+        when:
+        inspector.inspect(InvalidModelNameViaAnnotation, registry, dependencies)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
 }

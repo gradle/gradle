@@ -65,6 +65,13 @@ public class ModelRuleInspector {
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
+    private static RuntimeException invalid(String description, ModelRuleDescriptor rule, Throwable cause) {
+        StringBuilder sb = new StringBuilder();
+        rule.describeTo(sb);
+        sb.append(" is not a valid ").append(description);
+        return new InvalidModelRuleDeclarationException(sb.toString(), cause);
+    }
+
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
     public Set<Class<?>> getDeclaredSources(Class<?> container) {
         Class<?>[] declaredClasses = container.getDeclaredClasses();
@@ -97,9 +104,15 @@ public class ModelRuleInspector {
         for (Method method : methods) {
             validate(method);
             MethodRuleDefinition ruleDefinition = new DefaultMethodRuleDefinition(method);
-            MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
-            if (handler != null) {
-                handler.register(ruleDefinition, modelRegistry, dependencies);
+                MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
+            try {
+                if (handler != null) {
+                    handler.register(ruleDefinition, modelRegistry, dependencies);
+                }
+            } catch (InvalidModelRuleDeclarationException e) {
+                throw e;
+            } catch (Exception e) {
+                throw invalid("model rule method", ruleDefinition.getDescriptor(), e);
             }
         }
     }
