@@ -16,37 +16,54 @@
 
 package org.gradle.initialization;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class DefaultBuildCancellationToken implements BuildCancellationToken {
+    private final Object lock = new Object();
     private boolean cancelled;
     private Queue<Runnable> callbacks = new LinkedList<Runnable>();
 
-    public synchronized boolean isCancellationRequested() {
-        return cancelled;
+    public boolean isCancellationRequested() {
+        synchronized (lock) {
+            return cancelled;
+        }
     }
 
-    public synchronized boolean addCallback(Runnable cancellationHandler) {
-        if (cancelled) {
+    public boolean addCallback(Runnable cancellationHandler) {
+        boolean returnValue;
+        synchronized (lock) {
+            returnValue = cancelled;
+            if (!cancelled) {
+                callbacks.add(cancellationHandler);
+            }
+        }
+        if (returnValue) {
             cancellationHandler.run();
-        } else {
-            callbacks.add(cancellationHandler);
         }
-        return cancelled;
+        return returnValue;
     }
 
-    public synchronized void doCancel() {
-        if (cancelled) {
-            return;
-        }
-        cancelled = true;
+    public void doCancel() {
+        List<Runnable> toCall = new ArrayList<Runnable>();
+        synchronized (lock) {
+            if (cancelled) {
+                return;
+            }
+            cancelled = true;
 
+            Runnable runnable = callbacks.poll();
+            while (runnable != null) {
+                toCall.add(runnable);
+                runnable = callbacks.poll();
+            }
+        }
         Exception failure = null;
-        Runnable runnable = callbacks.poll();
-        while (runnable != null) {
+        for (Runnable callback : toCall) {
             try {
-                runnable.run();
+                callback.run();
             } catch (Exception ex) {
                 if (failure != null) {
                     Throwable lastEx = ex;
@@ -57,7 +74,6 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
                 }
                 failure = ex;
             }
-            runnable = callbacks.poll();
         }
         if (failure != null) {
             throw new RuntimeException(failure);
