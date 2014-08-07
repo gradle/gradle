@@ -83,8 +83,9 @@ A mock up:
 
 ### Open issues
 
-- Need some mechanism for the ComponentReport task to determine whether the TestSuites model is available or not. The mechanism
-should be internal at this stage, eg add a `ModelRegistry.find()` or throw a specific exception thrown by `ModelRegistry.get()`.
+- Need some mechanism for the ComponentReport task to determine whether the TestSuites model is available or not. The mechanism should be internal at this stage, eg add a `ModelRegistry.find()` or throw a specific exception thrown by `ModelRegistry.get()`.
+
+> This is there via `ModelRegistry.element()`.
 
 - Expose models as extensions as well:
     - Have to handle creation rules that take inputs: defer creation until the convention is used, and close the inputs at this point.
@@ -128,8 +129,8 @@ should be internal at this stage, eg add a `ModelRegistry.find()` or throw a spe
 
 - Do we support generic types? including wildcard, covariant and contravariant types?
 
-We support parameterized types where all variables are concrete. 
-The method rule can't be generic so the only other possible cases are bounded types and the wildcard.
+> We support parameterized types where all variables are concrete. 
+> The method rule can't be generic so the only other possible cases are bounded types and the wildcard.
 
 - How much thread safety do we build in right now? e.g. could two plugins be registered concurrently? 
 
