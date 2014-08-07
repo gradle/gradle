@@ -267,7 +267,8 @@ The presented `exclude` rule is only an example. It may change per scenario as o
 #### Test cases
 
 * Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. The module `c` and all its artifacts will be part of the resolved dependencies.
-* The result is to be expected if the exclude has the following attribute combinations:
+
+The result is to be expected if the exclude has the following attribute combinations:
 
     <exclude artifact="b"/>
     <exclude artifact="b" type="jar"/>
@@ -295,7 +296,8 @@ The presented `exclude` rule is only an example. It may change per scenario as o
 #### Test cases
 
 * Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. `b-1.0-src.jar` and `b-1.0-javadoc.jar` will still be resolved. The module `c` and all its artifacts will be part of the resolved dependencies.
-* The result is to be expected if the exclude has the following attribute combinations:
+
+The result is to be expected if the exclude has the following attribute combinations:
 
     <exclude artifact="b"/>
     <exclude artifact="b" type="jar"/>
@@ -327,7 +329,8 @@ The presented `exclude` rule is only an example. It may change per scenario as o
 #### Test cases
 
 * Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. `b-1.0-src.jar` and `b-1.0-javadoc.jar` will still be resolved. The modules `c`, `d`, `e` and all their artifacts will be part of the resolved dependencies.
-* The result is to be expected if the exclude has the following attribute combinations:
+
+The result is to be expected if the exclude has the following attribute combinations:
 
     <exclude artifact="b"/>
     <exclude artifact="b" type="jar"/>
