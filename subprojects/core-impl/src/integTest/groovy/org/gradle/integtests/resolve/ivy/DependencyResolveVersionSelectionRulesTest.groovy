@@ -46,7 +46,7 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
             configurations.all {
                 resolutionStrategy {
                     versionSelection {
-                        anyVersion { selection ->
+                        all { selection ->
                             println selection.candidate.version
                         }
                     }
@@ -86,11 +86,11 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
                 resolutionStrategy {
                     versionSelection {
                         // Rule 1
-                        anyVersion { VersionSelection selection ->
+                        all { VersionSelection selection ->
                             rule1VersionsInvoked.add(selection.candidate.version)
                         }
                         // Rule 2
-                        anyVersion { VersionSelection selection ->
+                        all { VersionSelection selection ->
                             rule2VersionsInvoked.add(selection.candidate.version)
                         }
                     }

@@ -28,9 +28,9 @@ class DefaultVersionSelectionRulesTest extends Specification {
         def closure3 = Mock(Closure)
 
         when:
-        versionSelectionRules.any closure1
-        versionSelectionRules.any closure2
-        versionSelectionRules.any closure3
+        versionSelectionRules.all closure1
+        versionSelectionRules.all closure2
+        versionSelectionRules.all closure3
         versionSelectionRules.apply(Stub(VersionSelection))
 
         then:

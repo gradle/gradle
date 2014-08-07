@@ -28,7 +28,7 @@ import org.gradle.api.Incubating;
  *         conf {
  *             resolutionStrategy {
  *                 versionSelection {
- *                     anyVersion { VersionSelection selection ->
+ *                     all { VersionSelection selection ->
  *                         // TODO - add a reasonable example
  *                     }
  *                 }
@@ -44,5 +44,5 @@ public interface VersionSelectionRules {
      * @param selectionAction the Action or Closure that implements the rule
      * @return this
      */
-    public VersionSelectionRules anyVersion(Action<? super VersionSelection> selectionAction);
+    public VersionSelectionRules all(Action<? super VersionSelection> selectionAction);
 }
