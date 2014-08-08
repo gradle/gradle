@@ -400,18 +400,19 @@ A custom binary implementation:
 
 #### Implementation Plan
 
-- Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of binary subtypes.
-- Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
-    - Similarly, add `ApplicationBinarySpec`.
 - Add a `DefaultBinarySpec` implementation or `BinarySpec` that has a no-arg constructor.
 - Introduce a `@BinaryType` rule type for registering a binary type and implementation
     - Assert that the implementation class extends `DefaultBinarySpec`, has a no-arg constructor and implements the type.
     - Register a factory for the type with the `BinaryContainer`.
 - Introduce a `@Binaries` annotation that can be used to determine the allowable binary types for a component
     - This mechanism will be used to verify the binary definitions in the next story.
+- Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of binary subtypes.
+- Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
+    - Similarly, add `ApplicationBinarySpec`.
 
 #### Test cases
 
+- A rule that mutates `BinaryContainer` can create instances of registered type
 - Friendly error message when annotated `@BinaryType` rule method:
     - Does not have a single parameter of type BinaryTypeBuilder
     - Parameter does not have a generic type
