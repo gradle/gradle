@@ -72,7 +72,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
     @RuleSource
     public static class Rules {
 
-        @Model("jvm.libraries")
+        @Model
         NamedDomainObjectCollection<JvmLibrarySpec> jvmLibraries(ComponentSpecContainer components) {
             return components.withType(JvmLibrarySpec.class);
         }
