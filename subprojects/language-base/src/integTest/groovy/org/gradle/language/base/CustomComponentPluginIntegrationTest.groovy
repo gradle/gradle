@@ -196,7 +196,35 @@ BUILD SUCCESSFUL"""))
         succeeds "checkModel"
     }
 
-    def "Cannot register same component type multiple times"(){
+    def "reports failure for invalid component type method"() {
+        given:
+        settingsFile << """rootProject.name = 'custom-component'"""
+        buildFile << """
+        class MySamplePlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleComponent> builder, String illegalOtherParameter) {
+                }
+            }
+        }
+
+        apply plugin:MySamplePlugin
+"""
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
+        failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
+        failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid model rule method"
+        failure.assertHasCause "ComponentType method must have a single parameter of type ComponentTypeBuilder."
+    }
+
+    def "cannot register same component type multiple times"(){
         given:
         buildWithCustomComponentPlugin()
         and:
@@ -218,12 +246,13 @@ BUILD SUCCESSFUL"""))
         when:
         fails "tasks"
         then:
-        errorOutput.contains(TextUtil.toPlatformLineSeparators("""
-> Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>)
-   > Cannot register a factory for type SampleComponent because a factory for this type already registered."""))
+        failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
+        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>)"
+        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type already registered."
     }
 
     def buildWithCustomComponentPlugin() {
+        settingsFile << """rootProject.name = 'custom-component'"""
         buildFile << """
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}

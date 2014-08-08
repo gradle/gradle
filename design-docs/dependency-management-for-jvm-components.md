@@ -312,11 +312,6 @@ A custom library implementation:
 - ~~Friendly error message when attempting to register the same library type with different implementations~~
 - ~~Custom libraries show up in components report~~
 
-#### Open issues
-
-- Interaction with the `model { }` block.
-- Need to be able to register any type of component, not just libraries
-
 ### Story: Custom plugin uses rule to declare custom component type
 
 To avoid a future explosion of nested annotations, this story switches the mechanism for declaring a custom library type to use an
@@ -342,11 +337,11 @@ register a factory with the `ComponentSpecContainer` when the default implementa
 
 #### Test cases
 
-- Can register type that is not a subtype of `LibrarySpec`
-- Fails if a method with @ComponentType does not have a single parameter of type `ComponentTypeBuilder`
-- Fails if a method with @ComponentType has a return type
-- Fails if `setDefaultImplementation` is called multiple times
-- Empty @ComponentType method implementation is ok: no factory registered
+- ~~Can register type that is not a subtype of `LibrarySpec`~~
+- ~~Fails if a method with @ComponentType does not have a single parameter of type `ComponentTypeBuilder`~~
+- ~~Fails if a method with @ComponentType has a return type~~
+- ~~Fails if `setDefaultImplementation` is called multiple times~~
+- ~~Empty @ComponentType method implementation is ok: no factory registered~~
 
 ### Story: Plugin declares the binary types and default implementations for a custom component
 
@@ -1099,6 +1094,7 @@ TBD
 
 ## Language support
 
+- Need a better name for `TransformationFileType`.
 - Support multiple input source sets for a component and binary.
     - Apply conflict resolution across all inputs source sets.
 - Support for custom language implementations.
