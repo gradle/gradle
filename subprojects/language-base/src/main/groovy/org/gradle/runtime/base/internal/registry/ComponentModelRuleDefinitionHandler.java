@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelReference;
@@ -56,14 +57,25 @@ public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinition
     }
 
     public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
-        Class<? extends ComponentSpec> type = readComponentType(ruleDefinition);
-        Class<? extends DefaultComponentSpec> implementation = determineImplementationType(ruleDefinition, type);
+        try {
+            Class<? extends ComponentSpec> type = readComponentType(ruleDefinition);
+            Class<? extends DefaultComponentSpec> implementation = determineImplementationType(ruleDefinition, type);
 
-        dependencies.add(ComponentModelBasePlugin.class);
+            dependencies.add(ComponentModelBasePlugin.class);
 
-        if (implementation != null) {
-            modelRegistry.mutate(new RegisterComponentTypeRule(ruleDefinition.getDescriptor(), type, implementation));
+            if (implementation != null) {
+                modelRegistry.mutate(new RegisterComponentTypeRule(ruleDefinition.getDescriptor(), type, implementation));
+            }
+        } catch (InvalidComponentModelException e) {
+            invalidComponentModelRule(ruleDefinition, e);
         }
+    }
+
+    private void invalidComponentModelRule(MethodRuleDefinition ruleDefinition, InvalidComponentModelException e) {
+        StringBuilder sb = new StringBuilder();
+        ruleDefinition.getDescriptor().describeTo(sb);
+        sb.append(" is not a valid component model rule method.");
+        throw new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
     private Class<? extends ComponentSpec> readComponentType(MethodRuleDefinition ruleDefinition) {

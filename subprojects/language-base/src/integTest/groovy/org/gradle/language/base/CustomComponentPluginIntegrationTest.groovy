@@ -220,7 +220,7 @@ BUILD SUCCESSFUL"""))
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
-        failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid model rule method"
+        failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid component model rule method."
         failure.assertHasCause "ComponentType method must have a single parameter of type ComponentTypeBuilder."
     }
 

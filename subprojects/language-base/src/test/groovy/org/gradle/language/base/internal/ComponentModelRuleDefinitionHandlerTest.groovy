@@ -15,11 +15,11 @@
  */
 
 package org.gradle.language.base.internal
-
 import org.gradle.api.initialization.Settings
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
+import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
@@ -92,12 +92,17 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
 
     @Unroll
     def "decent error message for #descr"() {
+        def ruleMethod = ruleDefinitionForMethod(methodName)
+        def ruleDescription = getStringDescription(ruleMethod)
+
         when:
-        componentRuleHandler.register(ruleDefinitionForMethod(methodName), modelRegistry, ruleDependencies)
+        componentRuleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
 
         then:
-        def ex = thrown(InvalidComponentModelException)
-        ex.message == expectedMessage
+        def ex = thrown(InvalidModelRuleDeclarationException)
+        ex.message == "${ruleDescription} is not a valid component model rule method."
+        ex.cause instanceof InvalidComponentModelException
+        ex.cause.message == expectedMessage
 
         where:
         methodName                         | expectedMessage                                                                                   | descr
@@ -110,6 +115,12 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         "notImplementingLibraryType"       | "Component implementation 'NotImplementingCustomComponent' must implement 'SomeComponentSpec'."   | "implementation not implementing type class"
         "notExtendingDefaultSampleLibrary" | "Component implementation 'NotExtendingDefaultComponentSpec' must extend 'DefaultComponentSpec'." | "implementation not extending DefaultComponentSpec"
         "noDefaultConstructor"             | "Component implementation 'NoDefaultConstructor' must have public default constructor."           | "implementation with no public default constructor"
+    }
+
+    def getStringDescription(MethodRuleDefinition ruleDefinition) {
+        def builder = new StringBuilder()
+        ruleDefinition.descriptor.describeTo(builder)
+        builder.toString()
     }
 
     def aProjectPlugin() {
