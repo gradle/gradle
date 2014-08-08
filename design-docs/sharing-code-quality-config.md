@@ -62,3 +62,14 @@ If configured, extract include/exclude filter resources from `pluginClasspath` (
 * Instead of introducing new properties, the existing properties could be generalized to accept either a class path resource name or a file location. However, this would constitute a breaking change, as the properties' type would have to change from `File` to `Object`. Another option would be to introduce new generalized properties while deprecating the existing ones.
 * FindBugs: Resource files could be extracted using `project.copy`/`zipTree`, or accessed using a class loader. Extraction could happen in the Gradle process or the FindBugs worker process.
 * Do we want to allow all of this to be configured via the `checkstyle`, `pmd`, and `findbugs` extensions? This would require to also add the respective `classpath` properties to the extensions.
+
+# Alternative: Generic solution
+
+It would be nice to have a generic solution to the "share an arbitrary file via a repository dependency" problem.
+An API for this (which comes by without a new configuration or coercion facility) could look as follows:
+
+    def myFile = myConfiguration.asClasspathTree.file("my/resource/name")
+
+Here, `FileCollection#getAsClasspathTree()` returns a `FileTree`, and `FileTree#file(String relativePath)` returns a `File`.
+Both operations would need to be lazy. (It should be possible to have a lazy, `FileTree` backed `File` implementation.)
+They would also be useful in other situations, such as when creating a fat Jar (`from configurations.runtime.asClasspathTree`).
