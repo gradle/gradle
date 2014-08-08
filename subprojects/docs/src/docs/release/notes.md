@@ -348,6 +348,8 @@ manually with name and type.
         }
     }
 
+For a declared component an functional sourceSet is created and appropriate sourceSets
+
 #### Changes to CUnit configuration DSL
 
 * The C language source set for CUnit test sources has been renamed from 'cunit' to 'c'. This means that by convention Gradle
@@ -413,6 +415,24 @@ when the `C` and `CPP` plugin is applied.
     jvm {
         libraries {
             myLib
+        }
+    }
+    
+If a sourceSet of a component needs further configuration it is currently necessary to put this configuration (using the `sources` DSL _after_ 
+the component declaration:
+
+    executables {
+        main
+    }
+    
+    sources {
+        main {
+            cpp {
+                source {
+                    srcDirs "src/main/cpp", "src/shared/c++"
+                    include "**{@literal /}*.cpp"
+                }
+            }
         }
     }
 
