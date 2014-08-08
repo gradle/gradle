@@ -42,7 +42,7 @@ The aim of this specification is to define a mechanism to flip around the flow s
 domain objects are eager. The new publication DSL will be used to validate this approach. If successful, this will then
 be rolled out to other incubating plugins, and later, to existing plugins in a backwards compatible way.
 
-# Implementation plan - Milestone 1
+# Milestone 1 - Plugin uses rules to define model and tasks
 
 ## Story: Plugin declares a top level model to make available
 
@@ -243,50 +243,6 @@ A mock up:
 - Report on unknown target for configuration closure.
 - Can take extensions as input too?
 
-## Story: Build user applies rule source class in similar manner to applying a plugin
-
-This story makes it more convenient to write a plugin that is exclusively based on model rules, while keeping the implementation details of such a plugin transparent to the user.
-
-The existing plugin mechanism must be extended to allow loading classes other than those that implement `Plugin`.
-
-A plugin can be loaded via:
-
-* `PluginAware.apply(plugin: «id»)`
-* `PluginAware.apply(plugin: «class»)`
-* `PluginAware.getPlugins().apply(«id»)`
-* `PluginAware.getPlugins().apply(«class»)`
-
-Where plugins are loaded by id, the implementation mapping for a plugin may map to a rule source class.
-Where plugins are loaded by class, the class may be a rule source class.
-
-A “rule source” class must be annotated with `@org.gradle.model.RuleSource`.
-If the “plugin” class to be applied does not implement `Plugin`, and is not annotated with `@RuleSource` then it cannot be loaded and an error should occur (this is a change in behavior as Gradle will attempt to load any plugin class, assuming it implements `Plugin` and will fail with a ClassCastException).
-
-This is a repurposing of the `RuleSource` annotation.
-A replacement approach for a `Plugin` to “include” a set of rules will need to be added.
-
-Gradle allows (non script) plugins to be applied to `Gradle`, `Settings` and `Project`.
-At this time, model rules are only supported for `Project`.
-As such, a rule source plugin cannot be applied to other types.
-The `ModelRegistryScope` interface is currently used to indicate an object that model rules can be attached to.
-Later stories cover making something like this public and documenting when/where rule source plugins can be used.
-
-### Test Coverage
-
-- Rule source plugin can be applied to Project via `apply()`
-- Rule source plugin can be applied to Project via `plugins.apply()`
-- Rule source plugin cannot be applied to `PluginAware` that is not model rule compatible (e.g. Gradle)
-- Class that is not a `Plugin` or rule source fails with appropriate error message when applied
-- `Plugin` impl can include rule source class
-- Attempt to load rule source class that violates rule source constraints produces reasonable error message
-
-### Open issues
-
-- How to deal with the breaking API changes to `PluginContainer` (e.g. apply(id) returns `Plugin`, same for getPlugin(), more or less every method)
-- Do we support the same kind of “plugin detection” mechanisms for these kinds of plugins (e.g. `withId()`, `withType()`, `whenPluginAdded()`)
-- Replacement for current use of `RuleSource` to allow `Plugin` impl to include rules
-- Need a story to allow these rule source plugins to be applied to any `PluginAware`, and for the `plugins { }` DSL to work for settings and init scripts.
-
 ## Story: Build script configures tasks defined using configuration rule
 
 Improve the model DSL to allow tasks to be configured in the build script:
@@ -344,7 +300,53 @@ A mock up:
 - Move `Project.afterEvaluate()` to fire after the build script has been executed.
 - Include rule execution time in the profile report.
 
-## Story: Plugin model rule uses extension as rule input 
+# Milestone 2 - Build author uses public rule DSL to configure model and tasks
+
+## Story: Build user applies rule source class in similar manner to applying a plugin
+
+This story makes it more convenient to write a plugin that is exclusively based on model rules, while keeping the implementation details of such a plugin transparent to the user.
+
+The existing plugin mechanism must be extended to allow loading classes other than those that implement `Plugin`.
+
+A plugin can be loaded via:
+
+* `PluginAware.apply(plugin: «id»)`
+* `PluginAware.apply(plugin: «class»)`
+* `PluginAware.getPlugins().apply(«id»)`
+* `PluginAware.getPlugins().apply(«class»)`
+
+Where plugins are loaded by id, the implementation mapping for a plugin may map to a rule source class.
+Where plugins are loaded by class, the class may be a rule source class.
+
+A “rule source” class must be annotated with `@org.gradle.model.RuleSource`.
+If the “plugin” class to be applied does not implement `Plugin`, and is not annotated with `@RuleSource` then it cannot be loaded and an error should occur (this is a change in behavior as Gradle will attempt to load any plugin class, assuming it implements `Plugin` and will fail with a ClassCastException).
+
+This is a repurposing of the `RuleSource` annotation.
+A replacement approach for a `Plugin` to “include” a set of rules will need to be added.
+
+Gradle allows (non script) plugins to be applied to `Gradle`, `Settings` and `Project`.
+At this time, model rules are only supported for `Project`.
+As such, a rule source plugin cannot be applied to other types.
+The `ModelRegistryScope` interface is currently used to indicate an object that model rules can be attached to.
+Later stories cover making something like this public and documenting when/where rule source plugins can be used.
+
+### Test Coverage
+
+- Rule source plugin can be applied to Project via `apply()`
+- Rule source plugin can be applied to Project via `plugins.apply()`
+- Rule source plugin cannot be applied to `PluginAware` that is not model rule compatible (e.g. Gradle)
+- Class that is not a `Plugin` or rule source fails with appropriate error message when applied
+- `Plugin` impl can include rule source class
+- Attempt to load rule source class that violates rule source constraints produces reasonable error message
+
+### Open issues
+
+- How to deal with the breaking API changes to `PluginContainer` (e.g. apply(id) returns `Plugin`, same for getPlugin(), more or less every method)
+- Do we support the same kind of “plugin detection” mechanisms for these kinds of plugins (e.g. `withId()`, `withType()`, `whenPluginAdded()`)
+- Replacement for current use of `RuleSource` to allow `Plugin` impl to include rules
+- Need a story to allow these rule source plugins to be applied to any `PluginAware`, and for the `plugins { }` DSL to work for settings and init scripts.
+
+## Story: Plugin model rule uses extension as rule input
 
 - Creation and mutation rule
 
@@ -352,7 +354,7 @@ A mock up:
 
 - Prevent access to extension after used as rule input?
 
-## Story: DSL model rule uses extension as rule input 
+## Story: DSL model rule uses extension as rule input
 
 ## Story: Make public the Model DSL and plugin rules mechanism
 
@@ -369,8 +371,7 @@ A mock up:
 
 ## Story: Build author is informed when model rule targets unknown model object
 
-
-# Implementation plan - milestone 2
+# Milestone x - Make things faster
 
 ## Feature: Rule is not executed when its outputs are up to date
 
