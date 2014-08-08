@@ -15,6 +15,6 @@
  */
 
 /**
- * Tasks for building C++ projects.
+ * Tasks for compiling C++ sources for a native runtime.
  */
 package org.gradle.nativebinaries.language.cpp.tasks;

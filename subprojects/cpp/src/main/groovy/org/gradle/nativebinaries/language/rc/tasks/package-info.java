@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * Tasks for compiling Objective-C++ sources for a native runtime.
+ * Tasks for compiling Windows resources for a native runtime.
  */
-package org.gradle.nativebinaries.language.objectivecpp.tasks;
+package org.gradle.nativebinaries.language.rc.tasks;

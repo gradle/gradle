@@ -15,6 +15,6 @@
  */
 
 /**
- * Tasks for building Objective-C projects.
+ * Tasks for compiling Objective-C sources for a native runtime.
  */
 package org.gradle.nativebinaries.language.objectivec.tasks;

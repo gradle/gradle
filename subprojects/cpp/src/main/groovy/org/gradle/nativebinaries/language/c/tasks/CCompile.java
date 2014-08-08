@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.language.c.tasks;
 
-package org.gradle.nativebinaries.language.objectivec.tasks
-import org.gradle.api.Incubating
-import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
-import org.gradle.nativebinaries.language.objectivec.internal.DefaultObjectiveCCompileSpec
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
+import org.gradle.api.Incubating;
+import org.gradle.nativebinaries.language.c.internal.DefaultCCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 /**
- * Compiles Objective-C source files into object files.
+ * Compiles C source files into object files.
  */
 @Incubating
-class ObjectiveCCompile extends AbstractNativeCompileTask {
+public class CCompile extends AbstractNativeCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {
-        new DefaultObjectiveCCompileSpec()
+        return new DefaultCCompileSpec();
     }
 }
