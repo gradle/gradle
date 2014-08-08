@@ -30,8 +30,8 @@ import org.gradle.language.base.LanguageSourceSet;
  *
  * sources {
  *     main {
- *         // Create and configure an AssemblerSourceSet
- *         asm(AssemblerSourceSet) {
+ *         // configure the AssemblerSourceSet of the main component
+ *         asm {
  *             source {
  *                 srcDirs "src/main/i386", "src/shared/asm"
  *                 include "**{@literal /}*.s"
