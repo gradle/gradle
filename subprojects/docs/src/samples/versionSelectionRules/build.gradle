@@ -1,0 +1,54 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    sampleConfig {
+        resolutionStrategy {
+            versionSelection {
+                all { VersionSelection selection ->
+                    // Force selector like 1.1+ to be interpreted as any
+                    // version that starts with "1.1.", so 1.1, 1.1.0 or
+                    // 1.1.20.1 would match, but not 1.2, 1.10 or 1.18.
+                    if (selection.requested.version.endsWith('+')) {
+                        def prefix = selection.requested.version - '+'
+                        if (selection.candidate.version.startsWith("${prefix}.")) {
+                            logger.lifecycle("** Accepted version: ${selection.candidate.version} **")
+                            selection.accept()
+                        } else {
+                            logger.lifecycle("Rejected version: ${selection.candidate.version}")
+                            selection.reject()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    sampleConfig(group: 'com.sun.jersey.glassfish.v3', name: 'jersey-gfv3-docs-and-samples', version: '1.1+', ext: 'zip', classifier: 'project') { transitive = false }
+}
+
+task resolveConfiguration {
+    doLast {
+        configurations.sampleConfig.files.each { println it }
+    }
+}
+
