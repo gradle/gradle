@@ -85,6 +85,17 @@ class RegexBackedCSourceParserTest extends Specification {
         noImports()
     }
 
+    def "finds quoted include on first line of file"() {
+        when:
+        sourceFile << '#include "test.h"'
+
+        then:
+        includes == ['"test.h"']
+
+        and:
+        noImports()
+    }
+
     def "finds system include"() {
         when:
         sourceFile << """
@@ -94,6 +105,17 @@ class RegexBackedCSourceParserTest extends Specification {
         then:
         includes == ['<test.h>']
         
+        and:
+        noImports()
+    }
+
+    def "finds system include on first line of file"() {
+        when:
+        sourceFile << '#include <test.h>'
+
+        then:
+        includes == ['<test.h>']
+
         and:
         noImports()
     }

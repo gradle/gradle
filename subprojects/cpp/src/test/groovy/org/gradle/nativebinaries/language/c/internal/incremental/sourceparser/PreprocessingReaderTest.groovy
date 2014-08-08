@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.c.internal.incremental.sourceparser
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class PreprocessingReaderTest extends Specification {
     private static final String BN = "\\" + System.getProperty("line.separator")
@@ -65,8 +66,23 @@ line comments.
 
     def "can cope with multiple unescaped and escaped \\r characters"() {
         when:
-        input =  "Here \r\r\\\r\\\r${BN}\\\r\\\r\\\r\\\r."
+        input = "Here \r\r\\\r\\\r${BN}\\\r\\\r\\\r\\\r."
         then:
         output == "Here \r\r\\\r\\\r\\\r\\\r\\\r\\\r."
+    }
+
+    @Unroll
+    def "replaces #description at the start of content"() {
+        when:
+        input = testIn
+
+        then:
+        output == testOut
+
+        where:
+        description | testIn | testOut
+        "line comment" | "// Commment on first line\nAnother line" | "\nAnother line"
+        "inline comment" | "/* inline comment at the start */of the line" | " of the line"
+        "line continuation" | "${BN} at the start of the content" | " at the start of the content"
     }
 }

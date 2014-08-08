@@ -17,10 +17,33 @@ package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
+import spock.lang.Issue
 
 class CLanguageIncrementalCompileIntegrationTest extends AbstractLanguageIncrementalCompileIntegrationTest {
-     @Override
-     IncrementalHelloWorldApp getHelloWorldApp() {
-         return new CHelloWorldApp()
-     }
- }
+    @Override
+    IncrementalHelloWorldApp getHelloWorldApp() {
+        return new CHelloWorldApp()
+    }
+
+    @Issue("GRADLE-3109")
+    def "recompiles source file that includes header file on first line"() {
+        given:
+        sourceFile << """#include "${otherHeaderFile.name}"
+"""
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFile sourceFile
+    }
+}
