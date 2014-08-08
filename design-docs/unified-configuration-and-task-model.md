@@ -346,9 +346,13 @@ Later stories cover making something like this public and documenting when/where
 
 ## Story: DSL model rule uses extension as rule input
 
-## Story: Make public the Model DSL and plugin rules mechanism
+## Story: Make public the Model DSL
 
-- Document how to use the DSL and plugin mechanism, include samples.
+- Document how to use the DSL, include samples.
+
+## Story: Make public the plugin rules mechanism
+
+- Document how to use plugin mechanism, include samples.
 - Indicate on `PluginAware` and `PluginContainer` what the conditions are for the plugin target to be able to take model rule plugins
 
 ### Open issues
