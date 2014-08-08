@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.VersionSelection;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
-public class DefaultVersionSelection implements VersionSelection {
+public class DefaultVersionSelection implements VersionSelectionInternal {
     ModuleComponentSelector requested;
     ModuleComponentIdentifier candidate;
+    State state = State.NOT_SET;
 
     public DefaultVersionSelection(ModuleComponentSelector requested, ModuleComponentIdentifier candidate) {
         this.requested = requested;
@@ -35,5 +36,35 @@ public class DefaultVersionSelection implements VersionSelection {
 
     public ModuleComponentIdentifier getCandidate() {
         return candidate;
+    }
+
+    public void accept() {
+        switch(this.state) {
+            case NOT_SET:
+            case ACCEPTED:
+                this.state = State.ACCEPTED;
+                break;
+            default:
+                throw stateChangeFailure();
+        }
+    }
+
+    public void reject() {
+        switch(this.state) {
+            case NOT_SET:
+            case REJECTED:
+                this.state = State.REJECTED;
+                break;
+            default:
+                throw stateChangeFailure();
+        }
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    private RuntimeException stateChangeFailure() {
+        return new InvalidUserCodeException("Once a version selection has been accepted or rejected, it cannot be changed.");
     }
 }

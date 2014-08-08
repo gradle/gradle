@@ -117,4 +117,113 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
         '1.0'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1', '1.0' ]"
         '1.1'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"
     }
+
+    def "produces sensible error when bad code is supplied in version selection rule" () {
+        ivyRepo.module("org.utils", "api", "1.3").publish()
+
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.3"
+            }
+
+            def rule1VersionsInvoked = []
+            def rule2VersionsInvoked = []
+            configurations.all {
+                resolutionStrategy {
+                    versionSelection {
+                        all { VersionSelection selection ->
+                            foo()
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'resolveConf'
+        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        failure.assertHasLineNumber(20)
+        failure.assertHasCause("Could not apply version selection rule with all().")
+        failure.assertHasCause("Could not find method foo()")
+    }
+
+    def "produces sensible error when two rules set the version selection state differently" () {
+        ivyRepo.module("org.utils", "api", "1.3").publish()
+
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.3"
+            }
+
+            def rule1VersionsInvoked = []
+            def rule2VersionsInvoked = []
+            configurations.all {
+                resolutionStrategy {
+                    versionSelection {
+                        // Rule 1
+                        all { VersionSelection selection ->
+                            selection.accept()
+                        }
+                        // Rule 2
+                        all { VersionSelection selection ->
+                            selection.reject()
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'resolveConf'
+        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        failure.assertHasLineNumber(25)
+        failure.assertHasCause("Could not apply version selection rule with all().")
+        failure.assertHasCause("Once a version selection has been accepted or rejected, it cannot be changed.")
+    }
+
+    def "two version selection rules can set the state to the same thing" () {
+        ivyRepo.module("org.utils", "api", "1.3").publish()
+        ivyRepo.module("org.utils", "api", "1.2").publish()
+
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.+"
+            }
+
+            def rule1VersionsInvoked = []
+            def rule2VersionsInvoked = []
+            configurations.all {
+                resolutionStrategy {
+                    versionSelection {
+                        // Rule 1
+                        all { VersionSelection selection ->
+                            if (selection.candidate.version == '1.3') {
+                                selection."${operation}"()
+                            }
+                        }
+                        // Rule 2
+                        all { VersionSelection selection ->
+                            if (selection.candidate.version == '1.3') {
+                                selection."${operation}"()
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolveConf'
+
+        where:
+        operation | _
+        "accept"  | _
+        "reject"  | _
+    }
 }

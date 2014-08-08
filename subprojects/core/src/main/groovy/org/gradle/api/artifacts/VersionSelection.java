@@ -39,4 +39,14 @@ public interface VersionSelection {
      * @return the candidate version of the module
      */
     ModuleComponentIdentifier getCandidate();
+
+    /**
+     * Accepts the selection as a resolution.
+     */
+    void accept();
+
+    /**
+     * Rejects the selection as a resolution.
+     */
+    void reject();
 }

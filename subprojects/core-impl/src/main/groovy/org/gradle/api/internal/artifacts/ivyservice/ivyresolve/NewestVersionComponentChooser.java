@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionSelection;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultVersionSelection;
+import org.gradle.api.internal.artifacts.VersionSelectionInternal;
 import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
@@ -81,8 +81,17 @@ class NewestVersionComponentChooser implements ComponentChooser {
             // Apply version selection rules
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
             ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
-            VersionSelection selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
+            VersionSelectionInternal selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
             versionSelectionRules.apply(selection);
+
+            switch(selection.getState()) {
+                case ACCEPTED:
+                    return candidateIdentifier;
+                case REJECTED:
+                    continue;
+                default:
+                    break;
+            }
 
             // Invoke version matcher
             if (versionMatcher.accept(requested.getVersion(), candidate.getVersion())) {
@@ -103,13 +112,22 @@ class NewestVersionComponentChooser implements ComponentChooser {
                     dependency.getRequested().getName(),
                     dependency.getRequested().getVersion()
             );
-            VersionSelection selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
+            VersionSelectionInternal selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
             versionSelectionRules.apply(selection);
+
+            switch(selection.getState()) {
+                case ACCEPTED:
+                    return candidateIdentifier;
+                case REJECTED:
+                    continue;
+                default:
+                    break;
+            }
 
             // Invoke version matcher
             if (versionMatcher.accept(dependency.getRequested().getVersion(), metaData)) {
                 // We already resolved the correct module.
-                return metaData.getComponentId();
+                return candidateIdentifier;
             }
         }
         return null;

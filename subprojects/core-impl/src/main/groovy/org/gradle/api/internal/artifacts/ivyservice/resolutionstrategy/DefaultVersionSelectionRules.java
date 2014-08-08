@@ -39,7 +39,7 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
     }
 
     public VersionSelectionRules all(Action<? super VersionSelection> selectionAction) {
-        versionSelectionActions.add(new UserCodeAction<VersionSelection>("Could not apply version selection rule with any()", selectionAction));
+        versionSelectionActions.add(new UserCodeAction<VersionSelection>("Could not apply version selection rule with all().", selectionAction));
         return this;
     }
 }
