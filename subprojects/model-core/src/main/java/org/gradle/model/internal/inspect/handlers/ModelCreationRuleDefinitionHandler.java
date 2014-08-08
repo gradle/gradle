@@ -41,7 +41,7 @@ public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionH
         // TODO validate model name
         String modelName = determineModelName(ruleDefinition);
 
-        ModelPath.validateName(modelName);
+        ModelPath.validatePath(modelName);
 
         // TODO validate the return type (generics?)
         ModelType<?> returnType = ruleDefinition.getReturnType();

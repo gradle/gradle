@@ -24,7 +24,6 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             import org.gradle.model.*
-            import org.gradle.model.internal.core.*
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
@@ -49,6 +48,36 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
         failure.assertHasCause("MyPlugin\$Rules#strings() is not a valid model rule method")
         failure.assertHasCause("Model element name ' ' has illegal first character ' ' (names must start with an ASCII letter or underscore)")
+    }
+
+    def "model name can be at nested path"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Model("foo. bar")
+                    List strings() {
+                      []
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
+        failure.assertHasCause("MyPlugin\$Rules#strings() is not a valid model rule method")
+        failure.assertHasCause("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)")
     }
 
 }

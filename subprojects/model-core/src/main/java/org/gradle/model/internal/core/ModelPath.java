@@ -17,11 +17,13 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import org.gradle.api.GradleException;
 
 public class ModelPath {
 
     public static final String SEPARATOR = ".";
+    public static final Splitter PATH_SPLITTER = Splitter.on('.');
 
     private final String path;
 
@@ -111,6 +113,18 @@ public class ModelPath {
             if (INVALID_CHAR_MATCHER.matches(character)) {
                 throw new InvalidNameException(String.format("Model element name '%s' contains illegal character '%s' (only ASCII letters, numbers and the underscore are allowed)", name, character));
             }
+        }
+    }
+
+    // TODO - error message doesn't include the full given path
+    public static void validatePath(String path) {
+        if (path.isEmpty()) {
+            throw new InvalidNameException("Cannot use an empty string as a model path");
+        }
+
+        Iterable<String> names = PATH_SPLITTER.split(path);
+        for (String name : names) {
+            validateName(name);
         }
     }
 }

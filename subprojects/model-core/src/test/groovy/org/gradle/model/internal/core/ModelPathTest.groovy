@@ -18,7 +18,6 @@ package org.gradle.model.internal.core
 
 import spock.lang.Specification
 
-
 class ModelPathTest extends Specification {
 
     def "validate name"() {
@@ -73,6 +72,20 @@ class ModelPathTest extends Specification {
         ModelPath.validateName("_a")
         ModelPath.validateName("__")
         ModelPath.validateName("a_Z")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "validate model path"() {
+        when:
+        ModelPath.validatePath("foo. bar")
+
+        then:
+        thrown ModelPath.InvalidNameException
+
+        when:
+        ModelPath.validatePath("foo.bar")
 
         then:
         noExceptionThrown()
