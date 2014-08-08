@@ -336,15 +336,27 @@ Later stories cover making something like this public and documenting when/where
 - Replacement for current use of `RuleSource` to allow `Plugin` impl to include rules
 - Need a story to allow these rule source plugins to be applied to any `PluginAware`, and for the `plugins { }` DSL to work for settings and init scripts.
 
-## Story: Plugin model rule uses extension as rule input
+## Story: Plugin provides unmanaged object as model element
 
-- Creation and mutation rule
+For example, an extension.
 
 ### Open issues
 
 - Prevent access to extension after used as rule input?
 
-## Story: DSL model rule uses extension as rule input
+## Story: Build author provides unmanaged object as model element
+
+For example, an extension or some ad hoc model object.
+
+### Open issues
+
+- Provide some canned model objects, e.g. the project layout (project dir, build dir, file() method, etc).
+
+## Story: Only declared inputs are visible to DSL model rule
+
+## Story: Build user views report that shows information about the available model
+
+Add some command-line report to show basic details of the model space.
 
 ## Story: Make public the Model DSL
 
