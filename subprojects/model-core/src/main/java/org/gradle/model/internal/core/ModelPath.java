@@ -19,6 +19,9 @@ package org.gradle.model.internal.core;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
+
+import java.util.List;
 
 public class ModelPath {
 
@@ -86,10 +89,16 @@ public class ModelPath {
         return otherParent != null && otherParent.equals(this);
     }
 
-    public static class InvalidNameException extends GradleException { // TODO: better exception?
-
+    public static class InvalidNameException extends GradleException {
         public InvalidNameException(String message) {
             super(message);
+        }
+    }
+
+    @Contextual
+    public static class InvalidPathException extends GradleException {
+        public InvalidPathException(String message, InvalidNameException e) {
+            super(message, e);
         }
     }
 
@@ -116,15 +125,30 @@ public class ModelPath {
         }
     }
 
-    // TODO - error message doesn't include the full given path
     public static void validatePath(String path) {
         if (path.isEmpty()) {
-            throw new InvalidNameException("Cannot use an empty string as a model path");
+            throw new InvalidPathException("Cannot use an empty string as a model path", null);
         }
 
-        Iterable<String> names = PATH_SPLITTER.split(path);
-        for (String name : names) {
-            validateName(name);
+        if (path.startsWith(SEPARATOR)) {
+            throw new InvalidPathException(String.format("Model path '%s' cannot start with name separator '%s'", path, SEPARATOR), null);
+        }
+
+        if (path.endsWith(SEPARATOR)) {
+            throw new InvalidPathException(String.format("Model path '%s' cannot end with name separator '%s'", path, SEPARATOR), null);
+        }
+
+        List<String> names = PATH_SPLITTER.splitToList(path);
+        if (names.size() == 1) {
+            validateName(names.get(0));
+        } else {
+            for (String name : names) {
+                try {
+                    validateName(name);
+                } catch (InvalidNameException e) {
+                    throw new InvalidPathException(String.format("Model path '%s' is invalid due to invalid name component", path), e);
+                }
+            }
         }
     }
 }

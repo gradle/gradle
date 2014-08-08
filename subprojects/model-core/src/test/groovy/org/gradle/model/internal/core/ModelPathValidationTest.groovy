@@ -18,7 +18,7 @@ package org.gradle.model.internal.core
 
 import spock.lang.Specification
 
-class ModelPathTest extends Specification {
+class ModelPathValidationTest extends Specification {
 
     def "validate name"() {
         when:
@@ -82,12 +82,42 @@ class ModelPathTest extends Specification {
         ModelPath.validatePath("foo. bar")
 
         then:
-        thrown ModelPath.InvalidNameException
+        def e = thrown ModelPath.InvalidPathException
+        e.cause instanceof ModelPath.InvalidNameException
 
         when:
         ModelPath.validatePath("foo.bar")
 
         then:
         noExceptionThrown()
+
+        when:
+        ModelPath.validatePath(".foo.bar")
+
+        then:
+        e = thrown ModelPath.InvalidPathException
+        e.message =~ "start with"
+
+        when:
+        ModelPath.validatePath("foo.bar.")
+
+        then:
+        e = thrown ModelPath.InvalidPathException
+        e.message =~ "end with"
+
+        when:
+        ModelPath.validatePath("")
+
+        then:
+        e = thrown ModelPath.InvalidPathException
+        e.message =~ "empty string"
+
+        when:
+        ModelPath.validatePath("-")
+
+        then:
+        e = thrown ModelPath.InvalidNameException
+        e.message =~ "illegal first character '-'"
+
     }
 }
