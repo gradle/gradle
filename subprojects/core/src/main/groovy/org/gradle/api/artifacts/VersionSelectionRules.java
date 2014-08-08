@@ -29,7 +29,9 @@ import org.gradle.api.Incubating;
  *             resolutionStrategy {
  *                 versionSelection {
  *                     all { VersionSelection selection ->
- *                         // TODO - add a reasonable example
+ *                         if (selection.candidate.name == 'someModule' && selection.candidate.version == '1.1') {
+ *                             selection.reject()
+ *                         }
  *                     }
  *                 }
  *             }

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -33,14 +34,17 @@ import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 public class LazyDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionResolver dependencyResolver;
     private final VersionMatcher versionMatcher;
+    private final VersionSelectionRulesInternal versionSelectionRules;
 
-    public LazyDependencyToModuleResolver(DependencyToModuleVersionResolver dependencyResolver, VersionMatcher versionMatcher) {
+    public LazyDependencyToModuleResolver(DependencyToModuleVersionResolver dependencyResolver, VersionMatcher versionMatcher, VersionSelectionRulesInternal versionSelectionRules) {
         this.dependencyResolver = dependencyResolver;
         this.versionMatcher = versionMatcher;
+        this.versionSelectionRules = versionSelectionRules;
     }
 
     public ModuleVersionIdResolveResult resolve(DependencyMetaData dependency) {
-        if (versionMatcher.isDynamic(dependency.getRequested().getVersion())) {
+        if (versionMatcher.isDynamic(dependency.getRequested().getVersion())
+                || versionSelectionRules.hasRules()) {
             DynamicVersionResolveResult result = new DynamicVersionResolveResult(dependency);
             result.resolve();
             return result;

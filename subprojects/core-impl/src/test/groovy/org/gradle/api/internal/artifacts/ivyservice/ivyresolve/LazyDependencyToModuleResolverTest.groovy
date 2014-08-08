@@ -23,6 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
@@ -40,7 +41,8 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class LazyDependencyToModuleResolverTest extends Specification {
     final target = Mock(DependencyToModuleVersionResolver)
     final matcher = Mock(VersionMatcher)
-    final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher)
+    final versionSelectionRules = Mock(VersionSelectionRulesInternal)
+    final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher, versionSelectionRules)
 
     def "does not resolve module for static version dependency until requested"() {
         def dependency = dependency()
@@ -73,6 +75,36 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         given:
         matcher.isDynamic(_) >> true
+
+        when:
+        def idResolveResult = resolver.resolve(dependency)
+        def id = idResolveResult.id
+
+        then:
+        id == metaData.id
+
+        and:
+        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(metaData)}
+        0 * target._
+
+        when:
+        def moduleResolveResult = idResolveResult.resolve()
+
+        then:
+        moduleResolveResult.id == metaData.id
+        moduleResolveResult.metaData == metaData
+
+        and:
+        0 * target._
+    }
+
+    def "treats static version dependency as dynamic when version selection rules are present"() {
+        def dependency = dependency()
+        def metaData = module()
+
+        given:
+        matcher.isDynamic(_) >> false
+        versionSelectionRules.hasRules() >> true
 
         when:
         def idResolveResult = resolver.resolve(dependency)

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.api.artifacts.VersionSelection
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -128,8 +129,6 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
                 conf "org.utils:api:1.3"
             }
 
-            def rule1VersionsInvoked = []
-            def rule2VersionsInvoked = []
             configurations.all {
                 resolutionStrategy {
                     versionSelection {
@@ -144,7 +143,7 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasLineNumber(20)
+        failure.assertHasLineNumber(18)
         failure.assertHasCause("Could not apply version selection rule with all().")
         failure.assertHasCause("Could not find method foo()")
     }
@@ -225,5 +224,99 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
         operation | _
         "accept"  | _
         "reject"  | _
+    }
+
+    def "rejects all versions by rule" () {
+        ivyRepo.module("org.utils", "api", "1.0").publish()
+        ivyRepo.module("org.utils", "api", "1.1").publish()
+        ivyRepo.module("org.utils", "api", "2.0").publish()
+
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.0"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    versionSelection {
+                        all { VersionSelection selection ->
+                            selection.reject()
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'resolveConf'
+        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        failure.assertHasCause("Could not find any version that matches org.utils:api:1.0.")
+    }
+
+    private static def rules = [
+            "always select 2.0": """{ VersionSelection selection ->
+                if (selection.candidate.version == '2.0') {
+                    selection.accept()
+                }
+                ruleInvoked = true
+            }
+            """,
+            "always reject 1.1": """{ VersionSelection selection ->
+                if (selection.candidate.version == '1.1') {
+                    selection.reject()
+                }
+                ruleInvoked = true
+            }
+            """,
+            "never select or reject any version": """{ VersionSelection selection ->
+                ruleInvoked = true
+            }
+            """,
+    ]
+
+    @Unroll
+    def "uses selection rule '#rule' to select a particular version" () {
+        ivyRepo.module("org.utils", "api", "1.0").withStatus("release").publish()
+        ivyRepo.module("org.utils", "api", "1.1").withStatus("milestone").publish()
+        ivyRepo.module("org.utils", "api", "2.0").publish()
+
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:${requestedVersion}"
+            }
+
+            def ruleInvoked = false
+            configurations.all {
+                resolutionStrategy {
+                    versionSelection {
+                        all ${rules[rule]}
+                    }
+                }
+            }
+
+            resolveConf.doLast {
+                assert ruleInvoked == true
+                configurations.conf.files.each { println it }
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '${expectedVersion}'
+            }
+        """
+
+        expect:
+        succeeds 'resolveConf'
+
+        where:
+        requestedVersion     | rule                                 | expectedVersion
+        "1.0"                | "always select 2.0"                  | "2.0"
+        "1.+"                | "always select 2.0"                  | "2.0"
+        "1.+"                | "always reject 1.1"                  | "1.0"
+        "1.0"                | "never select or reject any version" | "1.0"
+        "1.+"                | "never select or reject any version" | "1.1"
+        "latest.integration" | "never select or reject any version" | "2.0"
+        "latest.milestone"   | "never select or reject any version" | "1.1"
     }
 }
