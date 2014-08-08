@@ -257,16 +257,6 @@ Improve the model DSL to allow tasks to be configured in the build script:
 
 ### Test cases
 
-- Build script configuration closure is executed when `someTask` is required:
-    - Task is added to task graph
-    - Running `gradle tasks`
-    - Building `GradleProject` tooling API model.
-    - Using `TaskContainer` to query task instances.
-- Build script configuration closure is not executed when `someTask` is not required:
-    - Running `gradle help`
-    - Running `gradle someTask` in another project.
-    - Using `TaskContainer` to query task names.
-
 ### Open issues
 
 - Reasonable behaviour when `someTask { ... }` appears as a top level statement in build script.
@@ -372,6 +362,27 @@ Later stories cover making something like this public and documenting when/where
 ## Story: Build author is informed when model rule targets unknown model object
 
 # Milestone x - Make things faster
+
+## Feature: Tasks are not created or configured when not referenced in a build
+
+Only fire the rules to create and configure a task when it is referenced in a build:
+
+- Added to the task graph.
+- When required for `gradle tasks`
+- Building certain tooling API models.
+- Using `TaskContainer` to query task instances.
+
+### Test cases
+
+- Build script configuration closure is executed when `someTask` is required:
+    - Task is added to task graph
+    - Running `gradle tasks`
+    - Building `GradleProject` tooling API model.
+    - Using `TaskContainer` to query task instances.
+- Build script configuration closure is not executed when `someTask` is not required:
+    - Running `gradle help`
+    - Running `gradle someTask` in another project.
+    - Using `TaskContainer` to query task names.
 
 ## Feature: Rule is not executed when its outputs are up to date
 
