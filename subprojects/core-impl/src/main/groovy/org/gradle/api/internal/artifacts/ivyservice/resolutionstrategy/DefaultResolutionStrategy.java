@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.ResolutionRules;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -119,8 +117,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return versionSelection;
     }
 
-    public ResolutionStrategy versionSelection(Closure closure) {
-        ConfigureUtil.configure(closure, versionSelection);
+    public ResolutionStrategy versionSelection(Action<VersionSelectionRules> closure) {
+        closure.execute(versionSelection);
         return this;
     }
 

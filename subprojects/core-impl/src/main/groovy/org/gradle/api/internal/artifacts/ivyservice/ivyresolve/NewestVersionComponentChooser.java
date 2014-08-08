@@ -80,7 +80,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         for (Versioned candidate : sortLatestFirst(versions)) {
             // Apply version selection rules
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
-            ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
+            ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(requested);
             VersionSelectionInternal selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
             versionSelectionRules.apply(selection);
 
@@ -107,11 +107,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
             ModuleComponentIdentifier candidateIdentifier = metaData.getComponentId();
 
             // Apply version selection rules
-            ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(
-                    dependency.getRequested().getGroup(),
-                    dependency.getRequested().getName(),
-                    dependency.getRequested().getVersion()
-            );
+            ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(dependency.getRequested());
             VersionSelectionInternal selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
             versionSelectionRules.apply(selection);
 

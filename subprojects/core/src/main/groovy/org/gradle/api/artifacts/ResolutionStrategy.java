@@ -224,8 +224,19 @@ public interface ResolutionStrategy {
      * Returns the currently configured version selection rules object.
      *
      * @return the version selection rules
-     * @since 2.1
+     * @since 2.2
      */
     @Incubating
     VersionSelectionRules getVersionSelection();
+
+    /**
+     * The versionSelection block provides rules for how versions should be selected.  This is useful for defining
+     * your own version scheme.
+     *
+     * @param closure Closure to be applied to the {@link org.gradle.api.artifacts.VersionSelectionRules}
+     * @return this ResolutionStrategy instance
+     * @since 2.2
+     */
+    @Incubating
+    ResolutionStrategy versionSelection(Action<VersionSelectionRules> closure);
 }

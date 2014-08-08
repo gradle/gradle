@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /***
  * Represents a container for version selection rules.  Rules can be applied as part of the
@@ -39,11 +40,12 @@ import org.gradle.api.Incubating;
  *     }
  * </pre>
  */
+@HasInternalProtocol
 @Incubating
 public interface VersionSelectionRules {
     /**
      * Add a new version selection rule to the container.
-     * @param selectionAction the Action or Closure that implements the rule
+     * @param selectionAction the Action or Closure that implements a rule to be applied to all resolved modules
      * @return this
      */
     public VersionSelectionRules all(Action<? super VersionSelection> selectionAction);

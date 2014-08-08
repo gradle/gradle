@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.api.artifacts.VersionSelection
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -104,6 +103,8 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
                 assert rule1VersionsInvoked.containsAll(versionsExpected)
                 assert rule2VersionsInvoked.size() == versionsExpected.size()
                 assert rule2VersionsInvoked.containsAll(versionsExpected)
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '${resolutionExpected}'
             }
         """
 
@@ -111,12 +112,12 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
         succeeds 'resolveConf'
 
         where:
-        versionRequested     | versionsAvailable                                                | versionsExpected
-        '1.+'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"
-        'latest.integration' | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0' ]"
-        'latest.release'     | [['2.0', 'integration'], ['1.1', 'release'], ['1.0', 'release']] | "[ '2.0', '1.1' ]"
-        '1.0'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1', '1.0' ]"
-        '1.1'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"
+        versionRequested     | versionsAvailable                                                | versionsExpected          | resolutionExpected
+        '1.+'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"        | '1.1'
+        'latest.integration' | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0' ]"               | '2.0'
+        'latest.release'     | [['2.0', 'integration'], ['1.1', 'release'], ['1.0', 'release']] | "[ '2.0', '1.1' ]"        | '1.1'
+        '1.0'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1', '1.0' ]" | '1.0'
+        '1.1'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"        | '1.1'
     }
 
     def "produces sensible error when bad code is supplied in version selection rule" () {

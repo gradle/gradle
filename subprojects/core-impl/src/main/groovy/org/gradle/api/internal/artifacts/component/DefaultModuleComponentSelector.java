@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -103,5 +104,9 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
     public static ModuleComponentSelector newSelector(String group, String name, String version) {
         return new DefaultModuleComponentSelector(group, name, version);
+    }
+
+    public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
+        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), selector.getVersion());
     }
 }

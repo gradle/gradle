@@ -42,6 +42,7 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         1 * selector.version >> "foo"
         versionMatcher.isDynamic("foo") >> false
+        versionSelectionRules.hasRules() >> false
 
         then:
         !chooser.canSelectMultipleComponents(selector)
@@ -59,6 +60,7 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         1 * selector.version >> "foo"
         versionMatcher.isDynamic("foo") >> false
+        1 * versionSelectionRules.hasRules() >> false
 
         then:
         !chooser.canSelectMultipleComponents(selector)
