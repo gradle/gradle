@@ -16,18 +16,22 @@
 package org.gradle.language.assembler.plugins
 
 import org.gradle.language.assembler.AssemblerSourceSet
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.nativebinaries.language.assembler.plugins.AssemblerPlugin
+import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
-class AssemblerLangPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
+class AssemblerLangPluginTest extends AbstractLanguagePluginSpec {
+    @Override
+    def getPluginClass() {
+        return AssemblerPlugin
+    }
 
-    def "adds support for custom AssemblerSourceSets"() {
-        when:
-        project.plugins.apply(AssemblerLangPlugin)
-        project.sources.create "test"
+    @Override
+    def getLanguageSourceSet() {
+        return AssemblerSourceSet
+    }
 
-        then:
-        project.sources.test.create("test_asm", AssemblerSourceSet) in AssemblerSourceSet
+    @Override
+    String getLanguageId() {
+        return "asm"
     }
 }

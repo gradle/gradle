@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.cpp.plugins
 
-import org.gradle.language.cpp.CppSourceSet
+package org.gradle.language.java.plugins
+
+import org.gradle.api.Plugin
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.java.JavaSourceSet
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
-class CppLangPluginTest extends AbstractLanguagePluginSpec {
+class JavaLanguagePluginTest extends AbstractLanguagePluginSpec {
 
     @Override
-    def getPluginClass() {
-        return CppLangPlugin
+    Class<Plugin> getPluginClass() {
+        return JavaLanguagePlugin
     }
 
     @Override
-    def getLanguageSourceSet() {
-        return CppSourceSet
+    Class<? extends LanguageSourceSet> getLanguageSourceSet() {
+        return JavaSourceSet
     }
 
     @Override
     String getLanguageId() {
-        return "cpp"
+        return "java"
     }
-
 }

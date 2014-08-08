@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(":ide")
-    compile libraries.commons_io
-    integTestRuntime project(":maven")
+package org.gradle.language.objectivec.plugins
+
+import org.gradle.language.objectivec.ObjectiveCSourceSet
+import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
+
+class ObjectiveCLangPluginTest extends AbstractLanguagePluginSpec {
+
+    @Override
+    def getPluginClass() {
+        return ObjectiveCLangPlugin
+    }
+
+    @Override
+    def getLanguageSourceSet() {
+        return ObjectiveCSourceSet
+    }
+
+    @Override
+    String getLanguageId() {
+        return "objc"
+    }
 }
-
-useTestFixtures()
-useTestFixtures(project: ":messaging")
-useTestFixtures(sourceSet: "testFixtures")
-useTestFixtures(project:":languageBase")
-
-//useClassycle()
