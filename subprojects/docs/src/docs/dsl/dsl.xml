@@ -599,22 +599,22 @@
         <table>
             <title>Native component task types</title>
             <tr>
-                <td>org.gradle.nativebinaries.language.cpp.tasks.CppCompile</td>
+                <td>org.gradle.language.cpp.tasks.CppCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.language.c.tasks.CCompile</td>
+                <td>org.gradle.language.c.tasks.CCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.language.assembler.tasks.Assemble</td>
+                <td>org.gradle.language.assembler.tasks.Assemble</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile</td>
+                <td>org.gradle.language.objectivec.tasks.ObjectiveCCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile</td>
+                <td>org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile</td>
+                <td>org.gradle.language.rc.tasks.WindowsResourceCompile</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.tasks.LinkExecutable</td>

@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativebinaries.language.c.internal.CCompileSpec
+import org.gradle.language.c.internal.CCompileSpec
 import org.gradle.nativebinaries.platform.internal.DefaultPlatform
 import org.gradle.util.TestUtil
 import spock.lang.Specification

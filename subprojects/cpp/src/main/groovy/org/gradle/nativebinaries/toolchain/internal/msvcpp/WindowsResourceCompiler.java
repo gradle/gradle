@@ -22,7 +22,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
-import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
+import org.gradle.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;

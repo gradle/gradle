@@ -17,7 +17,7 @@ package org.gradle.nativebinaries.test.cunit
 
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
-import org.gradle.nativebinaries.language.c.plugins.CPlugin
+import org.gradle.language.c.plugins.CPlugin
 import org.gradle.nativebinaries.test.TestSuiteContainer
 import org.gradle.nativebinaries.test.cunit.plugins.CUnitPlugin
 import org.gradle.util.TestUtil

@@ -38,7 +38,7 @@ import org.gradle.nativebinaries.NativeComponentSpec;
 import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.nativebinaries.internal.NativeBinarySpecInternal;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
+import org.gradle.language.internal.nativelang.DefaultPreprocessingTool;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec;

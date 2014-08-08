@@ -20,7 +20,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.nativebinaries.NativeBinarySpec
 import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
-import org.gradle.nativebinaries.language.PreprocessingTool
+import org.gradle.language.PreprocessingTool
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter
 
 class VisualStudioProjectConfiguration {

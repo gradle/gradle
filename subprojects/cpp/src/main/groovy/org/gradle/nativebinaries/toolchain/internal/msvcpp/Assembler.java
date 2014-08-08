@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
-import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
+import org.gradle.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;

@@ -28,7 +28,7 @@ import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import org.gradle.nativebinaries.internal.NativeExecutableBinarySpecInternal
-import org.gradle.nativebinaries.language.PreprocessingTool
+import org.gradle.language.PreprocessingTool
 import org.gradle.nativebinaries.platform.Platform
 import spock.lang.Specification
 

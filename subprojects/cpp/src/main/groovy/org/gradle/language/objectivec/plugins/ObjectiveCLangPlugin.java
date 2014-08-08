@@ -22,12 +22,12 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.internal.NativeLanguageRegistration;
+import org.gradle.language.internal.nativelang.NativeLanguageRegistration;
 import org.gradle.language.objectivec.ObjectiveCSourceSet;
 import org.gradle.language.objectivec.internal.DefaultObjectiveCSourceSet;
-import org.gradle.nativebinaries.language.internal.CompileTaskConfig;
-import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
-import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile;
+import org.gradle.language.internal.nativelang.CompileTaskConfig;
+import org.gradle.language.internal.nativelang.DefaultPreprocessingTool;
+import org.gradle.language.objectivec.tasks.ObjectiveCCompile;
 
 import java.util.Map;
 

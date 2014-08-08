@@ -89,22 +89,22 @@
         <extends targetClass="org.gradle.api.Project" id="flavors" extensionClass="org.gradle.nativebinaries.FlavorContainer"/>
     </plugin>
     <plugin id="cpp" description="C++ Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cppCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="c" description="C Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="assembler" description="Assembler Plugin">
         <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="assembler" extensionClass="org.gradle.nativebinaries.Tool"/>
     </plugin>
     <plugin id="objective-c" description="Objective-C Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="objective-cpp" description="Objective-C++ Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCppCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="windows-resources" description="Windows Resources Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="rcCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="rcCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="visual-studio" description="Visual Studio Plugin">
         <extends targetClass="org.gradle.api.Project" id="visualStudio" extensionClass="org.gradle.ide.visualstudio.VisualStudioExtension"/>

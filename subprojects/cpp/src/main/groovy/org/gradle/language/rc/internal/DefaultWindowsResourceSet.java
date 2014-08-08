@@ -18,7 +18,7 @@ package org.gradle.language.rc.internal;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.internal.AbstractHeaderExportingSourceSet;
+import org.gradle.language.internal.nativelang.AbstractHeaderExportingSourceSet;
 import org.gradle.language.rc.WindowsResourceSet;
 
 public class DefaultWindowsResourceSet extends AbstractHeaderExportingSourceSet implements WindowsResourceSet {

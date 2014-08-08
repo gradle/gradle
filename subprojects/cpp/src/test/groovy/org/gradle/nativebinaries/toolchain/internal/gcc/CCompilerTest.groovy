@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme
-import org.gradle.nativebinaries.language.c.internal.CCompileSpec
+import org.gradle.language.c.internal.CCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
 import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.test.fixtures.file.TestFile
