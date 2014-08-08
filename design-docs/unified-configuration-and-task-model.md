@@ -292,6 +292,12 @@ A mock up:
 
 # Milestone 2 - Build author uses public rule DSL to configure model and tasks
 
+## Story: Build author is informed when model rule targets unknown model object
+
+## Story: Build user views report that shows information about the available model
+
+Add some command-line report to show basic details of the model space.
+
 ## Story: Build user applies rule source class in similar manner to applying a plugin
 
 This story makes it more convenient to write a plugin that is exclusively based on model rules, while keeping the implementation details of such a plugin transparent to the user.
@@ -354,10 +360,6 @@ For example, an extension or some ad hoc model object.
 
 ## Story: Only declared inputs are visible to DSL model rule
 
-## Story: Build user views report that shows information about the available model
-
-Add some command-line report to show basic details of the model space.
-
 ## Story: Make public the Model DSL
 
 - Document how to use the DSL, include samples.
@@ -371,11 +373,9 @@ Add some command-line report to show basic details of the model space.
 
 - Improve logging and error message feedback, given that we have better insight into what's happening.
 
-## Story: New language and publication plugins use plugin rules mechanism to define tasks
+## Story: Language and publication plugins use plugin rules mechanism to define tasks
 
-- Change the native language, jvm language and the publication plugins, to use this mechanism to define tasks from their models.
-
-## Story: Build author is informed when model rule targets unknown model object
+- Change the native language, jvm language and the publication plugins, to use this mechanism to define tasks (only) from their models.
 
 # Milestone x - Make things faster
 
