@@ -254,6 +254,12 @@ The published `ivy.xml` for the requested module looks as such:
 
 The presented `exclude` rule is only an example. It may change per scenario as outlined below.
 
+## General assumptions
+
+* The main artifact has the type `jar`.
+* The source artifact has the type `source`.
+* The javadoc artifact has the type `javadoc`.
+
 ### Single artifact, no transitive dependencies
 
 #### Assumptions
@@ -262,11 +268,10 @@ The presented `exclude` rule is only an example. It may change per scenario as o
     * `a` -> `b`, `c`
 * `b` only has a single artifact: `b-1.0.jar`
 * `c` only has a single artifact: `c-1.0.jar`
-* The main artifact has the type `jar`.
     
 #### Test cases
 
-* Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. The module `c` and all its artifacts will be part of the resolved dependencies.
+* Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. The modules `a`, `c` and all their artifacts will be part of the resolved dependencies.
 
 The result is to be expected if the exclude has the following attribute combinations:
 
@@ -289,13 +294,11 @@ The result is to be expected if the exclude has the following attribute combinat
     * `a` -> `b`, `c`
 * `b` has a multiple artifacts: `b-1.0.jar`, `b-1.0-src.jar`, `b-1.0-javadoc.jar`
 * `c` has a multiple artifacts: `c-1.0.jar`, `c-1.0-src.jar`, `c-1.0-javadoc.jar`
-* The main artifact has the type `jar`.
-* The source artifact has the type `source`.
-* The javadoc artifact has the type `javadoc`.
     
 #### Test cases
 
-* Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. `b-1.0-src.jar` and `b-1.0-javadoc.jar` will still be resolved. The module `c` and all its artifacts will be part of the resolved dependencies.
+* Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. `b-1.0-src.jar` and `b-1.0-javadoc.jar` will still be resolved. The modules `a`, `c` and all their artifacts 
+will be part of the resolved dependencies.
 
 The result is to be expected if the exclude has the following attribute combinations:
 
@@ -310,7 +313,7 @@ The result is to be expected if the exclude has the following attribute combinat
 * `<exclude org="org.gradle.test" module="b" artifact="b" type="jar"/>`
 * `<exclude org="org.gradle.test" module="b" artifact="b" type="jar" ext="jar"/>`
 
-### Multiple artifacts, transitive dependencies
+### Multiple artifacts, transitive dependencies, exclusion of top-level artifact
 
 #### Assumptions
     
@@ -322,13 +325,11 @@ The result is to be expected if the exclude has the following attribute combinat
 * `c` has a multiple artifacts: `c-1.0.jar`, `c-1.0-src.jar`, `c-1.0-javadoc.jar`
 * `d` only has a single artifact: `d-1.0.jar`
 * `e` only has a single artifact: `e-1.0.jar`
-* The main artifact has the type `jar`.
-* The source artifact has the type `source`.
-* The javadoc artifact has the type `javadoc`.
     
 #### Test cases
 
-* Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. `b-1.0-src.jar` and `b-1.0-javadoc.jar` will still be resolved. The modules `c`, `d`, `e` and all their artifacts will be part of the resolved dependencies.
+* Excluding the artifact `b` will only exclude the artifact `b-1.0.jar` but not its module. `b-1.0-src.jar` and `b-1.0-javadoc.jar` will still be resolved. The modules `a`, `c`, `d`, `e` and all their
+artifacts will be part of the resolved dependencies.
 
 The result is to be expected if the exclude has the following attribute combinations:
 
@@ -342,3 +343,33 @@ The result is to be expected if the exclude has the following attribute combinat
 * `<exclude org="org.gradle.test" module="b" artifact="b"/>`
 * `<exclude org="org.gradle.test" module="b" artifact="b" type="jar"/>`
 * `<exclude org="org.gradle.test" module="b" artifact="b" type="jar" ext="jar"/>`
+
+### Multiple artifacts, transitive dependency required by multiple modules
+
+#### Assumptions
+    
+* Dependency graph:
+    * `a` -> `b`, `c`
+    * `b` -> `d`
+    * `c` -> `d`
+* `b` has a multiple artifacts: `b-1.0.jar`, `b-1.0-src.jar`, `b-1.0-javadoc.jar`
+* `c` has a multiple artifacts: `c-1.0.jar`, `c-1.0-src.jar`, `c-1.0-javadoc.jar`
+* `d` has a multiple artifacts: `d-1.0.jar`, `d-1.0-src.jar`, `d-1.0-javadoc.jar`
+
+#### Test cases
+
+* Excluding the artifact `d` will only exclude the artifact `d-1.0.jar` but not its module. `d-1.0-src.jar` and `d-1.0-javadoc.jar` will still be resolved. The modules `a`, `b`, `c` and all their 
+artifacts will be part of the resolved dependencies.
+
+The result is to be expected if the exclude has the following attribute combinations:
+
+* `<exclude artifact="d"/>`
+* `<exclude artifact="d" type="jar"/>`
+* `<exclude artifact="d" ext="jar"/>`
+* `<exclude artifact="d" type="jar" ext="jar"/>`
+* `<exclude org="org.gradle.test" artifact="d"/>`
+* `<exclude org="org.gradle.test" artifact="d" type="jar"/>`
+* `<exclude org="org.gradle.test" artifact="d" type="jar" ext="jar"/>`
+* `<exclude org="org.gradle.test" module="d" artifact="d"/>`
+* `<exclude org="org.gradle.test" module="d" artifact="d" type="jar"/>`
+* `<exclude org="org.gradle.test" module="d" artifact="d" type="jar" ext="jar"/>`
