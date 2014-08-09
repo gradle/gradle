@@ -549,12 +549,24 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 
 ### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
 
-- Rename 'cpp' project to 'language-native'
-- Native package structure needs to be more consistent with JVM package structure.
+- ~~Move tasks/plugins/etc that are used to compile native languages for the native runtime into `org.gradle.language.*`~~
+- Move Visual Studio and CDE related classes into new subproject `ide-native`
+    - Move ide-specific integration tests as well
+- Move language-specific classes (`org.gradle.language.*`) out of `cpp` into a new subproject `language-native`
+    - Move language-related integration tests as well, breaking into a better package structure
+- Move runtime-specific classes (`org.gradle.nativebinaries.*`) out of `cpp` into a new subproject `runtime-native`
+    - Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeruntime.*`
+    - Move integration tests into `runtime-native`, breaking into a better package structure
+- Move runtime-specific classes (`org.gradle.runtime.*`) out of `language-jvm` into new subproject `runtime-jvm`
+- Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes
+    - `language-jvm` should be for common base infrastructure
+- `runtime` subprojects should not depend on `language` subprojects
+- Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
 
 #### Open issues
 
-- Better naming scheme than 'language-xxx': 'xxx-platform'? 'xxx-runtime'?
+- improve `language-base` subproject
+- subproject cycles with test fixtures (eg `language-native` tests generation of visual studio projects for particular cases)
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
