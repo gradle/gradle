@@ -144,6 +144,18 @@ public abstract class AbstractSpockTaskTest extends Specification {
         new ArrayList() ==  getTask().getActions()
     }
 
+    def testSetActions() {
+        when:
+        Action action1 = Actions.doNothing();
+        getTask().actions = [action1]
+
+        Action action2 = Actions.doNothing();
+        getTask().actions = [action2]
+
+        then:
+        [new AbstractTask.TaskActionWrapper(action2)] ==  getTask().actions
+    }
+
     def testAddActionWithNull() {
         when:
         getTask().doLast((Closure) null)
