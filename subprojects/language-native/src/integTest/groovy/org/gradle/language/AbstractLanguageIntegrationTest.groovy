@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec

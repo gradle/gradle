@@ -19,7 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
-import org.gradle.nativebinaries.language.AbstractNativeComponentPluginTest
+import org.gradle.language.AbstractNativeComponentPluginTest
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.util.TestUtil
 

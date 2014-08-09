@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language
 
 import groovy.io.FileType
 import org.gradle.integtests.fixtures.CompilationOutputsFixture

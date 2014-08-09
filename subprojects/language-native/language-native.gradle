@@ -22,4 +22,5 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":cpp")
-useClassycle()
+useTestFixtures(project: ":messaging")
+//useClassycle()

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.assembler
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 
 class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    HelloWorldApp app = new MixedLanguageHelloWorldApp(toolChain)
+    HelloWorldApp app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
     TestFile asmSourceFile
     def install
 

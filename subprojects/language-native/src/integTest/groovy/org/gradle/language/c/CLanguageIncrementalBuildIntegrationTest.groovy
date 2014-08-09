@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+package org.gradle.language.c
+
+import org.gradle.language.AbstractLanguageIncrementalBuildIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 
-class CppLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest {
+class CLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest {
+    @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
-        new CppHelloWorldApp()
+        new CHelloWorldApp()
     }
 }

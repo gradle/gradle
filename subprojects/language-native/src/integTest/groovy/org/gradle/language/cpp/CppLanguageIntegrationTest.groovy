@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.cpp
 
+import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
@@ -60,7 +62,7 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(toolChain)
+        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
     def "can manually define C++ source sets"() {

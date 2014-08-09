@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.c
 
+import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
 
 class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
-    HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(toolChain)
+    HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
 
     def "can have all source files co-located in a common directory"() {
         given:

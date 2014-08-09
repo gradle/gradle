@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.cpp.plugins
 
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class CppLanguageIncrementalCompileIntegrationTest extends AbstractLanguageIncrementalCompileIntegrationTest {
-     @Override
-     IncrementalHelloWorldApp getHelloWorldApp() {
-         return new CppHelloWorldApp()
-     }
- }
+class CppPluginGoodBehaviourTest extends WellBehavedPluginTest {
+    @Override
+    def String getPluginId() {
+        return "cpp"
+    }
+}

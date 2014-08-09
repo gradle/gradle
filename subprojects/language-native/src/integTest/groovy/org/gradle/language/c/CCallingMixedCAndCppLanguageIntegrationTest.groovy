@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.cpp
 
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+package org.gradle.language.c
 
-class CppPluginGoodBehaviourTest extends WellBehavedPluginTest {
-    @Override
-    def String getPluginId() {
-        return "cpp"
-    }
+import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CCallingMixedCAndCppHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
+
+class CCallingMixedCAndCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+    HelloWorldApp helloWorldApp = new CCallingMixedCAndCppHelloWorldApp()
 }
+

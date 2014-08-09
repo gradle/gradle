@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.c
 
+import org.gradle.language.AbstractLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import spock.lang.Issue

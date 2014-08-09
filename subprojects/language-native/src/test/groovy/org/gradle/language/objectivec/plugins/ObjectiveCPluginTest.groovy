@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.objectivec.ObjectiveCSourceSet
-import org.gradle.nativebinaries.language.AbstractNativeComponentPluginTest
+import org.gradle.language.AbstractNativeComponentPluginTest
 import org.gradle.language.objectivec.tasks.ObjectiveCCompile
 
 class ObjectiveCPluginTest extends AbstractNativeComponentPluginTest {

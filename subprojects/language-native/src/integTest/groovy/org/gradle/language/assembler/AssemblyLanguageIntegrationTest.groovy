@@ -15,8 +15,10 @@
  */
 
 
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.assembler
 
+import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
@@ -24,7 +26,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
 
 class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
-    HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(toolChain)
+    HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
 
     def "build fails when assemble fails"() {
         given:

@@ -16,7 +16,7 @@
 
 package org.gradle.language.objectivec
 
-import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalCompileIntegrationTest
+import org.gradle.language.AbstractLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires

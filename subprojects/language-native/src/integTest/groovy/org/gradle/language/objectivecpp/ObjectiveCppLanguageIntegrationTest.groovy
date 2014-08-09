@@ -16,7 +16,7 @@
 
 package org.gradle.language.objectivecpp
 
-import org.gradle.nativebinaries.language.cpp.AbstractLanguageIntegrationTest
+import org.gradle.language.AbstractLanguageIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCppHelloWorldApp
 import org.gradle.util.Requires

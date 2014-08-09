@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language
+package org.gradle.language
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Task

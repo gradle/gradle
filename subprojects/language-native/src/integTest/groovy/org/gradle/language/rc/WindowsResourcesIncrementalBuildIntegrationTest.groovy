@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.rc
 
 import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec

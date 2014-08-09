@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.c
 
+import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
@@ -41,7 +43,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(toolChain)
+        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
     def "can manually define C source sets"() {

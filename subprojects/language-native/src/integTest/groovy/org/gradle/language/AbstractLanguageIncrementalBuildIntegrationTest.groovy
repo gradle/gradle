@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -140,7 +140,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped mainCompileTask
 
         // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (toolChain.visualCpp) {
+        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
             executedAndNotSkipped ":linkMainExecutable"
             executedAndNotSkipped ":mainExecutable"
         } else if(objectiveCWithAslr()){
@@ -198,7 +198,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped mainCompileTask
 
         // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (toolChain.visualCpp) {
+        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
         } else if(objectiveCWithAslr()){
@@ -226,7 +226,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped mainCompileTask
 
         // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (toolChain.visualCpp) {
+        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
         } else if(objectiveCWithAslr()){
@@ -244,7 +244,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     boolean objectiveCWithAslr() {
         return (sourceType == "Objc" || sourceType == "Objcpp") &&
                 OperatingSystem.current().isLinux() &&
-                toolChain.displayName == "clang"
+                AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "clang"
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -338,7 +338,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         and:
         def linkerArgs =
-                toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
+                AbstractInstalledToolChainIntegrationSpec.toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
@@ -533,11 +533,11 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
 
     def buildingCorCppWithGcc() {
-        return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")
+        return AbstractInstalledToolChainIntegrationSpec.toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")
     }
 
     private void maybeWait() {
-        if (toolChain.visualCpp) {
+        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
             def now = System.currentTimeMillis()
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)

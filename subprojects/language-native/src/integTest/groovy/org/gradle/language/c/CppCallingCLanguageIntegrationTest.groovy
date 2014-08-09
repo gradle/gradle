@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp
+package org.gradle.language.c
 
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CCallingMixedCAndCppHelloWorldApp
+import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 
-class CCallingMixedCAndCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-    HelloWorldApp helloWorldApp = new CCallingMixedCAndCppHelloWorldApp()
+class CppCallingCLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+    HelloWorldApp helloWorldApp = new CppCallingCHelloWorldApp()
 }
 
