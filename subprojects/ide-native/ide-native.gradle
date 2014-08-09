@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,8 @@
 dependencies {
     compile libraries.groovy
     compile project(':core')
-    compile project(":ide")
-    compile libraries.commons_io
-
-    integTestRuntime project(":maven")
-    integTestRuntime project(":ideNative")
-
-    testFixturesCompile project(":internalIntegTesting")
+    compile project(':cpp')
 }
 
 useTestFixtures()
-useTestFixtures(project: ":messaging")
-useTestFixtures(sourceSet: "testFixtures")
-
-//useClassycle()
+useTestFixtures(project: ":cpp")
