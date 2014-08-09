@@ -19,10 +19,11 @@ dependencies {
     compile project(':core')
     compile project(':reporting')
     compile project(':plugins')
-    compile project(':cpp')
+    compile project(':runtimeNative')
+    compile project(':languageNative')
     compile project(':coreImpl')
 }
 
 useTestFixtures()
 useTestFixtures(project: ':coreImpl')
-useTestFixtures(project: ':cpp')
+useTestFixtures(project: ':runtimeNative')

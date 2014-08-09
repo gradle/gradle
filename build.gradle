@@ -90,8 +90,8 @@ ext {
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageBase',
+        'ide', 'ideNative', 'announce', 'scala', 'sonar', 'signing', 'runtimeNative', 'ear', 'javascript', 'buildComparison',
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageNative', 'languageBase',
         'plugin-development'
     ].collect {
         publishedProjects = [
