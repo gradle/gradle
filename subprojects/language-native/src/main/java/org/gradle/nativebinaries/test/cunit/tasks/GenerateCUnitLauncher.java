@@ -16,15 +16,12 @@
 
 package org.gradle.nativebinaries.test.cunit.tasks;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 /**
  * Generated the Gradle CUnit launcher: main method and header.
@@ -41,13 +38,7 @@ public class GenerateCUnitLauncher extends DefaultTask {
 
     private void writeToFile(File directory, String fileName) {
         final File file = new File(directory, fileName);
-        try {
-            FileWriter output = new FileWriter(file);
-            IOUtils.copy(getClass().getResourceAsStream(fileName), output);
-            output.flush();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        GFileUtils.copyURLToFile(getClass().getResource(fileName), file);
     }
 
     @OutputDirectory
