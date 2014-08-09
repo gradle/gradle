@@ -550,23 +550,31 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 ### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
 
 - ~~Move tasks/plugins/etc that are used to compile native languages for the native runtime into `org.gradle.language.*`~~
-- Move Visual Studio and CDE related classes into new subproject `ide-native`
-    - Move ide-specific integration tests as well
-- Move language-specific classes (`org.gradle.language.*`) out of `cpp` into a new subproject `language-native`
-    - Move language-related integration tests as well, breaking into a better package structure
-- Move runtime-specific classes (`org.gradle.nativebinaries.*`) out of `cpp` into a new subproject `runtime-native`
+- ~~Move Visual Studio and CDE related classes into new subproject `ide-native`~~
+    - ~~Move ide-specific integration tests as well~~
+- ~~Move language-specific classes (`org.gradle.language.*`) out of `cpp` into a new subproject `language-native`~~
+    - ~~Move language-related integration tests as well, breaking into a better package structure~~
+- ~~Rename the remaining `cpp` subproject to `runtime-native`~~
     - Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeruntime.*`
     - Move integration tests into `runtime-native`, breaking into a better package structure
 - Move runtime-specific classes (`org.gradle.runtime.*`) out of `language-jvm` into new subproject `runtime-jvm`
 - Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes
     - `language-jvm` should be for common base infrastructure
-- `runtime` subprojects should not depend on `language` subprojects
-- Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
+- Miscellaneous
+    - `runtime` subprojects should not depend on `language` subprojects
+    - Split NativeSamplesIntegrationTest for subprojects
+    - Reorganise samples?
+    - verify that auto-tested samples are working for ide-native and language-native
+    - Switch on strict compile for new subprojects
+    - Remove all cycles for subprojects
+    - Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
 
 #### Open issues
 
-- improve `language-base` subproject
-- subproject cycles with test fixtures (eg `language-native` tests generation of visual studio projects for particular cases)
+- `language-native` integration tests require `ide-native` (testing visual studio project generation for particular cases)
+- where should `cunit` support live?
+    - production code and unit tests
+    - `cunit` test fixtures
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
