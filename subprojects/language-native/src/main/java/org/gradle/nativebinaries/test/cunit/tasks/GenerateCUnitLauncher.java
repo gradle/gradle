@@ -42,7 +42,9 @@ public class GenerateCUnitLauncher extends DefaultTask {
     private void writeToFile(File directory, String fileName) {
         final File file = new File(directory, fileName);
         try {
-            IOUtils.copy(getClass().getResourceAsStream(fileName), new FileWriter(file));
+            FileWriter output = new FileWriter(file);
+            IOUtils.copy(getClass().getResourceAsStream(fileName), output);
+            output.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
