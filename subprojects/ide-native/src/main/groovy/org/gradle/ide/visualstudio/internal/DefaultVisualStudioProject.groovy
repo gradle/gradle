@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.XmlConfigFile
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.HeaderExportingSourceSet
+import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.NativeBinary

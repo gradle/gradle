@@ -20,8 +20,8 @@ import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.fixtures.app.CppHelloWorldApp
 
 class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 

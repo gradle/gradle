@@ -19,11 +19,11 @@ import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.language.cpp.fixtures.app.*
+import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.fixtures.app.*
 
-import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativebinaries.fixtures.ToolChainRequirement.VisualCpp
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     private final Set<String> projectConfigurations = ['win32Debug', 'win32Release', 'x64Debug', 'x64Release'] as Set

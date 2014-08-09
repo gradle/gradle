@@ -16,8 +16,8 @@
 package org.gradle.language.cpp
 
 import org.gradle.language.AbstractLanguageIncrementalCompileIntegrationTest
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.CppHelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.IncrementalHelloWorldApp
 
 class CppLanguageIncrementalCompileIntegrationTest extends AbstractLanguageIncrementalCompileIntegrationTest {
      @Override

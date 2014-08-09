@@ -16,8 +16,8 @@
 
 package org.gradle.nativebinaries.toolchain;
 
-import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.fixtures.app.CppHelloWorldApp
 
 public class CommonToolchainCustomizationIntegTest extends AbstractInstalledToolChainIntegrationSpec {
 

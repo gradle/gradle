@@ -22,7 +22,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.HeaderExportingSourceSet
+import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.DefaultFlavor

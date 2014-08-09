@@ -16,10 +16,10 @@
 
 package org.gradle.language.objectivec
 
-import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement
-import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
+import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.fixtures.ToolChainRequirement
+import org.gradle.nativebinaries.fixtures.app.ObjectiveCHelloWorldApp
 
 import static org.hamcrest.CoreMatchers.containsString
 

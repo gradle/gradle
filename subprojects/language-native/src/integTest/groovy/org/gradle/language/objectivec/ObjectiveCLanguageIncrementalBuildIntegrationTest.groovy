@@ -19,8 +19,8 @@ package org.gradle.language.objectivec
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractLanguageIncrementalBuildIntegrationTest
-import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore

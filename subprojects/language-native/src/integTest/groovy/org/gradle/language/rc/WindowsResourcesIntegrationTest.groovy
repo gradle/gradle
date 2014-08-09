@@ -17,13 +17,13 @@ package org.gradle.language.rc
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.nativebinaries.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 
-import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativebinaries.fixtures.ToolChainRequirement.VisualCpp
 
 @RequiresInstalledToolChain(VisualCpp)
 class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {

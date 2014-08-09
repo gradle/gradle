@@ -16,13 +16,13 @@
 package org.gradle.language.rc
 
 import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme
-import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
-import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.fixtures.ExecutableFixture
+import org.gradle.nativebinaries.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.WindowsResourceHelloWorldApp
 
-import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativebinaries.fixtures.ToolChainRequirement.VisualCpp
 
 @RequiresInstalledToolChain(VisualCpp)
 class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {

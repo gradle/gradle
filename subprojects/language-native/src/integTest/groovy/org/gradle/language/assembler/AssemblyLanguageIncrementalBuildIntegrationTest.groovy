@@ -15,9 +15,9 @@
  */
 
 package org.gradle.language.assembler
-import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
+import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

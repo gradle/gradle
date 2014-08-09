@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.internal.hash.HashUtil
-import org.gradle.language.assembler.internal.AssembleSpec
+import org.gradle.nativebinaries.toolchain.internal.compilespec.AssembleSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
 import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation
 import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation

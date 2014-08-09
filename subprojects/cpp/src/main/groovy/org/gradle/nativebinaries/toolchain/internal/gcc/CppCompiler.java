@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.compilespec.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 

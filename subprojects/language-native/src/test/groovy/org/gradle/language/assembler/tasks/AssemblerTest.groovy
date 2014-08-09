@@ -20,7 +20,7 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.nativebinaries.platform.internal.PlatformInternal
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
-import org.gradle.language.assembler.internal.AssembleSpec
+import org.gradle.nativebinaries.toolchain.internal.compilespec.AssembleSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification

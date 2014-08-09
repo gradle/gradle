@@ -17,6 +17,7 @@
 package org.gradle.language.assembler.internal;
 
 import org.gradle.nativebinaries.internal.AbstractBinaryToolSpec;
+import org.gradle.nativebinaries.toolchain.internal.compilespec.AssembleSpec;
 
 import java.io.File;
 import java.util.ArrayList;

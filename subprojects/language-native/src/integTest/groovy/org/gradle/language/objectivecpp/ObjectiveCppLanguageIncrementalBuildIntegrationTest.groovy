@@ -16,8 +16,8 @@
 
 package org.gradle.language.objectivecpp
 
-import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCppHelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.ObjectiveCppHelloWorldApp
 import org.gradle.language.objectivec.ObjectiveCLanguageIncrementalBuildIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

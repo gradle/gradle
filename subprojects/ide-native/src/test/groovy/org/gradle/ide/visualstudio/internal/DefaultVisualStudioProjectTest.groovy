@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.HeaderExportingSourceSet
+import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.NativeComponentSpec
 import spock.lang.Specification

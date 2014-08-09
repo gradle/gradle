@@ -16,8 +16,8 @@
 package org.gradle.language.objectivec
 
 import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

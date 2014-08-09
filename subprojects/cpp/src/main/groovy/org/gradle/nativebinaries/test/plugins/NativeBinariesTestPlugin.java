@@ -21,7 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.DependentSourceSet;
+import org.gradle.nativebinaries.sourceset.DependentSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;

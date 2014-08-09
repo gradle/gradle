@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
-import org.gradle.language.c.internal.CCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.compilespec.CCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 

@@ -17,10 +17,10 @@
 package org.gradle.language.c
 
 import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
+import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.MixedLanguageHelloWorldApp
+import org.gradle.nativebinaries.fixtures.app.SourceFile
 
 class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 

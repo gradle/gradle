@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.language.HeaderExportingSourceSet
+import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet
 import org.gradle.nativebinaries.NativeBinarySpec
 import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
 import org.gradle.language.PreprocessingTool

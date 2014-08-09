@@ -17,8 +17,8 @@ package org.gradle.language.internal.nativelang;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.language.DependentSourceSet;
-import org.gradle.language.HeaderExportingSourceSet;
+import org.gradle.nativebinaries.sourceset.DependentSourceSet;
+import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.util.CollectionUtils;

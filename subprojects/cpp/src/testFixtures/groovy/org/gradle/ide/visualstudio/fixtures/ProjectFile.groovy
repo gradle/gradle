@@ -16,8 +16,8 @@
 
 package org.gradle.ide.visualstudio.fixtures
 
-import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
-import org.gradle.nativebinaries.language.cpp.fixtures.app.TestComponent
+import org.gradle.nativebinaries.fixtures.app.SourceFile
+import org.gradle.nativebinaries.fixtures.app.TestComponent
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
