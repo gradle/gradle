@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.language;
 
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':cpp')
-    compile project(':languageNative')
+import org.gradle.api.Incubating;
+import org.gradle.language.base.LanguageSourceSet;
+
+/**
+ * A source set that provides resources.
+ */
+@Incubating
+public interface NativeResourceSet extends LanguageSourceSet {
 }
-
-useTestFixtures()
-useTestFixtures(project: ":cpp")
-useClassycle()
-

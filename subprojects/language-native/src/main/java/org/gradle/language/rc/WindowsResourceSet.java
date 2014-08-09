@@ -17,6 +17,7 @@ package org.gradle.language.rc;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.HeaderExportingSourceSet;
+import org.gradle.language.NativeResourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
@@ -48,5 +49,5 @@ import org.gradle.language.base.LanguageSourceSet;
  * </pre>
  */
 @Incubating
-public interface WindowsResourceSet extends LanguageSourceSet, HeaderExportingSourceSet {
+public interface WindowsResourceSet extends LanguageSourceSet, HeaderExportingSourceSet, NativeResourceSet {
 }

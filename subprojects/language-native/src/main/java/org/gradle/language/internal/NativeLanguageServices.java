@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.language.internal;
 
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolverServices;
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultWindowsSdkLocator;
+import org.gradle.language.internal.nativelang.incremental.IncrementalCompilerBuilder;
 
-public class NativeBinaryServices implements PluginServiceRegistry {
+public class NativeLanguageServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(DefaultVisualStudioLocator.class);
-        registration.add(DefaultWindowsSdkLocator.class);
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.addProvider(new NativeDependencyResolverServices());
+        registration.add(IncrementalCompilerBuilder.class);
     }
 }

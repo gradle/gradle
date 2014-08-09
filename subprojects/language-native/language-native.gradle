@@ -18,10 +18,8 @@ dependencies {
     compile libraries.groovy
     compile project(':core')
     compile project(':cpp')
-    compile project(':languageNative')
 }
 
 useTestFixtures()
 useTestFixtures(project: ":cpp")
 useClassycle()
-

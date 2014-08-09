@@ -18,13 +18,13 @@ package org.gradle.nativebinaries.internal
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
-import org.gradle.language.rc.WindowsResourceSet
+import org.gradle.language.NativeResourceSet
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.NativeLibrarySpec
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
+import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -104,7 +104,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         def sourceDirSet = Stub(SourceDirectorySet) {
             getFiles() >> [tmpDir.createFile("input.rc")]
         }
-        def resourceSet = Stub(WindowsResourceSet) {
+        def resourceSet = Stub(NativeResourceSet) {
             getSource() >> sourceDirSet
         }
         binary.source resourceSet

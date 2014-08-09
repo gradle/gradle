@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.rc.WindowsResourceSet;
+import org.gradle.language.NativeResourceSet;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
@@ -82,7 +82,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         }
 
         private boolean hasResources() {
-            for (WindowsResourceSet windowsResourceSet : getSource().withType(WindowsResourceSet.class)) {
+            for (NativeResourceSet windowsResourceSet : getSource().withType(NativeResourceSet.class)) {
                 if (!windowsResourceSet.getSource().isEmpty()) {
                     return true;
                 }
@@ -92,7 +92,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
 
         private boolean hasExportedSymbols() {
             for (LanguageSourceSet languageSourceSet : getSource()) {
-                if (!(languageSourceSet instanceof WindowsResourceSet)) {
+                if (!(languageSourceSet instanceof NativeResourceSet)) {
                     if (!languageSourceSet.getSource().isEmpty()) {
                         return true;
                     }
