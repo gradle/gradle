@@ -39,10 +39,9 @@ class DaemonParametersTest extends Specification {
         def baseDir = new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
         assert parameters.baseDir == baseDir
         assert parameters.systemProperties.isEmpty()
-        assert parameters.effectiveJvmArgs.containsAll(parameters.defaultJvmArgs)
-        assert parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size() + 1 // + 1 because effective JVM args contains -Dfile.encoding
+        assert parameters.effectiveJvmArgs.containsAll(parameters.DEFAULT_JVM_ARGS)
+        assert parameters.effectiveJvmArgs.size() == parameters.DEFAULT_JVM_ARGS.size() + 1 + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
         assert parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
-        assert parameters.usingDefaultJvmArgs
     }
 
     def "configuring jvmargs replaces the defaults"() {
@@ -50,18 +49,7 @@ class DaemonParametersTest extends Specification {
         parameters.setJvmArgs(["-Xmx17m"])
 
         then:
-        parameters.effectiveJvmArgs.each { assert !parameters.defaultJvmArgs.contains(it) }
-    }
-
-    def "knows if uses default jvm args"() {
-        given:
-        assert parameters.usingDefaultJvmArgs
-
-        when:
-        parameters.setJvmArgs(["-Dfoo= -Dbar"])
-
-        then:
-        !parameters.usingDefaultJvmArgs
+        parameters.effectiveJvmArgs.each { assert !parameters.DEFAULT_JVM_ARGS.contains(it) }
     }
 
     def "can configure debug mode"() {

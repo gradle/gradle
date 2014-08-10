@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.junit.Rule
 
+import static org.hamcrest.Matchers.startsWith
+
 class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     public static final String PLUGIN_ID = "org.myplugin"
@@ -36,6 +38,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     def setup() {
+        executer.requireOwnGradleUserHomeDir()
         service.start()
     }
 
@@ -128,11 +131,133 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         output.contains 'ops = [withId 1, withId 2, withType 1, withType 2]'
     }
 
+    def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
+        given:
+        [1, 2].each { n ->
+            def m = service.m2repo.module("test", "test", n)
+            m.publish().allowAll()
 
-    MavenHttpModule publishPlugin(String impl) {
+            file("j$n").with {
+                file("d/v.txt") << n
+                m.artifactFile.delete()
+                zipTo(m.artifactFile)
+            }
+
+        }
+
+        when:
+        def pluginModule = publishPlugin """
+            project.task('pluginTask').doLast {
+                println "pluginTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+            }
+        """
+
+        pluginModule.dependsOn("test", "test", "2").publishPom()
+
+        and:
+        buildScript """
+            buildscript {
+                repositories {
+                    maven { url "$service.m2repo.uri" }
+                }
+                dependencies {
+                    classpath "test:test:1"
+                }
+            }
+
+            $USE
+
+            task scriptTask << {
+                println "scriptTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+            }
+
+            task buildscriptDependencies << {
+                println "buildscriptDependencies - " + buildscript.configurations.classpath.resolvedConfiguration.resolvedArtifacts.find { it.name == "test" }.moduleVersion.id.version
+            }
+        """
+
+        then:
+        succeeds "pluginTask", "scriptTask", "buildscriptDependencies"
+
+        and:
+        output.contains "pluginTask - 2"
+        output.contains "scriptTask - 2"
+        output.contains "buildscriptDependencies - 2"
+    }
+
+    def "failure due to no plugin with id in implementation"() {
+        when:
+        expectPluginQuery()
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addPlugin(PLUGIN_ID, "other")
+        pluginBuilder.publishTo(executer, module.artifactFile)
+
+        and:
+        buildScript """
+            $USE
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.myplugin'"))
+        failure.assertHasLineNumber(2)
+    }
+
+    def "failure due to plugin class is unloadable"() {
+        when:
+        expectPluginQuery()
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addUnloadablePlugin("org.myplugin", "OtherPlugin")
+        pluginBuilder.publishTo(executer, module.artifactFile)
+
+        and:
+        buildScript """
+            $USE
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasCause("Could not create plugin of type 'OtherPlugin'.")
+        failure.assertHasLineNumber(2)
+    }
+
+    def "failure due to plugin apply throwing"() {
+        when:
+        expectPluginQuery()
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addPlugin("throw new Exception('throwing plugin')", PLUGIN_ID)
+        pluginBuilder.publishTo(executer, module.artifactFile)
+
+        and:
+        buildScript """
+            $USE
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasCause("throwing plugin")
+        failure.assertHasLineNumber(2)
+    }
+
+    def expectPluginQuery() {
         service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION) {
             legacy = true
         }
+    }
+
+    MavenHttpModule publishPlugin(String impl) {
+        expectPluginQuery()
 
         def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
         module.allowAll()
@@ -142,4 +267,5 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         module
     }
+
 }

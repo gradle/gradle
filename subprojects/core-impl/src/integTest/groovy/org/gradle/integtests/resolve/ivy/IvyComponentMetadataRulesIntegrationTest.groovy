@@ -15,10 +15,11 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
+import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
-
-import static org.gradle.util.Matchers.containsLine
+import spock.lang.Unroll
 
 class IvyComponentMetadataRulesIntegrationTest extends ComponentMetadataRulesIntegrationTest {
     @Override
@@ -42,8 +43,12 @@ repositories {
         "integration"
     }
 
-    def "can access Ivy extra info by accepting parameter of type IvyModuleMetadata"() {
-        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
+    def "can access Ivy metadata by accepting parameter of type IvyModuleDescriptor"() {
+        def module = repo.module('org.test', 'projectA', '1.0')
+                .withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
+                .withBranch('someBranch')
+                .withStatus('release')
+                .publish()
         module.ivy.expectDownload()
         module.artifact.expectDownload()
 
@@ -53,9 +58,13 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+            assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
+            assert descriptor.extraInfo.get('foo') == 'fooValue'
+            assert descriptor.extraInfo.get('${ns('foo').namespace}', 'foo') == 'fooValue'
+            assert descriptor.branch == 'someBranch'
+            assert descriptor.ivyStatus == 'release'
         }
     }
 }
@@ -69,8 +78,80 @@ resolve.doLast { assert ruleInvoked }
         succeeds 'resolve'
     }
 
-    def "rule that doesn't initially access Ivy extra info can be changed to get access at any time"() {
-        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
+    def "produces sensible error when accessing non-unique extra info element name" () {
+        def module = repo.module('org.test', 'projectA', '1.0')
+                .withExtraInfo((ns('foo')): "fooValue", (new NamespaceId('http://some.other.ns', 'foo')): "barValue")
+                .publish()
+        module.ivy.expectDownload()
+
+        buildFile <<
+                """
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleDescriptor descriptor ->
+            ruleInvoked = true
+            descriptor.extraInfo.get('foo')
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        when:
+        fails 'resolve'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasLineNumber(33)
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")
+    }
+
+    @Unroll
+    def "can access Ivy metadata with #identifier characters" () {
+        def branch = identifier.safeForBranch().decorate("branch")
+        def status = identifier.safeForFileName().decorate("status")
+        def module = repo.module('org.test', 'projectA', '1.0')
+                .withBranch(branch)
+                .withStatus(status)
+                .publish()
+        module.ivy.expectDownload()
+        module.artifact.expectDownload()
+
+        buildFile <<
+                """
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleDescriptor descriptor ->
+            ruleInvoked = true
+            assert descriptor.branch == '${sq(branch)}'
+            details.statusScheme = [ '${sq(status)}' ]
+            assert descriptor.ivyStatus == '${sq(status)}'
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        expect:
+        succeeds 'resolve'
+
+        where:
+        identifier << Identifier.all
+    }
+
+    def "rule that doesn't initially access Ivy metadata can be changed to get access at any time"() {
+        def module = repo.module('org.test', 'projectA', '1.0')
+                .withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
+                .withBranch("someBranch")
+                .withStatus("release")
+                .publish()
         module.ivy.expectDownload()
         module.artifact.expectDownload()
 
@@ -102,9 +183,11 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+            assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
+            assert descriptor.branch == 'someBranch'
+            assert descriptor.ivyStatus == 'release'
         }
     }
 }
@@ -116,19 +199,17 @@ resolve.doLast { assert ruleInvoked }
         succeeds 'resolve'
     }
 
-    def "changed Ivy extra info becomes visible once module is refreshed"() {
+    def "changed Ivy metadata becomes visible once module is refreshed"() {
         def baseScript = buildFile.text
 
         when:
-        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
-        module.ivy.expectMetadataRetrieve()
+        def module = repo.module('org.test', 'projectA', '1.0')
+                .withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
+                .withBranch('someBranch')
+                .withStatus('release')
+                .publish()
         module.ivy.expectDownload()
-        module.ivy.expectDownload()
-        module.ivy.sha1.expectGet()
-        module.artifact.expectMetadataRetrieve()
         module.artifact.expectDownload()
-        module.artifact.expectDownload()
-        module.artifact.sha1.expectGet()
 
         buildFile.text = baseScript +
                 """
@@ -136,9 +217,11 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+            assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
+            assert descriptor.branch == 'someBranch'
+            assert descriptor.ivyStatus == 'release'
         }
     }
 }
@@ -150,13 +233,19 @@ resolve.doLast { assert ruleInvoked }
         succeeds 'resolve'
 
         when:
-        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValueChanged", bar: "barValueChanged").publishWithChangedContent()
+        repo.module('org.test', 'projectA', '1.0')
+                .withExtraInfo((ns('foo')): "fooValueChanged", (ns('bar')): "barValueChanged")
+                .withBranch('differentBranch')
+                .withStatus('milestone')
+                .publishWithChangedContent()
+
+        and:
+        server.resetExpectations()
 
         then:
         succeeds 'resolve'
 
         when:
-        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValueChanged", bar: "barValueChanged").publishWithChangedContent()
         args("--refresh-dependencies")
         buildFile.text = baseScript +
 """
@@ -164,12 +253,14 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
-            file("extraInfo").delete()
-            descriptor.extraInfo.each { key, value ->
-                file("extraInfo") << "\$key->\$value\\n"
-            }
+            file("metadata").delete()
+            file("metadata") << descriptor.extraInfo.asMap().toString()
+            file("metadata") << "\\n"
+            file("metadata") << descriptor.branch
+            file("metadata") << "\\n"
+            file("metadata") << descriptor.ivyStatus
         }
     }
 }
@@ -177,11 +268,25 @@ dependencies {
 resolve.doLast { assert ruleInvoked }
 """
 
+        and:
+        server.resetExpectations()
+        module.ivy.expectMetadataRetrieve()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectDownload()
+        module.artifact.expectMetadataRetrieve()
+        module.artifact.sha1.expectGet()
+        module.artifact.expectDownload()
+
         then:
         succeeds 'resolve'
-        // TODO: rule is invoked twice, and changes to extra info are only visible the second time
-        def text = file("extraInfo").text
-        assert containsLine(text, "my:foo->fooValueChanged")
-        assert containsLine(text, "my:bar->barValueChanged")
+        assert file("metadata").text == "{{http://my.extra.info/bar}bar=barValueChanged, {http://my.extra.info/foo}foo=fooValueChanged}\ndifferentBranch\nmilestone"
+    }
+
+    def ns(String name) {
+        return new NamespaceId("http://my.extra.info/${name}", name)
+    }
+
+    def declareNS(String name) {
+        return "(new javax.xml.namespace.QName('http://my.extra.info/${name}', '${name}'))"
     }
 }

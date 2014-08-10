@@ -59,8 +59,8 @@
         <title>Tasks</title>
 
         <para>The IDEA plugin adds the tasks shown below to a project.
-            Notice that <literal>clean</literal> does not depend on <literal>cleanIdeaWorkspace</literal>.
-            It's because workspace contains a lot of user specific temporary data and typically it is not desirable to manipulate it outside IDEA.
+            Notice that the <literal>clean</literal> task does not depend on the <literal>cleanIdeaWorkspace</literal> task.
+            This is because the workspace typically contains a lot of user specific temporary data and it is not desirable to manipulate it outside IDEA.
         </para>
 
         <table id='ideatasks'>
@@ -199,7 +199,7 @@
 
     <section>
         <title>Customizing the generated files</title>
-        <para>IDEA plugin provides hooks and behavior for customizing the generated content.
+        <para>The IDEA plugin provides hooks and behavior for customizing the generated content.
             The workspace file can effectively only be manipulated via the <code>withXml</code> hook
             because its corresponding domain object is essentially empty.</para>
         <para>The tasks recognize existing IDEA files, and merge them with the generated content.</para>
@@ -209,12 +209,14 @@
                 depending on the particular section. The remaining sections will be left as-is.</para>
             <section id="sec:complete-overwrite">
                 <title>Disabling merging with a complete overwrite</title>
-                <para>To completely overwrite existing IDEA files, execute a clean task together with its corresponding generation task,
-                    for example <userinput>gradle cleanIdea idea</userinput> (in that order). If you want to make this
-                    the default behavior, add <code>tasks.idea.dependsOn(cleanIdea)</code> to your build script. This makes it
+                <para>To completely rewrite existing IDEA files, execute a clean task together with its corresponding generation task,
+                    like “<userinput>gradle cleanIdea idea</userinput>” (in that order). If you want to make this
+                    the default behavior, add “<code>tasks.idea.dependsOn(cleanIdea)</code>” to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
-                <para>Complete overwrite works equally well for individual files, for example by executing <userinput>gradle cleanIdeaModule ideaModule</userinput>.</para>
+                <para>This strategy can also be used for individual files that the plugin would generate.  For instance,
+                this can be done for the “<literal>.iml</literal>” file with “<userinput>gradle cleanIdeaModule ideaModule</userinput>”.
+                </para>
             </section>
         </section>
         <section>
@@ -260,29 +262,29 @@
                     <td><apilink class="org.gradle.api.XmlProvider"/></td>
                 </tr>
             </table>
-            <section id="sec:partial-overwrite">
-                <title>Partial overwrite of existing content</title>
-                <para>A <link linkend="sec:complete-overwrite">complete overwrite</link> causes all existing content to be discarded,
+            <section id="sec:partial-rewrite">
+                <title>Partial rewrite of existing content</title>
+                <para>A <link linkend="sec:complete-rewrite">complete rewrite</link> causes all existing content to be discarded,
                     thereby losing any changes made directly in the IDE. The <code>beforeMerged</code> hook makes it possible
                     to overwrite just certain parts of the existing content. The following example removes all existing dependencies
                     from the <literal>Module</literal> domain object:
-                    <sample id="partialOverwrites" dir="idea"
-                            title="Partial Overwrite for Module">
+                    <sample id="partialRewrites" dir="idea"
+                            title="Partial Rewrite for Module">
                         <sourcefile file="build.gradle" snippet="module-before-merged"/>
                     </sample>
                     The resulting module file will only contain Gradle-generated dependency entries, but
                     not any other dependency entries that may have been present in the original file. (In the case of dependency entries,
                     this is also the default behavior.) Other sections of the module file will be either left as-is or merged.
                     The same could be done for the module paths in the project file:
-                    <sample id="partialOverwritesProject" dir="idea"
-                            title="Partial Overwrite for Project">
+                    <sample id="partialRewritesProject" dir="idea"
+                            title="Partial Rewrite for Project">
                         <sourcefile file="build.gradle" snippet="project-before-merged"/>
                     </sample>
                 </para>
             </section>
             <section>
                 <title>Modifying the fully populated domain objects</title>
-                <para>The <code>whenMerged</code> hook allows to manipulate the fully populated domain objects. Often this is the
+                <para>The <code>whenMerged</code> hook allows you to manipulate the fully populated domain objects. Often this is the
                     preferred way to customize IDEA files. Here is how you would export all the dependencies of an IDEA module:
                     <sample id="exportDependencies" dir="idea"
                             title="Export Dependencies">
@@ -293,7 +295,7 @@
             </section>
             <section>
                 <title>Modifying the XML representation</title>
-                <para>The <code>withXml</code>hook allows to manipulate the in-memory XML representation just before the file gets written to disk.
+                <para>The <code>withXml</code>hook allows you to manipulate the in-memory XML representation just before the file gets written to disk.
                     Although Groovy's XML support makes up for a lot, this approach is less convenient than manipulating the domain objects.
                     In return, you get total control over the generated file, including sections not modeled by the domain objects.
                     <sample id="projectWithXml" dir="idea"
@@ -307,9 +309,9 @@
     </section>
     <section>
         <title>Further things to consider</title>
-        <para>The paths of the dependencies in the generated IDEA files are absolute. If you manually define a path variable
+        <para>The paths of dependencies in the generated IDEA files are absolute. If you manually define a path variable
             pointing to the Gradle dependency cache, IDEA will automatically replace the absolute dependency paths with
-            this path variable. If you use such a path variable, you need to configure this path variable via <literal>idea.pathVariables</literal>,
+            this path variable. you can configure this path variable via the “<literal>idea.pathVariables</literal>” property,
             so that it can do a proper merge without creating duplicates.</para>
     </section>
 </chapter>

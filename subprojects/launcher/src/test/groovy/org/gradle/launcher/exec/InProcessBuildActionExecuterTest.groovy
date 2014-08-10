@@ -25,6 +25,7 @@ import spock.lang.Specification
 class InProcessBuildActionExecuterTest extends Specification {
     final GradleLauncherFactory factory = Mock()
     final DefaultGradleLauncher launcher = Mock()
+    final BuildCancellationToken cancellationToken = Mock()
     final BuildActionParameters param = Mock()
     final BuildRequestMetaData metaData = Mock()
     final BuildResult buildResult = Mock()
@@ -39,7 +40,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
@@ -54,13 +55,13 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, metaData) >> launcher
+        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
         1 * action.run(!null) >> { BuildController controller ->
             assert controller.launcher == launcher
             return '<result>'
@@ -73,13 +74,13 @@ class InProcessBuildActionExecuterTest extends Specification {
         def startParam = new StartParameter()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(startParam, metaData) >> launcher
+        1 * factory.newInstance(startParam, cancellationToken, metaData) >> launcher
         1 * action.run(!null) >> { BuildController controller ->
             controller.startParameter = startParam
             assert controller.launcher == launcher
@@ -97,10 +98,10 @@ class InProcessBuildActionExecuterTest extends Specification {
             controller.launcher
             controller.startParameter = startParam
         }
-        _ * factory.newInstance(!null, metaData) >> launcher
+        _ * factory.newInstance(!null, cancellationToken, metaData) >> launcher
 
         when:
-        executer.execute(action, param)
+        executer.execute(action, cancellationToken, param)
 
         then:
         IllegalStateException e = thrown()
@@ -114,13 +115,13 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, metaData) >> launcher
+        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
         1 * launcher.getGradle() >> gradle
         1 * action.run(!null) >> { BuildController controller ->
             assert controller.getGradle() == gradle
@@ -133,13 +134,13 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, metaData) >> launcher
+        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
         1 * launcher.run() >> buildResult
         _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
@@ -154,13 +155,13 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         when:
-        def result = executer.execute(action, param)
+        def result = executer.execute(action, cancellationToken, param)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, metaData) >> launcher
+        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
         1 * launcher.getBuildAnalysis() >> buildResult
         _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
@@ -181,14 +182,14 @@ class InProcessBuildActionExecuterTest extends Specification {
         }
 
         when:
-        executer.execute(action, param)
+        executer.execute(action, cancellationToken, param)
 
         then:
         IllegalStateException e = thrown()
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(!null, metaData) >> launcher
+        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
         1 * launcher.run() >> buildResult
         1 * launcher.stop()
     }
@@ -201,14 +202,14 @@ class InProcessBuildActionExecuterTest extends Specification {
         buildResult.failure >> failure
 
         when:
-        executer.execute(action, param)
+        executer.execute(action, cancellationToken, param)
 
         then:
         ReportedException e = thrown()
         e.cause == failure
 
         and:
-        1 * factory.newInstance(!null, metaData) >> launcher
+        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
         1 * launcher.run() >> buildResult
         1 * action.run(!null) >> { BuildController controller ->
             controller.run()

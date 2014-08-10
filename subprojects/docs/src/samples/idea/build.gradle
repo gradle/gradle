@@ -28,7 +28,9 @@ idea.project.ipr {
 // END SNIPPET project-before-merged
 // START SNIPPET project-with-xml
     withXml { provider ->
-        provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+        provider.node.component
+                .find { it.@name == 'VcsDirectoryMappings' }
+                .mapping.@vcs = 'Git'
     }
 // START SNIPPET project-before-merged
 }

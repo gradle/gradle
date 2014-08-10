@@ -15,22 +15,19 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.PackageScope
 import org.gradle.api.GradleException
+import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsWorkerManager
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsResult
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpec
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
+import org.gradle.api.plugins.quality.internal.findbugs.*
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
-import org.gradle.api.logging.LogLevel
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 import org.gradle.process.internal.WorkerProcessBuilder
-
-import groovy.transform.PackageScope
 
 import javax.inject.Inject
 
@@ -176,6 +173,8 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
 
     @TaskAction
     void run() {
+        new FindBugsClasspathValidator(JavaVersion.current()).validateClasspath(getFindbugsClasspath().files*.name)
+
         FindBugsSpec spec = generateSpec()
         FindBugsWorkerManager manager = new FindBugsWorkerManager()
 

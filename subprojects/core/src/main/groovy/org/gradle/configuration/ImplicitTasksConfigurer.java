@@ -23,4 +23,5 @@ public class ImplicitTasksConfigurer {
     public static final String PROPERTIES_TASK = "properties";
     public static final String DEPENDENCIES_TASK = "dependencies";
     public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
+    public static final String COMPONENTS_TASK = "components";
 }

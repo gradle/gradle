@@ -17,20 +17,23 @@
 package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.initialization.BuildLayoutParameters
+
+import java.nio.charset.Charset
 
 public class CurrentProcessTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    @Rule final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
     private FileResolver fileResolver = Mock()
     private def currentJavaHome = tmpDir.file('java_home')
     private JvmOptions currentJvmOptions = new JvmOptions(fileResolver)
-    private DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters())
 
     def "can only run build with identical java home"() {
         when:
@@ -46,6 +49,7 @@ public class CurrentProcessTest extends Specification {
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
         CurrentProcess currentProcess = new CurrentProcess(currentJavaHome, currentJvmOptions)
 
+
         then:
         currentProcess.configureForBuild(buildParameters([]))
         currentProcess.configureForBuild(buildParameters(['-Dfoo=bar']))
@@ -54,15 +58,21 @@ public class CurrentProcessTest extends Specification {
         !currentProcess.configureForBuild(buildParameters(["-Xms10m"]))
         !currentProcess.configureForBuild(buildParameters(["-XX:SomethingElse"]))
         !currentProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
-        !currentProcess.configureForBuild(buildParameters(['-Dfile.encoding=UTF8']))
+        def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
+        !currentProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding"]))
+        def notDefaultLanguage = ["es", "jp"].find { it != Locale.default.language }
+        !currentProcess.configureForBuild(buildParameters(["-Duser.language=$notDefaultLanguage"]))
+        currentProcess.configureForBuild(buildParameters(["-Dfile.encoding=${Charset.defaultCharset().name()}"]))
+        currentProcess.configureForBuild(buildParameters(["-Duser.language=${Locale.default.language}"]))
     }
 
     def "sets all mutable system properties before running build"() {
         when:
         CurrentProcess currentProcess = new CurrentProcess(tmpDir.file('java_home'), currentJvmOptions)
+        def parameters = buildParameters(["-Dfoo=bar", "-Dbaz"])
 
         then:
-        currentProcess.configureForBuild(buildParameters(["-Dfoo=bar", "-Dbaz"]))
+        currentProcess.configureForBuild(parameters)
 
         and:
         System.getProperty('foo') == 'bar'
@@ -73,7 +83,8 @@ public class CurrentProcessTest extends Specification {
         return buildParameters(currentJavaHome, jvmArgs)
     }
 
-    private DaemonParameters buildParameters(File javaHome, Iterable<String> jvmArgs = []) {
+    private static DaemonParameters buildParameters(File javaHome, Iterable<String> jvmArgs = []) {
+        def parameters = new DaemonParameters(new BuildLayoutParameters())
         parameters.setJavaHome(javaHome)
         parameters.setJvmArgs(jvmArgs)
         return parameters

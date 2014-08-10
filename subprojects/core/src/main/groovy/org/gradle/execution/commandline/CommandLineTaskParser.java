@@ -16,10 +16,8 @@
 
 package org.gradle.execution.commandline;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.SetMultimap;
-import org.gradle.TaskParameter;
+import com.google.common.collect.Lists;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Task;
 import org.gradle.execution.TaskSelector;
 
@@ -29,21 +27,22 @@ import java.util.Set;
 
 public class CommandLineTaskParser {
     private final CommandLineTaskConfigurer taskConfigurer;
+    private final TaskSelector taskSelector;
 
-    public CommandLineTaskParser(CommandLineTaskConfigurer commandLineTaskConfigurer) {
+    public CommandLineTaskParser(CommandLineTaskConfigurer commandLineTaskConfigurer, TaskSelector taskSelector) {
         this.taskConfigurer = commandLineTaskConfigurer;
+        this.taskSelector = taskSelector;
     }
 
-    public Multimap<TaskParameter, Task> parseTasks(List<TaskParameter> taskParameters, TaskSelector taskSelector) {
-        SetMultimap<TaskParameter, Task> out = LinkedHashMultimap.create();
-        List<TaskParameter> remainingPaths = new LinkedList<TaskParameter>(taskParameters);
+    public List<TaskSelector.TaskSelection> parseTasks(TaskExecutionRequest taskExecutionRequest) {
+        List<TaskSelector.TaskSelection> out = Lists.newArrayList();
+        List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
-            TaskParameter path = remainingPaths.remove(0);
-            TaskSelector.TaskSelection selection = taskSelector.getSelection(path);
+            String path = remainingPaths.remove(0);
+            TaskSelector.TaskSelection selection = taskSelector.getSelection(taskExecutionRequest.getProjectPath(), path);
             Set<Task> tasks = selection.getTasks();
             remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
-
-            out.putAll(path, tasks);
+            out.add(selection);
         }
         return out;
     }

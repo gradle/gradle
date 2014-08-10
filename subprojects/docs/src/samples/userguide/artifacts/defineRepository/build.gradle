@@ -44,6 +44,14 @@ repositories {
 }
 //END SNIPPET maven-jcenter
 
+//START SNIPPET maven-jcenter-http
+repositories {
+    jcenter {
+        url "http://jcenter.bintray.com/"
+    }
+}
+//END SNIPPET maven-jcenter-http
+
 //START SNIPPET maven-central-jar-repo
 repositories {
     mavenCentral name: 'single-jar-repo', artifactUrls: ["http://repo.mycompany.com/jars"]

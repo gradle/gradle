@@ -23,25 +23,29 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 1.8-rc-1.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 1.8-rc-1 to 2.0.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.8-rc-1.</p>
  *
  * @since 1.8-rc-1
+ * @deprecated 2.1-rc-1 Use {@link InternalCancellableConnection} instead.
  * @see ConnectionVersion4
  */
+@Deprecated
 public interface InternalBuildActionExecutor extends InternalProtocolInterface {
     /**
      * Performs some action against a build and returns the result.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 1.8-rc-1.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 1.8-rc-1 to 2.0.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.8-rc-1.</p>
      *
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
      * @throws InternalBuildActionFailureException When the action fails with an exception.
      * @throws IllegalStateException When this connection has been stopped.
+     * @deprecated 2.1-rc-1 Use {@link InternalCancellableConnection#run(InternalBuildAction, InternalCancellationToken, BuildParameters)} instead.
      * @since 1.8-rc-1
      */
+    @Deprecated
     <T> BuildResult<T> run(InternalBuildAction<T> action,
                            BuildParameters operationParameters) throws
             BuildExceptionVersion1,

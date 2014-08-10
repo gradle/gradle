@@ -1,8 +1,12 @@
 apply plugin: 'cpp'
 
 sources {
-    exe {}
-    lib {}
+    exe {
+        cpp(CppSourceSet)
+    }
+    lib {
+        cpp(CppSourceSet)
+    }
 }
 // START SNIPPET flavors
 model {
@@ -23,7 +27,7 @@ libraries {
     }
 }
 // END SNIPPET flavors
-binaries.withType(SharedLibraryBinary) {
+binaries.withType(SharedLibraryBinarySpec) {
     cppCompiler.define "DLL_EXPORT"
 }
 

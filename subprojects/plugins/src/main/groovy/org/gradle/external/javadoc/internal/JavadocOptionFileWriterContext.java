@@ -16,16 +16,20 @@
 
 package org.gradle.external.javadoc.internal;
 
-import java.io.BufferedWriter;
+import org.gradle.internal.SystemProperties;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class JavadocOptionFileWriterContext {
-    private final BufferedWriter writer;
+import static org.gradle.internal.SystemProperties.getLineSeparator;
 
-    public JavadocOptionFileWriterContext(BufferedWriter writer) {
+public class JavadocOptionFileWriterContext {
+    private final Writer writer;
+
+    public JavadocOptionFileWriterContext(Writer writer) {
         this.writer = writer;
     }
 
@@ -35,7 +39,7 @@ public class JavadocOptionFileWriterContext {
     }
 
     public JavadocOptionFileWriterContext newLine() throws IOException {
-        writer.newLine();
+        writer.write(SystemProperties.getLineSeparator());
         return this;
     }
 
@@ -61,15 +65,14 @@ public class JavadocOptionFileWriterContext {
 
     public JavadocOptionFileWriterContext writeValue(String value) throws IOException {
         write("\'");
-        write(value.replaceAll("\\\\", "\\\\\\\\"));
+        //First, we replace slashes because they have special meaning in the javadoc options file
+        //Then, we replace every linebreak with slash+linebreak. Slash is needed according to javadoc options file format
+        write(value.replaceAll("\\\\", "\\\\\\\\")
+                //below does not help on windows environments. I was unable to get plain javadoc utility to work successfully with multiline options _in_ the options file.
+                //at least, it will work out of the box on linux or mac environments.
+                //on windows, the options file will have correct contents according to the javadoc spec but it may not work (the failure will be exactly the same as if we didn't replace line breaks)
+                .replaceAll(getLineSeparator(), "\\\\" + getLineSeparator()));
         write("\'");
-        return this;
-    }
-
-    public JavadocOptionFileWriterContext writeValueOption(String option, Collection<String> values) throws IOException {
-        for (final String value : values) {
-            writeValueOption(option, value);
-        }
         return this;
     }
 

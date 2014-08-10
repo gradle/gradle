@@ -14,7 +14,7 @@ configurations {
 dependencies {
     sealife "sea.mammals:orca:1.0", "sea.fish:shark:1.0", "sea.fish:tuna:1.0"
     alllife configurations.sealife
-    alllife "air.birds:albatros:1.0"
+    alllife "air.birds:albatross:1.0"
 }
 //END SNIPPET setup
 
@@ -24,7 +24,8 @@ task dependencies << {
     println()
     configurations.alllife.allDependencies.each { dep -> println dep.name }
     println()
-    configurations.alllife.allDependencies.findAll { dep -> dep.name != 'orca' }.each { dep -> println dep.name }
+    configurations.alllife.allDependencies.findAll { dep -> dep.name != 'orca' }
+        .each { dep -> println dep.name }
 }
 //END SNIPPET dependencies
 
@@ -47,24 +48,20 @@ task files << {
 
 //START SNIPPET copy
 task copy << {
-    configurations.alllife.copyRecursive { dep -> dep.name != 'orca' }.allDependencies.each { dep ->
-        println dep.name
-    }
+    configurations.alllife.copyRecursive { dep -> dep.name != 'orca' }
+        .allDependencies.each { dep -> println dep.name }
     println()
-    configurations.alllife.copy().allDependencies.each { dep ->
-        println dep.name
-    }
+    configurations.alllife.copy().allDependencies
+        .each { dep -> println dep.name }
 }
 //END SNIPPET copy
 
 //START SNIPPET copyVsFiles
 task copyVsFiles << {
-    configurations.sealife.copyRecursive { dep -> dep.name == 'orca' }.each { file ->
-        println file.name
-    }
+    configurations.sealife.copyRecursive { dep -> dep.name == 'orca' }
+        .each { file -> println file.name }
     println()
-    configurations.sealife.files { dep -> dep.name == 'orca' }.each { file ->
-        println file.name
-    }
+    configurations.sealife.files { dep -> dep.name == 'orca' }
+        .each { file -> println file.name }
 }
 //END SNIPPET copyVsFiles

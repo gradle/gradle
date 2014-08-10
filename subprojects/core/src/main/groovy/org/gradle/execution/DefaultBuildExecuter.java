@@ -47,6 +47,7 @@ public class DefaultBuildExecuter implements BuildExecuter {
             public void proceed() {
                 configure(index + 1);
             }
+
         });
     }
 
@@ -66,6 +67,7 @@ public class DefaultBuildExecuter implements BuildExecuter {
             public void proceed() {
                 execute(index + 1);
             }
+
         });
     }
 }

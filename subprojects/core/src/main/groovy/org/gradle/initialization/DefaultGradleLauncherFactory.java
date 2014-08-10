@@ -69,26 +69,27 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices.get(ListenerManager.class).removeListener(listener);
     }
 
-    public DefaultGradleLauncher newInstance(StartParameter startParameter) {
+    public DefaultGradleLauncher newInstance(StartParameter startParameter, BuildCancellationToken cancellationToken) {
         BuildRequestMetaData requestMetaData;
         if (tracker.getCurrentBuild() != null) {
             requestMetaData = new DefaultBuildRequestMetaData(tracker.getCurrentBuild().getServices().get(BuildClientMetaData.class), System.currentTimeMillis());
         } else {
             requestMetaData = new DefaultBuildRequestMetaData(System.currentTimeMillis());
         }
-        return doNewInstance(startParameter, requestMetaData);
+        return doNewInstance(startParameter, cancellationToken, requestMetaData);
     }
 
-    public DefaultGradleLauncher newInstance(StartParameter startParameter, BuildRequestMetaData requestMetaData) {
+    public DefaultGradleLauncher newInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData) {
         // This should only be used for top-level builds
         assert tracker.getCurrentBuild() == null;
-        return doNewInstance(startParameter, requestMetaData);
+        return doNewInstance(startParameter, cancellationToken, requestMetaData);
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildRequestMetaData requestMetaData) {
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData) {
         final BuildScopeServices serviceRegistry = new BuildScopeServices(sharedServices, startParameter);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
+        serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.setLevel(startParameter.getLogLevel());
@@ -122,6 +123,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
+                                cancellationToken,
                                 serviceRegistry.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope(),
                                 serviceRegistry.get(CacheRepository.class))
                 ),

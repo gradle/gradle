@@ -16,13 +16,17 @@
 
 package org.gradle.messaging.serialize;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.io.File;
+import java.util.Map;
 
 public class BaseSerializerFactory {
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
-    public static final Serializer LONG_SERIALIZER = new LongSerializer();
-    public static final Serializer FILE_SERIALIZER = new FileSerializer();
+    public static final Serializer<Long> LONG_SERIALIZER = new LongSerializer();
+    public static final Serializer<File> FILE_SERIALIZER = new FileSerializer();
     public static final Serializer<byte[]> BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
+    public static final Serializer<Map<String, String>> NO_NULL_STRING_MAP_SERIALIZER = new StringMapSerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
@@ -31,10 +35,10 @@ public class BaseSerializerFactory {
             return stringSerializer;
         }
         if (type.equals(Long.class)) {
-            return LONG_SERIALIZER;
+            return (Serializer) LONG_SERIALIZER;
         }
         if (type.equals(File.class)) {
-            return FILE_SERIALIZER;
+            return (Serializer) FILE_SERIALIZER;
         }
         if (type.equals(byte[].class)) {
             return (Serializer) BYTE_ARRAY_SERIALIZER;
@@ -79,6 +83,25 @@ public class BaseSerializerFactory {
 
         public void write(Encoder encoder, byte[] value) throws Exception {
             encoder.writeBinary(value);
+        }
+    }
+
+    private static class StringMapSerializer implements Serializer<Map<String, String>> {
+        public Map<String, String> read(Decoder decoder) throws Exception {
+            int pairs = decoder.readInt();
+            ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+            for (int i = 0; i < pairs; ++i) {
+                builder.put(decoder.readString(), decoder.readString());
+            }
+            return builder.build();
+        }
+
+        public void write(Encoder encoder, Map<String, String> value) throws Exception {
+            encoder.writeInt(value.size());
+            for (Map.Entry<String, String> entry : value.entrySet()) {
+                encoder.writeString(entry.getKey());
+                encoder.writeString(entry.getValue());
+            }
         }
     }
 }

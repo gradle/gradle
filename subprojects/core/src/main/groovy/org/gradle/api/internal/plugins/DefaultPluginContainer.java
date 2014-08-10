@@ -26,6 +26,8 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class DefaultPluginContainer<T extends PluginAware> extends DefaultPluginCollection<Plugin> implements PluginContainer {
@@ -84,11 +86,17 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
     });
 
     private final T pluginAware;
+    private final List<PluginApplicationAction> pluginApplicationActions;
 
     public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware) {
+        this(pluginRegistry, pluginAware, Collections.<PluginApplicationAction>emptyList());
+    }
+
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, List<PluginApplicationAction> pluginApplicationActions) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.pluginAware = pluginAware;
+        this.pluginApplicationActions = pluginApplicationActions;
     }
 
     public Plugin apply(String id) {
@@ -127,6 +135,9 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
     private <P extends Plugin<?>> P addPluginInternal(Class<P> type) {
         if (findPlugin(type) == null) {
             Plugin plugin = providePlugin(type);
+            for (PluginApplicationAction onApplyAction : pluginApplicationActions) {
+                onApplyAction.execute(new PluginApplication(plugin, pluginAware));
+            }
             add(plugin);
         }
         return type.cast(findPlugin(type));

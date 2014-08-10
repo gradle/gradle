@@ -23,6 +23,8 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resource.PasswordCredentials;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -30,6 +32,8 @@ import java.util.List;
 
 @ThreadSafe
 public class SftpClientFactory implements Stoppable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SftpClientFactory.class);
+
     private SftpClientCreator sftpClientCreator = new SftpClientCreator();
     private final Object lock = new Object();
     private final ListMultimap<SftpHost, LockableSftpClient> clients = ArrayListMultimap.create();
@@ -66,7 +70,7 @@ public class SftpClientFactory implements Stoppable {
                 return new DefaultLockableSftpClient(sftpHost, (ChannelSftp) channel, session);
             } catch (JSchException e) {
                 if (e.getMessage().equals("Auth fail")) {
-                    throw new SftpException(String.format("Invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
+                    throw new SftpException(String.format("Password authentication not supported or invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
                 }
                 throw new SftpException(String.format("Could not connect to SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
             }
@@ -74,7 +78,19 @@ public class SftpClientFactory implements Stoppable {
 
         private JSch createJsch() {
             if (jsch == null) {
+                JSch.setConfig("PreferredAuthentications", "password");
+                JSch.setConfig("MaxAuthTries", "1");
                 jsch = new JSch();
+                if(LOGGER.isDebugEnabled()) {
+                    JSch.setLogger(new com.jcraft.jsch.Logger() {
+                        public boolean isEnabled(int level) {
+                            return true;
+                        }
+                        public void log(int level, String message) {
+                            LOGGER.debug(message);
+                        }
+                    });
+                }
                 jsch.setHostKeyRepository(new HostKeyRepository() {
                     public int check(String host, byte[] key) {
                         return OK;

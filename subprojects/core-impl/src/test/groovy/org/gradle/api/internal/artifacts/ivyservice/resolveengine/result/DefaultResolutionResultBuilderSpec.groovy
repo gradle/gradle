@@ -245,7 +245,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private void node(String module, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
-        def moduleVersion = new DummyModuleVersionSelection(selectedId: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
+        def moduleVersion = new DummyModuleVersionSelection(id: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
         builder.resolvedModuleVersion(moduleVersion)
     }
 
@@ -270,7 +270,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     class DummyModuleVersionSelection implements ModuleVersionSelection {
-        ModuleVersionIdentifier selectedId
+        ModuleVersionIdentifier id
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
     }

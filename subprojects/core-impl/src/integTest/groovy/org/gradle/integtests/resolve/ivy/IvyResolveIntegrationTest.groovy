@@ -143,7 +143,7 @@ task check << {
 
     def "dependency that references a classifier can resolve module with no metadata"() {
         given:
-        def ivyModule = ivyRepo.module("org.gradle", "test", "1.45").withNoMetaData().artifact(classifier: "classifier").publish()
+        ivyRepo.module("org.gradle", "test", "1.45").withNoMetaData().artifact(classifier: "classifier").publish()
 
         and:
         buildFile << """
@@ -159,22 +159,21 @@ task check << {
 """
 
         expect:
-        ivyModule.jarFile.assertDoesNotExist()
         succeeds "check"
     }
 
     def "dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
-        ivyRepo.module("org.gradle", "test", "1.45")
+        def module = ivyHttpRepo.module("org.gradle", "test", "1.45")
                 .dependsOn("org.gradle", "other", "preview-1")
                 .artifact(classifier: "classifier")
                 .artifact(name: "test-extra")
                 .publish()
-        ivyRepo.module("org.gradle", "other", "preview-1").publish()
+        def module2 = ivyHttpRepo.module("org.gradle", "other", "preview-1").publish()
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url "${ivyHttpRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile ("org.gradle:test:1.45") {
@@ -190,7 +189,52 @@ task check << {
 }
 """
 
-        expect:
+        when:
+        module.ivy.expectGet()
+        module.getArtifact(name: 'test-extra').expectGet()
+        module2.ivy.expectGet()
+        module2.jar.expectGet()
+
+        then:
+        succeeds "check"
+    }
+
+    def "uses correct artifact name for module with no metadata where artifact name does not match module name"() {
+        given:
+        def module = ivyHttpRepo.module("org.gradle", "test", "1.45")
+                .withNoMetaData()
+                .artifact(name: 'my-test-artifact')
+                .publish()
+
+        and:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile ("org.gradle:test:1.45") {
+        artifact {
+            name = 'my-test-artifact'
+            extension = 'jar'
+            type = 'jar'
+        }
+    }
+}
+
+task check << {
+    assert configurations.compile.collect { it.name } == ['my-test-artifact-1.45.jar']
+}
+"""
+
+        when:
+        module.ivy.expectGetMissing()
+        module.getArtifact(name: 'my-test-artifact').expectHead()
+        module.getArtifact(name: 'my-test-artifact').expectGet()
+
+        then:
         succeeds "check"
     }
 

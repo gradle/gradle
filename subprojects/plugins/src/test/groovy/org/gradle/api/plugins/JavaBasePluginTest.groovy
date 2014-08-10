@@ -17,7 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.jvm.ClassDirectoryBinary
+import org.gradle.api.jvm.ClassDirectoryBinarySpec
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -46,7 +46,7 @@ class JavaBasePluginTest extends Specification {
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
-        project.plugins.hasPlugin(JavaLanguagePlugin)
+        project.plugins.hasPlugin(LegacyJavaComponentPlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
     }
 
@@ -263,7 +263,7 @@ class JavaBasePluginTest extends Specification {
 
         then:
         def binary = project.binaries.findByName("customClasses")
-        binary instanceof ClassDirectoryBinary
+        binary instanceof ClassDirectoryBinarySpec
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")
         binary.source as Set == [project.sources.custom.java, project.sources.custom.resources] as Set

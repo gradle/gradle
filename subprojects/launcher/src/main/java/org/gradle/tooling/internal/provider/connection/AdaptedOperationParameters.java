@@ -122,8 +122,8 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         return tasks;
     }
 
-    public List<InternalLaunchable> getLaunchables() {
-        return maybeGet(null, "getLaunchables");
+    public List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables) {
+        return maybeGet(defaultLaunchables, "getLaunchables");
     }
 
 }

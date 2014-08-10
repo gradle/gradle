@@ -16,12 +16,16 @@
 
 package org.gradle.launcher.daemon.configuration;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.process.internal.JvmOptions;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.util.List;
 import java.util.Properties;
 
 public class CurrentProcess {
@@ -52,9 +56,10 @@ public class CurrentProcess {
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
         boolean javaHomeMatch = getJavaHome().equals(requiredBuildParameters.getEffectiveJavaHome());
 
-        JvmOptions optionsWithNoArgsSet = new JvmOptions(new IdentityFileResolver());
-        boolean noImmutableJvmArgsRequired = requiredBuildParameters.isUsingDefaultJvmArgs()
-                || requiredBuildParameters.getEffectiveJvmArgs().equals(optionsWithNoArgsSet.getAllImmutableJvmArgs());
+        List<String> currentImmutable = new JvmOptions(new IdentityFileResolver()).getAllImmutableJvmArgs();
+        List<String> requiredImmutable = requiredBuildParameters.getEffectiveJvmArgs();
+        List<String> requiredImmutableMinusDefaults = removeDefaults(requiredImmutable);
+        boolean noImmutableJvmArgsRequired = requiredImmutableMinusDefaults.equals(currentImmutable);
 
         if (javaHomeMatch && noImmutableJvmArgsRequired) {
             // Set the system properties and use this process
@@ -64,6 +69,14 @@ public class CurrentProcess {
             return true;
         }
         return false;
+    }
+
+    private List<String> removeDefaults(List<String> effectiveJvmArgs) {
+        return Lists.newArrayList(Iterables.filter(effectiveJvmArgs, new Predicate<String>() {
+            public boolean apply(String input) {
+                return !DaemonParameters.DEFAULT_JVM_ARGS.contains(input);
+            }
+        }));
     }
 
     private static JvmOptions inferJvmOptions() {

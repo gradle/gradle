@@ -32,7 +32,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
-import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
@@ -47,7 +47,7 @@ import java.util.Set;
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final String name;
-    private final IvyModuleDescriptorInternal descriptor;
+    private final IvyModuleDescriptorSpecInternal descriptor;
     private final IvyPublicationIdentity publicationIdentity;
     private final IvyConfigurationContainer configurations;
     private final DefaultIvyArtifactSet ivyArtifacts;
@@ -66,14 +66,14 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
         ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser);
         ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
-        descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, this);
+        descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this);
     }
 
     public String getName() {
         return name;
     }
 
-    public IvyModuleDescriptorInternal getDescriptor() {
+    public IvyModuleDescriptorSpecInternal getDescriptor() {
         return descriptor;
     }
 
@@ -81,7 +81,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.descriptorFile = descriptorFile;
     }
 
-    public void descriptor(Action<? super IvyModuleDescriptor> configure) {
+    public void descriptor(Action<? super IvyModuleDescriptorSpec> configure) {
         configure.execute(descriptor);
     }
 

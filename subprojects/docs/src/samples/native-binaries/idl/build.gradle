@@ -6,18 +6,21 @@ task idl(type: DummyIdlCompiler) {
     sourceDir = project.file("${buildDir}/src/generated/c")
 }
 
+
+executables {
+    main {}
+}
+
+
 sources {
     main {
         idlOutput(CSourceSet) {
             generatedBy tasks.idl
         }
+        c.lib sources.main.idlOutput
     }
 }
-sources.main.c.lib sources.main.idlOutput
 
-executables {
-    main {}
-}
 
 class DummyIdlCompiler extends DefaultTask {
     @InputFiles FileCollection idlFiles

@@ -17,12 +17,17 @@
 package org.gradle.language.base.internal;
 
 
+import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.runtime.base.BinarySpec;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A registered language.
  */
-public interface LanguageRegistration<U extends LanguageSourceSet, V extends U> {
+public interface LanguageRegistration<U extends LanguageSourceSet> {
     /**
      * The name.
      */
@@ -36,5 +41,24 @@ public interface LanguageRegistration<U extends LanguageSourceSet, V extends U> 
     /**
      * The implementation type of the language source set.
      */
-    Class<V> getSourceSetImplementation();
+    Class<? extends U> getSourceSetImplementation();
+
+    /**
+     * The tool extensions that should be added to any binary with these language sources.
+     */
+    Map<String, Class<?>> getBinaryTools();
+
+    /**
+     * A set of output types generated from these language sources.
+     */
+    Set<Class<? extends TransformationFileType>> getOutputTypes();
+
+    /**
+     * The task used to transform sources into code for the target runtime.
+     */
+    SourceTransformTaskConfig getTransformTask();
+
+    // TODO:DAZ This should be declarative, not imperative
+    boolean applyToBinary(BinarySpec binary);
+
 }

@@ -1,7 +1,9 @@
 <!-- This file is an example of the Ivy module descriptor that this build will produce -->
 <?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0">
-  <info organisation="org.gradle.sample" module="project1-sample" revision="1.1" status="milestone" publication="«PUBLICATION-TIME-STAMP»"/>
+  <info organisation="org.gradle.sample" module="project1-sample" branch="testing" revision="1.1" status="milestone" publication="«PUBLICATION-TIME-STAMP»">
+    <ns:myElement xmlns:ns="http://my.namespace">Some value</ns:myElement>
+  </info>
   <configurations>
     <conf name="default" visibility="public" extends="runtime"/>
     <conf name="runtime" visibility="public"/>

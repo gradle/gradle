@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
+import org.gradle.initialization.FixedBuildCancellationToken
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.exec.DefaultBuildActionParameters
@@ -57,7 +58,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
         """
         
         when:
-        daemonClientServices.get(DaemonClient).execute(action, parameters)
+        daemonClientServices.get(DaemonClient).execute(action, new FixedBuildCancellationToken(), parameters)
         
         then:
         outputFile.exists() && outputFile.text == "Hello!"

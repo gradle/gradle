@@ -54,7 +54,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
                                  ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
-                                 BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener, Closeable buildServices) {
+                                 BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener,
+                                 Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;

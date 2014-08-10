@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -25,6 +26,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil
+
 import spock.lang.Specification
 
 class MavenPomFileGeneratorTest extends Specification {
@@ -86,6 +88,7 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.groupId >> "dep-group"
         dependency.artifactId >> "dep-name"
         dependency.version >> "dep-version"
+        dependency.excludeRules >> []
 
         and:
         with (pom) {
@@ -95,6 +98,65 @@ class MavenPomFileGeneratorTest extends Specification {
                 artifactId == "dep-name"
                 version == "dep-version"
                 scope == "runtime"
+            }
+        }
+    }
+
+    def "writes regular dependency without exclusions"() {
+        def dependency = Mock(MavenDependencyInternal)
+        when:
+        generator.addRuntimeDependency(dependency)
+
+        then:
+        dependency.artifacts >> new HashSet<DependencyArtifact>()
+        dependency.groupId >> "dep-group"
+        dependency.artifactId >> "dep-name"
+        dependency.version >> "dep-version"
+        dependency.excludeRules >> []
+
+        and:
+        with (pom) {
+            dependencies.dependency.exclusions.size() == 0
+        }
+    }
+
+    def "writes dependency with excludes"() {
+        given:
+        def dependency = Mock(MavenDependencyInternal)
+        def exclude1 = Mock(ExcludeRule)
+        def exclude2 = Mock(ExcludeRule)
+        def exclude3 = Mock(ExcludeRule)
+
+        when:
+        generator.addRuntimeDependency(dependency)
+
+        then:
+        dependency.artifacts >> new HashSet<DependencyArtifact>()
+        dependency.groupId >> "dep-group"
+        dependency.artifactId >> "dep-name"
+        dependency.version >> "dep-version"
+        dependency.excludeRules >> CollectionUtils.toSet([exclude1, exclude2, exclude3])
+        exclude1.group >> "excl-1-group"
+        exclude1.module >> "excl-1-module"
+        exclude2.group >> "excl-2-group"
+        exclude2.module >> null
+        exclude3.group >> null
+        exclude3.module >> "excl-3-module"
+
+        and:
+        with (pom) {
+            dependencies.dependency.exclusions.exclusion.size() == 3
+            with (dependencies[0].dependency[0].exclusions[0].exclusion[0]) {
+                groupId == "excl-1-group"
+                artifactId == "excl-1-module"
+            }
+            with (dependencies[0].dependency[0].exclusions[0].exclusion[1]) {
+                groupId == "excl-2-group"
+                artifactId == "*"
+            }
+            with (dependencies[0].dependency[0].exclusions[0].exclusion[2]) {
+                groupId == "*"
+                artifactId == "excl-3-module"
             }
         }
     }
@@ -111,6 +173,7 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.artifacts >> CollectionUtils.toSet([artifact1, artifact2])
         dependency.groupId >> "dep-group"
         dependency.version >> "dep-version"
+        dependency.excludeRules >> []
         artifact1.name >> "artifact-1"
         artifact1.type >> "type-1"
         artifact1.classifier >> "classifier-1"

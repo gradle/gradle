@@ -20,10 +20,12 @@ import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonUidCompatibilitySpec;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
@@ -32,6 +34,7 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.tooling.BuildCancelledException;
 
 import java.io.InputStream;
 import java.util.HashSet;
@@ -74,6 +77,7 @@ import java.util.Set;
 public class DaemonClient implements BuildActionExecuter<BuildActionParameters> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private static final int STOP_TIMEOUT_SECONDS = 30;
+    private static final int CANCEL_TIMEOUT_SECONDS = 15; // cancel in server wait 10s before it calls forcefulStop
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
@@ -137,23 +141,63 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     /**
+     * Cancels build running in daemon, if it is running.
+     */
+    public void cancelBuild(Object cancelledBuildId) {
+        long start = System.currentTimeMillis();
+        long expiry = start + CANCEL_TIMEOUT_SECONDS * 1000;
+        Set<String> cancelled = new HashSet<String>();
+
+        DaemonClientConnection connection = connector.maybeConnect(compatibilitySpec);
+        if (connection == null) {
+            LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
+            return;
+        }
+
+        LOGGER.lifecycle("Cancelling daemon build(s).");
+
+        //iterate and stop all daemons
+        while (connection != null && System.currentTimeMillis() < expiry) {
+            try {
+                if (cancelled.add(connection.getUid())) {
+                    new CancelDispatcher(idGenerator).dispatch(connection, cancelledBuildId);
+                    LOGGER.lifecycle("Gradle build stopped.");
+                }
+            } finally {
+                connection.stop();
+            }
+            connection = connector.maybeConnect(DaemonUidCompatibilitySpec.createSpecRejectingUids(compatibilitySpec, cancelled));
+        }
+
+        if (connection != null) {
+            throw new GradleException(String.format("Timeout waiting for all daemons to cancel their builds. Waited %s seconds.", (System.currentTimeMillis() - start) / 1000));
+        }
+    }
+
+    /**
      * Executes the given action in the daemon. The action and parameters must be serializable.
      *
      * @param action The action
      * @throws org.gradle.launcher.exec.ReportedException On failure, when the failure has already been logged/reported.
      */
-    public <T> T execute(BuildAction<T> action, BuildActionParameters parameters) {
-        Build build = new Build(idGenerator.generateId(), action, parameters);
+    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, BuildActionParameters parameters) {
+        Object buildId = idGenerator.generateId();
+        Build build = new Build(buildId, action, parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
-            DaemonClientConnection connection = connector.connect(compatibilitySpec);
+            final DaemonClientConnection connection = connector.connect(compatibilitySpec);
+            final CancelCallback cancelCallback = new CancelCallback(connection.getUid(), buildId);
+            if (cancellationToken.addCallback(cancelCallback)) {
+                throw new DaemonClientInterruptedException("Build interrupted");
+            }
             try {
-                return (T) executeBuild(build, connection);
+                return (T) executeBuild(build, connection, cancelCallback);
             } catch (DaemonInitialConnectException e) {
                 //this exception means that we want to try again.
                 LOGGER.info(e.getMessage() + " Trying a different daemon...");
             } finally {
                 connection.stop();
+                cancellationToken.removeCallback(cancelCallback);
             }
         }
         //TODO it would be nice if below includes the errors that were accumulated above.
@@ -161,7 +205,37 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
-    protected Object executeBuild(Build build, DaemonClientConnection connection) throws DaemonInitialConnectException {
+    // TODO handle connectivity problems
+    // TODO disable this callback when the build is finished
+    private class CancelCallback implements Runnable {
+        private final ExplainingSpec<DaemonContext> executingCompatibilitySpec;
+        private final Object buildId;
+        private volatile boolean wasCancelled;
+
+        public CancelCallback(String connectionUid, Object buildId) {
+            executingCompatibilitySpec = DaemonUidCompatibilitySpec.createSpecRequiringUid(compatibilitySpec, connectionUid);
+            this.buildId = buildId;
+        }
+
+        public void run() {
+            LOGGER.info("Request daemon stop to handle build cancellation...");
+            wasCancelled = true;
+            DaemonClientConnection connection = connector.maybeConnect(executingCompatibilitySpec);
+            if (connection == null) {
+                LOGGER.error("Cannot connect to daemon process to cancel the build.");
+                return;
+            }
+            new CancelDispatcher(idGenerator).dispatch(connection, buildId);
+            LOGGER.lifecycle("Gradle build stopped.");
+            connection.stop();
+        }
+
+        public boolean wasCancelled() {
+            return wasCancelled;
+        }
+    }
+
+    protected Object executeBuild(Build build, DaemonClientConnection connection, CancelCallback cancelCallback) throws DaemonInitialConnectException {
         Object result;
         try {
             LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
@@ -179,7 +253,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
         if (result instanceof BuildStarted) {
             DaemonDiagnostics diagnostics = ((BuildStarted) result).getDiagnostics();
-            result = monitorBuild(build, diagnostics, connection);
+            result = monitorBuild(build, diagnostics, connection, cancelCallback);
         }
 
         connection.dispatch(new Finished());
@@ -196,7 +270,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
     }
 
-    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
+    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection, CancelCallback cancelCallback) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory, idGenerator);
         try {
             inputForwarder.start();
@@ -207,7 +281,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
 
                 if (object == null) {
-                    return handleDaemonDisappearance(build, diagnostics);
+                    return handleDaemonDisappearance(build, diagnostics, cancelCallback);
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
                 } else {
@@ -219,15 +293,19 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
     }
 
-    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
+    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics, CancelCallback cancelCallback) {
         //we can try sending something to the daemon and try out if he is really dead or use jps
         //if he's really dead we should deregister it if it is not already deregistered.
         //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
         LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
-                + "\nBuild request sent: " + build
-                + "\nAttempting to read last messages from the daemon log...");
+                     + "\nBuild request sent: " + build
+                     + "\nAttempting to read last messages from the daemon log...");
 
         LOGGER.error(diagnostics.describe());
+        if (cancelCallback != null && cancelCallback.wasCancelled()) {
+            LOGGER.error("Daemon was stopped to handle build cancel request.");
+            throw new BuildCancelledException("Build interrupted");
+        }
 
         throw new DaemonDisappearedException();
     }
@@ -236,6 +314,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         //TODO diagnostics could be included in the exception (they might be available).
         return new IllegalStateException(String.format(
                 "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle."
-                        + "Earlier, '%s' request was sent to the daemon.", response, command));
+                + "Earlier, '%s' request was sent to the daemon.", response, command));
     }
 }

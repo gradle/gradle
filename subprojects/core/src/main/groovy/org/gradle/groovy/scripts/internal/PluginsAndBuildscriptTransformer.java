@@ -24,6 +24,7 @@ import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.plugin.use.internal.PluginDependenciesService;
@@ -32,17 +33,18 @@ import org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer;
 public class PluginsAndBuildscriptTransformer implements StatementTransformer {
 
     private static final String PLUGINS = "plugins";
-    private static final PluginUseScriptBlockTransformer PLUGIN_BLOCK_TRANSFORMER = new PluginUseScriptBlockTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginDependenciesService.class);
 
     private final String classpathBlockName;
     private final String pluginsBlockMessage;
 
+    private final PluginUseScriptBlockTransformer pluginBlockTransformer;
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
 
-    public PluginsAndBuildscriptTransformer(String classpathBlockName, String pluginsBlockMessage) {
+    public PluginsAndBuildscriptTransformer(String classpathBlockName, String pluginsBlockMessage, DocumentationRegistry documentationRegistry) {
         this.classpathBlockName = classpathBlockName;
         this.pluginsBlockMessage = pluginsBlockMessage;
+        this.pluginBlockTransformer = new PluginUseScriptBlockTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginDependenciesService.class, documentationRegistry);
     }
 
     public Statement transform(SourceUnit sourceUnit, Statement statement) {
@@ -56,16 +58,16 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
                 Statement returnStatement = statement;
 
                 if (pluginsBlockMessage != null) {
-                    failMessage = pluginsBlockMessage;
+                    failMessage = pluginBlockTransformer.formatErrorMessage(pluginsBlockMessage);
                 } else {
                     seenPluginsBlock = true;
                     if (seenNonClasspathStatement) {
                         failMessage = String.format(
-                                "only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",
+                                pluginBlockTransformer.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
                                 classpathBlockName, PLUGINS, PLUGINS
                         );
                     } else {
-                        returnStatement = PLUGIN_BLOCK_TRANSFORMER.transform(sourceUnit, scriptBlock);
+                        returnStatement = pluginBlockTransformer.transform(sourceUnit, scriptBlock);
                     }
                 }
 
@@ -80,7 +82,7 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
             } else {
                 if (seenPluginsBlock) {
                     String message = String.format(
-                            "all %s {} blocks must appear before any %s {} blocks in the script",
+                            pluginBlockTransformer.formatErrorMessage("all %s {} blocks must appear before any %s {} blocks in the script"),
                             classpathBlockName, PLUGINS
                     );
                     sourceUnit.getErrorCollector().addError(

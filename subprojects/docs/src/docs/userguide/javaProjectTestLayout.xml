@@ -18,12 +18,14 @@
         <td>
             <filename>src/test/java</filename>
         </td>
+        <td></td>
         <td>Test Java source</td>
     </tr>
     <tr>
         <td>
             <filename>src/test/resources</filename>
         </td>
+        <td></td>
         <td>Test resources</td>
     </tr>
 </tgroup>

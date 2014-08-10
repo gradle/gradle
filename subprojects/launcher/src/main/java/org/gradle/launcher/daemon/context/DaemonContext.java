@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.daemon.context;
 
-import java.io.Serializable;
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 
 /**

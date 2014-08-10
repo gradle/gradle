@@ -17,7 +17,7 @@
 package org.gradle
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.DefaultTaskParameter
+import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -102,7 +102,7 @@ class StartParameterTest extends Specification {
         parameter.logLevel == LogLevel.LIFECYCLE
         parameter.colorOutput
         parameter.taskNames.empty
-        parameter.taskParameters.empty
+        parameter.taskRequests.empty
         parameter.excludedTaskNames.empty
         parameter.projectProperties.isEmpty()
         parameter.systemPropertiesArgs.isEmpty()
@@ -290,7 +290,7 @@ class StartParameterTest extends Specification {
         newParameter.recompileScripts == parameter.recompileScripts
 
         newParameter.buildFile == null
-        newParameter.taskParameters.empty
+        newParameter.taskRequests.empty
         newParameter.taskNames.empty
         newParameter.excludedTaskNames.empty
         newParameter.currentDir == new File(System.getProperty("user.dir")).getCanonicalFile()
@@ -331,14 +331,15 @@ class StartParameterTest extends Specification {
     }
 
     def 'taskNames getter defaults to taskParameters'() {
-        StartParameter parameter = new StartParameter()
+        def parameter = new StartParameter()
+        def requests = [new DefaultTaskExecutionRequest(['a']), new DefaultTaskExecutionRequest(['b'])]
 
         when:
-        parameter.taskParameters = [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+        parameter.taskRequests = requests
 
         then:
         parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+        parameter.taskRequests == requests
     }
 
     def 'taskNames setter defaults to taskParameters'() {
@@ -349,13 +350,13 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+        parameter.taskRequests == [ new DefaultTaskExecutionRequest(['a', 'b']) ]
 
         when:
         parameter.taskNames = null
 
         then:
         parameter.taskNames == []
-        parameter.taskParameters == []
+        parameter.taskRequests == []
     }
 }

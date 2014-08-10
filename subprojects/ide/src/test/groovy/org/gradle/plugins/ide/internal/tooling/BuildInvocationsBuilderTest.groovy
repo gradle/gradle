@@ -54,8 +54,8 @@ class BuildInvocationsBuilderTest extends Specification {
         model.taskSelectors*.name as Set == selectorNames as Set
         model.taskSelectors*.projectPath as Set == [startProject.path] as Set
 
-        model.tasks.findAll { it.visible }*.name as Set == visibleTasks as Set
-        model.taskSelectors.findAll { it.visible }*.name as Set == visibleSelectors as Set
+        model.tasks.findAll { it.public }*.name as Set == visibleTasks as Set
+        model.taskSelectors.findAll { it.public }*.name as Set == visibleSelectors as Set
         // model.taskSelectors.find { it.name == 't1' }?.tasks == t1Tasks as Set
 
         where:

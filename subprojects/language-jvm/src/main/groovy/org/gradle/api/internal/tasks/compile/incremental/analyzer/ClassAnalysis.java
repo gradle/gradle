@@ -16,20 +16,19 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
-public class ClassAnalysis implements Serializable { //TODO SF hand craft serialisation
+public class ClassAnalysis {
 
-    private final List<String> classDependencies;
+    private final Set<String> classDependencies;
     private final boolean dependencyToAll;
 
-    public ClassAnalysis(List<String> classDependencies, boolean dependencyToAll) {
+    public ClassAnalysis(Set<String> classDependencies, boolean dependencyToAll) {
         this.classDependencies = classDependencies;
         this.dependencyToAll = dependencyToAll;
     }
 
-    public List<String> getClassDependencies() {
+    public Set<String> getClassDependencies() {
         return classDependencies;
     }
 

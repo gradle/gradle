@@ -42,7 +42,7 @@ The aim of this specification is to define a mechanism to flip around the flow s
 domain objects are eager. The new publication DSL will be used to validate this approach. If successful, this will then
 be rolled out to other incubating plugins, and later, to existing plugins in a backwards compatible way.
 
-# Implementation plan - Milestone 1
+# Milestone 1 - Plugin uses rules to define model and tasks
 
 ## Story: Plugin declares a top level model to make available
 
@@ -50,11 +50,13 @@ Introduce some mechanism where a plugin can statically declare that a model obje
 
 A mock up:
 
-    public class SomePlugin { // Does not implement Plugin<?>
-
-        @Model("something")
-        public MyModel createSomething() {
-            ...
+    public class SomePlugin implements Plugin<Project>
+        @RuleSource
+        static class Rules {
+            @Model("something")
+            MyModel createSomething() {
+                ...
+            }
         }
     }
 
@@ -68,29 +70,129 @@ A mock up:
 
 ### Test cases
 
-- Build script configuration closure receives the model instance created by the plugin.
-- Build script configuration closure is executed only when the model is used as input to some rule.
-- Reasonable error message when two rules create models with same name.
-- Reasonable error messages when creation rule or configuration closure fail.
-- Reasonable error messages when plugin does not correctly follow static pattern.
+- ~~Build script configuration closure receives the model instance created by the plugin.~~
+- ~~Build script configuration closure is executed only when the model is used as input to some rule.~~
+- ~~Reasonable error message when two rules create models with same name.~~
+- ~~Reasonable error messages when creation rule or configuration closure fail.~~
+- ~~Reasonable error messages when plugin does not correctly follow static pattern.~~
+- ~~Creation rule returns null.~~
+- ~~Rule can declare parameterized type with concrete type vars~~
+- ~~Model type cannot be generic~~
+- ~~Model type can contain type params~~
+- ~~Model element declared with illegal name produces reasonable error message~~
 
 ### Open issues
+
+- Need some mechanism for the ComponentReport task to determine whether the TestSuites model is available or not. The mechanism should be internal at this stage, eg add a `ModelRegistry.find()` or throw a specific exception thrown by `ModelRegistry.get()`.
+
+> This is there via `ModelRegistry.element()`.
 
 - Expose models as extensions as well:
     - Have to handle creation rules that take inputs: defer creation until the convention is used, and close the inputs at this point.
     - Once closed, cannot mutate an object.
+    
+> Not planning on doing this. Model elements will likely be subject to restrictions to facilitate persistence.
+> For backwards compatibility, plugin authors can include a mutation rule for the model element and copy data from the extension to the model.
+> Some stories (not fleshed out) have been added to the backlog to allow extensions as rule inputs.
+    
 - Exact pattern to use to determine which model(s) a plugin exposes
     - Alternative pattern that declares only the type and name and Gradle takes care of decoration, instantiation and dependency injection
+    
+> The pattern we've implemented is good enough for now.
+> An alternative pattern that allows Gradle to take care of the instantiation could be added later if needed. (perhaps if the method is abstract).
+> There may be persistence implications here. We may have to own construction for hydration to work.
+    
 - Should assert that every model object is decorated, however it happens to be created.
-- Force rule methods to be static? Plugins to be stateless (eg no fields)?
+
+> UNANSWERED - deferring until we get into the persistence side of things as that is likely to have an impact here. 
+> Also, don't really know exactly what we are going to need decoration for at this point.
+
 - Also add an API where a plugin can declare models dynamically?
+
+> Later, if the use case arises.
+
 - DSL reference documents the model.
-- Another plugin or build script configures model.
-- Creation rule should be able to declare inputs, including (stateless) services.
+
+> Later story.
+
 - Creation rule declares input of unknown type.
+
+> Later story.
+
 - Settings or init script configures model.
 
-## Story: Plugin configures tasks using model as input
+> Later story.
+
+- How would a user verify that they got the signature/annotation correct in a unit test?
+
+> Later story.
+
+- Do we support generic types? including wildcard, covariant and contravariant types?
+
+> We support parameterized types where all variables are concrete. 
+> The method rule can't be generic so the only other possible cases are bounded types and the wildcard.
+
+- How much thread safety do we build in right now? e.g. could two plugins be registered concurrently? 
+
+> Out of scope for this story. Model rules are strictly within the project boundary and assuming serial execution at this time.
+
+## Story: Plugin author unit tests plugin that declares model elements
+
+This story adds a mechanism that plugin authors can use to test that their model declaring plugin is interpreted by Gradle in the way that they expect.
+
+Mock up:
+
+    package org.gradle.model.test
+    
+    abstract class ModelFixture {      
+      
+      static interface class Builder {
+          Builder addSource(Class<?> source); // throws if source is invalid
+          ModelFixture build();
+        }
+      }
+      
+      static Builder builder() {
+        // …
+      }
+      
+      // Methods return fully configured/finalized object
+      
+      Object get(String path);
+      <T> get(Class<T> type);
+      <T> get(Class<T> type, String path);
+      <T> get(ModelType<T> type);
+      <T> get(ModelType<T> type, String path);
+    }
+
+Example test:
+
+    when:
+    def builder = ModelFixture.builder()
+    builder.add(MyPlugin)
+    def fixture = builder.build()
+    
+    then:
+    fixture.get(MyModelElement).var == "value"
+
+To make this more useful the builder should be able to take mocks and other kinds of object _instances_ (not possible with the current APIs because rule sources are static). 
+This will happen later.
+
+This story will require making `ModelType` (or some facade) public. 
+
+### Test Coverage
+
+- Can add one or more plugin sources, and successfully retrieve model element
+- Can add one or more plugin sources, and successfully retrieve model element by one of its many readable views
+- model rule execution failure (e.g. attempt to execute rule where not all inputs can be bound) throws useful exception
+- Can retrieve model element via compatible generic type
+- Methods not taking a model path fail when multiple candidates for type exist
+
+### Open Questions
+
+- Shortcut methods for building from a list of sources? (i.e. instead of additive builder)
+
+## Story: Plugin defines tasks using model as input
 
 Introduce some mechanism where a plugin can static declare a rule to define tasks using its model object as input.
 
@@ -125,14 +227,17 @@ A mock up:
 
 ### Test cases
 
-- Build script configuration closure is executed before rule method is invoked.
-- Reasonable error message when two rules create tasks with the same name.
-- Reasonable error message when rule method fails.
+- ~~Build script configuration closure is executed before rule method is invoked.~~
+- ~~Reasonable error message when two rules create tasks with the same name.~~
+- ~~Item configuration action cannot create more items~~
+- ~~Reasonable error message when rule method fails.~~
 - Reasonable error message when rule method declares input of unknown type.
 - Reasonable error message when rule method declares ambiguous input.
 
 ### Open issues
 
+- Project and other things can leak out of `Task` instances when `TaskContainer` is provided to a rule.
+    - Same with `Buildable` things, `BuildableModelElement`, `NativeBinaryTasks`, etc.
 - Need another type to allow task instances to be defined without being created.
 - Don't fire rule when tasks not required (eg building model via tooling API).
 - Report on unknown target for configuration closure.
@@ -151,16 +256,6 @@ Improve the model DSL to allow tasks to be configured in the build script:
     }
 
 ### Test cases
-
-- Build script configuration closure is executed when `someTask` is required:
-    - Task is added to task graph
-    - Running `gradle tasks`
-    - Building `GradleProject` tooling API model.
-    - Using `TaskContainer` to query task instances.
-- Build script configuration closure is not executed when `someTask` is not required:
-    - Running `gradle help`
-    - Running `gradle someTask` in another project.
-    - Using `TaskContainer` to query task names.
 
 ### Open issues
 
@@ -195,21 +290,115 @@ A mock up:
 - Move `Project.afterEvaluate()` to fire after the build script has been executed.
 - Include rule execution time in the profile report.
 
-## Story: Make public the Model DSL and plugin rules mechanism
+# Milestone 2 - Build author uses public rule DSL to configure model and tasks
 
-- Document how to use the DSL and plugin mechanism, include samples.
+## Story: Build author is informed when model rule targets unknown model object
+
+## Story: Build user views report that shows information about the available model
+
+Add some command-line report to show basic details of the model space.
+
+## Story: Build user applies rule source class in similar manner to applying a plugin
+
+This story makes it more convenient to write a plugin that is exclusively based on model rules, while keeping the implementation details of such a plugin transparent to the user.
+
+The existing plugin mechanism must be extended to allow loading classes other than those that implement `Plugin`.
+
+A plugin can be loaded via:
+
+* `PluginAware.apply(plugin: «id»)`
+* `PluginAware.apply(plugin: «class»)`
+* `PluginAware.getPlugins().apply(«id»)`
+* `PluginAware.getPlugins().apply(«class»)`
+
+Where plugins are loaded by id, the implementation mapping for a plugin may map to a rule source class.
+Where plugins are loaded by class, the class may be a rule source class.
+
+A “rule source” class must be annotated with `@org.gradle.model.RuleSource`.
+If the “plugin” class to be applied does not implement `Plugin`, and is not annotated with `@RuleSource` then it cannot be loaded and an error should occur (this is a change in behavior as Gradle will attempt to load any plugin class, assuming it implements `Plugin` and will fail with a ClassCastException).
+
+This is a repurposing of the `RuleSource` annotation.
+A replacement approach for a `Plugin` to “include” a set of rules will need to be added.
+
+Gradle allows (non script) plugins to be applied to `Gradle`, `Settings` and `Project`.
+At this time, model rules are only supported for `Project`.
+As such, a rule source plugin cannot be applied to other types.
+The `ModelRegistryScope` interface is currently used to indicate an object that model rules can be attached to.
+Later stories cover making something like this public and documenting when/where rule source plugins can be used.
+
+### Test Coverage
+
+- Rule source plugin can be applied to Project via `apply()`
+- Rule source plugin can be applied to Project via `plugins.apply()`
+- Rule source plugin cannot be applied to `PluginAware` that is not model rule compatible (e.g. Gradle)
+- Class that is not a `Plugin` or rule source fails with appropriate error message when applied
+- `Plugin` impl can include rule source class
+- Attempt to load rule source class that violates rule source constraints produces reasonable error message
+
+### Open issues
+
+- How to deal with the breaking API changes to `PluginContainer` (e.g. apply(id) returns `Plugin`, same for getPlugin(), more or less every method)
+- Do we support the same kind of “plugin detection” mechanisms for these kinds of plugins (e.g. `withId()`, `withType()`, `whenPluginAdded()`)
+- Replacement for current use of `RuleSource` to allow `Plugin` impl to include rules
+- Need a story to allow these rule source plugins to be applied to any `PluginAware`, and for the `plugins { }` DSL to work for settings and init scripts.
+
+## Story: Plugin provides unmanaged object as model element
+
+For example, an extension.
+
+### Open issues
+
+- Prevent access to extension after used as rule input?
+
+## Story: Build author provides unmanaged object as model element
+
+For example, an extension or some ad hoc model object.
+
+### Open issues
+
+- Provide some canned model objects, e.g. the project layout (project dir, build dir, file() method, etc).
+
+## Story: Only declared inputs are visible to DSL model rule
+
+## Story: Make public the Model DSL
+
+- Document how to use the DSL, include samples.
+
+## Story: Make public the plugin rules mechanism
+
+- Document how to use plugin mechanism, include samples.
+- Indicate on `PluginAware` and `PluginContainer` what the conditions are for the plugin target to be able to take model rule plugins
 
 ### Open issues
 
 - Improve logging and error message feedback, given that we have better insight into what's happening.
 
-## Story: New language and publication plugins use plugin rules mechanism to define tasks
+## Story: Language and publication plugins use plugin rules mechanism to define tasks
 
-- Change the native language, jvm language and the publication plugins, to use this mechanism to define tasks from their models.
+- Change the native language, jvm language and the publication plugins, to use this mechanism to define tasks (only) from their models.
 
-## Story: Build author is informed when model rule targets unknown model object
+# Milestone x - Make things faster
 
-# Implementation plan - milestone 2
+## Feature: Tasks are not created or configured when not referenced in a build
+
+Only fire the rules to create and configure a task when it is referenced in a build:
+
+- Added to the task graph.
+- When required for `gradle tasks`
+- Building certain tooling API models.
+- Using `TaskContainer` to query task instances.
+
+### Test cases
+
+- Build script configuration closure is executed when `someTask` is required:
+    - Task is added to task graph
+    - Running `gradle tasks`
+    - Building `GradleProject` tooling API model.
+    - Using `TaskContainer` to query task instances.
+- Build script configuration closure is not executed when `someTask` is not required:
+    - Running `gradle help`
+    - Running `gradle someTask` in another project.
+    - Using `TaskContainer` to query task names.
 
 ## Feature: Rule is not executed when its outputs are up to date
 

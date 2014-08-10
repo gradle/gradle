@@ -24,13 +24,13 @@
 
     <para>The Gradle wrapper plugin allows the generation of Gradle wrapper files by adding a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
         task, that generates all files needed to run the build using the Gradle Wrapper.
-        Details about the Gradle Wrapper can be found in the according chapter <xref linkend='gradle_wrapper'/>
+        Details about the Gradle Wrapper can be found in <xref linkend='gradle_wrapper'/>.
     </para>
     <section>
         <title>Usage</title>
     <para>
-        Without modifying the <literal>build.gradle</literal> file, the wrapper plugin can be auto-applied to the rootproject of the current build by running
-        <literal>gradle wrapper</literal> from the commandline. This applies the plugin if no task named <literal>wrapper</literal> is already defined in the build.
+        Without modifying the <literal>build.gradle</literal> file, the wrapper plugin can be auto-applied to the root project of the current build by running
+        “<literal>gradle wrapper</literal>” from the command line. This applies the plugin if no task named <literal>wrapper</literal> is already defined in the build.
     </para>
     </section>
     <section>

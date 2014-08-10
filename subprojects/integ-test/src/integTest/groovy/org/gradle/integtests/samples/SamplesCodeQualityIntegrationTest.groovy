@@ -22,8 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-// FindBugs does not support Java 8 yet
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
+@Requires(TestPrecondition.JDK7_OR_LATER)
 class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'codeQuality')
 

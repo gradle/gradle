@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -43,7 +44,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         if (details.isUpdated()) {
             DependencyMetaData substitutedDependency = dependency.withRequestedVersion(details.getTarget());
             ModuleVersionIdResolveResult result = resolver.resolve(substitutedDependency);
-            return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason());
+            return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason(), details.getPreferredTarget());
         }
         return resolver.resolve(dependency);
     }
@@ -70,6 +71,10 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
 
         public ComponentSelectionReason getSelectionReason() {
             return VersionSelectionReasons.REQUESTED;
+        }
+
+        public ModuleIdentifier getPreferredTarget() {
+            return null;
         }
     }
 }

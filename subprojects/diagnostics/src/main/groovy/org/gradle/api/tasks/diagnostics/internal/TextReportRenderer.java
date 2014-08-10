@@ -16,21 +16,24 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.internal.StreamingStyledTextOutput;
 import org.gradle.util.GUtil;
 
-import java.io.*;
-
-import static org.gradle.logging.StyledTextOutput.Style.Header;
-import static org.gradle.logging.StyledTextOutput.Style.Normal;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * <p>A basic {@link ReportRenderer} which writes out a text report.
  */
 public class TextReportRenderer implements ReportRenderer {
-    public static final String SEPARATOR = "------------------------------------------------------------";
     private StyledTextOutput textOutput;
+    private TextReportBuilder builder;
     private boolean close;
 
     public void setOutput(StyledTextOutput textOutput) {
@@ -44,7 +47,7 @@ public class TextReportRenderer implements ReportRenderer {
 
     public void startProject(Project project) {
         String header = createHeader(project);
-        writeHeading(header);
+        builder.heading(header);
     }
 
     protected String createHeader(Project project) {
@@ -63,43 +66,31 @@ public class TextReportRenderer implements ReportRenderer {
     public void completeProject(Project project) {
     }
 
-    public void complete() throws IOException {
+    public void complete() {
         cleanupWriter();
     }
 
     private void setWriter(StyledTextOutput styledTextOutput, boolean close) {
         this.textOutput = styledTextOutput;
+        this.builder = new DefaultTextReportBuilder(textOutput);
         this.close = close;
     }
 
-    private void cleanupWriter() throws IOException {
+    private void cleanupWriter() {
         try {
-            if (textOutput != null && close) {
-                ((Closeable) textOutput).close();
+            if (close) {
+                CompositeStoppable.stoppable(textOutput).stop();
             }
         } finally {
             textOutput = null;
         }
     }
 
+    public TextReportBuilder getBuilder() {
+        return builder;
+    }
+
     public StyledTextOutput getTextOutput() {
         return textOutput;
-    }
-
-    public void writeHeading(String heading) {
-        textOutput.println().style(Header);
-        textOutput.println(SEPARATOR);
-        textOutput.println(heading);
-        textOutput.text(SEPARATOR);
-        textOutput.style(Normal);
-        textOutput.println().println();
-    }
-
-    public void writeSubheading(String heading) {
-        getTextOutput().style(Header).println(heading);
-        for (int i = 0; i < heading.length(); i++) {
-            getTextOutput().text("-");
-        }
-        getTextOutput().style(Normal).println();
     }
 }

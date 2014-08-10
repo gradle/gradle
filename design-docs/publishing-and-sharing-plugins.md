@@ -474,7 +474,7 @@ The development/testing tooling can support loading non-declarative plugins in t
 
 This milestone enables plugin authors to start making their plugins (relatively as is) usable via `plugins {}`, and allows users to start using `plugins {}` (with some limitations)
 
-## Story: Introduce plugins DSL block
+## ~~Story: Introduce plugins DSL block~~
 
 Adds the `plugins {}` DSL to build scripts (settings, init or arbitrary script not supported at this point). Plugin specs can be specified in the DSL, but they don't do anything yet.
 
@@ -508,7 +508,7 @@ Adds the `plugins {}` DSL to build scripts (settings, init or arbitrary script n
 - ~~Plugin id cannot be empty string~~
 - ~~Plugin version cannot be empty string~~
   
-## Story: Can use plugins {} in build script to use core plugin
+## ~~Story: Can use plugins {} in build script to use core plugin~~
 
 This story makes it possible for the user to use the new application mechanism to apply core plugins.
 At this point, there's no real advantage to the user or us in this, other than fleshing out the mechanics
@@ -533,7 +533,7 @@ Note: plugins from buildSrc are not core plugins.
 - ~~`plugins { id "«non core plugin»" }` produces suitable 'not found' type error message~~
 - ~~Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)~~
 
-## Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
+## ~~Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes~~
 
 > This story doesn't strictly deal with the milestone goal, but is included in this milestone for historical reasons.
 > Moreover, it's a simpler story than adding support for non-declarative plugins and adding plugin resolution service support  in one step.
@@ -611,13 +611,13 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 
 - Is it worth validating the id/version returned by the service against what we asked for?
 
-## Story: User uses non-declarative plugin from `plugins.gradle.org` of static version with dependency on core plugin
+## ~~Story: User uses non-declarative plugin from `plugins.gradle.org` of static version with dependency on core plugin~~
 
 The plugin portal resolver returns a payload indicating that this plugin is non-declarative and should be loaded as such.
 
 Much of the error handling is shared with handling of declarative plugins.
 
-See “resolution process” section in “implementation plan” for details on how the plugin should be loaded.
+Note: the class loading/visibility required by this story does not reflect the final goal. See the first story of the next milestone.
 
 ### Test Coverage
 
@@ -627,21 +627,24 @@ See “resolution process” section in “implementation plan” for details on
 - ~~Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods~~
 - ~~Other classes from plugin implementation jar are visible to build script~~
 - ~~Classes from plugin implementation dependencies are visible to build script~~
-- Plugin dependencies influence conflict resolution in `buildscript.configurations.classpath`
+- ~~Plugin dependencies influence conflict resolution in `buildscript.configurations.classpath`~~
     - Add a `buildscript {}` dependency on java library A @ version 1.0
     - Add a `plugins {}` dependency on a non-declarative plugin that depends on A @ version 2.0
     - Assert that _only_ version 2.0 was resolved
-- Plugin implementation classes are not visible to script plugins applied to target script
-- Plugin implementation classes are not visible to build scripts of child projects
 - ~~Plugin can access classes from Gradle API~~
 - ~~Plugin can access classes from Gradle core plugins~~
 - ~~Plugin cannot access Gradle internal implementation classes~~
-- Failed resolution of module implementation from specified repository fails, with error message indicating why resolve was happening
-- Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message
-- Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message
-- Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message
+- ~~Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message~~
+- ~~Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message~~
+- ~~Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message~~
 
-## Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”
+### Open Issues
+
+* If a dependency of a plugin fails to resolve, the user may have a hard time working out why that dependency is being downloaded - we should inform them that it's being resolved as part of `buildscript.configurations.classpath` because of a plugin 
+
+> Broken out to later story.
+
+## ~~Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”~~
 
 The plugin portal has a standardised JSON payload for errors.
 This story adds understanding of this to Gradle's interactions with the portal, by way of extracting the error information and presenting it to the user instead of a generic failure message.
@@ -653,65 +656,114 @@ The detail of the error response differentiates the response from a generic 404.
 
 ### Test coverage
 
-- 4xx..5xx response that is not specifically handled (e.g. PLUGIN\_NOT_FOUND) is forwarded to user
-- 4xx..500 response that isn't a structured error response (e.g. HTML) is handled
-- Response advertised as structured error response is of incompatible schema
-- Response advertised as structured error response is malformed JSON
-- Response advertised as structured error response is of compatible schema, but has extra unexpected elements
+- ~~4xx..5xx response that is not specifically handled (e.g. PLUGIN\_NOT_FOUND) is forwarded to user~~
+- ~~4xx..500 response that isn't a structured error response (e.g. HTML) is handled~~
+- ~~Response advertised as structured error response is of incompatible schema~~
+- ~~Response advertised as structured error response is malformed JSON~~
+- ~~Response advertised as structured error response is of compatible schema, but has extra unexpected elements~~
 
-### Open questions
+## Story: User is notified that Gradle version is deprecated for use with plugin portal
 
-- What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level?
+The plugin portal may include http headers that indicate that the client is to be deprecated. See plugin portal api-endpoints-general.md.
 
-## Story: User is notified that Gradle version is no longer supported by plugin portal
+All requests to the portal API can potentially respond in this manner.
+Implementation of handling this response should be cross cutting.
 
-## Story: User is notified of use of 'deprecated' plugin
-
-## Story: All plugins are resolved before any plugin is applied to a target
-
-Before actually applying plugins (potentially expensive), all required plugins should be resolved in the spirit of fail fast.
+At this stage, a message can be constructed based on the information in the headers and logged using our `DeprecationLogger` infrastructure.
 
 ### Test Coverage
 
-- Plugins are applied alphabetically based on name
+- Success response with appropriate headers causes deprecation message
+- 404 not found response with appropriate headers causes deprecation message 
 
-## Story: Plugin resolution is cached between builds
+## ~~Story: Plugin resolution is cached between builds~~
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
-## Story: Script plugins are able to use `plugins {}`
-
-## Story: Plugin author submits plugin for inclusion in plugins.gradle.org
-
-Includes:
-
-- Includes generating all necessary metadata (e.g. exported classes, plugin dependencies)
-- Tooling support for publishing in manner suitable for inclusion in plugins.gradle.org
-- Admin processes for including plugin, including acceptance policies etc.
-- Prevention of use of 'org.gradle' and 'com.gradleware' namespaces
-
-## Story: Build author searches for plugins using central Web UI
+* Caching is eternal, for “success” responses (i.e. plugin version is known). 
+* --refresh-dependencies invalidates cache
+* --offline should not error if response is cached
 
 ### Test Coverage
 
-- Not found messages from resolution service include link to search UI (to help user find the plugin they are after) - (this URL should be provided by the resolution service response, not hardcoded into Gradle)
+- ~~Subsequent build after build resolving plugin does not query plugin portal~~
+- ~~--refresh-dependencies causes request to plugin portal even if resolution is already cached~~
+- ~~--refresh-dependencies does not cause error when plugin is not cached~~
+- ~~Not found response is not cached (plugin can be “found” in a subsequent build)~~
+- ~~Error response is not cached~~
+- ~~Unexpected response is not cached~~
+- ~~`--offline` can be used if response is cached~~
+- ~~`--offline` fails build if plugin is not cached~~
+- ~~cached resolution by previous version is used~~
+
+## Story: ~~Error message for unknown plugin or plugin version includes link to relevant human search interfaces~~
+
+The “not found” responses from the portal include an arbitrary message. 
+This should be displayed to the user, as it can provide more information.
+
+e.g. when a plugin is not found, the URL of the search interface can be displayed.
+When a particular version is not found, the URL for the plugin can be displayed (which provides the available versions)
+
+### Test Coverage
+
+- ~~When a plugin is not found, the message provided by the resolution service is displayed~~
+- ~~When a plugin version is not found, the message provided by the resolution service is displayed~~
 
 ## Story: Make new plugin resolution mechanism public
 
 Story is predicated on plugins.gradle.org providing a searchable interface for plugins.
 
-- Include new DSL in DSL reference.
+- Update http://www.gradle.org/plugins
+  - Should have far less content, just a few short words that Gradle has a vibrant plugin mechanism / ecosystem and link to portal and user guide
+  - less is more here
+- Update the 'plugins' wiki page to direct build authors and plugin authors to `http://plugins.gradle.org` instead.
 - Add link to further documentation in relevant error message (at least the compile time validation of plugin {} syntax)
+- Include new DSL in DSL reference.
 - Include types in the public API.
 - Add links to user guide to `org.gradle.plugin.use` types Javadoc
 - Add some material to the user guide discussion about using plugins.
 - Update website to replace references to the 'plugins' wiki page to instead reference `http://plugins.gradle.org`
-- Update the 'plugins' wiki page to direct build authors and plugin authors to `http://plugins.gradle.org` instead.
 - Announce in the release notes.
 
 Note: Plugin authors cannot really contribution to plugins.gradle.org at this point. The content will be “hand curated”.
 
-# Milestone 2 - declarative plugins
+# Milestone 2 - more flexible usage
+
+## Story: Classes introduced to build script exclusively for use by `plugins {}` are not inherited
+
+### Test Coverage
+
+- Plugin implementation classes are not visible to script plugins applied to target script
+- Plugin implementation classes are not visible to build scripts of child projects
+
+## Story: Script plugins are able to use `plugins {}`
+
+## Story: All plugins are resolved before any plugin is applied to a target
+
+Before actually applying plugins (potentially expensive), all required plugins should be resolved in the spirit of fail fast.
+
+## Story: User is notified of use of 'deprecated' plugin
+
+## Story: User is informed of reason for requirement of “buildscript” dependency due to non declarative plugin
+
+Given:
+
+    plugins {
+      id "foo.bar" version "1.0"
+    }
+    
+Where the `foo.bar` plugin implementation module depends on 'some-library', and some-library is not available in jCenter and is not available in any of the `buildscript.repositories`,
+The user is going to get a dependency resolution error claiming that 'some-library' could not be resolved.
+The user has no way of knowing that 'some-library' is being resolved due to this plugin.
+To diagnose this they would have to have knowledge of each plugin's dependencies.
+
+### Test Coverage 
+
+- Failed resolution of module implementation of non declarative plugin fails with error message indicating why resolve was happening
+
+# Milestone 3 - declarative plugins
+
+## Story: Script plugins are able to use `plugins {}`
 
 ## Story: Plugin author uses plugin development plugin to build a plugin
 
@@ -760,7 +812,7 @@ Plugin authors should be able to write their plugin in such a way that it works 
 
 # Story: Author of declarative plugin builds plugin that depends on non-core declarative plugin
 
-# Milestone 3 - “parkable”
+# Milestone 4 - “parkable”
 
 ## Story: Gradle is routinely tested against real plugins.gradle.org codebase
 

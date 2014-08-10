@@ -18,6 +18,7 @@ package org.gradle.api.reporting.dependencies
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.jsoup.Jsoup
 import spock.lang.Issue
 
 /**
@@ -208,11 +209,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
                 projects = [project(':a'), project(':b')]
             }
         """
-        ["a", "b"].each { module ->
-            file(module, "build.gradle") << """
-                apply plugin: 'project-report'
-            """
-        }
 
         when:
         run "htmlDependencyReport"
@@ -235,21 +231,20 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "htmlDependencyReport"
 
         then:
-        file("build/reports/project/dependencies/d.gif").assertExists()
-        file("build/reports/project/dependencies/d.png").assertExists()
-        file("build/reports/project/dependencies/jquery.jstree.js").assertExists()
-        file("build/reports/project/dependencies/jquery-1.10.1.min.js").assertExists()
-        file("build/reports/project/dependencies/script.js").assertExists()
-        file("build/reports/project/dependencies/style.css").assertExists()
-        file("build/reports/project/dependencies/throbber.gif").assertExists()
-        file("build/reports/project/dependencies/tree.css").assertExists()
+        file("build/reports/project/dependencies/images/d.gif").assertExists()
+        file("build/reports/project/dependencies/images/d.png").assertExists()
+        file("build/reports/project/dependencies/js/jquery.jstree.js").assertExists()
+        file("build/reports/project/dependencies/js/jquery.min-1.11.0.js").assertExists()
+        file("build/reports/project/dependencies/js/script.js").assertExists()
+        file("build/reports/project/dependencies/css/style.css").assertExists()
+        file("build/reports/project/dependencies/images/throbber.gif").assertExists()
+        file("build/reports/project/dependencies/css/tree.css").assertExists()
 
-        file("build/reports/project/dependencies/root.html").getText().contains('<script src="root.js" charset="utf-8"></script>');
+        file("build/reports/project/dependencies/root.html").getText().contains('<script src="root.js" charset="utf-8">');
         file("build/reports/project/dependencies/root.js").assertExists();
-        file("build/reports/project/dependencies/index.html").getText().contains('<script src="index.js" charset="utf-8"></script>');
     }
 
-    def "generates index.js file"() {
+    def "generates index.html file"() {
         given:
         file("settings.gradle") << """
             rootProject.name = 'fooProject'
@@ -264,35 +259,26 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
                 projects = project.allprojects
             }
         """
-        ["a", "b"].each { module ->
-            file(module, "build.gradle") << """
-                apply plugin: 'project-report'
-            """
-        }
 
         when:
         run "htmlDependencyReport"
-        def json = readGeneratedJson("index")
+        def html = readGeneratedHtml("index")
 
         then:
-        json.generationDate != null
-        json.gradleVersion != null
+        def rows = html.select("table tbody tr")
+        rows.size() == 3
 
-        json.projects.size() == 3
-        json.projects[0].path == 'root:'
-        json.projects[0].name == 'fooProject'
-        json.projects[0].description == 'dummy description'
-        json.projects[0].file == 'root.html'
+        def rootProject = rows[0].select("td")
+        rootProject[0].text() == "root project 'fooProject'"
+        rootProject[1].text() == "dummy description"
 
-        json.projects[1].path == 'root:a'
-        json.projects[1].name == 'a'
-        json.projects[1].description == null
-        json.projects[1].file == 'root.a.html'
+        def projectA = rows[1].select("td")
+        projectA[0].text() == "project ':a'"
+        projectA[1].text() == ""
 
-        json.projects[2].path == 'root:b'
-        json.projects[2].name == 'b'
-        json.projects[2].description == null
-        json.projects[2].file == 'root.b.html'
+        def projectB = rows[2].select("td")
+        projectB[0].text() == "project ':b'"
+        projectB[1].text() == ""
     }
 
     def "renders insights graphs"() {
@@ -525,5 +511,10 @@ rootProject.name = 'root'
         jsonAsString = jsonAsString.substring(0, jsonAsString.length() - 1);
         JsonSlurper json = new JsonSlurper()
         return json.parseText(jsonAsString)
+    }
+
+    private def readGeneratedHtml(fileNameWithoutExtension) {
+        TestFile htmlReport = file("build/reports/project/dependencies/" + fileNameWithoutExtension + ".html")
+        return Jsoup.parse(htmlReport, "utf-8")
     }
 }

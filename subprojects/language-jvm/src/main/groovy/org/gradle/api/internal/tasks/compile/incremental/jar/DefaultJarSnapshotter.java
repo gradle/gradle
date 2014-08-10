@@ -20,7 +20,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassFilesAnalyzer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,23 +36,23 @@ class DefaultJarSnapshotter {
     }
 
     public JarSnapshot createSnapshot(byte[] hash, JarArchive jarArchive) {
-        return createSnapshot(hash, jarArchive.contents, new ClassDependencyInfoExtractor(analyzer));
+        return createSnapshot(hash, jarArchive.contents, new ClassFilesAnalyzer(analyzer));
     }
 
-    JarSnapshot createSnapshot(byte[] hash, FileTree classes, final ClassDependencyInfoExtractor extractor) {
+    JarSnapshot createSnapshot(byte[] hash, FileTree classes, final ClassFilesAnalyzer analyzer) {
         final Map<String, byte[]> hashes = new HashMap<String, byte[]>();
         classes.visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {
             }
 
             public void visitFile(FileVisitDetails fileDetails) {
-                extractor.visitFile(fileDetails);
+                analyzer.visitFile(fileDetails);
                 String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
                 byte[] classHash = hasher.hash(fileDetails.getFile());
                 hashes.put(className, classHash);
             }
         });
 
-        return new JarSnapshot(new JarSnapshotData(hash, hashes, extractor.getDependencyInfo()));
+        return new JarSnapshot(new JarSnapshotData(hash, hashes, analyzer.getAnalysis()));
     }
 }

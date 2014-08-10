@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.SingleOperationPersistentStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotDataSerializer;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
@@ -28,7 +29,7 @@ public class LocalJarClasspathSnapshotStore {
 
     public LocalJarClasspathSnapshotStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        store = new SingleOperationPersistentStore<JarClasspathSnapshotData>(cacheRepository, javaCompile, "local jar classpath snapshot", JarClasspathSnapshotData.class);
+        store = new SingleOperationPersistentStore<JarClasspathSnapshotData>(cacheRepository, javaCompile, "local jar classpath snapshot", new JarClasspathSnapshotDataSerializer());
     }
 
     public void put(JarClasspathSnapshotData data) {

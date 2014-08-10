@@ -47,10 +47,10 @@ public interface Launchable {
 
     /**
      * Returns whether launchable is public or not.
-     * Visible tasks are those that have non-null {@code group} property.
+     * Public tasks are those that have non-null {@code group} property.
      *
-     * @return Visibility property.
+     * @return Public property.
      * @since 2.1
      */
-    boolean isVisible();
+    boolean isPublic();
 }

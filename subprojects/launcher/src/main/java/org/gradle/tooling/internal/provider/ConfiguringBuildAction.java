@@ -18,18 +18,17 @@ package org.gradle.tooling.internal.provider;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
-import org.gradle.TaskParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.internal.DefaultTaskParameter;
+import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
 import java.io.Serializable;
@@ -39,15 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
-    private static List<InternalLaunchable> getLaunchables(ProviderOperationParameters parameters) {
-        try {
-            return parameters.getLaunchables();
-        } catch (UnsupportedMethodException ume) {
-            // older consumer version
-            return null;
-        }
-    }
-
     private LogLevel buildLogLevel;
     private List<String> arguments;
     private List<String> tasks;
@@ -71,7 +61,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         this.buildLogLevel = parameters.getBuildLogLevel();
         this.arguments = parameters.getArguments(Collections.<String>emptyList());
         this.tasks = parameters.getTasks();
-        this.launchables = getLaunchables(parameters);
+        this.launchables = parameters.getLaunchables(null);
         this.action = action;
     }
 
@@ -88,15 +78,15 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         }
 
         if (launchables != null) {
-            startParameter.setTaskParameters(Iterables.transform(
+            startParameter.setTaskRequests(Iterables.transform(
                     launchables,
-                    new Function<InternalLaunchable, TaskParameter>() {
-                        public TaskParameter apply(InternalLaunchable launchable) {
-                            if (launchable instanceof TaskParameter) {
+                    new Function<InternalLaunchable, TaskExecutionRequest>() {
+                        public TaskExecutionRequest apply(InternalLaunchable launchable) {
+                            if (launchable instanceof TaskExecutionRequest) {
                                 // make sure we don't send object graph with whole project structure back
-                                TaskParameter originalLaunchable = (TaskParameter) launchable;
-                                TaskParameter launchableImpl = new DefaultTaskParameter(
-                                        originalLaunchable.getTaskName(), originalLaunchable.getProjectPath());
+                                TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
+                                TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(
+                                        originalLaunchable.getArgs(), originalLaunchable.getProjectPath());
                                 return launchableImpl;
                             }
                             throw new InternalUnsupportedBuildArgumentException(
@@ -104,7 +94,8 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                                             + "\nOnly objects from this provider can be built."
                             );
                         }
-                    }));
+                    }
+            ));
         } else if (tasks != null) {
             startParameter.setTaskNames(tasks);
         }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ClassDependentsAccumulator {
@@ -29,7 +28,7 @@ public class ClassDependentsAccumulator {
         this.packagePrefix = packagePrefix;
     }
 
-    public void addClass(String className, boolean dependencyToAll, List<String> classDependencies) {
+    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies) {
         if (className.startsWith(packagePrefix)) {
             rememberClass(className).setDependencyToAll(dependencyToAll);
         }

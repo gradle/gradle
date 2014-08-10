@@ -17,13 +17,14 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.model.internal.core.ModelPath;
 
 import java.util.Map;
 
 public interface TaskContainerInternal extends TaskContainer, TaskResolver {
 
     // The path to the project's task container in the model registry
-    public String MODEL_PATH = "tasks";
+    public ModelPath MODEL_PATH = ModelPath.path("tasks");
 
     DynamicObject getTasksAsDynamicObject();
 

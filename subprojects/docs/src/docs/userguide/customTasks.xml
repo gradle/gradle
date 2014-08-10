@@ -64,7 +64,7 @@
                         classpath of the build script. The task class is visible to every build script used by the build.
                         However, it is not visible outside the build, and so you cannot reuse the task class outside the
                         build it is defined in.
-                        Using the <filename>buildSrc</filename> project approach keeps separate
+                        Using the <filename>buildSrc</filename> project approach separates
                         the task declaration - that is, what the task should do - from the task implementation - that is,
                         how the task does it.</para>
                     <para>
@@ -171,7 +171,7 @@
             </para>
             <para>
                 The feature incubation process, which is part of the Gradle feature lifecycle (see <xref linkend="feature_lifecycle"/>), exists for this purpose of ensuring high quality
-                final implementation through incorporation of early user feedback.
+                final implementations through incorporation of early user feedback.
             </para>
         </note>
         <para>
@@ -238,7 +238,7 @@
             </para>
             <para>
                 First, consider the <literal>IncrementalReverseTask</literal> executed against a set of inputs for the first time.
-                In this case, all inputs will be considered "out of date":
+                In this case, all inputs will be considered “out of date”:
             </para>
             <sample id="incrementalTaskFirstRun" dir="userguide/tasks/incrementalTask" title="Running the incremental task for the first time">
                 <sourcefile file="build.gradle" snippet="reverse"/>
@@ -252,7 +252,7 @@
                 <output args="-q incrementalReverse" ignoreLineOrder="true"/>
             </sample>
             <para>
-                Naturally when the task is executed again with no changes, then task itself is up to date and no files are reported to the task action:
+                Naturally when the task is executed again with no changes, then the entire task is up to date and no files are reported to the task action:
             </para>
             <sample id="incrementalTaskNoChange" dir="userguide/tasks/incrementalTask" title="Running the incremental task with unchanged inputs">
                 <test args="-q originalInputs incrementalReverse"/>
@@ -269,7 +269,7 @@
             </sample>
 
             <para>
-                When an existing input file is removed, then re-executing the task results that file being reported to <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/>:
+                When an existing input file is removed, then re-executing the task results in that file being reported to <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/>:
             </para>
             <sample id="incrementalTaskRemovedInput" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an input file removed">
                 <sourcefile file="build.gradle" snippet="removed-input" />
@@ -289,7 +289,7 @@
             </sample>
 
             <para>
-                When a task input property modified, Gradle is not able to determine how this property impacted the task outputs, so all input files are assumed to be out of date.
+                When a task input property is modified, Gradle is unable to determine how this property impacted the task outputs, so all input files are assumed to be out of date.
                 So similar to the changed output file example, <emphasis>all</emphasis> input files are reported to
                 the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action,
                 and no input files are reported to the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/> action:

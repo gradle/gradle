@@ -116,7 +116,7 @@ function initializeProjectPage(report) {
                     data : nodes
                 },
                 themes : {
-                    url : 'tree.css',
+                    url : 'css/tree.css',
                     icons : false
                 },
                 plugins : ['json_data', 'themes']
@@ -163,7 +163,7 @@ function initializeProjectPage(report) {
                         data : nodes
                     },
                     themes : {
-                        url : 'tree.css',
+                        url : 'css/tree.css',
                         icons : false
                     },
                     plugins : ['json_data', 'themes']
@@ -197,29 +197,6 @@ function initializeProjectPage(report) {
     });
 }
 
-function initializeIndexPage(report) {
-    $(document).ready(function() {
-        var $tbody = $('#projects tbody');
-        $.each(report.projects, function(index, project) {
-            var $tr = $('<tr></tr>');
-            var $pathTd = $('<td></td>');
-            $pathTd.append($('<a></a>').attr("href", project.file).text(project.path))
-            var $nameTd = $('<td></td>').text(project.name);
-            $tr.append($pathTd).append($nameTd);
-            var $descriptionTd = $('<td></td>').text(project.description ? project.description : '');
-            $tr.append($pathTd).append($nameTd).append($descriptionTd);
-            $tbody.append($tr);
-        });
-
-        populateFooter(report);
-    });
-}
-
 if (window.projectDependencyReport) {
     initializeProjectPage(window.projectDependencyReport);
 }
-else if (window.mainDependencyReport) {
-    initializeIndexPage(window.mainDependencyReport);
-}
-
-

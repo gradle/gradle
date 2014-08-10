@@ -16,80 +16,100 @@
 
 package org.gradle.language.java.plugins;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.language.base.LanguageRegistry;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.runtime.base.TransformationFileType;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.LanguageRegistration;
+import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
-import org.gradle.model.ModelRule;
-import org.gradle.model.ModelRules;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.jvm.JvmByteCode;
+import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
-import javax.inject.Inject;
 import java.io.File;
+import java.util.*;
 
 /**
- * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
- * Registers "java" language support with the {@link JavaSourceSet}.
+ * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
+ * language support with the {@link JavaSourceSet}.
  */
 public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
-    private final ModelRules modelRules;
-    private final JavaToolChainInternal toolChain;
-
-    @Inject
-    public JavaLanguagePlugin(ModelRules modelRules, JavaToolChainInternal toolChain) {
-        this.modelRules = modelRules;
-        this.toolChain = toolChain;
-    }
 
     public void apply(ProjectInternal project) {
-        project.getPlugins().apply(LanguageBasePlugin.class);
+        project.getPlugins().apply(ComponentModelBasePlugin.class);
         project.getPlugins().apply(JvmResourcesPlugin.class);
-
-        project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("java", JavaSourceSet.class, DefaultJavaSourceSet.class);
-
-        File depCacheDir = project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve("jvm-dep-cache");
-        modelRules.rule(new CreateJavaCompileTasks(depCacheDir));
+        project.getExtensions().getByType(LanguageRegistry.class).add(new Java());
     }
 
-    private class CreateJavaCompileTasks extends ModelRule {
-        private final File depCacheDir;
-
-        public CreateJavaCompileTasks(File depCacheDir) {
-            this.depCacheDir = depCacheDir;
+    private static class Java implements LanguageRegistration<JavaSourceSet> {
+        public String getName() {
+            return "java";
         }
 
-        @SuppressWarnings("UnusedDeclaration")
-        void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
-            for (JvmLibraryBinaryInternal binary : binaries.withType(JvmLibraryBinaryInternal.class)) {
-                for (JavaSourceSet javaSourceSet : binary.getSource().withType(JavaSourceSet.class)) {
+        public Class<JavaSourceSet> getSourceSetType() {
+            return JavaSourceSet.class;
+        }
 
-                    String compileTaskName = binary.getNamingScheme().getTaskName("compile", ((LanguageSourceSetInternal) javaSourceSet).getFullName());
-                    JavaCompile compile = tasks.create(compileTaskName, JavaCompile.class);
+        public Class<? extends JavaSourceSet> getSourceSetImplementation() {
+            return DefaultJavaSourceSet.class;
+        }
+
+        private Set<Class<? extends TransformationFileType>> languageOutputTypes = new HashSet<Class<? extends TransformationFileType>>();
+
+        public Java(){
+            languageOutputTypes.add(JvmByteCode.class);
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            return Collections.emptyMap();
+        }
+
+        public Set<Class<? extends TransformationFileType>> getOutputTypes() {
+            return languageOutputTypes;
+        }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new SourceTransformTaskConfig() {
+                public String getTaskPrefix() {
+                    return "compile";
+                }
+
+                public Class<? extends DefaultTask> getTaskType() {
+                    return JavaCompile.class;
+                }
+
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
+                    JavaCompile compile = (JavaCompile) task;
+                    JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
+                    JvmLibraryBinarySpec binary = (JvmLibraryBinarySpec) binarySpec;
+
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
+                    compile.setToolChain(binary.getToolChain());
 
                     compile.setSource(javaSourceSet.getSource());
                     compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
                     compile.setSourceCompatibility(JavaVersion.current().toString());
                     compile.setTargetCompatibility(JavaVersion.current().toString());
-                    compile.setDependencyCacheDir(depCacheDir);
-                    compile.setToolChain(toolChain);
+                    compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
 
-                    binary.getTasks().add(compile);
                     binary.getTasks().getJar().dependsOn(compile);
                 }
-            }
+            };
+        }
+
+        public boolean applyToBinary(BinarySpec binary) {
+            return binary instanceof JvmLibraryBinarySpec;
         }
     }
 }

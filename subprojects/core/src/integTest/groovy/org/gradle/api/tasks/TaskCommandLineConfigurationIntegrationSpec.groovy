@@ -249,7 +249,6 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         failure.assertHasDescription("Incorrect command line arguments: [-l, -l]. Task options require double dash, for example: 'gradle tasks --all'.")
     }
 
-
     def "decent error for invalid enum value"() {
         given:
         file("build.gradle") << """

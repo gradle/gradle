@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import ch.qos.logback.classic.Level
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
 import org.slf4j.LoggerFactory
 
 class DaemonIntegrationSpec extends AbstractIntegrationSpec {
@@ -49,5 +50,9 @@ class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
     def cleanup() {
         stopDaemonsNow()
+    }
+
+    DaemonLogsAnalyzer createLogAnalyzer() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 }

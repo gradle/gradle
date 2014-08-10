@@ -16,6 +16,8 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.tooling.CancellationToken
+import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.LoggingProvider
@@ -32,6 +34,7 @@ class LazyConsumerActionExecutorTest extends Specification {
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final CancellationToken cancellationToken = Mock()
     final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, connectionParams)
 
     def createsConnectionOnDemandToBuildModel() {
@@ -40,8 +43,21 @@ class LazyConsumerActionExecutorTest extends Specification {
 
         then:
         1 * loggingProvider.progressLoggerFactory >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
+        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
+        1 * cancellationToken.cancellationRequested >> false
+        _ * action.cancellationToken >> cancellationToken
         1 * action.run(consumerConnection)
+        0 * _._
+    }
+
+    def doesNotInvokeActionRunWhenCancellationRequested() {
+        when:
+        connection.run(action)
+
+        then:
+        1 * cancellationToken.cancellationRequested >> true
+        1 * action.cancellationToken >> cancellationToken
+        BuildCancelledException e = thrown()
         0 * _._
     }
 
@@ -54,8 +70,11 @@ class LazyConsumerActionExecutorTest extends Specification {
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
+        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
+        2 * cancellationToken.cancellationRequested >> false
+        _ * action.cancellationToken >> cancellationToken
         1 * action.run(consumerConnection)
+        _ * action2.cancellationToken >> cancellationToken
         1 * action2.run(consumerConnection)
         0 * _._
     }
@@ -67,7 +86,9 @@ class LazyConsumerActionExecutorTest extends Specification {
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
+        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
+        1 * cancellationToken.cancellationRequested >> false
+        _ * action.cancellationToken >> cancellationToken
         1 * action.run(consumerConnection)
         1 * consumerConnection.stop()
         0 * _._
@@ -91,7 +112,9 @@ class LazyConsumerActionExecutorTest extends Specification {
         RuntimeException e = thrown()
         e == failure
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> { throw failure }
+        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> { throw failure }
+        1 * cancellationToken.cancellationRequested >> false
+        _ * action.cancellationToken >> cancellationToken
 
         when:
         connection.stop()

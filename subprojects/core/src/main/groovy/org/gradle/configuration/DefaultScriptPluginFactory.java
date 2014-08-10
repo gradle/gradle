@@ -20,6 +20,7 @@ import com.google.common.collect.ListMultimap;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -58,6 +59,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final PluginRequestApplicator pluginRequestApplicator;
     private final FileLookup fileLookup;
+    private final DocumentationRegistry documentationRegistry;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
@@ -65,7 +67,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
                                       PluginRequestApplicator pluginRequestApplicator,
-                                      FileLookup fileLookup) {
+                                      FileLookup fileLookup,
+                                      DocumentationRegistry documentationRegistry) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
@@ -73,6 +76,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.pluginRequestApplicator = pluginRequestApplicator;
         this.fileLookup = fileLookup;
+        this.documentationRegistry = documentationRegistry;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean ownerScript) {
@@ -124,7 +128,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);
             String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
 
-            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName, onPluginBlockError);
+            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName, onPluginBlockError, documentationRegistry);
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(classpathClosureName, scriptBlockTransformer);
 

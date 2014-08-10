@@ -18,7 +18,7 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.TaskParameter
+import org.gradle.TaskExecutionRequest
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
@@ -103,12 +103,12 @@ class ConfiguringBuildActionTest extends Specification {
         assertThat(new ConfiguringBuildAction({} as ProviderOperationParameters, null, [foo: 'bar']), isSerializable())
     }
 
-    abstract class LaunchableParameter implements InternalLaunchable, TaskParameter {}
+    abstract class LaunchableExecutionRequest implements InternalLaunchable, TaskExecutionRequest {}
 
     def "accepts launchables from consumer"() {
         given:
-        def selector = Mock(LaunchableParameter)
-        _ * selector.taskName >> 'myTask'
+        def selector = Mock(LaunchableExecutionRequest)
+        _ * selector.args >> ['myTask']
         _ * selector.projectPath >> ':child'
 
         ProviderOperationParameters providerParameters = Mock(ProviderOperationParameters)
@@ -120,6 +120,6 @@ class ConfiguringBuildActionTest extends Specification {
         def start = action.configureStartParameter()
 
         then:
-        start.taskParameters.size() == 1
+        start.taskRequests.size() == 1
     }
 }

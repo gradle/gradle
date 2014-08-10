@@ -215,4 +215,41 @@ ear {
         ear.assertFileContent("lib/file.txt", "good")
     }
 
+    @Test
+    void "use security role closure"() {
+        file('bad-lib/file.txt').createFile().write('bad')
+        file('good-lib/file.txt').createFile().write('good')
+
+        file('build.gradle').write('''
+apply plugin: 'ear'
+ear {
+  deploymentDescriptor {
+
+    securityRole {
+      roleName="superman"
+      description="This is the SUPERMAN role"
+     }
+
+    securityRole {
+      roleName="supergirl"
+      description="This is the SUPERGIRL role"
+    }
+  }
+}''')
+
+        // when
+        executer.withTasks('assemble').run();
+
+        file("build/libs/root.ear").unzipTo(file("unzipped"))
+
+        //then
+        def appXml = new XmlSlurper().parse(
+                file('unzipped/META-INF/application.xml'))
+        def roles = appXml."security-role"
+        assertEquals(roles[0]."role-name".text(), 'superman')
+        assertEquals(roles[0].description.text(), 'This is the SUPERMAN role')
+        assertEquals(roles[1]."role-name".text(), 'supergirl')
+        assertEquals(roles[1].description.text(), 'This is the SUPERGIRL role')
+    }
+
 }

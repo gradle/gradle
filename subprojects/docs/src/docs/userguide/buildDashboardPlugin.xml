@@ -41,8 +41,8 @@
         </para>
         <para>
             The <literal>buildDashboard</literal> task does not depend on any other tasks. It will only aggregate the reporting tasks that are independently
-            being executed as part of the build run. To generate the build dashboard, simply include the <literal>buildDashboard</literal> task in the list of tasks to execute.
-            For example, <userinput>gradle buildDashboard build</userinput> will generate a dashboard for all of the reporting tasks that are dependents of the <literal>build</literal> task.
+            being executed as part of the build run. To generate the build dashboard, simply include this task in the list of tasks to execute.
+            For example, “<userinput>gradle buildDashboard build</userinput>” will generate a dashboard for all of the reporting tasks that are dependents of the <literal>build</literal> task.
         </para>
     </section>
 

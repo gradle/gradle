@@ -18,12 +18,14 @@
         <td>
             <filename>src/<replaceable>sourceSet</replaceable>/java</filename>
         </td>
+        <td></td>
         <td>Java source for the given source set</td>
     </tr>
     <tr>
         <td>
             <filename>src/<replaceable>sourceSet</replaceable>/resources</filename>
         </td>
+        <td></td>
         <td>Resources for the given source set</td>
     </tr>
 </tgroup>

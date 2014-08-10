@@ -17,11 +17,10 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-public class JarClasspathSnapshotData implements Serializable {
+public class JarClasspathSnapshotData {
 
     private final Map<File, byte[]> jarHashes;
     private final Set<String> duplicateClasses;

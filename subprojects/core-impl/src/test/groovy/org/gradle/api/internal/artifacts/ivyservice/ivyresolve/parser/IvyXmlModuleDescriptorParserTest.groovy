@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -233,7 +234,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                 md.getDescription().replaceAll("\r\n", "\n").replace('\r', '\n'))
 
         assertEquals(1, md.getExtraInfo().size())
-        assertEquals("56576", md.getExtraInfo().get("e:someExtra"))
+        assertEquals("56576", md.getExtraInfo().get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")))
 
         Configuration[] confs = md.getConfigurations()
         assertNotNull(confs)
@@ -600,6 +601,28 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         descriptor.getArtifacts("d")*.name == ['mymodule', 'art2']
     }
 
+    def "accumulates configurations if the same artifact listed more than once"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0">
+                <info organisation="myorg" module="mymodule" revision="myrev"/>
+                <configurations><conf name="a"/><conf name="b"/><conf name="c"/><conf name="d"/><conf name="e"/></configurations>
+                <publications>
+                    <artifact name='art' type='type' ext='ext' conf='a,b'/>
+                    <artifact name='art' type='type' ext='ext' conf='b,c'/>
+                </publications>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+
+        then:
+        descriptor.allArtifacts.length == 1
+        descriptor.allArtifacts[0].configurations == ['a', 'b', 'c']
+    }
+
     def "parses extra attributes and extra info"() {
         given:
         def file = temporaryFolder.createFile("ivy.xml")
@@ -626,8 +649,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         descriptor.moduleRevisionId.qualifiedExtraAttributes['b:b'] == "2"
         descriptor.moduleRevisionId.qualifiedExtraAttributes['c:a'] == "3"
         descriptor.extraInfo.size() == 2
-        descriptor.extraInfo['b:a'] == "info 1"
-        descriptor.extraInfo['c:a'] == "info 2"
+        descriptor.extraInfo[new NamespaceId("namespace-b", "a")] == "info 1"
+        descriptor.extraInfo[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {

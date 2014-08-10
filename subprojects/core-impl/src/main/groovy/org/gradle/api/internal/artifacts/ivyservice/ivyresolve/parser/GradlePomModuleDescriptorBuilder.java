@@ -81,9 +81,8 @@ public class GradlePomModuleDescriptorBuilder {
     };
 
     static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
-
-    private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
+    private static final String EXTRA_ATTRIBUTE_CLASSIFIER = "m:classifier";
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
@@ -233,21 +232,13 @@ public class GradlePomModuleDescriptorBuilder {
             if (dep.getType() != null) {
                 type = dep.getType();
             }
-            String ext = type;
-
-            // if type is 'test-jar', the extension is 'jar' and the classifier is 'tests'
-            // Cfr. http://maven.apache.org/guides/mini/guide-attached-tests.html
-            if ("test-jar".equals(type)) {
-                ext = "jar";
-                extraAtt.put("m:classifier", "tests");
-            } else if (JAR_PACKAGINGS.contains(type)) {
-                ext = "jar";
-            }
+            String ext = determineExtension(type);
+            handleSpecialTypes(type, extraAtt);
 
             // we deal with classifiers by setting an extra attribute and forcing the
             // dependency to assume such an artifact is published
             if (dep.getClassifier() != null) {
-                extraAtt.put("m:classifier", dep.getClassifier());
+                extraAtt.put(EXTRA_ATTRIBUTE_CLASSIFIER, dep.getClassifier());
             }
             DefaultDependencyArtifactDescriptor depArtifact = new DefaultDependencyArtifactDescriptor(dd, dd.getDependencyId().getName(), type, ext, null, extraAtt);
             // here we have to assume a type and ext for the artifact, so this is a limitation
@@ -277,6 +268,61 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         ivyModuleDescriptor.addDependency(dd);
+    }
+
+    /**
+     * Determines extension of dependency.
+     *
+     * @param type Type
+     * @return Extension
+     */
+    private String determineExtension(String type) {
+        return JarDependencyType.isJarExtension(type) ? "jar" : type;
+    }
+
+    /**
+     * Handles special types of dependencies. If one of the following types matches, a specific type of classifier is set.
+     *
+     * - test-jar (see <a href="http://maven.apache.org/guides/mini/guide-attached-tests.html">Maven documentation</a>)
+     * - ejb-client (see <a href="http://maven.apache.org/plugins/maven-ejb-plugin/examples/ejb-client-dependency.html">Maven documentation</a>)
+     *
+     * @param type Type
+     * @param extraAttributes Extra attributes
+     */
+    private void handleSpecialTypes(String type, Map<String, String> extraAttributes) {
+        if(JarDependencyType.TEST_JAR.getName().equals(type)) {
+            extraAttributes.put(EXTRA_ATTRIBUTE_CLASSIFIER, "tests");
+        } else if(JarDependencyType.EJB_CLIENT.getName().equals(type)) {
+            extraAttributes.put(EXTRA_ATTRIBUTE_CLASSIFIER, "client");
+        }
+    }
+
+    private enum JarDependencyType {
+        TEST_JAR("test-jar"), EJB_CLIENT("ejb-client"), EJB("ejb"), BUNDLE("bundle"), MAVEN_PLUGIN("maven-plugin"), ECLIPSE_PLUGIN("eclipse-plugin");
+
+        private static final Map<String, JarDependencyType> TYPES;
+
+        static {
+            TYPES = new HashMap<String, JarDependencyType>();
+
+            for(JarDependencyType type : values()) {
+                TYPES.put(type.name, type);
+            }
+        }
+
+        private final String name;
+
+        private JarDependencyType(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public static boolean isJarExtension(String type) {
+            return TYPES.containsKey(type);
+        }
     }
 
     /**

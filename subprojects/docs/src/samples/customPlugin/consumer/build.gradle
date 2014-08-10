@@ -7,11 +7,12 @@ buildscript {
         }
     }
     dependencies {
-        classpath group: 'org.gradle', name: 'customPlugin', version: '1.0-SNAPSHOT'
+        classpath group: 'org.gradle', name: 'customPlugin',
+				  version: '1.0-SNAPSHOT'
     }
 }
 // END SNIPPET use-task
-apply plugin: 'greeting'
+apply plugin: 'org.samples.greeting'
 // END SNIPPET use-plugin
 // START SNIPPET use-task
 

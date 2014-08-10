@@ -41,7 +41,6 @@
     border: solid 2px #d0d0d0;
     -moz-border-radius: 10px;
     border-radius: 10px;
-    behavior: url(htc/css3-pie-1.0beta3.htc);
 }
 
 #successRate {

@@ -8,14 +8,16 @@ publishing {
     publications {
         ivyCustom(IvyPublication) {
             descriptor.withXml {
-                asNode().info[0].appendNode('description', 'A demonstration of ivy descriptor customization')
+                asNode().info[0].appendNode('description',
+                                            'A demonstration of ivy descriptor customization')
             }
         }
     }
 // END SNIPPET customize-descriptor
     repositories {
         ivy {
-            url "$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
+            // change to point to your repo, e.g. http://my.org/repo
+            url "$buildDir/repo"
         }
     }
 }

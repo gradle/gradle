@@ -52,27 +52,27 @@
         The <command>gradlew</command> command can be used <emphasis>exactly</emphasis> the same way as the <command>gradle</command> command.
     </para>
     <para>If you want to switch to a new version of Gradle you don't need to rerun the wrapper task. It is good enough
-        to change the respective entry in the <literal>gradle-wrapper.properties</literal> file. But if there is for
-        example an improvement in the gradle-wrapper functionality you need to regenerate the wrapper files.
+        to change the respective entry in the <literal>gradle-wrapper.properties</literal> file, but if you want to take
+        advantage of new functionality in the Gradle wrapper, then you would need to regenerate the wrapper files.
     </para>
     <section id='sec:configuration'>
         <title>Configuration</title>
         <para>If you run Gradle with <command>gradlew</command>, the wrapper checks if a Gradle distribution for the wrapper
-            is available. If not it tries to download it, otherwise it delegates to the <command>gradle</command>
+            is available. If so, it delegates to the <command>gradle</command>
             command of this distribution with all the arguments passed originally to the <command>gradlew</command>
-            command.
+            command.  If it didn't find a Gradle distribution, it will download it first.
         </para>
         <para>
             When you configure the <literal>Wrapper</literal> task, you can specify the Gradle version you wish to use. The <command>gradlew</command>
             command will download the appropriate distribution from the Gradle repository.
             Alternatively, you can specify the download URL of the Gradle distribution. The <command>gradlew</command> command will use this URL to download
             the distribution.
-            If you specify neither a Gradle version or download URL, the <command>gradlew</command> command will by default download whichever version
+            If you specified neither a Gradle version nor download URL, the <command>gradlew</command> command will download whichever version
             of Gradle was used to generate the wrapper files.
         </para>
-        <para>For the details on how to configure the wrapper, see <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
+        <para>For the details on how to configure the wrapper, see the <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> class in the API documentation.
         </para>
-        <para>If you don't want any download to happen when your project is build via <command>gradlew</command>, simply add the Gradle
+        <para>If you don't want any download to happen when your project is built via <command>gradlew</command>, simply add the Gradle
             distribution zip to your version control at the location specified by your wrapper configuration.
             A relative URL is supported - you can specify a distribution file relative to the location of <literal>gradle-wrapper.properties</literal> file.
         </para>
@@ -81,9 +81,9 @@
     </section>
     <section id='sec:unix_file_permissions'>
         <title>Unix file permissions</title>
-        <para>The Wrapper task adds appropriate file permissions to allow the execution for the gradlew *NIX command.
+        <para>The Wrapper task adds appropriate file permissions to allow the execution of the <literal>gradlew</literal> *NIX command.
             Subversion preserves this file permission. We are not sure how other version control systems deal with this.
-            What should always work is to execute <literal>sh gradlew</literal>.
+            What should always work is to execute “<literal>sh gradlew</literal>”.
         </para>
     </section>
 </chapter>

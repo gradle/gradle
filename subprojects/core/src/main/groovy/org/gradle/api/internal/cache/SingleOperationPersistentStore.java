@@ -21,9 +21,11 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.messaging.serialize.Serializer;
 
 import static org.apache.commons.lang.WordUtils.uncapitalize;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import static org.gradle.messaging.serialize.BaseSerializerFactory.LONG_SERIALIZER;
 import static org.gradle.util.GUtil.toCamelCase;
 
 public class SingleOperationPersistentStore<V> {
@@ -36,16 +38,16 @@ public class SingleOperationPersistentStore<V> {
 
     private final Object scope;
     private final String cacheName;
-    private final Class<V> valueClass;
+    private final Serializer<V> valueSerializer;
 
     private PersistentIndexedCache<Long, V> cache;
     private PersistentCache cacheAccess;
 
-    public SingleOperationPersistentStore(CacheRepository cacheRepository, Object scope, String cacheName, Class<V> valueClass) {
+    public SingleOperationPersistentStore(CacheRepository cacheRepository, Object scope, String cacheName, Serializer<V> valueSerializer) {
         this.cacheRepository = cacheRepository;
         this.scope = scope;
         this.cacheName = cacheName;
-        this.valueClass = valueClass;
+        this.valueSerializer = valueSerializer;
     }
 
     //Opens and closes the cache for operation
@@ -75,7 +77,7 @@ public class SingleOperationPersistentStore<V> {
                 .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                 .open();
 
-        cache = cacheAccess.createCache(new PersistentIndexedCacheParameters<Long, V>(identifier, Long.class, valueClass));
+        cache = cacheAccess.createCache(new PersistentIndexedCacheParameters<Long, V>(identifier, LONG_SERIALIZER, valueSerializer));
     }
 
     private void closeCaches() {

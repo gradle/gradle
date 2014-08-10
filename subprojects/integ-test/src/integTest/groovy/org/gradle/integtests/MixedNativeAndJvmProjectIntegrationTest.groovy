@@ -15,8 +15,9 @@
  */
 
 package org.gradle.integtests
-
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegrationSpec {
 
@@ -36,9 +37,9 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
             }
 
             task checkBinaries << {
-                assert binaries.mainClasses instanceof ClassDirectoryBinary
-                assert binaries.mainExeExecutable instanceof NativeExecutableBinary
-                assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinary
+                assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
+                assert binaries.mainExeExecutable instanceof NativeExecutableBinarySpec
+                assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinarySpec
             }
 """
         expect:
@@ -66,38 +67,57 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     }
 
     task check << {
-        assert projectComponents.size() == 3
-        assert projectComponents.nativeExe instanceof NativeExecutable
-        assert projectComponents.nativeLib instanceof NativeLibrary
-        assert projectComponents.jvmLib instanceof JvmLibrary
+        assert componentSpecs.size() == 3
+        assert componentSpecs.nativeExe instanceof NativeExecutableSpec
+        assert componentSpecs.nativeLib instanceof NativeLibrarySpec
+        assert componentSpecs.jvmLib instanceof JvmLibrarySpec
 
-        assert nativeRuntime.executables as List == [projectComponents.nativeExe]
-        assert nativeRuntime.libraries as List == [projectComponents.nativeLib]
-        assert jvm.libraries as List == [projectComponents.jvmLib]
+        assert nativeRuntime.executables as List == [componentSpecs.nativeExe]
+        assert nativeRuntime.libraries as List == [componentSpecs.nativeLib]
+        assert jvm.libraries as List == [componentSpecs.jvmLib]
 
         assert binaries.size() == 4
-        binaries.jvmLibJar instanceof JvmLibraryBinary
-        binaries.nativeExeExecutable instanceof NativeExecutableBinary
-        binaries.nativeLibStaticLibrary instanceof StaticLibraryBinary
-        binaries.nativeLibSharedLibrary instanceof SharedLibraryBinary
+        assert binaries.jvmLibJar instanceof JarBinarySpec
+        assert binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
+        assert binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
+        assert binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
     }
 """
         expect:
         succeeds "check"
     }
 
-    // TODO:DAZ Need to add some sources and actually build the binary outputs
-    def "can build jvm and native components in the same project"() {
+    def "build mixed components in one project"() {
+        given:
+        file("src/jvmLib/java/org/gradle/test/Test.java") << """
+package org.gradle.test;
+
+class Test {
+    int val = 4;
+    String name = "foo";
+}
+"""
+        file("src/jvmLib/resources/test.txt") << "Here is a test resource"
+
+        file("src/nativeApp/c/main.c") << """
+#include <stdio.h>
+
+int main () {
+    printf("Hello world!");
+    return 0;
+}
+"""
+
+        and:
         buildFile << """
     apply plugin: 'native-component'
+    apply plugin: 'c'
     apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
 
     nativeRuntime {
         executables {
             nativeApp
-        }
-        libraries {
-            nativeLib
         }
     }
     jvm {
@@ -110,27 +130,25 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         succeeds "jvmLibJar"
 
         then:
-        executed ":createJvmLibJar", ":jvmLibJar"
-        notExecuted  ":nativeAppExecutable", ":nativeLibStaticLibrary", ":nativeLibSharedLibrary"
-
-        when:
-        succeeds "nativeLibStaticLibrary"
-
-        then:
-        executed ":createNativeLibStaticLibrary", ":nativeLibStaticLibrary"
-        notExecuted ":jvmLibJar", ":nativeAppExecutable", ":nativeLibSharedLibrary"
+        executedAndNotSkipped ":compileJvmLibJarJvmLibJava", ":processJvmLibJarJvmLibResources", ":createJvmLibJar", ":jvmLibJar"
+        notExecuted  ":nativeAppExecutable"
 
         when:
         succeeds  "nativeAppExecutable"
 
         then:
-        executed ":linkNativeAppExecutable", ":nativeAppExecutable"
-        notExecuted ":jvmLibJar", ":nativeLibStaticLibrary", ":nativeLibSharedLibrary"
+        executed ":compileNativeAppExecutableNativeAppC", ":linkNativeAppExecutable", ":nativeAppExecutable"
+        notExecuted ":jvmLibJar"
 
         when:
         succeeds "assemble"
 
         then:
-        executed ":jvmLibJar", ":nativeAppExecutable", ":nativeLibSharedLibrary", ":nativeLibStaticLibrary"
+        executed ":jvmLibJar", ":nativeAppExecutable"
+
+        and:
+        new JarTestFixture(file("build/jars/jvmLibJar/jvmLib.jar")).hasDescendants("org/gradle/test/Test.class", "test.txt");
+        def nativeExeName = OperatingSystem.current().getExecutableName("nativeApp")
+        file("build/binaries/nativeAppExecutable/${nativeExeName}").assertExists()
     }
 }

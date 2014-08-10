@@ -15,14 +15,20 @@
  */
 
 package org.gradle.runtime.jvm.internal.plugins
+
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.runtime.base.Binary
 import org.gradle.runtime.base.BinaryContainer
+import org.gradle.runtime.base.ComponentSpecIdentifier
+import org.gradle.runtime.base.BinarySpec
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
-import org.gradle.runtime.jvm.JvmLibrary
-import org.gradle.runtime.jvm.internal.DefaultJvmLibrary
-import org.gradle.runtime.jvm.internal.DefaultJvmLibraryBinary
+import org.gradle.runtime.jvm.JvmLibrarySpec
+import org.gradle.runtime.jvm.internal.DefaultJarBinarySpec
+import org.gradle.runtime.jvm.internal.DefaultJvmLibrarySpec
+import org.gradle.runtime.jvm.plugins.JvmComponentPlugin
+import org.gradle.runtime.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -30,48 +36,69 @@ import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
 class CreateJvmBinariesTest extends Specification {
     def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
-    def rule = new CreateJvmBinaries(namingSchemeBuilder, buildDir)
+    def toolChain = Mock(JavaToolChain)
+    def rule = new JvmComponentPlugin.Rules()
     def binaries = Mock(BinaryContainer)
+    def mainSourceSet = Mock(FunctionalSourceSet)
+
+    def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
+        JavaToolChain createToolChain() {
+            toolChain
+        }
+    }).build()
 
     def "adds a binary for each jvm library"() {
-        def library = new DefaultJvmLibrary("jvmLibOne")
+        def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"), mainSourceSet)
         def namingScheme = Mock(BinaryNamingScheme)
 
         when:
-        rule.createBinaries(binaries, toNamedDomainObjectSet(JvmLibrary, library))
+        rule.createBinaries(binaries, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry)
 
         then:
+        _ * namingScheme.description >> "jvmLibJar"
+        _ * namingScheme.outputDirectoryBase >> "jvmJarOutput"
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * namingScheme.outputDirectoryBase >> "jvmJarOutput"
-        1 * binaries.add({ DefaultJvmLibraryBinary binary ->
+        1 * binaries.add({ DefaultJarBinarySpec binary ->
             binary.namingScheme == namingScheme
             binary.library == library
-        } as Binary)
+            binary.classesDir == new File(buildDir, "jvmJarOutput")
+            binary.resourcesDir == binary.classesDir
+            binary.toolChain == toolChain
+        } as BinarySpec)
         0 * _
     }
 
     def "created binary has sources from jvm library"() {
-        def library = new DefaultJvmLibrary("jvmLibOne")
+        def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"), mainSourceSet)
         def namingScheme = Mock(BinaryNamingScheme)
         def source1 = Mock(LanguageSourceSet)
         def source2 = Mock(LanguageSourceSet)
 
         when:
         library.source([source1, source2])
-        rule.createBinaries(binaries, toNamedDomainObjectSet(JvmLibrary, library))
+        rule.createBinaries(binaries, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry)
 
         then:
+        _ * namingScheme.description >> "jvmLibJar"
+        _ * namingScheme.outputDirectoryBase >> "jvmJarOutput"
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * namingScheme.outputDirectoryBase >> "jvmJarOutput"
-        1 * binaries.add({ DefaultJvmLibraryBinary binary ->
+        1 * binaries.add({ DefaultJarBinarySpec binary ->
             binary.namingScheme == namingScheme
             binary.library == library
             binary.source == library.source
-        } as Binary)
+            binary.toolChain == toolChain
+        } as BinarySpec)
         0 * _
+    }
+
+    def componentId(def name, def path) {
+        Stub(ComponentSpecIdentifier) {
+            getName() >> name
+            getProjectPath() >> path
+        }
     }
 }

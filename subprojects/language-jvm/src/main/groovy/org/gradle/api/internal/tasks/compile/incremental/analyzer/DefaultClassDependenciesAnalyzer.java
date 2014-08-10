@@ -24,8 +24,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
 
@@ -35,12 +35,12 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor();
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
-        List<String> classDependencies = getClassDependencies(filter, reader);
+        Set<String> classDependencies = getClassDependencies(filter, reader);
         return new ClassAnalysis(classDependencies, visitor.dependentToAll);
     }
 
-    private List<String> getClassDependencies(ClassRelevancyFilter filter, ClassReader reader) {
-        List<String> out = new LinkedList<String>();
+    private Set<String> getClassDependencies(ClassRelevancyFilter filter, ClassReader reader) {
+        Set<String> out = new HashSet<String>();
         char[] charBuffer = new char[reader.getMaxStringLength()];
         for (int i = 1; i < reader.getItemCount(); i++) {
             int itemOffset = reader.getItem(i);

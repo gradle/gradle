@@ -56,5 +56,5 @@ public interface ReportRenderer {
     /**
      * Completes this report. This method must be called last on this renderer.
      */
-    void complete() throws IOException;
+    void complete();
 }

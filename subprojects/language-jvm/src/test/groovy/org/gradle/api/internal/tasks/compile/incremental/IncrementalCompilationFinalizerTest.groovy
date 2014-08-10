@@ -28,7 +28,7 @@ class IncrementalCompilationFinalizerTest extends Specification {
 
     def compiler = Mock(Compiler)
     def writer = Mock(JarClasspathSnapshotWriter)
-    def infoUpdater = Mock(ClassDependencyInfoUpdater)
+    def infoUpdater = Mock(ClassSetAnalysisUpdater)
     def compileSpec = Stub(JavaCompileSpec)
 
     @Subject finalizer = new IncrementalCompilationFinalizer(compiler, writer, infoUpdater)
@@ -39,12 +39,12 @@ class IncrementalCompilationFinalizerTest extends Specification {
 
         then:
         1 * compiler.execute(compileSpec) >> Mock(WorkResult)
-        1 * infoUpdater.updateInfo(compileSpec)
+        1 * infoUpdater.updateAnalysis(compileSpec)
         1 * writer.storeJarSnapshots(_)
         0 * _
     }
 
-    def "does not update dependency info if rebuild was not required"() {
+    def "does not update if rebuild was not required"() {
         when:
         finalizer.execute(compileSpec)
 

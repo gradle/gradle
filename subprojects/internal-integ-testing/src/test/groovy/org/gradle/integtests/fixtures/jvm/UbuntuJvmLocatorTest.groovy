@@ -16,15 +16,22 @@
 package org.gradle.integtests.fixtures.jvm
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
 class UbuntuJvmLocatorTest extends Specification {
+
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def libDir = tmpDir.file("lib")
-    def locator = new UbuntuJvmLocator(libDir)
+    def fileCanonicalizer = Stub(FileCanonicalizer) {
+        canonicalize(_) >> { File f -> f.canonicalFile }
+    }
+    def locator = new UbuntuJvmLocator(new File(libDir.absolutePath), fileCanonicalizer)
 
     def "finds no JVMs when lib directory does not exist"() {
         expect:
@@ -75,6 +82,21 @@ class UbuntuJvmLocatorTest extends Specification {
 
         jvms[1].javaVersion == JavaVersion.VERSION_1_7
         jvms[1].jdk
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "locates JDK in canonicalized directory"() {
+        given:
+        jdk("real-install/java-1.7-openjdk-amd64")
+        libDir.file("java-1.7.0-openjdk-amd64").createLink("real-install/java-1.7-openjdk-amd64")
+
+        expect:
+        def jvms = locator.findJvms()
+        jvms.size() == 1
+
+        jvms[0].javaVersion == JavaVersion.VERSION_1_7
+        jvms[0].jdk
+        jvms[0].javaHome == libDir.file("real-install/java-1.7-openjdk-amd64")
     }
 
     def jre(String name) {

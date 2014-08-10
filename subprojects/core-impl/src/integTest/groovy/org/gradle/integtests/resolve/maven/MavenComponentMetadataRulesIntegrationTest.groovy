@@ -40,7 +40,7 @@ repositories {
         "release"
     }
 
-    def "rule that accepts IvyModuleMetadata isn't invoked for Maven component"() {
+    def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
         def module = repo.module('org.test', 'projectA', '1.0').publish()
         module.pom.expectGet()
         module.artifact.expectGet()
@@ -55,7 +55,7 @@ dependencies {
         eachComponent { details ->
             plainRuleInvoked = true
         }
-        eachComponent { details, IvyModuleMetadata descriptor ->
+        eachComponent { details, IvyModuleDescriptor descriptor ->
             ivyRuleInvoked = true
         }
     }

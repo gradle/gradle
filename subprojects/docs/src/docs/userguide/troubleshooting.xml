@@ -37,14 +37,14 @@
         </para>
         <para>
             If you are using the Gradle Daemon, try temporarily disabling the daemon (you can pass the command line switch <literal>--no-daemon</literal>).
-            More information about troubleshooting daemon is located in <xref linkend="gradle_daemon"/>.
+            More information about troubleshooting the daemon process is located in <xref linkend="gradle_daemon"/>.
         </para>
     </section>
     <section>
         <title>Getting help</title>
         <para>
             The place to go for help with Gradle is <ulink url="http://forums.gradle.org">http://forums.gradle.org</ulink>.
-            The Gradle Forums is the place where you can report problems and ask questions to the Gradle 
+            The Gradle Forums is the place where you can report problems and ask questions of the Gradle 
             developers and other community members.
         </para>
         <para>

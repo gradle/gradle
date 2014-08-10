@@ -20,14 +20,14 @@ package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis
 import spock.lang.Specification
 import spock.lang.Subject
 
 class JarClasspathSnapshotMakerTest extends Specification {
 
     def store = Mock(LocalJarClasspathSnapshotStore)
-    def info = Mock(ClassDependencyInfo)
+    def analysis = Mock(ClassSetAnalysis)
     def factory = Mock(JarClasspathSnapshotFactory)
     def finder = Mock(ClasspathJarFinder)
 

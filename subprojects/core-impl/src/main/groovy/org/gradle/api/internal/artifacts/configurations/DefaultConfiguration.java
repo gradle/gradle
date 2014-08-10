@@ -126,7 +126,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Collections.unmodifiableSet(extendsFrom);
     }
 
-    public Configuration setExtendsFrom(Set<Configuration> extendsFrom) {
+    public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
         throwExceptionIfNotInUnresolvedState();
         for (Configuration configuration : this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
@@ -290,7 +290,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
         throwExceptionIfNotInUnresolvedState();
-        excludeRules.add(new DefaultExcludeRule(excludeRuleArgs.get(ExcludeRule.GROUP_KEY), excludeRuleArgs.get(ExcludeRule.MODULE_KEY)));
+        excludeRules.add(new ExcludeRuleNotationParser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
         return this;
     }
 

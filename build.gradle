@@ -16,8 +16,6 @@
 
 import org.gradle.build.Install
 import org.gradle.build.BuildTypes
-import org.gradle.build.TestReportAggregator
-
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
@@ -92,11 +90,19 @@ ext {
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageBase',
+        'ide', 'ideNative', 'announce', 'scala', 'sonar', 'signing', 'runtimeNative', 'ear', 'javascript', 'buildComparison',
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageNative', 'languageBase',
         'plugin-development'
     ].collect {
-        publishedProjects = [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging'), project(':resources')]
+        publishedProjects = [
+                project(':core'),
+                project(':toolingApi'),
+                project(':wrapper'),
+                project(':baseServices'),
+                project(':baseServicesGroovy'),
+                project(':messaging'),
+                project(':resources')
+        ]
         project(it)
     }
 }
@@ -109,6 +115,7 @@ apply from: "gradle/wrapper.gradle"
 apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
 apply from: "gradle/classycle.gradle"
+apply from: "gradle/strictCompile.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/testGroupings.gradle"
@@ -181,12 +188,6 @@ task waitForDaemonsToDie {
             sleep mins * 60 * 1000
         }
     }
-}
-
-task aggregateTestReports(type: TestReportAggregator) {
-    testReportDir = reporting.file("tests")
-    testResultsDir = file("${buildDir}/test-results")
-    projects = subprojects
 }
 
 evaluationDependsOn ":distributions"

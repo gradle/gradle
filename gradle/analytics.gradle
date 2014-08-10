@@ -21,7 +21,7 @@ buildscript {
     }
 
     dependencies {
-        classpath group: 'com.gradleware', name: 'analytics-plugin', version: '+'
+        classpath group: 'com.gradleware.analytics', name: 'analytics-plugin', version: '0.1-20140728061809'
     }
 }
 
@@ -30,5 +30,5 @@ buildscript {
 apply plugin: com.gradleware.monitoring.plugin.AnalyticsPlugin
 analytics {
     serverUrl = "http://discovery-prod.herokuapp.com"
-    key = "1234567890"
+    key = "0987654321"
 }

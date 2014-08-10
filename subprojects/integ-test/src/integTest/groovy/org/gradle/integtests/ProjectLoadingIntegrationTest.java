@@ -148,7 +148,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void settingsFileTakesPrecedenceOverBuildFileInSameDirectory() {
         testFile("settings.gradle").write("rootProject.buildFileName = 'root.gradle'");
         testFile("root.gradle").write("task('do-stuff')");
-        
+
         TestFile buildFile = testFile("build.gradle");
         buildFile.write("throw new RuntimeException()");
 
@@ -243,5 +243,34 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         usingProjectDir(getTestDirectory()).usingSettingsFile(settingsFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff");
         usingBuildFile(rootBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff");
         usingBuildFile(childBuildFile).usingSettingsFile(settingsFile).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
+    }
+
+    @Test
+    public void multiProjectBuildCanHaveAllProjectsAsChildrenOfSettingsDir() {
+        TestFile settingsFile = testFile("settings.gradle");
+        settingsFile.writelns(
+            "rootProject.projectDir = new File(settingsDir, 'root')",
+            "include 'sub'",
+            "project(':sub').projectDir = new File(settingsDir, 'root/sub')"
+        );
+
+        getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
+
+        inTestDirectory().withTasks(":thing").run().assertTasksExecuted(":thing");
+        inTestDirectory().withTasks(":sub:thing").run().assertTasksExecuted(":sub:thing");
+    }
+
+    @Test
+    public void usesRootProjectAsDefaultProjectWhenInSettingsDir() {
+        TestFile settingsDir = testFile("gradle");
+        TestFile settingsFile = settingsDir.file("settings.gradle");
+        settingsFile.writelns(
+            "rootProject.projectDir = new File(settingsDir, '../root')",
+            "include 'sub'",
+            "project(':sub').projectDir = new File(settingsDir, '../root/sub')"
+        );
+        getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
+
+        inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":thing", ":sub:thing");
     }
 }

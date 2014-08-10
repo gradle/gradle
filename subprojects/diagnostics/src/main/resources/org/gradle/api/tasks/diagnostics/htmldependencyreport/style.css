@@ -17,7 +17,6 @@
 .dependencyTree, #insight {
     border: solid 2px #d0d0d0;
     border-radius: 10px;
-    behavior: url(css3-pie-1.0beta3.htc);
     padding: 8px;
     background-color: #FFFFEE
 }
@@ -44,7 +43,7 @@
     cursor: pointer;
 }
 .configuration h3 ins {
-    background-image: url(d.png); background-repeat:no-repeat; background-color:white;
+    background-image: url(../images/d.png); background-repeat:no-repeat; background-color:white;
     background-position: -18px 0;
     display: inline-block;
     width: 18px;
@@ -68,7 +67,7 @@
 }
 #dismissInsight {
     float: right;
-    background:url("d.png") -18px -53px no-repeat !important;
+    background:url("../images/d.png") -18px -53px no-repeat !important;
     width: 20px;
     height: 20px;
     cursor: pointer;

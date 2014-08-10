@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.Distribution
@@ -39,9 +40,10 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
 
     def "run fails"() {
         def connection = new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter)
+        def cancellationToken = Mock(CancellationToken)
 
         when:
-        connection.run(GradleProject.class, parameters)
+        connection.run(GradleProject.class, cancellationToken, parameters)
 
         then:
         UnsupportedVersionException e = thrown()
@@ -50,9 +52,10 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
 
     def "partial BuildEnvirnment"() {
         def connection = new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter)
+        def cancellationToken = Mock(CancellationToken)
 
         when:
-        def buildEnv = connection.run(BuildEnvironment.class, parameters)
+        def buildEnv = connection.run(BuildEnvironment.class, cancellationToken, parameters)
 
         then:
         buildEnv.gradle.gradleVersion == '1.0-milestoneX'

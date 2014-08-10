@@ -382,7 +382,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             if (extraDescr.getValue() == null || ((String) extraDescr.getValue()).length() == 0) {
                 continue;
             }
-            writer.startElement(extraDescr.getKey().toString());
+            if (extraDescr.getKey() instanceof NamespaceId) {
+                NamespaceId id = (NamespaceId) extraDescr.getKey();
+                writer.startElement(String.format("ns:%s", id.getName()));
+                writer.attribute("xmlns:ns", id.getNamespace());
+            } else {
+                writer.startElement(extraDescr.getKey().toString());
+            }
             writer.characters(extraDescr.getValue().toString());
             writer.endElement();
         }

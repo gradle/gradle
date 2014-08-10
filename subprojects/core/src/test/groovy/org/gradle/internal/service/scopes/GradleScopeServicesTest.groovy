@@ -30,6 +30,7 @@ import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.service.ServiceRegistry
@@ -57,6 +58,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(PluginRegistry) >> pluginRegistryParent
         parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
         parent.get(ExecutorFactory) >> Stub(ExecutorFactory)
+        parent.get(BuildCancellationToken) >> Stub(BuildCancellationToken)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
     }

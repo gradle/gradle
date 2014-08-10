@@ -134,7 +134,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy:2.3.3"
+    compile "org.codehaus.groovy:groovy:2.3.6"
 }
 '''
     }

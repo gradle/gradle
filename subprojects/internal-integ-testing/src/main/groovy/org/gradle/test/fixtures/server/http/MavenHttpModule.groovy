@@ -135,11 +135,25 @@ class MavenHttpModule implements MavenModule, HttpModule {
         server.allowGetOrHead(moduleVersionPath, backingModule.moduleDir)
     }
 
+    void missing() {
+        server.allowGetOrHeadMissing(pomPath)
+        server.allowGetOrHeadMissing(metaDataPath)
+        server.allowGetOrHeadMissing(artifactPath)
+    }
+
     HttpResource getMetaData() {
         return new BasicHttpResource(server, metaDataFile, getMetaDataPath())
     }
 
     String getMetaDataPath() {
         "$moduleVersionPath/$metaDataFile.name"
+    }
+
+    String getArtifactPath() {
+        "$moduleVersionPath/$artifactFile.name"
+    }
+
+    String getPomPath() {
+        "$moduleVersionPath/$pomFile.name"
     }
 }

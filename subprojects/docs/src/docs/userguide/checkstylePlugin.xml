@@ -6,7 +6,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the Checkstyle plugin, include in your build script:</para>
+        <para>To use the Checkstyle plugin, include the following in your build script:</para>
         <sample id="useCheckstylePlugin" dir="codeQuality" title="Using the Checkstyle plugin">
             <sourcefile file="build.gradle" snippet="use-checkstyle-plugin"/>
         </sample>
@@ -107,7 +107,7 @@
 
     <section>
         <title>Configuration</title>
-        <para>See <apilink class="org.gradle.api.plugins.quality.CheckstyleExtension"/>.</para>
+        <para>See the <apilink class="org.gradle.api.plugins.quality.CheckstyleExtension"/> class in the API documentation.</para>
     </section>
 
 </chapter>

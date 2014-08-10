@@ -53,9 +53,9 @@ class BuildTypes {
             def taskNames = project.gradle.startParameter.taskNames
 
             def usedName = taskNames.find { it in [name, abbreviation] }
-            if (usedName) {
+            def index = taskNames.indexOf(usedName)
+            if (usedName && !((taskNames[index - 1] == '--task') && (taskNames[index - 2] ==~ /h(e(lp?)?)?/))) {
                 activeNames << name
-                def index = taskNames.indexOf(usedName)
                 taskNames.remove((int)index)
                 tasks.reverse().each {
                     taskNames.add(index, it)

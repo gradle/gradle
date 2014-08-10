@@ -23,7 +23,7 @@
     </para>
 
     <para>Ant can be divided into two layers. The first layer is the Ant language. It provides the syntax for the
-        <filename>build.xml</filename>, the handling of the targets, special constructs like macrodefs, and so on.
+        <filename>build.xml</filename> file, the handling of the targets, special constructs like macrodefs, and so on.
         In other words, everything except the Ant tasks and types. Gradle understands this language, and allows you to
         import your Ant <filename>build.xml</filename> directly into a Gradle project. You can then use the targets of
         your Ant build as if they were Gradle tasks.
@@ -62,7 +62,7 @@
         <para>You execute an Ant task by calling a method on the <literal>AntBuilder</literal> instance. You use the task
             name as the method name. For example, you execute the Ant <literal>echo</literal> task by calling the
             <literal>ant.echo()</literal> method. The attributes of the Ant task are passed as Map parameters to the
-            method. Below is an example which executes the <literal>echo</literal> task. Notice that we can also mix
+            method. Below is an example of the <literal>echo</literal> task. Notice that we can also mix
             Groovy code and the Ant task markup. This can be extremely powerful.</para>
         <sample id="useAntTask" dir="userguide/ant/useAntTask" title="Using an Ant task">
             <sourcefile file="build.gradle"/>

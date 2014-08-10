@@ -526,6 +526,20 @@ task test << {
         inTestDirectory().withTasks('test').run()
     }
 
+    //TODO SF spockify and reduce duplication
+    @Test
+    @Issue("GRADLE-3124")
+    public void "typo in configuration excludes is detected"() {
+        testFile("build.gradle") << """
+            configurations { foo }
+            configurations.foo.exclude group: 'kafka', modue: 'kafka'
+        """
+
+        expect:
+        def failure = inTestDirectory().runWithFailure()
+        failure.assertHasCause("No such property: modue")
+    }
+
     @Test
     public void nonTransitiveDependenciesAreNotRetrieved() {
         repo.module('org.gradle.test', 'one', '1.0').publish()

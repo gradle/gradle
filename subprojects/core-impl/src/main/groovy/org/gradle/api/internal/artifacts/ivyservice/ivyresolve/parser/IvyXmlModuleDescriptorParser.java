@@ -27,14 +27,16 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
+import org.apache.ivy.util.url.URLHandlerRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.metadata.BuildableIvyArtifact;
 import org.gradle.api.internal.artifacts.metadata.BuildableIvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
@@ -46,13 +48,13 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+import org.xml.sax.*;
+import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -441,7 +443,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private PatternMatcher defaultMatcher;
         private DefaultDependencyDescriptor dd;
         private ConfigurationAware confAware;
-        private MDArtifact artifact;
+        private BuildableIvyArtifact artifact;
         private String conf;
         private boolean artifactsDeclared;
         private StringBuffer buffer;
@@ -483,7 +485,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     InputSource inSrc = new InputSource(inputStream);
                     inSrc.setSystemId(descriptorURL.toExternalForm());
                     try {
-                        XMLHelper.parse(inSrc, schemaURL, Parser.this, null);
+                        ParserHelper.parse(inSrc, schemaURL, Parser.this, null);
                     } catch (Exception e) {
                         throw new MetaDataParseException("Ivy file", getResource(), e);
                     }
@@ -494,7 +496,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             replaceConfigurationWildcards();
             if (!artifactsDeclared) {
                 String[] configurationNames = getMd().getConfigurationsNames();
-                MDArtifact implicitArtifact = new MDArtifact(getMd(), getMd().getModuleRevisionId().getName(), "jar", "jar");
+                BuildableIvyArtifact implicitArtifact = new BuildableIvyArtifact(getMd().getModuleRevisionId().getName(), "jar", "jar");
                 for (String configurationName : configurationNames) {
                     implicitArtifact.addConfiguration(configurationName);
                 }
@@ -765,7 +767,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             // create a new temporary parser to read the configurations from
             // the specified file.
             Parser parser = newParser(new UrlExternalResource(url), url);
-            XMLHelper.parse(url , null, parser);
+            ParserHelper.parse(url , null, parser, null);
 
             // add the configurations from this temporary parser to this module descriptor
             Configuration[] configs = parser.getModuleDescriptor().getConfigurations();
@@ -853,7 +855,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String revConstraint = substitute(attributes.getValue("revConstraint"));
 
             String[] ignoredAttributeNames = DEPENDENCY_REGULAR_ATTRIBUTES;
-            Map extraAttributes = getExtraAttributes(attributes, ignoredAttributeNames);
+            Map<String, String> extraAttributes = getExtraAttributes(attributes, ignoredAttributeNames);
 
             ModuleRevisionId revId = createModuleRevisionId(org, name, branch, rev, extraAttributes);
             ModuleRevisionId dynamicId;
@@ -887,8 +889,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String type = elvis(substitute(attributes.getValue("type")), "jar");
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
                 String url = substitute(attributes.getValue("url"));
-                Map extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
-                artifact = new MDArtifact(getMd(), artName, type, ext, url == null ? null : new URL(url), extraAttributes);
+                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
+                artifact = new BuildableIvyArtifact(artName, type, ext, url == null ? null : new URL(url), extraAttributes);
                 String confs = substitute(attributes.getValue("conf"));
                 
                 // Only add confs if they are specified. if they aren't, endElement will handle this only if there are no conf defined in sub elements
@@ -941,7 +943,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String module = substitute(attributes.getValue("module"));
             String revision = substitute(attributes.getValue("revision"));
             String branch = substitute(attributes.getValue("branch"));
-            Map extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
+            Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
             getMd().setModuleRevisionId(createModuleRevisionId(org, module, branch, revision, extraAttributes));
 
             getMd().setStatus(elvis(substitute(attributes.getValue("status")), "integration"));
@@ -1026,21 +1028,21 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ext = ext != null ? ext : type;
             if (state == State.DEP_ARTIFACT) {
                 String url = substitute(attributes.getValue("url"));
-                Map extraAttributes = getExtraAttributes(attributes, new String[]{"name", "type", "ext", "url", "conf"});
+                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"name", "type", "ext", "url", "conf"});
                 confAware = new DefaultDependencyArtifactDescriptor(dd, name, type, ext, url == null ? null : new URL(url), extraAttributes);
             } else if (state == State.ARTIFACT_INCLUDE) {
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
                 ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
-                Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
+                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultIncludeRule(aid, matcher, extraAttributes);
             } else { // _state == ARTIFACT_EXCLUDE || EXCLUDE
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
                 ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
-                Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
+                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultExcludeRule(aid, matcher, extraAttributes);
             }
             String confs = substitute(attributes.getValue("conf"));
@@ -1094,7 +1096,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         public void endElement(String uri, String localName, String qName) throws SAXException {
             if (state == State.PUB && "artifact".equals(qName)) {
-                if (artifact.getConfigurations().length == 0) {
+                if (artifact.getConfigurations().isEmpty()) {
                     String[] confs = publicationsDefaultConf == null ? getMd().getConfigurationsNames() : publicationsDefaultConf;
                     for (String confName : confs) {
                         artifact.addConfiguration(confName.trim());
@@ -1139,7 +1141,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.EXTRA_INFO) {
-                getMd().addExtraInfo(qName, buffer == null ? "" : buffer.toString());
+                getMd().getExtraInfo().put(new NamespaceId(uri, localName), buffer == null ? "" : buffer.toString());
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.DESCRIPTION) {
@@ -1179,8 +1181,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return IvyPatternHelper.substituteVariables(name, properties);
         }
 
-        private Map getExtraAttributes(Attributes attributes, String[] ignoredAttributeNames) {
-            Map ret = new HashMap();
+        private Map<String, String> getExtraAttributes(Attributes attributes, String[] ignoredAttributeNames) {
+            Map<String, String> ret = new HashMap<String, String>();
             Collection ignored = Arrays.asList(ignoredAttributeNames);
             for (int i = 0; i < attributes.getLength(); i++) {
                 if (!ignored.contains(attributes.getQName(i))) {
@@ -1191,14 +1193,108 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         private void fillExtraAttributes(DefaultExtendableItem item, Attributes attributes, String[] ignoredAttNames) {
-            Map extraAttributes = getExtraAttributes(attributes, ignoredAttNames);
-            for (Object name : extraAttributes.keySet()) {
-                item.setExtraAttribute((String) name, (String) extraAttributes.get(name));
+            Map<String, String> extraAttributes = getExtraAttributes(attributes, ignoredAttNames);
+            for (String name : extraAttributes.keySet()) {
+                item.setExtraAttribute(name, extraAttributes.get(name));
             }
         }
 
         private PatternMatcher getMatcher(String matcherName) {
             return resolverStrategy.getPatternMatcher(matcherName);
+        }
+    }
+
+    public static class ParserHelper {
+        static final String JAXP_SCHEMA_LANGUAGE
+                = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
+
+        static final String JAXP_SCHEMA_SOURCE
+                = "http://java.sun.com/xml/jaxp/properties/schemaSource";
+
+        static final String XML_NAMESPACE_PREFIXES
+                = "http://xml.org/sax/features/namespace-prefixes";
+
+        static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+
+        private static SAXParser newNonValidatingSAXParser() throws ParserConfigurationException, SAXException {
+            SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+            parserFactory.setValidating(false);
+            parserFactory.setNamespaceAware(true);
+            SAXParser parser = parserFactory.newSAXParser();
+            parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES, true);
+            return parser;
+        }
+
+        private static SAXParser newSAXParser(URL schema, InputStream schemaStream)
+                throws ParserConfigurationException, SAXException {
+            if (schema == null) {
+                return newNonValidatingSAXParser();
+            }
+            try {
+                SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+                parserFactory.setNamespaceAware(true);
+                parserFactory.setValidating(true);
+                SAXParser parser = parserFactory.newSAXParser();
+                parser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
+                parser.setProperty(JAXP_SCHEMA_SOURCE, schemaStream);
+                parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES, true);
+                return parser;
+            } catch (SAXNotRecognizedException ex) {
+                System.err.println(
+                        "WARNING: problem while setting JAXP validating property on SAXParser... "
+                                + "XML validation will not be done: " + ex.getMessage());
+                return newNonValidatingSAXParser();
+            }
+        }
+
+        public static void parse(
+                URL xmlURL, URL schema, DefaultHandler handler, LexicalHandler lHandler)
+                throws SAXException, IOException, ParserConfigurationException {
+            InputStream xmlStream = URLHandlerRegistry.getDefault().openStream(xmlURL);
+            try {
+                InputSource inSrc = new InputSource(xmlStream);
+                inSrc.setSystemId(xmlURL.toExternalForm());
+                parse(inSrc, schema, handler, lHandler);
+            } finally {
+                try {
+                    xmlStream.close();
+                } catch (IOException e) {
+                    // ignored
+                }
+            }
+        }
+
+        public static void parse(
+                InputSource xmlStream, URL schema, DefaultHandler handler, LexicalHandler lHandler)
+                throws SAXException, IOException, ParserConfigurationException {
+            InputStream schemaStream = null;
+            try {
+                if (schema != null) {
+                    schemaStream = URLHandlerRegistry.getDefault().openStream(schema);
+                }
+                SAXParser parser = newSAXParser(schema, schemaStream);
+
+                if (lHandler != null) {
+                    try {
+                        parser.setProperty("http://xml.org/sax/properties/lexical-handler", lHandler);
+                    } catch (SAXException ex) {
+                        System.err.println(
+                                "WARNING: problem while setting the lexical handler property on SAXParser: "
+                                        + ex.getMessage());
+                        // continue without the lexical handler
+                    }
+                }
+
+                parser.parse(xmlStream, handler);
+            } finally {
+                if (schemaStream != null) {
+                    try {
+                        schemaStream.close();
+                    } catch (IOException ex) {
+                        // ignored
+                    }
+                }
+            }
         }
     }
 

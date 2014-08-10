@@ -106,7 +106,38 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
-                .assertHasCause("Invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
+                .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
+    }
+
+    void "resolve dependencies from a SFTP Ivy repository with unsupported password authentication"() {
+        given:
+        server.withPasswordAuthenticationDisabled()
+        and:
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${ivySftpRepo.uri}"
+                    credentials {
+                        username 'sftp'
+                        password 'sftp'
+                    }
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'org.group.name:projectA:1.2' }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
+
+        when:
+        fails 'retrieve'
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+                .assertHasCause('Could not resolve org.group.name:projectA:1.2')
+                .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
     void "resolve dependencies from an unreachable SFTP Ivy repository"() {

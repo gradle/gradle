@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import spock.lang.Issue
 import spock.lang.Specification
 
 class AbstractNamedDomainObjectContainerTest extends Specification {
@@ -207,6 +208,24 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         container.asMap.keySet() == ['list1', 'list2'] as Set
         container.list1.prop == 'list1'
         container.list2.prop == 'list2'
+    }
+
+    static class Owner {
+        void thing(Closure closure) {}
+    }
+
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-3126")
+    def "can create element when owner scope has item with same name"() {
+        when:
+        new Owner().with {
+            container.configure {
+                thing {}
+            }
+        }
+
+        then:
+        container.names.toList() == ["thing"]
     }
 }
 

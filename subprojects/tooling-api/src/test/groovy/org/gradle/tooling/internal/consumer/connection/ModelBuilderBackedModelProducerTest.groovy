@@ -44,7 +44,7 @@ class ModelBuilderBackedModelProducerTest extends Specification {
         setup:
         1 * versionDetails.maySupportModel(SomeModel.class) >> false
         when:
-        modelProducer.produceModel(SomeModel.class, Mock(ConsumerOperationParameters))
+        modelProducer.produceModel(SomeModel.class, null, Mock(ConsumerOperationParameters))
         then:
         0 * builder.getModel(_, _)
         def e = thrown(UnknownModelException)
@@ -60,7 +60,7 @@ class ModelBuilderBackedModelProducerTest extends Specification {
         BuildResult buildResult = Mock(BuildResult)
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
         when:
-        SomeModel model = modelProducer.produceModel(SomeModel.class, operationParameters)
+        SomeModel model = modelProducer.produceModel(SomeModel.class, null, operationParameters)
         then:
         1 * builder.getModel(someModelIdentifier, operationParameters) >> buildResult
         1 * buildResult.model >> returnValue

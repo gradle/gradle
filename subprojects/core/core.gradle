@@ -23,10 +23,14 @@ dependencies {
 
     publishCompile libraries.slf4j_api
     publishCompile project(":baseServices")
+    publishCompile project(":baseServicesGroovy"), {
+        exclude group: "org.codehaus.groovy", module: "groovy-all"
+    }
     publishCompile project(":messaging")
     publishCompile project(":resources")
 
-    compile project(":baseServicesGroovy")
+    compile project(":modelCore")
+    compile project(":modelGroovy")
     compile libraries.asm
     compile libraries.ant
     compile libraries.commons_collections
@@ -62,8 +66,6 @@ dependencies {
     testFixturesRuntime project(':pluginUse')
 
     integTestCompile project(":internalIntegTesting")
-
-    reports 'css3-pie:css3-pie:1.0beta3'
 }
 
 useTestFixtures()
@@ -77,12 +79,6 @@ task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt)
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
-
-task reportResources(type: Copy) {
-    from configurations.reports
-    into "$generatedResourcesDir/org/gradle/reporting"
-}
-sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
 task pluginsManifest(type: PluginsManifest)
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest

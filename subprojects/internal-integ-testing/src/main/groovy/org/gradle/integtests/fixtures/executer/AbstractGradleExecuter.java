@@ -65,6 +65,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
+    private Locale defaultLocale;
     private int daemonIdleTimeoutSecs = 60;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
     private final List<String> gradleOpts = new ArrayList<String>();
@@ -108,6 +109,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         environmentVars.clear();
         stdin = null;
         defaultCharacterEncoding = null;
+        defaultLocale = null;
         noDefaultJvmArgs = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
@@ -193,6 +195,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (defaultCharacterEncoding != null) {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
+        }
+        if (defaultLocale != null) {
+            executer.withDefaultLocale(defaultLocale);
         }
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
         if (noDefaultJvmArgs) {
@@ -304,6 +309,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public String getDefaultCharacterEncoding() {
         return defaultCharacterEncoding == null ? Charset.defaultCharset().name() : defaultCharacterEncoding;
+    }
+
+    public GradleExecuter withDefaultLocale(Locale defaultLocale) {
+        this.defaultLocale = defaultLocale;
+        return this;
+    }
+
+    public Locale getDefaultLocale() {
+        return defaultLocale;
     }
 
     public GradleExecuter withSearchUpwards() {
@@ -513,6 +527,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
+        Locale locale = getDefaultLocale();
+        if (locale != null) {
+            properties.put("user.language", locale.getLanguage());
+            properties.put("user.country", locale.getCountry());
+            properties.put("user.variant", locale.getVariant());
+        }
 
         if (eagerClassLoaderCreationChecksOn) {
             properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");

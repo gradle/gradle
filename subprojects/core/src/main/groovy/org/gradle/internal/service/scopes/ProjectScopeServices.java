@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Project;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
@@ -31,6 +32,8 @@ import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
+import org.gradle.api.internal.plugins.PluginApplicationAction;
+import org.gradle.api.internal.plugins.PluginModelRuleExtractor;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -49,14 +52,18 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.model.ModelRules;
-import org.gradle.model.internal.DefaultModelRegistry;
-import org.gradle.model.internal.ModelRegistry;
-import org.gradle.model.internal.ModelRegistryBackedModelRules;
+import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
+import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.handlers.FinalizeRuleDefinitionHandler;
+import org.gradle.model.internal.inspect.handlers.ModelCreationRuleDefinitionHandler;
+import org.gradle.model.internal.inspect.handlers.MutateRuleDefinitionHandler;
+import org.gradle.model.internal.registry.DefaultModelRegistry;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Contains the services for a given project.
@@ -115,7 +122,26 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginContainer createPluginContainer() {
-        return new DefaultPluginContainer(get(PluginRegistry.class), project);
+        List<PluginApplicationAction> allPluginApplyActions = getAll(PluginApplicationAction.class);
+        return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project, allPluginApplyActions);
+    }
+
+    protected MethodRuleDefinitionHandler createModelAnnotationHandler() {
+        return new ModelCreationRuleDefinitionHandler();
+    }
+
+    protected MethodRuleDefinitionHandler createFinalizeAnnotationHandler() {
+        return new FinalizeRuleDefinitionHandler();
+    }
+
+    protected MethodRuleDefinitionHandler createMutateAnnotationHandler() {
+        return new MutateRuleDefinitionHandler();
+    }
+
+    protected PluginApplicationAction createPluginModelRuleExtractor() {
+        List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
+        ModelRuleInspector inspector = new ModelRuleInspector(handlers);
+        return new PluginModelRuleExtractor(inspector);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
@@ -141,10 +167,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected ModelRegistry createModelRegistry() {
         return new DefaultModelRegistry();
-    }
-
-    protected ModelRules createModelRules() {
-        return get(Instantiator.class).newInstance(ModelRegistryBackedModelRules.class, get(ModelRegistry.class));
     }
 
     protected ScriptHandler createScriptHandler() {

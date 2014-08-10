@@ -94,6 +94,13 @@ import java.util.Set;
  * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which
  * uniquely identifies it in the hierarchy.</p>
  *
+ * <h3>Plugins</h3>
+ *
+ * <p>
+ * Plugins can be used to modularise and reuse project configuration.
+ * Plugins can be applied using the {@link #apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
+ * </p>
+ *
  * <a name="properties"/> <h3>Properties</h3>
  *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any

@@ -347,6 +347,14 @@ Some test cases that are not directly related, but require this feature to be im
 * No requests for source and javadoc are made with build is executed with `--offline`, even when cache has expired.
 * Can recover from a broken HTTP request by switching to use `--offline`.
 
+## Story: Frequency for checking for missing artifacts is dependent on check-for-changes of owning module
+
+Currently, the frequency with which we re-check for missing artifacts is fixed at once per day. This re-check occurs regardless of
+whether the module containing the artifact is considered 'changing' or not.
+
+Instead, the frequency of checking for missing artifacts should be determined by the frequency that we check for changes in the
+owning module.
+
 ## Story: Dependency resolution result exposes local component instances that are not module versions
 
 This story changes the resolution result to expose local component instances that are not module versions. That is, component instances that do not

@@ -16,31 +16,38 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-import org.gradle.messaging.serialize.*;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDataSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.MapSerializer;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.util.Map;
+
+import static org.gradle.messaging.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
+import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
 
     private final MapSerializer<String, byte[]> mapSerializer;
-    private final Serializer<ClassDependencyInfo> dependencyInfoSerializer;
+    private final Serializer<ClassSetAnalysisData> analysisSerializer;
 
     public JarSnapshotDataSerializer() {
-        mapSerializer = new MapSerializer<String, byte[]>(new BaseSerializerFactory().getSerializerFor(String.class), new BaseSerializerFactory().getSerializerFor(byte[].class));
-        dependencyInfoSerializer = new BaseSerializerFactory().getSerializerFor(ClassDependencyInfo.class);
+        mapSerializer = new MapSerializer<String, byte[]>(STRING_SERIALIZER, BYTE_ARRAY_SERIALIZER);
+        analysisSerializer = new ClassSetAnalysisDataSerializer();
     }
 
     public JarSnapshotData read(Decoder decoder) throws Exception {
         byte[] hash = decoder.readBinary();
         Map<String, byte[]> hashes = mapSerializer.read(decoder);
-        ClassDependencyInfo info = dependencyInfoSerializer.read(decoder);
-        return new JarSnapshotData(hash, hashes, info);
+        ClassSetAnalysisData data = analysisSerializer.read(decoder);
+        return new JarSnapshotData(hash, hashes, data);
     }
 
     public void write(Encoder encoder, JarSnapshotData value) throws Exception {
         encoder.writeBinary(value.hash);
         mapSerializer.write(encoder, value.hashes);
-        dependencyInfoSerializer.write(encoder, value.info);
+        analysisSerializer.write(encoder, value.data);
     }
 }

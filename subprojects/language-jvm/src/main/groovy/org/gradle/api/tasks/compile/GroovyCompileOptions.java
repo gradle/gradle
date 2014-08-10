@@ -19,7 +19,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
 
 import java.io.File;
 import java.util.List;
@@ -52,6 +55,8 @@ public class GroovyCompileOptions extends AbstractOptions {
     private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
 
     private File stubDir;
+
+    private File configurationScript;
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -122,6 +127,60 @@ public class GroovyCompileOptions extends AbstractOptions {
      */
     public void setFork(boolean fork) {
         this.fork = fork;
+    }
+
+    /**
+     * A Groovy script file that configures the compiler, allowing extensive control over how the code is compiled.
+     * <p>
+     * The script is executed as Groovy code, with the following context:
+     * <ul>
+     * <li>The instance of <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a> available as the {@code configuration} variable.</li>
+     * <li>All static members of <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a> pre imported.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * This facilitates the following pattern:
+     * <pre>
+     * withConfig(configuration) {
+     *   // use compiler configuration DSL here
+     * }
+     * </pre>
+     * </p>
+     * <p>
+     * For example, to activate type checking for all Groovy classes…
+     * <pre>
+     * import groovy.transform.TypeChecked
+     *
+     * withConfig(configuration) {
+     *     ast(TypeChecked)
+     * }
+     * </pre>
+     * </p>
+     * <p>
+     * Please see <a href="http://groovy.codehaus.org/Advanced+compiler+configuration#Advancedcompilerconfiguration-Thecustomizationbuilder">the Groovy compiler customization builder documentation</a>
+     * for more information about the compiler configuration DSL.
+     * </p>
+     * <p>
+     * <b>This feature is only available if compiling with Groovy 2.1 or later.</b>
+     * </p>
+     * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
+     * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
+     */
+    @InputFile
+    @Incubating
+    @Optional
+    public File getConfigurationScript() {
+        return configurationScript;
+    }
+
+    /**
+     * Sets the path to the groovy configuration file.
+     *
+     * @see #getConfigurationScript()
+     */
+    @Incubating
+    public void setConfigurationScript(@Nullable File configurationFile) {
+        this.configurationScript = configurationFile;
     }
 
     /**

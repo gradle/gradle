@@ -17,12 +17,10 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.SystemProperties;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.ReportedException;
+import org.gradle.launcher.exec.*;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
@@ -35,11 +33,11 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         this.parameters = parameters;
     }
 
-    public <T> T execute(BuildAction<T> action, ProviderOperationParameters actionParameters) {
+    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, ProviderOperationParameters actionParameters) {
         BuildActionParameters parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), actionParameters.getStartTime(),
                 this.parameters.getEffectiveSystemProperties(), System.getenv(), SystemProperties.getCurrentDir(), actionParameters.getBuildLogLevel());
         try {
-            return executer.execute(action, parameters);
+            return executer.execute(action, cancellationToken, parameters);
         } catch (ReportedException e) {
             throw new BuildExceptionVersion1(e.getCause());
         }

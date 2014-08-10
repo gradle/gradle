@@ -875,6 +875,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * result.id >> to.id;
         _ * result.failure >> null
         _ * result.selectionReason >> null
+        _ * result.preferredTarget >> null
         0 * result._
     }
 

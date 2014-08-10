@@ -16,18 +16,20 @@
 
 package org.gradle.tooling.internal.impl;
 
-import org.gradle.TaskParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
-public class LaunchableGradleTask implements Serializable, InternalLaunchable, TaskParameter {
+public class LaunchableGradleTask implements Serializable, InternalLaunchable, TaskExecutionRequest {
 
     private String path;
     private String name;
     private String description;
     private String displayName;
-    private boolean visible;
+    private boolean isPublic;
 
     public String getPath() {
         return path;
@@ -65,25 +67,25 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
         return this;
     }
 
-    public String getTaskName() {
-        return path;
+    public List<String> getArgs() {
+        return Collections.singletonList(path);
     }
 
     public String getProjectPath() {
         return null;
     }
 
-    public boolean isVisible() {
-        return visible;
+    public boolean isPublic() {
+        return isPublic;
     }
 
-    public LaunchableGradleTask setVisible(boolean visible) {
-        this.visible = visible;
+    public LaunchableGradleTask setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{path='" + path + "',visible=" + visible + "}";
+        return getClass().getSimpleName() + "{path='" + path + "',public=" + isPublic + "}";
     }
 }

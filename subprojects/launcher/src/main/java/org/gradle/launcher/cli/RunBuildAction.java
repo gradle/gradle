@@ -17,9 +17,10 @@ package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.FixedBuildCancellationToken;
+import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -49,6 +50,7 @@ public class RunBuildAction implements Runnable {
     public void run() {
         executer.execute(
                 new ExecuteBuildAction(startParameter),
+                new FixedBuildCancellationToken(),
                 new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties, envVariables, currentDir, startParameter.getLogLevel()));
     }
 }

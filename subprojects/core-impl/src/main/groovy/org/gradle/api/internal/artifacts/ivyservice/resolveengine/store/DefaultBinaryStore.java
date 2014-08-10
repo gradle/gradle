@@ -22,14 +22,11 @@ import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
 import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-class DefaultBinaryStore implements BinaryStore {
+class DefaultBinaryStore implements BinaryStore, Closeable {
     private File file;
     private KryoBackedEncoder encoder;
     private int offset = -1;

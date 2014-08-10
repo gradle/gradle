@@ -41,20 +41,21 @@ public class JvmVersionValidator {
         builder.setErrorOutput(outputStream);
         builder.build().start().waitForFinish().assertNormalExitValue();
 
-        JavaVersion javaVersion = parse(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
+        JavaVersion javaVersion = parseJavaVersionCommandOutput(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
         if (!javaVersion.isJava6Compatible()) {
             throw UnsupportedJavaRuntimeException.configuredWithUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6, javaVersion);
         }
     }
 
-    private JavaVersion parse(BufferedReader reader) {
+    static JavaVersion parseJavaVersionCommandOutput(BufferedReader reader) {
         try {
             String versionStr = reader.readLine();
-            if (versionStr != null) {
+            while (versionStr != null) {
                 Matcher matcher = Pattern.compile("java version \"(.+?)\"").matcher(versionStr);
                 if (matcher.matches()) {
                     return JavaVersion.toVersion(matcher.group(1));
                 }
+                versionStr = reader.readLine();
             }
         } catch (IOException e) {
             throw new org.gradle.api.UncheckedIOException(e);

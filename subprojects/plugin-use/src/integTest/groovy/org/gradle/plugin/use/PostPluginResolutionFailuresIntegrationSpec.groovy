@@ -19,8 +19,9 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.hamcrest.Matchers
 import org.junit.Rule
+
+import static org.hamcrest.Matchers.startsWith
 
 class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
@@ -34,39 +35,40 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
     }
 
     def "error finding plugin by id"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
         publishPlugin("otherid", "my", "plugin", "1.0")
 
-        buildScript applyPlugin("myplugin", "1.0")
+        buildScript applyPlugin("org.my.myplugin", "1.0")
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("A problem occurred configuring root project"))
-        failure.assertHasCause("Plugin with id 'myplugin' not found.")
-
+        failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.my.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.my.myplugin'"))
+        failure.assertHasLineNumber(3)
     }
 
     def "error loading plugin"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishUnloadablePlugin("myplugin", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
+        publishUnloadablePlugin("org.my.myplugin", "my", "plugin", "1.0")
 
-        buildScript applyPlugin("myplugin", "1.0")
+        buildScript applyPlugin("org.my.myplugin", "1.0")
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("A problem occurred configuring root project"))
+        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id: 'org.my.myplugin', version: '1.0']"))
+        failure.assertHasLineNumber(3)
         failure.assertHasCause("Could not create plugin of type 'TestPlugin'.")
     }
 
     def "error applying plugin"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishFailingPlugin("myplugin", "my", "plugin", "1.0")
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
+        publishFailingPlugin("org.my.myplugin", "my", "plugin", "1.0")
 
-        buildScript applyPlugin("myplugin", "1.0")
+        buildScript applyPlugin("org.my.myplugin", "1.0")
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("A problem occurred configuring root project"))
+        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id: 'org.my.myplugin', version: '1.0']"))
+        failure.assertHasLineNumber(3)
         failure.assertHasCause("throwing plugin")
     }
 

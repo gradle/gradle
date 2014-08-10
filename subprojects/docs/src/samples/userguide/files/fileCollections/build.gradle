@@ -1,5 +1,7 @@
 // START SNIPPET simple-params
-FileCollection collection = files('src/file1.txt', new File('src/file2.txt'), ['src/file3.txt', 'src/file4.txt'])
+FileCollection collection = files('src/file1.txt',
+                                  new File('src/file2.txt'),
+                                  ['src/file3.txt', 'src/file4.txt'])
 // END SNIPPET simple-params
 
 file('src').mkdirs()

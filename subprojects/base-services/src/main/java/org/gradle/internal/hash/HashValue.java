@@ -55,7 +55,7 @@ public class HashValue {
     }
 
     public String asCompactString() {
-        return digest.toString(32);
+        return digest.toString(36);
     }
 
     public String asHexString() {

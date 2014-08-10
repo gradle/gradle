@@ -197,6 +197,19 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         return mavenRepo
     }
 
+    public MavenFileRepository publishedMavenModules(String ... modulesToPublish) {
+        modulesToPublish.each { String notation ->
+            def modules = notation.split("->").reverse()
+            def current
+            modules.each { String module ->
+                def s = new TestDependency(module)
+                def m = mavenRepo.module(s.group, s.name, s.version)
+                current = current? m.dependsOn(current.groupId, current.artifactId, current.version).publish() : m.publish()
+            }
+        }
+        mavenRepo
+    }
+
     public IvyFileRepository ivy(TestFile repo) {
         return new IvyFileRepository(repo)
     }

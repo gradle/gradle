@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.jvm;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 
@@ -29,6 +30,7 @@ public class InstalledJvmLocator {
     private final OperatingSystem operatingSystem = OperatingSystem.current();
     private final WindowsRegistry windowsRegistry = NativeServices.getInstance().get(WindowsRegistry.class);
     private final SystemInfo systemInfo = NativeServices.getInstance().get(SystemInfo.class);
+    private final FileCanonicalizer fileCanonicalizer = NativeServices.getInstance().get(FileCanonicalizer.class);
     private final Jvm currentJvm = Jvm.current();
 
     /**
@@ -41,10 +43,10 @@ public class InstalledJvmLocator {
         Collection<JvmInstallation> jvms;
         if (operatingSystem.isMacOsX()) {
             jvms = new OsXInstalledJvmLocator().findJvms();
-        } else if (OperatingSystem.current().isWindows()) {
+        } else if (operatingSystem.isWindows()) {
             jvms = new WindowsOracleJvmLocator(windowsRegistry, systemInfo).findJvms();
-        } else if (OperatingSystem.current().isLinux()) {
-            jvms = new UbuntuJvmLocator().findJvms();
+        } else if (operatingSystem.isLinux()) {
+            jvms = new UbuntuJvmLocator(fileCanonicalizer).findJvms();
         } else {
             jvms = Collections.emptySet();
         }

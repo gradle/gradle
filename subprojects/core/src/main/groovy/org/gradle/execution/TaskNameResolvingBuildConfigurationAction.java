@@ -15,12 +15,9 @@
  */
 package org.gradle.execution;
 
-import com.google.common.collect.Multimap;
-import org.gradle.TaskParameter;
-import org.gradle.api.Task;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,27 +30,22 @@ import java.util.List;
 public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildConfigurationAction.class);
     private final CommandLineTaskParser commandLineTaskParser;
-    private final TaskSelector selector;
 
-    public TaskNameResolvingBuildConfigurationAction(CommandLineTaskParser commandLineTaskParser, TaskSelector selector) {
+    public TaskNameResolvingBuildConfigurationAction(CommandLineTaskParser commandLineTaskParser) {
         this.commandLineTaskParser = commandLineTaskParser;
-        this.selector = selector;
     }
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
-        List<TaskParameter> taskParameters = gradle.getStartParameter().getTaskParameters();
-        Multimap<TaskParameter, Task> selectedTasks = commandLineTaskParser.parseTasks(taskParameters, selector);
-
         TaskGraphExecuter executer = gradle.getTaskGraph();
-        for (TaskParameter name : selectedTasks.keySet()) {
-            executer.addTasks(selectedTasks.get(name));
-        }
 
-        if (selectedTasks.keySet().size() == 1) {
-            LOGGER.info("Selected primary task {}", GUtil.toString(selectedTasks.keySet()));
-        } else {
-            LOGGER.info("Selected primary tasks {}", GUtil.toString(selectedTasks.keySet()));
+        List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
+        for (TaskExecutionRequest taskParameter : taskParameters) {
+            List<TaskSelector.TaskSelection> taskSelections = commandLineTaskParser.parseTasks(taskParameter);
+            for (TaskSelector.TaskSelection taskSelection : taskSelections) {
+                LOGGER.info("Selected primary task '{}' from project {}", taskSelection.getTaskName(), taskSelection.getProjectPath());
+                executer.addTasks(taskSelection.getTasks());
+            }
         }
 
         context.proceed();

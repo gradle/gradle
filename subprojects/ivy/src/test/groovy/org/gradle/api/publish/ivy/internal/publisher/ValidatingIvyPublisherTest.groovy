@@ -15,6 +15,8 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publisher
+
+import javax.xml.namespace.QName
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
@@ -38,7 +40,10 @@ public class ValidatingIvyPublisherTest extends Specification {
     def "delegates when publication is valid"() {
         when:
         def projectIdentity = this.projectIdentity("the-group", "the-artifact", "the-version")
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("the-group", "the-artifact", "the-version"), emptySet())
+        def generator = ivyGenerator("the-group", "the-artifact", "the-version")
+                            .withBranch("the-branch")
+                            .withStatus("release")
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
         def repository = Mock(PublicationAwareRepository)
 
         and:
@@ -50,11 +55,12 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     def "does not attempt to resolve extended ivy descriptor when validating"() {
         when:
-        def ivyFile = ivyFile("the-group", "the-artifact", "the-version", new Action<XmlProvider>() {
-            void execute(XmlProvider t) {
-                t.asNode().info[0].appendNode("extends", ["organisation": "parent-org", "module": "parent-module", "revision": "parent-revision"])
-            }
-        })
+        def ivyFile = ivyFile(ivyGenerator("the-group", "the-artifact", "the-version")
+                .withAction(new Action<XmlProvider>() {
+                    void execute(XmlProvider t) {
+                        t.asNode().info[0].appendNode("extends", ["organisation": "parent-org", "module": "parent-module", "revision": "parent-revision"])
+                    }
+                }))
 
         and:
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
@@ -91,6 +97,81 @@ public class ValidatingIvyPublisherTest extends Specification {
         "org\t"        | "module"   | "version"       | "organisation cannot contain ISO control character '\\u0009'"
         "organisation" | "module\n" | "version"       | "module name cannot contain ISO control character '\\u000a'"
         "organisation" | "module"   | "version\u0085" | "revision cannot contain ISO control character '\\u0085'"
+    }
+
+    def "validates ivy metadata"() {
+        given:
+        def projectIdentity = projectIdentity("org", "module", "version")
+        def generator = ivyGenerator("org", "module", "version")
+                            .withBranch(branch)
+                            .withStatus(status)
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
+        def repository = Stub(PublicationAwareRepository)
+
+        when:
+        publisher.publish(publication, repository)
+
+        then:
+        def e = thrown InvalidIvyPublicationException
+        e.message == "Invalid publication 'pub-name': $message."
+
+        where:
+        branch             | status          | message
+        ""                 | "release"       | "branch cannot be an empty string. Use null instead"
+        "someBranch"       | ""              | "status cannot be an empty string. Use null instead"
+        "someBranch\t"     | "release"       | "branch cannot contain ISO control character '\\u0009'"
+        "someBranch"       | "release\t"     | "status cannot contain ISO control character '\\u0009'"
+        "someBranch\n"     | "release"       | "branch cannot contain ISO control character '\\u000a'"
+        "someBranch"       | "release\n"     | "status cannot contain ISO control character '\\u000a'"
+        "someBranch\u0085" | "release"       | "branch cannot contain ISO control character '\\u0085'"
+        "someBranch"       | "release\u0085" | "status cannot contain ISO control character '\\u0085'"
+        "someBran\\ch"     | "release"       | "branch cannot contain '\\'"
+        "someBranch"       | "relea\\se"     | "status cannot contain '\\'"
+        "someBranch"       | "relea/se"      | "status cannot contain '/'"
+    }
+
+    def "delegates with valid ivy metadata" () {
+        given:
+        def projectIdentity = projectIdentity("org", "module", "version")
+        def generator = ivyGenerator("org", "module", "version")
+                            .withBranch(branch)
+                            .withStatus(status)
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
+        def repository = Stub(PublicationAwareRepository)
+
+        when:
+        publisher.publish(publication, repository)
+
+        then:
+        delegate.publish(publication, repository)
+
+        where:
+        branch                  | status
+        null                    | null
+        "someBranch"            | "release"
+        "feature/someBranch"    | "release"
+        "someBranch_ぴ₦ガき∆ç√∫" | "release_ぴ₦ガき∆ç√∫"
+    }
+
+    def "delegates with valid extra info elements" () {
+        given:
+        def projectIdentity = projectIdentity("org", "module", "version")
+        def generator = ivyGenerator("org", "module", "version")
+        elements.each { generator.withExtraInfo(it, "${it}Value") }
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(generator), emptySet())
+        def repository = Stub(PublicationAwareRepository)
+
+        when:
+        publisher.publish(publication, repository)
+
+        then:
+        delegate.publish(publication, repository)
+
+        where:
+        elements             | _
+        [ ]                  | _
+        [ 'foo' ]            | _
+        [ 'foo', 'bar' ]     | _
     }
 
     def "project coordinates must match ivy descriptor file"() {
@@ -246,13 +327,52 @@ public class ValidatingIvyPublisherTest extends Specification {
         }
     }
 
-    private def ivyFile(def group, def moduleName, def version, Action<XmlProvider> action = null) {
+    private TestIvyDescriptorFileGenerator ivyGenerator(def group, def moduleName, def version) {
+        return new TestIvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity(group, moduleName, version))
+    }
+
+    private def ivyFile(def group, def moduleName, def version) {
+        return ivyFile(ivyGenerator(group, moduleName, version))
+    }
+
+    private def ivyFile(IvyDescriptorFileGenerator ivyFileGenerator) {
         def ivyXmlFile = testDir.file("ivy")
-        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity(group, moduleName, version))
-        if (action != null) {
-            ivyFileGenerator.withXml(action)
-        }
         ivyFileGenerator.writeTo(ivyXmlFile)
         return ivyXmlFile
+    }
+
+    private QName ns(String name) {
+        return new QName("http://my.extra.info/${name}", name)
+    }
+
+    class TestIvyDescriptorFileGenerator extends IvyDescriptorFileGenerator {
+        TestIvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
+            super(projectIdentity)
+        }
+
+        TestIvyDescriptorFileGenerator withBranch(String branch) {
+            this.branch = branch
+            return this
+        }
+
+        TestIvyDescriptorFileGenerator withStatus(String status) {
+            this.status = status
+            return this
+        }
+
+        TestIvyDescriptorFileGenerator withAction(Action<XmlProvider> action) {
+            this.withXml(action)
+            return this
+        }
+
+        TestIvyDescriptorFileGenerator withExtraInfo(String name, String value) {
+            Map<QName, String> extraInfo = this.getExtraInfo()
+            if (extraInfo == null) {
+                extraInfo = new LinkedHashMap<QName, String>()
+                this.setExtraInfo(extraInfo)
+            }
+            extraInfo.put(ns(name), value)
+            return this
+        }
     }
 }

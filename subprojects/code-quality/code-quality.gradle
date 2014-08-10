@@ -27,9 +27,9 @@ dependencies {
     // minimal dependencies to make our code compile
     // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime
     provided "com.google.code.findbugs:findbugs:2.0.1@jar"
-    provided "com.google.code.findbugs:bcel:2.0.1@jar"
-    provided "dom4j:dom4j:1.6.1@jar"
-    provided "jaxen:jaxen:1.1.1@jar"
+    provided libraries.dom4j
+    testRuntime "com.google.code.findbugs:bcel:2.0.1@jar"
+    testRuntime libraries.jaxen
 }
 
 useTestFixtures()

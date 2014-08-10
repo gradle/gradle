@@ -16,57 +16,87 @@
 
 package org.gradle.language.jvm.plugins;
 
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.LanguageRegistry;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.api.*;
+import org.gradle.runtime.base.TransformationFileType;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.LanguageRegistration;
+import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.model.ModelRule;
-import org.gradle.model.ModelRules;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
-import javax.inject.Inject;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers "resources" language support with the {@link org.gradle.language.jvm.ResourceSet}.
+ * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
+ * org.gradle.language.jvm.ResourceSet}.
  */
+@Incubating
 public class JvmResourcesPlugin implements Plugin<Project> {
-    private final ModelRules modelRules;
-
-    @Inject
-    public JvmResourcesPlugin(ModelRules modelRules) {
-        this.modelRules = modelRules;
-    }
 
     public void apply(final Project project) {
-        project.getPlugins().apply(LanguageBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).registerLanguage("resources", ResourceSet.class, DefaultResourceSet.class);
-
-        modelRules.rule(new CreateProcessResourcesTasks());
-
+        project.getPlugins().apply(ComponentModelBasePlugin.class);
+        project.getExtensions().getByType(LanguageRegistry.class).add(new JvmResources());
     }
 
-    private static class CreateProcessResourcesTasks extends ModelRule {
-        @SuppressWarnings("UnusedDeclaration")
-        void createTasks(final TaskContainer tasks, BinaryContainer binaries) {
-            for (JvmLibraryBinaryInternal binary : binaries.withType(JvmLibraryBinaryInternal.class)) {
-                for (ResourceSet resourceSet : binary.getSource().withType(ResourceSet.class)) {
+    private static class JvmResources implements LanguageRegistration<ResourceSet> {
+        public String getName() {
+            return "resources";
+        }
 
-                    String resourcesTaskName = binary.getNamingScheme().getTaskName("process", ((LanguageSourceSetInternal) resourceSet).getFullName());
-                    ProcessResources resourcesTask = tasks.create(resourcesTaskName, ProcessResources.class);
-                    resourcesTask.from(resourceSet.getSource());
-                    resourcesTask.setDestinationDir(binary.getClassesDir());
+        public Class<ResourceSet> getSourceSetType() {
+            return ResourceSet.class;
+        }
 
-                    binary.getTasks().add(resourcesTask);
-                    binary.getTasks().getJar().dependsOn(resourcesTask);
+        public Class<? extends ResourceSet> getSourceSetImplementation() {
+            return DefaultResourceSet.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            return Collections.emptyMap();
+        }
+
+        Set<Class<? extends TransformationFileType>> languageOutputTypes = new HashSet<Class<? extends TransformationFileType>>();
+
+        public JvmResources(){
+            languageOutputTypes.add(org.gradle.runtime.jvm.JvmResources.class);
+        }
+
+        public Set<Class<? extends TransformationFileType>> getOutputTypes() {
+            return languageOutputTypes;
+        }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new SourceTransformTaskConfig() {
+                public String getTaskPrefix() {
+                    return "process";
                 }
-            }
+
+                public Class<? extends DefaultTask> getTaskType() {
+                    return ProcessResources.class;
+                }
+
+                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+                    ProcessResources resourcesTask = (ProcessResources) task;
+                    ResourceSet resourceSet = (ResourceSet) sourceSet;
+                    JvmLibraryBinarySpec jvmBinary = (JvmLibraryBinarySpec) binary;
+                    resourcesTask.from(resourceSet.getSource());
+                    resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
+                    jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
+                }
+            };
+        }
+
+        public boolean applyToBinary(BinarySpec binary) {
+            return binary instanceof JvmLibraryBinarySpec;
         }
     }
+
 }

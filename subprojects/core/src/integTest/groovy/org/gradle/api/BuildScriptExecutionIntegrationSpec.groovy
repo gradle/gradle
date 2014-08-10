@@ -19,6 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
+
     def "build scripts must be encoded using utf-8"() {
         given:
         executer.withDefaultCharacterEncoding("ISO-8859-15")
@@ -32,8 +33,8 @@ task check << {
 }
 """, "UTF-8")
         assert file('build.gradle').getText("ISO-8859-15") != file('build.gradle').getText("UTF-8")
-
         expect:
         succeeds 'check'
     }
+
 }

@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.FileLockCommunicator;
 import org.gradle.cache.internal.GracefullyStoppedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 
@@ -29,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultFileLockContentionHandler implements FileLockContentionHandler {
+public class DefaultFileLockContentionHandler implements FileLockContentionHandler, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockContentionHandler.class);
     private final Lock lock = new ReentrantLock();
     private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
@@ -125,10 +126,6 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     public void stop() {
-        //Down the road this method should be used to clean up,
-        //when the Gradle process is about to complete (not gradle build).
-        //Ideally in future, this is happens during the clean-up/stopping of the global services
-        // (at the moment we never stop the global services)
         lock.lock();
         try {
             stopped = true;

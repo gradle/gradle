@@ -26,20 +26,17 @@ import spock.lang.Specification
 
 class BuildDashboardGeneratorSpec extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     File outputFile
-    BuildDashboardGenerator generator
+    BuildDashboardGenerator generator = new BuildDashboardGenerator()
 
     void setup() {
         outputFile = tmpDir.file('output.html')
     }
 
-    private void generatorFor(reports) {
-        generator = new BuildDashboardGenerator(reports as Set, outputFile)
-    }
-
-    private Document getOutputHtml() {
+    Document getOutputHtml() {
         Jsoup.parse(outputFile, null)
     }
 
@@ -51,20 +48,16 @@ class BuildDashboardGeneratorSpec extends Specification {
     }
 
     Report mockDirectoryReport(String name, File destinationDirectory) {
-        Stub(DirectoryReport){
+        Stub(DirectoryReport) {
             getDisplayName() >> name
             getDestination() >> destinationDirectory
             getEntryPoint() >> new File(destinationDirectory, "index.html")
         }
     }
 
-
     void 'appropriate message is displayed when there are no reports available'() {
-        given:
-        generatorFor([])
-
         when:
-        generator.generate()
+        generator.render([], outputFile)
 
         then:
         outputHtml.select('h1').text() == 'There are no build reports available.'
@@ -74,16 +67,15 @@ class BuildDashboardGeneratorSpec extends Specification {
         given:
         def htmlFolder = tmpDir.createDir('htmlContent');
         htmlFolder.createFile("index.html")
-        generatorFor([
-                mockReport('a', tmpDir.createFile('report.html')),
-                mockReport('b', tmpDir.createDir('inner').createFile('otherReport.html')),
-                mockReport('c', tmpDir.file('idonotexist.html')),
-                mockDirectoryReport('d', htmlFolder),
-                mockReport('e', tmpDir.createDir('simpleDirectory')),
-        ])
 
         when:
-        generator.generate()
+        generator.render([
+                        mockReport('a', tmpDir.createFile('report.html')),
+                        mockReport('b', tmpDir.createDir('inner').createFile('otherReport.html')),
+                        mockReport('c', tmpDir.file('idonotexist.html')),
+                        mockDirectoryReport('d', htmlFolder),
+                        mockReport('e', tmpDir.createDir('simpleDirectory')),
+                ], outputFile)
 
         then:
         outputHtml.select('h1').text() == 'Build reports'
@@ -97,15 +89,28 @@ class BuildDashboardGeneratorSpec extends Specification {
         }
     }
 
-    void 'report css is set up'() {
+    void 'encodes output using utf-8'() {
         given:
-        generatorFor([])
+        def htmlFolder = tmpDir.createDir('htmlContent');
+        htmlFolder.createFile("index.html")
 
         when:
-        generator.generate()
+        generator.render([mockReport('\u03b1\u03b2', tmpDir.createFile('report.html'))], outputFile)
 
         then:
-        outputHtml.select('head link[type=text/css]').attr('href') == 'base-style.css'
-        tmpDir.file('base-style.css').text == getClass().getResource('/org/gradle/reporting/base-style.css').text
+        outputHtml.select('h1').text() == 'Build reports'
+        with outputHtml.select('ul li'), {
+            size() == 1
+            select('a[href=report.html]').text() == '\u03b1\u03b2'
+        }
+    }
+
+    void 'report css is set up'() {
+        when:
+        generator.render([], outputFile)
+
+        then:
+        outputHtml.select('head link[type=text/css]').attr('href') == 'css/base-style.css'
+        tmpDir.file('css/base-style.css').text == getClass().getResource('/org/gradle/reporting/base-style.css').text
     }
 }

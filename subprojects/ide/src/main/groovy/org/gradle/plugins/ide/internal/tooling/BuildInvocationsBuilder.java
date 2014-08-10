@@ -22,7 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
-import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
+import org.gradle.tooling.internal.impl.DefaultBuildInvocations;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
@@ -42,7 +42,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
     }
 
-    public DefaultBuildInvocations<LaunchableGradleTask> buildAll(String modelName, Project project) {
+    public DefaultBuildInvocations buildAll(String modelName, Project project) {
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
@@ -59,9 +59,9 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
                             : String.format("%s task selector", selectorName)).
                     setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
-                    setVisible(visibleTasks.contains(selectorName)));
+                    setPublic(visibleTasks.contains(selectorName)));
         }
-        return new DefaultBuildInvocations<LaunchableGradleTask>()
+        return new DefaultBuildInvocations()
                 .setSelectors(selectors)
                 .setTasks(tasks(project));
     }
@@ -79,16 +79,16 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     .setName(task.getName())
                     .setDisplayName(task.toString())
                     .setDescription(task.getDescription())
-                    .setVisible(task.getGroup() != null));
+                    .setPublic(task.getGroup() != null));
         }
         return tasks;
     }
 
     private void findTasks(Project project, Collection<String> tasks, Collection<String> visibleTasks) {
-        for (Project child : project.getSubprojects()) {
+        for (Project child : project.getChildProjects().values()) {
             findTasks(child, tasks, visibleTasks);
         }
-        for (Task task : project.getTasks()) {
+        for (Task task : taskLister.listProjectTasks(project)) {
             tasks.add(task.getName());
             if (task.getGroup() != null) {
                 visibleTasks.add(task.getName());

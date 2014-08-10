@@ -46,7 +46,7 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
     }
 
     public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {
-        createOrGet(moduleVersion.getSelectedId(), moduleVersion.getSelectionReason(), moduleVersion.getComponentId());
+        createOrGet(moduleVersion.getId(), moduleVersion.getSelectionReason(), moduleVersion.getComponentId());
     }
 
     public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {

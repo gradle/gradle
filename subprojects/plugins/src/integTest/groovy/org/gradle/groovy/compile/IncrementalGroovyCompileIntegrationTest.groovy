@@ -48,4 +48,22 @@ class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileGroovy'.");
     }
+
+    @Test
+    public void failsCompilationWhenConfigScriptIsUpdated() {
+        // compilation passes with a config script that does nothing
+        executer.withTasks('compileGroovy').run().assertTasksExecuted(":compileJava",":compileGroovy")
+
+        // make sure it fails if the config script applies type checking
+        file('groovycompilerconfig.groovy').assertIsFile().copyFrom(file('newgroovycompilerconfig.groovy'))
+
+        ExecutionFailure failure = executer.withTasks("compileGroovy").runWithFailure();
+        failure.assertHasCause('Compilation failed; see the compiler error output for details')
+
+        // and eventually make sure it passes again if no config script is applied whatsoever
+        file('build.gradle').assertIsFile().copyFrom(file('newbuild.gradle'))
+
+        executer.withTasks('compileGroovy').run().assertTasksExecuted(':compileJava',':compileGroovy').assertTaskSkipped(':compileJava')
+
+    }
 }

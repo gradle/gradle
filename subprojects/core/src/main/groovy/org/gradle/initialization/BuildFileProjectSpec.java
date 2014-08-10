@@ -35,6 +35,10 @@ public class BuildFileProjectSpec extends AbstractProjectSpec implements Seriali
         return String.format("project has build file '%s'", buildFile);
     }
 
+    public boolean isCorresponding(File file) {
+        return buildFile.equals(file);
+    }
+
     protected String formatNoMatchesMessage() {
         return String.format("No projects in this build have build file '%s'.", buildFile);
     }

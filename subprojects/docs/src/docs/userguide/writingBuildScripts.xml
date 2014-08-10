@@ -46,7 +46,7 @@
         </tip>
         <itemizedlist>
             <listitem>
-                <para>Any method you call in your build script, which <emphasis>is not defined</emphasis>
+                <para>Any method you call in your build script which <emphasis>is not defined</emphasis>
                     in the build script, is delegated to the <classname>Project</classname> object.
                 </para>
             </listitem>
@@ -67,7 +67,7 @@
             the <classname>Project</classname> object, for properties not defined in the build script. The other
             statement uses the <literal>project</literal> property available to any build script, which returns the
             associated <classname>Project</classname> object. Only if you define a property or a method which has the
-            same name as a member of the <classname>Project</classname> object, you need to use the <literal>project</literal>
+            same name as a member of the <classname>Project</classname> object, would you need to use the <literal>project</literal>
             property.
         </para>
         <section>
@@ -172,7 +172,7 @@
                 Extra properties can be accessed from anywhere their owning object can be accessed, giving them a wider scope than local variables.
                 Extra properties on a project are visible from its subprojects.
             </para>
-            <para>For further details on extra properties and their API, see <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/>.</para>
+            <para>For further details on extra properties and their API, see the <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/> class in the API documentation.</para>
         </section>
     </section>
     <section>
@@ -214,8 +214,13 @@
             <title>List and map literals</title>
             <para>
                 Groovy provides some shortcuts for defining <classname>List</classname> and <classname>Map</classname>
-                instances.
+                instances.  Both kinds of literals are straightforward, but map literals have some interesting twists.
             </para>
+            <para>For instance, the “<literal>apply</literal>” method (where you typically apply plugins) actually
+            takes a map parameter.  However, when you have a line like “<literal>apply plugin:'java'</literal>”, you
+            aren't actually using a map literal, you're actually using “named parameters”, which have almost exactly
+            the same syntax as a map literal (without the wrapping brackets). That named parameter list gets converted
+            to a map when the method is called, but it doesn't start out as a map.</para>
             <sample id="groovyBasics" dir="userguide/tutorial/groovy" title="List and map literals">
                 <sourcefile file="build.gradle" snippet="listAndMapLiterals"/>
             </sample>

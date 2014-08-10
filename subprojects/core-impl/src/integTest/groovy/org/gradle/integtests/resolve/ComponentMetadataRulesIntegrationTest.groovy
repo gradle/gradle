@@ -119,4 +119,12 @@ dependencies {
         succeeds 'resolve'
         succeeds 'resolve'
     }
+
+    String sq(String input) {
+        return escapeForSingleQuoting(input)
+    }
+
+    String escapeForSingleQuoting(String input) {
+        return input.replace('\\', '\\\\').replace('\'', '\\\'')
+    }
 }

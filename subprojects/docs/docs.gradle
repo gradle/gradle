@@ -121,9 +121,9 @@ tasks.withType(UserGuideTransformTask) {
 
     if (name in ["pdfUserguideDocbook", "userguideFragmentSrc"]) {
         // These will only be valid for releases, but that's ok
-        javadocUrl = "http://www.gradle.org/doc/${->version}/javadoc"
-        groovydocUrl = "http://www.gradle.org/doc/${->version}/groovydoc"
-        dsldocUrl = "http://www.gradle.org/doc/${->version}/dsl"
+        javadocUrl = "http://www.gradle.org/docs/${->version}/javadoc"
+        groovydocUrl = "http://www.gradle.org/docs/${->version}/groovydoc"
+        dsldocUrl = "http://www.gradle.org/docs/${->version}/dsl"
     } else {
         javadocUrl = '../javadoc'
         groovydocUrl = '../groovydoc'
@@ -300,7 +300,9 @@ task pdfUserguideXhtml(type: Docbook2Xhtml) {
 }
 
 task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
-    inputs.files cssFiles
+    inputs.files fileTree(userguideSrcDir) {
+        include 'img/*.png'
+    } + cssFiles
     sourceFile = pdfUserguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
@@ -337,6 +339,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/tooling/**'
     include 'org/gradle/testing/jacoco/**'
     include 'org/gradle/buildinit/**'
+    include 'org/gradle/plugin/use/*'
     exclude '**/internal/**'
     options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")

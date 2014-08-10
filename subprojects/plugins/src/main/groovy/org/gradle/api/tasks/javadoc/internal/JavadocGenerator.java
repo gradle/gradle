@@ -18,14 +18,20 @@ package org.gradle.api.tasks.javadoc.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
+import org.gradle.util.GFileUtils;
 
 public class JavadocGenerator implements Compiler<JavadocSpec> {
+
+    private final static Logger LOG = Logging.getLogger(JavadocGenerator.class);
+
     private final ExecActionFactory execActionFactory;
 
     public JavadocGenerator(ExecActionFactory execActionFactory) {
@@ -45,7 +51,8 @@ public class JavadocGenerator implements Compiler<JavadocSpec> {
         try {
             execAction.execute();
         } catch (ExecException e) {
-            throw new GradleException("Javadoc generation failed.", e);
+            LOG.info("Problems generating Javadoc. The generated Javadoc options file used by Gradle has following contents:\n------\n{}------", GFileUtils.readFileQuietly(spec.getOptionsFile()));
+            throw new GradleException(String.format("Javadoc generation failed. Generated Javadoc options file (useful for troubleshooting): '%s'", spec.getOptionsFile()), e);
         }
 
         return new SimpleWorkResult(true);

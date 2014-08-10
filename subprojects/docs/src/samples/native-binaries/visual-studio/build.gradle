@@ -59,10 +59,12 @@ executables {
 libraries {
     hello {}
 }
-sources.main.cpp.lib libraries.hello
+sources {
+    main.cpp.lib libraries.hello
+}
 
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
-binaries.withType(SharedLibraryBinary) {
+binaries.withType(SharedLibraryBinarySpec) {
     if (toolChain in VisualCpp) {
         cppCompiler.define "DLL_EXPORT"
     }

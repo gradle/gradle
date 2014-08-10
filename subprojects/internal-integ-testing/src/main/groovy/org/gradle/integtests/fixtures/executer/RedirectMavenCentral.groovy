@@ -35,7 +35,7 @@ class RedirectMavenCentral implements Action<GradleExecuter> {
         file.text = """
 allprojects {
     repositories.withType(org.gradle.api.artifacts.repositories.MavenArtifactRepository) {
-        if (url == new URI('http://repo1.maven.org/maven2/')) {
+        if (url == new URI('https://repo1.maven.org/maven2/' || url == new URI('http://repo1.maven.org/maven2/')) {
             url = "http://repo.gradle.org/gradle/repo1"
         }
     }

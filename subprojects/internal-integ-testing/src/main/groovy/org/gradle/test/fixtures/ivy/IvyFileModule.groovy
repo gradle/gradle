@@ -35,6 +35,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
+    String branch = null
     String status = "integration"
     boolean noMetaData
     int publishCount = 1
@@ -118,6 +119,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    IvyFileModule withBranch(String branch) {
+        this.branch = branch
+        return this
+    }
+
     IvyFileModule withNoMetaData() {
         noMetaData = true
         return this
@@ -129,7 +135,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     /**
-     * Keys in extra info will be prefixed with namespace prefix "my" in this fixture.
+     * Keys in extra info will be prefixed with namespace prefix "ns" in this fixture.
      */
     IvyFileModule withExtraInfo(Map extraInfo) {
         this.extraInfo.putAll(extraInfo)
@@ -197,6 +203,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         publish(ivyFile) { Writer writer ->
             transformer.transform(writer, { writeTo(it) } as Action)
         }
+
         return this
     }
 
@@ -206,20 +213,20 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         if (extraAttributes) {
             ivyFileWriter << ' xmlns:e="http://ant.apache.org/ivy/extra"'
         }
-        if (extraInfo) {
-            ivyFileWriter << ' xmlns:my="http://my.extra.info"'
-        }
         ivyFileWriter << "><!--" + artifactContent + "-->"
 
         def builder = new MarkupBuilder(ivyFileWriter)
         def infoAttrs = [organisation: organisation, module: module, revision: revision, status: status, publication: getPublicationDate()]
+        if (branch) {
+            infoAttrs.branch = branch
+        }
         infoAttrs += extraAttributes.collectEntries {key, value -> ["e:$key", value]}
         builder.info(infoAttrs) {
             if (extendsFrom) {
                 "extends"(extendsFrom)
             }
             extraInfo.each { key, value ->
-                "my:$key"(value)
+                "ns:${key.name}"('xmlns:ns': "${key.namespace}", value)
             }
         }
         builder.configurations {

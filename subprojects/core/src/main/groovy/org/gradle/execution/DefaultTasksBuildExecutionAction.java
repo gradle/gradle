@@ -16,6 +16,7 @@
 package org.gradle.execution;
 
 import org.gradle.StartParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.util.GUtil;
@@ -34,9 +35,11 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
     public void configure(BuildExecutionContext context) {
         StartParameter startParameter = context.getGradle().getStartParameter();
 
-        if (!startParameter.getTaskParameters().isEmpty()) {
-            context.proceed();
-            return;
+        for (TaskExecutionRequest request : startParameter.getTaskRequests()) {
+            if (!request.getArgs().isEmpty()) {
+                context.proceed();
+                return;
+            }
         }
 
         // Gather the default tasks from this first group project

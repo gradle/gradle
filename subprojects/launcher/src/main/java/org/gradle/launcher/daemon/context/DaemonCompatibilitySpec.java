@@ -22,7 +22,7 @@ import static org.gradle.util.GFileUtils.canonicalise;
 public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     private final DaemonContext desiredContext;
-    
+
     public DaemonCompatibilitySpec(DaemonContext desiredContext) {
         this.desiredContext = desiredContext;
     }

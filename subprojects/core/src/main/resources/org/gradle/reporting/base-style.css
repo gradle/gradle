@@ -68,7 +68,6 @@ ul.tabLinks li {
     margin-right: 25px;
     border: solid 1px #d4d4d4;
     background-color: #f0f0f0;
-    behavior: url(htc/css3-pie-1.0beta3.htc);
 }
 
 ul.tabLinks li:hover {

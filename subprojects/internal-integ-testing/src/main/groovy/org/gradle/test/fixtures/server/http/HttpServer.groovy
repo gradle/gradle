@@ -271,6 +271,10 @@ class HttpServer extends ServerWithExpectations {
         expect(path, false, ['GET'], notFound(), passwordCredentials)
     }
 
+    void allowGetOrHeadMissing(String path) {
+        allow(path, false, ['GET', 'HEAD'], notFound())
+    }
+
     /**
      * Expects one HEAD request for the given URL, which return 404 status code
      */

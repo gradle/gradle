@@ -33,14 +33,17 @@ import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 
 class PluginResolutionServiceTestServer extends ExternalResource {
 
-    private final HttpServer http
+    final HttpServer http
 
     final MavenHttpRepository m2repo
 
     PluginResolutionServiceTestServer(GradleExecuter executer, MavenFileRepository repo) {
         this.http = new HttpServer()
         this.m2repo = new MavenHttpRepository(http, repo)
+        configure(executer)
+    }
 
+    public <T extends GradleExecuter> T configure(T executer) {
         executer.beforeExecute(new Action<GradleExecuter>() {
             void execute(GradleExecuter e) {
                 if (http.running) {
@@ -48,6 +51,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
                 }
             }
         })
+        executer
     }
 
     void injectUrlOverride(GradleExecuter e) {
@@ -109,6 +113,11 @@ class PluginResolutionServiceTestServer extends ExternalResource {
 
     public void expectPluginQuery(String pluginId, String pluginVersion, String group, String artifact, String version,
                                   @DelegatesTo(value = PluginUseResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer = null) {
+
+        if (!pluginId.contains(".")) {
+            throw new IllegalArgumentException("unqualified plugin id - must be qualified")
+        }
+
         def useResponse = new PluginUseResponse(pluginId, pluginVersion, new PluginUseResponse.Implementation("$group:$artifact:$version", m2repo.uri.toString()), "M2_JAR")
 
         if (configurer) {
@@ -142,6 +151,10 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         })
     }
 
+    String pluginUrl(String pluginId, String pluginVersion) {
+        "$http.address/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion"
+    }
+
     void start() {
         http.start()
     }
@@ -152,6 +165,6 @@ class PluginResolutionServiceTestServer extends ExternalResource {
 
     @Override
     protected void after() {
-        stop()
+        http.after()
     }
 }

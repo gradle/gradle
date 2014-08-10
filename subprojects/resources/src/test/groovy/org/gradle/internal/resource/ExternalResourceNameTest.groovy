@@ -15,8 +15,9 @@
  */
 
 package org.gradle.internal.resource
-
 import org.gradle.util.Matchers
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -96,6 +97,18 @@ class ExternalResourceNameTest extends Specification {
         "http://host"                | "http://host"
         "a/b/c"                      | "a/b/c"
         "file:/a/b/c"                | "file:/a/b/c"
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "can handle UNC paths"(){
+        expect:
+        def name = new ExternalResourceName(uri)
+        name.decoded == expectedDecoded
+
+        where:
+        uri                              | expectedDecoded
+        URI.create("file:////ms/dist")   | "file:////ms/dist"
+        new File('\\\\ms\\dist').toURI() | "file:////ms/dist"
     }
 
     def "has equals and hashcode"() {

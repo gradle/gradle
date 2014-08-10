@@ -35,12 +35,13 @@ import org.gradle.util.AntUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
-public class WorkerProcessClassPathProvider implements ClassPathProvider {
+public class WorkerProcessClassPathProvider implements ClassPathProvider, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
     private final CacheRepository cacheRepository;
     private final ModuleRegistry moduleRegistry;

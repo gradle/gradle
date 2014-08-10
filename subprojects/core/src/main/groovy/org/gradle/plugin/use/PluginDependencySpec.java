@@ -21,8 +21,12 @@ import org.gradle.api.Nullable;
 
 /**
  * A mutable specification of a dependency on a plugin.
- *
- * @see PluginDependenciesSpec
+ * <p>
+ * Can be used to specify the version of the plugin to use.
+ * </p>
+ * <p>
+ * See {@link PluginDependenciesSpec} for more information about declaring plugin dependencies.
+ * </p>
  */
 @Incubating
 public interface PluginDependencySpec {
@@ -37,9 +41,9 @@ public interface PluginDependencySpec {
      * </pre>
      * <p>
      * By default, dependencies have no (i.e. {@code null}) version.
-     * If no version is specified, plugin resolvers may infer the version.
-     * For example, “core” (e.g. {@code org.gradle.java}) plugins are always versioned with the Gradle platform.
-     * As such, they are required not to have a version number.
+     * <p>
+     * Core plugins must not include a version number specification.
+     * Community plugins must include a version number specification.
      *
      * @param version the version string ({@code null} for no specified version, which is the default)
      */

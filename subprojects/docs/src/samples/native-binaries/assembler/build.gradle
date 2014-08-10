@@ -27,19 +27,6 @@ model {
     }
 }
 
-sources {
-    i386_masm {
-        asm {
-            source.srcDir "src/main/asm_i386_masm"
-        }
-    }
-    i386_gcc {
-        asm {
-            source.srcDir "src/main/asm_i386_gcc"
-        }
-    }
-}
-
 // START SNIPPET assembler-args
 executables {
     main {
@@ -55,6 +42,19 @@ executables {
 // START SNIPPET assembler-args
                 assembler.args "-g"
             }
+        }
+    }
+}
+
+sources {
+    i386_masm {
+        asm(AssemblerSourceSet) {
+            source.srcDir "src/main/asm_i386_masm"
+        }
+    }
+    i386_gcc {
+        asm(AssemblerSourceSet) {
+            source.srcDir "src/main/asm_i386_gcc"
         }
     }
 }

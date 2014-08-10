@@ -79,7 +79,7 @@
     <section>
         <title>Configuring the Sonar Runner</title>
         <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.sonar.runner.SonarRunner" /> extension to the project,
-            which allows to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration
+            which allows you to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration
             includes connection settings for the Sonar server and database.
         </para>
         <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar connection settings">
@@ -108,7 +108,7 @@
             </thead>
             <tr>
                 <td>sonar.projectKey</td>
-                <td>"$project.group:$project.name" (for root project of analysed hierarchy; left to Sonar Runner otherwise)</td>
+                <td>“$project.group:$project.name” (for root project of analysed hierarchy; left to Sonar Runner otherwise)</td>
             </tr>
             <tr>
                 <td>sonar.projectName</td>
@@ -128,11 +128,11 @@
             </tr>
             <tr>
                 <td>sonar.working.directory</td>
-                <td>"$project.buildDir/sonar"</td>
+                <td>“$project.buildDir/sonar”</td>
             </tr>
             <tr>
                 <td>sonar.dynamicAnalysis</td>
-                <td>"reuseReports"</td>
+                <td>“"reuseReports”</td>
             </tr>
         </table>
         <table>
@@ -216,7 +216,7 @@
             <sourcefile file="build.gradle" snippet="individual-configuration-settings"/>
         </sample>
         <para>
-            The skip Sonar analysis for a particular subproject, set <literal>sonarRunner.skipProject</literal>.
+            To skip Sonar analysis for a particular subproject, set <literal>sonarRunner.skipProject</literal> to <literal>true</literal>.
         </para>
         <sample id="multiProject" dir="sonarRunner/multiProject" title="Skipping analysis of a project">
             <sourcefile file="build.gradle" snippet="skip-project"/>
@@ -237,9 +237,9 @@
     <section>
         <title>Analyzing languages other than Java</title>
         <para>
-            To analyze code written in a language other than Java, install the corresponding
-            <ulink url="http://www.sonarsource.com/products/plugins/languages/">Sonar plugin</ulink>, and set
-            <literal>sonar.project.language</literal> accordingly:
+            To analyze code written in a language other than Java, you'll need to set <literal>sonar.project.language</literal> accordingly.
+            However, note that your Sonar server has to have the <ulink url="http://www.sonarsource.com/products/plugins/languages/">Sonar plugin</ulink>
+            that handles that programming language.
         </para>
         <sample id="advanced" dir="sonarRunner/advanced" title="Analyzing languages other than Java">
             <sourcefile file="build.gradle" snippet="languages" />
@@ -254,13 +254,13 @@
         <title>More on configuring Sonar properties</title>
         <para>
             Let's take a closer look at the <literal>sonarRunner.sonarProperties {}</literal> block. As we have already seen in the examples,
-            the <literal>property()</literal> method allows to set new properties or override existing ones. Furthermore, all properties that have
+            the <literal>property()</literal> method allows you to set new properties or override existing ones. Furthermore, all properties that have
             been configured up to this point, including all properties preconfigured by Gradle, are available via the <literal>properties</literal>
             accessor.
         <para>
         </para>
             Entries in the <literal>properties</literal> map can be read and written with the usual Groovy syntax. To facilitate their manipulation,
-            values still have their "idiomatic" type (<classname>File</classname>, <classname>List</classname>, etc.). After the sonarProperties block
+            values still have their “idiomatic” type (<classname>File</classname>, <classname>List</classname>, etc.). After the sonarProperties block
             has been evaluated, values are converted to Strings as follows: Collection values are (recursively) converted to comma-separated Strings,
             and all other values are converted by calling their <literal>toString()</literal> method.
         </para>

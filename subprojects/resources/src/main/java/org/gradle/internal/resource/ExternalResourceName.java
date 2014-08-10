@@ -71,6 +71,12 @@ public class ExternalResourceName {
         if (uri.getScheme() != null) {
             builder.append(uri.getScheme());
             builder.append(":");
+
+            if(uri.getScheme().equals("file")) {
+                if (uri.getPath().startsWith("//")) {
+                    builder.append("//");
+                }
+            }
         }
         if (uri.getHost() != null) {
             builder.append("//");

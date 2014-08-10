@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.api.tasks.TaskAction
 import org.gradle.execution.TaskSelector
-import org.gradle.internal.DefaultTaskParameter
 import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -39,7 +38,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
 
     def "does not configure if option doesn't match"() {
         when:
-        configurer.configureTasks([task, task2], toTaskParameters(['foo']))
+        configurer.configureTasks([task, task2], ['foo'])
         then:
         task.content == 'default content'
         task2.content == 'default content'
@@ -53,16 +52,16 @@ class CommandLineTaskConfigurerSpec extends Specification {
         configurer = Spy(CommandLineTaskConfigurer, constructorArgs: [new OptionReader()])
 
         when:
-        def out = configurer.configureTasks([task, task2], toTaskParameters(['foo']))
+        def out = configurer.configureTasks([task, task2], ['foo'])
 
         then:
-        out == toTaskParameters(['foo'])
+        out == ['foo']
         0 * configurer.configureTasksNow(_, _)
     }
 
     def "configures string option on all tasks"() {
         when:
-        configurer.configureTasks([task, task2], toTaskParameters(['--content', 'Hey!', 'foo']))
+        configurer.configureTasks([task, task2], ['--content', 'Hey!', 'foo'])
         then:
         task.content == 'Hey!'
         task2.content == 'Hey!'
@@ -70,19 +69,19 @@ class CommandLineTaskConfigurerSpec extends Specification {
 
     def "configures boolean option"() {
         when:
-        configurer.configureTasks([task], toTaskParameters(['--someFlag']))
+        configurer.configureTasks([task], ['--someFlag'])
         then:
         task.someFlag
     }
 
     def "configures enum option"() {
         when:
-        configurer.configureTasks([task], toTaskParameters(['--someEnum', "value1"]))
+        configurer.configureTasks([task], ['--someEnum', "value1"])
         then:
         task.anEnum == TestEnum.value1
 
         when:
-        configurer.configureTasks([task], toTaskParameters(['--someEnum', "unsupportedEnumValue"]))
+        configurer.configureTasks([task], ['--someEnum', "unsupportedEnumValue"])
         then:
         def e = thrown(TaskConfigurationException)
         e.message == "Problem configuring option 'someEnum' on task ':someTask' from command line."
@@ -93,7 +92,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
 
     def "configures options on all types that can accommodate the setting"() {
         when:
-        configurer.configureTasks([task, otherTask], toTaskParameters(['--someFlag']))
+        configurer.configureTasks([task, otherTask], ['--someFlag'])
         then:
         task.someFlag
         otherTask.someFlag
@@ -101,7 +100,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
 
     def "fails if some of the types cannot accommodate the setting"() {
         when:
-        configurer.configureTasks([task, defaultTask], toTaskParameters(['--someFlag']))
+        configurer.configureTasks([task, defaultTask], ['--someFlag'])
 
         then:
         def ex = thrown(TaskConfigurationException)
@@ -117,19 +116,19 @@ class CommandLineTaskConfigurerSpec extends Specification {
         ex.cause.message.contains('someFlag2')
 
         where:
-        input << [toTaskParameters(['--someFlag', '--someFlag2']), toTaskParameters(['--someFlag2', '--someFlag'])]
+        input << [['--someFlag', '--someFlag2'], ['--someFlag2', '--someFlag']]
     }
 
     def "configures the Boolean option"() {
         when:
-        configurer.configureTasks([task], toTaskParameters(['--someFlag2']))
+        configurer.configureTasks([task], ['--someFlag2'])
         then:
         task.someFlag2
     }
 
     def "configures mixed options"() {
         when:
-        configurer.configureTasks([task, task2], toTaskParameters(['--someFlag', '--content', 'Hey!']))
+        configurer.configureTasks([task, task2], ['--someFlag', '--content', 'Hey!'])
         then:
         task.someFlag
         task2.someFlag
@@ -138,26 +137,16 @@ class CommandLineTaskConfigurerSpec extends Specification {
     }
 
     def "configures options and returns unused arguments"() {
-        def args = toTaskParameters(['--someFlag', '--content', 'Hey!', 'foo', '--baz', '--someFlag'])
+        def args = ['--someFlag', '--content', 'Hey!', 'foo', '--baz', '--someFlag']
         when:
         def out = configurer.configureTasks([task, task2], args)
         then:
-        out == toTaskParameters(['foo', '--baz', '--someFlag'])
-    }
-
-    def "configures options and returns unused arguments when TaskParameter is used"() {
-        def args = toTaskParameters(['--someFlag', '--content', 'Hey!'])
-        def parameter = new DefaultTaskParameter('foo', ':')
-        when:
-        def out = configurer.configureTasks([task, task2], args + parameter)
-        then:
-        out == [parameter]
+        out == ['foo', '--baz', '--someFlag']
     }
 
     def "fails on unknown option"() {
-        def args = toTaskParameters(['--xxx'])
         when:
-        configurer.configureTasks([task, task2], args)
+        configurer.configureTasks([task, task2], ['--xxx'])
 
         then:
         def ex = thrown(TaskConfigurationException)
@@ -165,17 +154,12 @@ class CommandLineTaskConfigurerSpec extends Specification {
     }
 
     def "fails neatly when short option used"() {
-        def args = toTaskParameters(['--someFlag', '-c'])
         when:
-        configurer.configureTasks([task], args)
+        configurer.configureTasks([task], ['--someFlag', '-c'])
 
         then:
         def ex = thrown(TaskConfigurationException)
         ex.cause.message.contains("Unknown command-line option '-c'")
-    }
-
-    def toTaskParameters(List<String> arguments) {
-        arguments.collect { new DefaultTaskParameter(it) }
     }
 
     public static class SomeTask extends DefaultTask {

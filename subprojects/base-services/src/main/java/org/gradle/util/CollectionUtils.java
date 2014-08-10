@@ -187,7 +187,7 @@ public abstract class CollectionUtils {
                 Object[] thingArray = (Object[]) thing;
                 List<T> list = new ArrayList<T>(thingArray.length);
                 for (Object thingThing : thingArray) {
-                    list.addAll(flattenCollections((Class) type, thingThing));
+                    list.addAll(flattenCollections(type, thingThing));
                 }
                 return list;
             }
@@ -196,7 +196,7 @@ public abstract class CollectionUtils {
                 Collection<?> collection = (Collection<?>) thing;
                 List<T> list = new ArrayList<T>();
                 for (Object element : collection) {
-                    list.addAll(flattenCollections((Class) type, element));
+                    list.addAll(flattenCollections(type, element));
                 }
                 return list;
             }
@@ -205,7 +205,7 @@ public abstract class CollectionUtils {
         } else {
             List<T> list = new ArrayList<T>();
             for (Object thing : things) {
-                list.addAll(flattenCollections((Class) type, thing));
+                list.addAll(flattenCollections(type, thing));
             }
             return list;
         }
@@ -260,9 +260,7 @@ public abstract class CollectionUtils {
         }
 
         List<T> list = new ArrayList<T>(things.length);
-        for (T thing : things) {
-            list.add(thing);
-        }
+        Collections.addAll(list, things);
         return list;
     }
 
@@ -372,9 +370,7 @@ public abstract class CollectionUtils {
      * @return t1
      */
     public static <T> Collection<T> addAll(Collection<T> t1, T... t2) {
-        for (T t : t2) {
-            t1.add(t);
-        }
+        Collections.addAll(t1, t2);
         return t1;
     }
 

@@ -12,7 +12,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the Java library distribution plugin, include in your build script:</para>
+        <para>To use the Java library distribution plugin, include the following in your build script:</para>
         <sample id="usejavaLibraryPlugin" dir="userguide/javaLibraryDistribution" title="Using the java library distribution plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -22,9 +22,9 @@
             <sourcefile file="build.gradle" snippet="name-conf"/>
         </sample>
 
-        <para>The plugin build a distribution for your library. The distribution will package up the runtime dependencies of the library
+        <para>The plugin builds a distribution for your library. The distribution will package up the runtime dependencies of the library.
             All files stored in <filename>src/main/dist</filename> will be added to the root of the archive distribution. You can run
-            <userinput>gradle distZip</userinput> to create a ZIP containing the distribution.
+            “<userinput>gradle distZip</userinput>” to create a ZIP file containing the distribution.
         </para>
     </section>
 
@@ -60,7 +60,7 @@
         <title>Including other resources in the distribution</title>
         <para>
             All of the files from the <filename>src/dist</filename> directory are copied. To include any static files in the distribution, simply arrange
-            them in the <filename>src/dist</filename> directory, or add it to the content of the distribution.
+            them in the <filename>src/dist</filename> directory, or add them to the content of the distribution.
         </para>
         <sample id="includeTaskOutputInApplicationDistribution" dir="userguide/javaLibraryDistribution" title="Include files in the distribution">
             <sourcefile file="build.gradle" snippet="custom-distribution"/>

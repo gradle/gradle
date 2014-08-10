@@ -17,11 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ConflictResolution;
-import org.gradle.api.artifacts.DependencyResolveDetails;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
 import org.gradle.internal.Actions;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -40,6 +38,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
+    private VersionSelectionRulesInternal versionSelection = new DefaultVersionSelectionRules();
 
     final Set<Action<? super DependencyResolveDetails>> dependencyResolveRules;
     private final DefaultCachePolicy cachePolicy;
@@ -112,6 +111,15 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public void cacheChangingModulesFor(int value, TimeUnit units) {
         this.cachePolicy.cacheChangingModulesFor(value, units);
+    }
+
+    public VersionSelectionRulesInternal getVersionSelection() {
+        return versionSelection;
+    }
+
+    public ResolutionStrategy versionSelection(Action<VersionSelectionRules> closure) {
+        closure.execute(versionSelection);
+        return this;
     }
 
     public DefaultResolutionStrategy copy() {

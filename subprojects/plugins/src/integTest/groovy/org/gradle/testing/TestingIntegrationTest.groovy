@@ -18,9 +18,9 @@ package org.gradle.testing
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -143,7 +143,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
-    @IgnoreIf({ OperatingSystem.current().isWindows() })
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can use long paths for working directory"() {
         given:
         // windows can handle a path up to 260 characters

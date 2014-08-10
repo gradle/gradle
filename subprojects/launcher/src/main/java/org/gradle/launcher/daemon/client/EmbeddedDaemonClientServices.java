@@ -34,6 +34,7 @@ import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction;
+import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
@@ -65,7 +66,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
 
     protected DaemonCommandExecuter createDaemonCommandExecuter() {
         LoggingManagerInternal mgr = newInstance(LoggingManagerInternal.class);
-        return new DefaultDaemonCommandExecuter(get(GradleLauncherFactory.class),
+        return new DefaultDaemonCommandExecuter(new InProcessBuildActionExecuter(get(GradleLauncherFactory.class)),
                 get(ProcessEnvironment.class), mgr, new File("dummy"), new NoOpDaemonCommandAction());
     }
 

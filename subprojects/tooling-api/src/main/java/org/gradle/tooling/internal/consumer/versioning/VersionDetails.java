@@ -42,4 +42,8 @@ public abstract class VersionDetails {
     public boolean supportsTaskDisplayName() {
         return false;
     }
+
+    public boolean supportsCancellation() {
+        return false;
+    }
 }

@@ -31,7 +31,9 @@ executables {
 // END SNIPPET executables
 
 // START SNIPPET source-library
-sources.main.c.lib libraries.hello
+sources {
+   main.c.lib libraries.hello
+}
 // END SNIPPET source-library
 
 // START SNIPPET compiler-args
@@ -49,8 +51,9 @@ binaries.all {
 // END SNIPPET compiler-args
 
 // START SNIPPET all-shared-libraries
-// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
-binaries.withType(SharedLibraryBinary) {
+// For any shared library binaries built with Visual C++,
+// define the DLL_EXPORT macro
+binaries.withType(SharedLibraryBinarySpec) {
     if (toolChain in VisualCpp) {
         cCompiler.args "/Zi"
         cCompiler.define "DLL_EXPORT"

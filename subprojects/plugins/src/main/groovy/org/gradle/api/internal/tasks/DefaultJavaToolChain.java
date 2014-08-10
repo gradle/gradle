@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -33,6 +34,15 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     public DefaultJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
         this.compilerFactory = compilerFactory;
         this.execActionFactory = execActionFactory;
+    }
+
+    public String getDisplayName() {
+        return String.format("current JDK (%s)", JavaVersion.current());
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {

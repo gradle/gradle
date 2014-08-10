@@ -22,9 +22,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
-import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorInternal;
+import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
@@ -41,7 +41,7 @@ import java.io.File;
 @Incubating
 public class GenerateIvyDescriptor extends DefaultTask {
 
-    private IvyModuleDescriptor descriptor;
+    private IvyModuleDescriptorSpec descriptor;
     private Object destination;
 
     public GenerateIvyDescriptor() {
@@ -59,11 +59,11 @@ public class GenerateIvyDescriptor extends DefaultTask {
      *
      * @return The module descriptor.
      */
-    public IvyModuleDescriptor getDescriptor() {
+    public IvyModuleDescriptorSpec getDescriptor() {
         return descriptor;
     }
 
-    public void setDescriptor(IvyModuleDescriptor descriptor) {
+    public void setDescriptor(IvyModuleDescriptorSpec descriptor) {
         this.descriptor = descriptor;
     }
 
@@ -90,10 +90,13 @@ public class GenerateIvyDescriptor extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
-        IvyModuleDescriptorInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
+        IvyModuleDescriptorSpecInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
 
         IvyDescriptorFileGenerator ivyGenerator = new IvyDescriptorFileGenerator(descriptorInternal.getProjectIdentity());
         ivyGenerator.setStatus(descriptorInternal.getStatus());
+        ivyGenerator.setBranch(descriptorInternal.getBranch());
+        ivyGenerator.setExtraInfo(descriptorInternal.getExtraInfo().asMap());
+
         for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
             ivyGenerator.addConfiguration(ivyConfiguration);
         }
@@ -109,17 +112,17 @@ public class GenerateIvyDescriptor extends DefaultTask {
         ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());
     }
 
-    private static IvyModuleDescriptorInternal toIvyModuleDescriptorInternal(IvyModuleDescriptor ivyModuleDescriptor) {
-        if (ivyModuleDescriptor == null) {
+    private static IvyModuleDescriptorSpecInternal toIvyModuleDescriptorInternal(IvyModuleDescriptorSpec ivyModuleDescriptorSpec) {
+        if (ivyModuleDescriptorSpec == null) {
             return null;
-        } else if (ivyModuleDescriptor instanceof IvyModuleDescriptorInternal) {
-            return (IvyModuleDescriptorInternal) ivyModuleDescriptor;
+        } else if (ivyModuleDescriptorSpec instanceof IvyModuleDescriptorSpecInternal) {
+            return (IvyModuleDescriptorSpecInternal) ivyModuleDescriptorSpec;
         } else {
             throw new InvalidUserDataException(
                     String.format(
                             "ivyModuleDescriptor implementations must implement the '%s' interface, implementation '%s' does not",
-                            IvyModuleDescriptorInternal.class.getName(),
-                            ivyModuleDescriptor.getClass().getName()
+                            IvyModuleDescriptorSpecInternal.class.getName(),
+                            ivyModuleDescriptorSpec.getClass().getName()
                     )
             );
         }

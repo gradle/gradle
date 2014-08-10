@@ -17,8 +17,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
+import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -36,19 +39,40 @@ import org.gradle.tooling.model.internal.Exceptions;
 /**
  * An adapter for a {@link InternalConnection} based provider.
  */
-public class InternalConnectionBackedConsumerConnection extends AbstractPre12ConsumerConnection {
+public class InternalConnectionBackedConsumerConnection extends AbstractConsumerConnection {
     private final ModelProducer modelProducer;
 
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()), adapter);
+        super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()));
         ModelProducer consumerConnectionBackedModelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate);
         ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
     }
 
     @Override
-    protected <T> T doGetModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
-        return modelProducer.produceModel(modelType, operationParameters);
+    public void configure(ConnectionParameters connectionParameters) {
+        new CompatibleIntrospector(getDelegate()).callSafely("configureLogging", connectionParameters.getVerboseLogging());
+    }
+
+    public <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
+            throws UnsupportedOperationException, IllegalStateException {
+        if (type.equals(Void.class)) {
+            doRunBuild(operationParameters);
+            return null;
+        } else {
+            if (operationParameters.getTasks() != null) {
+                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
+            }
+            return doGetModel(type, cancellationToken, operationParameters);
+        }
+    }
+
+    private void doRunBuild(final ConsumerOperationParameters operationParameters) {
+        getDelegate().executeBuild(operationParameters, operationParameters);
+    }
+
+    private <T> T doGetModel(Class<T> modelType, CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) {
+        return modelProducer.produceModel(modelType, cancellationToken, operationParameters);
     }
 
     private static class R10M8VersionDetails extends VersionDetails {
@@ -83,7 +107,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
             this.mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
         }
 
-        public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+        public <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) {
             if (!versionDetails.maySupportModel(type)) {
                 //don't bother asking the provider for this model
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());

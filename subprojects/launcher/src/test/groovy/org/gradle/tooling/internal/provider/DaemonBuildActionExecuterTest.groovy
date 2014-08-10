@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.initialization.BuildAction
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.ReportedException
@@ -26,6 +27,7 @@ import spock.lang.Specification
 class DaemonBuildActionExecuterTest extends Specification {
     final DaemonClient client = Mock()
     final BuildAction<String> action = Mock()
+    final BuildCancellationToken cancellationToken = Mock()
     final ProviderOperationParameters parameters = Mock()
     final DaemonParameters daemonParameters = Mock()
     final DaemonBuildActionExecuter executer = new DaemonBuildActionExecuter(client, daemonParameters)
@@ -34,12 +36,12 @@ class DaemonBuildActionExecuterTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executer.execute(action, parameters)
+        executer.execute(action, cancellationToken, parameters)
 
         then:
         BuildExceptionVersion1 e = thrown()
         e.cause == failure
-        1 * client.execute(action, !null) >> { throw new ReportedException(failure) }
+        1 * client.execute(action, cancellationToken, !null) >> { throw new ReportedException(failure) }
         _ * daemonParameters.effectiveSystemProperties >> [:]
     }
 }

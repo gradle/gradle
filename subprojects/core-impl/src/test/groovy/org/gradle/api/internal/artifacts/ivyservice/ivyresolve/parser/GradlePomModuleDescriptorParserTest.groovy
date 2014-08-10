@@ -19,6 +19,7 @@ import org.gradle.api.internal.artifacts.metadata.MavenModuleVersionMetaData
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
@@ -711,7 +712,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 """
         and:
         parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
 
         when:
         def descriptor = parsePom()
@@ -787,7 +790,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 """
         and:
         parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
 
         when:
         def descriptor = parsePom()
@@ -868,7 +873,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 """
         and:
         parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
 
         when:
         def descriptor = parsePom()
@@ -1012,7 +1019,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 """
         and:
         parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
 
         when:
         def descriptor = parsePom()
@@ -1114,7 +1123,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 """
         and:
         parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
         parseContext.getMetaDataArtifact({ it.name == 'imported' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(imported.toURI(), new DefaultLocallyAvailableResource(imported)) }
 
         when:
@@ -1126,8 +1137,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         artifactTwo.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'some-version')
         artifactTwo.moduleConfigurations == ['compile', 'runtime']
     }
-
-
 
     def "pom with dependency with classifier"() {
         given:
@@ -1454,7 +1463,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 """
         and:
         parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
 
         when:
         def descriptor = parsePom()
@@ -1521,7 +1532,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 """
         and:
         parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
 
         when:
         def descriptor = parsePom()
@@ -1593,7 +1606,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 """
         and:
         parseContext.getMetaDataArtifact({ it.name == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
 
         when:
         def descriptor = parsePom()
@@ -1913,7 +1928,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
             <type>ejb-client</type>
-            <classifier>client</classifier>
             <version>version-six</version>
         </dependency>
     </dependencies>
@@ -1945,7 +1959,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def depEjbClient = descriptor.dependencies[4]
         depEjbClient.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-six')
         depEjbClient.moduleConfigurations == ['compile', 'runtime']
-        hasDependencyArtifact(depEjbClient, 'artifact-two', 'ejb-client', 'ejb-client', 'client')
+        hasDependencyArtifact(depEjbClient, 'artifact-two', 'ejb-client', 'jar', 'client')
     }
 
     @Issue("GRADLE-2371")
@@ -2146,5 +2160,45 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.5')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
+    }
+
+    @Unroll
+    def "handles dependency with type #type"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>1.2</version>
+            <type>${type}</type>
+        </dependency>
+    </dependencies>
+</project>
+"""
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDependencyArtifact(dep, 'artifact-two', type, extension, classifier)
+
+        where:
+        type          | extension     | classifier
+        'test-jar'    | 'jar'         | 'tests'
+        'ejb'         | 'jar'         | null
+        'ejb-client'  | 'jar'         | 'client'
+        'bundle'      | 'jar'         | null
+        'custom-type' | 'custom-type' | null
     }
 }

@@ -62,7 +62,9 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
         buildProfile.setProjectsLoaded(timeProvider.getCurrentTime());
     }
 
-    public void projectsEvaluated(Gradle gradle) {}
+    public void projectsEvaluated(Gradle gradle) {
+        buildProfile.setProjectsEvaluated(timeProvider.getCurrentTime());
+    }
 
     public void buildFinished(BuildResult result) {
         buildProfile.setSuccessful(result.getFailure() == null);

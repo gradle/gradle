@@ -1,5 +1,54 @@
 
-This spec describes some work to allow plugins to define the kinds of components that they produce and consume.
+Currently, the JVM language plugins assume that a given set of source files is assembled into a single
+output. For example, the `main` Java source is compiled and assembled into a JAR file. However, this is not
+always a reasonable assumption. Here are some examples:
+
+* When building for multiple runtimes, such as Scala 2.10 and Scala 2.11.
+* When building multiple variants composed from various source sets, such as an Android application.
+* When packaging the output in various different ways, such as in a JAR and a fat JAR.
+
+By making this assumption, the language plugins force the build author to implement these cases in ways that
+are not understood by other plugins that extend the JVM language plugins, such as the code quality and IDE
+plugins.
+
+This problem is also evident in non-JVM languages such as C++, where a given source file may be compiled and
+linked into more than one binaries.
+
+This spec describes some work to allow plugins to define the kinds of JVM components that they produce and consume,
+and to allow plugins to define their own custom JVM based components.
+
+# Use cases
+
+## Multiple build types for Android applications
+
+An Android application is assembled in to multiple _build types_, such as 'debug' or 'release'.
+
+## Build a library for multiple Scala or Groovy runtimes
+
+A library is compiled and published for multiple Scala or Groovy runtimes, or for multiple JVM runtimes.
+
+# Build different variants of an application
+
+An application is tailored for various purposes, with each purpose represented as a separate variant. For
+each variant, some common source files and some variant specific source files are jointly compiled to
+produce the application.
+
+For example, when building against the Java 5 APIs do not include the Java 6 or Java 7 specific source files.
+
+# Compose a library from source files compiled in different ways
+
+For example, some source files are compiled using the aspectj compiler and some source files are
+compiled using the javac compiler. The resulting class files are assembled into the library.
+
+# Implement a library using multiple languages
+
+A library is implemented using a mix of Java, Scala and Groovy and these source files are jointly compiled
+to produce the library.
+
+## Package a library in multiple ways
+
+A library may be packaged as a classes directory, or a set of directories, or a single jar file, or a
+far jar, or an API jar and an implementation jar.
 
 ## A note on terminology
 
@@ -101,17 +150,6 @@ Combining native and jvm libraries in single project
 - Can combine native and JVM libraries in the same project
   - `gradle assemble` executes lifecycle tasks for each native library and each jvm library
 
-#### Open issues
-
-- Come up with a better name for `JvmLibraryBinary`, or perhaps add a `JarBinary` subtype
-- Consider splitting up `assemble` into various lifecycle tasks. There are several use cases:
-    - As a developer, build me a binary I can play with or test in some way.
-    - As part of some workflow, build all binaries that should be possible to build in this specific environment. Fail if a certain binary cannot be built.
-      For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
-      Or, if I'm building for Android, fail if the SDK is not installed.
-    - Build everything. Fail if a certain binary cannot be built.
-- Validation of component, binary and source set names (e.g. don't include ':' and reserved filesystem characters, or limit to valid Java identifiers).
-
 ### Story: Build author creates JVM library jar from Java sources
 
 When a JVM library is defined with Java language support, then binary is built from conventional source set locations:
@@ -172,169 +210,335 @@ Combining jvm-java and native (multi-lang) libraries in single project
 #### Test cases
 
 - Define and build the jar for a java library (assert jar contents for each case)
-    - With no sources or resources
     - With sources but no resources
     - With resources but no sources
     - With both sources and resources
-- Reports failure to compile source
+- Creates empty jar with no sources or resources (a later story will make this a failure)
 - Compiled sources and resources are available in a common directory
+- Reports failure to compile source
 - Incremental build for java library
     - Tasks skipped when all sources up-to-date
     - Class file is removed when source is removed
     - Copied resource is removed when resource is removed
 - Can build native and JVM libraries in the same project
-  - `gradle assemble` builds each native library and each jvm library
-
-#### Open issues
-
-- Don't attach Java source sets to native components
-- Don't attach native language source sets to jvm components.
-- Don't build a jar when there is no source, mark the binary as not buildable.
-    - Should do a similar thing with native components.
-- Need to be able to navigate from a `JvmLibrary` to its binaries.
-- Need to be able to navigate from a `JvmLibraryBinary` to its tool chain.
-- Need `groovy-lang` and `scala-lang` plugins
-- Possibly deprecate the existing 'cpp', 'c', etc plugins.
-- All compiled classes are removed when all java source files are removed.
-- Clean up output files for source set that is removed.
-- Clean up output files from components and binaries that have been removed or renamed.
-- Configure JvmLibrary and/or JvmLibraryBinary
-    - Customise manifest
-    - Customise compiler options
-    - Customise output locations
-    - Customise source directories
-        - Handle layout where source and resources are in the same directory - need to filter source files
-- Configure more stuff about the source
-    - Java language version
-    - Source encoding
-- How to model the fact that component is often a prototype for binary: have similar attributes and configuration.
+    - `gradle assemble` builds each native library and each jvm library
+- Can combine old and new JVM plugins in the same project
+    - `gradle assemble` builds both jars
 
 ## Feature: Custom plugin defines a custom library type
+
+This features allows the development of a custom plugin that can contribute Library, Binary and Task instances to the language domain.
+
+Development of this feature depends on the first 2 stories from the `unified-configuration-and-task-model` spec, namely:
+
+- Story: Plugin declares a top level model to make available
+- Story: Plugin configures tasks using model as input
 
 ### Story: plugin declares its own library type
 
 Define a sample plugin that declares a custom library type:
     
-    interface SampleLibrary extends Library {
-        String color
-    }
+    interface SampleLibrary extends LibrarySpec { ... }
+    class DefaultSampleLibrary extends DefaultLibrarySpec implements SampleLibrary { ... }
 
-    interface SampleExtension {
-        def addSampleLibrary(name, color)
-    }
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        @ComponentModel(SampleLibrary.class, DefaultSampleLibrary.class)
+        static class ComponentModel {
+            @Model("mySample")
+            SampleExtension createSampleExtension() {
+                ...
+            }
 
-    @DomainModel("mySample")
-    class MySamplePlugin {
-
-        // Gradle will call this and register the extension as "mySample"
-        // Will extend the SampleExtension with "mySample.components" and "mySample.libraries" collections
-        SampleExtension createExtension(Instantiator instantiator) {
-            return instantiator.newInstance(SampleExtensionImpl, someArg)
-        }
-
-        // Gradle will create and pass in a filtered view: mySample.libraries.withType(SampleLibrary)
-        // Will add this view to SampleExtension as "mySample.sampleLibraries" (using parameter name?)
-        void createSampleLibraryComponents(NamedDomainObjectSet<SampleLibrary> sampleLibraries, Instantiator instantiator, SampleExtension sampleExtension) {
-            ... Create sample libraries based on configured sampleExtension, adding to sampleLibraries Set
+            @Mutate
+            void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
+                for (String libraryName : sampleExtension.getLibraryNames()) {
+                    sampleLibraries.create(libraryName)
+                }
+            }
         }
     }
-    
 
-Apply and use the sample plugin:
+Libraries are then visible in libraries and components containers:
 
-    apply plugin: 'my-sample'
-
-    mySample {
-        // Plugin can use it's own DSL to define libraries
-        // eg. Plugin will add 2 libraries of type SampleLibrary to 'mySample.libraries'
-        addSampleLibrary("redLib", "Red")
-        addSampleLibrary("blueLib", "Blue")
-    }
-
-    // Library is visible in libraries and components containers
-    assert mySample.sampleLibraries.size() == 2
-    assert mySample.libraries.size() == 2
-    assert mySample.components.size() == 2
+    // Library is visible in component container
     assert projectComponents.withType(SampleLibrary).size() == 2
 
-    // Libraries are configured correctly
-    assert mySample.libraries.redLib.color == "Red"
-    assert mySample.sampleLibraries.collect({it.color}) == ["Red", "Blue"]
-
 A custom library type:
-- Extends or implements some public base `Library` type.
+- Extends or implements the public base `LibrarySpec` type.
 - Has no dependencies.
+- Has no sources.
 - Produces no artifacts.
+
+A custom library implementation:
+- Implements the custom library type
+- Extends `DefaultLibrarySpec`
+- Has a no-arg constructor
 
 #### Implementation Plan
 
-#### Test Cases
+- ~~Rename the existing JVM and C++ model classes from `Project*` to `*Spec`.~~
+- ~~Introduce a `LibrarySpec` interface that both `NativeLibrarySpec` and `JvmLibrarySpec` extend.~~
+- ~~Add a default implementation of `LibrarySpec` named `DefaultLibrarySpec`. All custom library implementations extend this.~~
+- ~~Replace `NamedProjectComponentIdentifier` with `ComponentSpecIdentifier` everywhere.~~
+- ~~Add a new Sample for a custom plugin that uses model rules to add `SampleLibrary` instances to the `ComponentSpecContainer`~~
+    - Should apply the `ComponentModelBasePlugin`
+    - At the end of the story the sample will be adapted to use the new mechanism introduced
+    - Add an integration test for the sample
+- ~~Add a new incubating annotation to the 'language-base' project: `ComponentModel` with parameters defining the Library type and implementation classes~~
+- ~~Add functionality to the 'language-base' plugin that registers a hook that inspects every applied plugin for a nested (static) class with the @ComponentModel annotation~~
+    - Implement by making an `Action<? super PluginApplication>` available to the construction of `DefaultPluginContainer`, via `PluginServiceRegistry`.
+- ~~When a plugin is applied that has a nested class with the `@ComponentModel(SampleLibrary)` annotation:~~
+    - Automatically apply the `ComponentModelBasePlugin` before the plugin is applied
+    - Register a factory with the `ComponentSpecContainer` for creating `SampleLibrary` instances with the supplied implementation
+        - The factory implementation should generate a `ComponentSpecIdentifier` with the supplied name to instantiate the component
+    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<SampleLibrary>` view of the `ComponentSpecContainer`.
+- ~~Update `DefaultLibrarySpec` so that it has a public no-arg constructor~~
+    - ~~Inject the ComponentSpecIdentifier into the constructed library using a ThreadLocal and static setter method (see AbstractTask).~~
 
-#### Open issues
+#### Test cases
 
-- `DomainRegistry` should be a service rather than a project extension.
-- Need some public way to easily 'implement' Library and commons subtypes such as `ProjectComponent`. For example, a public default implementation that can
-be extended (should have no-args constructor) or generate the implementation from the interface.
-- Statically declare the component type and associated meta-data, so it can be inferred from the plugin implementation class without applying the plugin.
-For example, use a method signature or annotation, or add some specific interface other than `Plugin` that is to be implemented.
-- Statically declare the rules to create the libraries given the extension. For example, use a method signature or annotation.
-- Infer the dependency on the language base plugin.
-- Interaction with the `model { }` block.
-- Use annotations instead of inspecting method signatures?
+- ~~Can register a component model with @Library without any rules for creating components (does not create components)~~
+- ~~Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` with a plugin that:~~
+    - ~~Already has the `ComponentModelBasePlugin` applied~~
+    - ~~Has a single nested class with both `@ComponentModel` and `@RuleSource` annotations~~
+    - ~~Has separate nested classes with `@ComponentModel` and `@RuleSource` annotations~~
+- ~~Rule for adding library instances can be in a separate plugin to the plugin declaring the component model~~
+- ~~Can define and create multiple component types in the same plugin with multiple `@ComponentModel` annotations~~
+- ~~Friendly error message when supplied library implementation:~~
+    - ~~Does not have a public no-arg constructor~~
+    - ~~Does not implement library type~~
+    - ~~Does not extend `DefaultLibrarySpec`~~
+- ~~Friendly error message when attempting to register the same library type with different implementations~~
+- ~~Custom libraries show up in components report~~
 
-### Story: Custom library produces custom binaries
+### Story: Custom plugin uses rule to declare custom component type
+
+To avoid a future explosion of nested annotations, this story switches the mechanism for declaring a custom library type to use an
+annotated method, rather than a type annotation.
+
+This story also expands on the previous one by expanding the functionality to include any component type, not just `LibrarySpec` subtypes.
+
+When a rule method with the `@ComponentType` annotation is found, the method is inspected to determine the type based on the generic
+type of the `ComponentTypeBuilder` input. The ComponentTypeBuilder implementation will then register a rule that will
+register a factory with the `ComponentSpecContainer` when the default implementation is set.
+
+#### User visible changes
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class Rules {
+            @ComponentType
+            void defineType(ComponentTypeBuilder<SampleLibrary> builder) {
+                builder.setDefaultImplementation(DefaultSampleLibrary)
+            }
+        }
+    }
+
+#### Test cases
+
+- ~~Can register type that is not a subtype of `LibrarySpec`~~
+- ~~Fails if a method with @ComponentType does not have a single parameter of type `ComponentTypeBuilder`~~
+- ~~Fails if a method with @ComponentType has a return type~~
+- ~~Fails if `setDefaultImplementation` is called multiple times~~
+- ~~Empty @ComponentType method implementation is ok: no factory registered~~
+
+### Story: Plugin declares the binary types and default implementations for a custom component
+
+This story provides a simple way for developers to specify the binary types that are relevant for a particular custom component.
+
+#### User visible changes
 
 Add a binary type to the sample plugin:
 
-    interface SampleBinary extends LibraryBinary {}
+    // Define some binary types and reference them from the component
+    interface SampleBinary extends BinarySpec {}
+    interface OtherSampleBinary extends SampleBinary {}
 
-    class SampleExtension {
-        def addSampleLibrary(name, color)
-        def flavors = ['default']
-        def signBinaries = false
+    interface SampleComponent extends ComponentSpec {
+        @Binaries
+        Collection<SampleBinary> getSampleBinaries()
+
+        @Binaries
+        Collection<OtherSampleBinary> getOtherBinaries()
     }
 
-    class MySamplePlugin {
-        ...
+    // Define implementations for the binary types - these will go away at some point
+    class DefaultSampleBinary extends DefaultBinarySpec implements SampleBinary {}
+    class DefaultOtherSampleBinary extends DefaultBinarySpec implements OtherSampleBinary {}
 
-        void createBinariesForSampleLibrary(NamedDomainObjectSet<SampleBinary> binaries, SampleLibrary library, Instantiator instantiator, SampleExtension sampleExtension) {
-            ... Create sample binaries for this library, one for each flavor. Add to the 'binaries' set.
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @BinaryType
+            void defineBinaryType(BinaryTypeBuilder<SampleBinary> builder) {
+                builder.setDefaultImplementation(DefaultSampleBinary)
+            }
+
+            @BinaryType
+            void defineBinarySubType(BinaryTypeBuilder<OtherSampleBinary> builder) {
+                builder.setDefaultImplementation(DefaultOtherSampleBinary)
+            }
         }
+    }
 
-        void createTasksForSampleBinary(TaskContainer tasks, SampleBinary binary, SampleExtension sampleExtension) {
-            ... Add tasks that create this binary. Create additional tasks where signing is required.
+A custom binary type:
+- Extends public `BinarySpec` type.
+- Has no sources.
+- Is buildable.
+- Has some lifecycle task to build its outputs.
+
+A custom binary implementation:
+- Implements the custom binary type.
+- Extends `DefaultBinarySpec`.
+- Has a public no-arg constructor.
+
+#### Implementation Plan
+
+- Add a `DefaultBinarySpec` implementation or `BinarySpec` that has a no-arg constructor.
+- Introduce a `@BinaryType` rule type for registering a binary type and implementation
+    - Assert that the implementation class extends `DefaultBinarySpec`, has a no-arg constructor and implements the type.
+    - Register a factory for the type with the `BinaryContainer`.
+- Introduce a `@Binaries` annotation that can be used to determine the allowable binary types for a component
+    - This mechanism will be used to verify the binary definitions in the next story.
+- Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of binary subtypes.
+- Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
+    - Similarly, add `ApplicationBinarySpec`.
+
+#### Test cases
+
+- A rule that mutates `BinaryContainer` can create instances of registered type
+- Friendly error message when annotated `@BinaryType` rule method:
+    - Does not have a single parameter of type BinaryTypeBuilder
+    - Parameter does not have a generic type
+    - Has a non-void return value
+- Friendly error message when supplied binary type:
+    - Does not extend `BinarySpec`
+    - Equals `BinarySpec` (must be a subtype)
+- Friendly error message when supplied binary implementation:
+    - Does not have a public no-arg constructor
+    - Does not implement binary type
+    - Does not extend `DefaultBinarySpec`
+- Friendly error message when attempting to register the same binary type with different implementations
+
+### Story: Custom plugin defines binaries for each custom component
+
+This story introduces a mechanism by this a developer can define the binaries that should be built for a custom library.
+
+These binaries are not visible to the build script author for configuration.
+
+#### User visible changes
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @ComponentBinaries
+            void createBinariesForSampleLibrary(NamedItemCollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
+                binaries.create("${library.name}Binary")
+                binaries.create("${library.name}OtherBinary", OtherSampleBinary)
+            }
+
+            @ComponentBinaries
+            void createBinariesForSampleLibrary(NamedItemCollectionBuilder<OtherSampleBinary> binaries, SampleLibrary library) {
+                binaries.create("${library.name}OtherBinary2")
+            }
         }
     }
 
 Binaries are now visible in the appropriate containers:
 
-    apply plugin: 'my-sample'
-
-    mySample {
-        addSampleLibrary("redLib", "Red")
-        addSampleLibrary("blueLib", "Blue")
-        flavors = ['Lime', 'Lemon']
-        signBinaries = true
-    }
-
     // Binaries are visible in the appropriate containers
+    // (assume 2 libraries & 2 binaries per library)
     assert binaries.withType(SampleBinary).size() == 4
-    assert mySample.libraries['redLib'].binaries.collect({it.name}) == ['redLibLime', 'redLibLemon']
+    assert binaries.withType(OtherSampleBinary).size() == 2
+    projectComponents.withType(SampleLibrary).each { assert binaries.size() == 2 }
 
-A custom binary:
-- Extends or implements some public base `LibraryBinary` type.
-- Has some lifecycle task to build its outputs.
+Running `gradle assemble` will execute lifecycle task for each binary.
 
-Running `gradle assemble` will execute tasks for each library binary.
+#### Implementation Plan
+
+- Introduce a `@ComponentBinaries` rule type
+    - Subject must be of type `NamedItemCollectionBuilder` with a generic type parameter extending `BinarySpec`
+    - Exactly one input must be a type extending `ComponentSpec`
+    - The binary type declared in the subject must be assignable to one of the binary types declared on the component input type
+    - Other inputs are permitted
+- For each `@ComponentBinaries` rule, register a mutate rule that iterates over all components conforming to the requested component type
+    - Any created binaries should be added to the set of binaries for the component, as well as being added to the `BinaryContainer`
+- For each created binary, create and register a lifecycle task with the same name as the binary
+- Update the 'custom components' sample to demonstrate the new mechanism.
+
+#### Test cases
+
+- Can create binaries via rules that declare these as input:
+    - `NamedItemCollectionBuilder<BinarySpec>`
+    - `NamedItemCollectionBuilder<SampleBinary>`
+    - `NamedItemCollectionBuilder<SampleBinarySubType>`
+- Can execute lifecycle task of each created binary, individually and via 'assemble' task
+- Can access lifecycle task of binary via BinarySpec.buildTask
+- Friendly error message when annotated binary rule method:
+    - Does not have a single parameter of type BinaryTypeBuilder
+    - Parameter does not have a generic type
+    - Has a non-void return value
+- Friendly error message when supplied binary type:
+    - Does not extend `LibraryBinarySpec`
+    - Equals `LibraryBinarySpec`
+- Friendly error message when supplied binary implementation:
+    - Does not have a public no-arg constructor
+    - Does not implement binary type
+    - Does not extend `DefaultLibraryBinarySpec`
+- Friendly error message when attempting to register the same binary type with different implementations
 
 #### Open issues
 
-- Public mechanism to 'implement' Binary and common subtypes such as ProjectBinary.
-- Statically declare the binary type.
-- Statically declare the rules to create binaries given a library.
-- Statically declare the rules to create tasks given a binary.
-- Use annotations in place of method signature patterns?
-- Validation of binary names
+- Could use a single `@ComponentModel` annotation for all methods, and inspect signature to determine type
+- DefaultLibraryBinarySpec will expose internal api. Need a mechanism to provide binary implementation without subclassing.
+- Add 'plugin declares custom platform' story.
+- General mechanism to register a model collection and have rules that apply to each element of that collection.
+- Migrate the JVM and natives plugins to use this.
+    - Need to be able to declare the target platform for the component type.
+    - Need to expose general DSL for defining components of a given type.
+    - Need to attach source sets to components.
+- Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
+
+### Story: Build author uses `libraries { }` DSL to configure binaries for a custom component
+
+Adds capability to configure a child object after the parent object has been configured.
+
+### Story: Build author uses `binaries { }` DSL to configure binaries for multiple components
+
+Adds capability for an object to appear in multiple locations in the model.
+
+### Story: Custom plugin defines tasks from binaries
+
+Add a rule to the sample plugin:
+
+    class MySamplePlugin {
+        ...
+
+        @BinaryTasks
+        void createTasksForSampleBinary(NamedItemCollectionBuilder<Task> tasks, SampleBinary binary) {
+            ... Add tasks that create this binary. Create additional tasks where signing is required.
+        }
+    }
+
+Running `gradle assemble` will execute tasks for each library binary.
+
+#### Implementation Plan
+
+- Introduce a `@BinaryTasks` rule type:
+    - Subject must be of type `NamedItemCollectionBuilder<Tasks>`
+    - Exactly one input must be a type extending `LibraryBinarySpec`
+    - Other inputs are permitted
+- For each `@BinaryTasks` rule, register a mutate rule that iterates over all binaries conforming to the requested binary type
+    - Any created tasks should be added to the binary.tasks for this binary, and the binary will be `builtBy` those tasks
+- The task-creation rule will be executed for each binary when closing the TaskContainer.
+- Document in the user guide how to define a component, binaries and tasks for a custom model. Include some samples.
+
+#### Open issues
+
+- Needs to be easy to construct a task graph. The binary is 'builtBy' some assembling task, which then depend on a bunch of compile tasks.
+
+### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
 ### Story: Custom binary is built from Java sources
 
@@ -342,6 +546,35 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 
 - Uses same conventions as a Java library.
 - No dependencies.
+
+### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
+
+- ~~Move tasks/plugins/etc that are used to compile native languages for the native runtime into `org.gradle.language.*`~~
+- ~~Move Visual Studio and CDE related classes into new subproject `ide-native`~~
+    - ~~Move ide-specific integration tests as well~~
+- ~~Move language-specific classes (`org.gradle.language.*`) out of `cpp` into a new subproject `language-native`~~
+    - ~~Move language-related integration tests as well, breaking into a better package structure~~
+- ~~Rename the remaining `cpp` subproject to `runtime-native`~~
+    - Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeruntime.*`
+    - Move integration tests into `runtime-native`, breaking into a better package structure
+- Move runtime-specific classes (`org.gradle.runtime.*`) out of `language-jvm` into new subproject `runtime-jvm`
+- Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes
+    - `language-jvm` should be for common base infrastructure
+- Miscellaneous
+    - `runtime` subprojects should not depend on `language` subprojects
+    - Split NativeSamplesIntegrationTest for subprojects
+    - Reorganise samples?
+    - verify that auto-tested samples are working for ide-native and language-native
+    - Switch on strict compile for new subprojects
+    - Remove all cycles for subprojects
+    - Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
+
+#### Open issues
+
+- `language-native` integration tests require `ide-native` (testing visual studio project generation for particular cases)
+- where should `cunit` support live?
+    - production code and unit tests
+    - `cunit` test fixtures
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
@@ -351,17 +584,18 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 - Expose all native and jvm components through `project.components`.
 - Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
 
+```
+apply plugin: 'java'
 
-    apply plugin: 'java'
+// The library is visible
+assert jvm.libraries.main instanceof LegacyJvmLibrary
+assert libraries.size() == 1
+assert components.size() == 1
 
-    // The library is visible
-    assert jvm.libraries.main instanceof LegacyJvmLibrary
-    assert libraries.size() == 1
-    assert components.size() == 1
-
-    // The binary is visible
-    assert binaries.withType(ClassDirectoryBinary).size() == 1
-    assert binaries.withType(JarBinary).size() == 1
+// The binary is visible
+assert binaries.withType(ClassDirectoryBinary).size() == 1
+assert binaries.withType(JarBinary).size() == 1
+```
 
 #### Test cases
 
@@ -373,9 +607,7 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 #### Open issues
 
 - Expose through the DSL, or just through the APIs?
-- The `application` plugin should also declare a jvm application.
-- The `ear` plugin should also declare a j2ee application.
-- These plugins should also declare binaries.
+- Change `gradle dependencyInsight` to use the JVM library component to decide the default dependencies to report on.
 
 ### Story: Build author declares a dependency on another Java library
 
@@ -628,12 +860,76 @@ For example:
         }
     }
 
-Will have to move source sets live with the library domain object.
 
-### Open issues
+### Story: Configure the source sets of a component in the component definition
 
-- Fail or skip if target platform is not applicable for the the component's platform?
+This story moves definition and configuration of the source sets for a component to live with the other component configuration.
 
+1. Allow a component's source sets to be defined as part of the component definition:
+    - Replace `ComponentSpec.getSource()` with a `getSources()` method return a `FunctionalSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
+    - Add a `ComponentSpec.source(Action<? super FunctionalSourceSet>)` method.
+    - Change `ComponentModelBasePlugin.createLanguageSourceSets` to add source sets via the component's source container rather than the project's source container.
+    - This step allows configuration via `component.source { ... }`.
+1. Review samples to make use of this.
+
+#### Example DSL
+
+    nativeRuntime
+        libraries {
+            mylib {
+                sources {
+                    c {
+                        lib libraries.otherlib
+                    }
+                    cpp {
+                        include '**/*.CC'
+                    }
+                }
+            }
+        }
+    }
+
+    // Can also reach source sets via project.sources
+    sources {
+        mylib { ... }
+    }
+
+#### Open issues
+
+- Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
+- Flatten out all source sets into `project.sources`. Would need to use something other than a named domain object container.
+- Change `ComponentModelBasePlugin.createLanguageSourceSets` to a model rule
+    - This means that source sets will not be created eagerly, which means that access to sources {} will need to be in a model block, or via ComponentSpec.sources()
+    - In order for this to work, we need to be able to reference other model elements in a DSL model rule
+
+### Story: Only attach source sets of relevant languages to component
+
+- Don't attach Java source sets to native components.
+- Don't attach native language source sets to jvm components.
+
+This story will involve defining 'input-type' for each component type: e.g. JvmByteCode for a JvmLibraryBinary and ObjectFile for NativeBinary.
+A language plugin will need to register the compiled output type for each source set. Then it will be possible for a component to only
+attach to those language source sets that have an appropriate output type.
+
+#### Test cases
+
+- Fail when an unsupported language is used as input to a binary. eg Can't use a JavaSourceSet as input to a native binary.
+
+#### Open issues
+
+- Plugin should be able to declare the file types that a custom binary can be assembled from
+    - Infrastructure would take care of linking up the appropriate source languages based on this.
+- Plugin should to be able to declare custom language implementations.
+- custom sourceSets declared via 'sources' DSL must always be declared with their type (even its type is obvious) e.g:
+
+    apply plugin:'cpp'
+    
+    sources {
+        lib {
+            cpp(CppSourceSet)
+        }
+    }
+        
 ## Feature: Build author declares dependencies for custom library
 
 Change the sample plugin so that it allows Java and custom libraries to be used as dependencies:
@@ -747,14 +1043,108 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 ## Feature: Build user views the dependencies for the native components of a project
 
+## Feature: User visualises project component model
+
+### Story: User views outline of component model from command line
+
+Present to the user some information about how a given project is composed.
+
+- User runs `gradle components` and views report on console.
+- Presents basic details of each project component:
+    - JVM and native components
+    - Legacy JVM library and application
+    - War, Ear
+    - Custom components
+    - Test suites
+    - Distribution
+- Show source sets and binaries for each component.
+- Show target platforms, flavors and build types for each component, where applicable.
+- Show output files for each binary.
+
+#### Implementation
+
+- Add new task type to DSL guide.
+- Rendering for custom types.
+- Display install task for executables, test task for test suites.
+- Display native language header directories.
+- Display native tool locations and versions.
+- Don't show the generated CUnit launcher source set as an input. Should be shown as an intermediate output, as should the object or class files.
+- Add basic implementation for legacy component types.
+- Add `description` to `ProjectComponent`.
+- Sort things by name
+- Move rendering of specific component types to live with the type and remove dependency on cpp project.
+- Add some general 'show properties' rendering.
+- Tweak report headers for single project builds.
+- Don't show chrome when report task is the only task scheduled to run.
+- Port HelpTasksPlugin and WrapperPluginAutoApplyAction to Java.
+- Document in user guide.
+
+#### Issues discovered
+
+- Issue: language plugins add every language to every component, regardless of whether that language is supported for the component.
+- Issue: TestSuite components are not included in ProjectComponentContainer.
+- Issue: Display name for CUnit executable is 'C unit exe' instead of `CUnit executable'
+- Issue: Better naming scheme for output directories, eg `executables/someThing/...` instead of `binaries/someThingExecutable/...`
+
+### Story: User views component model as HTML report
+
+TBD
+
 # Open issues and Later work
 
+## Component model
+
 - Should use rules mechanism, so that this DSL lives under `model { ... }`
-- Expose the source and javadoc artifacts for local binaries.
 - Reuse the local component and binary meta-data for publication.
     - Version the meta-data schemas.
     - Source and javadoc artifacts.
+- Test suites.
+- Libraries declare an API that is used at compile time.
 - Java component plugins support variants.
 - Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
+- The `application` plugin should also declare a jvm application.
+- The `war` plugin should also declare a j2ee web application.
+- The `ear` plugin should also declare a j2ee application.
+- Configure `JvmLibrary` and `JvmLibraryBinary`
+    - Customise manifest
+    - Customise compiler options
+    - Customise output locations
+    - Customise source directories
+        - Handle layout where source and resources are in the same directory - need to filter source files
+
+## Language support
+
+- Need a better name for `TransformationFileType`.
+- Support multiple input source sets for a component and binary.
+    - Apply conflict resolution across all inputs source sets.
+- Support for custom language implementations.
+- Java language support
+    - Java language level.
+    - Source encoding.
+    - Copy tests from `:plugins:org.gradle.java` and `:plugins:org.gradle.compile` into `:languageJvm` and convert to new component model
+- Groovy and Scala language support, including joint compilation.
+    - Language level.
+- ANTLR language support.
+    - Improve the generated source support from the native plugins
+    - ANTLR runs on the JVM, but can target other platforms.
+
+## Misc
+
+- Consider splitting up `assemble` into various lifecycle tasks. There are several use cases:
+    - As a developer, build me a binary I can play with or test in some way.
+    - As part of some workflow, build all binaries that should be possible to build in this specific environment. Fail if a certain binary cannot be built.
+      For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
+      Or, if I'm building for Android, fail if the SDK is not installed.
+    - Build everything. Fail if a certain binary cannot be built.
+- Lifecycle phase for binary to determine if binary can be built
+    - Replace current `BinarySpec.buildable` flag
+    - Attach useful error message explaining why the binary can't be built: no sources, no available toolchain, etc
+    - Fail early when trying to build a binary that cannot be built
+- Better cleanup when components, binaries and source sets are removed or renamed.
+    - Clean up class files for binary when _all_ source files for a source set are removed.
+    - Clean up class files for binary when source set is removed or renamed.
+    - Clean up output files from components and binaries that have been removed or renamed.
+- Expose the source and javadoc artifacts for local binaries.
 - Deprecate and remove support for resolution via configurations.
 - Add a report that shows the details for the components and binaries produced by a project.
+- Bust up the 'plugins' project.

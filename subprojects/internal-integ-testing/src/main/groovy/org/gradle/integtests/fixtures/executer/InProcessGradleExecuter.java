@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.BuildResult;
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
@@ -31,9 +30,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.jvm.Jvm;
@@ -63,9 +60,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
-import static org.gradle.util.Matchers.hasMessage;
-import static org.gradle.util.Matchers.normalizedLineSeparators;
-import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -175,7 +170,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         DefaultGradleLauncherFactory factory = GLOBAL_SERVICES.get(DefaultGradleLauncherFactory.class);
         factory.addListener(listener);
         try {
-            GradleLauncher gradleLauncher = factory.newInstance(parameter);
+            GradleLauncher gradleLauncher = factory.newInstance(parameter, new FixedBuildCancellationToken());
             try {
                 gradleLauncher.addStandardOutputListener(outputListener);
                 gradleLauncher.addStandardErrorListener(errorListener);
@@ -187,7 +182,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Restore the environment
             System.setProperties(originalSysProperties);
             processEnvironment.maybeSetProcessDir(originalUserDir);
-            for (String envVar: getEnvironmentVars().keySet()) {
+            for (String envVar : getEnvironmentVars().keySet()) {
                 String oldValue = originalEnv.get(envVar);
                 if (oldValue != null) {
                     processEnvironment.maybeSetEnvironmentVariable(envVar, oldValue);
@@ -210,6 +205,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         String defaultEncoding = getImplicitJvmSystemProperties().get("file.encoding");
         if (defaultEncoding != null) {
             assertEquals(Charset.forName(defaultEncoding), Charset.defaultCharset());
+        }
+        Locale defaultLocale = getDefaultLocale();
+        if (defaultLocale != null) {
+            assertEquals(defaultLocale, Locale.getDefault());
         }
         assertFalse(isRequireGradleHome());
     }
@@ -393,14 +392,14 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertHasCause(String description) {
-            assertThatCause(startsWith(description));
+            assertThatCause(normalizedLineSeparators(startsWith(description)));
             return this;
         }
 
         public ExecutionFailure assertThatCause(final Matcher<String> matcher) {
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
-            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(normalizedLineSeparators(matcher))));
+            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(matcher)));
             outputFailure.assertThatCause(matcher);
             return this;
         }
@@ -414,7 +413,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             } else if (failure instanceof LocationAwareException) {
                 causes.addAll(((LocationAwareException) failure).getReportableCauses());
             } else {
-                causes.add(failure.getCause());
+                causes.add(failure);
             }
         }
 

@@ -36,7 +36,7 @@ import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
-import org.gradle.api.jvm.ClassDirectoryBinary;
+import org.gradle.api.jvm.ClassDirectoryBinarySpec;
 import org.gradle.runtime.jvm.Classpath;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
@@ -70,7 +70,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(ReportingBasePlugin.class);
-        project.getPlugins().apply(JavaLanguagePlugin.class);
+        project.getPlugins().apply(LegacyJavaComponentPlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention((ProjectInternal) project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
@@ -139,7 +139,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 functionalSourceSet.add(resourceSet);
 
                 BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
-                ClassDirectoryBinary binary = binaryContainer.create(String.format("%sClasses", sourceSet.getName()), ClassDirectoryBinary.class);
+                ClassDirectoryBinarySpec binary = binaryContainer.create(String.format("%sClasses", sourceSet.getName()), ClassDirectoryBinarySpec.class);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {

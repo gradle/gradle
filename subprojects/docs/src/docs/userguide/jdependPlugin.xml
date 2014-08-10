@@ -6,7 +6,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the JDepend plugin, include in your build script:</para>
+        <para>To use the JDepend plugin, include the following in your build script:</para>
         <sample id="useJDependPlugin" dir="codeQuality" title="Using the JDepend plugin">
             <sourcefile file="build.gradle" snippet="use-jdepend-plugin"/>
         </sample>
@@ -90,6 +90,6 @@
 
     <section>
         <title>Configuration</title>
-        <para>See <apilink class="org.gradle.api.plugins.quality.JDependExtension"/>.</para>
+        <para>See the <apilink class="org.gradle.api.plugins.quality.JDependExtension"/> class in the API documentation.</para>
     </section>
 </chapter>

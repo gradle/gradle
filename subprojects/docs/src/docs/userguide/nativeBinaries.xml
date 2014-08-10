@@ -24,9 +24,10 @@
     </note>
 
     <para>
-        The various native binary plugins add support for building native software components, such as executables or shared libraries, from C++, C and other languages.
-        While many excellent build tools exist for this space of software development, Gradle offers developers it's trademark power and flexibility
-        together with the dependency management practices more traditionally found in the JVM development space.
+        The various native binary plugins add support for building native software components, such as executables
+        or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist
+        for this space of software development, Gradle offers developers its trademark power and flexibility
+        together with dependency management practices more traditionally found in the JVM development space.
     </para>
 
     <section>
@@ -55,9 +56,9 @@
             The following tool chains are supported:
         </para>
         <table>
-            <thread>
+            <thead>
                 <tr><td>Operating System</td><td>Tool Chain</td><td>Notes</td></tr>
-            </thread>
+            </thead>
             <tr>
                 <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td> <td></td>
             </tr>
@@ -91,55 +92,97 @@
     <section>
         <title>Component model</title>
         <para>
-            A native binary project defines a set of <apilink class="org.gradle.nativebinaries.NativeExecutable"/> and <apilink class="org.gradle.nativebinaries.NativeLibrary"/> components,
-            each of which Gradle maps to a number of <apilink class="org.gradle.nativebinaries.NativeBinary"/> outputs.
-            For each <literal>executable</literal> or <literal>library</literal> defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
-            Each of these functional source sets will contain a language-specific source set for each of the languages supported by the project.
+            To build native binaries using Gradle, your project should define one or more <firstterm>native components</firstterm>. Each component represents either an
+            executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.
         </para>
         <para>
-            To build either a static or shared native library binary,
-            a <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component is added to the <literal>libraries</literal> container.
-            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/>
-            and at least one <apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/>.
+            For each component, Gradle defines a <firstterm>source set</firstterm> for each language that the component can be built from. A source set is essentially
+            just a set of source directories containing source files. For example, when you apply the <literal>c</literal> plugin and define a library called
+            <literal>helloworld</literal>, Gradle will define, by default, a source set containing the C source files in the <literal>src/helloworld/c</literal> directory.
+            It will use these source files to build the <literal>helloworld</literal> library.
+            This is described in more detail below.
+        </para>
+        <para>
+            For each component, Gradle defines one or more <firstterm>binaries</firstterm> as output. To build a binary, Gradle will take the source files defined for
+            the component, compile them as appropriate for the source language, and link the result into a binary file. For an executable component, Gradle can
+            produce executable binary files. For a library component, Gradle can produce both static and shared library binary files. For example, when you define
+            a library called <literal>helloworld</literal> and build on Linux, Gradle will, by default, produce <filename>libhelloworld.so</filename> and
+            <filename>libhelloworld.a</filename> binaries.
+        </para>
+        <para>
+            In many cases, more than one binary can be produced for a component.
+            These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
+            provided, or additional source files provided. Each native binary produced for a component is referred to as <firstterm>variant</firstterm>.
+            Binary variants are discussed in detail below.
+        </para>
+    </section>
+    <section>
+        <title>Building a library</title>
+        <para>
+            To build either a static or shared native library, you define a library component in the <literal>libraries</literal> container. The following sample
+            defines a library called <literal>hello</literal>:
         </para>
         <sample id="cppLibraries" dir="native-binaries/c" title="Defining a library component">
             <sourcefile file="build.gradle" snippet="libraries"/>
         </sample>
         <para>
-            To build an executable binary,
-            an <apilink class="org.gradle.nativebinaries.NativeExecutable"/> component is added to the <literal>executables</literal> container
-            and associated with a set of sources.
+            A library component is represented using <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/>.
+            Each library component can produce at least one shared library binary (<apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/>)
+            and at least one static library binary (<apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/>).
+        </para>
+    </section>
+    <section>
+        <title>Building an executable</title>
+        <para>
+            To build a native executable, you define an executable component in the <literal>executables</literal> container. The following sample defines
+            an executable called <literal>main</literal>:
         </para>
         <sample id="cppExecutables" dir="native-binaries/c" title="Defining executable components">
             <sourcefile file="build.gradle" snippet="executables"/>
         </sample>
         <para>
-            In many cases, more than one native binary can be produced for a component.
-            These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
-            provided, or additional source files provided. Each native binary produced for a component is referred to as <literal>variant</literal>.
-            Binary variants are discussed in detail below.
+            An executable component is represented using <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/>. Each executable component can
+            produce at least one executable binary (<apilink class="org.gradle.nativebinaries.NativeExecutableBinarySpec"/>).
+        </para>
+        <para>
+            For each component defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
+            Each of these functional source sets will contain a language-specific source set for each of the languages supported by the project.
         </para>
     </section>
 
     <section>
         <title>Tasks</title>
         <para>
-            For each <apilink class="org.gradle.nativebinaries.NativeBinary"/> that can be produced by a build,
+            For each <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> that can be produced by a build,
             a single <firstterm>lifecycle task</firstterm> is constructed that can be used to create that binary, together with a set of other tasks that do the actual
             work of compiling, linking or assembling the binary.
         </para>
         <table>
-            <thread>
-                <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
-            </thread>
+            <thead>
+                <tr>
+                    <td>Component Type</td>
+                    <td>Native Binary Type</td>
+                    <td>Lifecycle task</td>
+                    <td>Location of created binary</td>
+                </tr>
+            </thead>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.ExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeExecutableBinarySpec"/></td>
+                <td><literal><replaceable>${component.name}</replaceable>Executable</literal></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>Executable/<replaceable>${component.name}</replaceable></filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/></td>
+                <td><apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/></td>
+                <td><literal><replaceable>${component.name}</replaceable>SharedLibrary</literal></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>SharedLibrary/lib<replaceable>${component.name}</replaceable>.so</filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/></td>
+                <td><apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/></td>
+                <td><literal><replaceable>${component.name}</replaceable>StaticLibrary</literal></td>
+                    <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>StaticLibrary/<replaceable>${component.name}</replaceable>.a</filename></td>
             </tr>
         </table>
 
@@ -192,8 +235,8 @@
                 <sourcefile file="build.gradle" snippet="cpp-sources"/>
             </sample>
             <para>
-                For a library named 'main', files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
-                Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/cpp</filename> directory (though be aware that
+                For a library named 'main', header files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
+                Header files that should not be exported should be placed inside the <filename>src/main/cpp</filename> directory (though be aware that
                 such header files should always be referenced in a manner relative to the file including them).
             </para>
         </section>
@@ -221,8 +264,8 @@
                 <sourcefile file="build.gradle" snippet="c-sources"/>
             </sample>
             <para>
-                For a library named 'main', files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
-                Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/c</filename> directory (though be aware that
+                For a library named 'main', header files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
+                Header files that should not be exported should be placed inside the <filename>src/main/c</filename> directory (though be aware that
                 such header files should always be referenced in a manner relative to the file including them).
             </para>
         </section>
@@ -296,7 +339,7 @@
             <sourcefile file="build.gradle" snippet="all-shared-libraries"/>
         </sample>
         <para>
-            Furthermore, it is possible to specify settings that apply to all binaries produces for a particular <literal>executable</literal>
+            Furthermore, it is possible to specify settings that apply to all binaries produced for a particular <literal>executable</literal>
             or <literal>library</literal> component:
         </para>
         <sample id="componentBinarySettings" dir="native-binaries/assembler" title="Settings that apply to all binaries produced for the 'main' executable component">
@@ -307,7 +350,7 @@
         </para>
         <para>
             Similarly, settings can be specified to target binaries for a component that are of a particular type:
-            eg all <literal>shared libraries</literal> for the <literal>main library</literal> component.
+            eg all shared libraries for the main library component.
         </para>
         <sample id="sharedLibraryArgs" dir="native-binaries/cpp-lib" title="Settings that apply only to shared libraries produced for the 'main' library component">
             <sourcefile file="build.gradle" snippet="args"/>
@@ -330,7 +373,7 @@
             <filename>.rc</filename> source files under <filename>src/${name}/rc</filename>.
         </para>
         <para>
-            As with other source types, you can configure the location of the windows resources that should in included in the binary.
+            As with other source types, you can configure the location of the windows resources that should be included in the binary.
         </para>
         <sample id="windowsResourceSet" dir="native-binaries/windows-resources" title="Configuring the location of Windows resource sources">
             <sourcefile file="build-resource-only-dll.gradle" snippet="windows-resource-set"/>
@@ -344,7 +387,7 @@
         </sample>
         <para>
             The example above also demonstrates the mechanism of passing extra command-line arguments to the resource compiler.
-            The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.nativebinaries.language.PreprocessingTool"/>.
+            The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.language.PreprocessingTool"/>.
         </para>
     </section>
 
@@ -361,7 +404,7 @@
                A common example is a native executable component that uses functions provided by a separate native library component.
            </para>
            <para>
-               Such a library dependency can be easily provided to source set associated with the <literal>executable</literal> component:
+               Such a library dependency can be added to a source set associated with the <literal>executable</literal> component:
            </para>
            <sample id="cppSourceLibrary" dir="native-binaries/cpp" title="Providing a library dependency to the source set">
                <sourcefile file="build.gradle" snippet="source-library"/>
@@ -394,7 +437,7 @@
         <para>
             Binaries produced by Gradle can be differentiated on
                 <link linkend="native_binaries:build_type">build type</link>,
-                <link linkend="native_binaries:platform">platform</link> and
+                <link linkend="native_binaries:platform">platform</link>, and
                 <link linkend="native_binaries:flavor">flavor</link>.
             For each of these 'variant dimensions', it is possible to specify a set of available values as well as target each component at
             one, some or all of these. For example, a plugin may define a range of support platforms, but you
@@ -447,7 +490,7 @@
             <para>
                 For a given variant, Gradle will attempt to find a <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/> that is able to build
                 for the target platform. Available tool chains are searched in the order defined.
-                See the <link linkend="native_binaries:tool_chain">tool chain</link> section below for more details.
+                See the <link linkend="native_binaries:tool_chain">tool chains</link> section below for more details.
             </para>
         </section>
 
@@ -496,12 +539,12 @@
             <title>Building all possible variants</title>
             <para>
                 When a set of build types, target platforms, and flavors is defined for a component,
-                a <apilink class="org.gradle.nativebinaries.NativeBinary"/> model element is created for every possible
+                a <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> model element is created for every possible
                 combination of these. However, in many cases it is not possible to build a particular variant, perhaps because
                 no tool chain is available to build for a particular platform.
             </para>
             <para>
-                If a binary variant cannot be built for any reason, then the <apilink class="org.gradle.nativebinaries.NativeBinary"/>
+                If a binary variant cannot be built for any reason, then the <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/>
                 associated with that variant will not be <literal>buildable</literal>. It is possible to use this property to create a task
                 to generate all possible variants on a particular machine.
             </para>
@@ -561,9 +604,9 @@
                 will target the current operating system. See the next section for information on cross-compiling for other operating systems.
             </para>
             <table>
-                <thread>
+                <thead>
                     <tr><td>Tool Chain</td><td>Architectures</td></tr>
-                </thread>
+                </thead>
                 <tr>
                     <td>GCC</td><td>x86, x86_64</td>
                 </tr>
@@ -619,32 +662,32 @@
             a Visual Studio Project for that component, as well as linking to project files for each depended-on binary.
         </para>
         <para>
-            The content of the generated visual studio files can be modified via programmatic hooks, provided by the <literal>visualStudio</literal>
+            The content of the generated visual studio files can be modified via API hooks, provided by the <literal>visualStudio</literal>
             extension. Take a look at the 'visual-studio' sample, or see <apilink class="org.gradle.ide.visualstudio.VisualStudioExtension" method="getProjects"/>
-            and <apilink class="org.gradle.ide.visualstudio.VisualStudioExtension" method="getSolutions"/> for more details.
+            and <apilink class="org.gradle.ide.visualstudio.VisualStudioExtension" method="getSolutions"/> in the API documentation for more details.
         </para>
     </section>
     <section id="native_binaries:cunit">
         <title>CUnit support</title>
         <para>
             The Gradle <literal>cunit</literal> plugin provides support for compiling and executing CUnit tests in your native-binary project.
-            For each <apilink class="org.gradle.nativebinaries.NativeExecutable"/> and <apilink class="org.gradle.nativebinaries.NativeLibrary"/>
-            defined in your project, Gradle will create a matching <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuite"/> component,
+            For each <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/> and <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/>
+            defined in your project, Gradle will create a matching <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec"/> component,
             named <literal>${component.name}Test</literal>.
         </para>
         <section>
             <title>CUnit sources</title>
             <para>
-                Gradle will create a <apilink class="org.gradle.language.c.CSourceSet"/> named 'cunit' for each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuite"/> component
+                Gradle will create a <apilink class="org.gradle.language.c.CSourceSet"/> named 'cunit' for each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec"/> component
                 in the project. This source set should contain the cunit test files for the component sources. Source files can be located in the conventional location
                 (<literal>src/${component.name}Test/cunit</literal>) or can be configured like any other source set.
             </para>
             <para>
-                The job of initialising the CUnit test registry and executing the tests is performed by Gradle, via some generated CUnit launcher sources.
+                Gradle initialises the CUnit test registry and executes the tests, utilising some generated CUnit launcher sources.
                 Gradle will expect and call a function with the signature <literal>void gradle_cunit_register()</literal> that you can use to configure the
                 actual CUnit suites and tests to execute.
             </para>
-            <sample id="cunitSources" dir="native-binaries/cunit/src/operatorsTest/cunit" title="Registering CUnit tests">
+            <sample id="cunitSources" dir="native-binaries/cunit/src/operatorsTest/c" title="Registering CUnit tests">
                 <sourcefile file="suite_operators.c"/>
             </sample>
             <note>
@@ -655,10 +698,10 @@
         <section>
             <title>Building CUnit executables</title>
             <para>
-                A <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuite"/> component has an associated
-                <apilink class="org.gradle.nativebinaries.NativeExecutable"/> or <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component.
-                For each <apilink class="org.gradle.nativebinaries.ProjectNativeBinary"/> configured for the main component, a matching
-                <apilink class="org.gradle.nativebinaries.test.TestSuiteExecutableBinary"/> will be configured on the test suite component.
+                A <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec"/> component has an associated
+                <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/> or <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/> component.
+                For each <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> configured for the main component, a matching
+                <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>
             <sample id="cunitSources" dir="native-binaries/cunit" title="Registering CUnit tests">
@@ -666,16 +709,16 @@
             </sample>
             <note>
                 Both the CUnit sources provided by your project and the generated launcher require the core CUnit headers and libraries.
-                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativebinaries.test.TestSuiteExecutableBinary"/>.
+                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec"/>.
             </note>
         </section>
 
         <section>
             <title>Running CUnit tests</title>
             <para>
-                For each <apilink class="org.gradle.nativebinaries.test.TestSuiteExecutableBinary"/>, Gradle will create a task to execute this binary,
+                For each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec"/>, Gradle will create a task to execute this binary,
                 which will run all of the registered CUnit tests.
-                The generated test results will be located in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
+                Test results will be found in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>
             <sample id="completeCUnitExample" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="complete-example"/>

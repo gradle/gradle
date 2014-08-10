@@ -16,6 +16,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildCancellationToken;
 
 public interface BuildActionExecuter<P> {
     /**
@@ -25,5 +26,5 @@ public interface BuildActionExecuter<P> {
      * @param <T> The result type
      * @return The result.
      */
-    <T> T execute(BuildAction<T> action, P actionParameters);
+    <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, P actionParameters);
 }

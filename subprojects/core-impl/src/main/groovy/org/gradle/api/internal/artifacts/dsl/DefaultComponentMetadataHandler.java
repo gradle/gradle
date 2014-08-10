@@ -20,10 +20,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.IvyModuleMetadata;
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleMetadata;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
@@ -83,11 +83,12 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
 
         for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
-            if (parameterType == IvyModuleMetadata.class) {
+            if (parameterType == IvyModuleDescriptor.class) {
                 if (!(metadata instanceof IvyModuleVersionMetaData)) {
                     return;
                 }
-                args.add(new DefaultIvyModuleMetadata(((IvyModuleVersionMetaData) metadata).getExtraInfo()));
+                IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metadata;
+                args.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
             } else {
                 throw new InvalidUserCodeException(String.format("Unsupported parameter type for component metadata rule: %s", parameterType.getName()));
             }

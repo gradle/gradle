@@ -25,7 +25,7 @@ task listFish << {
 
 // START SNIPPET custom-status-scheme
 dependencies {
-    config3 "air.birds:albatros:latest.silver"
+    config3 "air.birds:albatross:latest.silver"
     components {
         eachComponent { ComponentMetadataDetails details ->
             if (details.id.group == "air.birds") {
@@ -39,3 +39,15 @@ task listBirds << {
     configurations.config3.each { println it.name }
 }
 // END SNIPPET custom-status-scheme
+
+// START SNIPPET ivy-component-metadata-rule
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
+            if (details.id.group == 'my.org' && ivyModule.branch == 'testing') {
+                details.changing = true
+            }
+        }
+    }
+}
+// END SNIPPET ivy-component-metadata-rule

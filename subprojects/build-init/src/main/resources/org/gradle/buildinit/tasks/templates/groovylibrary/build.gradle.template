@@ -12,15 +12,15 @@ apply plugin: 'groovy'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
-    // Use 'maven central' for resolving your dependencies.
+    // Use 'jcenter' for resolving your dependencies.
     // You can declare any Maven/Ivy/file repository here.
-    mavenCentral()
+    jcenter()
 }
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
     // We use the latest groovy 2.x version for building this library
-    compile 'org.codehaus.groovy:groovy:${groovyVersion.groovyString}'
+    compile 'org.codehaus.groovy:groovy-all:${groovyVersion.groovyString}'
 
     // We use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'

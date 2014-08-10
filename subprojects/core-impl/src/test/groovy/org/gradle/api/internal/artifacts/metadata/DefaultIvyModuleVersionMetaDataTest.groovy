@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.metadata
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
@@ -47,5 +48,18 @@ class DefaultIvyModuleVersionMetaDataTest extends AbstractModuleVersionMetaDataT
         copy.dependencies == [dependency1, dependency2]
         copy.status == 'a'
         copy.statusScheme == ['a', 'b', 'c']
+    }
+
+    def "getBranch returns branch from moduleDescriptor" () {
+        setup:
+        _ * moduleDescriptor.getModuleRevisionId() >> ModuleRevisionId.newInstance('orgId', 'moduleId', expectedBranch, 'version')
+
+        expect:
+        metaData.branch == expectedBranch
+
+        where:
+        expectedBranch | _
+        null           | _
+        'someBranch'   | _
     }
 }

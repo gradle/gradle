@@ -15,76 +15,114 @@
  */
 package org.gradle.execution;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.SetMultimap;
+import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;
 
-import java.util.Collections;
+import java.util.*;
 
 public class TaskNameResolver {
-
-    public SetMultimap<String, TaskSelectionResult> select(String name, Project project) {
-        return select(name, (ProjectInternal) project, Collections.<Project>emptySet());
-    }
-
-    public SetMultimap<String, TaskSelectionResult> selectAll(String name, Project project) {
-        return select(name, (ProjectInternal) project, project.getSubprojects());
-    }
-
-    private SetMultimap<String, TaskSelectionResult> select(String name, ProjectInternal project, Iterable<Project> additionalProjects) {
-        SetMultimap<String, TaskSelectionResult> selected = LinkedHashMultimap.create();
-        Task task = project.getTasks().findByName(name);
-        if (task != null) {
-            selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), project.getTasks()));
+    /**
+     * Finds tasks that will have exactly the given name, without necessarily creating or configuring the tasks. Returns null if no such match found.
+     */
+    @Nullable
+    public TaskSelectionResult selectWithName(String name, Project project, boolean includeSubProjects) {
+        if (!includeSubProjects) {
+            TaskInternal task = (TaskInternal) project.getTasks().findByName(name);
+            if (task != null) {
+                return new FixedTaskSelectionResult(Collections.<Task>singleton(task));
+            }
         } else {
-            task = project.getImplicitTasks().findByName(name);
-            if (task != null) {
-                selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), project.getImplicitTasks()));
-            }
-        }
-        for (Project additionalProject : additionalProjects) {
-            task = additionalProject.getTasks().findByName(name);
-            if (task != null) {
-                selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), additionalProject.getTasks()));
-            }
-        }
-        if (!selected.isEmpty()) {
-            return selected;
-        }
-
-        for (String taskName : project.getTasks().getNames()) {
-            selected.put(taskName, new LazyTaskSelectionResult(taskName, project.getTasks()));
-        }
-        for (String taskName : project.getImplicitTasks().getNames()) {
-            if (!selected.containsKey(taskName)) {
-                selected.put(taskName, new LazyTaskSelectionResult(taskName, project.getImplicitTasks()));
+            LinkedHashSet<Task> tasks = new LinkedHashSet<Task>();
+            new MultiProjectTaskSelectionResult(name, project).collectTasks(tasks);
+            if (!tasks.isEmpty()) {
+                return new FixedTaskSelectionResult(tasks);
             }
         }
 
-        for (Project additionalProject : additionalProjects) {
-            for (String taskName : additionalProject.getTasks().getNames()) {
-                selected.put(taskName, new LazyTaskSelectionResult(taskName, additionalProject.getTasks()));
+        return null;
+    }
+
+    /**
+     * Finds the names of all tasks, without necessarily creating or configuring the tasks. Returns an empty map when none are found.
+     */
+    public Map<String, TaskSelectionResult> selectAll(Project project, boolean includeSubProjects) {
+        Map<String, TaskSelectionResult> selected = new LinkedHashMap<String, TaskSelectionResult>();
+
+        if (!includeSubProjects) {
+            for (String taskName : project.getTasks().getNames()) {
+                selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, project.getTasks()));
+            }
+        } else {
+            LinkedHashSet<String> taskNames = new LinkedHashSet<String>();
+            collectTaskNames(project, taskNames);
+            for (String taskName : taskNames) {
+                selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project));
             }
         }
 
         return selected;
     }
 
+    private void collectTaskNames(Project project, Set<String> result) {
+        result.addAll(project.getTasks().getNames());
+        for (Project subProject : project.getChildProjects().values()) {
+            collectTaskNames(subProject, result);
+        }
+    }
 
-    public static class LazyTaskSelectionResult implements TaskSelectionResult {
+    private static class FixedTaskSelectionResult implements TaskSelectionResult {
+        private final Collection<Task> tasks;
+
+        FixedTaskSelectionResult(Collection<Task> tasks) {
+            this.tasks = tasks;
+        }
+
+        public void collectTasks(Collection<? super Task> tasks) {
+            tasks.addAll(this.tasks);
+        }
+    }
+
+    private static class SingleProjectTaskSelectionResult implements TaskSelectionResult {
         private final TaskContainer taskContainer;
         private final String taskName;
 
-        public LazyTaskSelectionResult(String taskName, TaskContainer tasksContainer) {
+        SingleProjectTaskSelectionResult(String taskName, TaskContainer tasksContainer) {
             this.taskContainer = tasksContainer;
             this.taskName = taskName;
         }
 
-        public Task getTask() {
-            return taskContainer.getByName(taskName);
+        public void collectTasks(Collection<? super Task> tasks) {
+            tasks.add(taskContainer.getByName(taskName));
+        }
+    }
+
+    private static class MultiProjectTaskSelectionResult implements TaskSelectionResult {
+        private final Project project;
+        private final String taskName;
+
+        MultiProjectTaskSelectionResult(String taskName, Project project) {
+            this.project = project;
+            this.taskName = taskName;
+        }
+
+        public void collectTasks(Collection<? super Task> tasks) {
+            collect(project, tasks);
+        }
+
+        private void collect(Project project, Collection<? super Task> tasks) {
+            TaskInternal task = (TaskInternal) project.getTasks().findByName(taskName);
+            if (task != null) {
+                tasks.add(task);
+                if (task.getImpliesSubProjects()) {
+                    return;
+                }
+            }
+            for (Project subProject : project.getChildProjects().values()) {
+                collect(subProject, tasks);
+            }
         }
     }
 }

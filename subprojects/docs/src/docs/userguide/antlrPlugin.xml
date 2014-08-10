@@ -27,7 +27,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the ANTLR plugin, include in your build script:</para>
+        <para>To use the ANTLR plugin, include the following in your build script:</para>
         <sample id="useAntlrPlugin" dir="antlr" title="Using the ANTLR plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -163,7 +163,7 @@
                     Not null
                 </td>
                 <td>
-                    The ANTLR grammar files of this source set. Contains all <filename>.g</filename> found in the ANTLR
+                    The ANTLR grammar files of this source set. Contains all <filename>.g</filename> files found in the ANTLR
                     source directories, and excludes all other types of files.
                 </td>
             </tr>

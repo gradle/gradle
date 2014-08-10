@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -30,13 +31,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JvmOptions {
+
     private static final Pattern SYS_PROP_PATTERN = Pattern.compile("(?s)-D(.+?)=(.*)");
     private static final Pattern NO_ARG_SYS_PROP_PATTERN = Pattern.compile("-D([^=]+)");
     private static final Pattern MIN_HEAP_PATTERN = Pattern.compile("-Xms(.+)");
     private static final Pattern MAX_HEAP_PATTERN = Pattern.compile("-Xmx(.+)");
     private static final Pattern BOOTSTRAP_PATTERN = Pattern.compile("-Xbootclasspath:(.+)");
     private static final String FILE_ENCODING_KEY = "file.encoding";
+    private static final String USER_LANGUAGE_KEY = "user.language";
+    private static final String USER_COUNTRY_KEY = "user.country";
+    private static final String USER_VARIANT_KEY = "user.variant";
     private static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
+
+    private static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
+            FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY
+    );
+
+    // Store this because Locale.default is mutable and we want the unchanged default
+    // We are assuming this class will be initialized before any code has a chance to change the default
+    private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
@@ -50,6 +63,9 @@ public class JvmOptions {
     public JvmOptions(FileResolver resolver) {
         this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
+        immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
+        immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
+        immutableSystemProperties.put(USER_VARIANT_KEY, DEFAULT_LOCALE.getVariant());
     }
 
     /**
@@ -168,7 +184,7 @@ public class JvmOptions {
             }
             matcher = BOOTSTRAP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
-                setBootstrapClasspath((Object[])matcher.group(1).split(Pattern.quote(File.pathSeparator)));
+                setBootstrapClasspath((Object[]) matcher.group(1).split(Pattern.quote(File.pathSeparator)));
                 continue;
             }
             if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
@@ -221,7 +237,7 @@ public class JvmOptions {
     }
 
     public void systemProperty(String name, Object value) {
-        if (name.equals(FILE_ENCODING_KEY) || name.equals(JMX_REMOTE_KEY)) {
+        if (IMMUTABLE_SYSTEM_PROPERTIES.contains(name)) {
             immutableSystemProperties.put(name, value);
         } else {
             systemProperties.put(name, value);

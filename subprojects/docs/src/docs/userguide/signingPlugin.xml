@@ -30,7 +30,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the Signing plugin, include in your build script:</para>
+        <para>To use the Signing plugin, include the following in your build script:</para>
         <sample id="useSigningPlugin" dir="signing/maven" title="Using the Signing plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -49,8 +49,8 @@
             <listitem><para>The passphrase used to protect your private key.</para></listitem>
         </itemizedlist>
         <para>
-            These items must be supplied as the property projects <literal>signing.keyId</literal>, <literal>signing.password</literal> 
-            and <literal>signing.secretKeyRingFile</literal> respectively. Given the personal and private nature of these values, a good practice
+            These items must be supplied as the values of properties <literal>signing.keyId</literal>,  
+            <literal>signing.secretKeyRingFile</literal>, and <literal>signing.password</literal> respectively. Given the personal and private nature of these values, a good practice
             is to store them in the user <literal>gradle.properties</literal> file (described in <xref linkend="sec:gradle_properties_and_system_properties"/>).
         </para>
         <programlisting>
@@ -70,9 +70,11 @@ import org.gradle.plugins.signing.Sign
 
 gradle.taskGraph.whenReady { taskGraph ->
     if (taskGraph.allTasks.any { it instanceof Sign }) {
-        // Use Java 6's console to read from the console (no good for a CI environment)
+        // Use Java 6's console to read from the console (no good for
+        // a CI environment)
         Console console = System.console()
-        console.printf "\n\nWe have to sign some things in this build.\n\nPlease enter your signing details.\n\n"
+        console.printf "\n\nWe have to sign some things in this build." +
+                       "\n\nPlease enter your signing details.\n\n"
 
         def id = console.readLine("PGP Key Id: ")
         def file = console.readLine("PGP Secret Key Ring File (absolute path): ")
@@ -98,7 +100,7 @@ gradle.taskGraph.whenReady { taskGraph ->
             <title>Signing Configurations</title>
             <para>
                 It is common to want to sign the artifacts of a configuration. For example, the <link linkend="java_plugin">Java plugin</link> 
-                configures a jar to built and this jar artifact is added to the <literal>archives</literal> configuration. 
+                configures a jar to build and this jar artifact is added to the <literal>archives</literal> configuration. 
                 Using the Signing DSL, you can specify that all of the artifacts of this configuration should be signed.
             </para>
             <sample id="signingArchives" dir="signing/maven" title="Signing a configuration">

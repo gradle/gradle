@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.FixedBuildCancellationToken;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices;
@@ -51,7 +52,7 @@ class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     protected ExecutionFailure doRunWithFailure() {
-        return (ExecutionFailure)doRun(true);
+        return (ExecutionFailure) doRun(true);
     }
 
     protected ExecutionResult doRun(boolean expectFailure) {
@@ -67,7 +68,7 @@ class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
         Exception failure = null;
         try {
-            daemonClient.execute(buildAction, buildActionParameters);
+            daemonClient.execute(buildAction, new FixedBuildCancellationToken(), buildActionParameters);
         } catch (Exception e) {
             failure = e;
         } finally {

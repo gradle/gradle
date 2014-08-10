@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import com.google.common.collect.Sets
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
 import org.gradle.tooling.internal.protocol.InternalLaunchable
-import org.gradle.tooling.model.Launchable
 import org.gradle.tooling.model.TaskSelector
 import spock.lang.Specification
 
@@ -78,14 +78,12 @@ class ConsumerOperationParametersTest extends Specification {
         params.launchables == null
     }
 
-    interface LaunchableImpl extends Launchable, TaskSelector, InternalLaunchable {}
-
     def "launchables from provider"() {
         def builder = ConsumerOperationParameters.builder()
         when:
-        def launchable1 = Mock(LaunchableImpl)
-        def launchable2 = Mock(LaunchableImpl)
-        builder.launchables = [launchable1, launchable2]
+        def launchable1 = Mock(InternalLaunchable)
+        def launchable2 = Mock(InternalLaunchable)
+        builder.launchables = [adapt(launchable1), adapt(launchable2)]
         def params = builder.build()
 
         then:
@@ -93,25 +91,27 @@ class ConsumerOperationParametersTest extends Specification {
         params.launchables == [launchable1, launchable2]
     }
 
-    interface AdaptedLaunchable extends Launchable, TaskListingLaunchable {}
-
     def "launchables from adapters"() {
         def builder = ConsumerOperationParameters.builder()
         when:
-        def launchable1 = Mock(AdaptedLaunchable)
+        def launchable1 = Mock(TaskListingLaunchable)
         def paths1 = Sets.newTreeSet()
         paths1.add(':a')
         _ * launchable1.taskNames >> paths1
-        def launchable2 = Mock(AdaptedLaunchable)
+        def launchable2 = Mock(TaskListingLaunchable)
         def paths2 = Sets.newTreeSet()
         paths2.add(':b')
         paths2.add(':lib:b')
         _ * launchable2.taskNames >> paths2
-        builder.launchables = [launchable1, launchable2]
+        builder.launchables = [adapt(launchable1), adapt(launchable2)]
         def params = builder.build()
 
         then:
         params.tasks == [':a', ':b', ':lib:b']
         params.launchables == []
+    }
+
+    def adapt(def object) {
+        return new ProtocolToModelAdapter().adapt(TaskSelector, object)
     }
 }

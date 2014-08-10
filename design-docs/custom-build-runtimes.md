@@ -22,7 +22,7 @@ may not be packaged in a ZIP or set of JARs or whatever.
 
 # Implementation plan
 
-The Gradle wrapper and core will be split up into several peices:
+The Gradle wrapper and core will be split up into several pieces:
 
 1. A bootstrapper that initiates the startup process.
 2. A meta-data provider that inspects the local environment and meta-data files to determine where to find the other peices.

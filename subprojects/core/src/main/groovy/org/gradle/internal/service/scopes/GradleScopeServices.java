@@ -29,6 +29,7 @@ import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -60,18 +61,18 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new OptionReader();
     }
 
-    CommandLineTaskParser createCommandLineTaskParser(OptionReader optionReader) {
-        return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader));
+    CommandLineTaskParser createCommandLineTaskParser(OptionReader optionReader, TaskSelector taskSelector) {
+        return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
+    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser) {
         List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
         if (get(StartParameter.class).isConfigureOnDemand()) {
             configs.add(new ProjectEvaluatingAction());
         }
         configs.add(new DefaultTasksBuildExecutionAction());
         configs.add(new ExcludedTaskFilteringBuildConfigurationAction());
-        configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser, taskSelector));
+        configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
 
         return new DefaultBuildExecuter(
                 configs,
@@ -87,8 +88,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {
-        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor);
+    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken) {
+        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, cancellationToken);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

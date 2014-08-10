@@ -76,12 +76,12 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         // Core libs
         def coreLibs = contentsDir.file("lib").listFiles().findAll { it.name.startsWith("gradle-") }
-        assert coreLibs.size() == 13
+        assert coreLibs.size() == 15
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${version}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 200 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 210 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-core-impl-${version}.jar"))
@@ -96,8 +96,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-cpp-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ear-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-runtime-native-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ide-native-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-native-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()

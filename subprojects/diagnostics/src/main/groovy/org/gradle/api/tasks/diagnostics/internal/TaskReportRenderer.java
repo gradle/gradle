@@ -23,7 +23,6 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -117,7 +116,7 @@ public class TaskReportRenderer extends TextReportRenderer {
             getTextOutput().println();
         }
         hasContent = true;
-        writeSubheading(header);
+        getBuilder().subheading(header);
     }
 
     /**
@@ -144,7 +143,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     }
 
     @Override
-    public void complete() throws IOException {
+    public void complete() {
         if (!detail) {
             getTextOutput().println();
             getTextOutput().text("To see all tasks and more detail, run with ").style(UserInput).text("--all.");

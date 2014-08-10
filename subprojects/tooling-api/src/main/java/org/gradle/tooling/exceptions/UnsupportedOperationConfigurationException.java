@@ -23,7 +23,7 @@ import org.gradle.tooling.UnsupportedVersionException;
  * with unsupported settings. For example {@link org.gradle.tooling.LongRunningOperation#setJavaHome(java.io.File)}
  * might not be supported by the target Gradle version.
  *
- * @since 1.0-rc-1
+ * @since 1.0
  */
 public class UnsupportedOperationConfigurationException extends UnsupportedVersionException {
     public UnsupportedOperationConfigurationException(String message) {

@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.configuration;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.Jvm;
@@ -24,29 +25,30 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.*;
 
-import static java.util.Arrays.asList;
 import static org.gradle.util.GFileUtils.canonicalise;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
+
+    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
 
     private final String uid;
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-    private boolean usingDefaultJvmArgs = true;
     private boolean enabled;
     private File javaHome;
 
     public DaemonParameters(BuildLayoutParameters layout) {
-        this.uid = UUID.randomUUID().toString();
-        jvmOptions.setAllJvmArgs(getDefaultJvmArgs());
-        baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
+        this(layout, Collections.<String, String>emptyMap());
     }
 
-    List<String> getDefaultJvmArgs() {
-        return new LinkedList<String>(asList("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"));
+    public DaemonParameters(BuildLayoutParameters layout, Map<String, String> extraSystemProperties) {
+        this.uid = UUID.randomUUID().toString();
+        jvmOptions.setAllJvmArgs(DEFAULT_JVM_ARGS);
+        jvmOptions.systemProperties(extraSystemProperties);
+        baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
     }
 
     public boolean isEnabled() {
@@ -82,17 +84,13 @@ public class DaemonParameters {
         return jvmOptions.getAllJvmArgs();
     }
 
-    public boolean isUsingDefaultJvmArgs() {
-        return usingDefaultJvmArgs;
-    }
-
     public File getEffectiveJavaHome() {
         if (javaHome == null) {
             return canonicalise(Jvm.current().getJavaHome());
         }
         return javaHome;
     }
-    
+
     public String getEffectiveJavaExecutable() {
         if (javaHome == null) {
             return Jvm.current().getJavaExecutable().getAbsolutePath();
@@ -119,7 +117,6 @@ public class DaemonParameters {
     }
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
-        usingDefaultJvmArgs = false;
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
 

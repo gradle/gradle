@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
@@ -24,10 +25,8 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
     private final AsyncConsumerActionExecutor connection;
@@ -54,11 +53,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public BuildLauncher forTasks(Iterable<? extends Task> tasks) {
-        List<String> taskPaths = new ArrayList<String>();
-        for (Task task : tasks) {
-            taskPaths.add(task.getPath());
-        }
-        operationParamsBuilder.setTasks(taskPaths);
+        operationParamsBuilder.setLaunchables(tasks);
         return this;
     }
 
@@ -79,13 +74,18 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
 
     public void run(final ResultHandler<? super Void> handler) {
         final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
+        final CancellationToken operationCancellationToken = cancellationToken;
         connection.run(new ConsumerAction<Void>() {
+            public CancellationToken getCancellationToken() {
+                return operationCancellationToken;
+            }
+
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
 
             public Void run(ConsumerConnection connection) {
-                return connection.run(Void.class, operationParameters);
+                return connection.run(Void.class, operationCancellationToken, operationParameters);
             }
         }, new ResultHandlerAdapter(handler));
     }

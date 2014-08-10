@@ -29,7 +29,7 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
 
     IvyPublicationIdentity getIdentity();
 
-    IvyModuleDescriptorInternal getDescriptor();
+    IvyModuleDescriptorSpecInternal getDescriptor();
 
     void setDescriptorFile(FileCollection descriptorFile);
 

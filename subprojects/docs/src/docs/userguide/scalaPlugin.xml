@@ -18,14 +18,14 @@
 
     <para>The Scala plugin extends the Java plugin to add support for Scala projects. It can deal with
         Scala code, mixed Scala and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter).
-        The plugin supports <emphasis>joint compilation</emphasis>, which allows to freely mix and match Scala and Java code,
+        The plugin supports <emphasis>joint compilation</emphasis>, which allows you to freely mix and match Scala and Java code,
         with dependencies in both directions. For example, a Scala class can extend a Java class that in turn extends a Scala class.
         This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
     </para>
 
     <section>
         <title>Usage</title>
-        <para>To use the Scala plugin, include in your build script:</para>
+        <para>To use the Scala plugin, include the following in your build script:</para>
         <sample id="useScalaPlugin" dir="scala/quickstart" title="Using the Scala plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -149,7 +149,7 @@
 
         <section>
             <title>Changing the project layout</title>
-            <para>Just like the Java plugin, the Scala plugin allows to configure custom locations for Scala production and test sources.</para>
+            <para>Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test sources.</para>
             <sample id="customScalaSourceLayout" dir="scala/customizedLayout" title="Custom Scala source layout">
                 <sourcefile file="build.gradle" snippet="custom-source-locations"/>
             </sample>
@@ -185,7 +185,7 @@
     <section id="sec:configure_scala_classpath">
         <title>Automatic configuration of scalaClasspath</title>
         <para>
-            <literal>ScalaCompile</literal> and <literal>ScalaDoc</literal> tasks consume Scala in two ways: on their <literal>classpath</literal>,
+            The <literal>ScalaCompile</literal> and <literal>ScalaDoc</literal> tasks consume Scala code in two ways: on their <literal>classpath</literal>,
             and on their <literal>scalaClasspath</literal>. The former is used to locate classes referenced by the source code, and will typically
             contain <literal>scala-library</literal> along with other libraries. The latter is used to load and execute the Scala compiler
             and Scaladoc tool, respectively, and should only contain the <literal>scala-compiler</literal> library and its dependencies.
@@ -316,13 +316,13 @@
         <title>Compiling in external process</title>
         <para>
             When <literal>scalaCompileOptions.fork</literal> is set to <literal>true</literal>, compilation will take place
-            in an external process. The details of forking depend on which compiler is used. The Ant based compiler
-            (<literal>scalaCompileOptions.useAnt = true</literal>) will fork a new process for every <literal>ScalaCompile</literal> task,
+            in an external process. The Ant based compiler
+            (<literal>scalaCompileOptions.useAnt = true</literal>) will fork a new process for every invocation of the <literal>ScalaCompile</literal> task,
             and does not fork by default. The Zinc based compiler (<literal>scalaCompileOptions.useAnt = false</literal>) will leverage
             the Gradle compiler daemon, and does so by default.
         </para>
-        <para>Memory settings for the external process default to the JVM's defaults. To adjust memory settings,
-            configure <literal>scalaCompileOptions.forkOptions</literal> as needed:
+        <para>Memory settings for the external process default to the defaults of the JVM. To adjust memory settings,
+            configure the <literal>scalaCompileOptions.forkOptions</literal> property as needed:
             <sample id="zinc" dir="scala/zinc" title="Adjusting memory settings">
                 <sourcefile file="build.gradle" snippet="adjust-memory"/>
             </sample>
@@ -348,14 +348,15 @@
         </para>
 
         <para>
-            Except where noted in the<ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>,
+            Except where noted in the <ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>,
             the Zinc based compiler supports exactly the same configuration options as the Ant based compiler. Note, however, that the Zinc compiler requires
             Java 6 or higher to run. This means that Gradle itself has to be run with Java 6 or higher.
         </para>
 
         <para>
-            The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies. To override the
-            Zinc version that Gradle uses by default, add an explicit Zinc dependency (for example <literal>zinc "com.typesafe.zinc:zinc:0.1.4"</literal>).
+            The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies.
+            Gradle will have a default version of the Zinc library, but if you want to override the
+            Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.1.4”</literal>.
             Regardless of which Zinc version is used, Zinc will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
         </para>
 
@@ -369,7 +370,7 @@
             by <literal>scalaCompileOptions.incrementalOptions.analysisFile</literal> (which has a sensible default). In a multi-project build, analysis
             files are passed on to downstream <literal>ScalaCompile</literal> tasks to enable incremental compilation across project boundaries. For
             <literal>ScalaCompile</literal> tasks added by the Scala plugin, no configuration is necessary to make this work. For other
-            <literal>ScalaCompile</literal> tasks, <literal>scalaCompileOptions.incrementalOptions.publishedCode</literal> needs to be configured to point
+            <literal>ScalaCompile</literal> tasks that you might add, the property <literal>scalaCompileOptions.incrementalOptions.publishedCode</literal> needs to be configured to point
             to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream <literal>ScalaCompile</literal> tasks.
             Note that if <literal>publishedCode</literal> is not set correctly, downstream tasks may not recompile code affected by upstream changes,
             leading to incorrect compilation results.

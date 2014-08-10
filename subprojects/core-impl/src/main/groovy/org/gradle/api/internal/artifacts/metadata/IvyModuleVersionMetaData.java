@@ -15,16 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+
 import java.util.Map;
 
 /**
  * Meta-data for a module version resolved from an Ivy repository.
  */
 public interface IvyModuleVersionMetaData extends ModuleVersionMetaData {
+    /***
+     * Returns the branch attribute for the module.
+     *
+     * @return the branch attribute for the module
+     */
+    String getBranch();
+
     /**
      * Returns the extra info for the module.
      *
      * @return the extra info for the module
      */
-    Map<String, String> getExtraInfo();
+    Map<NamespaceId, String> getExtraInfo();
 }

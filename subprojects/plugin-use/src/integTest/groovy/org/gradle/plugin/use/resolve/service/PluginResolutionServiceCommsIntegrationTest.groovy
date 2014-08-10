@@ -26,12 +26,16 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient.DEPRECATION_MESSAGE_HEADER
+import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 import static org.gradle.util.Matchers.containsText
 
 /**
  * Tests the communication aspects of working with the plugin resolution service.
  */
 public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegrationSpec {
+    public static final String PLUGIN_ID = "org.my.myplugin"
+    public static final String PLUGIN_VERSION = "1.0"
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
@@ -45,55 +49,69 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     @Unroll
     def "response that is not an expected service response is fatal to plugin resolution - status = #statusCode"() {
         def responseBody = "<html><bogus/></html>"
-        portal.expectPluginQuery("myplugin", "1.0") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             status = statusCode
             contentType = "text/html"
+            characterEncoding = "UTF-8"
             writer.withWriter {
                 it << responseBody
             }
         }
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
-        fails("verify", "-i")
+        fails("verify")
         errorResolvingPlugin()
-        failure.assertThatCause(containsText("Response from 'http://localhost.+? was not a valid plugin resolution service response"))
-        failure.assertThatCause(containsText("returned content type 'text/html.+, not 'application/json.+"))
-        output.contains("content:\n" + responseBody)
+        outOfProtocolCause("content type is 'text/html; charset=utf-8', expected 'application/json'")
 
         where:
         statusCode << [200, 404, 500]
     }
 
     def "404 plugin resolution service response is not fatal to plugin resolution, but indicates plugin is not available in service"() {
-        portal.expectNotFound("myplugin", "1.0")
+        portal.expectNotFound(PLUGIN_ID, PLUGIN_VERSION)
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'myplugin', version: '1.0'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources:"))
     }
 
     def "404 resolution that indicates plugin is known but not by that version produces indicative message"() {
-        portal.expectQueryAndReturnError("myplugin", "1.0", 404) {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 404) {
             errorCode = ErrorResponse.Code.UNKNOWN_PLUGIN_VERSION
-            message = "anything"
+            message = "portal message"
         }
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'myplugin', version: '1.0'] was not found in any of the following sources:"))
-        failure.assertThatDescription(Matchers.containsString("version '1.0' of this plugin does not exist"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.containsString("portal message"))
+    }
+
+    def "404 resolution that indicates plugin is unknown produces indicative message"() {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 404) {
+            errorCode = ErrorResponse.Code.UNKNOWN_PLUGIN
+            message = "portal message"
+        }
+
+        buildScript applyAndVerify()
+
+        expect:
+        fails("verify")
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.containsString("portal message"))
     }
 
     def "failed module resolution fails plugin resolution"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "my", "plugin", PLUGIN_VERSION)
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
+        portal.m2repo.module("my", "plugin", PLUGIN_VERSION).missing()
 
         expect:
         fails("verify")
@@ -103,54 +121,63 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     }
 
     def "portal JSON response with unknown implementation type fails plugin resolution"() {
-        portal.expectPluginQuery("myplugin", "1.0", "foo", "foo", "foo") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "foo", "foo", "foo") {
             implementationType = "SUPER_GREAT"
         }
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Invalid plugin metadata: Unsupported implementation type: SUPER_GREAT.")
+        outOfProtocolCause("invalid plugin metadata - unsupported implementation type 'SUPER_GREAT'")
+    }
+
+    void outOfProtocolCause(String cause) {
+        failure.assertHasCause("The response from ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)} was not a valid response from a Gradle Plugin Resolution Service: $cause")
     }
 
     def "portal JSON response with missing repo fails plugin resolution"() {
-        portal.expectPluginQuery("myplugin", "1.0", "foo", "bar", "1.0") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "foo", "bar", PLUGIN_VERSION) {
             implementation.repo = null
         }
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
-        failure.assertHasCause("Invalid plugin metadata: No module repository specified.")
+        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
+        outOfProtocolCause("invalid plugin metadata - no module repository specified")
     }
 
-    def "portal JSON response with invalid JSON syntax fails plugin resolution"() {
-        portal.expectPluginQuery("myplugin", "1.0") {
+    @Unroll
+    def "portal JSON response with invalid JSON syntax fails plugin resolution - #statusCode"() {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             contentType = "application/json"
             outputStream.withStream { it << "[}".getBytes("utf8") }
+            status = statusCode
         }
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Failed to parse plugin resolution service JSON response.")
+        outOfProtocolCause("could not parse response JSON")
+
+        where:
+        statusCode << [200, 500, 410]
     }
 
     def "extra information in portal JSON response is tolerated (and neglected)"() {
-        publishPlugin("myplugin", "my", "plugin", "1.0")
+        publishPlugin(PLUGIN_ID, "my", "plugin", PLUGIN_VERSION)
 
-        portal.expectPluginQuery("myplugin", "1.0") {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
             contentType = "application/json"
             outputStream.withStream {
                 it << """
                 {
-                    "id": "myplugin",
+                    "id": "org.my.myplugin",
                     "version": "1.0",
                     "implementation": {
                         "gav": "my:plugin:1.0",
@@ -164,67 +191,137 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
             }
         }
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         succeeds("verify")
     }
 
     def "portal redirects are being followed"() {
-        portal.expectPluginQuery("myplugin", "1.0") {
-            sendRedirect("/api/gradle/${GradleVersion.current().version}/plugin/use/otherplugin/2.0")
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
+            sendRedirect("/api/gradle/${GradleVersion.current().version}/plugin/use/org.my.otherplugin/2.0")
         }
-        portal.expectPluginQuery("otherplugin", "2.0", "other", "plugin", "2.0")
-        publishPlugin("otherplugin", "other", "plugin", "2.0")
+        portal.expectQueryAndReturnError("org.my.otherplugin", "2.0", 500) {
+            errorCode = "REDIRECTED"
+            message = "redirected"
+        }
 
-        buildScript applyAndVerify("otherplugin", "2.0")
+        buildScript applyAndVerify()
 
         expect:
-        succeeds("verify")
+        fails("verify")
+        failure.assertThatCause(Matchers.startsWith("Plugin resolution service returned HTTP 500 with message 'redirected'"))
     }
 
     def "error message is embedded in user error message"() {
-        portal.expectQueryAndReturnError("myplugin", "1.0", 500) {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 500) {
             errorCode = "INTERNAL_SERVER_ERROR"
             message = "Bintray communication failure"
         }
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'Bintray communication failure'.")
+        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'Bintray communication failure' (url: ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)})")
+    }
+
+    @Unroll
+    def "incompatible error message schema - status #errorStatusCode"() {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
+            status = errorStatusCode
+            contentType = "application/json"
+            outputStream.withStream {
+                it << """
+                {
+                    "foo": "bar"
+                }
+                """.getBytes("utf8")
+            }
+        }
+
+        buildScript applyAndVerify()
+
+        expect:
+        fails("verify")
+        errorResolvingPlugin()
+        outOfProtocolCause("invalid error response - no error code specified")
+
+        where:
+        errorStatusCode << [500, 410]
+    }
+
+    @Unroll
+    def "error message schema is relaxed- status #errorStatusCode"() {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
+            status = errorStatusCode
+            contentType = "application/json"
+            outputStream.withStream {
+                it << """
+                {
+                    "errorCode": "foo",
+                    "message": "bar",
+                    "extra": "boom!"
+
+                }
+                """.getBytes("utf8")
+            }
+        }
+
+        buildScript applyAndVerify()
+
+        expect:
+        fails("verify")
+        errorResolvingPlugin()
+        failure.assertHasCause("Plugin resolution service returned HTTP $errorStatusCode with message 'bar' (url: ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)})")
+
+        where:
+        errorStatusCode << [500, 410]
+    }
+
+    def "error message for 4xx is embedded in user error message"() {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 405) {
+            errorCode = "SOME_STRANGE_ERROR"
+            message = "Some strange error message"
+        }
+
+        buildScript applyAndVerify()
+
+        expect:
+        fails("verify")
+        errorResolvingPlugin()
+        failure.assertHasCause("Plugin resolution service returned HTTP 405 with message 'Some strange error message' (url: ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)})")
     }
 
     def "response can contain utf8"() {
-        portal.expectQueryAndReturnError("myplugin", "1.0", 500) {
+        portal.expectQueryAndReturnError(PLUGIN_ID, PLUGIN_VERSION, 500) {
             errorCode = "INTERNAL_SERVER_ERROR"
             message = "\u00E9"
         }
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'é'.")
+        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'é' (url: ${portal.pluginUrl(PLUGIN_ID, PLUGIN_VERSION)})")
     }
 
     def ExecutionFailure errorResolvingPlugin() {
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
+        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
     }
 
     def "non contactable resolution service produces error"() {
         portal.injectUrlOverride(executer) // have to do this, because only happens by default if test server is running
         portal.stop()
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertThatCause(containsText("Could not GET 'http://localhost:\\d+/api/gradle/.+?/plugin/use/myplugin/1\\.0'"))
+        failure.assertThatCause(containsText("Could not GET 'http://localhost:\\d+/api/gradle/.+?/plugin/use/org.my.myplugin/1\\.0'"))
         failure.assertThatCause(containsText("Connection to http://localhost:\\d+ refused"))
     }
 
@@ -236,9 +333,9 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         def address = httpServer.address
         httpServer.stop()
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyAndVerify()
 
-        portal.expectPluginQuery("myplugin", "1.0", "foo", "bar", "1.0")  {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION, "foo", "bar", PLUGIN_VERSION) {
             implementation.repo = address
         }
 
@@ -256,7 +353,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         pluginBuilder.publishTo(executer, module.artifactFile)
     }
 
-    private String applyAndVerify(String id, String version) {
+    private static String applyAndVerify(String id = PLUGIN_ID, String version = PLUGIN_VERSION) {
         """
             plugins {
                 id "$id" version "$version"
@@ -266,5 +363,45 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
                 assert pluginApplied
             }
         """
+    }
+
+    def "a suitable message is displayed to the user if portal responds with a deprecation message header"() {
+        publishPlugin(PLUGIN_ID, "my", "plugin", PLUGIN_VERSION)
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
+            def implementation = new PluginResolutionServiceTestServer.PluginUseResponse.Implementation("my:plugin:$PLUGIN_VERSION", portal.m2repo.uri.toString())
+            def pluginUseResponse = new PluginResolutionServiceTestServer.PluginUseResponse(PLUGIN_ID, PLUGIN_VERSION, implementation, "M2_JAR")
+            addHeader(DEPRECATION_MESSAGE_HEADER, message)
+            json(delegate, pluginUseResponse)
+        }
+
+        buildScript applyAndVerify()
+
+        executer.withDeprecationChecksDisabled()
+
+        expect:
+        succeeds("verify")
+        output.contains(message)
+
+        where:
+        message = "Some deprecation message"
+    }
+
+    def "deprecation messages are also displayed when portal responds with a deprecation message header on an error response"() {
+        portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
+            status = 404
+            addHeader(DEPRECATION_MESSAGE_HEADER, message)
+            json(delegate, new PluginResolutionServiceTestServer.MutableErrorResponse())
+        }
+
+        buildScript applyAndVerify()
+
+        executer.withDeprecationChecksDisabled()
+
+        expect:
+        fails("verify")
+        output.contains(message)
+
+        where:
+        message = "Some deprecation message for an error response"
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -46,9 +47,15 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         File originalProcessDir = GFileUtils.canonicalise(new File("."));
 
         for (Map.Entry<String, String> entry : build.getParameters().getSystemProperties().entrySet()) {
-            if (SystemProperties.getStandardProperties().contains(entry.getKey())) { continue; }
-            if (SystemProperties.getNonStandardImportantProperties().contains(entry.getKey())) { continue; }
-            if (entry.getKey().startsWith("sun.")) { continue; }
+            if (SystemProperties.getStandardProperties().contains(entry.getKey())) {
+                continue;
+            }
+            if (SystemProperties.getNonStandardImportantProperties().contains(entry.getKey())) {
+                continue;
+            }
+            if (entry.getKey().startsWith("sun.")) {
+                continue;
+            }
             System.setProperty(entry.getKey(), entry.getValue());
         }
 
@@ -56,12 +63,16 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 
+        // Capture and restore this in case the build code calls Locale.setDefault()
+        Locale locale = Locale.getDefault();
+
         try {
             execution.proceed();
         } finally {
             System.setProperties(originalSystemProperties);
             processEnvironment.maybeSetEnvironment(originalEnv);
             processEnvironment.maybeSetProcessDir(originalProcessDir);
+            Locale.setDefault(locale);
         }
     }
 }

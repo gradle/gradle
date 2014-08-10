@@ -31,7 +31,6 @@ import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.messaging.remote.internal.MessagingServices
@@ -39,9 +38,10 @@ import org.gradle.process.internal.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -72,7 +72,7 @@ class PathLimitationIntegTest extends Specification {
         messagingServices.stop();
     }
 
-    @IgnoreIf({OperatingSystem.current().isWindows()})
+    @Requires(TestPrecondition.NOT_WINDOWS)
     @Unroll
     def "WorkerProcessBuilder handles workingDir with absolute path length #absolutePathLength"() throws Throwable {
         when:
@@ -84,7 +84,7 @@ class PathLimitationIntegTest extends Specification {
         absolutePathLength << [258, 259, 260]
     }
 
-    @IgnoreIf({OperatingSystem.current().isWindows()})
+    @Requires(TestPrecondition.NOT_WINDOWS)
     @Unroll
     def "JavaProcessBuilder handles workingDir with absolute path length #absolutePathLength"() throws Throwable {
         when:

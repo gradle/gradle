@@ -3,7 +3,8 @@ task compile << {
 }
 
 compile.doFirst {
-    // Here you would put arbitrary conditions in real life. But we use this as an integration test, so we want defined behavior.
+    // Here you would put arbitrary conditions in real life.
+    // But this is used in an integration test so we want defined behavior.
     if (true) { throw new StopExecutionException() }
 }
 task myTask(dependsOn: 'compile') << {

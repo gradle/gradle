@@ -59,6 +59,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     Map<Integer, String> handleCreatedByRequest = [:]
     Map<String, Integer> openingRequestIdForPath = [:]
     List<SftpExpectation> expectations = []
+    private boolean passwordAuthenticationEnabled = true;
 
     public SFTPServer(TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider;
@@ -80,6 +81,15 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         }
     }
 
+    /**
+     * this basically restarts the sftpserver without
+     * registering a password authentication
+     * */
+    public withPasswordAuthenticationDisabled(){
+        passwordAuthenticationEnabled = false;
+        restart()
+    }
+
     protected void before() throws Throwable {
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
@@ -91,8 +101,19 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         allowInit()
     }
 
-    public void stop() {
-        sshd?.stop()
+    public void stop(boolean immediately = false) {
+        sshd?.stop(immediately);
+    }
+
+    public void restart() {
+        stop(true)
+        before()
+    }
+
+    @Override
+    protected void after() {
+        super.after();
+        passwordAuthenticationEnabled = true
     }
 
     private SshServer setupConfiguredTestSshd() {
@@ -110,7 +131,11 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         }));
         sshServer.setCommandFactory(new ScpCommandFactory());
         sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("${configDir}/test-dsa.key"));
-        sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator());
+
+        if(passwordAuthenticationEnabled){
+            sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator());
+        }
+
         sshServer.setPublickeyAuthenticator(new PublickeyAuthenticator() {
             boolean authenticate(String username, PublicKey key, ServerSession session) {
                 return true
@@ -118,6 +143,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         });
         return sshServer;
     }
+
 
     boolean hasFile(String filePathToCheck) {
         new File(baseDir, filePathToCheck).exists()

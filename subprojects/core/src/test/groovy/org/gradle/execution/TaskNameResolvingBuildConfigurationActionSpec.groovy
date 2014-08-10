@@ -16,30 +16,24 @@
 
 package org.gradle.execution
 
-import com.google.common.collect.Sets
 import org.gradle.StartParameter
-import org.gradle.TaskParameter
+import org.gradle.TaskExecutionRequest
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.tasks.options.OptionReader
-import org.gradle.execution.commandline.CommandLineTaskConfigurer
 import org.gradle.execution.commandline.CommandLineTaskParser
-import org.gradle.internal.DefaultTaskParameter
 import spock.lang.Specification
 
 class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
-    TaskSelector selector
     GradleInternal gradle
     BuildExecutionContext context
+    CommandLineTaskParser parser
     def TaskNameResolvingBuildConfigurationAction action
 
     def setup() {
-        selector = Mock(TaskSelector)
         gradle = Mock(GradleInternal)
         context = Mock(BuildExecutionContext)
-        OptionReader optionReader = new OptionReader();
-        CommandLineTaskParser parser = new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader));
-        action = new TaskNameResolvingBuildConfigurationAction(parser, selector)
+        parser = Mock(CommandLineTaskParser)
+        action = new TaskNameResolvingBuildConfigurationAction(parser)
     }
 
     def "empty task parameters are no-op action"() {
@@ -49,7 +43,7 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         when:
         _ * context.getGradle() >> gradle
         _ * gradle.getStartParameter() >> startParameters
-        _ * startParameters.getTaskParameters() >> []
+        _ * startParameters.getTaskRequests() >> []
 
         action.configure(context)
 
@@ -60,35 +54,37 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
     }
 
     def "expand task parameters to tasks"() {
-        given:
         def startParameters = Mock(StartParameter)
         def executer = Mock(TaskGraphExecuter)
-        TaskParameter taskParameter1 = new DefaultTaskParameter('task1', ':')
-        TaskParameter taskParameter2 = new DefaultTaskParameter('task2', ':')
-        def selection1 = Mock(TaskSelector.TaskSelection)
-        def task1a = Mock(Task)
-        def task1b = Mock(Task)
-        def selection2 = Mock(TaskSelector.TaskSelection)
-        def task2 = Mock(Task)
+        TaskExecutionRequest request1 = Stub(TaskExecutionRequest)
+        TaskExecutionRequest request2 = Stub(TaskExecutionRequest)
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def task3 = Stub(Task)
+        def selection1 = Stub(TaskSelector.TaskSelection)
+        def selection2 = Stub(TaskSelector.TaskSelection)
 
-        when:
-        _ * context.getGradle() >> gradle
-        _ * gradle.getStartParameter() >> startParameters
-        _ * startParameters.getTaskParameters() >> [taskParameter1, taskParameter2]
-        _ * selector.getSelection(taskParameter1) >> selection1
-        _ * selector.getSelection(taskParameter2) >> selection2
+        given:
+        _ * gradle.startParameter >> startParameters
+        _ * startParameters.taskRequests >> [request1, request2]
         _ * gradle.taskGraph >> executer
 
-        1 * selection1.tasks >> Sets.newLinkedHashSet([task1a, task1b])
-        1 * selection2.tasks >> [task2]
+        def tasks1 = [task1, task2] as Set
+        _ * selection1.tasks >> tasks1
 
+        def tasks2 = [task3] as Set
+        _ * selection2.tasks >> tasks2
+
+        when:
         action.configure(context)
 
         then:
-        0 * startParameters.setTaskNames(_)
-        1 * executer.addTasks(Sets.newLinkedHashSet([task1a, task1b]))
-        1 * executer.addTasks(Sets.newLinkedHashSet([task2]))
+        1 * parser.parseTasks(request1) >> [selection1]
+        1 * parser.parseTasks(request2) >> [selection2]
+        1 * executer.addTasks(tasks1)
+        1 * executer.addTasks(tasks2)
         1 * context.proceed()
+        _ * context.gradle >> gradle
         0 * context._()
     }
 }

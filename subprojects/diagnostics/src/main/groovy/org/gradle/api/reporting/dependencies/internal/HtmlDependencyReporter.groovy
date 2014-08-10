@@ -19,6 +19,9 @@ package org.gradle.api.reporting.dependencies.internal
 import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.reporting.HtmlReportBuilder
+import org.gradle.reporting.HtmlReportRenderer
+import org.gradle.reporting.ReportRenderer
 import org.gradle.util.GFileUtils
 
 /**
@@ -32,54 +35,37 @@ import org.gradle.util.GFileUtils
  * The HTML file uses a JavaScript script to generate an interactive page from the data contained in
  * the JSON structure.
  * <p>
- * The same technique is also used to generate the index report, listing all the projects for which
- * a dependency report has been generated.
  *
- * @see JsonDependencyReportIndexRenderer
  * @see JsonProjectDependencyRenderer
  */
-class HtmlDependencyReporter {
-
-    File outputDirectory;
-    JsonProjectDependencyRenderer renderer
-    JsonDependencyReportIndexRenderer indexRenderer = new JsonDependencyReportIndexRenderer()
+class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
+    private File outputDirectory;
+    private final JsonProjectDependencyRenderer renderer
 
     HtmlDependencyReporter(VersionMatcher versionMatcher) {
         renderer = new JsonProjectDependencyRenderer(versionMatcher)
     }
 
-    /**
-     * Sets the output directory of the report. This directory contains the generated HTML file,
-     * but also JS and CSS files. This method must be called before generating the report.
-     */
-    void setOutputDirectory(File outputDirectory) {
+    @Override
+    void render(Set<Project> projects, File outputDirectory) {
         this.outputDirectory = outputDirectory
-    }
 
-    /**
-     * Generates a report for each of the given projects, and generates the index report
-     */
-    void generate(Set<Project> projects) throws IOException {
-        GFileUtils.copyURLToFile(getClass().getResource("/org/gradle/reporting/base-style.css"), new File(outputDirectory, "base-style.css"))
-        copyReportFile("d.gif")
-        copyReportFile("d.png")
-        copyReportFile("jquery.jstree.js")
-        copyReportFile("jquery-1.10.1.min.js")
-        copyReportFile("script.js")
-        copyReportFile("style.css")
-        copyReportFile("throbber.gif")
-        copyReportFile("tree.css")
-        copyReportFile("index.html")
-
-        String template = readHtmlTemplate();
-        for (Project project : projects) {
-            String jsFileName = toFileName(project, '.js')
-            generateJsFile(project, jsFileName)
-            String htmlFileName = toFileName(project, '.html')
-            generateHtmlFile(template, htmlFileName, jsFileName)
-        }
-
-        generateIndexJsFile(projects, 'index.js')
+        def renderer = new HtmlReportRenderer()
+        renderer.render(projects, new ReportRenderer<Set<Project>, HtmlReportBuilder>() {
+            @Override
+            void render(Set<Project> model, HtmlReportBuilder builder) {
+                def htmlPageScheme = projectNamingScheme("html")
+                def jsScheme = projectNamingScheme("js")
+                def projectPageRenderer = new ProjectPageRenderer(jsScheme)
+                builder.renderRawHtmlPage("index.html", projects, new ProjectsPageRenderer(htmlPageScheme))
+                for (Project project : projects) {
+                    String jsFileName = jsScheme.transform(project)
+                    generateJsFile(project, jsFileName)
+                    String htmlFileName = htmlPageScheme.transform(project)
+                    builder.renderRawHtmlPage(htmlFileName, project, projectPageRenderer)
+                }
+            }
+        }, outputDirectory)
     }
 
     private void generateJsFile(Project project, String fileName) {
@@ -88,34 +74,12 @@ class HtmlDependencyReporter {
         GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8")
     }
 
-    private void generateIndexJsFile(Set<Project> projects, String fileName) {
-        String json = indexRenderer.render(projects, new Transformer<String, Project>() {
+    private Transformer<String, Project> projectNamingScheme(String extension) {
+        new Transformer<String, Project>() {
             String transform(Project project) {
-                toFileName(project, ".html")
+                toFileName(project, "." + extension)
             }
-        })
-
-        String content = "var mainDependencyReport = " + json.toString() + ";";
-        GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8")
-    }
-
-    private void generateHtmlFile(String template, String fileName, String jsFileName) {
-        String content = template.replace('@js@', jsFileName);
-        GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8")
-    }
-
-    private copyReportFile(String fileName) {
-        GFileUtils.copyURLToFile(getClass().getResource(getReportResourcePath(fileName)),
-                                 new File(outputDirectory, fileName))
-
-    }
-
-    private String readHtmlTemplate() {
-        getClass().getResourceAsStream(getReportResourcePath("template.html")).getText("UTF8")
-    }
-
-    private String getReportResourcePath(String fileName) {
-        "/org/gradle/api/tasks/diagnostics/htmldependencyreport/" + fileName
+        }
     }
 
     private String toFileName(Project project, String extension) {

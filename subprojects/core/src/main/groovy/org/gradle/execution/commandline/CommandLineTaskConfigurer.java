@@ -16,10 +16,6 @@
 
 package org.gradle.execution.commandline;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import org.gradle.TaskParameter;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
@@ -27,7 +23,6 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
-import org.gradle.internal.DefaultTaskParameter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.Collection;
@@ -41,7 +36,7 @@ public class CommandLineTaskConfigurer {
         this.optionReader = optionReader;
     }
 
-    public List<TaskParameter> configureTasks(Collection<Task> tasks, List<TaskParameter> arguments) {
+    public List<String> configureTasks(Collection<Task> tasks, List<String> arguments) {
         assert !tasks.isEmpty();
         if (arguments.isEmpty()) {
             return arguments;
@@ -49,21 +44,8 @@ public class CommandLineTaskConfigurer {
         return configureTasksNow(tasks, arguments);
     }
 
-    private List<TaskParameter> configureTasksNow(Collection<Task> tasks, List<TaskParameter> arguments) {
+    private List<String> configureTasksNow(Collection<Task> tasks, List<String> arguments) {
         List<String> remainingArguments = null;
-        List<String> argumentsOrParameters = Lists.newArrayList();
-        List<TaskParameter> parameters = Lists.newArrayList();
-        boolean notArgument = false;
-        for (TaskParameter parameter : arguments) {
-            if (parameter.getProjectPath() != null) {
-                notArgument = true;
-            }
-            if (notArgument) {
-                parameters.add(parameter);
-            } else {
-                argumentsOrParameters.add(parameter.getTaskName());
-            }
-        }
         for (Task task : tasks) {
             CommandLineParser parser = new CommandLineParser();
             final List<OptionDescriptor> commandLineOptions = optionReader.getOptions(task);
@@ -76,7 +58,7 @@ public class CommandLineTaskConfigurer {
 
             ParsedCommandLine parsed;
             try {
-                parsed = parser.parse(argumentsOrParameters);
+                parsed = parser.parse(arguments);
             } catch (CommandLineArgumentException e) {
                 //we expect that all options must be applicable for each task
                 throw new TaskConfigurationException(task.getPath(), "Problem configuring task " + task.getPath() + " from command line.", e);
@@ -98,14 +80,6 @@ public class CommandLineTaskConfigurer {
                     : "we expect all options to be consumed by each task so remainingArguments should be the same for each task";
             remainingArguments = parsed.getExtraArguments();
         }
-        return Lists.newArrayList(Iterables.concat(
-                Iterables.transform(
-                        remainingArguments,
-                        new Function<String, TaskParameter>() {
-                            public TaskParameter apply(String input) {
-                                return new DefaultTaskParameter(input);
-                            }
-                        }),
-                parameters));
+        return remainingArguments;
     }
 }

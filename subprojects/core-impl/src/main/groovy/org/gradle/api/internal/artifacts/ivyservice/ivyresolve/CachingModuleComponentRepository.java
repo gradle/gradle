@@ -241,24 +241,24 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         private void resolveArtifactFromCache(ComponentArtifactMetaData artifact, CachingModuleSource moduleSource, BuildableArtifactResolveResult result) {
             CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(artifactCacheKey(artifact));
             final BigInteger descriptorHash = moduleSource.getDescriptorHash();
-           if (cached != null) {
-               long age = timeProvider.getCurrentTime() - cached.getCachedAt();
-               final boolean isChangingModule = moduleSource.isChangingModule();
-               ArtifactIdentifier artifactIdentifier = ((ModuleVersionArtifactMetaData) artifact).toArtifactIdentifier();
-               if (cached.isMissing()) {
-                   if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
-                       LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
-                       result.notFound(artifact.getId());
-                   }
-               } else {
-                   File cachedArtifactFile = cached.getCachedFile();
-                   if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
-                       LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
-                       result.resolved(cachedArtifactFile);
-                   }
-               }
-           }
-       }
+            if (cached != null) {
+                long age = timeProvider.getCurrentTime() - cached.getCachedAt();
+                final boolean isChangingModule = moduleSource.isChangingModule();
+                ArtifactIdentifier artifactIdentifier = ((ModuleVersionArtifactMetaData) artifact).toArtifactIdentifier();
+                if (cached.isMissing()) {
+                    if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                        LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
+                        result.notFound(artifact.getId());
+                    }
+                } else {
+                    File cachedArtifactFile = cached.getCachedFile();
+                    if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                        LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
+                        result.resolved(cachedArtifactFile);
+                    }
+                }
+            }
+        }
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {

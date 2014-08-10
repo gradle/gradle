@@ -69,6 +69,10 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 failure = e;
             }
 
+            if (!isAlreadyConfiguring && _isConfigureMethod(name, params)) {
+                return _configure(name, params);
+            }
+
             // try the owner
             try {
                 return _owner.invokeMethod(name, params);
@@ -79,11 +83,8 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 // ignore
             }
 
-            if (isAlreadyConfiguring || !_isConfigureMethod(name, params)) {
-                throw failure;
-            }
+            throw failure;
 
-            return _configure(name, params);
         } finally {
             _configuring.set(isAlreadyConfiguring);
         }

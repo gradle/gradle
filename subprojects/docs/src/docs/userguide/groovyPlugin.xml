@@ -17,14 +17,14 @@
     <title>The Groovy Plugin</title>
     <para>The Groovy plugin extends the Java plugin to add support for Groovy projects. It can deal with
         Groovy code, mixed Groovy and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter).
-        The plugin supports <emphasis>joint compilation</emphasis>, which allows to freely mix and match Groovy and Java code,
+        The plugin supports <emphasis>joint compilation</emphasis>, which allows you to freely mix and match Groovy and Java code,
         with dependencies in both directions. For example, a Groovy class can extend a Java class that in turn extends a Groovy class.
         This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
     </para>
 
     <section>
         <title>Usage</title>
-        <para>To use the Groovy plugin, include in your build script:</para>
+        <para>To use the Groovy plugin, include the following in your build script:</para>
         <sample id="useGroovyPlugin" dir="groovy/quickstart" title="Using the Groovy plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -143,7 +143,7 @@
 
         <section>
             <title>Changing the project layout</title>
-            <para>Just like the Java plugin, the Groovy plugin allows to configure custom locations for Groovy production and test sources.</para>
+            <para>Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test sources.</para>
             <sample id="customGroovySourceLayout" dir="groovy/customizedLayout" title="Custom Groovy source layout">
                 <sourcefile file="build.gradle" snippet="custom-source-locations"/>
             </sample>
@@ -154,7 +154,7 @@
     <section>
         <title>Dependency management</title>
         <para>Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships
-            with a Groovy library (1.8.6 as of Gradle 1.6). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
+            with a Groovy library (2.3.3 as of Gradle 2.0). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
             This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler
             and Groovydoc tool, respectively.
         </para>
@@ -185,13 +185,14 @@
         <sample id="groovyFileDependency" dir="userguide/tutorial/groovyWithFlatDir" title="Configuration of Groovy file dependency">
             <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
-
+        <para>The “<literal>module</literal>” reference may be new to you.  See <xref linkend="dependency_management"/> for more information about this and other
+        information about dependency management.</para>
     </section>
 
     <section>
         <title>Automatic configuration of groovyClasspath</title>
         <para>
-            <literal>GroovyCompile</literal> and <literal>Groovydoc</literal> tasks consume Groovy in two ways: on their <literal>classpath</literal>,
+            The <literal>GroovyCompile</literal> and <literal>Groovydoc</literal> tasks consume Groovy code in two ways: on their <literal>classpath</literal>,
             and on their <literal>groovyClasspath</literal>. The former is used to locate classes referenced by the source code, and will typically
             contain the Groovy library along with other libraries. The latter is used to load and execute the Groovy compiler and Groovydoc tool,
             respectively, and should only contain the Groovy library and its dependencies.
@@ -201,11 +202,11 @@
             from the task's <literal>classpath</literal>. This is done as follows:
             <itemizedlist>
                 <listitem>
-                    If a <literal>groovy-all(-indy)</literal> Jar is found on <literal>classpath</literal>, the same Jar will be added to
+                    If a <literal>groovy-all(-indy)</literal> Jar is found on <literal>classpath</literal>, that jar will be added to
                     <literal>groovyClasspath</literal>.
                 </listitem>
                 <listitem>
-                    If a <literal>groovy(-indy)</literal> Jar is found on <literal>classpath</literal>, and the project has at least one repository declared,
+                    If a <literal>groovy(-indy)</literal> jar is found on <literal>classpath</literal>, and the project has at least one repository declared,
                     a corresponding <literal>groovy(-indy)</literal> repository dependency will be added to <literal>groovyClasspath</literal>.
                 </listitem>
                 <listitem>
@@ -213,6 +214,7 @@
                 </listitem>
             </itemizedlist>
         </para>
+        <para>Note that the “<literal>-indy</literal>” variation of each jar refers to the version with <literal>invokedynamic</literal> support.</para>
     </section>
 
     <section>

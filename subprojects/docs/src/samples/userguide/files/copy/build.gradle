@@ -11,7 +11,8 @@ task copyTaskWithPatterns(type: Copy) {
     into 'build/explodedWar'
     include '**/*.html'
     include '**/*.jsp'
-    exclude { details -> details.file.name.endsWith('.html') && details.file.text.contains('staging') }
+    exclude { details -> details.file.name.endsWith('.html') &&
+                         details.file.text.contains('staging') }
 }
 // END SNIPPET copy-task-with-patterns
 
@@ -49,7 +50,8 @@ task copyMethod << {
 
 // START SNIPPET copy-method-with-dependency
 task copyMethodWithExplicitDependencies{
-    inputs.file copyTask // up-to-date check for inputs, plus add copyTask as dependency
+    // up-to-date check for inputs, plus add copyTask as dependency
+    inputs.file copyTask
     outputs.dir 'some-dir' // up-to-date check for outputs
     doLast{
         copy {
@@ -97,7 +99,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 task filter(type: Copy) {
     from 'src/main/webapp'
     into 'build/explodedWar'
-    // Substitute property references in files
+    // Substitute property tokens in files
     expand(copyright: '2009', version: '2.3.1')
     expand(project.properties)
     // Use some of the filters provided by Ant

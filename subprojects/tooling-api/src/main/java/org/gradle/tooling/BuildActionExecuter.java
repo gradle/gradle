@@ -17,8 +17,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
-import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 
 /**
  * Used to execute a {@link BuildAction} in the build process.
@@ -32,18 +30,19 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      * Runs the action, blocking until its result is available.
      *
      * @throws UnsupportedVersionException When the target Gradle version does not support build action execution.
-     * @throws UnsupportedOperationConfigurationException
+     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
      *          When the target Gradle version does not support some requested configuration option such as
      *          {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)},
      *          {@link #setJvmArguments(String...)}.
-     * @throws UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
+     * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws BuildActionFailureException When the build action fails with an exception.
+     * @throws BuildCancelledException When the operation was cancelled before it completed successfully.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
      * @since 1.8
      */
-    T run() throws GradleConnectionException, IllegalStateException, UnsupportedOperationConfigurationException, UnsupportedVersionException, UnsupportedBuildArgumentException, BuildException, BuildActionFailureException;
+    T run() throws GradleConnectionException, IllegalStateException;
 
     /**
      * Starts executing the action, passing the result to the given handler when complete. This method returns immediately, and the result is later passed to the given handler's {@link

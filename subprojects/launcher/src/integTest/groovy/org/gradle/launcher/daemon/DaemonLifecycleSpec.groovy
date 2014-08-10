@@ -19,10 +19,11 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.testing.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -331,7 +332,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         foregroundDaemonCompleted()
     }
 
-    @IgnoreIf({OperatingSystem.current().windows})
+    @Requires(TestPrecondition.NOT_WINDOWS)
     //(SF) On windows at the moment, we cannot reliably kill the client without waiting for the daemon to complete
     //It's because of the way windows handles pipes for child processes.
     //basically, process.waitFor() completes and you can get hold of the exit value,
@@ -354,7 +355,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
-    @IgnoreIf({OperatingSystem.current().windows})
+    @Requires(TestPrecondition.NOT_WINDOWS)
     //See the comment in the previous test
     def "tearing down client while daemon is building tears down daemon _process_"() {
         when:

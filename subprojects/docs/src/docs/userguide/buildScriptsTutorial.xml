@@ -42,10 +42,10 @@
         </para>
         <para>To try this out, create the following build script named <filename>build.gradle</filename>.
         </para>
-        <sample id="hello" dir="userguide/tutorial/hello" title="The first build script">
+        <sample id="hello" dir="userguide/tutorial/hello" title="Your first build script">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>In a command-line shell, enter into the containing directory and execute the build script by running
+        <para>In a command-line shell, move to the containing directory and execute the build script with
             <userinput>gradle -q hello</userinput>:
         </para>
         <tip>
@@ -64,8 +64,8 @@
             <literal>hello</literal> task, which in turn executes the action you've provided. The action is simply a
             closure containing some Groovy code to execute.
         </para>
-        <para>If you think this looks similar to Ant's targets, well, you are right. Gradle tasks are the equivalent to
-            Ant targets. But as you will see, they are much more powerful. We have used a different terminology than Ant
+        <para>If you think this looks similar to Ant's targets, you would be right. Gradle tasks are the equivalent to
+            Ant targets, but as you will see, they are much more powerful. We have used a different terminology than Ant
             as we think the word <emphasis>task</emphasis> is more expressive than the word <emphasis>target</emphasis>.
             Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands, such as
             <literal>javac</literal> or <literal>copy</literal>, tasks. So when we talk about tasks,
@@ -85,7 +85,7 @@
     </section>
     <section>
         <title>Build scripts are code</title>
-        <para>Gradle's build scripts expose to you the full power of Groovy. As an appetizer, have a look at this:
+        <para>Gradle's build scripts give you the full power of Groovy. As an appetizer, have a look at this:
         </para>
         <sample id="upper" dir="userguide/tutorial/upper" title="Using Groovy in Gradle's tasks">
             <sourcefile file="build.gradle"/>
@@ -99,9 +99,9 @@
     </section>
     <section id='sec:task_dependencies'>
         <title>Task dependencies</title>
-        <para>As you probably have guessed, you can declare dependencies between your tasks.
+        <para>As you probably have guessed, you can declare tasks that depend on other tasks.
         </para>
-        <sample id="intro" dir="userguide/tutorial/intro" title="Declaration of dependencies between tasks">
+        <sample id="intro" dir="userguide/tutorial/intro" title="Declaration of task that depends on other task">
             <sourcefile file="build.gradle"/>
             <output args="-q intro"/>
         </sample>
@@ -129,8 +129,8 @@
     </section>
     <section>
         <title>Manipulating existing tasks</title>
-        <para>Once tasks are created they can be accessed via an <emphasis>API</emphasis>. This is different to Ant. For
-            example you can create additional dependencies.
+        <para>Once tasks are created they can be accessed via an <emphasis>API</emphasis>. For instance, you could use this to
+        dynamically add dependencies to a task, at runtime.  Ant doesn't allow anything like this.
         </para>
         <sample id="dynamicDepends" dir="userguide/tutorial/dynamicDepends" title="Accessing a task via API - adding a dependency">
             <sourcefile file="build.gradle"/>
@@ -156,8 +156,9 @@
             <sourcefile file="build.gradle"/>
             <output args="-q hello"/>
         </sample>
-        <para>This enables very readable code, especially when using the out of the box tasks provided by the plugins
-            (e.g. <literal>compile</literal>).</para>
+        <para>This enables very readable code, especially when using the tasks provided by the plugins,
+              like the <literal>compile</literal> task.
+        </para>
     </section>
     <section id='sec:extra_task_properties'>
         <title>Extra task properties</title>

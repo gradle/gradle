@@ -83,7 +83,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     Set<ModuleVersionIdentifier> visitedModules = new HashSet<ModuleVersionIdentifier>();
 
     public void resolvedModuleVersion(final ModuleVersionSelection moduleVersion) {
-        if (visitedModules.add(moduleVersion.getSelectedId())) {
+        if (visitedModules.add(moduleVersion.getId())) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(MODULE);

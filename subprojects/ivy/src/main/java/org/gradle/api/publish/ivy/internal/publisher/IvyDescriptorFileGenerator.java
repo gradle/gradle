@@ -16,9 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.XmlProvider;
+import javax.xml.namespace.QName;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
@@ -34,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class IvyDescriptorFileGenerator {
     private static final String IVY_FILE_ENCODING = "UTF-8";
@@ -41,7 +41,9 @@ public class IvyDescriptorFileGenerator {
 
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
     private final IvyPublicationIdentity projectIdentity;
+    private String branch;
     private String status;
+    private Map<QName, String> extraInfo;
     private XmlTransformer xmlTransformer = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
@@ -53,6 +55,18 @@ public class IvyDescriptorFileGenerator {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    public Map<QName, String> getExtraInfo() {
+        return extraInfo;
+    }
+
+    public void setExtraInfo(Map<QName, String> extraInfo) {
+        this.extraInfo = extraInfo;
     }
 
     public IvyDescriptorFileGenerator addConfiguration(IvyConfiguration ivyConfiguration) {
@@ -98,10 +112,27 @@ public class IvyDescriptorFileGenerator {
         xmlWriter.startElement("info")
                 .attribute("organisation", projectIdentity.getOrganisation())
                 .attribute("module", projectIdentity.getModule())
+                .attribute("branch", branch)
                 .attribute("revision", projectIdentity.getRevision())
                 .attribute("status", status)
-                .attribute("publication", ivyDateFormat.format(new Date()))
-                .endElement();
+                .attribute("publication", ivyDateFormat.format(new Date()));
+
+        if (extraInfo != null) {
+            for (Map.Entry<QName, String> entry : extraInfo.entrySet()) {
+                if (entry.getKey() != null) {
+                    try {
+                        xmlWriter.startElement(String.format("ns:%s", entry.getKey().getLocalPart()))
+                                .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
+                                .characters(entry.getValue())
+                                .endElement();
+                    } catch (Exception e) {
+                        throw new InvalidUserCodeException(String.format("Failed to add extra info element '%s'", entry.getKey().getLocalPart()), e);
+                    }
+                }
+            }
+        }
+
+        xmlWriter.endElement();
 
         writeConfigurations(xmlWriter);
         writePublications(xmlWriter);
