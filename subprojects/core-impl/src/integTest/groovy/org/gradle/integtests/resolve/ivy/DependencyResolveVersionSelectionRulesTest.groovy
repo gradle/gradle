@@ -206,25 +206,35 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
                 conf "org.utils:api:1.+"
             }
 
-            def rule1VersionsInvoked = []
-            def rule2VersionsInvoked = []
+            def rule1Invoked = false
+            def rule2Invoked = false
             configurations.all {
                 resolutionStrategy {
                     versionSelection {
                         // Rule 1
                         all { VersionSelection selection ->
                             if (selection.candidate.version == '1.3') {
+                                rule1Invoked = true
                                 selection."${operation}"()
                             }
                         }
                         // Rule 2
                         all { VersionSelection selection ->
                             if (selection.candidate.version == '1.3') {
+                                rule2Invoked = true
                                 selection."${operation}"()
                             }
                         }
                     }
                 }
+            }
+
+            resolveConf.doLast {
+                assert rule1Invoked
+                assert rule2Invoked
+                configurations.conf.files.each { println it }
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '${expectedVersion}'
             }
         """
 
@@ -232,9 +242,9 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
         succeeds 'resolveConf'
 
         where:
-        operation | _
-        "accept"  | _
-        "reject"  | _
+        operation | expectedVersion
+        "accept"  | "1.3"
+        "reject"  | "1.2"
     }
 
     def "rejects all versions by rule" () {
@@ -339,6 +349,9 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
         "1.0"                | "always select 2.0"                  | "2.0"
         "1.+"                | "always select 2.0"                  | "2.0"
         "1.+"                | "always reject 1.1"                  | "1.0"
+        "latest.milestone"   | "always reject 1.1"                  | "1.0"
+        "latest.milestone"   | "accept 2.0 as milestone"            | "2.0"
+        "latest.release"     | "accept 1.1 as release"              | "1.1"
         "1.0"                | "never select or reject any version" | "1.0"
         "1.+"                | "never select or reject any version" | "1.1"
         "latest.integration" | "never select or reject any version" | "2.0"
