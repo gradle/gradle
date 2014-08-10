@@ -16,16 +16,26 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
-class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec {
+class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyResolutionTest {
 
     String getBaseBuildFile() {
         """
         configurations { conf }
         repositories {
             ivy { url "${ivyRepo.uri}" }
+        }
+        task resolveConf << { configurations.conf.files }
+        """
+    }
+
+    String getHttpBaseBuildFile() {
+        """
+        configurations { conf }
+        repositories {
+            ivy { url "${ivyHttpRepo.uri}" }
         }
         task resolveConf << { configurations.conf.files }
         """
@@ -275,6 +285,20 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
                 ruleInvoked = true
             }
             """,
+            "accept 2.0 as milestone": """{ VersionSelection selection ->
+                if (selection.candidate.version == '2.0' && selection.requested.version == 'latest.milestone') {
+                    selection.accept()
+                }
+                ruleInvoked = true
+            }
+            """,
+            "accept 1.1 as release": """{ VersionSelection selection ->
+                if (selection.candidate.version == '1.1' && selection.requested.version == 'latest.release') {
+                    selection.accept()
+                }
+                ruleInvoked = true
+            }
+            """
     ]
 
     @Unroll
@@ -319,5 +343,59 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractIntegrationSpec
         "1.+"                | "never select or reject any version" | "1.1"
         "latest.integration" | "never select or reject any version" | "2.0"
         "latest.milestone"   | "never select or reject any version" | "1.1"
+    }
+
+    @Unroll
+    def "verify server interactions for #requestedVersion with selection rules applied"() {
+        def modules = [:]
+        modules["1.0"] = ivyHttpRepo.module("org.utils", "api", "1.0").withStatus("release").publish()
+        modules["1.1"] = ivyHttpRepo.module("org.utils", "api", "1.1").withStatus("milestone").publish()
+        modules["2.0"] = ivyHttpRepo.module("org.utils", "api", "2.0").publish()
+
+        // Setup server interactions
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        interactions.each { version, expectations ->
+            if (expectations[0]) {
+                modules[version].ivy.expectDownload()
+            }
+            if (expectations[1]) {
+                modules[version].artifact.expectDownload()
+            }
+        }
+
+        buildFile << """
+            $httpBaseBuildFile
+
+            dependencies {
+                conf "org.utils:api:${requestedVersion}"
+            }
+
+            def ruleInvoked = false
+            configurations.all {
+                resolutionStrategy {
+                    versionSelection {
+                        all ${rules[rule]}
+                    }
+                }
+            }
+
+            resolveConf.doLast {
+                assert ruleInvoked
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
+                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '${expectedVersion}'
+            }
+        """
+
+        expect:
+        succeeds 'resolveConf'
+        // Should get from cache on second run
+        succeeds 'resolveConf'
+
+        where:
+        // interactions define for each version whether a download is expected for ivy.xml and artifact respectively
+        requestedVersion   | rule                    | expectedVersion | interactions
+        "1.0"              | "always select 2.0"     | "2.0"           | ["2.0": [true,  true],  "1.1": [false, false], "1.0": [false, false]]
+        "1.+"              | "always reject 1.1"     | "1.0"           | ["2.0": [false, false], "1.1": [false, false], "1.0": [true,  true]]
+        "latest.milestone" | "accept 1.1 as release" | "1.1"           | ["2.0": [true,  false], "1.1": [true,  true],  "1.0": [false, false]]
     }
 }
