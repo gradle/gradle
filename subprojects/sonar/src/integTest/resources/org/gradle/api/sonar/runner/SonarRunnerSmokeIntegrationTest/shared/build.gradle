@@ -1,5 +1,9 @@
 apply plugin: "sonar-runner"
 
+repositories {
+    mavenCentral()
+}
+
 description = "Sonar Test Build"
 
 allprojects {
