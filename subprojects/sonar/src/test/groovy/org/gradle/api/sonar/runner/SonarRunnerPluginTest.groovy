@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.sonar.runner
 
+
+package org.gradle.api.sonar.runner
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.DefaultJavaForkOptions
+import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
-
 import spock.lang.Specification
 
-import static spock.util.matcher.HamcrestSupport.*
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.contains
+import static org.hamcrest.Matchers.containsInAnyOrder
+import static spock.util.matcher.HamcrestSupport.expect
 
 class SonarRunnerPluginTest extends Specification {
     @Rule SetSystemProperties systemProperties
@@ -41,6 +44,10 @@ class SonarRunnerPluginTest extends Specification {
 
     def setup() {
         parentProject.plugins.apply(SonarRunnerPlugin)
+        parentProject.repositories {
+            mavenCentral()
+        }
+
         rootProject.allprojects {
             group = "group"
             version = 1.3
@@ -52,7 +59,7 @@ class SonarRunnerPluginTest extends Specification {
     def "adds a sonarRunner extension to the target project (i.e. the project to which the plugin is applied) and its subprojects"() {
         expect:
         rootProject.extensions.findByName("sonarRunner") == null
-        parentProject.extensions.findByName("sonarRunner") instanceof SonarRunnerExtension
+        parentProject.extensions.findByName("sonarRunner") instanceof SonarRunnerRootExtension
         childProject.extensions.findByName("sonarRunner") instanceof SonarRunnerExtension
     }
 
@@ -379,27 +386,51 @@ class SonarRunnerPluginTest extends Specification {
     def "sets default fork options correctly"() {
 
         when:
-        boolean fork = parentProject.tasks.sonarRunner.fork
         JavaForkOptions forkOptions = parentProject.tasks.sonarRunner.forkOptions
+        SonarRunnerRootExtension rootExtension = parentProject.extensions.sonarRunner
 
         then:
-        !fork
-        forkOptions != null
+        forkOptions instanceof DefaultJavaForkOptions
+        rootExtension.toolVersion == '2.3'
     }
 
-    def "configure ad hoc analysis with fork options"() {
-        def project = TestUtil.builder().withName("project1").build()
-        project.task(type: SonarRunner, "forkedAnalysis") {
-            fork = true
-            forkOptions.maxHeapSize = '512m'
+    def "root extension can configure task fork options"() {
+
+        parentProject.sonarRunner {
+            forkOptions {
+                maxHeapSize = '1024m'
+                jvmArgs '-XX:MaxPermSize=128m'
+            }
         }
 
         when:
-        boolean fork = project.tasks.forkedAnalysis.fork
-        JavaForkOptions forkOptions = project.tasks.forkedAnalysis.forkOptions
+        JavaForkOptions forkOptions = parentProject.tasks.sonarRunner.forkOptions
 
         then:
-        fork
-        forkOptions.allJvmArgs.contains '-Xmx512m'
+        forkOptions.allJvmArgs.contains('-Xmx1024m')
+        forkOptions.allJvmArgs.contains('-XX:MaxPermSize=128m')
+    }
+
+    def "sonar java process is configured properly"() {
+
+        when:
+        JavaExecHandleBuilder handleBuilder = parentProject.tasks.sonarRunner.prepareExec()
+
+        then:
+        handleBuilder.main == 'org.sonar.runner.Main'
+        handleBuilder.classpath.files*.name.contains("sonar-runner-dist-2.3.jar")
+    }
+
+    def "can choose sonar runner version"() {
+
+        parentProject.sonarRunner {
+            toolVersion = '2.4'
+        }
+
+        when:
+        JavaExecHandleBuilder handleBuilder = parentProject.tasks.sonarRunner.prepareExec()
+
+        then:
+        handleBuilder.classpath.files*.name.contains("sonar-runner-dist-2.4.jar")
     }
 }

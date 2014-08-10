@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.sonar.runner
 
+
+package org.gradle.api.sonar.runner
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
-import org.gradle.api.internal.classpath.DefaultModuleRegistry
-import org.gradle.api.internal.file.BaseDirFileResolver
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.resources.MissingResourceException
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.nativeplatform.services.FileSystems
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.ExecHandle
+import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.process.internal.JavaExecHandleBuilder
-import org.sonar.runner.Runner
 
+import javax.inject.Inject
 /**
  * Analyses one or more projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
  * Sonar Runner</a>. Can be used with or without the {@code sonar-runner} plugin. If used together with the plugin,
  * {@code sonarProperties} will be populated with defaults based on Gradle's object model and user-defined
- * values configured via {@link SonarRunnerExtension}. If used without the plugin, all properties have to be configured
- * manually.
+ * values configured via {@link SonarRunnerExtension} and {@link SonarRunnerRootExtension}. If used without the plugin,
+ * all properties have to be configured manually.
  *
  * <p>For more information on how to configure the Sonar Runner, and on which properties are available, see the
  * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner documentation</a>.
@@ -47,23 +45,28 @@ class SonarRunner extends DefaultTask {
     /**
      * The String key/value pairs to be passed to the Sonar Runner. {@code null} values are not permitted.
      */
+    @InputFiles
     Properties sonarProperties
 
     /**
-     * Specify if the analysis should be run in a separate process.
+     * Options for the analysis process. Configured via {@link SonarRunnerRootExtension#forkOptions}.
      */
-    boolean fork
-
-    private JavaExecHandleBuilder forkOptions
+    JavaForkOptions forkOptions
 
     SonarRunner() {
-        forkOptions = new JavaExecHandleBuilder(
-                new BaseDirFileResolver(FileSystems.default, getProject().rootDir)
-        )
+        forkOptions = new DefaultJavaForkOptions(getFileResolver())
     }
 
     @TaskAction
     void run() {
+        prepareExec()
+                .build()
+                .start()
+                .waitForFinish()
+                .assertNormalExitValue();
+    }
+
+    JavaExecHandleBuilder prepareExec() {
         def properties = getSonarProperties()
 
         if (LOGGER.infoEnabled) {
@@ -71,44 +74,22 @@ class SonarRunner extends DefaultTask {
                     properties.sort().collect { key, value -> "$key: $value" }.join("\n"))
         }
 
-        if (fork) {
-            forkAndExecute()
-            return
-        }
+        def javaExec = new JavaExecHandleBuilder(getFileResolver())
+        forkOptions.copyTo(javaExec)
 
-        def runner = Runner.create(properties)
-        runner.execute()
+        javaExec.setClasspath(
+                project.configurations[SonarRunnerPlugin.SONAR_RUNNER_CONFIGURATION_NAME]
+        )
+
+        javaExec.setMain('org.sonar.runner.Main')
+
+        properties.each { key, value -> javaExec.systemProperty(key.toString(), value) }
+
+        javaExec
     }
 
-    /**
-     * Returns options for running the analysis in a child process.
-     */
-    JavaForkOptions getForkOptions() {
-        return forkOptions
-    }
-
-    void forkAndExecute() {
-
-        File sonarRunnerJar = getSonarRunnerJar()
-        forkOptions.setClasspath(new SimpleFileCollection(sonarRunnerJar))
-        forkOptions.setMain('org.sonar.runner.Main')
-
-        getSonarProperties().each { String key, Object value -> forkOptions.systemProperty(key, value) }
-
-        ExecHandle handle = forkOptions.build()
-        handle.start()
-                .waitForFinish()
-                .assertNormalExitValue();
-    }
-
-    private static File getSonarRunnerJar() {
-        File gradleHome = new DefaultModuleRegistry().getGradleHome();
-        for (File file : new File(gradleHome, "lib/plugins").listFiles()) {
-            if (file.getName().matches('sonar-runner-.*.jar')) {
-                return file
-            }
-        }
-
-        throw new MissingResourceException("Cannot find sonar runner library in gradle home");
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
     }
 }
