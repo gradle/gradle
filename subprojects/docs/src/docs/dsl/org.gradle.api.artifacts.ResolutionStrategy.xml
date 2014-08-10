@@ -10,6 +10,9 @@
             <tr>
                 <td>forcedModules</td>
             </tr>
+            <tr>
+                <td>versionSelection</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -34,6 +37,9 @@
             </tr>
             <tr>
                 <td>eachDependency</td>
+            </tr>
+            <tr>
+                <td>versionSelection</td>
             </tr>
         </table>
     </section>

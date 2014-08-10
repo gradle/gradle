@@ -44,7 +44,9 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 public interface VersionSelectionRules {
     /**
-     * Add a new version selection rule to the container.
+     * Add a new version selection rule to the container.  Each rule will receive a {@link org.gradle.api.artifacts.VersionSelection}
+     * object as an argument.
+     *
      * @param selectionAction the Action or Closure that implements a rule to be applied to all resolved modules
      * @return this
      */

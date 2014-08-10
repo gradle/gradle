@@ -1119,6 +1119,34 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule" />
             </sample>
         </section>
+        <section id="version_selection_rules">
+            <title>Version Selection Rules</title>
+            <para>
+                Version selection rules define how versions should be selected when multiple versions are available that match a given set of
+                coordinates.  Rules are applied against every available version and allow the version to be explicitly accepted, explicitly rejected,
+                or have the default version matching rules applied.  This allows Gradle to select alternate versions when the alternate version
+                is not known in advance.
+            </para>
+            <para>
+                Rules are configured via the <apilink class="org.gradle.api.artifacts.VersionSelectionRules"/> object.  Each rule configured
+                will be called with a <apilink class="org.gradle.api.artifacts.VersionSelection"/> object as an argument which contains information
+                about the version being requested and the candidate version being considered.  Calling <apilink class="org.gradle.api.artifacts.VersionSelection" method="accept"/>
+                or <apilink class="org.gradle.api.artifacts.VersionSelection" method="reject"/> on the object causes the given candidate version to
+                be explicitly accepted or rejected.  If neither is called for a given version, the default selection rules will be applied.
+            </para>
+            <para>
+                The following example shows a rule that disallows a particular version of a module but allows the default version selection rules to
+                choose the next best candidate.  If the version requested was <literal>1.+</literal>, and versions 1.1, 1.0.1 and 1.0 were
+                available, it would reject 1.1 and select the next newest version available (1.0.1).
+            </para>
+            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version Selection Rule">
+                <sourcefile file="build.gradle" snippet="reject-version-1.1" />
+            </sample>
+            <para>
+                Note that version selection is applied to <emphasis>all</emphasis> versions available, not just versions that match the requested version.  This allows
+                available versions that do not match the requested version to be explicitly substituted if desired.
+            </para>
+        </section>
     </section>
     <section id='sec:dependency_cache'>
         <title>The dependency cache</title>

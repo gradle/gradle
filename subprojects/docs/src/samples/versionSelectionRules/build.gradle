@@ -18,6 +18,24 @@ repositories {
     mavenCentral()
 }
 
+// START SNIPPET reject-version-1.1
+configurations {
+    rejectConfig {
+        resolutionStrategy {
+            versionSelection {
+                all { VersionSelection selection ->
+                    if (selection.requested.group == 'org.sample'
+                            && selection.requested.name == 'api'
+                            && selection.candidate.version == '1.1') {
+                        selection.reject()
+                    }
+                }
+            }
+        }
+    }
+}
+// END SNIPPET reject-version-1.1
+
 configurations {
     sampleConfig {
         resolutionStrategy {

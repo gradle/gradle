@@ -2,9 +2,31 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### Version Selection Rules (i)
+Fine tuning the dependency resolution process is even more powerful now with the use of version selection rules.  These allow custom rules to be applied whenever
+multiple versions of a module are being evaluated.  Using such rules, one can explicitly accept or reject a version or allow the default selection
+rules to be applied.  This allows Gradle to customize version selection without knowing what versions might be available at build time.
+
+    configurations {
+        conf {
+            resolutionStrategy {
+                versionSelection {
+                    all { VersionSelection selection ->
+                        // Accept the newest version that matches the dynamic selector
+                        // but does not end with "-experimental".
+                        if (selection.requested.group == 'org.sample'
+                                && selection.requested.name == 'api'
+                                && selection.candidate.version.endsWith('-experimental')) {
+                            selection.reject()
+                        }
+                    }
+                }
+            }
+        }
+        dependencies {
+            conf "org.sample:api:1.+"
+        }
+    }
 
 ## Promoted features
 
