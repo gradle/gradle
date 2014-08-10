@@ -393,9 +393,9 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
 
         where:
         // interactions define for each version whether a download is expected for ivy.xml and artifact respectively
-        requestedVersion   | rule                    | expectedVersion | interactions
-        "1.0"              | "always select 2.0"     | "2.0"           | ["2.0": [true,  true],  "1.1": [false, false], "1.0": [false, false]]
-        "1.+"              | "always reject 1.1"     | "1.0"           | ["2.0": [false, false], "1.1": [false, false], "1.0": [true,  true]]
-        "latest.milestone" | "accept 1.1 as release" | "1.1"           | ["2.0": [true,  false], "1.1": [true,  true],  "1.0": [false, false]]
+        requestedVersion | rule                    | expectedVersion | interactions
+        "1.0"            | "always select 2.0"     | "2.0"           | ["2.0": [true,  true],  "1.1": [false, false], "1.0": [false, false]]
+        "1.+"            | "always reject 1.1"     | "1.0"           | ["2.0": [false, false], "1.1": [false, false], "1.0": [true,  true]]
+        "latest.release" | "accept 1.1 as release" | "1.1"           | ["2.0": [true,  false], "1.1": [true,  true],  "1.0": [false, false]]
     }
 }
