@@ -167,6 +167,29 @@ ear {
         ear.assertFileContent("META-INF/application.xml", applicationXml)
     }
 
+
+    @Test
+    void "works with existing descriptor containing a doctype declaration"() {
+        def applicationXml = """<?xml version="1.0"?>
+<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">
+<application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
+  <application-name>customear</application-name>
+</application>
+"""
+
+        file('src/main/application/META-INF/application.xml').createFile().write(applicationXml)
+        file("build.gradle").write("""
+apply plugin: 'ear'
+""")
+
+        //when
+        executer.withTasks('assemble').run()
+
+        //then
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertFileContent("META-INF/application.xml", applicationXml)
+    }
+
     @Test @Ignore
     void "exclude duplicates: deploymentDescriptor has priority over metaInf"() {
         file('bad-meta-inf/application.xml').createFile().write('bad descriptor')
