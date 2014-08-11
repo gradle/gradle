@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.test.cunit.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
@@ -27,7 +26,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
@@ -90,11 +88,6 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
             ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
             FunctionalSourceSet testSuiteSourceSet = projectSourceSet.maybeCreate(suiteName);
             final DefaultCUnitTestSuiteSpec cUnitTestSuiteSpec = instantiator.newInstance(DefaultCUnitTestSuiteSpec.class, id, testedComponent, testSuiteSourceSet);
-            testSuiteSourceSet.all(new Action<LanguageSourceSet>() {
-                public void execute(LanguageSourceSet languageSourceSet) {
-                    cUnitTestSuiteSpec.source(languageSourceSet);
-                }
-            });
             return cUnitTestSuiteSpec;
         }
 

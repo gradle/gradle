@@ -22,6 +22,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.DependentSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
@@ -30,11 +31,13 @@ import org.gradle.nativebinaries.internal.NativeBinarySpecInternal;
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin;
 import org.gradle.nativebinaries.tasks.InstallExecutable;
 import org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec;
+import org.gradle.nativebinaries.test.NativeTestSuiteSpec;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer;
 import org.gradle.nativebinaries.test.tasks.RunTestExecutable;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.ComponentSpecInternal;
 
 import java.io.File;
 
@@ -57,6 +60,20 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
         TestSuiteContainer testSuites(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             return instantiator.newInstance(DefaultTestSuiteContainer.class, instantiator);
+        }
+
+        @Finalize // Must run after test binaries have been created (currently in CUnit plugin)
+        void configureTestSuiteFunctionalSourceSets(TestSuiteContainer testSuiteContainer) {
+            testSuiteContainer.all(new Action<NativeTestSuiteSpec>() {
+                public void execute(final NativeTestSuiteSpec nativeTestSuiteSpec) {
+                    ComponentSpecInternal componentSpecInternal = (ComponentSpecInternal)nativeTestSuiteSpec;
+                    componentSpecInternal.getMainSource().all(new Action<LanguageSourceSet>() {
+                        public void execute(LanguageSourceSet languageSourceSet) {
+                            nativeTestSuiteSpec.source(languageSourceSet);
+                        }
+                    });
+                }
+            });
         }
 
         @Finalize // Must run after test binaries have been created (currently in CUnit plugin)
