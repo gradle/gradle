@@ -1131,8 +1131,9 @@ someroot/[artifact]-[revision].[ext]
                 Rules are configured via the <apilink class="org.gradle.api.artifacts.VersionSelectionRules"/> object.  Each rule configured
                 will be called with a <apilink class="org.gradle.api.artifacts.VersionSelection"/> object as an argument which contains information
                 about the version being requested and the candidate version being considered.  Calling <apilink class="org.gradle.api.artifacts.VersionSelection" method="accept"/>
-                or <apilink class="org.gradle.api.artifacts.VersionSelection" method="reject"/> on the object causes the given candidate version to
-                be explicitly accepted or rejected.  If neither is called for a given version, the default selection rules will be applied.
+                or <apilink class="org.gradle.api.artifacts.VersionSelection" method="reject"/> causes the given candidate version to
+                be explicitly accepted or rejected.  If a given version is neither accepted nor rejected, it will be subject to the default
+                version matching strategies.
             </para>
             <para>
                 The following example shows a rule that disallows a particular version of a module but allows the default version selection rules to

@@ -22,7 +22,9 @@ import org.gradle.internal.HasInternalProtocol;
 
 /***
  * Represents a container for version selection rules.  Rules can be applied as part of the
- * resolutionStrategy of a configuration.
+ * resolutionStrategy of a configuration and individual versions can be explicitly accepted
+ * or rejected by rule.  Versions that are neither accepted or rejected will be subject to
+ * the default version matching strategies.
  *
  * <pre>
  *     configurations {
