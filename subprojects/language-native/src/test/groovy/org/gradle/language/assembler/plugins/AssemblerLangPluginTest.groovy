@@ -16,7 +16,6 @@
 package org.gradle.language.assembler.plugins
 
 import org.gradle.language.assembler.AssemblerSourceSet
-import org.gradle.nativebinaries.language.assembler.plugins.AssemblerPlugin
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
 class AssemblerLangPluginTest extends AbstractLanguagePluginSpec {
