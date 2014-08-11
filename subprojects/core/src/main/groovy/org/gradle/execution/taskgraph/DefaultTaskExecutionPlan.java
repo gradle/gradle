@@ -390,7 +390,6 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         try {
             while (true) {
                 if (cancellationToken.isCancellationRequested()) {
-                    failures.add(new BuildCancelledException("Build cancelled."));
                     abortExecution();
                 }
                 TaskInfo nextMatching = null;
@@ -506,6 +505,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void rethrowFailures() {
+        if (cancellationToken.isCancellationRequested()) {
+            failures.add(new BuildCancelledException("Build cancelled."));
+        }
         if (failures.isEmpty()) {
             return;
         }
