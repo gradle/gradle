@@ -224,8 +224,8 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         run "installEnglishMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileEnglishHelloSharedLibraryLibCpp", ":linkEnglishHelloSharedLibrary", ":englishHelloSharedLibrary"
-        executedAndNotSkipped ":compileEnglishMainExecutableExeCpp", ":linkEnglishMainExecutable", ":englishMainExecutable"
+        executedAndNotSkipped ":compileEnglishHelloSharedLibraryHelloCpp", ":linkEnglishHelloSharedLibrary", ":englishHelloSharedLibrary"
+        executedAndNotSkipped ":compileEnglishMainExecutableMainCpp", ":linkEnglishMainExecutable", ":englishMainExecutable"
 
         and:
         executable(flavors.dir.file("build/binaries/mainExecutable/english/main")).assertExists()
@@ -239,8 +239,8 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         run "installFrenchMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileFrenchHelloSharedLibraryLibCpp", ":linkFrenchHelloSharedLibrary", ":frenchHelloSharedLibrary"
-        executedAndNotSkipped ":compileFrenchMainExecutableExeCpp", ":linkFrenchMainExecutable", ":frenchMainExecutable"
+        executedAndNotSkipped ":compileFrenchHelloSharedLibraryHelloCpp", ":linkFrenchHelloSharedLibrary", ":frenchHelloSharedLibrary"
+        executedAndNotSkipped ":compileFrenchMainExecutableMainCpp", ":linkFrenchMainExecutable", ":frenchMainExecutable"
 
         and:
         executable(flavors.dir.file("build/binaries/mainExecutable/french/main")).assertExists()
