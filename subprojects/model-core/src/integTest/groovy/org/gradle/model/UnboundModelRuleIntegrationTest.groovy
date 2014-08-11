@@ -17,6 +17,8 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.registry.UnboundRuleReportOutputBuilder
 
 class UnboundModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
@@ -56,11 +58,13 @@ class UnboundModelRuleIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause(
-                "The following model rules are unbound:\n" +
-                        "  MyPlugin\$Rules#thing1(MyPlugin\$MyThing2)\n" +
-                        "  MyPlugin\$Rules#mutateThing2(MyPlugin\$MyThing2, MyPlugin\$MyThing3)"
-        )
+        failure.assertHasCause(unbound {
+            rule(new SimpleModelRuleDescriptor('MyPlugin$Rules#thing1(MyPlugin$MyThing2)'))
+                    .immutableUnbound(null, 'MyPlugin$MyThing2')
+            rule(new SimpleModelRuleDescriptor('MyPlugin$Rules#mutateThing2(MyPlugin$MyThing2, MyPlugin$MyThing3)'))
+                    .mutableUnbound(null, 'MyPlugin$MyThing2')
+                    .immutableUnbound(null, 'MyPlugin$MyThing3')
+        })
     }
 
     def "unbound dsl rules are reported"() {
@@ -78,9 +82,17 @@ class UnboundModelRuleIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause(
-                "The following model rules are unbound:\n" +
-                        "  model.foo.bar"
-        )
+        failure.assertHasCause(unbound {
+            rule(new SimpleModelRuleDescriptor('model.foo.bar'))
+                    .mutableUnbound("foo.bar", 'java.lang.Object')
+        })
+    }
+
+    String unbound(@DelegatesTo(UnboundRuleReportOutputBuilder) Closure<?> closure) {
+        def string = new StringWriter()
+        string.append("The following model rules are unbound:\n")
+        def builder = new UnboundRuleReportOutputBuilder(new PrintWriter(string), "  ")
+        builder.with(closure)
+        string.toString()
     }
 }

@@ -18,7 +18,8 @@ package org.gradle.model.internal.registry;
 
 import org.gradle.api.GradleException;
 
-import static org.gradle.internal.SystemProperties.getLineSeparator;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class UnboundModelRulesException extends GradleException {
 
@@ -27,15 +28,18 @@ public class UnboundModelRulesException extends GradleException {
     }
 
     private static String toMessage(Iterable<RuleBinder<?>> bindings) {
-        StringBuilder sb = new StringBuilder("The following model rules are unbound:").append(getLineSeparator());
+        StringWriter string = new StringWriter();
+        PrintWriter writer = new PrintWriter(string);
+        writer.println("The following model rules are unbound:");
+        boolean first = true;
         for (RuleBinder<?> binding : bindings) {
-            sb.append("  ");
-            binding.getDescriptor().describeTo(sb);
-            sb.append(getLineSeparator());
-
-            // TODO details of what is unbound
+            if (!first) {
+                writer.println();
+            }
+            binding.describe(writer, "  ");
+            first = false;
         }
-        return sb.toString();
+        return string.toString();
     }
 
 }

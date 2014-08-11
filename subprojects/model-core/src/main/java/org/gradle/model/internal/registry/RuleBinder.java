@@ -23,6 +23,7 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -111,6 +112,31 @@ public class RuleBinder<T> {
 
     private static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelPath path) {
         return ModelBinding.of(reference, path);
+    }
+
+    public void describe(PrintWriter writer, String prefix) {
+        UnboundRuleReportOutputBuilder.Rule rule = new UnboundRuleReportOutputBuilder(writer, prefix).rule(descriptor);
+        if (subjectReference != null) {
+            if (subjectBinding == null) {
+                rule.mutableUnbound(pathStringOrNull(subjectReference), subjectReference.getType().toString());
+            } else {
+                rule.mutableBound(subjectBinding.getPath().toString(), subjectBinding.getReference().getType().toString());
+            }
+        }
+
+        for (int i = 0; i < inputReferences.size(); ++i) {
+            ModelBinding<?> binding = inputBindings.get(i);
+            if (binding == null) {
+                ModelReference<?> reference = inputReferences.get(i);
+                rule.immutableUnbound(pathStringOrNull(reference), reference.getType().toString());
+            } else {
+                rule.immutableBound(binding.getPath().toString(), binding.getReference().getType().toString());
+            }
+        }
+    }
+
+    private String pathStringOrNull(ModelReference<?> reference) {
+        return reference.getPath() == null ? null : reference.getPath().toString();
     }
 
 }

@@ -231,7 +231,7 @@ A mock up:
 - ~~Reasonable error message when two rules create tasks with the same name.~~
 - ~~Item configuration action cannot create more items~~
 - ~~Reasonable error message when rule method fails.~~
-- Reasonable error message when rule method declares input of unknown type.
+- ~~Reasonable error message when rule method declares input of unknown type.~~
 - Reasonable error message when rule method declares ambiguous input.
 
 ### Open issues
@@ -292,7 +292,24 @@ A mock up:
 
 # Milestone 2 - Build author uses public rule DSL to configure model and tasks
 
-## Story: Build author is informed when model rule targets unknown model object
+## Story: Build user receives useful error message when a plugin they are using has a rule that does not fully bind
+
+This story is about improving the user experience when their is an “infrastructure” failure in that a plugin they are using declares a model rule that does not bind.
+
+The focus is on reporting this in a way that a user of Gradle (opposed to plugin/build developer) can make enough sense of what happen to either resolve the problem, or at least report the problem meaningfully.
+
+## Story: Build user/author receives useful error message when a build script they are using has a rule that does not fully bind
+
+This story is about improving the user experience when the build scripts of the current build declare a model rule that does not bind.
+
+The focus is on reporting this in a way that a user of Gradle (opposed to plugin/build developer) can make enough sense of what happen to either resolve the problem, or at least report the problem meaningfully.
+
+This story is different to the similar story in this spec that focuses on plugins, except that this kind of failure is typically more able to be resolved by the build user.
+That is, this error may have been caused by the build user due to bad configuration (e.g. mistyped model path)
+
+## Story: Plugin author receives useful error message when a plugin they are debugging has a rule that does not fully bind
+
+This story is about helping plugin developers understand why a rule defined by their plugin (or a collaborating plugin) did not bind, in the context of an actual build.
 
 ## Story: Build user views report that shows information about the available model
 
