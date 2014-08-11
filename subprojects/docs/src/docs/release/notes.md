@@ -572,7 +572,7 @@ We would like to thank the following community members for making contributions 
 * [Daniel Lacasse](https://github.com/Shad0w1nk)
     - Specific subtype for `CUnit` executable binary
     - `RunTestExecutable` task implements `ExecSpec`
-* [Michael Klishin](https://github.com/michaelklishin)
+* [Michael Klishin](https://github.com/michaelklishin) - Documentation improvements.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
