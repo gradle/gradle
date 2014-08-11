@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
@@ -39,6 +40,7 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
+    @Nullable
     protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
         if (metaData == null) {

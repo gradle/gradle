@@ -5,3 +5,5 @@ dependencies {
 
 useClassycle()
 useTestFixtures()
+useTestFixtures(sourceSet: 'testFixtures')
+

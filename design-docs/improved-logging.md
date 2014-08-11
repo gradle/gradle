@@ -10,10 +10,10 @@ The spec is about improving the general logging functionally in Gradle.
 
 # Related Issues in the Gradle issue tracker
 
-- [GRADLE-1196: Support for putting debug build log output to file](http://issues.gradle.org/browse/GRADLE-1196)
-- [GRADLE-2658: Cannot set log level for a specific task](http://issues.gradle.org/browse/GRADLE-2658)
-- [GRADLE-1384: Desire ability to have better control of logging, especially for Ivy](http://issues.gradle.org/browse/GRADLE-1384)
-- [GRADLE-2818: Change logging level of a task](http://issues.gradle.org/browse/GRADLE-2818)
+- [GRADLE-1196: Support for putting debug build log output to file](https://issues.gradle.org/browse/GRADLE-1196)
+- [GRADLE-2658: Cannot set log level for a specific task](https://issues.gradle.org/browse/GRADLE-2658)
+- [GRADLE-1384: Desire ability to have better control of logging, especially for Ivy](https://issues.gradle.org/browse/GRADLE-1384)
+- [GRADLE-2818: Change logging level of a task](https://issues.gradle.org/browse/GRADLE-2818)
 
 # Use Cases
 

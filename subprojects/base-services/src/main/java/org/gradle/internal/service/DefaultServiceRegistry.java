@@ -49,6 +49,10 @@ import java.util.*;
  *
  * <p>Service instances are created on demand. {@link #getFactory(Class)} looks for a service instance which implements {@code Factory<T>} where {@code T} is the expected type.</p>
  *
+ * <p>Service instances and factories are closed when the registry that created them is closed using {@link #close()}. If a service instance or factory implements
+ * {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close() or stop() method is called. Instances are closed in
+ * reverse dependency order.</p>
+ *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  */
 public class DefaultServiceRegistry implements ServiceRegistry, Closeable {

@@ -83,7 +83,7 @@ $(function() {
   });
 
   injectIssues(
-    "http://services.gradle.org/fixed-issues/@versionBase@", 
+    "https://services.gradle.org/fixed-issues/@versionBase@",
     $("h2#fixed-issues"), 
     "fixed-issues", 
     "Retrieving the fixed issue information for @versionBase@", 
@@ -93,7 +93,7 @@ $(function() {
   );
   
   injectIssues(
-    "http://services.gradle.org/known-issues/@versionBase@", 
+    "https://services.gradle.org/known-issues/@versionBase@",
     $("h2#known-issues").next("p"), 
     "known-issues", 
     "Retrieving the known issue information for @versionBase@", 

@@ -16,18 +16,21 @@
 package org.gradle.language.c.plugins
 
 import org.gradle.language.c.CSourceSet
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
-class CLangPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
+class CLangPluginTest extends AbstractLanguagePluginSpec {
+    @Override
+    def getPluginClass() {
+        return CLangPlugin
+    }
 
-    def "adds support for custom CSourceSets"() {
-        when:
-        project.plugins.apply(CLangPlugin)
-        project.sources.create "test"
+    @Override
+    def getLanguageSourceSet() {
+        return CSourceSet
+    }
 
-        then:
-        project.sources.test.create("test_c", CSourceSet) in CSourceSet
+    @Override
+    String getLanguageId() {
+        return "c"
     }
 }

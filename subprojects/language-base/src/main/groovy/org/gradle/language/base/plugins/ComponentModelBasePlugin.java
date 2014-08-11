@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerModelAdapter;
 import org.gradle.api.internal.file.FileResolver;
@@ -127,7 +126,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 });
 
                 final FunctionalSourceSet functionalSourceSet = componentSpecInternal.getMainSource();
-                if(CollectionUtils.containsAny(languageRegistration.getOutputTypes(), componentSpecInternal.getInputTypes())){
+                if(componentSpecInternal.getInputTypes().contains(languageRegistration.getOutputType())){
                     functionalSourceSet.maybeCreate(languageRegistration.getName(), languageRegistration.getSourceSetType());
                 }
             }

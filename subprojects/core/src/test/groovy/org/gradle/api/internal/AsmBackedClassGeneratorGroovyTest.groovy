@@ -256,7 +256,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         ConfigureUtil.configure(c, o)
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2863")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2863")
     def "checked exceptions from private methods are thrown"() {
             when:
         create(CallsPrivateMethods).callsPrivateThatThrowsCheckedException("1")
@@ -265,7 +265,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         thrown IOException
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2863")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2863")
     def "private methods are called with Groovy semantics"() {
         when:
         def foo = "bar"
@@ -446,7 +446,7 @@ class CallsPrivateMethods {
     }
 
     // It's important here that we take an untyped arg, and call a method that types a typed arg
-    // See http://issues.gradle.org/browse/GRADLE-2863
+    // See https://issues.gradle.org/browse/GRADLE-2863
     def callsPrivateThatThrowsCheckedException(s) {
         try {
             throwsCheckedException(s)

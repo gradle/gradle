@@ -16,18 +16,23 @@
 package org.gradle.language.cpp.plugins
 
 import org.gradle.language.cpp.CppSourceSet
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
-class CppLangPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
+class CppLangPluginTest extends AbstractLanguagePluginSpec {
 
-    def "adds support for custom CppSourceSets"() {
-        when:
-        project.plugins.apply(CppLangPlugin)
-        project.sources.create "test"
-
-        then:
-        project.sources.test.create("test_cpp", CppSourceSet) in CppSourceSet
+    @Override
+    def getPluginClass() {
+        return CppLangPlugin
     }
+
+    @Override
+    def getLanguageSourceSet() {
+        return CppSourceSet
+    }
+
+    @Override
+    String getLanguageId() {
+        return "cpp"
+    }
+
 }

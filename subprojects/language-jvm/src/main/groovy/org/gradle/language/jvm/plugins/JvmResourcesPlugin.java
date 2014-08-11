@@ -30,9 +30,7 @@ import org.gradle.runtime.base.BinarySpec;
 import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
@@ -63,14 +61,8 @@ public class JvmResourcesPlugin implements Plugin<Project> {
             return Collections.emptyMap();
         }
 
-        Set<Class<? extends TransformationFileType>> languageOutputTypes = new HashSet<Class<? extends TransformationFileType>>();
-
-        public JvmResources(){
-            languageOutputTypes.add(org.gradle.runtime.jvm.JvmResources.class);
-        }
-
-        public Set<Class<? extends TransformationFileType>> getOutputTypes() {
-            return languageOutputTypes;
+        public Class<? extends TransformationFileType> getOutputType() {
+            return org.gradle.runtime.jvm.JvmResources.class;
         }
 
         public SourceTransformTaskConfig getTransformTask() {

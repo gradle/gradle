@@ -177,7 +177,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            model{
+            model {
                 sources {
                     helloTest {
                         c {
@@ -200,7 +200,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            model{
+            model {
                 sources {
                     helloTest {
                         c {
@@ -226,7 +226,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            model{
+            model {
                 sources {
                     variant {
                         c(CSourceSet) {

@@ -50,7 +50,7 @@ class ToolingApiDistributionResolver {
     }
 
     ToolingApiDistributionResolver withDefaultRepository() {
-        withRepository("http://repo.gradle.org/gradle/repo")
+        withRepository("https://repo.gradle.org/gradle/repo")
     }
 
     ToolingApiDistribution resolve(String toolingApiVersion) {

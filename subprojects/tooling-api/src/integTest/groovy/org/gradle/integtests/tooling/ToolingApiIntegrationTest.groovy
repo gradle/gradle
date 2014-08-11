@@ -158,7 +158,7 @@ allprojects {
 
             repositories {
                 maven { url "${new IntegrationTestBuildContext().libsRepo.toURI()}" }
-                maven { url "http://repo.gradle.org/gradle/repo" }
+                maven { url "https://repo.gradle.org/gradle/repo" }
             }
 
             dependencies {

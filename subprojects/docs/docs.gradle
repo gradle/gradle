@@ -42,7 +42,7 @@ repositories {
         }
     }
 
-    maven { url 'http://repo.gradle.org/gradle/gradle-build-internal' }
+    maven { url 'https://repo.gradle.org/gradle/gradle-build-internal' }
 }
 
 configurations {

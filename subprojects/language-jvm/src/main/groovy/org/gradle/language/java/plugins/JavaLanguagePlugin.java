@@ -63,18 +63,12 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
             return DefaultJavaSourceSet.class;
         }
 
-        private Set<Class<? extends TransformationFileType>> languageOutputTypes = new HashSet<Class<? extends TransformationFileType>>();
-
-        public Java(){
-            languageOutputTypes.add(JvmByteCode.class);
-        }
-
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
-        public Set<Class<? extends TransformationFileType>> getOutputTypes() {
-            return languageOutputTypes;
+        public Class<? extends TransformationFileType> getOutputType() {
+            return JvmByteCode.class;
         }
 
         public SourceTransformTaskConfig getTransformTask() {
@@ -102,7 +96,6 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
                     compile.setTargetCompatibility(JavaVersion.current().toString());
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
-
                     binary.getTasks().getJar().dependsOn(compile);
                 }
             };

@@ -22,7 +22,6 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.runtime.base.BinarySpec;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A registered language.
@@ -49,9 +48,9 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
     Map<String, Class<?>> getBinaryTools();
 
     /**
-     * A set of output types generated from these language sources.
+     * The output type generated from these language sources.
      */
-    Set<Class<? extends TransformationFileType>> getOutputTypes();
+    Class<? extends TransformationFileType> getOutputType();
 
     /**
      * The task used to transform sources into code for the target runtime.

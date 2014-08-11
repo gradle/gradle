@@ -22,7 +22,7 @@ up-to-date mechanism used for incremental build.
 * Detect remote file systems and don't check for updates for these file systems when running with `--offline`.
     * Use `native-platform` to detect remote file systems and cache these automatically.
 
-See [GRADLE-1964](http://issues.gradle.org/browse/GRADLE-1964)
+See [GRADLE-1964](https://issues.gradle.org/browse/GRADLE-1964)
 
 ## Detect servers that do not correctly handle HTTP HEAD requests
 

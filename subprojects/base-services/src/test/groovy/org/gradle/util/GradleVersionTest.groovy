@@ -48,7 +48,7 @@ class GradleVersionTest extends Specification {
         version.baseVersion
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-1892")
+    @Issue("https://issues.gradle.org/browse/GRADLE-1892")
     def "build time should always print in UTC"() {
         expect:
         version.buildTime.endsWith("UTC")

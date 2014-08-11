@@ -215,7 +215,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
     }
 
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-3126")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3126")
     def "can create element when owner scope has item with same name"() {
         when:
         new Owner().with {

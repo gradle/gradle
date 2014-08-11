@@ -15,10 +15,10 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.initialization.FixedBuildCancellationToken;
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 
 import java.io.File;
@@ -30,10 +30,12 @@ import java.util.List;
  */
 public class GradleBuild extends ConventionTask {
     private final GradleLauncherFactory gradleLauncherFactory;
+    private final BuildCancellationToken cancellationToken;
     private StartParameter startParameter;
 
     public GradleBuild() {
         this.gradleLauncherFactory = getServices().get(GradleLauncherFactory.class);
+        this.cancellationToken = getServices().get(BuildCancellationToken.class);
         this.startParameter = getServices().get(StartParameter.class).newBuild();
         startParameter.setCurrentDir(getProject().getProjectDir());
     }
@@ -113,7 +115,7 @@ public class GradleBuild extends ConventionTask {
 
     @TaskAction
     void build() {
-        GradleLauncher launcher = gradleLauncherFactory.newInstance(getStartParameter(), new FixedBuildCancellationToken());
+        GradleLauncher launcher = gradleLauncherFactory.newInstance(getStartParameter(), cancellationToken);
         try {
             launcher.run().rethrowFailure();
         } finally {

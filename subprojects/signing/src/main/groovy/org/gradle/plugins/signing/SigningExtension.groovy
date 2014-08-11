@@ -362,7 +362,7 @@ class SigningExtension {
         }
 
         // Have to alter the "type" of the artifact to match what is published
-        // See http://issues.gradle.org/browse/GRADLE-1589
+        // See https://issues.gradle.org/browse/GRADLE-1589
         pomSignature.type = "pom." + pomSignature.signatureType.extension
 
         mavenDeployment.addArtifact(pomSignature)

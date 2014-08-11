@@ -21,7 +21,7 @@ import spock.lang.Issue
 
 class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2237")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2237")
     def "can set modelled manifest properties with instruction"() {
         given:
         buildFile << """
@@ -53,7 +53,7 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
         manifestText.contains("Bundle-SymbolicName: bar")
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2237")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2237")
     def "jar task remains incremental"() {
         given:
         // Unsure why, but this problem doesn't show if we don't wait a little bit

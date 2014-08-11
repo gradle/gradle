@@ -24,7 +24,8 @@ import org.gradle.api.Incubating;
  * <p>This is a client side part of cancellation support:
  * Tooling API clients can create cancellation token using instance of this class and send cancel request to it
  * when needed.</p>
- * <p>This class is thread safe.</p>
+ *
+ * <p>All implementations of this interface are required to be thread safe.</p>
  *
  * @since 2.1
  */

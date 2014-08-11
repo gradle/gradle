@@ -35,6 +35,7 @@ class ForkScalaCompileInDaemonModeFixture extends InitScriptExecuterFixture {
 allprojects {
     tasks.withType(ScalaCompile){
         scalaCompileOptions.fork = true
+        scalaCompileOptions.useAnt = false
     }
 }
 """

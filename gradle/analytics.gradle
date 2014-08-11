@@ -16,8 +16,8 @@
 
 buildscript {
     repositories {
-        maven { url 'http://repo.gradle.org/gradle/libs' }
-        ivy { url 'http://repo.gradle.org/gradle/gradleware' }
+        maven { url 'https://repo.gradle.org/gradle/libs' }
+        ivy { url 'https://repo.gradle.org/gradle/gradleware' }
     }
 
     dependencies {

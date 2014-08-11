@@ -7,7 +7,7 @@ repositories {
         url '../plugin/build/repo'
     }
     maven {
-        url 'http://repo.gradle.org/gradle/libs-releases-local'
+        url 'https://repo.gradle.org/gradle/libs-releases-local'
     }
     mavenCentral()
 }

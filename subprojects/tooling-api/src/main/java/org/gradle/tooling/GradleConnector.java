@@ -66,7 +66,7 @@ public abstract class GradleConnector {
     }
 
     /**
-     * Creates new {@link CancellationTokenSource} to be used with {@link org.gradle.tooling.LongRunningOperation}.
+     * Creates new {@link CancellationTokenSource} to be used with {@link org.gradle.tooling.LongRunningOperation#withCancellationToken(CancellationToken)}.
      *
      * @return The instance. Never returns {@code null}.
      * @since 2.1
@@ -74,6 +74,7 @@ public abstract class GradleConnector {
     public static CancellationTokenSource newCancellationTokenSource() {
         return new DefaultCancellationTokenSource();
     }
+
     /**
      * Specifies which Gradle installation to use. This replaces any value specified using {@link #useDistribution(java.net.URI)} or {@link #useGradleVersion(String)}. Defaults to a project-specific
      * Gradle version.

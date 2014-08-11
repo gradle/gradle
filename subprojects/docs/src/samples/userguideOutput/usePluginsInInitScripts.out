@@ -1,1 +1,1 @@
-repository: STANDARD_ENTERPRISE_REPO ('http://repo.gradle.org/gradle/repo')
+repository: STANDARD_ENTERPRISE_REPO ('https://repo.gradle.org/gradle/repo')

@@ -23,20 +23,11 @@ import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.nativebinaries.NativeBinarySpec;
 import org.gradle.runtime.base.BinarySpec;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public abstract class NativeLanguageRegistration<U extends LanguageSourceSet> implements LanguageRegistration<U> {
     public boolean applyToBinary(BinarySpec binary) {
         return binary instanceof NativeBinarySpec;
     }
-    private Set<Class<? extends TransformationFileType>> languageOutputTypes = new HashSet<Class<? extends TransformationFileType>>();
-
-    public NativeLanguageRegistration(){
-        languageOutputTypes.add(ObjectFile.class);
-    }
-
-    public Set<Class<? extends TransformationFileType>> getOutputTypes() {
-        return languageOutputTypes;
+    public Class<? extends TransformationFileType> getOutputType() {
+        return ObjectFile.class;
     }
 }

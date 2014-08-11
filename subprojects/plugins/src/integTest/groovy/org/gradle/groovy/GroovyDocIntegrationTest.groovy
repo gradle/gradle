@@ -23,7 +23,7 @@ import spock.lang.Issue
 @TargetVersions(['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.2.2', '2.3.6', '2.4.0-beta-2'])
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @Issue("http://issues.gradle.org//browse/GRADLE-3116")
+    @Issue("https://issues.gradle.org//browse/GRADLE-3116")
     def "can run groovydoc"() {
         when:
         buildFile << """

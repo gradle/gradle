@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class ConcurrentClassDecorationSpec extends AbstractIntegrationSpec {
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2836")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2836")
     def "can decorate classes concurrently"() {
         given:
         file("buildSrc/src/main/java/Thing.java") << "public class Thing {}"

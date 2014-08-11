@@ -22,7 +22,7 @@ import spock.lang.Issue
 
 class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2032")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
         given:
         def buildSrcDir = file("buildSrc").createDir()

@@ -91,7 +91,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Issue("http://issues.gradle.org//browse/GRADLE-3052")
+    @Issue("https://issues.gradle.org//browse/GRADLE-3052")
     void buildTaskCanHaveInputsAndOutputs() {
         file("input") << "foo"
         file("settings.gradle") << "rootProject.name = 'proj'"

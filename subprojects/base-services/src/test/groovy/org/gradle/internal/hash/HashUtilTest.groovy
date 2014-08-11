@@ -42,7 +42,7 @@ class HashUtilTest extends Specification {
         file.delete()
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2967")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "createHash from File adds filename to UncheckedIOException" () {
         setup:
         String filename = "/some/path/to/file"

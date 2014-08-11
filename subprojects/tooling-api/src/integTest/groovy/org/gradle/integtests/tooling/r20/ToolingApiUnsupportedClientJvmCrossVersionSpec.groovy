@@ -34,7 +34,7 @@ sourceCompatibility = 1.5
 targetCompatibility = 1.5
 repositories {
     maven {
-        url 'http://repo.gradle.org/gradle/libs-releases-local'
+        url 'https://repo.gradle.org/gradle/libs-releases-local'
     }
     maven {
         url '${buildContext.libsRepo.toURI()}'

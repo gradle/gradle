@@ -142,8 +142,8 @@ class ComponentModelBasePluginTest extends Specification {
         }
 
         @Override
-        Set<Class<? extends TransformationFileType>> getOutputTypes() {
-            return [TestTransformFile.class] as Set
+        Class<? extends TransformationFileType> getOutputType() {
+            return TestTransformFile.class
         }
 
         @Override

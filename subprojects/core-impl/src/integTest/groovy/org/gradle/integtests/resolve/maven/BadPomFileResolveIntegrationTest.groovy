@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
 
 class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Issue("http://issues.gradle.org/browse/GRADLE-1005")
+    @Issue("https://issues.gradle.org/browse/GRADLE-1005")
     def "can handle self referencing dependency"() {
         given:
         mavenRepo().module('group', 'artifact', '1.0').dependsOn('group', 'artifact', '1.0').publish()
@@ -40,7 +40,7 @@ class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionT
         succeeds ":libs"
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2861")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2861")
     def "can handle pom with placeholders in dependency management"() {
         given:
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()

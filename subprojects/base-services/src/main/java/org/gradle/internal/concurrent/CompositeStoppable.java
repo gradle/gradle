@@ -17,18 +17,28 @@
 package org.gradle.internal.concurrent;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
+ * {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close/stop
+ * method is called on that object, otherwise the element is ignored. Elements may be {@code null}, in which case they
+ * are ignored.
+ *
+ * <p>Attempts to stop as many elements as possible in the presence of failures.</p>
+ */
 public class CompositeStoppable implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeStoppable.class);
+    public static final Stoppable NO_OP_STOPPABLE = new Stoppable() {
+        public void stop() {
+        }
+    };
     private final List<Stoppable> elements = new CopyOnWriteArrayList<Stoppable>();
 
     public CompositeStoppable() {
@@ -56,17 +66,7 @@ public class CompositeStoppable implements Stoppable {
         return this;
     }
 
-    private static void invoke(Method method, Object target, Object... args) {
-        JavaReflectionUtil.method(target, Object.class, method).invoke(target, args);
-    }
-
     private static Stoppable toStoppable(final Object object) {
-        if (object == null) {
-            return new Stoppable() {
-                public void stop() {
-                }
-            };
-        }
         if (object instanceof Stoppable) {
             return (Stoppable) object;
         }
@@ -87,27 +87,7 @@ public class CompositeStoppable implements Stoppable {
                 }
             };
         }
-        return new Stoppable() {
-            @Override
-            public String toString() {
-                return object.toString();
-            }
-
-            public void stop() {
-                try {
-                    invoke(object.getClass().getMethod("stop"), object);
-                    throw new UnsupportedOperationException("Can't use reflection to stop: " + object + " (" + object.getClass().getSimpleName() + ")");
-                } catch (NoSuchMethodException e) {
-                    // ignore
-                }
-                try {
-                    invoke(object.getClass().getMethod("close"), object);
-                    throw new UnsupportedOperationException("Can't use reflection to close: " + object + " (" + object.getClass().getSimpleName() + ")");
-                } catch (NoSuchMethodException e) {
-                    // ignore
-                }
-            }
-        };
+        return NO_OP_STOPPABLE;
     }
 
     public void stop() {

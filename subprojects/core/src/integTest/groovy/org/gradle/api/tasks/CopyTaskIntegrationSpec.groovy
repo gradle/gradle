@@ -22,7 +22,7 @@ import spock.lang.Issue
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2181")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2181")
     def "can copy files with unicode characters in name with non-unicode platform encoding"() {
         given:
         def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
@@ -46,7 +46,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file("build/resources", weirdFileName).exists()
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2181")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2181")
     def "can copy files with unicode characters in name with default platform encoding"() {
         given:
         def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
@@ -94,7 +94,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file("out/rename").exists()
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2838")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2838")
     def "include empty dirs works when nested"() {
         given:
         file("a/a.txt") << "foo"
@@ -156,7 +156,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         destinationDir.listFiles().findAll { it.directory }*.name.toSet() == ["dirA", "dirB"].toSet()
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2902")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2902")
     def "internal copy spec methods are not visible to users"() {
         when:
         file("res/foo.txt") << "bar"

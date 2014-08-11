@@ -63,7 +63,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatDescription(Matchers.startsWith("Task 'unknown' not found in root project"))
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-1871")
+    @Issue("https://issues.gradle.org/browse/GRADLE-1871")
     public void "can specify project properties containing D"() {
         given:
         prepareWrapper()
