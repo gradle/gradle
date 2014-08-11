@@ -16,6 +16,7 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.PolymorphicDomainObjectContainerModelAdapter;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -24,11 +25,18 @@ import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.BinarySpec;
 import org.gradle.runtime.base.internal.DefaultBinaryContainer;
 import org.gradle.runtime.base.internal.BinarySpecInternal;
 
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Base plugin for language support.
@@ -42,17 +50,48 @@ import javax.inject.Inject;
 public class LanguageBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
+    private ModelRegistry modelRegistry;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator) {
+    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
         this.instantiator = instantiator;
+        this.modelRegistry = modelRegistry;
     }
 
     public void apply(final Project target) {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
-        target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
+        BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
+
+        final PolymorphicDomainObjectContainerModelAdapter<BinarySpec, BinaryContainer> binarySpecContainerAdapter = new PolymorphicDomainObjectContainerModelAdapter<BinarySpec, BinaryContainer>(
+                binaries, ModelType.of(BinaryContainer.class), BinarySpec.class
+        );
+
+        modelRegistry.create(new ModelCreator() {
+            public ModelPath getPath() {
+                return ModelPath.path("binaries");
+            }
+
+            public ModelPromise getPromise() {
+                return binarySpecContainerAdapter.asPromise();
+            }
+
+            public ModelAdapter create(Inputs inputs) {
+                return binarySpecContainerAdapter;
+            }
+
+            public List<ModelReference<?>> getInputs() {
+                return Collections.emptyList();
+            }
+
+            public ModelRuleDescriptor getDescriptor() {
+                return new SimpleModelRuleDescriptor("Project.<init>.binaries()");
+            }
+        });
+
+
+
     }
 
     /**
@@ -61,20 +100,13 @@ public class LanguageBasePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-
         @Model
         ProjectSourceSet sources(ExtensionContainer extensions) {
             return extensions.getByType(ProjectSourceSet.class);
         }
 
-        @Model
-        BinaryContainer binaries(ExtensionContainer extensions) {
-            return extensions.getByType(BinaryContainer.class);
-        }
-
         @Mutate
         void createLifecycleTaskForBinary(TaskContainer tasks, BinaryContainer binaries) {
-
             Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
             for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                 if (!binary.isLegacyBinary()) {

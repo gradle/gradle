@@ -31,7 +31,6 @@ import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.*;
@@ -40,20 +39,13 @@ import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
 import java.util.List;
 
-public class ComponentModelRuleDefinitionHandler implements MethodRuleDefinitionHandler {
+public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler {
 
     private Instantiator instantiator;
 
     public ComponentModelRuleDefinitionHandler(Instantiator instantiator) {
+        super(ComponentType.class);
         this.instantiator = instantiator;
-    }
-
-    public boolean isSatisfiedBy(MethodRuleDefinition element) {
-        return element.getAnnotation(ComponentType.class) != null;
-    }
-
-    public String getDescription() {
-        return "annotated with @ComponentType";
     }
 
     public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {

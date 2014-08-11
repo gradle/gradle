@@ -19,11 +19,13 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.internal.HasInternalProtocol;
 
 /***
  * Represents a tuple of the requested version of a module and a candidate version
  * to be evaluated in a version selection rule.
  */
+@HasInternalProtocol
 @Incubating
 public interface VersionSelection {
     /**

@@ -46,7 +46,7 @@ configurations {
                     // 1.1.20.1 would match, but not 1.2, 1.10 or 1.18.
                     if (selection.requested.version.endsWith('+')) {
                         def prefix = selection.requested.version - '+'
-                        if (selection.candidate.version.startsWith("${prefix}.")) {
+                        if (selection.candidate.version == prefix || selection.candidate.version.startsWith("${prefix}.")) {
                             logger.lifecycle("** Accepted version: ${selection.candidate.version} **")
                             selection.accept()
                         } else {
