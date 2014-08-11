@@ -41,38 +41,6 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
         """
     }
 
-    def "resolving a static version with version selection rules resolves properly" () {
-        ivyRepo.module("org.utils", "api", "2.0").publish()
-        ivyRepo.module("org.utils", "api", "1.3").publish()
-        ivyRepo.module("org.utils", "api", "1.1").publish()
-
-        buildFile << """
-            $baseBuildFile
-
-            dependencies {
-                conf "org.utils:api:1.3"
-            }
-
-            configurations.all {
-                resolutionStrategy {
-                    versionSelection {
-                        all { selection ->
-                            println selection.candidate.version
-                        }
-                    }
-                }
-            }
-
-            resolveConf.doLast {
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '1.3'
-            }
-        """
-
-        expect:
-        succeeds 'resolveConf'
-    }
-
     @Unroll
     def "all version selection rules are applied when resolving #versionRequested" () {
         versionsAvailable.each { v ->
