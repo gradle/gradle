@@ -7,7 +7,7 @@ apply plugin:EnterpriseRepositoryPlugin
 
 class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
 
-    private static String ENTERPRISE_REPOSITORY_URL = "http://repo.gradle.org/gradle/repo"
+    private static String ENTERPRISE_REPOSITORY_URL = "https://repo.gradle.org/gradle/repo"
 
     void apply(Gradle gradle) {
         // ONLY USE ENTERPRISE REPO FOR DEPENDENCIES
