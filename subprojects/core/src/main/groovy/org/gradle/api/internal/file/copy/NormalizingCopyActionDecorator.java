@@ -174,6 +174,14 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             throw new UnsupportedOperationException();
         }
 
+        public String getSourcePath() {
+            throw new UnsupportedOperationException();
+        }
+
+        public RelativePath getSourceRelativePath() {
+            throw new UnsupportedOperationException();
+        }
+
         public ContentFilterable filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
             throw new UnsupportedOperationException();
         }

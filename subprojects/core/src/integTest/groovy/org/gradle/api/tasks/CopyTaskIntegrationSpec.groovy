@@ -188,4 +188,28 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file("task/dir/foo.txt").exists()
     }
 
+    @Issue("https://issues.gradle.org/browse/GRADLE-3022")
+    def filesMatchingMustMatchAgainstSourcePath(){
+        given:
+        file("a/b.txt") << "\$foo"
+
+        when:
+        buildScript """
+           task c(type: Copy) {
+               from("a") {
+                   filesMatching("b.txt") {
+                       expand foo: "bar"
+                   }
+                   into "nested"
+               }
+               into "out"
+           }
+        """
+
+        then:
+        succeeds "c"
+
+        and:
+        file("out/nested/b.txt").text == "bar"
+    }
 }

@@ -191,6 +191,14 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         return this.duplicatesStrategy;
     }
 
+    public String getSourcePath() {
+        return this.fileDetails.getPath();
+    }
+
+    public RelativePath getSourceRelativePath() {
+        return this.fileDetails.getRelativePath();
+    }
+
     private static class ByteCountingOutputStream extends OutputStream {
         long size;
 
