@@ -21,7 +21,7 @@ import spock.lang.Issue
 
 class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2023")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2023")
     def "can deal with tasks with named task dependencies that are created by rules"() {
         when:
         buildFile << getBuildScriptContent()
@@ -30,7 +30,7 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds "tasks", "--all"
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2023")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2023")
     def "can deal with tasks with named task dependencies that are created by rules - multiproject"() {
         when:
         settingsFile << "include 'module'"

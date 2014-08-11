@@ -43,7 +43,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
             }
         }
 
-        // Workaround for http://issues.gradle.org/browse/GRADLE-2625
+        // Workaround for https://issues.gradle.org/browse/GRADLE-2625
         if (getUserHomeDir() != null) {
             args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
         }
@@ -56,7 +56,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         if (isNoDefaultJvmArgs()) {
             return super.getGradleOpts();
         } else {
-            // Workaround for http://issues.gradle.org/browse/GRADLE-2629
+            // Workaround for https://issues.gradle.org/browse/GRADLE-2629
             // Instead of just adding these as standalone opts, we need to add to
             // -Dorg.gradle.jvmArgs in order for them to be effectual
             List<String> jvmArgs = new ArrayList<String>(4);

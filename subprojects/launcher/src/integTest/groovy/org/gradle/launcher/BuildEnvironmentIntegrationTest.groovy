@@ -43,7 +43,7 @@ task check << {
         locale << [nonDefaultLocale, Locale.default]
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-3145")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3145")
     def "locale props given on the command line are respected"() {
         given:
         def nonDefaultLocale = getNonDefaultLocale()
@@ -96,7 +96,7 @@ task check << {
         succeeds 'check'
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-3145")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3145")
     def "default file encoding set on command line is respected"() {
         given:
         def nonDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) }.find { it != Charset.defaultCharset() }

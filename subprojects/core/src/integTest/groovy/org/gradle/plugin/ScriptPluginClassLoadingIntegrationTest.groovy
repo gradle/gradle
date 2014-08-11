@@ -26,7 +26,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-3069")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3069")
     def "second level and beyond script plugins have same class loader scope as original target"() {
         when:
         file("buildSrc/src/main/java/pkg/Thing.java") << """
@@ -57,7 +57,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "hello"
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-3079")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3079")
     def "methods defined in script are available to used script plugins"() {
         given:
         buildScript """
@@ -156,7 +156,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains("from some method")
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-3082")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3082")
     def "can use apply block syntax to apply multiple scripts"() {
         given:
         buildScript """

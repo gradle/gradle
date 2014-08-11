@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon
 import org.apache.commons.lang.LocaleUtils
 import spock.lang.Issue
 
-@Issue("http://issues.gradle.org/browse/GRADLE-3142")
+@Issue("https://issues.gradle.org/browse/GRADLE-3142")
 class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
 
     def locales = [

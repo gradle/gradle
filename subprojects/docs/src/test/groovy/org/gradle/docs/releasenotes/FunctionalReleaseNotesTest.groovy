@@ -31,8 +31,8 @@ import spock.lang.Shared
 @IgnoreIf({ !FunctionalReleaseNotesTest.canReachServices() })
 class FunctionalReleaseNotesTest extends GebReportingSpec {
 
-    static private final String FIXED_ISSUES_URL = "http://services.gradle.org/fixed-issues/${GradleVersion.current().baseVersion.version}"
-    static private final String KNOWN_ISSUES_URL = "http://services.gradle.org/known-issues/${GradleVersion.current().baseVersion.version}"
+    static private final String FIXED_ISSUES_URL = "https://services.gradle.org/fixed-issues/${GradleVersion.current().baseVersion.version}"
+    static private final String KNOWN_ISSUES_URL = "https://services.gradle.org/known-issues/${GradleVersion.current().baseVersion.version}"
 
     private String version = GradleVersion.current().baseVersion.version
 

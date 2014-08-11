@@ -175,7 +175,7 @@ public class SubClassTests extends SuperClassTests {
                         containsString('org.gradle.testing.SubTest#onlySub super\n')))
     }
 
-    @Issue("http://issues.gradle.org//browse/GRADLE-2821")
+    @Issue("https://issues.gradle.org//browse/GRADLE-2821")
     def "test report task can handle test tasks that did not run tests"() {
         given:
         buildScript """
@@ -207,7 +207,7 @@ public class SubClassTests extends SuperClassTests {
         new HtmlTestExecutionResult(testDirectory, "build/reports/tr").assertTestClassesExecuted("Thing")
     }
 
-    @Issue("http://issues.gradle.org//browse/GRADLE-2915")
+    @Issue("https://issues.gradle.org//browse/GRADLE-2915")
     def "test report task can handle tests tasks not having been executed"() {
         when:
         buildScript """

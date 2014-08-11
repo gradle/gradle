@@ -20,7 +20,7 @@ import spock.lang.Issue
 
 class DependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec {
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2047")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2047")
     def "can access resolved files from afterResolve hook"() {
         given:
         file("thing.txt") << "stuff"

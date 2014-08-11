@@ -56,7 +56,7 @@ class WrapperUserHomeIntegrationTest extends AbstractIntegrationSpec {
         installationIn gradleUserHome exists()
     }
 
-    @Issue('http://issues.gradle.org/browse/GRADLE-2802')
+    @Issue('https://issues.gradle.org/browse/GRADLE-2802')
     void 'uses gradle user home set by -g'() {
         given:
         prepareWrapper()

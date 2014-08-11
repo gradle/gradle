@@ -219,7 +219,7 @@ The #1 and #2 tasks are preconfigured to be the same build as the *host* build (
 
 #### Auto detecting latest version
 
-We could hit `http://services.gradle.org/versions/current` and preconfigure the `targetGradleBuild` to be the latest release.
+We could hit `https://services.gradle.org/versions/current` and preconfigure the `targetGradleBuild` to be the latest release.
 
 ### `compare-gradle-migration` plugin
 

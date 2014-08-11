@@ -497,7 +497,7 @@ This change will not cause tests that previously passed to start failing.
 
 ### configuration.exclude now validates the input
 
-Previously, a typo in configuration-level dependency exclude rule remained undetected and led to problems like [GRADLE-3124](http://issues.gradle.org/browse/GRADLE-3124).
+Previously, a typo in configuration-level dependency exclude rule remained undetected and led to problems like GRADLE-3124.
 Now the build fails fast when exclude rule is configured with a wrong key.
 
     //fails fast now, 'module' is the correct key

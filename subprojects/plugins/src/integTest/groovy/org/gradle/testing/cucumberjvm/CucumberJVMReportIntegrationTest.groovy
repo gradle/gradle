@@ -27,7 +27,7 @@ class CucumberJVMReportIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2739")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2739")
     def testReportingSupportsCucumberStepsWithSlashes() {
         when:
         run "test"

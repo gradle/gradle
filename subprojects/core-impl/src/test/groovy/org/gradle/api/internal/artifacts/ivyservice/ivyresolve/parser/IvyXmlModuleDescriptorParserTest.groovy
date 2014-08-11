@@ -314,7 +314,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.inheritedDescriptors.length == 0
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-2766")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2766")
     def "defaultconfmapping is respected"() {
         given:
         def file = temporaryFolder.createFile("ivy.xml")

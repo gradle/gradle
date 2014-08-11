@@ -685,7 +685,7 @@ class CommandLineParserTest extends Specification {
         result.extraArguments == ["-b", "-C", "-d"]
     }
 
-    @Issue("http://issues.gradle.org/browse/GRADLE-1871")
+    @Issue("https://issues.gradle.org/browse/GRADLE-1871")
     def "unknown options containing known arguments in their value are allowed"() {
         given:
         parser.option("a")

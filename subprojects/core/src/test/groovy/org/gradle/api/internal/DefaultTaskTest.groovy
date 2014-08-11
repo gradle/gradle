@@ -420,7 +420,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    @Issue("http://issues.gradle.org/browse/GRADLE-2022")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2022")
     public void testGoodErrorMessageWhenTaskInstantiatedDirectly() {
         try {
             new DefaultTask();

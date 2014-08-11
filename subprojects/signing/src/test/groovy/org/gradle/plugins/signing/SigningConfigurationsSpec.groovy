@@ -44,7 +44,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         // 
         // configurations.archives.buildArtifacts in signArchives.dependsOn
         // 
-        //        but we can't because of http://issues.gradle.org/browse/GRADLE-1608
+        //        but we can't because of https://issues.gradle.org/browse/GRADLE-1608
         
         and:
         configurations.signatures.artifacts.size() == 3

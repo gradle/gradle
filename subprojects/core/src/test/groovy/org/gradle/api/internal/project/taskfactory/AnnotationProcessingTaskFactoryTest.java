@@ -611,7 +611,7 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
-    @Issue("http://issues.gradle.org/browse/GRADLE-2815")
+    @Issue("https://issues.gradle.org/browse/GRADLE-2815")
     public void registersSpecifiedBooleanInputValue() {
         TaskWithBooleanInput task = expectTaskCreated(TaskWithBooleanInput.class, true);
         assertThat(task.getInputs().getProperties().get("inputValue"), equalTo((Object) true));

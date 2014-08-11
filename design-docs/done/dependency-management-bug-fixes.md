@@ -113,7 +113,7 @@ None, except faster builds for those using snapshots.
 When Gradle crashes after writing to a `FileStore` implementation, it can leave a partially written file behind. Subsequent invocations of Gradle
 will attempt to use this partial file.
 
-See [GRADLE-2457](http://issues.gradle.org/browse/GRADLE-2457)
+See [GRADLE-2457](https://issues.gradle.org/browse/GRADLE-2457)
 
 ### Test coverage
 
@@ -143,7 +143,7 @@ Something like this:
 
 # Ignore cached missing module entry when module is missing for all repositories
 
-See [GRADLE-2455](http://issues.gradle.org/browse/GRADLE-2455)
+See [GRADLE-2455](https://issues.gradle.org/browse/GRADLE-2455)
 
 Currently, we cache the fact that a module is missing from a given repository. This is to avoid a remote lookup when a resolution uses multiple repositories,
 and a given module is not hosted in every repository.
@@ -180,7 +180,7 @@ When resolving a dependency descriptor in `UserResolverChain` for a particular r
 SHA-1 checksums should be 40 hex characters long. When publishing, Gradle generates a checksum string that does not include leading zeros, so
 that sometimes the checksum is shorter than 40 characters.
 
-See [GRADLE-2456](http://issues.gradle.org/browse/GRADLE-2456)
+See [GRADLE-2456](https://issues.gradle.org/browse/GRADLE-2456)
 
 ### Test coverage
 
@@ -195,7 +195,7 @@ See [GRADLE-2456](http://issues.gradle.org/browse/GRADLE-2456)
 
 # Errors writing cached module descriptor are silently ignored
 
-See [GRADLE-2458](http://issues.gradle.org/browse/GRADLE-2458)
+See [GRADLE-2458](https://issues.gradle.org/browse/GRADLE-2458)
 
 ### Test coverage
 
@@ -209,7 +209,7 @@ No specific coverage at this point, other than unit testing.
 
 # Honor SSL system properties when accessing HTTP repositories
 
-See [GRADLE-2234](http://issues.gradle.org/browse/GRADLE-2234)
+See [GRADLE-2234](https://issues.gradle.org/browse/GRADLE-2234)
 
 ### Test coverage
 
@@ -341,7 +341,7 @@ implementations will be pluggable in the future, so you could combine maven-meta
 
 # GRADLE-2861 Handle parent pom with unknown placeholders (DONE)
 
-See [GRADLE-2861](http://issues.gradle.org/browse/GRADLE-2861)
+See [GRADLE-2861](https://issues.gradle.org/browse/GRADLE-2861)
 
 Currently, the POM parser (inherited from Ivy) attaches special extra attributes to the `ModuleDescriptor` for a POM. These are later used by the POM parser
 when it parses a child POM. Sometimes these attributes cause badly formed XML to be generated, hence the failure listed in the jira issue.
@@ -367,7 +367,7 @@ The solution is to have the parser request the parent POM artifact directly, rat
 
 # Latest status dynamic versions work across multiple repositories (DONE)
 
-See [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502)
+See [GRADLE-2502](https://issues.gradle.org/browse/GRADLE-2502)
 
 ### Test coverage
 

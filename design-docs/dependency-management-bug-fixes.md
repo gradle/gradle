@@ -6,7 +6,7 @@ As this 'feature' is a list of bug fixes, this feature spec will not follow the 
 # Conflict resolution considers conflicts on production classes
 
 See [this post](http://forums.gradle.org/gradle/topics/npe_in_dependencygraphbuilder_dependencyedge_getfailure)
-See [GRADLE-2752](http://issues.gradle.org/browse/GRADLE-2752)
+See [GRADLE-2752](https://issues.gradle.org/browse/GRADLE-2752)
 
 - Allow self-resolving dependencies to imply zero or more module versions.
 - Change the resolution algorithm to consider this during conflict resolution. Self-resolving dependencies cannot be evicted and must
@@ -24,7 +24,7 @@ Use this publication's identifier if so.
 
 # Conflict resolution considers local dependencies
 
-See [GRADLE-2516](http://issues.gradle.org/browse/GRADLE-2516)
+See [GRADLE-2516](https://issues.gradle.org/browse/GRADLE-2516)
 
 - Change the local dependencies (eg `gradleApi()`, `localGroovy()`) to imply the various modules that they contribute to the result.
 

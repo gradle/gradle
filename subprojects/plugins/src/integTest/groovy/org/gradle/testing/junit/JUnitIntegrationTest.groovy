@@ -235,7 +235,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Issue("http://issues.gradle.org//browse/GRADLE-3114")
+    @Issue("https://issues.gradle.org//browse/GRADLE-3114")
     public void createsRunnerBeforeTests() {
         executer.withTasks('test').run()
 
