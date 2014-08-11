@@ -112,7 +112,7 @@ public class AvailableToolChains {
         VisualStudioLocator.SearchResult searchResult = vsLocator.locateVisualStudioInstalls(null);
         if (searchResult.isAvailable()) {
             VisualStudioInstall install = searchResult.getVisualStudio();
-            return new InstalledVisualCpp("visual c++").withInstall(install);
+            return new InstalledVisualCpp().withInstall(install);
         }
 
         return new UnavailableToolChain("visual c++");
@@ -367,8 +367,13 @@ public class AvailableToolChains {
         private VersionNumber version;
         private File installDir;
 
-        public InstalledVisualCpp(String name) {
-            super(name);
+        public InstalledVisualCpp() {
+            super("visual c++");
+        }
+
+        @Override
+        public String getId() {
+            return "visualCpp";
         }
 
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
