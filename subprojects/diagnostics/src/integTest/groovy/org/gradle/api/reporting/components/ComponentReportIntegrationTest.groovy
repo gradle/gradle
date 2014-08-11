@@ -16,10 +16,7 @@
 
 package org.gradle.api.reporting.components
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.SystemProperties
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -515,21 +512,10 @@ BUILD SUCCESSFUL
     }
 
     String expected(String normalised) {
-        return normalised
-                .replace("current JDK (1.7)", "current JDK (${JavaVersion.current()})")
-                .replace("Tool chain 'clang' (Clang)", toolChainDisplayName)
-                .replace("\n", SystemProperties.lineSeparator)
-                .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystem.current().getSharedLibraryName(it[2]) }
-                .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).a$') { it[1] + OperatingSystem.current().getStaticLibraryName(it[2]) }
-                .replaceAll('(?m)(build/binaries/.+/)(\\w+)$') { it[1] + OperatingSystem.current().getExecutableName(it[2]) }
-                .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
-    }
-
-    String getToolChainDisplayName() {
-        return toolChain.instanceDisplayName
+        return new ComponentReportOutputFormatter(toolChain).transform(normalised)
     }
 
     AvailableToolChains.InstalledToolChain getToolChain() {
-        return AvailableToolChains.toolChains.find { it.available }
+        return AvailableToolChains.defaultToolChain
     }
 }
