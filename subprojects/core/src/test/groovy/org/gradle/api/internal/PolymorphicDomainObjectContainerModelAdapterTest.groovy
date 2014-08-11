@@ -19,7 +19,7 @@ package org.gradle.api.internal
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.model.collection.NamedItemCollectionBuilder
+import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
@@ -66,8 +66,8 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
             container, ModelType.of(ThingContainer), NamedThing
     )
 
-    def builderType = new ModelType<NamedItemCollectionBuilder<NamedThing>>() {}
-    def subBuilderType = new ModelType<NamedItemCollectionBuilder<SpecialNamedThing>>() {}
+    def builderType = new ModelType<CollectionBuilder<NamedThing>>() {}
+    def subBuilderType = new ModelType<CollectionBuilder<SpecialNamedThing>>() {}
 
 
     def registry = new DefaultModelRegistry()
@@ -112,12 +112,12 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
     def "can view as write types"() {
         expect:
         adapter.asWritable(ModelBinding.of(reference), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance.is(container)
-        asBuilder().instance instanceof NamedItemCollectionBuilder
-        asSubBuilder().instance instanceof NamedItemCollectionBuilder
+        asBuilder().instance instanceof CollectionBuilder
+        asSubBuilder().instance instanceof CollectionBuilder
     }
 
     def "can create items"() {
-        // don't need to test too much here, assume that DefaultNamedItemCollectionBuilder is used internally
+        // don't need to test too much here, assume that DefaultCollectionBuilder is used internally
         given:
         def builder = asBuilder().instance
 
@@ -152,11 +152,11 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
         registry.get(reference.path.child("foo"), ModelType.of(SpecialNamedThing)).special == "special-changed"
     }
 
-    def ModelView<? extends NamedItemCollectionBuilder<SpecialNamedThing>> asSubBuilder() {
+    def ModelView<? extends CollectionBuilder<SpecialNamedThing>> asSubBuilder() {
         adapter.asWritable(ModelBinding.of(ModelReference.of(reference.path, subBuilderType)), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry)
     }
 
-    def ModelView<? extends NamedItemCollectionBuilder<NamedThing>> asBuilder() {
+    def ModelView<? extends CollectionBuilder<NamedThing>> asBuilder() {
         adapter.asWritable(ModelBinding.of(ModelReference.of(reference.path, builderType)), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry)
     }
 }

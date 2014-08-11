@@ -25,7 +25,7 @@ import org.gradle.api.Incubating;
  * @param <T> the contract type for all items
  */
 @Incubating
-public interface NamedItemCollectionBuilder<T> {
+public interface CollectionBuilder<T> {
 
     /*
         Note: config actions always execute immediately when item is created (i.e. before any other rule).

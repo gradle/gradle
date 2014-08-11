@@ -17,9 +17,9 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.PolymorphicDomainObjectContainer;
-import org.gradle.model.collection.NamedItemCollectionBuilder;
-import org.gradle.model.collection.NamedItemCollectionBuilderModelView;
-import org.gradle.model.collection.internal.DefaultNamedItemCollectionBuilder;
+import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.collection.CollectionBuilderModelView;
+import org.gradle.model.collection.internal.DefaultCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -41,7 +41,7 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
         if (bindingType.isAssignableFrom(containerType)) {
             @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) InstanceModelView.of(containerType, container);
             return cast;
-        } else if (bindingType.getRawClass().equals(NamedItemCollectionBuilder.class)) {
+        } else if (bindingType.getRawClass().equals(CollectionBuilder.class)) {
             ModelType<?> bindingItemType = bindingType.getTypeVariables().get(0);
             if (bindingItemType.getRawClass().isAssignableFrom(itemType)) { // item type is super of base
                 return toView(binding, sourceDescriptor, inputs, modelRuleRegistrar, itemType);
@@ -61,11 +61,11 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
     }
 
     private <T, S extends I> ModelView<? extends T> toView(ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar, Class<S> itemType) {
-        NamedItemCollectionBuilder<S> builder = new DefaultNamedItemCollectionBuilder<S>(binding.getPath(), new Instantiator<S>(itemType, container), sourceDescriptor, inputs, modelRuleRegistrar);
-        ModelType<NamedItemCollectionBuilder<S>> viewType = new ModelType.Builder<NamedItemCollectionBuilder<S>>() {
+        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(binding.getPath(), new Instantiator<S>(itemType, container), sourceDescriptor, inputs, modelRuleRegistrar);
+        ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
         }, ModelType.of(itemType)).build();
-        NamedItemCollectionBuilderModelView<S> view = new NamedItemCollectionBuilderModelView<S>(viewType, builder, binding.getPath(), sourceDescriptor);
+        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, binding.getPath(), sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;
     }
@@ -111,7 +111,7 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
             }
 
             private <T> boolean isContainerView(ModelType<T> type) {
-                if (type.getRawClass().equals(NamedItemCollectionBuilder.class)) {
+                if (type.getRawClass().equals(CollectionBuilder.class)) {
                     ModelType<?> targetItemType = type.getTypeVariables().get(0);
                     return targetItemType.getRawClass().isAssignableFrom(itemType) || itemType.isAssignableFrom(targetItemType.getRawClass());
                 } else {

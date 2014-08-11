@@ -50,7 +50,7 @@ import java.lang.annotation.Target;
  *         }
  *
  *         @Mutate
- *         void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleComponent> componentSpecs) {
+ *         void createSampleLibraryComponents(CollectionBuilder<SampleComponent> componentSpecs) {
  *             componentSpecs.create("sampleComponent")
  *         }
  *     }

@@ -251,7 +251,7 @@ Define a sample plugin that declares a custom library type:
             }
 
             @Mutate
-            void createSampleLibraryComponents(NamedItemCollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
+            void createSampleLibraryComponents(CollectionBuilder<SampleLibrary> sampleLibraries, SampleExtension sampleExtension) {
                 for (String libraryName : sampleExtension.getLibraryNames()) {
                     sampleLibraries.create(libraryName)
                 }
@@ -292,14 +292,14 @@ A custom library implementation:
     - Automatically apply the `ComponentModelBasePlugin` before the plugin is applied
     - Register a factory with the `ComponentSpecContainer` for creating `SampleLibrary` instances with the supplied implementation
         - The factory implementation should generate a `ComponentSpecIdentifier` with the supplied name to instantiate the component
-    - Add a `ModelCreator` to the `ModelRegistry` that can present a `NamedItemCollectionBuilder<SampleLibrary>` view of the `ComponentSpecContainer`.
+    - Add a `ModelCreator` to the `ModelRegistry` that can present a `CollectionBuilder<SampleLibrary>` view of the `ComponentSpecContainer`.
 - ~~Update `DefaultLibrarySpec` so that it has a public no-arg constructor~~
     - ~~Inject the ComponentSpecIdentifier into the constructed library using a ThreadLocal and static setter method (see AbstractTask).~~
 
 #### Test cases
 
 - ~~Can register a component model with @Library without any rules for creating components (does not create components)~~
-- ~~Can create library instances via `NamedItemCollectionBuilder<LibrarySpec>` with a plugin that:~~
+- ~~Can create library instances via `CollectionBuilder<LibrarySpec>` with a plugin that:~~
     - ~~Already has the `ComponentModelBasePlugin` applied~~
     - ~~Has a single nested class with both `@ComponentModel` and `@RuleSource` annotations~~
     - ~~Has separate nested classes with `@ComponentModel` and `@RuleSource` annotations~~
@@ -433,13 +433,13 @@ These binaries are not visible to the build script author for configuration.
         @RuleSource
         static class ComponentModel {
             @ComponentBinaries
-            void createBinariesForSampleLibrary(NamedItemCollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
+            void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
                 binaries.create("${library.name}Binary")
                 binaries.create("${library.name}OtherBinary", OtherSampleBinary)
             }
 
             @ComponentBinaries
-            void createBinariesForSampleLibrary(NamedItemCollectionBuilder<OtherSampleBinary> binaries, SampleLibrary library) {
+            void createBinariesForSampleLibrary(CollectionBuilder<OtherSampleBinary> binaries, SampleLibrary library) {
                 binaries.create("${library.name}OtherBinary2")
             }
         }
@@ -458,7 +458,7 @@ Running `gradle assemble` will execute lifecycle task for each binary.
 #### Implementation Plan
 
 - Introduce a `@ComponentBinaries` rule type
-    - Subject must be of type `NamedItemCollectionBuilder` with a generic type parameter extending `BinarySpec`
+    - Subject must be of type `CollectionBuilder` with a generic type parameter extending `BinarySpec`
     - Exactly one input must be a type extending `ComponentSpec`
     - The binary type declared in the subject must be assignable to one of the binary types declared on the component input type
     - Other inputs are permitted
@@ -470,9 +470,9 @@ Running `gradle assemble` will execute lifecycle task for each binary.
 #### Test cases
 
 - Can create binaries via rules that declare these as input:
-    - `NamedItemCollectionBuilder<BinarySpec>`
-    - `NamedItemCollectionBuilder<SampleBinary>`
-    - `NamedItemCollectionBuilder<SampleBinarySubType>`
+    - `CollectionBuilder<BinarySpec>`
+    - `CollectionBuilder<SampleBinary>`
+    - `CollectionBuilder<SampleBinarySubType>`
 - Can execute lifecycle task of each created binary, individually and via 'assemble' task
 - Can access lifecycle task of binary via BinarySpec.buildTask
 - Friendly error message when annotated binary rule method:
@@ -516,7 +516,7 @@ Add a rule to the sample plugin:
         ...
 
         @BinaryTasks
-        void createTasksForSampleBinary(NamedItemCollectionBuilder<Task> tasks, SampleBinary binary) {
+        void createTasksForSampleBinary(CollectionBuilder<Task> tasks, SampleBinary binary) {
             ... Add tasks that create this binary. Create additional tasks where signing is required.
         }
     }
@@ -526,7 +526,7 @@ Running `gradle assemble` will execute tasks for each library binary.
 #### Implementation Plan
 
 - Introduce a `@BinaryTasks` rule type:
-    - Subject must be of type `NamedItemCollectionBuilder<Tasks>`
+    - Subject must be of type `CollectionBuilder<Tasks>`
     - Exactly one input must be a type extending `LibraryBinarySpec`
     - Other inputs are permitted
 - For each `@BinaryTasks` rule, register a mutate rule that iterates over all binaries conforming to the requested binary type

@@ -25,28 +25,28 @@ import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 @Incubating
-public class NamedItemCollectionBuilderModelView<T> implements ModelView<NamedItemCollectionBuilder<T>> {
+public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilder<T>> {
 
-    private final ModelType<NamedItemCollectionBuilder<T>> type;
-    private final NamedItemCollectionBuilder<T> rawInstance;
-    private final NamedItemCollectionBuilder<T> instance = new Decorator();
+    private final ModelType<CollectionBuilder<T>> type;
+    private final CollectionBuilder<T> rawInstance;
+    private final CollectionBuilder<T> instance = new Decorator();
     private final ModelPath path;
     private final ModelRuleDescriptor ruleDescriptor;
 
     private boolean closed;
 
-    public NamedItemCollectionBuilderModelView(ModelType<NamedItemCollectionBuilder<T>> type, NamedItemCollectionBuilder<T> rawInstance, ModelPath path, ModelRuleDescriptor ruleDescriptor) {
+    public CollectionBuilderModelView(ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelPath path, ModelRuleDescriptor ruleDescriptor) {
         this.type = type;
         this.rawInstance = rawInstance;
         this.path = path;
         this.ruleDescriptor = ruleDescriptor;
     }
 
-    public ModelType<NamedItemCollectionBuilder<T>> getType() {
+    public ModelType<CollectionBuilder<T>> getType() {
         return type;
     }
 
-    public NamedItemCollectionBuilder<T> getInstance() {
+    public CollectionBuilder<T> getInstance() {
         return instance;
     }
 
@@ -54,7 +54,7 @@ public class NamedItemCollectionBuilderModelView<T> implements ModelView<NamedIt
         closed = true;
     }
 
-    class Decorator implements NamedItemCollectionBuilder<T> {
+    class Decorator implements CollectionBuilder<T> {
         public void create(String name) {
             assertNotClosed();
             rawInstance.create(name);

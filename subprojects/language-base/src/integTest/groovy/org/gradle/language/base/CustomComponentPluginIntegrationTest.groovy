@@ -122,7 +122,7 @@ BUILD SUCCESSFUL"""))
             @RuleSource
             static class Rules {
                 @Mutate
-                void createSampleComponentComponents(NamedItemCollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
 
@@ -165,12 +165,12 @@ BUILD SUCCESSFUL"""))
                 }
 
                 @Mutate
-                void createSampleComponentInstances(NamedItemCollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentInstances(CollectionBuilder<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleComponent")
                 }
 
                 @Mutate
-                void createSampleLibraryInstances(NamedItemCollectionBuilder<SampleLibrary> componentSpecs) {
+                void createSampleLibraryInstances(CollectionBuilder<SampleLibrary> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
             }
@@ -264,7 +264,7 @@ BUILD SUCCESSFUL"""))
                     builder.setDefaultImplementation(DefaultSampleComponent)
                 }
                 @Mutate
-                void createSampleComponentComponents(NamedItemCollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
             }

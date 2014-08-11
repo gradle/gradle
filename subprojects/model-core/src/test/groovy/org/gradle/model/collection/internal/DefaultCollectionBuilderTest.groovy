@@ -25,7 +25,7 @@ import org.gradle.model.internal.registry.DefaultInputs
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
-class DefaultNamedItemCollectionBuilderTest extends Specification {
+class DefaultCollectionBuilderTest extends Specification {
 
     def type = new ModelType<NamedThing>() {}
 
@@ -42,7 +42,7 @@ class DefaultNamedItemCollectionBuilderTest extends Specification {
     def instantiator = new NamedEntityInstantiator<NamedThing>() {
         @Override
         ModelType getType() {
-            DefaultNamedItemCollectionBuilderTest.this.type
+            DefaultCollectionBuilderTest.this.type
         }
 
         @Override
@@ -63,7 +63,7 @@ class DefaultNamedItemCollectionBuilderTest extends Specification {
 
     def containerPath = ModelPath.path("container")
     def registry = new DefaultModelRegistry()
-    def builder = new DefaultNamedItemCollectionBuilder<NamedThing>(
+    def builder = new DefaultCollectionBuilder<NamedThing>(
             containerPath,
             instantiator,
             new SimpleModelRuleDescriptor("builder"),

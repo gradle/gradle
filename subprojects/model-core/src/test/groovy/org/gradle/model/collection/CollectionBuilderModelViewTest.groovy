@@ -22,11 +22,11 @@ import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import spock.lang.Specification
 
-class NamedItemCollectionBuilderModelViewTest extends Specification {
+class CollectionBuilderModelViewTest extends Specification {
 
     def "cannot create items after view is closed"() {
-        def builder = Mock(NamedItemCollectionBuilder)
-        def view = new NamedItemCollectionBuilderModelView(ModelType.of(NamedItemCollectionBuilder), builder, ModelPath.path("foo"), new SimpleModelRuleDescriptor("foo"))
+        def builder = Mock(CollectionBuilder)
+        def view = new CollectionBuilderModelView(ModelType.of(CollectionBuilder), builder, ModelPath.path("foo"), new SimpleModelRuleDescriptor("foo"))
         def instance = view.instance
 
         when:

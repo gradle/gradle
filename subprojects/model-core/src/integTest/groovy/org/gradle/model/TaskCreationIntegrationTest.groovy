@@ -41,7 +41,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(NamedItemCollectionBuilder<Task> tasks, MyModel myModel) {
+                    void addTasks(CollectionBuilder<Task> tasks, MyModel myModel) {
                         myModel.tasks.each { n ->
                             tasks.create(n) {
                               it.description = "task \$n"
@@ -107,7 +107,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(NamedItemCollectionBuilder<Task> tasks, MyTasks myTasks) {
+                    void addTasks(CollectionBuilder<Task> tasks, MyTasks myTasks) {
                         myTasks.tasks.each { n ->
                             tasks.create(n, MessageTask) {
                               it.description = "task \$n"
@@ -166,7 +166,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks1(NamedItemCollectionBuilder<Task> tasks, MyModel myModel) {
+                    void addTasks1(CollectionBuilder<Task> tasks, MyModel myModel) {
                         myModel.tasks.each { n ->
                             tasks.create(n) {
                               it.description = "task \$n"
@@ -175,7 +175,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks2(NamedItemCollectionBuilder<Task> tasks, MyModel myModel) {
+                    void addTasks2(CollectionBuilder<Task> tasks, MyModel myModel) {
                         myModel.tasks.each { n ->
                             tasks.create(n) {
                               it.description = "task \$n"
@@ -198,8 +198,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks2(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>, MyModel)")
-        failure.assertHasCause("Cannot register model creation rule 'MyPlugin\$Rules#addTasks2(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' for path 'tasks.a' as the rule 'MyPlugin\$Rules#addTasks1(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' is already registered to create a model element at this path")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel)")
+        failure.assertHasCause("Cannot register model creation rule 'MyPlugin\$Rules#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' for path 'tasks.a' as the rule 'MyPlugin\$Rules#addTasks1(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' is already registered to create a model element at this path")
     }
 
     def "cannot create tasks during config of task"() {
@@ -214,7 +214,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Mutate
-                    void addTasks(NamedItemCollectionBuilder<Task> tasks) {
+                    void addTasks(CollectionBuilder<Task> tasks) {
                         tasks.create("foo") {
                           tasks.create("bar")
                         }
@@ -229,8 +229,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>) > create(foo)")
-        failure.assertHasCause("Attempt to mutate closed view of model 'tasks' of type 'org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>' given to rule 'MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>)'")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>) > create(foo)")
+        failure.assertHasCause("Attempt to mutate closed view of model 'tasks' of type 'org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>' given to rule 'MyPlugin\$Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)'")
     }
 
     def "failure during task instantiation is reasonably reported"() {
@@ -251,7 +251,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Mutate
-                    void addTasks(NamedItemCollectionBuilder<Task> tasks) {
+                    void addTasks(CollectionBuilder<Task> tasks) {
                         tasks.create("foo", Faulty)
                     }
                 }
@@ -264,7 +264,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>) > create(foo)")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>) > create(foo)")
         failure.assertHasCause("Could not create task of type 'Faulty'")
     }
 
@@ -280,7 +280,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Mutate
-                    void addTasks(NamedItemCollectionBuilder<Task> tasks) {
+                    void addTasks(CollectionBuilder<Task> tasks) {
                         tasks.create("foo") {
                             throw new RuntimeException("config failure")
                         }
@@ -295,7 +295,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.NamedItemCollectionBuilder<org.gradle.api.Task>) > create(foo)")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>) > create(foo)")
         failure.assertHasCause("config failure")
     }
 

@@ -20,14 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.Factory;
-import org.gradle.model.collection.NamedItemCollectionBuilder;
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ActionModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 
-public class DefaultNamedItemCollectionBuilder<T> implements NamedItemCollectionBuilder<T> {
+public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     private final ModelPath collectionPath;
     private final NamedEntityInstantiator<T> instantiator;
@@ -35,7 +35,7 @@ public class DefaultNamedItemCollectionBuilder<T> implements NamedItemCollection
     private final Inputs implicitInputs;
     private final ModelRuleRegistrar ruleRegistrar;
 
-    public DefaultNamedItemCollectionBuilder(ModelPath collectionPath, NamedEntityInstantiator<T> instantiator, ModelRuleDescriptor sourceDescriptor, Inputs implicitInputs, ModelRuleRegistrar ruleRegistrar) {
+    public DefaultCollectionBuilder(ModelPath collectionPath, NamedEntityInstantiator<T> instantiator, ModelRuleDescriptor sourceDescriptor, Inputs implicitInputs, ModelRuleRegistrar ruleRegistrar) {
         this.collectionPath = collectionPath;
         this.instantiator = instantiator;
         this.sourceDescriptor = sourceDescriptor;
