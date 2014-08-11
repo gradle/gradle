@@ -293,4 +293,52 @@ class NewestVersionComponentChooserTest extends Specification {
         then:
         chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
     }
+
+    def "returns null when no versions are chosen without metadata"() {
+        given:
+        def selector = new DefaultModuleVersionSelector("group", "name", "1.3")
+        def listing = Mock(ModuleVersionListing)
+        def dependency = Mock(DependencyMetaData)
+        def repo = Mock(ModuleComponentRepositoryAccess)
+        def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+
+        when:
+        _ * dependency.getRequested() >> selector
+        1 * versionMatcher.needModuleMetadata("1.3") >> false
+        1 * listing.versions >> (versions as Set)
+        1 * latestStrategy.sort(_) >> versions
+        3 * versionMatcher.accept("1.3", _) >> false
+        3 * versionSelectionRules.apply(_)
+        0 * _
+
+        then:
+        chooser.choose(listing, dependency, repo) == null
+    }
+
+    def "returns null when no versions are chosen with metadata"() {
+        given:
+        def selector = new DefaultModuleVersionSelector("group", "name", "latest.integration")
+        def listing = Mock(ModuleVersionListing)
+        def dependency = Mock(DependencyMetaData)
+        def repo = Mock(ModuleComponentRepositoryAccess)
+        def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+
+        when:
+        _ * dependency.getRequested() >> selector
+        _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
+        _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleVersionMetaDataResolveResult result ->
+            result.resolved(Stub(MutableModuleVersionMetaData) {
+                getComponentId() >> { candidateId }
+            }, null)
+        }
+        1 * versionMatcher.needModuleMetadata("latest.integration") >> true
+        1 * listing.versions >> (versions as Set)
+        1 * latestStrategy.sort(_) >> versions
+        3 * versionMatcher.accept("latest.integration", _) >> false
+        3 * versionSelectionRules.apply(_)
+        0 * _
+
+        then:
+        chooser.choose(listing, dependency, repo) == null
+    }
 }
