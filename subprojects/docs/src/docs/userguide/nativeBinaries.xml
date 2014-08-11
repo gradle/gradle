@@ -717,7 +717,8 @@
             </para>
             <sample id="completeCUnitExample" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="complete-example"/>
-                <output args='-q runFailingOperatorsTestCUnitExe' expectFailure="true"/>
+                <!-- produces extra output on windows, so ignore extra lines -->
+                <output args='-q runFailingOperatorsTestCUnitExe' expectFailure="true" ignoreExtraLines="true"/>
             </sample>
         </section>
 
