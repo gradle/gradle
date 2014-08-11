@@ -573,6 +573,7 @@ We would like to thank the following community members for making contributions 
     - Specific subtype for `CUnit` executable binary
     - `RunTestExecutable` task implements `ExecSpec`
 * [Michael Klishin](https://github.com/michaelklishin) - Documentation improvements.
+* [Mike Meesen](https://github.com/netmikey) - support EAR descriptors with DOCTYPE declaration (GRADLE-3150).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
