@@ -15,9 +15,9 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
+import spock.lang.Ignore
 
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -39,11 +39,18 @@ task checkModel << {
     assert project.binaries.size() == 1
     def sampleBinary = project.binaries.sampleBinary
     assert sampleBinary instanceof SampleBinary
-    assert sampleBinary.displayName == "DefaultSampleBinary:sampleBinary"
+    assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
 }
 """
         then:
         succeeds "checkModel"
+    }
+
+    def "creates lifecycle task per binary"() {
+        when:
+        buildWithCustomBinaryPlugin()
+        then:
+        succeeds "sampleBinary"
     }
 
 
@@ -74,6 +81,159 @@ task checkModel << {
     }
 
 
+    def "can have binary declaration and creation in separate plugins"() {
+        when:
+        buildFile << """
+        class MyBinaryDeclarationModel implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @BinaryType
+                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                    builder.setDefaultImplementation(DefaultSampleBinary)
+                }
+            }
+        }
+
+        class MyBinaryCreationPlugin implements Plugin<Project> {
+            void apply(final Project project) {
+                project.apply(plugin:MyBinaryDeclarationModel)
+            }
+
+            @RuleSource
+            static class Rules {
+                @Mutate
+                void createSampleBinaries(NamedItemCollectionBuilder<SampleBinary> binaries) {
+                    binaries.create("sampleBinary")
+                }
+
+            }
+        }
+
+        apply plugin:MyBinaryCreationPlugin
+
+        task checkModel << {
+            assert project.binaries.size() == 1
+            def sampleBinary = project.binaries.sampleBinary
+            assert sampleBinary instanceof SampleBinary
+            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
+        }
+"""
+        then:
+        succeeds "checkModel"
+    }
+
+    @Ignore("fix me")
+    def "can define and create multiple binary types in the same plugin"(){
+        when:
+        buildFile << """
+        interface AnotherSampleBinary extends BinarySpec {}
+        class DefaultAnotherSampleBinary extends DefaultBinarySpec implements AnotherSampleBinary {}
+
+        class MySamplePlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @BinaryType
+                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                    builder.setDefaultImplementation(DefaultSampleBinary)
+                }
+
+                @Mutate
+                void createSampleBinaryInstances(NamedItemCollectionBuilder<SampleBinary> binaries) {
+                    binaries.create("sampleBinary")
+                }
+
+                @BinaryType
+                void registerAnother(BinaryTypeBuilder<AnotherSampleBinary> builder) {
+                    builder.setDefaultImplementation(DefaultAnotherSampleBinary)
+                }
+
+                @Mutate
+                void createAnotherSampleBinaryInstances(NamedItemCollectionBuilder<AnotherSampleBinary> anotherBinaries) {
+                    anotherBinaries.create("anotherSampleBinary")
+                }
+            }
+        }
+
+        apply plugin:MySamplePlugin
+
+        task checkModel << {
+            assert project.binaries.size() == 2
+            def sampleBinary = project.binaries.sampleBinary
+            assert sampleBinary instanceof SampleBinary
+            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
+
+            def anotherSampleBinary = project.binaries.anotherSampleBinary
+            assert anotherSampleBinary instanceof AnotherSampleBinary
+            assert anotherSampleBinary.displayName == "DefaultAnotherSampleBinary: 'anotherSampleBinary'"
+        }
+"""
+        then:
+        succeeds "checkModel"
+    }
+
+
+
+    def "reports failure for invalid binary type method"() {
+        given:
+        settingsFile << """rootProject.name = 'custom-binary'"""
+        buildFile << """
+        class MySamplePlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @BinaryType
+                void register(BinaryTypeBuilder<SampleBinary> builder, String illegalOtherParameter) {
+                }
+            }
+        }
+
+        apply plugin:MySamplePlugin
+"""
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
+        failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
+        failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.runtime.base.BinaryTypeBuilder<SampleBinary>, java.lang.String) is not a valid binary model rule method."
+        failure.assertHasCause "BinaryType method must have a single parameter of type BinaryTypeBuilder."
+    }
+
+    def "cannot register same binary type multiple times"(){
+        given:
+        buildWithCustomBinaryPlugin()
+        and:
+        buildFile << """
+        class MyOtherPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules1 {
+                @BinaryType
+                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                    builder.setDefaultImplementation(DefaultSampleBinary)
+                }
+            }
+        }
+
+        apply plugin:MyOtherPlugin
+"""
+        when:
+        fails "tasks"
+        then:
+        failure.assertHasDescription "A problem occurred configuring root project 'custom-binary'."
+        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.runtime.base.BinaryTypeBuilder<SampleBinary>)"
+        failure.assertHasCause "Cannot register a factory for type SampleBinary because a factory for this type already registered."
+    }
+
+
+
     def "additional binaries listed in components report"() {
         given:
         buildWithCustomBinaryPlugin()
@@ -90,7 +250,7 @@ No components defined for this project.
 
 Additional binaries
 -------------------
-DefaultSampleBinary:sampleBinary
+DefaultSampleBinary: 'sampleBinary'
     build using task: :sampleBinary
 
 Note: currently not all plugins register their components, so some components may not be visible here.
@@ -109,7 +269,6 @@ BUILD SUCCESSFUL"""))
             static class Rules {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    println "registering sample binary"
                     builder.setDefaultImplementation(DefaultSampleBinary)
                 }
 

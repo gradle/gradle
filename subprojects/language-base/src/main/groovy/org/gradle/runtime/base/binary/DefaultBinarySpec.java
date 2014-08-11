@@ -39,20 +39,21 @@ import java.util.Set;
  *
  * TODO at the moment leaking BinarySpecInternal here to generate lifecycleTask in
  * LanguageBasePlugin$createLifecycleTaskForBinary#createLifecycleTaskForBinary rule
+ *
  */
 @Incubating
 public class DefaultBinarySpec implements BinarySpecInternal {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
-    private static ThreadLocal<BinaryInfo> nextComponentInfo = new ThreadLocal<BinaryInfo>();
+    private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private static BinaryNamingScheme namingScheme;
     private final String typeName;
     private Task lifecycleTask;
 
     public static <T extends DefaultBinarySpec> T create(Class<T> type, BinaryNamingScheme namingScheme, Instantiator instantiator) {
         DefaultBinarySpec.namingScheme = namingScheme;
-        nextComponentInfo.set(new BinaryInfo(namingScheme, type.getSimpleName()));
+        nextBinaryInfo.set(new BinaryInfo(namingScheme, type.getSimpleName()));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -60,12 +61,12 @@ public class DefaultBinarySpec implements BinarySpecInternal {
                 throw new ModelInstantiationException(String.format("Could not create Binary of type %s", type.getSimpleName()), e.getCause());
             }
         } finally {
-            nextComponentInfo.set(null);
+            nextBinaryInfo.set(null);
         }
     }
 
     public DefaultBinarySpec() {
-        this(nextComponentInfo.get());
+        this(nextBinaryInfo.get());
     }
 
     private DefaultBinarySpec(BinaryInfo info) {
@@ -74,7 +75,7 @@ public class DefaultBinarySpec implements BinarySpecInternal {
     }
 
     public String getDisplayName() {
-        return String.format("%s:%s", typeName, getName());
+        return String.format("%s: '%s'", typeName, getName());
     }
 
     public boolean isBuildable() {

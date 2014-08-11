@@ -41,8 +41,8 @@ import java.util.List;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the
- * project. Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
+ * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
+ * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
@@ -89,7 +89,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 return new SimpleModelRuleDescriptor("Project.<init>.binaries()");
             }
         });
-
 
 
     }

@@ -32,7 +32,7 @@ class DefaultBinarySpecTest extends Specification {
 
         then:
         binary.name == "sampleBinary"
-        binary.displayName == "MySampleBinary:sampleBinary"
+        binary.displayName == "MySampleBinary: 'sampleBinary'"
     }
 
 
