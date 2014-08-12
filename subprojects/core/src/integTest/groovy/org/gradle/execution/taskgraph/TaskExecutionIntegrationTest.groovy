@@ -55,7 +55,7 @@ class CancellingTask extends DefaultTask {
         fails 'build'
 
         then:
-        executedTasks == [':a:cancel', ':b:cancel']
+        executedTasks as Set == [':a:cancel', ':b:cancel'] as Set
         failure.assertHasDescription "Build cancelled."
     }
 }
