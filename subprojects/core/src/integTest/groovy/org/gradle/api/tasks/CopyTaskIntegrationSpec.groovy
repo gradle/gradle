@@ -189,7 +189,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3022")
-    def filesMatchingMustMatchAgainstSourcePath(){
+    def "filesMatching must match against sourcePath"() {
         given:
         file("a/b.txt") << "\$foo"
 
