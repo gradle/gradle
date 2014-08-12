@@ -17,7 +17,6 @@
 package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
 
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -124,7 +123,7 @@ task checkModel << {
         succeeds "checkModel"
     }
 
-    @Ignore("fix me")
+    // @Ignore("fix me")
     def "can define and create multiple binary types in the same plugin"(){
         when:
         buildFile << """

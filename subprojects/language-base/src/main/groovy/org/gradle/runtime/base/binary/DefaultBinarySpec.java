@@ -47,12 +47,11 @@ public class DefaultBinarySpec implements BinarySpecInternal {
 
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
-    private static BinaryNamingScheme namingScheme;
+    private final BinaryNamingScheme namingScheme;
     private final String typeName;
     private Task lifecycleTask;
 
     public static <T extends DefaultBinarySpec> T create(Class<T> type, BinaryNamingScheme namingScheme, Instantiator instantiator) {
-        DefaultBinarySpec.namingScheme = namingScheme;
         nextBinaryInfo.set(new BinaryInfo(namingScheme, type.getSimpleName()));
         try {
             try {
