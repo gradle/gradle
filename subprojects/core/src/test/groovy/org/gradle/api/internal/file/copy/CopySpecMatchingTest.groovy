@@ -37,8 +37,8 @@ class CopySpecMatchingTest extends Specification {
         FileCopyDetails details1 = Mock()
         FileCopyDetails details2 = Mock()
 
-        details1.relativePath >>  RelativePath.parse(true, 'path/abc.txt')
-        details2.relativePath >> RelativePath.parse(true, 'path/bcd.txt')
+        details1.sourceRelativePath >>  RelativePath.parse(true, 'path/abc.txt')
+        details2.sourceRelativePath >> RelativePath.parse(true, 'path/bcd.txt')
 
         Action matchingAction = Mock()
 
@@ -60,8 +60,8 @@ class CopySpecMatchingTest extends Specification {
         FileCopyDetails details1 = Mock()
         FileCopyDetails details2 = Mock()
 
-        details1.relativePath >>  RelativePath.parse(true, 'path/abc.txt')
-        details2.relativePath >> RelativePath.parse(true, 'path/bcd.txt')
+        details1.sourceRelativePath >>  RelativePath.parse(true, 'path/abc.txt')
+        details2.sourceRelativePath >> RelativePath.parse(true, 'path/bcd.txt')
 
         Action matchingAction = Mock()
 
