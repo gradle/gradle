@@ -245,7 +245,7 @@ class UserGuideSamplesRunner extends Runner {
         samplesById.nativeComponentReport.runs.each { it.outputFormatter = new ComponentReportOutputFormatter() }
         samplesById.completeCUnitExample.runs.each {
             if (AvailableToolChains.defaultToolChain.visualCpp) {
-                it.outputFile = "${it.outputFile}-visualCpp"
+                it.outputFile = it.outputFile.replace(".out", "-visualCpp.out")
             }
         }
 
