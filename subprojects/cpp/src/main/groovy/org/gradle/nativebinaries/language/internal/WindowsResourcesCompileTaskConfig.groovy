@@ -54,7 +54,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         task.source sourceSet.source
 
         Project project = task.getProject();
-        task.outputDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
+        task.outputDir = project.file("${project.buildDir}/objs/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
 
         task.macros = binary.rcCompiler.macros
         task.compilerArgs = binary.rcCompiler.args

@@ -62,7 +62,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         executedAndNotSkipped(":mainExecutable")
         executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == arch.name
         executable("build/binaries/mainExecutable/main").exec().out == "${arch.altName} ${os.familyName}" * 2
-        binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objectFiles/mainExecutable/mainCpp")).arch.name == arch.name
+        binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/mainCpp")).arch.name == arch.name
     }
 
     def "configure component for a single target platform"() {
@@ -156,7 +156,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         then:
         executable("build/binaries/mainExecutable/x86/main").binaryInfo.arch.name == "x86"
         executable("build/binaries/mainExecutable/x86/main").exec().out == "i386 ${os.familyName}" * 2
-        binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objectFiles/mainExecutable/x86/mainCpp")).arch.name == "x86"
+        binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/x86/mainCpp")).arch.name == "x86"
 
         // x86_64 binaries not supported on MinGW or cygwin
         if (toolChain.id == "mingw" || toolChain.id == "gcccygwin") {
@@ -164,13 +164,13 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         } else {
             executable("build/binaries/mainExecutable/x86_64/main").binaryInfo.arch.name == "x86_64"
             executable("build/binaries/mainExecutable/x86_64/main").exec().out == "amd64 ${os.familyName}" * 2
-            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objectFiles/mainExecutable/x86_64/mainCpp")).arch.name == "x86_64"
+            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/x86_64/mainCpp")).arch.name == "x86_64"
         }
 
         // Itanium only supported on visualCpp
         if (toolChain.visualCpp) {
             executable("build/binaries/mainExecutable/itanium/main").binaryInfo.arch.name == "ia-64"
-            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"),"build/objectFiles/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
+            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"),"build/objs/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
         } else {
             executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
@@ -178,7 +178,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         // ARM only supported on visualCpp 2013
         if (toolChain.meets(ToolChainRequirement.VisualCpp2013)) {
             executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "arm"
-            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objectFiles/mainExecutable/arm/mainCpp")).arch.name == "arm"
+            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/arm/mainCpp")).arch.name == "arm"
         } else {
             executable("build/binaries/mainExecutable/arm/main").assertDoesNotExist()
         }

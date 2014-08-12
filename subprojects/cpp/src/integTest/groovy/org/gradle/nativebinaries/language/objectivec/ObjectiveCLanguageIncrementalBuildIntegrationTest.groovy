@@ -40,12 +40,12 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         when:
         invocation.times{
             run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
-            def oldHash= HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objectFiles/helloSharedLibrary/hello$sourceType")).asCompactString()
+            def oldHash= HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).asCompactString()
 
             //to ensure it's not a timestamp issue
             sleep(1000)
             run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
-            def newHash = HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objectFiles/helloSharedLibrary/hello$sourceType")).asCompactString()
+            def newHash = HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).asCompactString()
             recordings << (oldHash == newHash)
         }
         then:

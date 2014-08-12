@@ -61,7 +61,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         otherHeaderFile = file("src/main/headers/other.h") << """
             // Dummy header file
 """
-        objectFileDir = file("build/objectFiles/mainExecutable")
+        objectFileDir = file("build/objs/mainExecutable")
         outputs = new CompilationOutputsFixture(objectFileDir)
     }
 

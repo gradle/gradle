@@ -55,7 +55,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         task.source(sourceSet.getSource());
 
         Project project = task.getProject()
-        task.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
+        task.objectFileDir = project.file("${project.buildDir}/objs/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
 
         task.assemblerArgs = binary.assembler.args
 

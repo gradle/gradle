@@ -70,7 +70,7 @@ allprojects {
         return toolChain.resourceOnlyLibrary(file(path))
     }
 
-    def objectFileFor(TestFile sourceFile, String rootObjectFilesDir = "build/objectFiles/mainExecutable/main${sourceType}") {
+    def objectFileFor(TestFile sourceFile, String rootObjectFilesDir = "build/objs/mainExecutable/main${sourceType}") {
         File objectFile = new CompilerOutputFileNamingScheme()
                         .withObjectFileNameSuffix(OperatingSystem.current().isWindows() ? ".obj" : ".o")
                         .withOutputBaseFolder(file(rootObjectFilesDir))
