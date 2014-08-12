@@ -195,7 +195,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         return this.fileDetails.getPath();
     }
 
-    public RelativePath getSourceRelativePath() {
+    public RelativePath getRelativeSourcePath() {
         return this.fileDetails.getRelativePath();
     }
 

@@ -178,7 +178,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             throw new UnsupportedOperationException();
         }
 
-        public RelativePath getSourceRelativePath() {
+        public RelativePath getRelativeSourcePath() {
             throw new UnsupportedOperationException();
         }
 

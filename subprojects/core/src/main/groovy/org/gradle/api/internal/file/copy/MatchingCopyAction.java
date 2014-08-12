@@ -32,7 +32,7 @@ public class MatchingCopyAction implements Action<FileCopyDetails> {
     }
 
     public void execute(FileCopyDetails details) {
-        if (matchSpec.isSatisfiedBy(details.getSourceRelativePath())) {
+        if (matchSpec.isSatisfiedBy(details.getRelativeSourcePath())) {
             toApply.execute(details);
         }
     }

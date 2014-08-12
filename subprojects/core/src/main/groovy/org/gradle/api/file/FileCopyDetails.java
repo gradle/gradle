@@ -97,8 +97,10 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
     RelativePath getRelativePath();
 
     /**
-     * Returns the path of this file, relative to the root of the containing file tree. Always uses '/' as the hierarchy separator, regardless of platform file separator. Same as calling
-     * <code>getRelativePath().getPathString()</code>.
+     * Returns the path of this file, relative to the root of the containing file tree.
+     * <p>
+     * Always uses '/' as the hierarchy separator, regardless of platform file separator.
+     * Same as calling <code>getRelativeSourcePath().getPathString()</code>.
      *
      * @return The path, relative to the root of the containing file tree. Never returns null.
      */
@@ -109,6 +111,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      *
      * @return The path, relative to the root of the containing file tree. Never returns null.
      */
-    RelativePath getSourceRelativePath();
+    RelativePath getRelativeSourcePath();
 
 }
