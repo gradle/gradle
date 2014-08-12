@@ -17,13 +17,13 @@
 package org.gradle.runtime.base;
 
 /**
- * Allows a plugin to register a custom component type.
- * @param <C> The component type.
+ * Allows a plugin to register a custom binary type.
+ * @param <C> The binary type.
  */
 public interface BinaryTypeBuilder<C extends BinarySpec> {
 
     /**
-     * Allows the plugin to register the component implementation type.
+     * Allows the plugin to register the binary implementation type.
      */
     void setDefaultImplementation(Class<? extends C> implementation);
 }

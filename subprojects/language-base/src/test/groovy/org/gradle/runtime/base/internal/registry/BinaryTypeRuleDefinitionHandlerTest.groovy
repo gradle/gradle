@@ -36,14 +36,14 @@ import spock.lang.Unroll
 
 import java.lang.reflect.Method
 
-class BinaryTypeModelRuleDefinitionHandlerTest extends Specification {
+class BinaryTypeRuleDefinitionHandlerTest extends Specification {
 
         Instantiator instantiator = new DirectInstantiator()
         def ruleDefinition = Mock(MethodRuleDefinition)
         def modelRegistry = Mock(ModelRegistry)
         def ruleDependencies = Mock(RuleSourceDependencies)
 
-        BinaryTypeModelRuleDefinitionHandler componentRuleHandler = new BinaryTypeModelRuleDefinitionHandler(instantiator)
+        BinaryTypeRuleDefinitionHandler componentRuleHandler = new BinaryTypeRuleDefinitionHandler(instantiator)
 
         def "handles methods annotated with @BinaryType"() {
             when:
@@ -146,7 +146,7 @@ class BinaryTypeModelRuleDefinitionHandlerTest extends Specification {
 
         static class NotImplementingCustomBinary extends DefaultBinarySpec implements BinarySpec {}
 
-        abstract static class NotExtendingDefaultBinarySpec implements BinaryTypeModelRuleDefinitionHandlerTest.SomeBinarySpec {}
+        abstract static class NotExtendingDefaultBinarySpec implements BinaryTypeRuleDefinitionHandlerTest.SomeBinarySpec {}
 
         static class NoDefaultConstructor extends DefaultBinarySpec implements SomeBinarySpec {
             NoDefaultConstructor(String arg) {

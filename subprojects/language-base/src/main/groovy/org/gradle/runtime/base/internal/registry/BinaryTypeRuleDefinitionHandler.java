@@ -40,11 +40,11 @@ import java.util.List;
 /**
  * TODO: extract more common code with ComponentModelRuleDefinitionHandler into AbstractAnnotationModelRuleDefinitionHandler
  * */
-public class BinaryTypeModelRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler {
+public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler {
 
     private Instantiator instantiator;
 
-    public BinaryTypeModelRuleDefinitionHandler(Instantiator instantiator) {
+    public BinaryTypeRuleDefinitionHandler(Instantiator instantiator) {
         super(BinaryType.class);
         this.instantiator = instantiator;
     }
