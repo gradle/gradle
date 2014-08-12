@@ -61,15 +61,13 @@ public class SettingsHandler {
             StartParameter noSearchParameter = startParameter.newInstance();
             noSearchParameter.useEmptySettings();
             settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
-            if (settings == null) // not using an assert to make sure it is not disabled
-            {
+            if (settings == null) { // not using an assert to make sure it is not disabled
                 throw new InternalError("Empty settings file does not contain expected project.");
             }
 
             // Set explicit build file, if required
             if (noSearchParameter.getBuildFile() != null) {
                 ProjectDescriptor rootProject = settings.getRootProject();
-                assert noSearchParameter.getBuildFile().getParentFile().equals(rootProject.getProjectDir());
                 rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
             }
         }

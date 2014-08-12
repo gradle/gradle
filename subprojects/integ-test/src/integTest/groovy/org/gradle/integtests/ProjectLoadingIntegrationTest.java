@@ -137,11 +137,14 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile settingsFile = testFile("settings.gradle");
         settingsFile.write("// empty");
 
-        TestFile projectdir = testFile("project dir");
-        projectdir.mkdirs();
+        TestFile projectDir = testFile("project dir");
+        TestFile buildFile = projectDir.file("build.gradle").createFile();
 
-        ExecutionFailure result = usingProjectDir(projectdir).usingSettingsFile(settingsFile).runWithFailure();
+        ExecutionFailure result = usingProjectDir(projectDir).usingSettingsFile(settingsFile).runWithFailure();
         result.assertThatDescription(startsWith("Could not select the default project for this build. No projects in this build have project directory"));
+
+        result = usingBuildFile(buildFile).usingSettingsFile(settingsFile).runWithFailure();
+        result.assertThatDescription(startsWith("Could not select the default project for this build. No projects in this build have build file "));
     }
 
     @Test
