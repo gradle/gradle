@@ -104,6 +104,13 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
     RelativePath getRelativePath();
 
     /**
+     * Returns the base name of this file at the copy source.
+     *
+     * @return The source name. Never returns null.
+     */
+    String getSourceName();
+
+    /**
      * Returns the path of this file, relative to the root of the containing file tree.
      * <p>
      * Always uses '/' as the hierarchy separator, regardless of platform file separator.

@@ -174,6 +174,10 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             throw new UnsupportedOperationException();
         }
 
+        public String getSourceName() {
+            throw new UnsupportedOperationException();
+        }
+
         public String getSourcePath() {
             throw new UnsupportedOperationException();
         }

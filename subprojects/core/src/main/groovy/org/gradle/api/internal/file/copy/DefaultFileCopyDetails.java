@@ -109,9 +109,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     private void adaptPermissions(File target) {
         final Integer specMode = getMode();
-        if(specMode !=null){
-            getChmod().chmod(target, specMode);
-        }
+        getChmod().chmod(target, specMode);
     }
 
     public RelativePath getRelativePath() {
@@ -189,6 +187,10 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     public DuplicatesStrategy getDuplicatesStrategy() {
         return this.duplicatesStrategy;
+    }
+
+    public String getSourceName() {
+        return this.fileDetails.getName();
     }
 
     public String getSourcePath() {
