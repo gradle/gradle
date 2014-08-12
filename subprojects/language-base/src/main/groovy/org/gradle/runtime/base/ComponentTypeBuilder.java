@@ -20,10 +20,5 @@ package org.gradle.runtime.base;
  * Allows a plugin to register a custom component type.
  * @param <C> The component type.
  */
-public interface ComponentTypeBuilder<C extends ComponentSpec> {
-
-    /**
-     * Allows the plugin to register the component implementation type.
-     */
-    void setDefaultImplementation(Class<? extends C> implementation);
+public interface ComponentTypeBuilder<C extends ComponentSpec> extends TypeBuilder<C> {
 }

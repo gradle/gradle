@@ -19,8 +19,21 @@ package org.gradle.runtime.base;
 import org.gradle.api.Incubating;
 
 /**
- * Allows a plugin to register a custom binary type.
- * @param <C> The binary type.
- */
+ * A TypeBuilder to configure read the implementation class of a type.
+ * @param <C> The component type.
+ * */
 @Incubating
-public interface BinaryTypeBuilder<C extends BinarySpec> extends TypeBuilder<C> {}
+public interface TypeBuilder<C> {
+
+    /**
+     * Allows the plugin to register the implementation type.
+     * @param implementation the implementation class.
+     */
+    void setDefaultImplementation(Class<? extends C> implementation);
+
+    /**
+     * The implementation type.
+     */
+    Class<?> getImplementation();
+
+}

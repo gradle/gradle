@@ -16,143 +16,53 @@
 
 package org.gradle.runtime.base.internal.registry;
 
-import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.*;
 import org.gradle.runtime.base.binary.DefaultBinarySpec;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 
-import java.util.List;
-
-/**
- * TODO: extract more common code with ComponentModelRuleDefinitionHandler into AbstractAnnotationModelRuleDefinitionHandler
- * */
-public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler {
+public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler<BinarySpec, DefaultBinarySpec> {
 
     private Instantiator instantiator;
 
     public BinaryTypeRuleDefinitionHandler(Instantiator instantiator) {
-        super(BinaryType.class);
+        super("binary", BinaryType.class, BinarySpec.class, DefaultBinarySpec.class, BinaryTypeBuilder.class);
         this.instantiator = instantiator;
     }
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
-        try {
-            Class<? extends BinarySpec> type = readBinaryType(ruleDefinition);
-            Class<? extends DefaultBinarySpec> implementation = determineImplementationType(ruleDefinition, type);
+    @Override
+    protected Action<MutationActionParameter> createMutationAction(Class<? extends BinarySpec> type, Class<? extends DefaultBinarySpec> implementation) {
+        return new BinaryTypeRuleMutationAction(instantiator, type, implementation);
+    }
 
-            /**
-             * TODO languageBasePlugin should be enough here, debug.
-             * */
-            dependencies.add(ComponentModelBasePlugin.class);
-            if (implementation != null) {
-                modelRegistry.mutate(new RegisterBinaryTypeRule(ruleDefinition.getDescriptor(), type, implementation));
-            }
-        } catch (InvalidComponentModelException e) {
-            invalidBinaryModelRule(ruleDefinition, e);
+    @Override
+    protected TypeBuilder createBuilder() {
+        return new MyBinaryTypeBuilder();
+    }
+
+    private static class MyBinaryTypeBuilder<T extends BinarySpec> extends AbstractTypeBuilder<T> implements BinaryTypeBuilder<T> {
+        public MyBinaryTypeBuilder() {
+            super(BinaryType.class);
         }
     }
 
-    private void invalidBinaryModelRule(MethodRuleDefinition ruleDefinition, InvalidComponentModelException e) {
-        StringBuilder sb = new StringBuilder();
-        ruleDefinition.getDescriptor().describeTo(sb);
-        sb.append(" is not a valid binary model rule method.");
-        throw new InvalidModelRuleDeclarationException(sb.toString(), e);
-    }
+    private static class BinaryTypeRuleMutationAction implements Action<MutationActionParameter> {
 
-    private Class<? extends BinarySpec> readBinaryType(MethodRuleDefinition ruleDefinition) {
-        if (ruleDefinition.getReferences().size() != 1) {
-            throw new InvalidComponentModelException(String.format("BinaryType method must have a single parameter of type %s.", BinaryTypeBuilder.class.getSimpleName()));
-        }
-        if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
-            throw new InvalidComponentModelException("BinaryType method must not have a return value.");
-        }
-        ModelType<?> binaryTypeBuilder = ruleDefinition.getReferences().get(0).getType();
-        if (!BinaryTypeBuilder.class.isAssignableFrom(binaryTypeBuilder.getRawClass())) {
-            throw new InvalidComponentModelException(String.format("BinaryType method must have a single parameter of type %s.", BinaryTypeBuilder.class.getSimpleName()));
-        }
-        if (binaryTypeBuilder.getTypeVariables().size() != 1) {
-            throw new InvalidComponentModelException("BinaryTypeBuilder parameter must declare a type parameter (must be generified).");
-        }
-        Class<?> binarySpec = binaryTypeBuilder.getTypeVariables().get(0).getRawClass();
-        if (!BinarySpec.class.isAssignableFrom(binarySpec)) {
-            throw new InvalidComponentModelException(String.format("Binary type '%s' must extend '%s'.", binarySpec.getSimpleName(), BinarySpec.class.getSimpleName()));
-        }
-        if (binarySpec.equals(BinarySpec.class)) {
-            throw new InvalidComponentModelException(String.format("Binary type must be a subtype of '%s'.", BinarySpec.class.getSimpleName()));
-        }
-        return (Class<? extends BinarySpec>) binarySpec;
-    }
-
-    private Class<? extends DefaultBinarySpec> determineImplementationType(MethodRuleDefinition ruleDefinition, Class<? extends BinarySpec> type) {
-        MyBinaryTypeBuilder builder = new MyBinaryTypeBuilder();
-        ruleDefinition.getRuleInvoker().invoke(builder);
-        Class<? extends BinarySpec> implementation = builder.implementation;
-        if (implementation != null) {
-            if (!DefaultBinarySpec.class.isAssignableFrom(implementation)) {
-                throw new InvalidComponentModelException(String.format("Binary implementation '%s' must extend '%s'.", implementation.getSimpleName(), DefaultBinarySpec.class.getSimpleName()));
-            }
-            if (!type.isAssignableFrom(implementation)) {
-                throw new InvalidComponentModelException(String.format("Binary implementation '%s' must implement '%s'.", implementation.getSimpleName(), type.getSimpleName()));
-            }
-            try {
-                implementation.getConstructor();
-            } catch (NoSuchMethodException nsmException) {
-                throw new InvalidComponentModelException(String.format("Binary implementation '%s' must have public default constructor.", implementation.getSimpleName()));
-            }
-        }
-        return (Class<? extends DefaultBinarySpec>) implementation;
-    }
-
-    private static class MyBinaryTypeBuilder<T extends BinarySpec> implements BinaryTypeBuilder<T> {
-        Class<? extends T> implementation;
-
-        public void setDefaultImplementation(Class<? extends T> implementation) {
-            if (this.implementation != null) {
-                throw new InvalidComponentModelException("BinaryType method cannot set default implementation multiple times.");
-            }
-            this.implementation = implementation;
-        }
-    }
-
-    private class RegisterBinaryTypeRule implements ModelMutator<ExtensionContainer> {
-        private final ModelRuleDescriptor descriptor;
-        private final ModelReference<ExtensionContainer> subject;
-        private final List<ModelReference<?>> inputs = Lists.newArrayList();
+        private final Instantiator instantiator;
         private final Class<? extends BinarySpec> type;
         private final Class<? extends DefaultBinarySpec> implementation;
 
-        private RegisterBinaryTypeRule(ModelRuleDescriptor descriptor, Class<? extends BinarySpec> type, Class<? extends DefaultBinarySpec> implementation) {
-            this.descriptor = descriptor;
+        public BinaryTypeRuleMutationAction(Instantiator instantiator, Class<? extends BinarySpec> type, Class<? extends DefaultBinarySpec> implementation) {
+            this.instantiator = instantiator;
             this.type = type;
             this.implementation = implementation;
-
-            subject = ModelReference.of("extensions", ExtensionContainer.class);
         }
 
-        public ModelReference<ExtensionContainer> getSubject() {
-            return subject;
-        }
-
-        public List<ModelReference<?>> getInputs() {
-            return inputs;
-        }
-
-        public void mutate(ExtensionContainer extensions, Inputs inputs) {
-            BinaryContainer binaries = extensions.getByType(BinaryContainer.class);
+        public void execute(MutationActionParameter mp) {
+            BinaryContainer binaries = mp.extensions.getByType(BinaryContainer.class);
             binaries.registerFactory(type, new NamedDomainObjectFactory() {
                 public Object create(String name) {
                     BinaryNamingScheme binaryNamingScheme = new DefaultBinaryNamingSchemeBuilder()
@@ -163,9 +73,6 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRule
             });
         }
 
-        public ModelRuleDescriptor getDescriptor() {
-            return descriptor;
-        }
     }
 }
 
