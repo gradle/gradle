@@ -9,7 +9,7 @@ When this feature is enabled, only classes that are considered stale are recompi
 This way not only the compiler does less work, but also fewer output class files are touched.
 The latter feature is extremely important for scenarios involving JRebel - the less output files are touched the quicker the jvm gets refreshed classes.
 
-We will improve the speed and capability of the incremental java compiler. Please give use feedback how does it work for your scenarios.
+We will improve the speed and capability of the incremental java compiler. Please give use feedback on how well it works for your builds.
 For more details please see the user guide section on “[Incremental compilation](userguide/java_plugin.html#sec:incremental_compile)”.
 To enable the feature, configure the [JavaCompile](dsl/org.gradle.api.tasks.compile.JavaCompile.html) task accordingly:
 
@@ -24,7 +24,7 @@ To enable the feature, configure the [JavaCompile](dsl/org.gradle.api.tasks.comp
     }
 
 We are very excited about the progress on the incremental java compilation.
-Class dependency analysis of compiled classes is really useful for many other scenarios that Gradle will handle in future:
+Class dependency analysis of compiled classes is useful for a number of other features that are planned for Gradle, such as:
 
 * detection of unused jars/classes
 * detection of duplicate classes on classpath
@@ -103,7 +103,7 @@ if the plugin metadata is not valid.
 
 ### PMD Console Output (i)
 
-It is now possible to have [PMD static analysis](userguide/pmd_plugin.html) output results directly to the console.
+It is now possible to have [PMD static analysis](userguide/pmd_plugin.html) print results directly to the console.
 
     pmd {
       consoleOutput = true
@@ -149,7 +149,7 @@ This feature addresses [GRADLE-2945] was contributed by [Biswa Dahal](https://gi
 
 ### Task visibility is exposed in Tooling API
 
-Tasks and selectors accessible from Tooling API now expose an information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html) as `public` property.
+Tasks and selectors accessible from the Tooling API now expose information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html) as the `public` property.
 
 ### Groovy version upgraded to 2.3.6
 
@@ -203,9 +203,8 @@ actions must take care to insert any schema-defined 'info' child elements before
 
 ### Cancellation support in Tooling API (i)
 
-The Tooling API now allows to cancel [operations](javadoc/org/gradle/tooling/LongRunningOperation.html) by submitting a cancel request
-through [CancellationTokenSource](http://www.gradle.org/docs/nightly/javadoc/org/gradle/tooling/CancellationTokenSource.html).
-Current implementation attempts to cancel the build first and can fall back to stopping the daemon.
+The Tooling API now provides cancel [operations](javadoc/org/gradle/tooling/LongRunningOperation.html) which use a [CancellationTokenSource](http://www.gradle.org/docs/nightly/javadoc/org/gradle/tooling/CancellationTokenSource.html)
+to submit cancel requests.  The current implementation attempts to cancel the build first, and then will resort to stopping the daemon.
 
 ### Command line report to show details of the components produced by the build (i)
 
@@ -243,7 +242,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Upgraded to Groovy 2.3.6
+### Upgrade to Groovy 2.3.6
 
 TBD
 
@@ -497,7 +496,7 @@ This change will not cause tests that previously passed to start failing.
 
 ### configuration.exclude now validates the input
 
-Previously, a typo in configuration-level dependency exclude rule remained undetected and led to problems like GRADLE-3124.
+Previously, a typo in a configuration-level dependency exclude rule remained undetected and led to problems like GRADLE-3124.
 Now the build fails fast when exclude rule is configured with a wrong key.
 
     //fails fast now, 'module' is the correct key
@@ -529,7 +528,7 @@ This applies to all named domain object containers in Gradle.
  
 ### ModelRule, ModelFinalizer, ModelRules removed
 
-These, incubating, classes formed the API being used to manage model configuration by plugins.
+These incubating classes formed the API being used to manage model configuration by plugins.
 They have been removed in favor of a different approach.
 
 The replacement mechanism is currently undocumented and not yet designed for public use.
