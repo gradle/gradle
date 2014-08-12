@@ -37,7 +37,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
     /**
      * Sets the destination name of this file.
      *
-     * @param name The name of this file.
+     * @param name The destination name of this file.
      */
     void setName(String name);
 
@@ -78,6 +78,13 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      */
     @Incubating
     DuplicatesStrategy getDuplicatesStrategy();
+
+    /**
+     * Returns the base name of this file at the copy destination.
+     *
+     * @return The destination name. Never returns null.
+     */
+    String getName();
 
     /**
      * Returns the path of this file, relative to the root of the copy destination.
