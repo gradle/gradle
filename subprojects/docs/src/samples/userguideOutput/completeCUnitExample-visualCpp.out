@@ -3,6 +3,7 @@ plus.c
 suite_operators.c
 test_minus.c
 test_plus.c
+gradle_cunit_main.c
 
 There were test failures:
   1. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/c/test_plus.c:6  - plus(0, -2) == -2
