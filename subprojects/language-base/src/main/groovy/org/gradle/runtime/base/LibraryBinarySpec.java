@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.runtime.base;
 
-import org.gradle.runtime.base.LibraryBinarySpec;
+import org.gradle.api.Incubating;
 
 /**
- * Represents a binary artifact that is the result of building a native library component.
- */
-public interface NativeLibraryBinarySpec extends NativeBinarySpec, LibraryBinarySpec {
+ * A binary produced from a `{@link org.gradle.runtime.base.LibrarySpec}`.
+ * */
+@Incubating
+ public interface LibraryBinarySpec extends BinarySpec {
 }

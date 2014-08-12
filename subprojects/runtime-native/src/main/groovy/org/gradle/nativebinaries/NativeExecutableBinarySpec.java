@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
+import org.gradle.runtime.base.ApplicationBinarySpec;
 
 import java.io.File;
 
@@ -24,7 +25,7 @@ import java.io.File;
  * An binary built by Gradle for a native application.
  */
 @Incubating
-public interface NativeExecutableBinarySpec extends NativeBinarySpec {
+public interface NativeExecutableBinarySpec extends NativeBinarySpec, ApplicationBinarySpec {
     /**
      * The executable file.
      */

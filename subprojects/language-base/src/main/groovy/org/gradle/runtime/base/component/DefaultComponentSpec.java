@@ -40,7 +40,7 @@ public class DefaultComponentSpec implements ComponentSpec {
 
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
-    private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
+    private final DomainObjectSet<? extends BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
     private final FunctionalSourceSet mainSourceSet;
 
     public static <T extends DefaultComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
@@ -91,7 +91,7 @@ public class DefaultComponentSpec implements ComponentSpec {
         sourceSets.source(sources);
     }
 
-    public DomainObjectSet<BinarySpec> getBinaries() {
+    public DomainObjectSet<? extends BinarySpec> getBinaries() {
         return binaries;
     }
 

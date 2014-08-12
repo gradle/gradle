@@ -27,6 +27,7 @@ import org.gradle.nativebinaries.NativeLibrarySpec;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
+import org.gradle.runtime.base.LibraryBinarySpec;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import java.io.File;
@@ -34,7 +35,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec {
+public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec implements LibraryBinarySpec {
 
     protected AbstractNativeLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                                               BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
