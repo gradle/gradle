@@ -2,6 +2,23 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Easier use of community plugins (i)
+
+The new plugin resolution mechanism, backed by the new [Gradle Plugin Portal](http://plugins.gradle.org), makes it easier to use community Gradle plugins.
+Instead of combining a `buildscript` script block and an `apply`, both statements can be replaced by a
+[plugins script block](dsl/org.gradle.plugin.use.PluginDependenciesSpec.html).
+
+    plugins {
+        id 'com.company.myplugin' version '1.3'
+    }
+
+Gradle will query the Plugin Portal for the implementation details of the specified plugins.
+The Plugin Portal's plugin browsing interface provides copy/paste friendly snippets.
+
+Many enhancements and features are planned for both the Plugin Portal and plugins in general.
+The new `plugins {}` block is not yet a complete replacement for the existing `apply()` method that is used to apply plugins.
+Its functionality will be expanded over coming releases.
+
 ### Incremental Java compilation (i)
 
 Gradle 2.1 brings incubating support for compiling Java code incrementally.
@@ -38,6 +55,13 @@ No change is required to builds to take advantage of this change.
 
 If you are using the `mavenCentral()` or `jcenter()` [repository notations](dsl/org.gradle.api.artifacts.dsl.RepositoryHandler.html) 
 your build will now access these repositories via HTTPS.
+
+### Groovy version upgraded to 2.3.6
+
+Gradle 2.1 includes Groovy 2.3.6, where Gradle 2.0 included Groovy 2.3.4.
+
+This is a non breaking change.
+All build scripts and plugins that work with Gradle 2.0 will continue to work without change.
 
 ### Child processes started by Gradle are better described
 
@@ -76,23 +100,6 @@ And specified in the build script as…
 Where `file("myConfigScript.groovy")` contains the Groovy code from above.
  
 This feature was contributed by [Cédric Champeau](https://github.com/melix).
-
-### Easier use of community plugins (i)
-
-The new plugin resolution mechanism, backed by the new [Gradle Plugin Portal](http://plugins.gradle.org), makes it easier to use community Gradle plugins.
-Instead of combining a `buildscript` script block and an `apply`, both statements can be replaced by a 
-[plugins script block](dsl/org.gradle.plugin.use.PluginDependenciesSpec.html).
-
-    plugins {
-        id 'com.company.myplugin' version '1.3'
-    }
-
-Gradle will query the Plugin Portal for the implementation details of the specified plugins.
-The Plugin Portal's plugin browsing interface provides copy/paste friendly snippets.
-
-Many enhancements and features are planned for both the Plugin Portal and plugins in general.
-The new `plugins {}` block is not yet a complete replacement for the existing `apply()` method that is used to apply plugins.
-Its functionality will be expanded over coming releases.
 
 ### Java Gradle Plugin plugin (i)
 
@@ -147,17 +154,6 @@ The generated POM file will contain the following content:
 
 This feature addresses [GRADLE-2945] was contributed by [Biswa Dahal](https://github.com/ffos).
 
-### Task visibility is exposed in Tooling API
-
-Tasks and selectors accessible from the Tooling API now expose information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html) as the `public` property.
-
-### Groovy version upgraded to 2.3.6
-
-Gradle 2.1 includes Groovy 2.3.6, where Gradle 2.0 included Groovy 2.3.4.
-
-This is a non breaking change.
-All build scripts and plugins that work with Gradle 2.0 will continue to work without change.
-
 ### Support for the 'branch' attribute when publishing or resolving Ivy modules (i)
 
 The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports setting the 'branch' attribute on the module being published:
@@ -200,6 +196,10 @@ Configured extra info elements are added as children of the ivy 'info' element.
 Note that the [ivy schema](http://ant.apache.org/ivy/schemas/ivy.xsd) demands that any extra info elements be added after any child elements
 of 'info' that are defined in the schema (e.g. description or ivyauthor).  This means that any [withXml()](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html#withXml%28org.gradle.api.Action%29)
 actions must take care to insert any schema-defined 'info' child elements before any extra 'info' elements that may have been added.
+
+### Task visibility is exposed in Tooling API (i)
+
+Tasks and selectors accessible from the Tooling API now expose information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html) as the `public` property.
 
 ### Cancellation support in Tooling API (i)
 
