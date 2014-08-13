@@ -1,3 +1,14 @@
+New DSL makes it easy to apply community plugins. First Gradle release that is integrated with the plugin portal.
+Easier to find and use plugins.
+
+Incremental Java compilation means faster builds.
+
+New publishing plugins received some improvements.
+
+IDE integration continues to be a focus. Can now cancel a build through the tooling API, which is the API used by the IDE integrations.
+
+20 community contributions is a world record for any Gradle release.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -245,7 +256,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Upgrade to Groovy 2.3.6
 
-TBD
+The version of Groovy that Gradle uses to compile and run build scripts has been upgraded from 2.3.4 to 2.3.6. This should be a non-breaking change.
 
 ### Changed Java compiler integration for joint Java - Scala compilation
 
