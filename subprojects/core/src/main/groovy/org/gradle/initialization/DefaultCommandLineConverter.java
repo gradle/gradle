@@ -97,7 +97,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
                 .setProjectDir(startParameter.getCurrentDir());
         layoutCommandLineConverter.convert(options, layout);
         startParameter.setGradleUserHomeDir(layout.getGradleUserHomeDir());
-        startParameter.setProjectDir(layout.getProjectDir());
+        if (options.hasOption(LayoutCommandLineConverter.PROJECT_DIR)) {
+            startParameter.setProjectDir(layout.getProjectDir());
+        }
         startParameter.setSearchUpwards(layout.getSearchUpwards());
 
         if (options.hasOption(BUILD_FILE)) {

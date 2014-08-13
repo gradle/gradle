@@ -46,6 +46,8 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     private DefaultProjectDescriptor rootProjectDescriptor;
 
+    private ProjectDescriptor defaultProjectDescriptor;
+
     private GradleInternal gradle;
 
     private ProjectDescriptorRegistry projectDescriptorRegistry;
@@ -153,6 +155,14 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     public void setRootProjectDescriptor(DefaultProjectDescriptor rootProjectDescriptor) {
         this.rootProjectDescriptor = rootProjectDescriptor;
+    }
+
+    public ProjectDescriptor getDefaultProject() {
+        return defaultProjectDescriptor;
+    }
+
+    public void setDefaultProject(ProjectDescriptor defaultProjectDescriptor) {
+        this.defaultProjectDescriptor = defaultProjectDescriptor;
     }
 
     public File getRootDir() {

@@ -29,7 +29,8 @@ import spock.lang.Specification
 class ProjectPropertySettingBuildLoaderTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final BuildLoader target = Mock()
-    final ProjectDescriptor projectDescriptor = Mock()
+    final ProjectDescriptor rootProjectDescriptor = Mock()
+    final ProjectDescriptor defaultProjectDescriptor = Mock()
     final GradleInternal gradle = Mock()
     final ProjectInternal rootProject = Mock()
     final ProjectInternal childProject = Mock()
@@ -60,10 +61,10 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         _ * propertiesLoader.mergeProperties(!null) >> [:]
         
         when:
-        loader.load(projectDescriptor, gradle, classLoaderScope)
+        loader.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
 
         then:
-        1 * target.load(projectDescriptor, gradle, classLoaderScope)
+        1 * target.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
         0 * target._
     }
 
@@ -72,7 +73,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         2 * propertiesLoader.mergeProperties([:]) >> [prop: 'value']
 
         when:
-        loader.load(projectDescriptor, gradle, classLoaderScope)
+        loader.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
 
         then:
         1 * rootProject.setProperty('prop', 'value')
@@ -84,7 +85,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         2 * propertiesLoader.mergeProperties([:]) >> [prop: 'value']
 
         when:
-        loader.load(projectDescriptor, gradle, classLoaderScope)
+        loader.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
 
         then:
         1 * rootProject.setProperty('prop', 'value') >> { throw new MissingPropertyException('prop', rootProject.class) }
@@ -97,7 +98,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         GUtil.saveProperties(new Properties([prop: 'childValue']), new File(childProjectDir, Project.GRADLE_PROPERTIES))
 
         when:
-        loader.load(projectDescriptor, gradle, classLoaderScope)
+        loader.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
 
         then:
         1 * propertiesLoader.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']

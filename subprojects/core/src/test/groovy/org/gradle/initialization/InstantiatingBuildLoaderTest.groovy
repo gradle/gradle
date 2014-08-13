@@ -66,7 +66,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         build.getStartParameter() >> startParameter
     }
 
-    def createsBuildWithRootProject() {
+    def createsBuildWithRootProjectAsTheDefaultOne() {
         when:
         ProjectDescriptor rootDescriptor = descriptor('root', null, rootProjectDir)
         ProjectInternal rootProject = project(rootDescriptor, null)
@@ -77,29 +77,24 @@ class InstantiatingBuildLoaderTest extends Specification {
         1 * build.setDefaultProject(rootProject)
 
         then:
-        buildLoader.load(rootDescriptor, build, baseClassLoaderScope)
+        buildLoader.load(rootDescriptor, rootDescriptor, build, baseClassLoaderScope)
     }
 
-    def createsBuildWithMultipleProjects() {
+    def createsBuildWithMultipleProjectsAndNotRootDefaultProject() {
         when:
         expectProjectsCreated()
-        buildLoader.load(rootDescriptor, build, baseClassLoaderScope)
+        1 * build.setDefaultProject(childProject)
+        buildLoader.load(rootDescriptor, childDescriptor, build, baseClassLoaderScope)
 
         then:
         rootProject.childProjects['child'].is childProject
     }
 
-    def expectProjectsCreatedNoDefaultProject() {
+    def expectProjectsCreated() {
         1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseClassLoaderScope) >> rootProject
         1 * projectFactory.createProject(childDescriptor, rootProject, !null, _ as ClassLoaderScope, baseClassLoaderScope) >> childProject
         1 * build.setRootProject(rootProject)
         build.getRootProject() >> rootProject
-    }
-
-    def expectProjectsCreated() {
-        expectProjectsCreatedNoDefaultProject()
-
-        1 * build.setDefaultProject(rootProject)
     }
 
     ProjectDescriptor descriptor(String name, ProjectDescriptor parent, File projectDir) {

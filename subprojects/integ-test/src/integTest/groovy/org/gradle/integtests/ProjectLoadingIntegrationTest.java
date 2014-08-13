@@ -276,4 +276,45 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
         inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":thing", ":sub:thing");
     }
+
+
+    @Test
+    public void rootProjectDirectoryAndBuildFileDoNotHaveToExistsWhenInSettingsDir() {
+        TestFile settingsDir = testFile("gradle");
+        TestFile settingsFile = settingsDir.file("settings.gradle");
+        settingsFile.writelns(
+                "rootProject.projectDir = new File(settingsDir, '../root')",
+                "include 'sub'",
+                "project(':sub').projectDir = new File(settingsDir, '../sub')"
+        );
+        getTestDirectory().createDir("sub").file("build.gradle").writelns("task thing");
+
+        inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":sub:thing");
+    }
+
+    @Test
+    public void settingsFileGetsIgnoredWhenUsingSettingsOnlyDirectoryAsProjectDirectory() {
+        TestFile settingsDir = testFile("gradle");
+        TestFile settingsFile = settingsDir.file("settings.gradle");
+        settingsFile.writelns(
+                "rootProject.projectDir = new File(settingsDir, '../root')"
+        );
+        getTestDirectory().createDir("root").file("build.gradle").writelns("task thing");
+
+        inTestDirectory().withArguments("-p", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
+                .assertHasDescription("Task 'thing' not found in root project 'gradle'.");
+    }
+
+    @Test
+    public void cannotUseDirectoryAsBuildFile() {
+        TestFile settingsDir = testFile("gradle");
+        TestFile settingsFile = settingsDir.file("settings.gradle");
+        settingsFile.writelns(
+                "rootProject.projectDir = new File(settingsDir, '../root')"
+        );
+        getTestDirectory().createDir("root").file("build.gradle").writelns("task thing");
+
+        inTestDirectory().withArguments("-b", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
+                .assertHasDescription(String.format("Build file '%s' is not a file.", settingsDir.getAbsolutePath()));
+    }
 }
