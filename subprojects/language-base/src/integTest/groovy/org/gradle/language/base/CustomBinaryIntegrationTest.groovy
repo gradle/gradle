@@ -103,7 +103,7 @@ task checkModel << {
             @RuleSource
             static class Rules {
                 @Mutate
-                void createSampleBinaries(NamedItemCollectionBuilder<SampleBinary> binaries) {
+                void createSampleBinaries(CollectionBuilder<SampleBinary> binaries) {
                     binaries.create("sampleBinary")
                 }
 
@@ -141,7 +141,7 @@ task checkModel << {
                 }
 
                 @Mutate
-                void createSampleBinaryInstances(NamedItemCollectionBuilder<SampleBinary> binaries) {
+                void createSampleBinaryInstances(CollectionBuilder<SampleBinary> binaries) {
                     binaries.create("sampleBinary")
                 }
 
@@ -151,7 +151,7 @@ task checkModel << {
                 }
 
                 @Mutate
-                void createAnotherSampleBinaryInstances(NamedItemCollectionBuilder<AnotherSampleBinary> anotherBinaries) {
+                void createAnotherSampleBinaryInstances(CollectionBuilder<AnotherSampleBinary> anotherBinaries) {
                     anotherBinaries.create("anotherSampleBinary")
                 }
             }
@@ -272,7 +272,7 @@ BUILD SUCCESSFUL"""))
                 }
 
                 @Mutate
-                void createSampleBinary(NamedItemCollectionBuilder<SampleBinary> binarySpecs) {
+                void createSampleBinary(CollectionBuilder<SampleBinary> binarySpecs) {
                     println "creating binary"
                     binarySpecs.create("sampleBinary")
                 }
