@@ -15,9 +15,9 @@
  */
 
 package org.gradle.runtime.base.library
-
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.runtime.base.ComponentSpecIdentifier
 import org.gradle.runtime.base.ModelInstantiationException
@@ -27,7 +27,8 @@ class DefaultLibrarySpecTest extends Specification {
     def instantiator = new DirectInstantiator()
     def libraryId = Mock(ComponentSpecIdentifier)
     FunctionalSourceSet functionalSourceSet;
-    def setup(){
+
+    def setup() {
         functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
     }
 
@@ -66,16 +67,25 @@ class DefaultLibrarySpecTest extends Specification {
         e.cause.message.startsWith "Could not find any public constructor for class"
     }
 
-    def "contains sources of associated mainsourceSet"() {
-
+    def "contains sources of associated main sourceSet"() {
         when:
-        DefaultLibrarySpec.create(MyConstructedLibrary, libraryId, functionalSourceSet, instantiator)
+        def lss1 = languageSourceSet("lss1")
+        functionalSourceSet.add(lss1)
+
+        def library = DefaultLibrarySpec.create(MySampleLibrary, libraryId, functionalSourceSet, instantiator)
+
+        and:
+        def lss2 = languageSourceSet("lss2")
+        functionalSourceSet.add(lss2)
 
         then:
-        def e = thrown ModelInstantiationException
-        e.message == "Could not create library of type MyConstructedLibrary"
-        e.cause instanceof IllegalArgumentException
-        e.cause.message.startsWith "Could not find any public constructor for class"
+        library.getSource() as List == [lss1, lss2]
+    }
+
+    def languageSourceSet(String name) {
+        Stub(LanguageSourceSet) {
+            getName() >> name
+        }
     }
 
     static class MySampleLibrary extends DefaultLibrarySpec {}

@@ -87,8 +87,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
             String path = testedComponent.getProjectPath();
             ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
             FunctionalSourceSet testSuiteSourceSet = projectSourceSet.maybeCreate(suiteName);
-            final DefaultCUnitTestSuiteSpec cUnitTestSuiteSpec = instantiator.newInstance(DefaultCUnitTestSuiteSpec.class, id, testedComponent, testSuiteSourceSet);
-            return cUnitTestSuiteSpec;
+            return instantiator.newInstance(DefaultCUnitTestSuiteSpec.class, id, testedComponent, testSuiteSourceSet);
         }
 
         @Mutate

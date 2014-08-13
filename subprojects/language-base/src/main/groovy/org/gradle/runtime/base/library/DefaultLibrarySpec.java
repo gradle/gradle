@@ -35,12 +35,12 @@ import java.util.Set;
 @Incubating
 public class DefaultLibrarySpec implements LibrarySpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
+    private final FunctionalSourceSet mainSourceSet;
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
 
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
     private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
-    private final FunctionalSourceSet mainSourceSet;
 
     public static <T extends DefaultLibrarySpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
         nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName(), mainSourceSet));
@@ -63,6 +63,7 @@ public class DefaultLibrarySpec implements LibrarySpec {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
+        sourceSets.addMainSources(this.mainSourceSet);
     }
 
     public String getName() {
