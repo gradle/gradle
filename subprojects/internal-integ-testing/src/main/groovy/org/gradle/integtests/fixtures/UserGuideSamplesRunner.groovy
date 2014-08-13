@@ -248,6 +248,10 @@ class UserGuideSamplesRunner extends Runner {
                 it.outputFile = it.outputFile.replace(".out", "-visualCpp.out")
             }
         }
+        if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
+            // Ignore for now
+            samplesById.remove('completeCUnitExample')
+        }
 
         return samplesById.values()
     }
