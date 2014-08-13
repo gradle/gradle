@@ -64,6 +64,11 @@ public abstract class CollectionUtils {
         return filter(list, new LinkedList<T>(), filter);
     }
 
+    public static <T> List<T> filter(T[] array, Spec<? super T> filter) {
+        return filter(Arrays.asList(array), new LinkedList<T>(), filter);
+    }
+
+
     /**
      * Returns a sorted copy of the provided collection of things. Uses the provided comparator to sort.
      */

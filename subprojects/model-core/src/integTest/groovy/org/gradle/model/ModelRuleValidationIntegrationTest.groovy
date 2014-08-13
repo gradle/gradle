@@ -46,7 +46,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
-        failure.assertHasCause("MyPlugin\$Rules#strings() is not a valid model rule method")
+        failure.assertHasCause("Path of declared model element created by rule MyPlugin\$Rules#strings() is invalid.")
         failure.assertHasCause("Model element name ' ' has illegal first character ' ' (names must start with an ASCII letter or underscore)")
     }
 
@@ -76,7 +76,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
-        failure.assertHasCause("MyPlugin\$Rules#strings() is not a valid model rule method")
+        failure.assertHasCause("Path of declared model element created by rule MyPlugin\$Rules#strings() is invalid.")
         failure.assertHasCause("Model path 'foo. bar' is invalid due to invalid name component")
         failure.assertHasCause("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)")
     }

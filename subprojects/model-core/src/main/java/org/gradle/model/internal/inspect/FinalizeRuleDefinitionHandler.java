@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect.handlers;
+package org.gradle.model.internal.inspect;
 
 import org.gradle.model.Finalize;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.lang.annotation.Annotation;

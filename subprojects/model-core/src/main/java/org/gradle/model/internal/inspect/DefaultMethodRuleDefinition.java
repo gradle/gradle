@@ -26,7 +26,8 @@ import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.gradle.util.CollectionUtils.findFirst;
@@ -52,7 +53,7 @@ public class DefaultMethodRuleDefinition implements MethodRuleDefinition {
         for (int i = 0; i < types.length; i++) {
             Type paramType = types[i];
             Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
-            inputBindingBuilder.add(reference(paramType, paramAnnotations));
+            inputBindingBuilder.add(reference(paramType, paramAnnotations, i));
         }
         return inputBindingBuilder.build();
     }
@@ -69,7 +70,7 @@ public class DefaultMethodRuleDefinition implements MethodRuleDefinition {
         return method.getAnnotation(annotationType);
     }
 
-    private <T> ModelReference<T> reference(Type type, Annotation[] annotations) {
+    private <T> ModelReference<T> reference(Type type, Annotation[] annotations, int i) {
         Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
             public boolean isSatisfiedBy(Annotation element) {
                 return element.annotationType().equals(Path.class);
@@ -77,7 +78,7 @@ public class DefaultMethodRuleDefinition implements MethodRuleDefinition {
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
         @SuppressWarnings("unchecked") ModelType<T> cast = (ModelType<T>) ModelType.of(type);
-        return ModelReference.of(path == null ? null : ModelPath.path(path), cast);
+        return ModelReference.of(path == null ? null : ModelPath.path(path), cast, String.format("parameter %s", i + 1));
     }
 
 }

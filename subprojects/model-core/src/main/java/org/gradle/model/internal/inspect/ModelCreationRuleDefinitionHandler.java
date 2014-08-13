@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect.handlers;
+package org.gradle.model.internal.inspect;
 
+import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
-import org.gradle.model.internal.inspect.ModelRuleInvoker;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -41,7 +38,11 @@ public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionH
         // TODO validate model name
         String modelName = determineModelName(ruleDefinition);
 
-        ModelPath.validatePath(modelName);
+        try {
+            ModelPath.validatePath(modelName);
+        } catch (Exception e) {
+            throw new InvalidModelRuleDeclarationException(String.format("Path of declared model element created by rule %s is invalid.", ruleDefinition.getDescriptor()), e);
+        }
 
         // TODO validate the return type (generics?)
         ModelType<?> returnType = ruleDefinition.getReturnType();

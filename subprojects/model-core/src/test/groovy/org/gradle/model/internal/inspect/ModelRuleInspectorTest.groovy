@@ -20,9 +20,6 @@ import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.inspect.handlers.FinalizeRuleDefinitionHandler
-import org.gradle.model.internal.inspect.handlers.ModelCreationRuleDefinitionHandler
-import org.gradle.model.internal.inspect.handlers.MutateRuleDefinitionHandler
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification

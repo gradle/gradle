@@ -18,9 +18,10 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.registry.UnboundRuleReportOutputBuilder
+import org.gradle.model.internal.report.AmbiguousBindingReporter
+import org.gradle.model.internal.report.UnboundRuleReportOutputBuilder
 
-class UnboundModelRuleIntegrationTest extends AbstractIntegrationSpec {
+class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "unbound rules are reported"() {
         given:
@@ -94,5 +95,62 @@ class UnboundModelRuleIntegrationTest extends AbstractIntegrationSpec {
         def builder = new UnboundRuleReportOutputBuilder(new PrintWriter(string), "  ")
         builder.with(closure)
         string.toString()
+    }
+
+    def "ambiguous binding integration test"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+
+            class Plugin1 implements Plugin {
+                void apply(plugin) {}
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String s1() {
+                        "foo"
+                    }
+                }
+            }
+
+            class Plugin2 implements Plugin {
+                void apply(plugin) {}
+                @RuleSource
+                static class Rules {
+                    @Model
+                    String s2() {
+                        "bar"
+                    }
+                }
+            }
+
+            class Plugin3 implements Plugin {
+                void apply(plugin) {}
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void m(String s) {
+                        "foo"
+                    }
+                }
+            }
+
+            apply plugin: Plugin1
+            apply plugin: Plugin2
+            apply plugin: Plugin3
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Failed to apply plugin [class 'Plugin3']")
+        failure.assertHasCause("There is a problem with model rule Plugin3\$Rules#m(java.lang.String).")
+        failure.assertHasCause(
+                new AmbiguousBindingReporter(String.name, "parameter 1", [
+                        new AmbiguousBindingReporter.Provider("s2", "Plugin2\$Rules#s2()"),
+                        new AmbiguousBindingReporter.Provider("s1", "Plugin1\$Rules#s1()")
+                ]).asString()
+        )
     }
 }

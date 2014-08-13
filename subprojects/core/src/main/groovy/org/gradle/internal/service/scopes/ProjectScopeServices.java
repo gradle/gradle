@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
@@ -54,9 +55,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
-import org.gradle.model.internal.inspect.handlers.FinalizeRuleDefinitionHandler;
-import org.gradle.model.internal.inspect.handlers.ModelCreationRuleDefinitionHandler;
-import org.gradle.model.internal.inspect.handlers.MutateRuleDefinitionHandler;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -126,21 +124,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project, allPluginApplyActions);
     }
 
-    protected MethodRuleDefinitionHandler createModelAnnotationHandler() {
-        return new ModelCreationRuleDefinitionHandler();
-    }
-
-    protected MethodRuleDefinitionHandler createFinalizeAnnotationHandler() {
-        return new FinalizeRuleDefinitionHandler();
-    }
-
-    protected MethodRuleDefinitionHandler createMutateAnnotationHandler() {
-        return new MutateRuleDefinitionHandler();
-    }
-
     protected PluginApplicationAction createPluginModelRuleExtractor() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
-        ModelRuleInspector inspector = new ModelRuleInspector(handlers);
+        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandler.CORE_HANDLERS, handlers));
         return new PluginModelRuleExtractor(inspector);
     }
 

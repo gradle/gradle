@@ -22,6 +22,7 @@ import org.gradle.model.internal.core.ModelBinding;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.report.UnboundRuleReportOutputBuilder;
 
 import java.io.PrintWriter;
 import java.util.Arrays;

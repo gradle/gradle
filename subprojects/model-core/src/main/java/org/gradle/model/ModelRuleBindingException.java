@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.registry;
+package org.gradle.model;
 
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelPromise;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.api.GradleException;
 
-public interface ModelCreationListener {
-    boolean onCreate(ModelRuleDescriptor creatorDescriptor, ModelPath path, ModelPromise promise);
+/**
+ * Thrown when there is a problem binding the model element references of a model rule.
+ * <p>
+ * Should always be thrown as the cause of a {@link org.gradle.model.InvalidModelRuleException}.
+ */
+public class ModelRuleBindingException extends GradleException {
+
+    public ModelRuleBindingException(String message) {
+        super(message);
+    }
+
 }

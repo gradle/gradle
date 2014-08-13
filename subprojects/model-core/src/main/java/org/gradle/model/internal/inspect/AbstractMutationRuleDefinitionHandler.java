@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect.handlers;
+package org.gradle.model.internal.inspect;
 
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
-import org.gradle.model.internal.inspect.ModelRuleInvoker;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.lang.annotation.Annotation;

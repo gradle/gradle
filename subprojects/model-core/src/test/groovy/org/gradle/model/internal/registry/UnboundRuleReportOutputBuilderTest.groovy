@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry
 
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.report.UnboundRuleReportOutputBuilder
 import spock.lang.Specification
 
 class UnboundRuleReportOutputBuilderTest extends Specification {

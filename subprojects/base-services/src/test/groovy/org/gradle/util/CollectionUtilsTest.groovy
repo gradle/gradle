@@ -40,6 +40,18 @@ class CollectionUtilsTest extends Specification {
         filter(4, 5, 6) == [4]
     }
 
+    def "array filtering"() {
+        given:
+        def spec = Specs.convertClosureToSpec { it < 5 }
+        def filter = { Integer[] nums -> filter(nums, spec) }
+
+        expect:
+        filter(1, 2, 3) == [1, 2, 3]
+        filter(7, 8, 9) == []
+        filter() == []
+        filter(4, 5, 6) == [4]
+    }
+
     def "list collecting"() {
         def transformer = new Transformer() {
             def transform(i) { i * 2 }

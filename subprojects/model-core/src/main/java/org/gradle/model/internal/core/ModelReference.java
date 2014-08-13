@@ -33,14 +33,20 @@ public class ModelReference<T> {
 
     private final ModelPath path;
     private final ModelType<T> type;
+    private final String description;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type) {
+    private ModelReference(@Nullable ModelPath path, ModelType<T> type, String description) {
         this.path = path;
         this.type = type;
+        this.description = description;
+    }
+
+    public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, String description) {
+        return new ModelReference<T>(path, type, description);
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type) {
-        return new ModelReference<T>(path, type);
+        return new ModelReference<T>(path, type, null);
     }
 
     public static <T> ModelReference<T> of(String path, Class<T> type) {
@@ -62,6 +68,11 @@ public class ModelReference<T> {
     @Nullable
     public ModelPath getPath() {
         return path;
+    }
+
+    @Nullable
+    public String getDescription() {
+        return description;
     }
 
     public ModelType<T> getType() {

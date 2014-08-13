@@ -30,7 +30,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
 
 public class ModelRuleInspector {
 
@@ -65,13 +68,6 @@ public class ModelRuleInspector {
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
-    private static RuntimeException invalid(String description, ModelRuleDescriptor rule, Throwable cause) {
-        StringBuilder sb = new StringBuilder();
-        rule.describeTo(sb);
-        sb.append(" is not a valid ").append(description);
-        return new InvalidModelRuleDeclarationException(sb.toString(), cause);
-    }
-
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
     public Set<Class<?>> getDeclaredSources(Class<?> container) {
         Class<?>[] declaredClasses = container.getDeclaredClasses();
@@ -104,15 +100,14 @@ public class ModelRuleInspector {
         for (Method method : methods) {
             validate(method);
             MethodRuleDefinition ruleDefinition = new DefaultMethodRuleDefinition(method);
-                MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
-            try {
-                if (handler != null) {
-                    handler.register(ruleDefinition, modelRegistry, dependencies);
-                }
-            } catch (InvalidModelRuleDeclarationException e) {
-                throw e;
-            } catch (Exception e) {
-                throw invalid("model rule method", ruleDefinition.getDescriptor(), e);
+            MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
+            if (handler != null) {
+                // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
+                // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
+                // to work out what happened because the stack trace won't reveal any info about which rule was being registered.
+                // However, a “wrap everything” strategy doesn't quite work because the thrown exception may already have enough context
+                // and do a better job of explaining what went wrong than what we can do at this level.
+                handler.register(ruleDefinition, modelRegistry, dependencies);
             }
         }
     }

@@ -21,11 +21,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 
 // TODO some kind of context of why the method was attached (e.g. which plugin declared the rule)
 // TODO some kind of instance state for the method (might be the same as context above)
@@ -84,5 +87,23 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     @Override
     public int hashCode() {
         return method.hashCode();
+    }
+
+    public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {
+        List<Method> methodsOfName = CollectionUtils.filter(clazz.getDeclaredMethods(), new Spec<Method>() {
+            public boolean isSatisfiedBy(Method element) {
+                return element.getName().equals(methodName);
+            }
+        });
+
+        if (methodsOfName.isEmpty()) {
+            throw new IllegalStateException("Class " + clazz.getName() + " has no method named '" + methodName + "'");
+        }
+
+        if (methodsOfName.size() > 1) {
+            throw new IllegalStateException("Class " + clazz.getName() + " has more than one method named '" + methodName + "'");
+        }
+
+        return new MethodModelRuleDescriptor(methodsOfName.get(0));
     }
 }

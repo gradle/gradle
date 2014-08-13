@@ -24,8 +24,11 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Transformers;
+import org.gradle.model.InvalidModelRuleException;
+import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.report.AmbiguousBindingReporter;
 
 import java.util.*;
 
@@ -137,61 +140,24 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
         });
 
-        final ModelReference<T> subjectReference = binder.getSubjectReference();
-
-        registerListener(new ModelCreationListener() {
-            public boolean onCreate(ModelPath path, ModelPromise promise) {
-                if (subjectReference.getPath() == null) {
-                    boolean typeCompatible = promise.asWritable(subjectReference.getType());
-                    if (typeCompatible && subjectReference.getPath() == null) {
-                        binder.bindSubject(path);
-                        return true;
-                    }
-                } else if (path.equals(subjectReference.getPath())) {
-                    boolean typeCompatible = promise.asWritable(subjectReference.getType());
-                    if (typeCompatible) {
-                        binder.bindSubject(path);
-                        return true;
-                    } else {
-                        // TODO proper exception
-                        throw new IllegalStateException("incompatible type");
-                    }
-                }
-
-                return false;
+        registerListener(new BinderCreationListener(binder.getDescriptor(), binder.getSubjectReference(), true, new Action<ModelPath>() {
+            public void execute(ModelPath modelPath) {
+                binder.bindSubject(modelPath);
             }
-        });
+        }));
 
         bindInputs(binder);
     }
 
     private void bindInputs(final RuleBinder<?> binder) {
         List<ModelReference<?>> inputReferences = binder.getInputReferences();
-
         for (int i = 0; i < inputReferences.size(); i++) {
-            final ModelReference<?> inputReference = inputReferences.get(i);
             final int finalI = i;
-            registerListener(new ModelCreationListener() {
-                public boolean onCreate(ModelPath path, ModelPromise promise) {
-                    if (inputReference.getPath() == null) {
-                        if (promise.asReadOnly(inputReference.getType())) {
-                            binder.bindInput(finalI, path);
-                            return true;
-                        }
-                    } else if (path.equals(inputReference.getPath())) {
-                        boolean typeCompatible = promise.asReadOnly(inputReference.getType());
-                        if (typeCompatible) {
-                            binder.bindInput(finalI, path);
-                            return true;
-                        } else {
-                            // TODO proper exception
-                            throw new IllegalStateException("incompatible type");
-                        }
-                    }
-
-                    return false;
+            registerListener(new BinderCreationListener(binder.getDescriptor(), inputReferences.get(i), false, new Action<ModelPath>() {
+                public void execute(ModelPath modelPath) {
+                    binder.bindInput(finalI, modelPath);
                 }
-            });
+            }));
         }
     }
 
@@ -232,17 +198,22 @@ public class DefaultModelRegistry implements ModelRegistry {
     public void registerListener(ModelCreationListener listener) {
         boolean remove;
 
-        for (Map.Entry<ModelPath, BoundModelCreator> entry : creations.entrySet()) {
-            BoundModelCreator boundCreator = entry.getValue();
+        // Copy the creations we know about now because a listener may add creations, causing a CME.
+        // This can happen when a listener is listening in order to bind a type-only reference, and the
+        // reference binding causing the rule to fully bind and register a new creation.
+        List<ModelPath> creationKeys = new ArrayList<ModelPath>(creations.keySet());
+
+        for (ModelPath key : creationKeys) {
+            BoundModelCreator boundCreator = creations.get(key);
             ModelCreator creator = boundCreator.getCreator();
-            remove = listener.onCreate(creator.getPath(), creator.getPromise());
+            remove = listener.onCreate(creator.getDescriptor(), creator.getPath(), creator.getPromise());
             if (remove) {
                 return;
             }
         }
 
         for (ModelElement element : store.values()) {
-            remove = listener.onCreate(element.getPath(), element.getPromise());
+            remove = listener.onCreate(element.getCreatorDescriptor(), element.getPath(), element.getPromise());
             if (remove) {
                 return;
             }
@@ -285,9 +256,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         Transformer<List<ModelPath>, List<ModelPath>> passThrough = Transformers.noOpTransformer();
 
         return hasModelPath(candidate, mutators.values(), extractInputPaths)
-                || hasModelPath(candidate, usedMutators.values(), passThrough)
-                || hasModelPath(candidate, finalizers.values(), extractInputPaths)
-                || hasModelPath(candidate, usedFinalizers.values(), passThrough);
+               || hasModelPath(candidate, usedMutators.values(), passThrough)
+               || hasModelPath(candidate, finalizers.values(), extractInputPaths)
+               || hasModelPath(candidate, usedFinalizers.values(), passThrough);
     }
 
     private <T> boolean hasModelPath(ModelPath candidate, Iterable<T> things, Transformer<? extends Iterable<ModelPath>, T> transformer) {
@@ -436,11 +407,57 @@ public class DefaultModelRegistry implements ModelRegistry {
         ListIterator<ModelCreationListener> modelCreationListenerListIterator = modelCreationListeners.listIterator();
         while (modelCreationListenerListIterator.hasNext()) {
             ModelCreationListener next = modelCreationListenerListIterator.next();
-            boolean remove = next.onCreate(creator.getPath(), creator.getPromise());
+            boolean remove = next.onCreate(creator.getDescriptor(), creator.getPath(), creator.getPromise());
             if (remove) {
                 modelCreationListenerListIterator.remove();
             }
         }
     }
 
+    private static class BinderCreationListener implements ModelCreationListener {
+        private final ModelRuleDescriptor descriptor;
+        private final ModelReference<?> reference;
+        private final boolean writable;
+        private final Action<? super ModelPath> bindAction;
+        private ModelPath boundTo;
+        private ModelRuleDescriptor boundToCreator;
+
+        public BinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<? super ModelPath> bindAction) {
+            this.descriptor = descriptor;
+            this.reference = reference;
+            this.writable = writable;
+            this.bindAction = bindAction;
+        }
+
+        public boolean onCreate(ModelRuleDescriptor creatorDescriptor, ModelPath path, ModelPromise promise) {
+            if (boundTo != null && isTypeCompatible(promise)) {
+                throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
+                        new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()
+                ));
+            } else if (reference.getPath() == null) {
+                boolean typeCompatible = isTypeCompatible(promise);
+                if (typeCompatible) {
+                    bindAction.execute(path);
+                    boundTo = path;
+                    boundToCreator = creatorDescriptor;
+                    return false; // don't unregister listener, need to keep listening for other potential bindings
+                }
+            } else if (path.equals(reference.getPath())) {
+                boolean typeCompatible = isTypeCompatible(promise);
+                if (typeCompatible) {
+                    bindAction.execute(path);
+                    return true; // bound by type and path, stop listening
+                } else {
+                    // TODO proper exception
+                    throw new IllegalStateException("incompatible type");
+                }
+            }
+
+            return false;
+        }
+
+        private boolean isTypeCompatible(ModelPromise promise) {
+            return writable ? promise.asWritable(reference.getType()) : promise.asReadOnly(reference.getType());
+        }
+    }
 }
