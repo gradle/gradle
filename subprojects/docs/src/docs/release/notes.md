@@ -203,7 +203,8 @@ actions must take care to insert any schema-defined 'info' child elements before
 
 ### Cancellation support in Tooling API (i)
 
-The Tooling API now provides cancel [operations](javadoc/org/gradle/tooling/LongRunningOperation.html) which use a [CancellationTokenSource](http://www.gradle.org/docs/nightly/javadoc/org/gradle/tooling/CancellationTokenSource.html)
+The Tooling API now provides cancel [operations](javadoc/org/gradle/tooling/LongRunningOperation.html) which use a
+[CancellationTokenSource](http://www.gradle.org/docs/nightly/javadoc/org/gradle/tooling/CancellationTokenSource.html)
 to submit cancel requests.  The current implementation attempts to cancel the build first, and then will resort to stopping the daemon.
 
 ### Command line report to show details of the components produced by the build (i)
