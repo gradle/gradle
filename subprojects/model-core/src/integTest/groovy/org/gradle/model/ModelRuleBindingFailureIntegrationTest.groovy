@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.UnboundRuleReportOutputBuilder
-import org.gradle.util.TextUtil
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
