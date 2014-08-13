@@ -212,7 +212,7 @@ This story makes available the component and Ivy meta-data as optional read only
     }
 
 - Add ComponentMetadata as read-only view of ComponentMetadataDetails
-    - Rename internal ComponentMetaData -> ModuleComponentMetaData
+    - Rename internal ComponentMetaData -> ExternalComponentMetaData
 - Add `VersionSelectionRules.all(MetadataRule<VersionSelection> rule)
     - Only allowable input types are `ComponentMetadata` and `IvyModuleDescriptor`
     - Provide a `ModuleComponentRepositoryAccess` to `VersionSelectionRulesInternal.apply()`
