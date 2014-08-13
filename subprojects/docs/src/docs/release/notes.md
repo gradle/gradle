@@ -7,7 +7,7 @@ New publishing plugins received some improvements.
 
 IDE integration continues to be a focus. Can now cancel a build through the tooling API, which is the API used by the IDE integrations.
 
-20 community contributions is a world record for any Gradle release.
+20 community contributions is a record for any Gradle release.
 
 ## New and noteworthy
 
@@ -296,36 +296,46 @@ If you use Java 1.6 you need to configure an older version of FindBugs explicitl
     findbugs {
         toolVersion = '2.0.3'
     }
- 
+
 ### Changes to incubating native language plugins
 
-TODO: Note about major breaking changes and suggestions about when to upgrade
-TODO: Clean up this entire section
+The Gradle team is currently working hard on a new, faster configuration model as well as rework that will enable full dependency management
+support for native plugins. As part of this work, many changes have been made to the incubating native language plugins. While some effort has been
+made to avoid unnecessary breakages, in many cases such changes have been required.
+
+It is anticipated that these plugins will remain unstable for the next release or two. Considering that fact, it may be prudent to hold off upgrading your native
+build until the underlying infrastructure has stabilised. Naturally, we'll be [happy to assist with your migration](http://forums.gradle.org),
+whether you choose to stick with the 'bleeding-edge' or prefer to wait.
 
 #### Native language plugins no longer apply the base plugin
 
 The native language plugins now apply the [`LifecycleBasePlugin`](dsl/org.gradle.language.base.plugins.LifecycleBasePlugin) instead of the `BasePlugin`. This means
 that the default values defined by the `BasePlugin` are not available.
 
-TBD - make this more explicit re. what is actually not longer available.
+Of note, the following actions of the `BasePlugin` will be missing:
+
+- The `org.gradle.api.plugins.BasePluginConvention` and it's use to configure the `dists` directory, `libs` directory and `archivesBaseName`
+- The `build<Configuration>` task rule
+- The `upload<Configuration>` task rule
+- Any default `Configuration` instances
 
 #### Domain model reorganisation
+
+Many domain model classes have been renamed for consistency, and to permit better integration with the new `jvm` component model.
+
+In general, model classes that define how a component or binary is built have been renamed with the `Spec` suffix.
+(Previously, we inconsistently used the `Project` prefix for this purpose).
+For example, `ProjectNativeComponent` is now `NativeComponentSpec` and `CUnitTestSuiteBinary` is now `CUnitTestSuiteBinarySpec`.
+
+In addition to these renames for consistency, the following changes were made:
 
 - Merged NativeTestSuite and ProjectComponentNativeTestSuite
 - NativeTestSuiteBinary no longer extends NativeExecutableBinary
 - Merged TestSuiteExecutableBinary into NativeTestSuiteBinary
-- Renamed CUnitTestSuite -> CUnitTestSuiteSpec
-- Renamed CUnitTestSuiteBinary -> CUnitTestSuiteBinarySpec
-- Renamed CUnitTestSuiteExecutableBinary -> CUnitTestSuiteBinary
-- Renamed ProjectNativeComponent -> NativeComponentSpec
-- Renamed ProjectNativeExecutable -> NativeExecutableSpec
-- Renamed ProjectNativeTestSuite -> NativeTestSuiteSpec
-- Renamed ProjectNativeLibrary -> NativeLibrarySpec
-- TODO: document all of the changes once they are finalised
 
 #### Changes to native cross compilation and custom platforms support
 
-In [PlatformConfigurableToolChain](dsl/org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain.html) we removed
+To avoid a proliferation of methods on [PlatformConfigurableToolChain](dsl/org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain.html), we removed:
 
 * target(Platform, Action)
 * target(Platform)
@@ -336,40 +346,10 @@ In [PlatformConfigurableToolChain](dsl/org.gradle.nativebinaries.toolchain.Platf
 
 #### Changes to `sources` DSL
 
-As part of our migration to use model rules, there have been some changes to the behaviour of the `sources` container.
+When a language plugin is applied, a `LanguageSourceSet` is only added to a `FunctionalSourceSet` when that `FunctionalSourceSet` is associated with a component.
+In practise, this means that a build script should configure any language source sets after the components have been defined.
 
-TODO: double check as this has changed in last stories.
-
-The primary `FunctionalSourceSet` for a component is not created eagerly when the component is defined. This means that you cannot
-reference these source sets directly via dot-notation, but should instead use the `sources` container to optionally create them when configuring.
-
-For example:
-
-    executables {
-        main
-    }
-    // No longer works, since 'sources.main' doesn't yet exist
-    sources.main.cpp.lib library: 'foo'
-
-    // Still works, because 'main' will be created if it doesn't yet exist
-    sources {
-        main.cpp.lib library: 'foo'
-    }
-    
-If a language plugin is applied, an according language source set is not automatically 
-added to all functional sourcet set declared using the `sources` DSL. Instead it must be declared 
-manually with name and type.
-
-    apply plugin:'cpp'
-    
-    sources {
-        lib {
-            // explicitly create a cpp source set of type CppSourceSet
-            cpp(CppSourceSet)
-        }
-    }
-
-For a declared component an functional sourceSet is created and appropriate sourceSets
+More details are available in the following section: [Changes to the incubating `LanguageBasePlugin`](#changes-to-the-incubating-languagebaseplugin).
 
 #### Changes to CUnit configuration DSL
 
@@ -408,39 +388,47 @@ For a declared component an functional sourceSet is created and appropriate sour
 Very early versions of the `cpp-lib` and `cpp-exe` plugins had rudimentary support for publishing and resolving native components.
 This support was never fully functional, and has now been completely removed in preparation for full support in the upcoming releases.
 
-### Changes to incubating language base plugin
+### Changes to the incubating `LanguageBasePlugin`
 
-The `projectComponents` container was renamed to `componentSpecs`. 
-We extracted the creation of the `componentSpecs` container and the LanguageRegistry `languages` out of `LanguageBasePlugin` 
-into `ComponentModelBasePlugin`.
+The `LanguageBasePlugin` serves as a basis for the new component-based native and java language plugin suites. As part of ongoing work in these domains,
+major changes have been made to this base plugin.
 
-#### Default creation of SourceSets
+#### Domain model reorganisation
 
-Each declared component in the build creates an according functional source set in the build tight to the component.
+- Renamed ProjectComponent -> ComponentSpec
+- Renamed ProjectComponentContainer -> ComponentSpecContainer
+- Renamed ComponentSpecIdentifier -> NamedProjectComponentIdentifier
+- Renamed ProjectBinary -> BinarySpec
+
+#### Renamed `projectComponents` container to `componentSpecs`
+
+The `projectComponents` container extension has been renamed to `componentSpecs`. This container is now added by the `ComponentModelBasePlugin` and
+not by the `LanguageBasePlugin`.
+
+#### Creation of default `LanguageSourceSet` instances
+
+In previous Gradle versions each language plugin applied triggered the automatic creation of a `LanguageSourceSet` for each
+FunctionalSourceSet in the project. With Gradle 2.1, this has been changed to that only languages appropriate to the respective component
+are added to the `FunctionalSourceSet`.
+
+To facilitate this change, a functional source set is created for each declared component in the build at the point of constructing the component.
+
+Consider the example:
+
+    apply plugin: 'cpp'
+    apply plugin: 'java-lang'
 
     executables {
         main
     }
 
 
-Creates a native executable component and will also create a functional sourceset named `main`. 
+This example defines a `NativeExecutable` component named 'main' and will also create the `FunctionalSourceSet` 'sources.main'. A `CppSourceSet` 'cpp' will be added
+to 'sources.main', but no `JavaSourceSet` will be added because this language is not applicable to a `NativeExecutable`.
 
-In prior Gradle versions each language registered in the LanguageRegistry caused the creation of an according default language sourceset for each
-FunctionalSourceSet in the project. With Gradle 2.1 LanguageSourceSets are created only for sourceSets coupled to a component. 
-The component knows it's relevant LanguageSourceSets. 
+Similarly, when a jvm library is defined no `c` or `cpp` source sets will be created, even when the `c` and `cpp` language plugins are applied.
 
-For the native executable component declared above for example there will be no default java sourceSet as it's a native component. 
-Vice versa the following component declaration of a jvm library named `myLib` will not cause the creation of a `c` or `cpp` sourceSet for `myLib`
-when the `C` and `CPP` plugin is applied.
-
-    jvm {
-        libraries {
-            myLib
-        }
-    }
-    
-If a sourceSet of a component needs further configuration it is currently necessary to put this configuration (using the `sources` DSL _after_ 
-the component declaration:
+If the source sets of a component require further configuration, it is necessary to place this configuration _after_ the declaration of the component:
 
     executables {
         main
@@ -457,27 +445,33 @@ the component declaration:
         }
     }
 
-#### Domain model reorganisation
+Alternatively, you can create and configure any `FunctionalSourceSet` and `LanguageSourceSet` instances directly via the `sources` DSL at any time:
 
-- Renamed ProjectComponent -> ComponentSpec
-- Renamed ProjectComponentContainer -> ComponentSpecContainer
-- Renamed ComponentSpecIdentifier -> NamedProjectComponentIdentifier
-- Renamed ProjectBinary -> BinarySpec
+    apply plugin:'cpp'
+
+    sources {
+        lib {
+            // explicitly create a cpp source set of type CppSourceSet
+            cpp(CppSourceSet)
+        }
+    }
 
 ### Changes to incubating Java language plugins
 
 To better support the production of multiple binary outputs for a single set of sources, a new set of Java
-language plugins was been introduced in Gradle 1.x. This development continues in this release, with the removal of the
+language plugins was introduced in Gradle 1.x. This development continues in this release, with the removal of the
 `jvm-lang` plugin, and the replacement of the `java-lang` plugin with a completely new implementation.
 
 The existing `java` plugin is unchanged: only users who explicitly applied the `jvm-lang` or `java-lang` plugins
 will be affected by this change.
 
+#### Plugin reorganisation
+
 The plugin classes `org.gradle.api.plugins.JvmLanguagePlugin` and `org.gradle.api.plugins.JavaLanguagePlugin` were merged into
 `org.gradle.api.plugins.LegacyJavaComponentPlugin` to avoid confusions with `org.gradle.language.java.plugins.JavaLanguagePlugin`.
 
-The plugin class `org.gradle.language.java.plugins.LegacyJavaComponentPlugin` does not register a factory for `JavaSourceSet` 
-and `ResourceSourceSet` on each functional source set anymore.
+The new plugin class `org.gradle.language.java.plugins.LegacyJavaComponentPlugin` does not register a factory for `JavaSourceSet`
+and `ResourceSourceSet` on each `FunctionalSourceSet`.
 
 #### Domain model reorganisation
 
