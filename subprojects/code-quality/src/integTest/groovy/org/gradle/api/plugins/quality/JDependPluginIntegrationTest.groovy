@@ -108,6 +108,14 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
         failure.assertHasCause "JDepend tasks must have one report enabled"
     }
 
+    def "does not prematurely resolve configurations"() {
+        given:
+        goodCode()
+
+        expect:
+        succeeds("tasks")
+    }
+
     private goodCode() {
         file("src/main/java/org/gradle/Class1.java") <<
                 "package org.gradle; class Class1 { public boolean is() { return true; } }"
