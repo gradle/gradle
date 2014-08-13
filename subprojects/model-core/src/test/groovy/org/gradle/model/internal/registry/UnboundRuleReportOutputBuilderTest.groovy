@@ -18,6 +18,7 @@ package org.gradle.model.internal.registry
 
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.UnboundRuleReportOutputBuilder
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class UnboundRuleReportOutputBuilderTest extends Specification {
@@ -35,14 +36,14 @@ class UnboundRuleReportOutputBuilderTest extends Specification {
                 .immutableBound("parent.p5", Number.name)
 
         then:
-        output.toString() == """> r1
+        output.toString() == TextUtil.normaliseLineSeparators("""> r1
 >   Mutable:
 >     - parent.p1 (java.lang.String)
 >     + parent.p2 (java.lang.Integer)
 >   Immutable:
 >     - parent.p3 (java.lang.Number)
 >     - <unspecified> (java.lang.Number)
->     + parent.p5 (java.lang.Number)"""
+>     + parent.p5 (java.lang.Number)""")
     }
 
 }

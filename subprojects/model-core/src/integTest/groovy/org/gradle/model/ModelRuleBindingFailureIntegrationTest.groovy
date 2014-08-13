@@ -91,8 +91,9 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     String unbound(@DelegatesTo(UnboundRuleReportOutputBuilder) Closure<?> closure) {
         def string = new StringWriter()
-        string.append("The following model rules are unbound:\n")
-        def builder = new UnboundRuleReportOutputBuilder(new PrintWriter(string), "  ")
+        def writer = new PrintWriter(string)
+        writer.println("The following model rules are unbound:")
+        def builder = new UnboundRuleReportOutputBuilder(writer, "  ")
         builder.with(closure)
         string.toString()
     }
