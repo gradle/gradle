@@ -36,7 +36,7 @@ class UnboundRuleReportOutputBuilderTest extends Specification {
                 .immutableBound("parent.p5", Number.name)
 
         then:
-        output.toString() == TextUtil.normaliseLineSeparators("""> r1
+        output.toString() == TextUtil.toPlatformLineSeparators("""> r1
 >   Mutable:
 >     - parent.p1 (java.lang.String)
 >     + parent.p2 (java.lang.Integer)

@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.UnboundRuleReportOutputBuilder
+import org.gradle.util.TextUtil
+
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
@@ -95,7 +98,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         writer.println("The following model rules are unbound:")
         def builder = new UnboundRuleReportOutputBuilder(writer, "  ")
         builder.with(closure)
-        string.toString()
+        normaliseLineSeparators(string.toString())
     }
 
     def "ambiguous binding integration test"() {
@@ -147,11 +150,11 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Failed to apply plugin [class 'Plugin3']")
         failure.assertHasCause("There is a problem with model rule Plugin3\$Rules#m(java.lang.String).")
-        failure.assertHasCause(
+        failure.assertHasCause(normaliseLineSeparators(
                 new AmbiguousBindingReporter(String.name, "parameter 1", [
                         new AmbiguousBindingReporter.Provider("s2", "Plugin2\$Rules#s2()"),
                         new AmbiguousBindingReporter.Provider("s1", "Plugin1\$Rules#s1()")
                 ]).asString()
-        )
+        ))
     }
 }
