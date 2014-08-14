@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.scala
-
 import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.junit.Rule
 
 import static org.hamcrest.Matchers.startsWith
 
-@TargetVersions(["2.10.4", "2.11.1"])
+@TargetCoverage({ScalaCoverage.DEFAULT})
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
 

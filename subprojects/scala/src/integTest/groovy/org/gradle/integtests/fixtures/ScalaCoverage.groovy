@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.compile
+package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.ScalaCoverage
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
-class AntInProcessOlderScalaCompilerIntegrationTest extends AbstractAntInProcessScalaCompilerIntegrationTest {}
+class ScalaCoverage {
+
+    static final boolean USE_SINGLE_VERSION_ONLY = GradleContextualExecuter.isDaemon()
+
+    static final String NEWEST = "2.11.1"
+
+    static final String[] DEFAULT = USE_SINGLE_VERSION_ONLY ? [NEWEST] : ["2.10.4", NEWEST]
+
+    static final String[] OLDER = USE_SINGLE_VERSION_ONLY ? ["2.8.2"] : ["2.8.2", "2.9.2"]
+
+
+}
