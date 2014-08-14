@@ -16,10 +16,11 @@
 
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@TargetVersions(["2.8.2", "2.9.2"])
+@TargetCoverage({ScalaCoverage.OLDER})
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class AntForkingOlderScalaCompilerIntegrationTest extends AbstractAntForkingScalaCompilerIntegrationTest {}

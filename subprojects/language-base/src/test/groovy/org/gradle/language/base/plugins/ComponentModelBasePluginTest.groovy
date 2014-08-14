@@ -22,16 +22,13 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.runtime.base.ComponentSpecIdentifier
-import org.gradle.runtime.base.TransformationFileType
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.LanguageRegistration
 import org.gradle.language.base.internal.SourceTransformTaskConfig
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.runtime.base.BinarySpec
+import org.gradle.runtime.base.TransformationFileType
 import org.gradle.runtime.base.internal.ComponentSpecInternal
 import org.gradle.runtime.base.component.DefaultComponentSpec
 import org.gradle.util.TestUtil
@@ -66,58 +63,25 @@ class ComponentModelBasePluginTest extends Specification {
         fSourceSet.create("test", TestSourceSet) != null
     }
 
-    def "creates default sourceSets for component"() {
+    def "creates language sourceSets for component"() {
         setup:
         project.apply(plugin: ComponentModelBasePlugin)
         project.languages.add(new TestLanguageRegistration())
 
-        def componentFunctionalSourceSet = Mock(FunctionalSourceSet)
-        _ * componentFunctionalSourceSet.name >> "testComponent"
         def componentSpecInternal = Mock(ComponentSpecInternal)
         _ * componentSpecInternal.name >> "testComponent"
         _ * componentSpecInternal.inputTypes >> [TestTransformFile.class]
+
+        def componentFunctionalSourceSet = Mock(FunctionalSourceSet)
+        _ * componentFunctionalSourceSet.name >> "testComponentSources"
         _ * componentSpecInternal.mainSource >> componentFunctionalSourceSet
 
         when:
         project.componentSpecs.add(componentSpecInternal)
 
         then:
-
         1 * componentFunctionalSourceSet.maybeCreate("test", _)
-        1 * componentFunctionalSourceSet.all(_)
         0 * componentFunctionalSourceSet._
-    }
-
-    def "links componentSpecInternal functional sourceSets with sources"() {
-        setup:
-        project.apply(plugin: ComponentModelBasePlugin)
-        project.languages.add(new TestLanguageRegistration())
-
-        def testSourceSet = Mock(TestSourceSet)
-        _ * testSourceSet.name >> "test"
-        def componentFunctionalSourceSet = new DefaultFunctionalSourceSet("testComponent", new DirectInstantiator());
-        def componentSpecIdentifier = Mock(ComponentSpecIdentifier)
-        _ * componentSpecIdentifier.name >> "testComponent"
-
-        when:
-
-        def testComponent = DefaultComponentSpec.create(TestComponentSpec, componentSpecIdentifier, componentFunctionalSourceSet, new DirectInstantiator())
-        project.componentSpecs.add(testComponent)
-        componentFunctionalSourceSet.add(testSourceSet)
-
-        then:
-        testComponent.getSource().size() == 0
-
-        when:
-        def componentSpecIdentifier2 = Mock(ComponentSpecIdentifier)
-        _ * componentSpecIdentifier2.name >> "testComponentInternal"
-        def testComponentInternal = DefaultComponentSpec.create(TestComponentSpecInternal, componentSpecIdentifier2, componentFunctionalSourceSet, new DirectInstantiator())
-        project.componentSpecs.add(testComponentInternal)
-        componentFunctionalSourceSet.add(testSourceSet)
-
-        then:
-        testComponentInternal.getSource().size() == 1
-        testComponentInternal.getSource()[0] == testSourceSet
     }
 
     public static class TestLanguageRegistration implements LanguageRegistration {
@@ -157,12 +121,13 @@ class ComponentModelBasePluginTest extends Specification {
         }
     }
 
-    public static class TestSourceImplementation implements TestSourceSet{
+    public static class TestSourceImplementation implements TestSourceSet {
         String name
 
-        public TestSourceImplementation(String name, FunctionalSourceSet parent, FileResolver fileResolver){
+        public TestSourceImplementation(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
             this.name = name;
         }
+
         @Override
         String getName() {
             return name;
@@ -296,13 +261,10 @@ class ComponentModelBasePluginTest extends Specification {
 
     }
 
-    public static interface TestSourceSet extends LanguageSourceSet{
+    public static interface TestSourceSet extends LanguageSourceSet {
     }
 
     public static class TestComponentSpecInternal extends DefaultComponentSpec implements ComponentSpecInternal {
-            public TestComponentSpecInternal(){
-            }
-
         @Override
         Set<Class<? extends TransformationFileType>> getInputTypes() {
             return new HashSet<Class<? extends TransformationFileType>>(0)
@@ -310,12 +272,5 @@ class ComponentModelBasePluginTest extends Specification {
     }
 
     public static class TestComponentSpec extends DefaultComponentSpec {
-        public TestComponentSpec(){
-        }
-
-        @Override
-        Set<Class<? extends TransformationFileType>> getInputTypes() {
-            return new HashSet<Class<? extends TransformationFileType>>(0)
-        }
     }
 }

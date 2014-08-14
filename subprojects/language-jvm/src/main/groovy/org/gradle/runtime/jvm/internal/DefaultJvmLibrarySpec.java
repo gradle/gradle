@@ -41,6 +41,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
         this.mainSourceSet = mainSourceSet;
+        sourceSets.addMainSources(mainSourceSet);
         this.languageOutputs.add(JvmResources.class);
         this.languageOutputs.add(JvmByteCode.class);
     }

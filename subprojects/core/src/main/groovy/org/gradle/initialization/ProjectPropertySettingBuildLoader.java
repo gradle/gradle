@@ -43,8 +43,8 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         this.propertiesLoader = propertiesLoader;
     }
 
-    public void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
-        buildLoader.load(rootProjectDescriptor, gradle, classLoaderScope);
+    public void load(ProjectDescriptor rootProjectDescriptor, ProjectDescriptor defaultProject, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
+        buildLoader.load(rootProjectDescriptor, defaultProject, gradle, classLoaderScope);
         setProjectProperties(gradle.getRootProject());
     }
 

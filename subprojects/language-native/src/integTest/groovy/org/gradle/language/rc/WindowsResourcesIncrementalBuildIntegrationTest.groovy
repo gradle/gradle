@@ -117,7 +117,7 @@ STRINGTABLE
     def "stale .res files are removed when a resource source file is renamed"() {
         setup:
         def outputFileNameScheme = new CompilerOutputFileNamingScheme()
-                .withOutputBaseFolder(file("build/objectFiles/mainExecutable/mainRc"))
+                .withOutputBaseFolder(file("build/objs/mainExecutable/mainRc"))
                 .withObjectFileNameSuffix(".res")
         def oldResFile = outputFileNameScheme.map(mainResourceFile)
         def newResFile = outputFileNameScheme.map(file('src/main/rc/changed_resources.rc'))
@@ -140,7 +140,7 @@ STRINGTABLE
 
         given: "set the generated res file timestamp to zero"
         def outputFileNameScheme = new CompilerOutputFileNamingScheme()
-                .withOutputBaseFolder(file("build/objectFiles/mainExecutable/mainRc"))
+                .withOutputBaseFolder(file("build/objs/mainExecutable/mainRc"))
                 .withObjectFileNameSuffix(".res")
         def resourceFile = outputFileNameScheme.map(mainResourceFile)
 

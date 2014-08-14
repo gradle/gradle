@@ -16,8 +16,10 @@
 
 package org.gradle.language.base.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
 import java.util.Set;
@@ -27,6 +29,18 @@ public class LanguageSourceSetContainer extends DefaultDomainObjectSet<LanguageS
 
     public LanguageSourceSetContainer() {
         super(LanguageSourceSet.class);
+    }
+
+    /**
+     * Temporarily, we need to have a 'live' connection between a component's 'main' FunctionalSourceSet and the set of LanguageSourceSets for the component.
+     * We should be able to do away with this, once sourceSets are part of the model proper.
+     */
+    public void addMainSources(FunctionalSourceSet mainSources) {
+        mainSources.all(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                add(languageSourceSet);
+            }
+        });
     }
 
     public void source(Object sources) {

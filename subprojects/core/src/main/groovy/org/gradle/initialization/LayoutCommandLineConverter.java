@@ -29,7 +29,7 @@ import java.io.File;
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
     public static final String GRADLE_USER_HOME = "g";
     private static final String NO_SEARCH_UPWARDS = "u";
-    private static final String PROJECT_DIR = "p";
+    public static final String PROJECT_DIR = "p";
 
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
         Transformer<File, String> resolver = new BasicFileResolver(target.getProjectDir());

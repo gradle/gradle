@@ -24,10 +24,10 @@ import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.runtime.base.*;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.base.ComponentSpec;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.runtime.base.ModelInstantiationException;
 
 /**
  * Base class for custom component implementations.
@@ -36,12 +36,12 @@ import java.util.Set;
 @Incubating
 public class DefaultComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
+    private final FunctionalSourceSet mainSourceSet;
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
 
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
-    private final DomainObjectSet<? extends BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
-    private final FunctionalSourceSet mainSourceSet;
+    private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
 
     public static <T extends DefaultComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
         nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName(), mainSourceSet));
@@ -64,6 +64,7 @@ public class DefaultComponentSpec implements ComponentSpec {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
+        sourceSets.addMainSources(this.mainSourceSet);
     }
 
     public String getName() {
@@ -97,12 +98,6 @@ public class DefaultComponentSpec implements ComponentSpec {
 
     public FunctionalSourceSet getMainSource() {
         return mainSourceSet;
-    }
-
-    // To declare a custom spec we currently need to override this method in the Component.
-    // implementation. We need a more generic way for this in the future.
-    public Set<Class<? extends TransformationFileType>> getInputTypes() {
-        return new HashSet<Class<? extends TransformationFileType>>(0);
     }
 
     private static class ComponentInfo {

@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.fixtures;
 import com.google.common.base.Joiner;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
@@ -50,8 +51,25 @@ public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
 
     /**
-     * @return The tool chain with the given name.
+     * Locates the tool chain that would be used as the default for the current machine, if any.
+     * @return null if there is no such tool chain.
      */
+    @Nullable
+    public static InstalledToolChain getDefaultToolChain() {
+        for (ToolChainCandidate toolChain : getToolChains()) {
+            if (toolChain.isAvailable()) {
+                return (InstalledToolChain) toolChain;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Locates a tool chain that meets the given criteria, if any.
+     *
+     * @return null if there is no such tool chain.
+     */
+    @Nullable
     public static ToolChainCandidate getToolChain(ToolChainRequirement requirement) {
         for (ToolChainCandidate toolChainCandidate : getToolChains()) {
             if (toolChainCandidate.meets(requirement)) {
@@ -62,7 +80,7 @@ public class AvailableToolChains {
     }
 
     /**
-     * @return A list of all tool chains for this platform, with the default tool chain listed first.
+     * @return A list of all known tool chains for this platform. Includes those tool chains that are not available on the current machine.
      */
     public static List<ToolChainCandidate> getToolChains() {
         if (toolChains == null) {
@@ -94,7 +112,7 @@ public class AvailableToolChains {
         VisualStudioLocator.SearchResult searchResult = vsLocator.locateVisualStudioInstalls(null);
         if (searchResult.isAvailable()) {
             VisualStudioInstall install = searchResult.getVisualStudio();
-            return new InstalledVisualCpp("visual c++").withInstall(install);
+            return new InstalledVisualCpp().withInstall(install);
         }
 
         return new UnavailableToolChain("visual c++");
@@ -349,8 +367,13 @@ public class AvailableToolChains {
         private VersionNumber version;
         private File installDir;
 
-        public InstalledVisualCpp(String name) {
-            super(name);
+        public InstalledVisualCpp() {
+            super("visual c++");
+        }
+
+        @Override
+        public String getId() {
+            return "visualCpp";
         }
 
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {

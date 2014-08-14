@@ -22,6 +22,25 @@ import spock.lang.Specification
 class LanguageSourceSetContainerTest extends Specification {
     def sourceSets = new LanguageSourceSetContainer()
 
+    def "has any LanguageSourceSet ever added to main FunctionalSourceSet"() {
+        when:
+        def mainSources = new DefaultFunctionalSourceSet("fss", new DirectInstantiator())
+        def languageSourceSet1 = languageSourceSet("lss1")
+        mainSources.add(languageSourceSet1)
+
+        sourceSets.addMainSources(mainSources)
+
+        then:
+        sourceSets as List == [languageSourceSet1]
+
+        when:
+        def languageSourceSet2 = languageSourceSet("lss2")
+        mainSources.add(languageSourceSet2)
+
+        then:
+        sourceSets as List == [languageSourceSet1, languageSourceSet2]
+    }
+
     def "converts FunctionalSourceSet to LanguageSourceSets"() {
         given:
         def functionalSourceSet = new DefaultFunctionalSourceSet("fss", new DirectInstantiator())

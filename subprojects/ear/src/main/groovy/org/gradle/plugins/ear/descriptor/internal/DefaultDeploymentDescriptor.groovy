@@ -98,8 +98,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         return this
     }
 
-    @Override
-    DeploymentDescriptor securityRole(Action<? extends EarSecurityRole> action) {
+    public DeploymentDescriptor securityRole(Action<? extends EarSecurityRole> action) {
         EarSecurityRole role = instantiator.newInstance(DefaultEarSecurityRole)
         action.execute(role)
         securityRoles.add(role)
@@ -136,7 +135,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     DeploymentDescriptor readFrom(Reader reader) {
         try {
-            def appNode = new XmlParser().parse(reader)
+            def appNode = new XmlParser(false, true, true).parse(reader)
             version = appNode.@version
 
             appNode.children().each { child ->

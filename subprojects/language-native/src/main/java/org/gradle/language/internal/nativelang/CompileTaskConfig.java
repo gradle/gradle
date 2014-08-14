@@ -88,7 +88,7 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
         task.source(sourceSet.getSource());
 
         final Project project = task.getProject();
-        task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objectFiles/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getFullName()));
+        task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getFullName()));
 
         for (String toolName : language.getBinaryTools().keySet()) {
             Tool tool = (Tool) ((ExtensionAware) binary).getExtensions().getByName(toolName);
