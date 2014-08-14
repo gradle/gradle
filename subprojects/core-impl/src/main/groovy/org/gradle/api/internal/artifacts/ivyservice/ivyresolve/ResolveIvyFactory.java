@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
@@ -66,12 +67,13 @@ public class ResolveIvyFactory {
     public RepositoryChain create(ConfigurationInternal configuration,
                                   Iterable<? extends ResolutionAwareRepository> repositories,
                                   ModuleMetadataProcessor metadataProcessor) {
-        ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
-        CachePolicy cachePolicy = configuration.getResolutionStrategy().getCachePolicy();
+        ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal)configuration.getResolutionStrategy();
+        ResolutionRules resolutionRules = resolutionStrategy.getResolutionRules();
+        CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
 
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, latestStrategy, configuration.getResolutionStrategy().getVersionSelection());
+        UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, latestStrategy, resolutionStrategy.getVersionSelection());
         RepositoryChain parentLookupResolver = new ParentModuleLookupResolver(userResolverChain, cacheLockingManager);
 
         for (ResolutionAwareRepository repository : repositories) {

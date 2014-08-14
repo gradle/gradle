@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.VersionSelection;
 import org.gradle.api.artifacts.VersionSelectionRules;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -28,7 +29,7 @@ import java.util.Set;
 public class DefaultVersionSelectionRules implements VersionSelectionRulesInternal {
     final Set<Action<? super VersionSelection>> versionSelectionActions = new LinkedHashSet<Action<? super VersionSelection>>();
 
-    public void apply(VersionSelection selection) {
+    public void apply(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
         for (Action<? super VersionSelection> action : versionSelectionActions) {
             action.execute(selection);
         }

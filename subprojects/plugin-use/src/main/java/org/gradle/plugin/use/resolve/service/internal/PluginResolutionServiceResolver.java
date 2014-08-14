@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.SubVersionMatcher;
@@ -139,7 +140,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
 
         // honor start parameters when resolving plugin dependencies
         StartParameterResolutionOverride resolutionOverride = new StartParameterResolutionOverride(startParameter);
-        resolutionOverride.addResolutionRules(configuration.getResolutionStrategy().getResolutionRules());
+        resolutionOverride.addResolutionRules(((ResolutionStrategyInternal)configuration.getResolutionStrategy()).getResolutionRules());
 
         try {
             Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());

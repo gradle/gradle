@@ -72,17 +72,17 @@ class NewestVersionComponentChooser implements ComponentChooser {
         if (versionMatcher.needModuleMetadata(dependency.getRequested().getVersion())) {
             return chooseBestMatchingDependencyWithMetaData(versions, dependency, moduleAccess);
         } else {
-            return chooseBestMatchingDependency(versions, dependency.getRequested());
+            return chooseBestMatchingDependency(versions, dependency.getRequested(), moduleAccess);
         }
     }
 
-    private ModuleComponentIdentifier chooseBestMatchingDependency(ModuleVersionListing versions, ModuleVersionSelector requested) {
+    private ModuleComponentIdentifier chooseBestMatchingDependency(ModuleVersionListing versions, ModuleVersionSelector requested, ModuleComponentRepositoryAccess moduleAccess) {
         for (Versioned candidate : sortLatestFirst(versions)) {
             // Apply version selection rules
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
             ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(requested);
             VersionSelectionInternal selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
-            versionSelectionRules.apply(selection);
+            versionSelectionRules.apply(selection, moduleAccess);
 
             switch(selection.getState()) {
                 case ACCEPTED:
@@ -109,7 +109,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
             // Apply version selection rules
             ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(dependency.getRequested());
             VersionSelectionInternal selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
-            versionSelectionRules.apply(selection);
+            versionSelectionRules.apply(selection, moduleAccess);
 
             switch(selection.getState()) {
                 case ACCEPTED:

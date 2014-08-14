@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
@@ -91,13 +92,14 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 dependencyResolver = new ClientModuleResolver(dependencyResolver, dependencyDescriptorFactory);
                 ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, dependencyResolver);
                 dependencyResolver = projectDependencyResolver;
-                DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher, configuration.getResolutionStrategy().getVersionSelection());
-                idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
+                ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal)configuration.getResolutionStrategy();
+                DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher, resolutionStrategy.getVersionSelection());
+                idResolver = new VersionForcingDependencyToModuleResolver(idResolver, resolutionStrategy.getDependencyResolveRule());
 
                 ArtifactResolver artifactResolver = createArtifactResolver(repositoryChain);
 
                 ModuleConflictResolver conflictResolver;
-                if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
+                if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
                     conflictResolver = new StrictConflictResolver();
                 } else {
                     conflictResolver = new LatestModuleConflictResolver(latestStrategy);

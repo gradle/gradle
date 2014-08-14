@@ -84,14 +84,14 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> -1
-        0 * versionSelectionRules.apply(_)
+        0 * versionSelectionRules.apply(_,_)
 
         then:
         chooser.choose(one, two) == two
 
         when:
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 1
-        0 * versionSelectionRules.apply(_)
+        0 * versionSelectionRules.apply(_,_)
 
         then:
         chooser.choose(one, two) == one
@@ -109,7 +109,7 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 0
         1 * one.generated >> true
         1 * two.generated >> false
-        0 * versionSelectionRules.apply(_)
+        0 * versionSelectionRules.apply(_,_)
 
         then:
         chooser.choose(one, two) == two
@@ -117,7 +117,7 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 0
         1 * one.generated >> false
-        0 * versionSelectionRules.apply(_)
+        0 * versionSelectionRules.apply(_,_)
 
         then:
         chooser.choose(one, two) == one
@@ -138,7 +138,7 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * latestStrategy.sort(_) >> versions
         1 * versionMatcher.accept("1.+", "2.0") >> false
         1 * versionMatcher.accept("1.+", "1.3") >> true
-        2 * versionSelectionRules.apply(_)
+        2 * versionSelectionRules.apply(_,_)
         0 * _
 
         then:
@@ -168,7 +168,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 default: return false
             }
         }
-        _ * versionSelectionRules.apply(_) >> { VersionSelection selection ->
+        _ * versionSelectionRules.apply(_,_) >> { VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
             if (selection.candidate.version == triggerVersion) {
                 selection."${operation}"()
             }
@@ -214,7 +214,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 default: return false
             }
         }
-        _ * versionSelectionRules.apply(_) >> { VersionSelection selection ->
+        _ * versionSelectionRules.apply(_,_) >> { VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
             if (selection.candidate.version == triggerVersion) {
                 selection."${operation}"()
             }
@@ -248,7 +248,7 @@ class NewestVersionComponentChooserTest extends Specification {
         // Should not get a versionMatcher.accept call for 1.3
         0 * versionMatcher.accept("1.3", "1.3")
         1 * versionMatcher.accept("1.3", "1.2") >> false
-        3 * versionSelectionRules.apply(_) >> { VersionSelection selection ->
+        3 * versionSelectionRules.apply(_,_) >> { VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
             if (selection.candidate.version == '1.3') {
                 selection.reject()
             }
@@ -276,7 +276,7 @@ class NewestVersionComponentChooserTest extends Specification {
         // Should not get a versionMatcher.accept call for 1.3 or 1.2
         0 * versionMatcher.accept("1.3", "1.3")
         0 * versionMatcher.accept("1.3", "1.2")
-        3 * versionSelectionRules.apply(_) >> { VersionSelection selection ->
+        3 * versionSelectionRules.apply(_,_) >> { VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
             switch(selection.candidate.version) {
                 case '1.3':
                     selection.reject()
@@ -308,7 +308,7 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         3 * versionMatcher.accept("1.3", _) >> false
-        3 * versionSelectionRules.apply(_)
+        3 * versionSelectionRules.apply(_,_)
         0 * _
 
         then:
@@ -335,7 +335,7 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         3 * versionMatcher.accept("latest.release", _) >> false
-        3 * versionSelectionRules.apply(_)
+        3 * versionSelectionRules.apply(_,_)
         0 * _
 
         then:

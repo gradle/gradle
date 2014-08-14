@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
 import org.gradle.api.artifacts.VersionSelection
 import org.gradle.api.artifacts.VersionSelectionRules
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import spock.lang.Specification
 
 class DefaultVersionSelectionRulesTest extends Specification {
@@ -31,7 +32,7 @@ class DefaultVersionSelectionRulesTest extends Specification {
         versionSelectionRules.all closure1
         versionSelectionRules.all closure2
         versionSelectionRules.all closure3
-        versionSelectionRules.apply(Stub(VersionSelection))
+        versionSelectionRules.apply(Stub(VersionSelection), Stub(ModuleComponentRepositoryAccess))
 
         then:
         1 * closure1.call(_)
