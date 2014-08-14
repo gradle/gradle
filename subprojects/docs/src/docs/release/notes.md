@@ -115,9 +115,14 @@ This feature was contributed by [Cédric Champeau](https://github.com/melix).
 ### Java Gradle Plugin plugin (i)
 
 This is a plugin to assist in developing gradle plugins.  It validates the plugin structure during the jar task and emits warnings
-if the plugin metadata is not valid.
+if the plugin metadata is not valid.  This plugin is useful for identifying common issues with your plugin during packaging and helps
+to elucidate less obvious issues such as incorrect implementation class names or misplaced plugin descriptors.  See the
+[user guide](userguide/javaGradle_plugin.html) for further information.
 
     apply plugin: 'java-gradle-plugin'
+
+In the future, we plan to add additional capabilities to this plugin such as capabilities for functional testing and publishing
+to the new plugin portal.
 
 ### PMD Console Output (i)
 
