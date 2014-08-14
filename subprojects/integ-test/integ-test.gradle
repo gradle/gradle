@@ -9,6 +9,8 @@ dependencies {
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
+useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
+useTestFixtures(sourceSet: 'integTest', project: ':runtimeNative')
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':docs:userguideDocbook')

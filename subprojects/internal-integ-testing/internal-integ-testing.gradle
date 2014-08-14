@@ -29,7 +29,6 @@ dependencies {
 }
 
 useTestFixtures(sourceSet: 'main')
-useTestFixtures(sourceSet: 'main', project: ':diagnostics')
 useClassycle()
 
 task prepareVersionsInfo(type: PrepareVersionsInfo) {

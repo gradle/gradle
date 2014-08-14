@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.UserGuideSamplesRunner
 import org.junit.runner.RunWith
 
 @RunWith(UserGuideSamplesRunner.class)
