@@ -20,9 +20,13 @@ import org.gradle.model.InvalidModelRuleException
 import org.gradle.model.Model
 import org.gradle.model.ModelRuleBindingException
 import org.gradle.model.Mutate
+import org.gradle.model.Path
+import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.core.SingleTypeModelPromise
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.report.AmbiguousBindingReporter
+import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -110,4 +114,73 @@ class ModelRuleBindingTest extends Specification {
         where:
         order << [ProvidesStringOne, ProvidesStringTwo, MutatesString].permutations()
     }
+
+    static class MutatesS1AsInteger {
+        @Mutate
+        void m(@Path("s1") Integer s1) {
+
+        }
+    }
+
+    @Unroll
+    def "incompatible writable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
+        when:
+        order.each {
+            inspector.inspect(it, modelRegistry, {})
+        }
+
+        then:
+        def e = thrown(InvalidModelRuleException)
+        e.descriptor == MethodModelRuleDescriptor.of(MutatesS1AsInteger, "m").toString()
+
+        def cause = e.cause as ModelRuleBindingException
+        def message = new IncompatibleTypeReferenceReporter(
+                MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
+                "s1",
+                Integer.name,
+                "parameter 1",
+                true,
+                [SingleTypeModelPromise.description(ModelType.of(String))]
+        ).asString()
+
+        cause.message == message
+
+        where:
+        order << [ProvidesStringOne, MutatesS1AsInteger].permutations()
+    }
+
+    static class ReadS1AsInteger {
+        @Mutate
+        void m(Integer unbound, @Path("s1") Integer s1) {
+
+        }
+    }
+
+    @Unroll
+    def "incompatible readable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
+        when:
+        order.each {
+            inspector.inspect(it, modelRegistry, {})
+        }
+
+        then:
+        def e = thrown(InvalidModelRuleException)
+        e.descriptor == MethodModelRuleDescriptor.of(ReadS1AsInteger, "m").toString()
+
+        def cause = e.cause as ModelRuleBindingException
+        def message = new IncompatibleTypeReferenceReporter(
+                MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
+                "s1",
+                Integer.name,
+                "parameter 2",
+                false,
+                [SingleTypeModelPromise.description(ModelType.of(String))]
+        ).asString()
+
+        cause.message == message
+
+        where:
+        order << [ProvidesStringOne, ReadS1AsInteger].permutations()
+    }
+
 }

@@ -39,4 +39,9 @@ class PolymorphicTestContainer extends AbstractPolymorphicDomainObjectContainer<
     protected <U extends TestObject> U doCreate(String name, Class<U> type) {
         throw new UnsupportedOperationException("doCreate")
     }
+
+    @Override
+    Set<? extends Class<? extends TestObject>> getCreateableTypes() {
+        Collections.singleton(TestObject)
+    }
 }

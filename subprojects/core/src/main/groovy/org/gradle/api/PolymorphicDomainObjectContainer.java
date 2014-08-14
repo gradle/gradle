@@ -15,12 +15,15 @@
  */
 package org.gradle.api;
 
+import org.gradle.internal.HasInternalProtocol;
+
 /**
  * A {@link NamedDomainObjectContainer} that allows to create domain objects with different types.
  *
  * @param <T> the (base) type of domain objects in the container
  */
 @Incubating
+@HasInternalProtocol
 public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectContainer<T> {
     /**
      * Creates a domain object with the specified name and type, and adds it to the container.

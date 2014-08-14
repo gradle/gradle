@@ -19,6 +19,7 @@ package org.gradle.model
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.AmbiguousBindingReporter
+import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
 import org.gradle.model.internal.report.UnboundRuleReportOutputBuilder
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -154,6 +155,46 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                         new AmbiguousBindingReporter.Provider("s2", "Plugin2\$Rules#s2()"),
                         new AmbiguousBindingReporter.Provider("s1", "Plugin1\$Rules#s1()")
                 ]).asString()
+        ))
+    }
+
+    def "incompatible type binding"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+
+            class Plugin1 implements Plugin {
+                void apply(plugin) {}
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(@Path("tasks") Integer s1) {
+
+                    }
+                }
+            }
+
+            apply plugin: Plugin1
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Failed to apply plugin [class 'Plugin1']")
+        failure.assertHasCause("There is a problem with model rule Plugin1\$Rules#addTasks(java.lang.Integer).")
+        failure.assertHasCause(normaliseLineSeparators(
+                new IncompatibleTypeReferenceReporter(
+                        "Project.<init>.tasks()",
+                        "tasks",
+                        Integer.name,
+                        "parameter 1",
+                        true,
+                        [
+                                "org.gradle.api.tasks.TaskContainer (or assignment compatible type thereof)",
+                                "org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>"
+                        ]
+                ).asString()
         ))
     }
 }

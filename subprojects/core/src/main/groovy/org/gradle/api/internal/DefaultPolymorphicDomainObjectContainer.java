@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
@@ -25,6 +26,7 @@ import org.gradle.internal.reflect.Instantiator;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
         implements ExtensiblePolymorphicDomainObjectContainer<T> {
@@ -99,5 +101,9 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         }
         Collections.sort(names);
         return names.isEmpty() ? "(None)" : Joiner.on(", ").join(names);
+    }
+
+    public Set<? extends Class<? extends T>> getCreateableTypes() {
+        return ImmutableSet.copyOf(factories.keySet());
     }
 }

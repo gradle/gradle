@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.CollectionBuilderModelView;
@@ -23,14 +26,18 @@ import org.gradle.model.collection.internal.DefaultCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.util.CollectionUtils;
 
-public class PolymorphicDomainObjectContainerModelAdapter<I, C extends PolymorphicDomainObjectContainer<I>> implements ModelAdapter {
+import java.util.Collection;
+import java.util.Collections;
+
+public class PolymorphicDomainObjectContainerModelAdapter<I, C extends PolymorphicDomainObjectContainerInternal<I>> implements ModelAdapter {
 
     private final C container;
-    private final ModelType<C> containerType;
+    private final ModelType<? super C> containerType;
     private final Class<I> itemType;
 
-    public PolymorphicDomainObjectContainerModelAdapter(C container, ModelType<C> containerType, final Class<I> itemType) {
+    public PolymorphicDomainObjectContainerModelAdapter(C container, ModelType<? super C> containerType, final Class<I> itemType) {
         this.container = container;
         this.containerType = containerType;
         this.itemType = itemType;
@@ -105,24 +112,60 @@ public class PolymorphicDomainObjectContainerModelAdapter<I, C extends Polymorph
     }
 
     public ModelPromise asPromise() {
-        return new ModelPromise() {
-            public <T> boolean asWritable(ModelType<T> type) {
-                return type.isAssignableFrom(containerType) || isContainerView(type);
-            }
-
-            private <T> boolean isContainerView(ModelType<T> type) {
-                if (type.getRawClass().equals(CollectionBuilder.class)) {
-                    ModelType<?> targetItemType = type.getTypeVariables().get(0);
-                    return targetItemType.getRawClass().isAssignableFrom(itemType) || itemType.isAssignableFrom(targetItemType.getRawClass());
-                } else {
-                    return false;
-                }
-            }
-
-            public <T> boolean asReadOnly(ModelType<T> type) {
-                return type.isAssignableFrom(containerType);
-            }
-        };
+        return new Promise();
     }
 
+    public static String getBuilderTypeDescriptionForCreatableTypes(Collection<? extends Class<?>> createableTypes) {
+        StringBuilder sb = new StringBuilder(CollectionBuilder.class.getName());
+        if (createableTypes.size() == 1) {
+            @SuppressWarnings("ConstantConditions")
+            String onlyType = Iterables.getFirst(createableTypes, null).getName();
+            sb.append("<").append(onlyType).append(">");
+        } else {
+            sb.append("<T>; where T is one of [");
+            Joiner.on(", ").appendTo(sb, CollectionUtils.sort(Iterables.transform(createableTypes, new Function<Class<?>, String>() {
+                public String apply(Class<?> input) {
+                    return input.getName();
+                }
+            })));
+            sb.append("]");
+        }
+        return sb.toString();
+    }
+
+    public class Promise implements ModelPromise {
+        private final ModelPromise basePromise = new SingleTypeModelPromise(containerType);
+
+        public <T> boolean asWritable(ModelType<T> type) {
+            return basePromise.asWritable(type) || isContainerView(type);
+        }
+
+        private <T> boolean isContainerView(ModelType<T> type) {
+            if (type.getRawClass().equals(CollectionBuilder.class)) {
+                ModelType<?> targetItemType = type.getTypeVariables().get(0);
+                return targetItemType.getRawClass().isAssignableFrom(itemType) || itemType.isAssignableFrom(targetItemType.getRawClass());
+            } else {
+                return false;
+            }
+        }
+
+        public <T> boolean asReadOnly(ModelType<T> type) {
+            return basePromise.asReadOnly(type);
+        }
+
+        private String getBuilderTypeDescription() {
+            return PolymorphicDomainObjectContainerModelAdapter.getBuilderTypeDescriptionForCreatableTypes(container.getCreateableTypes());
+        }
+
+        public Iterable<String> getWritableTypeDescriptions() {
+            return Iterables.concat(
+                    basePromise.getWritableTypeDescriptions(),
+                    Collections.singleton(getBuilderTypeDescription())
+            );
+        }
+
+        public Iterable<String> getReadableTypeDescriptions() {
+            return basePromise.getReadableTypeDescriptions();
+        }
+    }
 }

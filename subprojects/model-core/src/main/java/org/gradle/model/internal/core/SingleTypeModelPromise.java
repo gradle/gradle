@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.core;
 
+import java.util.Collections;
+
 public class SingleTypeModelPromise implements ModelPromise {
 
     private final ModelType<?> type;
@@ -32,4 +34,15 @@ public class SingleTypeModelPromise implements ModelPromise {
         return type.isAssignableFrom(this.type);
     }
 
+    public Iterable<String> getWritableTypeDescriptions() {
+        return Collections.singleton(description(type));
+    }
+
+    public Iterable<String> getReadableTypeDescriptions() {
+        return getWritableTypeDescriptions();
+    }
+
+    public static String description(ModelType<?> type) {
+        return type.toString() + " (or assignment compatible type thereof)";
+    }
 }

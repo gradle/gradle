@@ -233,6 +233,7 @@ A mock up:
 - ~~Reasonable error message when rule method fails.~~
 - ~~Reasonable error message when rule method declares input of unknown type.~~
 - ~~Reasonable error message when rule method declares ambiguous input.~~
+- ~~Reasonable error message when rule method declares input by path but incompatible type.~~
 
 ### Open issues
 

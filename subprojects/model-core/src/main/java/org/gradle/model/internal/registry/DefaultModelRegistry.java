@@ -29,6 +29,7 @@ import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.AmbiguousBindingReporter;
+import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 
 import java.util.*;
 
@@ -448,8 +449,9 @@ public class DefaultModelRegistry implements ModelRegistry {
                     bindAction.execute(path);
                     return true; // bound by type and path, stop listening
                 } else {
-                    // TODO proper exception
-                    throw new IllegalStateException("incompatible type");
+                    throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
+                            IncompatibleTypeReferenceReporter.of(creatorDescriptor, promise, reference, writable).asString()
+                    ));
                 }
             }
 

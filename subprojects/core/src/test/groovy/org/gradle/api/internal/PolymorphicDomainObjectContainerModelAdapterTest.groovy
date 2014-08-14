@@ -27,6 +27,8 @@ import org.gradle.model.internal.registry.DefaultInputs
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
+import static org.gradle.api.internal.PolymorphicDomainObjectContainerModelAdapter.getBuilderTypeDescriptionForCreatableTypes
+
 class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
 
     static class NamedThing implements Named {
@@ -55,9 +57,6 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
         {
             registerFactory(NamedThing) {
                 new NamedThing(it)
-            }
-            registerFactory(SpecialNamedThing) {
-                new SpecialNamedThing(it)
             }
         }
     }
@@ -103,6 +102,12 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
         registry.create(creator)
     }
 
+    private registerSpecialCreator() {
+        container.registerFactory(SpecialNamedThing) {
+            new SpecialNamedThing(it)
+        }
+    }
+
     def "can view as read types"() {
         expect:
         adapter.asReadOnly(ModelType.of(ThingContainer)).instance.is(container)
@@ -119,6 +124,7 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
     def "can create items"() {
         // don't need to test too much here, assume that DefaultCollectionBuilder is used internally
         given:
+        registerSpecialCreator()
         def builder = asBuilder().instance
 
         when:
@@ -140,6 +146,7 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
 
     def "can create subtyped items"() {
         given:
+        registerSpecialCreator()
         def builder = asSubBuilder().instance
 
         when:
@@ -150,6 +157,28 @@ class PolymorphicDomainObjectContainerModelAdapterTest extends Specification {
 
         then:
         registry.get(reference.path.child("foo"), ModelType.of(SpecialNamedThing)).special == "special-changed"
+    }
+
+    def "promise describes possible types"() {
+        when:
+        def promise = adapter.asPromise()
+
+        then:
+        promise.readableTypeDescriptions.toList() == [SingleTypeModelPromise.description(ModelType.of(ThingContainer))]
+        promise.writableTypeDescriptions.toList() == [
+                SingleTypeModelPromise.description(ModelType.of(ThingContainer)),
+                getBuilderTypeDescriptionForCreatableTypes([NamedThing])
+        ]
+
+        when:
+        registerSpecialCreator()
+
+        then:
+        promise.readableTypeDescriptions.toList() == [SingleTypeModelPromise.description(ModelType.of(ThingContainer))]
+        promise.writableTypeDescriptions.toList() == [
+                SingleTypeModelPromise.description(ModelType.of(ThingContainer)),
+                getBuilderTypeDescriptionForCreatableTypes([NamedThing, SpecialNamedThing])
+        ]
     }
 
     def ModelView<? extends CollectionBuilder<SpecialNamedThing>> asSubBuilder() {

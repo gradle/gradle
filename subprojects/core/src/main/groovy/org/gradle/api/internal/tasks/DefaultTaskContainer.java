@@ -216,4 +216,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
         throw new UnsupportedOperationException();
     }
+
+    public Set<? extends Class<? extends Task>> getCreateableTypes() {
+        return Collections.singleton(getType());
+    }
 }

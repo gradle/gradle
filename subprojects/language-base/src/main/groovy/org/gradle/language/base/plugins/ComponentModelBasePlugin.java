@@ -76,7 +76,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
-        final PolymorphicDomainObjectContainerModelAdapter<ComponentSpec, ComponentSpecContainer> componentSpecContainerAdapter = new PolymorphicDomainObjectContainerModelAdapter<ComponentSpec, ComponentSpecContainer>(
+        final PolymorphicDomainObjectContainerModelAdapter<ComponentSpec, DefaultComponentSpecContainer> componentSpecContainerAdapter = new PolymorphicDomainObjectContainerModelAdapter<ComponentSpec, DefaultComponentSpecContainer>(
                 components, ModelType.of(ComponentSpecContainer.class), ComponentSpec.class
         );
 
@@ -126,7 +126,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 });
 
                 final FunctionalSourceSet functionalSourceSet = componentSpecInternal.getMainSource();
-                if(componentSpecInternal.getInputTypes().contains(languageRegistration.getOutputType())){
+                if (componentSpecInternal.getInputTypes().contains(languageRegistration.getOutputType())) {
                     functionalSourceSet.maybeCreate(languageRegistration.getName(), languageRegistration.getSourceSetType());
                 }
             }

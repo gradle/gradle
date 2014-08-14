@@ -15,7 +15,10 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerModelAdapter;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -31,8 +34,8 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.BinarySpec;
-import org.gradle.runtime.base.internal.DefaultBinaryContainer;
 import org.gradle.runtime.base.internal.BinarySpecInternal;
+import org.gradle.runtime.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -62,9 +65,9 @@ public class LanguageBasePlugin implements Plugin<Project> {
         target.getPlugins().apply(LifecycleBasePlugin.class);
 
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
-        BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
+        DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
 
-        final PolymorphicDomainObjectContainerModelAdapter<BinarySpec, BinaryContainer> binarySpecContainerAdapter = new PolymorphicDomainObjectContainerModelAdapter<BinarySpec, BinaryContainer>(
+        final PolymorphicDomainObjectContainerModelAdapter<BinarySpec, DefaultBinaryContainer> binarySpecContainerAdapter = new PolymorphicDomainObjectContainerModelAdapter<BinarySpec, DefaultBinaryContainer>(
                 binaries, ModelType.of(BinaryContainer.class), BinarySpec.class
         );
 

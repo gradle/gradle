@@ -202,7 +202,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 }
         ));
 
-        final PolymorphicDomainObjectContainerModelAdapter<Task, TaskContainer> tasksModelAdapter = new PolymorphicDomainObjectContainerModelAdapter<Task, TaskContainer>(
+        final PolymorphicDomainObjectContainerModelAdapter<Task, TaskContainerInternal> tasksModelAdapter = new PolymorphicDomainObjectContainerModelAdapter<Task, TaskContainerInternal>(
                 getTasks(), ModelType.of(TaskContainer.class), Task.class
         );
 
