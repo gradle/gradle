@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData
 import org.gradle.api.internal.component.ArtifactType
 import spock.lang.Specification
 
@@ -56,7 +56,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def componentId = Stub(ComponentIdentifier) {
             getDisplayName() >> "component"
         }
-        def component = Stub(ComponentMetaData) {
+        def component = Stub(ExternalComponentMetaData) {
             getComponentId() >> componentId
         }
         def result = Mock(BuildableArtifactSetResolveResult)

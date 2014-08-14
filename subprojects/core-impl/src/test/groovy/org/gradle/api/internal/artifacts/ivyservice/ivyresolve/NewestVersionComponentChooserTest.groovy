@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
@@ -75,10 +75,10 @@ class NewestVersionComponentChooserTest extends Specification {
     }
 
     def "chooses latest version for component meta data"() {
-        def one = Stub(ComponentMetaData) {
+        def one = Stub(ExternalComponentMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Stub(ComponentMetaData) {
+        def two = Stub(ExternalComponentMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
 
@@ -98,10 +98,10 @@ class NewestVersionComponentChooserTest extends Specification {
     }
 
     def "chooses non-generated descriptor over generated"() {
-        def one = Mock(ComponentMetaData) {
+        def one = Mock(ExternalComponentMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Mock(ComponentMetaData) {
+        def two = Mock(ExternalComponentMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
 

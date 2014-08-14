@@ -85,7 +85,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return artifactsById.get(artifactIdentifier);
     }
 
-    public ComponentMetaData toResolveMetaData() {
+    public ExternalComponentMetaData toResolveMetaData() {
         return new LocalComponentResolveMetaData();
     }
 

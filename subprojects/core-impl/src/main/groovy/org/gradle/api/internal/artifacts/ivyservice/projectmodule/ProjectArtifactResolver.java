@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 
@@ -33,14 +33,14 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getComponentId())) {
             throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
         }
         delegate.resolveModuleArtifacts(component, artifactType, result);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getComponentId())) {
             String configurationName = usage.getConfigurationName();
             Set<ComponentArtifactMetaData> artifacts = component.getConfiguration(configurationName).getArtifacts();

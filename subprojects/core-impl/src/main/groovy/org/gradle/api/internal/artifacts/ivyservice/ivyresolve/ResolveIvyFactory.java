@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionM
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
@@ -136,7 +136,7 @@ public class ResolveIvyFactory {
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(final ExternalComponentMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s for %s", artifactType, component), new Runnable() {
                 public void run() {
                     artifactResolver.resolveModuleArtifacts(component, artifactType, result);
@@ -144,7 +144,7 @@ public class ResolveIvyFactory {
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(final ExternalComponentMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s for %s", usage, component), new Runnable() {
                 public void run() {
                     artifactResolver.resolveModuleArtifacts(component, usage, result);

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
@@ -29,7 +29,7 @@ import java.util.Set;
 
 public class DefaultDependencyToConfigurationResolver implements DependencyToConfigurationResolver {
     // TODO - don't pass in 'from' configuration - the dependency should have whatever context it needs
-    public Set<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ComponentMetaData targetComponent) {
+    public Set<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ExternalComponentMetaData targetComponent) {
         // TODO - resolve directly to config meta data
         ModuleDescriptor targetDescriptor = targetComponent.getDescriptor();
         DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();

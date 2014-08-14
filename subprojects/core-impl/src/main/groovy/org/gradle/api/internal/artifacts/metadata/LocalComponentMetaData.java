@@ -25,7 +25,7 @@ public interface LocalComponentMetaData {
     /**
      * Converts this component to resolve meta-data.
      */
-    ComponentMetaData toResolveMetaData();
+    ExternalComponentMetaData toResolveMetaData();
 
     /**
      * Converts this component to publication meta-data.

@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactReso
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.internal.Factory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
@@ -77,7 +77,7 @@ public class DefaultResolvedConfigurationBuilder implements
         builder.resolvedDependency(id);
     }
 
-    public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ComponentMetaData component, ComponentArtifactMetaData artifact, ArtifactResolver artifactResolver) {
+    public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ExternalComponentMetaData component, ComponentArtifactMetaData artifact, ArtifactResolver artifactResolver) {
         Factory<File> artifactSource = new LazyArtifactSource(artifact, component.getSource(), artifactResolver);
         long id = idGenerator.generateId();
         ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), artifact.getName(), artifactSource, id);

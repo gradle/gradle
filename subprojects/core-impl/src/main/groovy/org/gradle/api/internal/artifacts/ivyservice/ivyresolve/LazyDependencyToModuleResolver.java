@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 /**
@@ -93,7 +93,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return null;
         }
 
-        protected void checkDescriptor(ComponentMetaData metaData) {
+        protected void checkDescriptor(ExternalComponentMetaData metaData) {
         }
     }
 
@@ -115,7 +115,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         }
 
         @Override
-        protected void checkDescriptor(ComponentMetaData metaData) {
+        protected void checkDescriptor(ExternalComponentMetaData metaData) {
             if (!id.equals(metaData.getId())) {
                 throw new ModuleVersionResolveException(dependency.getRequested(), String.format("Received unexpected module descriptor %s for dependency %%s.", metaData.getId()));
             }

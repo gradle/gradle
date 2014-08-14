@@ -19,13 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 
 public interface BuildableComponentResolveResult extends ComponentResolveResult, ResourceAwareResolveResult {
     /**
      * Marks the component as resolved, with the given meta-data.
      */
-    void resolved(ComponentMetaData metaData);
+    void resolved(ExternalComponentMetaData metaData);
 
     /**
      * Marks the resolve as failed with the given exception.
@@ -45,5 +45,5 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
     /**
      * Replaces the meta-data in the result. Result must already be resolved.
      */
-    void setMetaData(ComponentMetaData metaData);
+    void setMetaData(ExternalComponentMetaData metaData);
 }

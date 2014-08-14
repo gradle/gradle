@@ -186,7 +186,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
 
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
@@ -198,7 +198,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             resolveModuleArtifactsFromCache(cacheKey(artifactType), component, result, cachedModuleSource);
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
 
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
@@ -210,7 +210,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             resolveModuleArtifactsFromCache(cacheKey(componentUsage), component, result, cachedModuleSource);
         }
 
-        private void resolveModuleArtifactsFromCache(String contextId, ComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
+        private void resolveModuleArtifactsFromCache(String contextId, ExternalComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
             ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), contextId);
             BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 
@@ -298,21 +298,21 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource moduleSource = (CachingModuleSource) component.getSource();
             delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), artifactType, result);
 
             maybeCache(component, result, moduleSource, cacheKey(artifactType));
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource moduleSource = (CachingModuleSource) component.getSource();
             delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), componentUsage, result);
 
             maybeCache(component, result, moduleSource, cacheKey(componentUsage));
         }
 
-        private void maybeCache(ComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource moduleSource, String contextId) {
+        private void maybeCache(ExternalComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource moduleSource, String contextId) {
             if (result.getFailure() == null) {
                 Set<ModuleVersionArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(result.getArtifacts(), new ArtifactMetaDataToId());
                 moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), contextId, moduleSource.getDescriptorHash(), artifactIdentifierSet);

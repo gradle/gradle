@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 
 public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
-    private ComponentMetaData metaData;
+    private ExternalComponentMetaData metaData;
     private ModuleVersionResolveException failure;
 
     public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
@@ -38,11 +38,11 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         failed(new ModuleVersionNotFoundException(versionIdentifier, getAttempted()));
     }
 
-    public void resolved(ComponentMetaData metaData) {
+    public void resolved(ExternalComponentMetaData metaData) {
         this.metaData = metaData;
     }
 
-    public void setMetaData(ComponentMetaData metaData) {
+    public void setMetaData(ExternalComponentMetaData metaData) {
         assertResolved();
         this.metaData = metaData;
     }
@@ -52,7 +52,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         return metaData.getId();
     }
 
-    public ComponentMetaData getMetaData() throws ModuleVersionResolveException {
+    public ExternalComponentMetaData getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
     }

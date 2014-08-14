@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 
@@ -37,11 +37,11 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
         delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         delegate.resolveModuleArtifacts(component, artifactType, result);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
         delegate.resolveModuleArtifacts(component, componentUsage, result);
     }
 

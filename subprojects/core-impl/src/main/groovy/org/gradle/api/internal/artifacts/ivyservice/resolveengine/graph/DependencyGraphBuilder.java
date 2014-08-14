@@ -42,7 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleV
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.slf4j.Logger;
@@ -265,7 +265,7 @@ public class DependencyGraphBuilder {
 
         private void calculateTargetConfigurations() {
             targetConfigurations.clear();
-            ComponentMetaData targetModuleVersion = targetModuleRevision.getMetaData();
+            ExternalComponentMetaData targetModuleVersion = targetModuleRevision.getMetaData();
             if (targetModuleVersion == null) {
                 // Broken version
                 return;
@@ -508,7 +508,7 @@ public class DependencyGraphBuilder {
 
         private final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
         private final ModuleResolveState module;
-        private ComponentMetaData metaData;
+        private ExternalComponentMetaData metaData;
         private ModuleState state = ModuleState.New;
         private ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         private ModuleVersionIdResolveResult idResolveResult;
@@ -567,7 +567,7 @@ public class DependencyGraphBuilder {
             return resolveResult;
         }
 
-        public ComponentMetaData getMetaData() {
+        public ExternalComponentMetaData getMetaData() {
             if (metaData == null) {
                 resolve();
             }

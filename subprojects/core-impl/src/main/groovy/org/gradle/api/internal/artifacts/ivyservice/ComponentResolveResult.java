@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 
 public interface ComponentResolveResult {
     /**
@@ -32,7 +32,7 @@ public interface ComponentResolveResult {
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
-    ComponentMetaData getMetaData() throws ModuleVersionResolveException;
+    ExternalComponentMetaData getMetaData() throws ModuleVersionResolveException;
 
     /**
      * Returns the resolve failure, if any.

@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * The meta-data for a module version that is required during dependency resolution.
  */
-public interface ModuleVersionMetaData extends ComponentMetaData {
+public interface ModuleVersionMetaData extends ExternalComponentMetaData {
     ModuleComponentIdentifier getComponentId();
 
     ModuleVersionMetaData withSource(ModuleSource source);

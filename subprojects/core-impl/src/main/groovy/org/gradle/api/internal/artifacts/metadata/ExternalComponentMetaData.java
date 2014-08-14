@@ -29,7 +29,7 @@ import java.util.Set;
 /**
  * The meta-data for a component instance that is required during dependency resolution.
  */
-public interface ComponentMetaData {
+public interface ExternalComponentMetaData {
     /**
      * Returns the identifier for this component.
      */
@@ -50,7 +50,7 @@ public interface ComponentMetaData {
     /**
      * Makes a copy of this meta-data with the given source.
      */
-    ComponentMetaData withSource(ModuleSource source);
+    ExternalComponentMetaData withSource(ModuleSource source);
 
     /**
      * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types

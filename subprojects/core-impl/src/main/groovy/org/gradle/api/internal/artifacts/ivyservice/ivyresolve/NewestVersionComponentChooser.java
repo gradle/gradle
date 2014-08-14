@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentif
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
@@ -47,7 +47,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return versionMatcher.isDynamic(selector.getVersion()) || versionSelectionRules.hasRules();
     }
 
-    public ComponentMetaData choose(ComponentMetaData one, ComponentMetaData two) {
+    public ExternalComponentMetaData choose(ExternalComponentMetaData one, ExternalComponentMetaData two) {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
@@ -64,8 +64,8 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return comparison < 0 ? two : one;
     }
 
-    private boolean isGeneratedModuleDescriptor(ComponentMetaData componentMetaData) {
-        return componentMetaData.isGenerated();
+    private boolean isGeneratedModuleDescriptor(ExternalComponentMetaData externalComponentMetaData) {
+        return externalComponentMetaData.isGenerated();
     }
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {

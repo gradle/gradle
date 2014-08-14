@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersio
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
@@ -116,7 +116,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         0 * _
     }
     def "does not use cache when artifacts for type can be determined locally"() {
-        def component = Mock(ComponentMetaData)
+        def component = Mock(ExternalComponentMetaData)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def artifactType = ArtifactType.JAVADOC
@@ -135,7 +135,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     }
 
     def "does not use cache when artifacts for usage can be determined locally"() {
-        def component = Mock(ComponentMetaData)
+        def component = Mock(ExternalComponentMetaData)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def componentUsage = Mock(ComponentUsage)

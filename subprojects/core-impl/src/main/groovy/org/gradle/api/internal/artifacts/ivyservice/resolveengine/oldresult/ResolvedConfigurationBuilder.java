@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 
 import java.util.Set;
 
@@ -40,5 +40,5 @@ public interface ResolvedConfigurationBuilder {
 
     void newResolvedDependency(ResolvedConfigurationIdentifier id);
 
-    ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ComponentMetaData component, ComponentArtifactMetaData artifact, ArtifactResolver artifactResolver);
+    ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ExternalComponentMetaData component, ComponentArtifactMetaData artifact, ArtifactResolver artifactResolver);
 }

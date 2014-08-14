@@ -339,7 +339,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     public abstract boolean isM2compatible();
 
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess {
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             ModuleVersionMetaData moduleMetaData = (ModuleVersionMetaData) component;
 
             if (artifactType == ArtifactType.JAVADOC) {
@@ -351,7 +351,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             }
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             String configurationName = componentUsage.getConfigurationName();
              ConfigurationMetaData configuration = component.getConfiguration(configurationName);
              resolveConfigurationArtifacts((ModuleVersionMetaData) component, configuration, result);
@@ -394,18 +394,18 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         @Override
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             super.resolveModuleArtifacts(component, artifactType, result);
             checkArtifactsResolved(component, artifactType, result);
         }
 
         @Override
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             super.resolveModuleArtifacts(component, componentUsage, result);
             checkArtifactsResolved(component, componentUsage, result);
         }
 
-        private void checkArtifactsResolved(ComponentMetaData component, Object context, BuildableArtifactSetResolveResult result) {
+        private void checkArtifactsResolved(ExternalComponentMetaData component, Object context, BuildableArtifactSetResolveResult result) {
             if (!result.hasResult()) {
                 result.failed(new ArtifactResolveException(component.getComponentId(),
                         String.format("Cannot locate %s for '%s' in repository '%s'", context, component, name)));
