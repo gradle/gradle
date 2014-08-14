@@ -577,13 +577,40 @@ Running `gradle assemble` should build all of these binaries.
 - Change NativeComponentSpec to have `api` property and remove HeaderExportingSourceSet.
 - Change component report to present this meta-data.
 
-### Story: Build author uses `libraries { }` DSL to configure binaries for a custom component
+### Story: Build author uses model DSL to configure binaries for a component
 
-Adds capability to configure a child object after the parent object has been configured.
+Adds capability to configure a child object after the parent object has been configured. Use the model DSL to configure
+for a particular component:
 
-### Story: Build author uses `binaries { }` DSL to configure binaries for multiple components
+- Binary by name
+- Binaries with type
+- All binaries
 
-Adds capability for an object to appear in multiple locations in the model.
+This code should run after the rules that defines the binaries for the component and the configuration rules defined by
+plugin.
+
+#### Open issues
+
+- This code should only run when the particular component needs to be closed.
+- Also needs to work for binaries declared for particular roles
+- Add the equivalent for source sets
+- Add the concept of 'convention' that rules can apply. The configure rules declared in the model DSL should run after the convention
+rules have been applied to each binary.
+
+### Story: Build author uses model DSL to configure binaries for all components
+
+Adds capability for an object to appear in multiple locations in the model. Use the model DSL to configure for all components:
+
+- Binaries with type
+- All binaries
+
+This code should run between the configuration rules defined by the plugin, and the rules associated with each component. This way, a build script
+can provide a convention that applies to all components, and the exceptions can be associated with the individual components.
+
+#### Open issues
+
+- This code should only run when the particular binary needs to be closed.
+- Add the equivalent for source sets.
 
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
