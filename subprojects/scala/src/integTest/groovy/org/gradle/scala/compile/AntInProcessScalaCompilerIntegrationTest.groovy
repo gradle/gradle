@@ -16,7 +16,8 @@
 
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.TargetCoverage
 
-@TargetVersions(["2.10.4", "2.11.1"])
+@TargetCoverage({ScalaCoverage.DEFAULT})
 class AntInProcessScalaCompilerIntegrationTest extends AbstractAntInProcessScalaCompilerIntegrationTest {}

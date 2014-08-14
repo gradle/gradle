@@ -399,7 +399,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         run "helloStaticLibrary"
 
         then:
-        String objectFilesPath = "build/objectFiles/helloStaticLibrary/hello${sourceType}"
+        String objectFilesPath = "build/objs/helloStaticLibrary/hello${sourceType}"
         def oldObjFile = objectFileFor(librarySourceFiles[0], objectFilesPath)
         def newObjFile = objectFileFor( librarySourceFiles[0].getParentFile().file("changed_${librarySourceFiles[0].name}"), objectFilesPath)
         assert oldObjFile.file

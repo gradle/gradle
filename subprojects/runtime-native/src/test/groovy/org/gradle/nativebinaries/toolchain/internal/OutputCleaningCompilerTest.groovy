@@ -34,7 +34,7 @@ class OutputCleaningCompilerTest extends Specification {
     Compiler delegateCompiler = Mock(Compiler)
     OutputCleaningCompiler cleanCompiler = new OutputCleaningCompiler<NativeCompileSpec>(delegateCompiler, ".o");
 
-    TestFile outputDir = tmpDirProvider.createDir("objectFiles")
+    TestFile outputDir = tmpDirProvider.createDir("objs")
 
     WorkResult workResult = Mock(WorkResult)
     List<TestFile> sourceFiles

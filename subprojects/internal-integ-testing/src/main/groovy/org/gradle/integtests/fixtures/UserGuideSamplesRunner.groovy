@@ -18,8 +18,11 @@ package org.gradle.integtests.fixtures
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
+import org.gradle.api.Transformer
+import org.gradle.api.reporting.components.ComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.SystemProperties
+import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AntUtil
@@ -130,7 +133,11 @@ class UserGuideSamplesRunner extends Runner {
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
-                def expectedResult = replaceWithPlatformNewLines(buildContext.userGuideOutputDir.file(run.outputFile).text)
+                def expectedResult = buildContext.userGuideOutputDir.file(run.outputFile).text
+                if (run.outputFormatter) {
+                    expectedResult = run.outputFormatter.transform(expectedResult)
+                }
+                expectedResult = replaceWithPlatformNewLines(expectedResult)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
                 try {
                     result.assertOutputEquals(expectedResult, run.ignoreExtraLines, run.ignoreLineOrder)
@@ -194,9 +201,9 @@ class UserGuideSamplesRunner extends Runner {
             run.subDir = dir
             run.args = args ? args.split('\\s+') as List : []
             run.outputFile = outputFile
-            run.ignoreExtraLines = ignoreExtraLines as boolean
-            run.ignoreLineOrder = ignoreLineOrder as boolean
-            run.expectFailure = expectFailure as boolean
+            run.ignoreExtraLines = ignoreExtraLines
+            run.ignoreLineOrder = ignoreLineOrder
+            run.expectFailure = expectFailure
 
             sample.file.each { file -> run.files << file.'@path' }
             sample.dir.each { file -> run.dirs << file.'@path' }
@@ -235,6 +242,17 @@ class UserGuideSamplesRunner extends Runner {
             sampleRun.runs << run
         }
 
+        samplesById.nativeComponentReport.runs.each { it.outputFormatter = new ComponentReportOutputFormatter() }
+        samplesById.completeCUnitExample.runs.each {
+            if (AvailableToolChains.defaultToolChain.visualCpp) {
+                it.outputFile = it.outputFile.replace(".out", "-visualCpp.out")
+            }
+        }
+        if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
+            // Ignore for now
+            samplesById.remove('completeCUnitExample')
+        }
+
         return samplesById.values()
     }
 
@@ -249,6 +267,7 @@ Please run 'gradle docs:userguideDocbook' first"""
         String subDir
         Map envs = [:]
         String outputFile
+        Transformer<String, String> outputFormatter
         boolean expectFailure
         boolean ignoreExtraLines
         boolean ignoreLineOrder

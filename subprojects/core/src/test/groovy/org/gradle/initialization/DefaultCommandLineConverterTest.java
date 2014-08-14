@@ -42,7 +42,8 @@ public class DefaultCommandLineConverterTest {
     private TestFile currentDir = testDir.file("current-dir");
     private File expectedBuildFile;
     private File expectedGradleUserHome = new BuildLayoutParameters().getGradleUserHomeDir();
-    private File expectedProjectDir = currentDir;
+    private File expectedCurrentDir = currentDir;
+    private File expectedProjectDir;
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
     private boolean buildProjectDependencies = true;
@@ -83,7 +84,8 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedBuildFile, startParameter.getBuildFile());
         assertEquals(expectedTaskNames, startParameter.getTaskNames());
         assertEquals(buildProjectDependencies, startParameter.isBuildProjectDependencies());
-        assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
+        assertEquals(expectedCurrentDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
+        assertEquals(expectedProjectDir, startParameter.getProjectDir());
         assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
@@ -122,28 +124,32 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withSpecifiedProjectDirectory() {
-        expectedProjectDir = testDir.file("project-dir");
-        checkConversion("-p", expectedProjectDir.getAbsolutePath());
+        expectedCurrentDir = testDir.file("project-dir");
+        expectedProjectDir = expectedCurrentDir;
+        checkConversion("-p", expectedCurrentDir.getAbsolutePath());
 
-        expectedProjectDir = currentDir.file("project-dir");
+        expectedCurrentDir = currentDir.file("project-dir");
+        expectedProjectDir = expectedCurrentDir;
         checkConversion("-p", "project-dir");
     }
 
     @Test
     public void withSpecifiedBuildFileName() throws IOException {
         expectedBuildFile = testDir.file("somename");
-        expectedProjectDir = expectedBuildFile.getParentFile();
+        expectedCurrentDir = expectedBuildFile.getParentFile();
+        expectedProjectDir = expectedCurrentDir;
         checkConversion("-b", expectedBuildFile.getAbsolutePath());
 
         expectedBuildFile = currentDir.file("somename");
-        expectedProjectDir = expectedBuildFile.getParentFile();
+        expectedCurrentDir = expectedBuildFile.getParentFile();
+        expectedProjectDir = expectedCurrentDir;
         checkConversion("-b", "somename");
     }
 
     @Test
     public void withSpecifiedSettingsFileName() throws IOException {
         File expectedSettingsFile = currentDir.file("somesettings");
-        expectedProjectDir = expectedSettingsFile.getParentFile();
+        expectedCurrentDir = expectedSettingsFile.getParentFile();
 
         checkConversion("-c", "somesettings");
 

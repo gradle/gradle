@@ -90,21 +90,22 @@ ext {
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'ideNative', 'announce', 'scala', 'sonar', 'signing', 'runtimeNative', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageNative', 'languageBase',
-        'plugin-development'
+        'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageBase',
+        'runtimeNative', 'languageNative', 'ideNative',
+        'plugin-development', 'pluginUse'
     ].collect {
-        publishedProjects = [
-                project(':core'),
-                project(':toolingApi'),
-                project(':wrapper'),
-                project(':baseServices'),
-                project(':baseServicesGroovy'),
-                project(':messaging'),
-                project(':resources')
-        ]
         project(it)
     }
+    publishedProjects = [
+            project(':core'),
+            project(':toolingApi'),
+            project(':wrapper'),
+            project(':baseServices'),
+            project(':baseServicesGroovy'),
+            project(':messaging'),
+            project(':resources')
+    ]
 }
 
 apply from: "gradle/buildReceipt.gradle"
@@ -168,7 +169,6 @@ dependencies {
     runtime project(':wrapper')
     gradlePlugins pluginProjects
     gradlePlugins project(':coreImpl')
-    gradlePlugins project(':pluginUse')
 }
 
 task verifyIsProductionBuildEnvironment << {

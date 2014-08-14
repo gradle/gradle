@@ -16,8 +16,6 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -35,19 +33,13 @@ public class InstantiatingBuildLoader implements BuildLoader {
      * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link ProjectInternal} instances for the given root project,
      * ready for the projects to be evaluated.
      */
-    public void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {
+    public void load(ProjectDescriptor rootProjectDescriptor, ProjectDescriptor defaultProject, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {
         createProjects(rootProjectDescriptor, gradle, baseClassLoaderScope);
-        attachDefaultProject(gradle);
+        attachDefaultProject(defaultProject, gradle);
     }
 
-    private void attachDefaultProject(GradleInternal gradle) {
-        ProjectSpec spec = ProjectSpecs.forStartParameter(gradle.getStartParameter());
-        try {
-            gradle.setDefaultProject(spec.selectProject(gradle.getRootProject().getProjectRegistry()));
-        } catch (InvalidUserDataException e) {
-            throw new GradleException(String.format("Could not select the default project for this build. %s",
-                    e.getMessage()), e);
-        }
+    private void attachDefaultProject(ProjectDescriptor defaultProject, GradleInternal gradle) {
+        gradle.setDefaultProject(gradle.getRootProject().getProjectRegistry().getProject(defaultProject.getPath()));
     }
 
     private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {

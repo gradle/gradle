@@ -1,0 +1,50 @@
+:components
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+Native library 'hello'
+----------------------
+
+Source sets
+    C++ source 'hello:cpp'
+        src/hello/cpp
+
+Binaries
+    Shared library 'hello:sharedLibrary'
+        build using task: :helloSharedLibrary
+        platform: current
+        build type: debug
+        flavor: default
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/helloSharedLibrary/libhello.dylib
+    Static library 'hello:staticLibrary'
+        build using task: :helloStaticLibrary
+        platform: current
+        build type: debug
+        flavor: default
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/helloStaticLibrary/libhello.a
+
+Native executable 'main'
+------------------------
+
+Source sets
+    C++ source 'main:cpp'
+        src/main/cpp
+
+Binaries
+    Executable 'main:executable'
+        build using task: :mainExecutable
+        platform: current
+        build type: debug
+        flavor: default
+        tool chain: Tool chain 'clang' (Clang)
+        executable file: build/binaries/mainExecutable/main
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

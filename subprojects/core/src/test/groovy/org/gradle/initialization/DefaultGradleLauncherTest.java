@@ -70,6 +70,8 @@ public class DefaultGradleLauncherTest {
 
     private ProjectDescriptor expectedRootProjectDescriptor;
 
+    private ProjectDescriptor expectedDefaultProjectDescriptor;
+
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private ClassLoaderScope settingsClassLoaderScope = context.mock(ClassLoaderScope.class);
@@ -101,6 +103,8 @@ public class DefaultGradleLauncherTest {
         expectedRootProjectDescriptor = new DefaultProjectDescriptor(null, "someName", new File("somedir"), new DefaultProjectDescriptorRegistry(),
                 TestFiles.resolver(expectedRootDir));
         expectedRootProject = TestUtil.createRootProject(expectedRootDir);
+        expectedDefaultProjectDescriptor = new DefaultProjectDescriptor(null, "default", new File("default"), new DefaultProjectDescriptorRegistry(),
+                TestFiles.resolver(expectedCurrentDir));
         expectedCurrentProject = TestUtil.createRootProject(expectedCurrentDir);
 
         expectedStartParams = new StartParameter();
@@ -115,6 +119,8 @@ public class DefaultGradleLauncherTest {
         context.checking(new Expectations() {
             {
                 allowing(settingsMock).getRootProject();
+                will(returnValue(expectedRootProjectDescriptor));
+                allowing(settingsMock).getDefaultProject();
                 will(returnValue(expectedRootProjectDescriptor));
                 allowing(settingsMock).getClassLoaderScope();
                 will(returnValue(settingsClassLoaderScope));
@@ -154,7 +160,7 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, baseClassLoaderScope);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             one(buildConfigurerMock).configure(gradleMock);
         }});
         BuildResult buildResult = gradleLauncher.getBuildAnalysis();
@@ -171,7 +177,7 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, baseClassLoaderScope);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             will(throwException(exception));
             one(exceptionAnalyserMock).transform(exception);
             will(returnValue(transformedException));
@@ -189,7 +195,7 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, baseClassLoaderScope);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             one(buildConfigurerMock).configure(gradleMock);
         }});
 
@@ -296,7 +302,7 @@ public class DefaultGradleLauncherTest {
     private void expectDagBuilt() {
         context.checking(new Expectations() {
             {
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, baseClassLoaderScope);
+                one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
                 one(buildConfigurerMock).configure(gradleMock);
                 one(buildExecuter).select(gradleMock);
             }

@@ -32,16 +32,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
+    private final FunctionalSourceSet mainSourceSet;
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier id;
     private final DefaultDomainObjectSet<NativeBinarySpec> binaries;
     private final Set<Class<? extends TransformationFileType>> inputTypes = new HashSet<Class<? extends TransformationFileType>>();
 
-    private final FunctionalSourceSet mainSourceSet;
     private String baseName;
 
     public AbstractNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet mainSourceSet) {
         this.mainSourceSet = mainSourceSet;
+        sourceSets.addMainSources(mainSourceSet);
         this.id = id;
         this.binaries = new DefaultDomainObjectSet<NativeBinarySpec>(NativeBinarySpec.class);
         this.inputTypes.add(ObjectFile.class);
@@ -58,6 +59,10 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
 
     public String getProjectPath() {
         return id.getProjectPath();
+    }
+
+    public FunctionalSourceSet getMainSource() {
+        return mainSourceSet;
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
@@ -78,10 +83,6 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
-    }
-
-    public FunctionalSourceSet getMainSource() {
-        return mainSourceSet;
     }
 
 

@@ -27,3 +27,4 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ':coreImpl')
 useTestFixtures(project: ':runtimeNative')
+useTestFixtures(project: ':runtimeNative', sourceSet: 'testFixtures')
