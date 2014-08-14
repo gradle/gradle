@@ -211,7 +211,23 @@ Configured extra info elements are added as children of the ivy 'info' element.
 
 Note that the [ivy schema](http://ant.apache.org/ivy/schemas/ivy.xsd) demands that any extra info elements be added after any child elements
 of 'info' that are defined in the schema (e.g. description or ivyauthor).  This means that any [withXml()](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html#withXml%28org.gradle.api.Action%29)
-actions must take care to insert any schema-defined 'info' child elements before any extra 'info' elements that may have been added.
+actions must take care to insert any schema-defined 'info' child elements <i>before</i> any extra 'info' elements that may have been added.
+
+Furthermore, retrieving extra info elements with namespace when resolving Ivy modules is also available now.  This is exposed via the
+[IvyExtraInfo](javadoc/org/gradle/api/artifacts/ivy/IvyExtraInfo.html) object in component metadata rules.
+
+    dependencies {
+        components {
+            eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
+                if (ivyModule.extraInfo.get('http://my.namespace', 'myElement') == 'changing') {
+                    details.changing = true
+                }
+            }
+        }
+    }
+
+Note that the Map<String, String> representation for extraInfo in [IvyModuleDescriptor](javadoc/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html)
+has been replaced with [IvyExtraInfo](javadoc/org/gradle/api/artifacts/ivy/IvyExtraInfo.html).
 
 ### Task visibility is exposed in Tooling API (i)
 
