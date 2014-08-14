@@ -237,9 +237,104 @@ This story makes available the component and Ivy meta-data as optional read only
     - No closure parameter
     - Rule action throws exception
 
+## Story: Replace versionSelection rules with componentSelection rules
+
+This is an update to the previous 3 stories, based on some further analysis and design.
+The primary changes are:
+
+- Rename functionality from 'versionSelection' rules to 'componentSelection' rules.
+- Default version matching will be applied first. Custom rules are not evaluated for any component where default version matching rejects candidate.
+- Custom rules provide a fixed selection criteria for a candidate component, without consideration of the `ModuleComponentSelector`.
+- Every defined rule must either accept or reject the candidate component. It is an error for a rule _not_ to specify accept or reject.
+- A reason must be specified when rejecting, for reporting purposes.
+- For a candidate to be considered, every defined rule must accept candidate. If any rule rejects the candidate, it is not considered.
+- Once a rule rejects a candidate, no other rules will be evaluated (short-circuit rules).
+- If a rule requires an `IvyModuleDescriptor` input, then that rule implicitly reject any non-ivy module.
+    - Until we add module targeting (next story), rules will not be usable in a mixed ivy/maven environment.
+- Rules that require additional inputs (`ComponentMetadata` or `IvyModuleDescriptor`) will be evaluated _after_ rules that do not declare these inputs.
+- Order of rule execution cannot be specified
+- It will no longer be possible to implement a custom version matching algorithm using these rules.
+
+### User visible changes
+
+    ModuleComponentSelection {
+        ModuleComponentIdentifier getCandidate()
+        void accept()
+        void reject(String reason)
+        void rejectIf(Boolean condition, String reason)
+    }
+
+    resolutionStrategy.all {
+        componentSelection {
+            // Reject all beta versions for module components
+            all { ModuleComponentSelection selection ->
+                ModuleComponentIdentifier componentId = selection.getCandidate()
+                def isBeta = determineIfBeta(componentId.getVersion())
+                selection.rejectIf(isBeta, "component is beta")
+            }
+
+            // Accept only modules from a particular branch
+            all { ModuleComponentSelection selection, IvyModuleMetadata ivy ->
+                if (ivy.branch == 'foo') {
+                    selection.accept()
+                } else {
+                    selection.reject("Not the correct branch")
+                }
+            }
+        }
+    }
+
+### Implementation
+
+- Use the term 'ComponentSelection' in place of 'VersionSelection' for custom rules.
+- Replace `VersionSelection` with `ModuleComponentSelection` as defined above.
+- Change `NewestVersionComponentChooser` to evaluate version selector prior to evaluating custom rules.
+- Change the `ComponentSelectionRules` mechanism to:
+    - Fail if any rule doesn't accept or reject candidate
+    - Short-circuit remaining rules when any rule rejects candidate
+    - Report the reason for rejecting a particular candidate
+    - Evaluate rules with no additional inputs prior to rules with additional inputs
+- For this story, `NewestVersionComponentChooser` will simply log the reason for rejecting a candidate
+
+### Test cases
+
+- No rules are fired when no versions match the version selector
+- For a dynamic version selector "1.+":
+    - Custom rule can reject all candidates: user gets general 'not found' error message.
+      the version selector, and the reason each was rejected.
+    - Custom rule can select one of the candidates, no further candidates are considered.
+    - Custom rule can reject all candidates from one repository, and accept a candidate from a subsequent repository.
+- For a static version selector "1.0":
+    - Custom rule can reject candidate: user gets general 'not found' error message.
+    - Custom rule can reject candidate from one repository, and accept a matching candidate from a subsequent repository.
+- With multiple custom rules:
+    - If any rule rejects a candidate, the candidate is not selected.
+    - Once a rule rejects a candidate, no other rules are evaluated for the candidate.
+    - A rule that declares only a `ModuleComponentSelection` input is evaluated before a rule that declares a `ComponentMetadata` input.
+- Useful error message when a rule neither accepts or rejects a candidate
+- A Maven module candidate is not considered when a custom rule requires an `IvyModuleDescriptor` input
+    - Reason is logged as "not an Ivy Module" (or similar)
+- All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted
+- Test cases from earlier stories will be modified or replaced by the test cases here
+
+## Story: Build reports reasons for failure to resolve due to custom component selection rules
+
+To make it easy to diagnose why no components match a particular version selector, this story adds context to the existing
+'not found' exception message reported. The extra information in the exception will include a list of any candidate versions
+that matched the specified version selector, together with the reason each was rejected.
+
+### Test cases
+
+- For a dynamic version selector "1.+":
+    - Custom rule can reject all candidates: user gets error message listing each candidate that matched and the rejection reason
+- For a static version selector "1.0":
+    - Custom rule can reject candidate: user gets useful error message including the rejection reason.
+- A Maven module candidate is not considered when a custom rule requires an `IvyModuleDescriptor` input
+    - Reason is reported as "not an Ivy Module" (or similar)
+
 ### Open issues
 
-- Convert the default version matching strategy to `MetadataRule` instances?
+- Dependency reports should indicate reasons for candidate selection (why other candidates were rejected).
 
 ## Story: Build script targets versionSelection rule to particular module
 
