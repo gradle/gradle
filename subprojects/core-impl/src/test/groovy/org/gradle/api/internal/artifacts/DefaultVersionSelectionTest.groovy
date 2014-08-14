@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import spock.lang.Specification
 import org.gradle.api.internal.artifacts.VersionSelectionInternal.State
 
@@ -26,7 +26,7 @@ class DefaultVersionSelectionTest extends Specification {
     DefaultVersionSelection selection
 
     def setup() {
-        selection = new DefaultVersionSelection(Stub(ModuleComponentSelector), Stub(ModuleComponentIdentifier))
+        selection = new DefaultVersionSelection(Stub(DependencyMetaData), Stub(ModuleComponentIdentifier))
     }
 
     def "default state of version selection is not set" () {

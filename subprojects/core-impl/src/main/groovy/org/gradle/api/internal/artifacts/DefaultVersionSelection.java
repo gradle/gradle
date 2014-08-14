@@ -19,15 +19,19 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 public class DefaultVersionSelection implements VersionSelectionInternal {
+    DependencyMetaData metadata;
     ModuleComponentSelector requested;
     ModuleComponentIdentifier candidate;
     State state = State.NOT_SET;
 
-    public DefaultVersionSelection(ModuleComponentSelector requested, ModuleComponentIdentifier candidate) {
-        this.requested = requested;
+    public DefaultVersionSelection(DependencyMetaData metadata, ModuleComponentIdentifier candidate) {
+        this.metadata = metadata;
         this.candidate = candidate;
+        this.requested = DefaultModuleComponentSelector.newSelector(metadata.getRequested());
     }
 
     public ModuleComponentSelector getRequested() {
@@ -62,6 +66,10 @@ public class DefaultVersionSelection implements VersionSelectionInternal {
 
     public State getState() {
         return state;
+    }
+
+    public DependencyMetaData getDependencyMetaData() {
+        return metadata;
     }
 
     private RuntimeException stateChangeFailure() {

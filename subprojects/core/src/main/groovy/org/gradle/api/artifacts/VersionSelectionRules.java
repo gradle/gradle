@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
@@ -53,4 +54,23 @@ public interface VersionSelectionRules {
      * @return this
      */
     public VersionSelectionRules all(Action<? super VersionSelection> selectionAction);
+
+    /**
+     * Add a new version selection rule to the container.  Each rule will receive a {@link org.gradle.api.artifacts.VersionSelection}
+     * object as an argument as well as any other inputs defined in the {@link org.gradle.api.artifacts.MetadataRule}.
+     *
+     * @param metadataRule the MetadataRule that implements a rule to be applied to all resolved modules
+     * @return this
+     */
+    public VersionSelectionRules all(MetadataRule<? super VersionSelection> metadataRule);
+
+    /**
+     * Add a new version selection rule to the container.  Each rule will receive a {@link org.gradle.api.artifacts.VersionSelection}
+     * object as an argument as well as any other arguments specified for the closure.  Allowable arguments are {@link org.gradle.api.artifacts.ComponentMetadata}
+     * or {@link org.gradle.api.artifacts.ComponentMetadata} and {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
+     *
+     * @param closure the Closure that implements a rule to be applied to all resolved modules
+     * @return this
+     */
+    public VersionSelectionRules all(Closure<?> closure);
 }

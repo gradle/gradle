@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.artifacts;
 
-import org.gradle.api.artifacts.VersionSelection;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.Incubating;
 
-public interface VersionSelectionInternal extends VersionSelection {
-    public enum State {
-        NOT_SET,
-        ACCEPTED,
-        REJECTED
-    }
+import java.util.List;
 
-    State getState();
-
-    DependencyMetaData getDependencyMetaData();
+/**
+ * Represents a rule applied with metadata.
+ *
+ * @param <T>
+ */
+@Incubating
+public interface MetadataRule<T> {
+    Class<T> getSubjectType();
+    List<Class<?>> getInputTypes();
+    void execute(T subject, List<?> inputs);
 }

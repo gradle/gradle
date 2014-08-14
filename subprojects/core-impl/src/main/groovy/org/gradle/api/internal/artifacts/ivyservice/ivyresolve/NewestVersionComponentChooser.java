@@ -17,12 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultVersionSelection;
 import org.gradle.api.internal.artifacts.VersionSelectionInternal;
 import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
@@ -72,16 +70,17 @@ class NewestVersionComponentChooser implements ComponentChooser {
         if (versionMatcher.needModuleMetadata(dependency.getRequested().getVersion())) {
             return chooseBestMatchingDependencyWithMetaData(versions, dependency, moduleAccess);
         } else {
-            return chooseBestMatchingDependency(versions, dependency.getRequested(), moduleAccess);
+            return chooseBestMatchingDependency(versions, dependency, moduleAccess);
         }
     }
 
-    private ModuleComponentIdentifier chooseBestMatchingDependency(ModuleVersionListing versions, ModuleVersionSelector requested, ModuleComponentRepositoryAccess moduleAccess) {
+    private ModuleComponentIdentifier chooseBestMatchingDependency(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
+        ModuleVersionSelector requested = dependency.getRequested();
         for (Versioned candidate : sortLatestFirst(versions)) {
             // Apply version selection rules
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
-            ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(requested);
-            VersionSelectionInternal selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
+
+            VersionSelectionInternal selection = new DefaultVersionSelection(dependency, candidateIdentifier);
             versionSelectionRules.apply(selection, moduleAccess);
 
             switch(selection.getState()) {
@@ -107,8 +106,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
             ModuleComponentIdentifier candidateIdentifier = metaData.getComponentId();
 
             // Apply version selection rules
-            ModuleComponentSelector requestedComponentSelector = DefaultModuleComponentSelector.newSelector(dependency.getRequested());
-            VersionSelectionInternal selection = new DefaultVersionSelection(requestedComponentSelector, candidateIdentifier);
+            VersionSelectionInternal selection = new DefaultVersionSelection(dependency, candidateIdentifier);
             versionSelectionRules.apply(selection, moduleAccess);
 
             switch(selection.getState()) {
