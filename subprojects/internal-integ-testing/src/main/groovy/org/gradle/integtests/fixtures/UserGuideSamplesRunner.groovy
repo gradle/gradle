@@ -22,7 +22,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.reporting.components.ComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.SystemProperties
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
+import org.gradle.nativebinaries.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AntUtil

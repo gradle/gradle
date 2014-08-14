@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
+import org.gradle.nativebinaries.fixtures.AvailableToolChains
 
 class ComponentReportOutputFormatter implements Transformer<String, String> {
     final AvailableToolChains.InstalledToolChain toolChain

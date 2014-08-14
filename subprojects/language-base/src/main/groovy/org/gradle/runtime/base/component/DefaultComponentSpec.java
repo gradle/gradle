@@ -24,10 +24,10 @@ import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.runtime.base.*;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.base.ComponentSpec;
+import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.runtime.base.ModelInstantiationException;
 
 /**
  * Base class for custom component implementations.
