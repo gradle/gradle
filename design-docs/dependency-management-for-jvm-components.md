@@ -500,14 +500,6 @@ Running `gradle assemble` will execute lifecycle task for each binary.
     - Need to attach source sets to components.
 - Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
 
-### Story: Build author uses `libraries { }` DSL to configure binaries for a custom component
-
-Adds capability to configure a child object after the parent object has been configured.
-
-### Story: Build author uses `binaries { }` DSL to configure binaries for multiple components
-
-Adds capability for an object to appear in multiple locations in the model.
-
 ### Story: Custom plugin defines tasks from binaries
 
 Add a rule to the sample plugin:
@@ -537,6 +529,14 @@ Running `gradle assemble` will execute tasks for each library binary.
 #### Open issues
 
 - Needs to be easy to construct a task graph. The binary is 'builtBy' some assembling task, which then depend on a bunch of compile tasks.
+
+### Story: Build author uses `libraries { }` DSL to configure binaries for a custom component
+
+Adds capability to configure a child object after the parent object has been configured.
+
+### Story: Build author uses `binaries { }` DSL to configure binaries for multiple components
+
+Adds capability for an object to appear in multiple locations in the model.
 
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
