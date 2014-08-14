@@ -1163,6 +1163,23 @@ Present to the user some information about how a given project is composed.
 
 TBD
 
+### Open Issue: TestSuite components are not in components container
+
+I think there's some kind of concept of a hierarchy of components going on here - some components are the 'top level' or 'main' outputs of a project
+and some components are 'owned' by some other component and form part of some larger aggregate component. For example, a library or application component
+usually has some test suite associated with it, that represent the various tests that are relevant for that particular component.
+But the test suite is itself a component, and a test suite could be the sole output of a particular project and not associated with any particular component.
+It would therefore be the 'main' component for that particular project.
+
+So, we want some way to define and navigate to the main components of a project, so for example, we can write a rule to say that the 'assemble' task
+should build all the binaries of the main components. Through the main components we should also be able to navigate to the components that make up
+each main component. eg let me configure the test suite for the hello world application.
+
+However, we also want a way to apply rules to components regardless of where they sit in this hierarchy. For example, so we can implement rules like:
+for each component, define a source set for each supported language that we can link/assemble into the binaries for the component.
+
+This essentially means two 'containers' - one that holds the main components, and another that contains all components.
+
 # Open issues and Later work
 
 ## Component model
