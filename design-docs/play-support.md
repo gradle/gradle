@@ -32,7 +32,7 @@ Performance should be comparable to SBT:
 
 # Milestone 1
 
-## Developer compiles Java and Scala source for Play application
+## Feature: Developer compiles Java and Scala source for Play application
 
 Developer uses the standard build lifecycle, such as `gradle assemble` or `gradle build` to compile the Java and Scala source for a Play application.
 
@@ -52,7 +52,59 @@ Play plugin:
 
 - Should use the new language plugins instead. Will require test execution and joint Java - Scala compilation.
 
-## Developer compiles route and template source for Play application
+### Story: Jvm Library is built from Scala source files
+
+Add a `scala-lang` plugin that provides Scala language support for Jvm components:
+
+    plugins {
+        id 'jvm-component'
+        id 'scala-lang'
+    }
+
+    jvm {
+        libraries {
+            mylib
+        }
+    }
+
+- Running `gradle assemble` builds the Jar
+- No dependencies, other than Scala version
+- No joint compilation with Java
+- Can build a library from both Java and Scala
+
+### Story: Build author declares target Scala platform
+
+- Provide a DSL to declare the target Scala platform for Scala source files.
+- Implies Java version?
+- Visible to Java source for that component as well?
+- Attach only to source set?
+
+### Story: Build author declares a Play application
+
+Add a `play-application` plugin that provides Play application component:
+
+    plugins {
+        id 'play-application'
+    }
+
+    jvm {
+        playApplications {
+            helloworld
+        }
+    }
+
+- Running `gradle assemble` builds the Jars.
+- No dependencies, other than Scala version and Play version.
+- Can build from Java or Scala or both.
+- App is not usable without routes provided by later story.
+
+### Story: Build author declares target Play platform
+
+- Provide a DSL to declare the target Play platform for a Play application.
+- Implies Scala version and Java version?
+- Should also be able to attach to a JVM component.
+
+## Feature: Developer compiles route and template source for Play application
 
 Extend the standard build lifecycle to compile the route and template source files to bytecode.
 
@@ -79,7 +131,7 @@ Play plugin:
 
 - Can generate template source in parallel?
 
-## Developer compiles assets for Play application
+## Feature: Developer compiles assets for Play application
 
 Extend the standard build lifecycle to compile the front end assets to CSS and Javascript.
 
@@ -130,7 +182,7 @@ Play plugin:
 
 - Integration with existing Gradle javascript plugins.
 
-## Developer builds and runs Play application
+## Feature: Developer builds and runs Play application
 
 Introduce some lifecycle tasks to allow the developer to run or start the Play application. For example, the
 developer may run `gradle run` to run the application or `gradle start` to start the application.
@@ -154,7 +206,7 @@ Play plugin:
 - Defines a Play application as-a web application
 - Provides a Play server implementation that can host a Play application.
 
-## Developer builds Play application distribution
+## Feature: Developer builds Play application distribution
 
 Introduce some lifecycle tasks to allow the developer to package up the Play application. For example, the
 developer may run `gradle stage` to stage the local application, or `gradle dist` to create a standalone distribution.
@@ -170,7 +222,7 @@ Play plugin:
 
 # Milestone 2
 
-## Long running compiler daemon
+## Feature: Long running compiler daemon
 
 Reuse the compiler daemon across builds to keep the Scala compiler warmed up. This is also useful for the other compilers.
 
@@ -180,7 +232,7 @@ Reuse the compiler daemon across builds to keep the Scala compiler warmed up. Th
 - Daemons expire some time after build, with much shorter expiry than the build daemon.
 - Reuse infrastructure from build daemon.
 
-## Keep running Play application up-to-date when source changes
+## Feature: Keep running Play application up-to-date when source changes
 
 This story adds an equivalent of Play's continuous mode (i.e. developer adds ~ before a command such as play ~run), where Gradle
 monitors the source files for changes and rebuilds and restarts the application when some change is detected. Note that 'restart'
@@ -216,7 +268,7 @@ For example, running `gradle --watch test run` would restart the application if 
     - Trigger build.
 - Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 
-## Developer triggers rebuild of running Play application
+## Feature: Developer triggers rebuild of running Play application
 
 This story adds an equivalent of Play's run command, where a build is triggered by the developer reloading the application in the browser
 and some source files have changed.
@@ -227,7 +279,7 @@ for good documentation about interfacing between Play and the build system. Grad
 it to Play's NettyServer. When a new request comes in, Play will call Gradle's implementation of BuildLink.reload and if any files have
 changed then Gradle will have to recompile and return a new classloader to Play.
 
-## Resources are built on demand when running Play application
+## Feature: Resources are built on demand when running Play application
 
 When running a Play application, start the application without building any resources. Build these resources only when requested
 by the client.
@@ -238,7 +290,7 @@ by the client.
   trigger a restart of the application at the appropriate time.
 - Failures need to be forwarded to the application for display.
 
-## Developer views compile and other build failures in Play application
+## Feature: Developer views compile and other build failures in Play application
 
 Adapt compiler output to the format expected by Play:
 
