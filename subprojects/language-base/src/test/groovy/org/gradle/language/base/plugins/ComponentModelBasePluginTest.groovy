@@ -277,10 +277,5 @@ class ComponentModelBasePluginTest extends Specification {
     public static class TestComponentSpec extends DefaultLibrarySpec {
         public TestComponentSpec() {
         }
-
-        @Override
-        Set<Class<? extends TransformationFileType>> getInputTypes() {
-            return new HashSet<Class<? extends TransformationFileType>>(0)
-        }
     }
 }
