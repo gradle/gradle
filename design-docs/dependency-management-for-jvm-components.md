@@ -356,11 +356,6 @@ Add a binary type to the sample plugin:
     interface OtherSampleBinary extends SampleBinary {}
 
     interface SampleComponent extends ComponentSpec {
-        @Binaries
-        Collection<SampleBinary> getSampleBinaries()
-
-        @Binaries
-        Collection<OtherSampleBinary> getOtherBinaries()
     }
 
     // Define implementations for the binary types - these will go away at some point
@@ -399,8 +394,6 @@ A custom binary implementation:
 - Introduce a `@BinaryType` rule type for registering a binary type and implementation
     - Assert that the implementation class extends `DefaultBinarySpec`, has a no-arg constructor and implements the type.
     - Register a factory for the type with the `BinaryContainer`.
-- Introduce a `@Binaries` annotation that can be used to determine the allowable binary types for a component
-    - This mechanism will be used to verify the binary definitions in the next story.
 - Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of binary subtypes.
 - Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
     - Similarly, add `ApplicationBinarySpec`.
@@ -529,6 +522,60 @@ Running `gradle assemble` will execute tasks for each library binary.
 #### Open issues
 
 - Needs to be easy to construct a task graph. The binary is 'builtBy' some assembling task, which then depend on a bunch of compile tasks.
+
+### Story: Plugin declares roles for the binaries of a component
+
+    interface JarBinarySpec extends BinarySpec { }
+
+    interface SampleLibrary extends LibrarySpec {
+        @Binaries
+        DomainObjectSet<? extends JarBinarySpec> getJars();
+
+        @Binary
+        JarBinarySpec getApiJar();
+
+        @Binary
+        JarBinarySpec getImplJar();
+    }
+
+Given this, Gradle ensures that the values from each of these properties are visible as the outputs of the component, and in the binaries container:
+
+    def lib = components.sampleLib
+    assert lib.binaries == lib.jars + [lib.apiJar, lib.implJar] as Set
+    assert binaries.containsAll(lib.binaries)
+
+Running `gradle assemble` should build all of these binaries.
+
+#### Open issues
+
+- Rename 'binaries' to more general 'outputs'? This allows binaries to be used as inputs.
+- Need to provide implementations of these values.
+- Change JvmLibrarySpec to have `classes` and `jar` properties of the appropriate types, and push classes dir and resource dir down from JvmBinarySpec to
+  ClassDirectoryBinarySpec.
+- Change NativeLibrarySpec to have `sharedLibs` and `staticLibs` properties of the appropriate types.
+- Change NativeExecutableSpec to have `executables` property of the appropriate type.
+- Change component report to present this meta-data.
+
+### Story: Plugin declares roles for the source sets of a component
+
+    interface HeaderLanguageSourceSet extends LanguageSourceSet { }
+
+    interface SampleLibrary extends LibrarySpec {
+        @Source
+        HeaderLanguageSourceSet getHeaders();
+
+        @Sources
+        DomainObjectSet<CLanguageSet> getCSources();
+    }
+
+    def lib = components.sampleLib
+    assert lib.sources == lib.cSources + [lib.headers] as Set
+
+#### Open issues
+
+- Rename 'sources' to more general 'inputs'? This allows source sets to be produced as outputs.
+- Change NativeComponentSpec to have `api` property and remove HeaderExportingSourceSet.
+- Change component report to present this meta-data.
 
 ### Story: Build author uses `libraries { }` DSL to configure binaries for a custom component
 
