@@ -17,22 +17,18 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
         implements ExtensiblePolymorphicDomainObjectContainer<T> {
-    @Nullable
-    private NamedDomainObjectFactory<? extends T> defaultFactory;
-
-    private final Map<Class<?>, NamedDomainObjectFactory<?>> factories =
-            new HashMap<Class<?>, NamedDomainObjectFactory<?>>();
+    private final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = Maps.newHashMap();
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
@@ -43,12 +39,13 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     }
 
     protected T doCreate(String name) {
-        if (defaultFactory == null) {
+        NamedDomainObjectFactory<? extends T> factory = factories.get(getType());
+        if (factory == null) {
             throw new InvalidUserDataException(String.format("Cannot create a %s named '%s' because this container "
                     + "does not support creating elements by name alone. Please specify which subtype of %s to create. "
                     + "Known subtypes are: %s", getTypeDisplayName(), name, getTypeDisplayName(), getSupportedTypeNames()));
         }
-        return defaultFactory.create(name);
+        return factory.create(name);
     }
 
     protected <U extends T> U doCreate(String name, Class<U> type) {
@@ -62,7 +59,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     }
 
     public void registerDefaultFactory(NamedDomainObjectFactory<? extends T> factory) {
-        defaultFactory = factory;
+        factories.put(getType(), factory);
     }
 
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
