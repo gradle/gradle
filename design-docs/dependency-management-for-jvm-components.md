@@ -1060,10 +1060,11 @@ Present to the user some information about how a given project is composed.
 - Show source sets and binaries for each component.
 - Show target platforms, flavors and build types for each component, where applicable.
 - Show output files for each binary.
+- Show generated source sets.
+- Report on empty source sets, eg when source directory is configured incorrectly.
 
 #### Implementation
 
-- Add new task type to DSL guide.
 - Rendering for custom types.
 - Display install task for executables, test task for test suites.
 - Display native language header directories.
@@ -1077,11 +1078,9 @@ Present to the user some information about how a given project is composed.
 - Tweak report headers for single project builds.
 - Don't show chrome when report task is the only task scheduled to run.
 - Port HelpTasksPlugin and WrapperPluginAutoApplyAction to Java.
-- Document in user guide.
 
 #### Issues discovered
 
-- Issue: language plugins add every language to every component, regardless of whether that language is supported for the component.
 - Issue: TestSuite components are not included in ProjectComponentContainer.
 - Issue: Display name for CUnit executable is 'C unit exe' instead of `CUnit executable'
 - Issue: Better naming scheme for output directories, eg `executables/someThing/...` instead of `binaries/someThingExecutable/...`
