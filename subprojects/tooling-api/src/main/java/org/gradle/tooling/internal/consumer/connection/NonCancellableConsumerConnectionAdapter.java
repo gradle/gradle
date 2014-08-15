@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,24 +40,24 @@ public class NonCancellableConsumerConnectionAdapter implements ConsumerConnecti
     }
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        Runnable callback = handleCancellationPreOperation(operationParameters.getSuppliedCancellationToken());
+        Runnable callback = handleCancellationPreOperation(operationParameters.getCancellationToken());
         try {
             return delegate.run(action, operationParameters);
         } finally {
-            handleCancellationPostOperation(operationParameters.getSuppliedCancellationToken(), callback);
+            handleCancellationPostOperation(operationParameters.getCancellationToken(), callback);
         }
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        Runnable callback = handleCancellationPreOperation(operationParameters.getSuppliedCancellationToken());
+        Runnable callback = handleCancellationPreOperation(operationParameters.getCancellationToken());
         try {
             return delegate.run(type, operationParameters);
         } finally {
-            handleCancellationPostOperation(operationParameters.getSuppliedCancellationToken(), callback);
+            handleCancellationPostOperation(operationParameters.getCancellationToken(), callback);
         }
     }
 
-    private Runnable handleCancellationPreOperation(CancellationToken cancellationToken) {
+    private Runnable handleCancellationPreOperation(BuildCancellationToken cancellationToken) {
         Runnable callback = new Runnable() {
             public void run() {
                 LOGGER.info("Note: Version of Gradle provider does not support cancellation. Upgrade your Gradle build.");
@@ -67,7 +67,7 @@ public class NonCancellableConsumerConnectionAdapter implements ConsumerConnecti
         return callback;
     }
 
-    private void handleCancellationPostOperation(CancellationToken cancellationToken, Runnable callback) {
+    private void handleCancellationPostOperation(BuildCancellationToken cancellationToken, Runnable callback) {
         cancellationToken.removeCallback(callback);
     }
 }

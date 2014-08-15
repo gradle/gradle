@@ -187,10 +187,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return ((CancellationTokenInternal) cancellationToken).getToken();
     }
 
-    public CancellationToken getSuppliedCancellationToken() {
-        return cancellationToken;
-    }
-
     public long getStartTime() {
         return startTime;
     }

@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
@@ -46,14 +46,14 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
 
     def "logs when cancelled"() {
         def action = Mock(BuildAction)
-        def cancellation = GradleConnector.newCancellationTokenSource()
+        def cancellation = new DefaultBuildCancellationToken()
         def parameters = Stub(ConsumerOperationParameters) {
-            getSuppliedCancellationToken() >> cancellation.token()
+            getCancellationToken() >> cancellation
         }
 
         given:
         _ * target.run(action, parameters) >> {
-            cancellation.cancel()
+            cancellation.doCancel()
             'result'
         }
 
@@ -64,27 +64,27 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
         result == 'result'
 
         and:
-        cancellation.token().cancellationRequested
+        cancellation.cancellationRequested
         appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
     }
 
     def "no logging when cancelled after action"() {
         def action = Mock(BuildAction)
-        def cancellation = GradleConnector.newCancellationTokenSource()
+        def cancellation = new DefaultBuildCancellationToken()
         def parameters = Stub(ConsumerOperationParameters) {
-            getSuppliedCancellationToken() >> cancellation.token()
+            getCancellationToken() >> cancellation
         }
 
         when:
         def result = connection.run(action, parameters)
-        cancellation.cancel()
+        cancellation.doCancel()
 
         then:
         result == 'result'
 
         and:
         1 * target.run(action, parameters) >> 'result'
-        cancellation.token().cancellationRequested
+        cancellation.cancellationRequested
         appender.toString().empty
     }
 }

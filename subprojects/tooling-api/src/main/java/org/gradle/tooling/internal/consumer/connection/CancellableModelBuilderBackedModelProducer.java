@@ -47,7 +47,7 @@ public class CancellableModelBuilderBackedModelProducer extends AbstractModelPro
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         BuildResult<?> result;
         try {
-            result = builder.getModel(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getSuppliedCancellationToken()), operationParameters);
+            result = builder.getModel(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }
