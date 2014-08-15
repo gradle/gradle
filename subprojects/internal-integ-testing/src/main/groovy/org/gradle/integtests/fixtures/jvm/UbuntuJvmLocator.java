@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer;
+import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 
 import java.io.File;
 import java.util.ArrayList;

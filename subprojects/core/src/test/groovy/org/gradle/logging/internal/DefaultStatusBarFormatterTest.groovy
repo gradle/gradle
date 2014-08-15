@@ -16,7 +16,7 @@
 
 package org.gradle.logging.internal
 
-import org.gradle.internal.nativeplatform.console.ConsoleMetaData
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.logging.internal.progress.ProgressOperation
 import spock.lang.Specification
 import spock.lang.Subject

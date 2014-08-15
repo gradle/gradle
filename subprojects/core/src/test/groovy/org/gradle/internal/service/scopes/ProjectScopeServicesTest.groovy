@@ -41,7 +41,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
-import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration

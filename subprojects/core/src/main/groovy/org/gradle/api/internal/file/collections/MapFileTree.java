@@ -21,7 +21,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeplatform.filesystem.Chmod;
+import org.gradle.internal.nativeintegration.filesystem.Chmod;
 
 import java.io.File;
 import java.io.InputStream;

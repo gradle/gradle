@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.util.GFileUtils;
 

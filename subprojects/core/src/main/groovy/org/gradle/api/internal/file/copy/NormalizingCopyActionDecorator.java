@@ -24,7 +24,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.nativeplatform.filesystem.Chmod;
+import org.gradle.internal.nativeintegration.filesystem.Chmod;
 
 import java.io.File;
 import java.io.FilterReader;

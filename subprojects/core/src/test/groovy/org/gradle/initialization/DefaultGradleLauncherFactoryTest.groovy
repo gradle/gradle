@@ -16,7 +16,7 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.GlobalScopeServices

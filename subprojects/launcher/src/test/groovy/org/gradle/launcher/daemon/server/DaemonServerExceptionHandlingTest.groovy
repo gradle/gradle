@@ -22,7 +22,7 @@ import org.gradle.initialization.BuildAction
 import org.gradle.initialization.BuildController
 import org.gradle.initialization.FixedBuildCancellationToken
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.daemon.context.DaemonContext

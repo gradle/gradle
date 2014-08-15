@@ -36,7 +36,7 @@ class SettingsScopeServicesTest extends Specification {
 
     def setup() {
         settings.getSettingsDir() >> new File("settings-dir").absoluteFile
-        parent.get(org.gradle.internal.nativeplatform.filesystem.FileSystem) >> Stub(org.gradle.internal.nativeplatform.filesystem.FileSystem)
+        parent.get(org.gradle.internal.nativeintegration.filesystem.FileSystem) >> Stub(org.gradle.internal.nativeintegration.filesystem.FileSystem)
         parent.get(PluginRegistry) >> pluginRegistryParent
         pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
     }

@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.server
 
-import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.logging.LoggingManagerInternal

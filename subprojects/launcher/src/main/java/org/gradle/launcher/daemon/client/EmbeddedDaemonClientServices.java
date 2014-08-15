@@ -19,7 +19,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;

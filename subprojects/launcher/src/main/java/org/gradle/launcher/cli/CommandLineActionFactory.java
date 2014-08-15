@@ -28,7 +28,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;

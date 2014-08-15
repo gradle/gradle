@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.fixtures.binaryinfo
 
 import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal

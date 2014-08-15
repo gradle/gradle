@@ -25,7 +25,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativebinaries.toolchain.ToolChain

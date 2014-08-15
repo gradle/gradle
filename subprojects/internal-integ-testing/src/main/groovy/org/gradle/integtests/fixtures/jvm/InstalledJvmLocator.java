@@ -19,8 +19,8 @@ package org.gradle.integtests.fixtures.jvm;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer;
-import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;

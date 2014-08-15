@@ -24,8 +24,8 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer;
-import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.CollectionUtils;
 

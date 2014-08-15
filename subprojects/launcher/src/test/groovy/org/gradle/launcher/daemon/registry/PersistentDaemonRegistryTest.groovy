@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.registry
 
-import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.messaging.remote.Address

@@ -25,7 +25,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectDescriptorRegistry;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 

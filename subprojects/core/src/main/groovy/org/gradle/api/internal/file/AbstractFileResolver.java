@@ -24,7 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;

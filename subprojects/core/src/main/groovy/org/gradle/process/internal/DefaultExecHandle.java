@@ -22,7 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;

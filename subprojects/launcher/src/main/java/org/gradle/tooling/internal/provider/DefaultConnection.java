@@ -19,7 +19,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.FixedBuildCancellationToken;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
-import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.logging.LoggingServiceRegistry;

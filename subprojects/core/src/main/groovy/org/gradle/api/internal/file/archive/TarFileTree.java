@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.nativeplatform.filesystem.Chmod;
+import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

@@ -15,7 +15,7 @@
  */
 package org.gradle.logging.internal
 
-import org.gradle.internal.nativeplatform.console.ConsoleMetaData
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Subject
 
 class ConsoleBackedProgressRendererTest extends OutputSpecification {

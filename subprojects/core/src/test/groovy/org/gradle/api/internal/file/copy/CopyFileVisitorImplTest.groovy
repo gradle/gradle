@@ -21,7 +21,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
-import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 

@@ -17,8 +17,8 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.nativeplatform.filesystem.Chmod;
-import org.gradle.internal.nativeplatform.filesystem.Stat;
+import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.nativeintegration.filesystem.Stat;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;

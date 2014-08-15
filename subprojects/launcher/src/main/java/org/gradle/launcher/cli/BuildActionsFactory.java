@@ -26,7 +26,7 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;

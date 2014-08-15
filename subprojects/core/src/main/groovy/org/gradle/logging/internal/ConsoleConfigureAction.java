@@ -17,9 +17,9 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.nativeplatform.console.ConsoleDetector;
-import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
-import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.nativeintegration.console.ConsoleDetector;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.PrintStream;
 

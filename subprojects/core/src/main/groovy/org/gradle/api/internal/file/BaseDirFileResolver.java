@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 

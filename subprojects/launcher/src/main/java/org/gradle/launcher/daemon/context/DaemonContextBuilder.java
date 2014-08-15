@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.context;
 import com.google.common.collect.Lists;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.io.File;

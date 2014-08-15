@@ -16,7 +16,7 @@
 package org.gradle.integtests.fixtures.jvm
 
 import org.gradle.api.JavaVersion
-import org.gradle.internal.nativeplatform.filesystem.FileCanonicalizer
+import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

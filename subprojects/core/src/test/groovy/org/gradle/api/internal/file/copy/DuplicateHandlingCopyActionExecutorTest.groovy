@@ -22,7 +22,7 @@ import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.api.tasks.WorkResult
-import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
 public class CopyActionExecuter {

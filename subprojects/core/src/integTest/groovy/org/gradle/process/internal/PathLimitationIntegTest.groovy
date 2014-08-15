@@ -30,7 +30,7 @@ import org.gradle.cache.internal.*
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.messaging.remote.internal.MessagingServices
@@ -55,7 +55,7 @@ class PathLimitationIntegTest extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServices.getInstance().get(org.gradle.internal.nativeplatform.ProcessEnvironment.class));
+    private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServices.getInstance().get(org.gradle.internal.nativeintegration.ProcessEnvironment.class));
     private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()));
     private final CacheRepository cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current()), factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();

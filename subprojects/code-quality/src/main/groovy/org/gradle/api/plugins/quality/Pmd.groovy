@@ -22,9 +22,9 @@ import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
-import org.gradle.internal.nativeplatform.console.ConsoleDetector
-import org.gradle.internal.nativeplatform.console.ConsoleMetaData
-import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.nativeintegration.console.ConsoleDetector
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 

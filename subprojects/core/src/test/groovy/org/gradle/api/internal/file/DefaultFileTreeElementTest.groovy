@@ -16,8 +16,8 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.file.FileTreeElement
-import org.gradle.internal.nativeplatform.filesystem.Chmod
-import org.gradle.internal.nativeplatform.filesystem.Stat
+import org.gradle.internal.nativeintegration.filesystem.Chmod
+import org.gradle.internal.nativeintegration.filesystem.Stat
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
