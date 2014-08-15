@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.fixtures.app
+package org.gradle.language.fixtures.app
 
 import org.gradle.nativebinaries.fixtures.AvailableToolChains
+import org.gradle.nativebinaries.fixtures.app.SourceFile
+import org.gradle.nativebinaries.fixtures.app.TestComponent
 
 class DuplicateAssemblerBaseNamesTestApp extends TestComponent{
 

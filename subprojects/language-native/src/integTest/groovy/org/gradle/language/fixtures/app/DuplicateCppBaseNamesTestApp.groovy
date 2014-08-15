@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.fixtures.app
+package org.gradle.language.fixtures.app
+
+import org.gradle.nativebinaries.fixtures.app.SourceFile
+import org.gradle.nativebinaries.fixtures.app.TestComponent
 
 class DuplicateCppBaseNamesTestApp extends TestComponent {
 
