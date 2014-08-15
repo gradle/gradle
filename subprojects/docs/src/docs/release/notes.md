@@ -76,6 +76,7 @@ executing the first block.
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Jake Wharton](https://github.com/JakeWharton) - clarification of hashing used for Gradle Wrapper downloads
+* [Baron Roberts](https://github.com/baron1405) - fixes to JDepend plugin
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
