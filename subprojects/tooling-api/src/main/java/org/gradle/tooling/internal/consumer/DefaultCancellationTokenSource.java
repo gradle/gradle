@@ -16,25 +16,47 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.CancellationTokenSource;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 public final class DefaultCancellationTokenSource implements CancellationTokenSource {
-    private final DefaultBuildCancellationToken tokenImpl;
-    private final CancellationToken token;
+    private final CancellationTokenImpl tokenImpl;
 
     public DefaultCancellationTokenSource() {
-        tokenImpl = new DefaultBuildCancellationToken();
-        token = new ProtocolToModelAdapter().adapt(CancellationToken.class, tokenImpl);
+        tokenImpl = new CancellationTokenImpl(new DefaultBuildCancellationToken());
     }
 
     public void cancel() {
-        tokenImpl.doCancel();
+        tokenImpl.token.doCancel();
     }
 
     public CancellationToken token() {
-        return token;
+        return tokenImpl;
+    }
+
+    private static class CancellationTokenImpl implements CancellationToken, CancellationTokenInternal {
+        private final DefaultBuildCancellationToken token;
+
+        private CancellationTokenImpl(DefaultBuildCancellationToken token) {
+            this.token = token;
+        }
+
+        public BuildCancellationToken getToken() {
+            return token;
+        }
+
+        public boolean isCancellationRequested() {
+            return token.isCancellationRequested();
+        }
+
+        public boolean addCallback(Runnable cancellationHandler) {
+            return token.addCallback(cancellationHandler);
+        }
+
+        public void removeCallback(Runnable cancellationHandler) {
+            token.removeCallback(cancellationHandler);
+        }
     }
 }
