@@ -70,7 +70,7 @@ public interface Settings extends PluginAware {
     /**
      * <p>Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to
      * add to the build. Note that these path are not file paths, but instead specify the location of the new project in
-     * the project heirarchy. As such, the supplied paths must use the ':' character as separator.</p>
+     * the project hierarchy. As such, the supplied paths must use the ':' character as separator.</p>
      *
      * <p>The last element of the supplied path is used as the project name. The supplied path is converted to a project
      * directory relative to the root project directory.</p>
