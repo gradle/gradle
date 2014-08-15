@@ -18,8 +18,8 @@ package org.gradle.language
 
 import groovy.io.FileType
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import spock.lang.Unroll

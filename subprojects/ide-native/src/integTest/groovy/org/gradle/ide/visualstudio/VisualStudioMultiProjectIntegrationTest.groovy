@@ -17,9 +17,9 @@ package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.fixtures.app.CppHelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug', 'release'] as Set

@@ -17,9 +17,9 @@
 package org.gradle.language.cpp.internal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.nativebinaries.NativeDependencySet
-import org.gradle.nativebinaries.NativeLibraryBinary
-import org.gradle.nativebinaries.NativeLibrarySpec
+import org.gradle.nativeplatform.NativeDependencySet
+import org.gradle.nativeplatform.NativeLibraryBinary
+import org.gradle.nativeplatform.NativeLibrarySpec
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {

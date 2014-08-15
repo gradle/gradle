@@ -20,8 +20,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.nativebinaries.NativeBinarySpec;
-import org.gradle.nativebinaries.internal.resolve.ProjectLocator;
+import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.internal.resolve.ProjectLocator;
 
 public class VisualStudioProjectResolver {
     private final ProjectLocator projectLocator;

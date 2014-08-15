@@ -17,8 +17,8 @@
 package org.gradle.language.objectivec;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.sourceset.DependentSourceSet;
-import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet;
+import org.gradle.nativeplatform.sourceset.DependentSourceSet;
+import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
 

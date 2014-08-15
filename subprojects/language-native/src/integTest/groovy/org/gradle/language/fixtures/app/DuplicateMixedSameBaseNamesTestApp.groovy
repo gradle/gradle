@@ -17,9 +17,9 @@
 package org.gradle.language.fixtures.app
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.fixtures.AvailableToolChains
-import org.gradle.nativebinaries.fixtures.app.SourceFile
-import org.gradle.nativebinaries.fixtures.app.TestComponent;
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.app.SourceFile
+import org.gradle.nativeplatform.fixtures.app.TestComponent;
 
 
 // TODO integrate objective-c/cpp we have coverage on windows

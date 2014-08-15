@@ -16,8 +16,8 @@
 
 package org.gradle.language.internal.nativelang;
 
-import org.gradle.nativebinaries.internal.AbstractBinaryToolSpec;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
 import java.util.*;

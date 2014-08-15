@@ -16,10 +16,10 @@
 package org.gradle.language.c
 
 import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.fixtures.app.CCompilerDetectingTestApp
-import org.gradle.nativebinaries.fixtures.app.CHelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CCompilerDetectingTestApp
+import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import spock.lang.Issue
 import spock.lang.Unroll
 

@@ -17,10 +17,10 @@
 package org.gradle.language
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.fixtures.ToolChainRequirement
-import org.gradle.nativebinaries.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import org.gradle.util.Requires
@@ -28,8 +28,8 @@ import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.Ignore
 
-import static org.gradle.nativebinaries.fixtures.ToolChainRequirement.GccCompatible
-import static org.gradle.nativebinaries.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.TextUtil.escapeString
 
 abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {

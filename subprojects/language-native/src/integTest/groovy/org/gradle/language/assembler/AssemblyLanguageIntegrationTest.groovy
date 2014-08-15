@@ -18,11 +18,11 @@
 package org.gradle.language.assembler
 
 import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.fixtures.AvailableToolChains
-import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.MixedLanguageHelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.SourceFile
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SourceFile
 
 class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 

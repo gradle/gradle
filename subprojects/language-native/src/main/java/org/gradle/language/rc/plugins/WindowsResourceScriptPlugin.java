@@ -25,7 +25,7 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.internal.nativelang.NativeLanguageRegistration;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
-import org.gradle.nativebinaries.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.language.internal.nativelang.DefaultPreprocessingTool;
 import org.gradle.language.rc.internal.WindowsResourcesCompileTaskConfig;
 import org.gradle.runtime.base.BinarySpec;

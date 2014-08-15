@@ -17,8 +17,8 @@
 package org.gradle.language.cpp
 
 import org.gradle.language.AbstractLanguageIncrementalBuildIntegrationTest
-import org.gradle.nativebinaries.fixtures.app.CppHelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 
 class CppLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest {
     IncrementalHelloWorldApp getHelloWorldApp() {

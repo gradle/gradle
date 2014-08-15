@@ -16,8 +16,8 @@
 
 package org.gradle.ide.visualstudio.internal
 
-import org.gradle.nativebinaries.NativeBinarySpec
-import org.gradle.nativebinaries.tasks.InstallExecutable
+import org.gradle.nativeplatform.NativeBinarySpec
+import org.gradle.nativeplatform.tasks.InstallExecutable
 
 class ExecutableVisualStudioProjectConfiguration extends VisualStudioProjectConfiguration {
     ExecutableVisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, NativeBinarySpec binary) {

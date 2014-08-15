@@ -16,7 +16,7 @@
 
 package org.gradle.language.internal.nativelang;
 
-import org.gradle.nativebinaries.internal.DefaultTool;
+import org.gradle.nativeplatform.internal.DefaultTool;
 import org.gradle.language.PreprocessingTool;
 
 import java.util.LinkedHashMap;

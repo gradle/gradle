@@ -17,7 +17,7 @@
 package org.gradle.language.c.internal;
 
 import org.gradle.language.internal.nativelang.AbstractNativeCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.compilespec.CCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
 public class DefaultCCompileSpec extends AbstractNativeCompileSpec implements CCompileSpec {
 }

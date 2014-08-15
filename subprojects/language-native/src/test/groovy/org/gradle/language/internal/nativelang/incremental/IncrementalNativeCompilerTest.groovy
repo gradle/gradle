@@ -20,10 +20,10 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.nativebinaries.toolchain.Clang
-import org.gradle.nativebinaries.toolchain.Gcc
-import org.gradle.nativebinaries.toolchain.ToolChain
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
+import org.gradle.nativeplatform.toolchain.Clang
+import org.gradle.nativeplatform.toolchain.Gcc
+import org.gradle.nativeplatform.toolchain.ToolChain
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

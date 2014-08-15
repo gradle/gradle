@@ -629,8 +629,8 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 - ~~Move language-specific classes (`org.gradle.language.*`) out of `cpp` into a new subproject `language-native`~~
     - ~~Move language-related integration tests as well, breaking into a better package structure~~
 - ~~Rename the remaining `cpp` subproject to `platform-native`~~
-    - Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeplatform.*`
-    - Move integration tests into `platform-native`, breaking into a better package structure
+    - ~~Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeplatform.*`~~
+    - ~~Move integration tests into `platform-native`, breaking into a better package structure~~
 - Move runtime-specific classes (`org.gradle.runtime.*`) out of `language-jvm` into new subproject `platform-jvm`
 - Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes
     - `language-jvm` should be for common base infrastructure

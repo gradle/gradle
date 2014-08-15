@@ -17,8 +17,8 @@
 package org.gradle.language.c
 
 import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.fixtures.app.CCallingMixedCAndCppHelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CCallingMixedCAndCppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
 class CCallingMixedCAndCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     HelloWorldApp helloWorldApp = new CCallingMixedCAndCppHelloWorldApp()

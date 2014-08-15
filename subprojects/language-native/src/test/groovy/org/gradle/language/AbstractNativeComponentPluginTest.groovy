@@ -21,8 +21,8 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeExecutableBinarySpec
+import org.gradle.nativeplatform.NativeBinary
+import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification

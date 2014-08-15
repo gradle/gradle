@@ -19,7 +19,7 @@ package org.gradle.language.assembler.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.nativebinaries.plugins.NativeComponentPlugin;
+import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.

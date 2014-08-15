@@ -22,12 +22,12 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.XmlConfigFile
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet
+import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.rc.WindowsResourceSet
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeBinarySpec
-import org.gradle.nativebinaries.NativeComponentSpec
+import org.gradle.nativeplatform.NativeBinary
+import org.gradle.nativeplatform.NativeBinarySpec
+import org.gradle.nativeplatform.NativeComponentSpec
 import org.gradle.util.CollectionUtils
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.

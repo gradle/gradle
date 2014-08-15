@@ -18,10 +18,10 @@ package org.gradle.language.rc.plugins
 
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
-import org.gradle.nativebinaries.toolchain.Clang
-import org.gradle.nativebinaries.toolchain.Gcc
-import org.gradle.nativebinaries.toolchain.ToolChainRegistry
-import org.gradle.nativebinaries.toolchain.VisualCpp
+import org.gradle.nativeplatform.toolchain.Clang
+import org.gradle.nativeplatform.toolchain.Gcc
+import org.gradle.nativeplatform.toolchain.ToolChainRegistry
+import org.gradle.nativeplatform.toolchain.VisualCpp
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

@@ -23,8 +23,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.nativebinaries.Tool;
-import org.gradle.nativebinaries.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.Tool;
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.language.assembler.tasks.Assemble;
 import org.gradle.runtime.base.BinarySpec;
 

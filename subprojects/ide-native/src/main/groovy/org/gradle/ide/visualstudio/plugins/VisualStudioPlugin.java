@@ -39,10 +39,10 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.nativebinaries.NativeComponentSpec;
-import org.gradle.nativebinaries.NativeBinarySpec;
-import org.gradle.nativebinaries.internal.resolve.ProjectLocator;
-import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin;
+import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.internal.resolve.ProjectLocator;
+import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.runtime.base.BinaryContainer;
 
 

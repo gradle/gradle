@@ -16,11 +16,11 @@
 
 package org.gradle.language.internal.nativelang;
 
-import org.gradle.nativebinaries.ObjectFile;
+import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.nativebinaries.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.runtime.base.BinarySpec;
 
 public abstract class NativeLanguageRegistration<U extends LanguageSourceSet> implements LanguageRegistration<U> {

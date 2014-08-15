@@ -15,19 +15,19 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.Flavor
-import org.gradle.nativebinaries.NativeExecutableSpec
-import org.gradle.nativebinaries.NativeLibrarySpec
-import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
-import org.gradle.nativebinaries.internal.NativeExecutableBinarySpecInternal
-import org.gradle.nativebinaries.internal.SharedLibraryBinarySpecInternal
-import org.gradle.nativebinaries.internal.StaticLibraryBinarySpecInternal
-import org.gradle.nativebinaries.platform.Architecture
-import org.gradle.nativebinaries.platform.Platform
-import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
-import org.gradle.nativebinaries.test.NativeTestSuiteSpec
-import org.gradle.nativebinaries.test.internal.NativeTestSuiteBinarySpecInternal
+import org.gradle.nativeplatform.BuildType
+import org.gradle.nativeplatform.Flavor
+import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
+import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
+import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal
+import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal
+import org.gradle.nativeplatform.platform.Architecture
+import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.internal.ArchitectureNotationParser
+import org.gradle.nativeplatform.test.NativeTestSuiteSpec
+import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import spock.lang.Specification
 

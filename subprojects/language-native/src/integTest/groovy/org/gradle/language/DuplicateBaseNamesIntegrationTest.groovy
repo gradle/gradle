@@ -16,8 +16,8 @@
 
 package org.gradle.language
 
-import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.language.fixtures.app.DuplicateAssemblerBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateCBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateCppBaseNamesTestApp
@@ -25,11 +25,11 @@ import org.gradle.language.fixtures.app.DuplicateMixedSameBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateObjectiveCBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
-import org.gradle.nativebinaries.fixtures.app.SourceFile
+import org.gradle.nativeplatform.fixtures.app.SourceFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.nativebinaries.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 
 // TODO add coverage for mixed sources
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {

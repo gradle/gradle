@@ -110,9 +110,9 @@
             <sourcefile file="build.gradle" snippet="libraries"/>
         </sample>
         <para>
-            A library component is represented using <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/>.
-            Each library component can produce at least one shared library binary (<apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/>)
-            and at least one static library binary (<apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/>).
+            A library component is represented using <apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/>.
+            Each library component can produce at least one shared library binary (<apilink class="org.gradle.nativeplatform.SharedLibraryBinarySpec"/>)
+            and at least one static library binary (<apilink class="org.gradle.nativeplatform.StaticLibraryBinarySpec"/>).
         </para>
     </section>
     <section>
@@ -125,8 +125,8 @@
             <sourcefile file="build.gradle" snippet="executables"/>
         </sample>
         <para>
-            An executable component is represented using <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/>. Each executable component can
-            produce at least one executable binary (<apilink class="org.gradle.nativebinaries.NativeExecutableBinarySpec"/>).
+            An executable component is represented using <apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/>. Each executable component can
+            produce at least one executable binary (<apilink class="org.gradle.nativeplatform.NativeExecutableBinarySpec"/>).
         </para>
         <para>
             For each component defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
@@ -137,7 +137,7 @@
     <section>
         <title>Tasks</title>
         <para>
-            For each <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> that can be produced by a build,
+            For each <apilink class="org.gradle.nativeplatform.NativeBinarySpec"/> that can be produced by a build,
             a single <firstterm>lifecycle task</firstterm> is constructed that can be used to create that binary, together with a set of other tasks that do the actual
             work of compiling, linking or assembling the binary.
         </para>
@@ -151,20 +151,20 @@
                 </tr>
             </thead>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/></td>
-                <td><apilink class="org.gradle.nativebinaries.NativeExecutableBinarySpec"/></td>
+                <td><apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/></td>
+                <td><apilink class="org.gradle.nativeplatform.NativeExecutableBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>Executable</literal></td>
                 <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>Executable/<replaceable>${component.name}</replaceable></filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/></td>
-                <td><apilink class="org.gradle.nativebinaries.SharedLibraryBinarySpec"/></td>
+                <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
+                <td><apilink class="org.gradle.nativeplatform.SharedLibraryBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>SharedLibrary</literal></td>
                 <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>SharedLibrary/lib<replaceable>${component.name}</replaceable>.so</filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/></td>
-                <td><apilink class="org.gradle.nativebinaries.StaticLibraryBinarySpec"/></td>
+                <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
+                <td><apilink class="org.gradle.nativeplatform.StaticLibraryBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>StaticLibrary</literal></td>
                     <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>StaticLibrary/<replaceable>${component.name}</replaceable>.a</filename></td>
             </tr>
@@ -324,7 +324,7 @@
             <sourcefile file="build.gradle" snippet="all-binaries"/>
         </sample>
         <para>
-            Each binary is associated with a particular <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/>, allowing settings to be targeted based on
+            Each binary is associated with a particular <apilink class="org.gradle.nativeplatform.toolchain.ToolChain"/>, allowing settings to be targeted based on
             this value.
         </para>
         <para>
@@ -355,7 +355,7 @@
     <section id="native_binaries:windows-resources">
         <title>Windows Resources</title>
         <para>
-            When using the <apilink class="org.gradle.nativebinaries.toolchain.VisualCpp"/> tool chain, Gradle is able to compile Window Resource (<literal>rc</literal>)
+            When using the <apilink class="org.gradle.nativeplatform.toolchain.VisualCpp"/> tool chain, Gradle is able to compile Window Resource (<literal>rc</literal>)
             files and link them into a native binary. This functionality is provided by the <literal>'windows-resources'</literal> plugin.
         </para>
         <sample id="windowsResourcesPlugin" dir="native-binaries/windows-resources" title="The 'windows-resources' plugin">
@@ -469,7 +469,7 @@
             <title>Platform</title>
             <para>
                 An executable or library can be built to run on different operating systems and cpu architectures, with a variant being
-                produced for each platform. Gradle defines each OS/architecture combination as a <apilink class="org.gradle.nativebinaries.platform.Platform"/>,
+                produced for each platform. Gradle defines each OS/architecture combination as a <apilink class="org.gradle.nativeplatform.platform.Platform"/>,
                 and a project may define any number of platforms.
                 If no platforms are defined in a project, then a single, default platform 'current' is added.
             </para>
@@ -483,7 +483,7 @@
                 <sourcefile file="build.gradle" snippet="platforms"/>
             </sample>
             <para>
-                For a given variant, Gradle will attempt to find a <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/> that is able to build
+                For a given variant, Gradle will attempt to find a <apilink class="org.gradle.nativeplatform.toolchain.ToolChain"/> that is able to build
                 for the target platform. Available tool chains are searched in the order defined.
                 See the <link linkend="native_binaries:tool_chain">tool chains</link> section below for more details.
             </para>
@@ -522,24 +522,24 @@
                 <sourcefile file="build.gradle" snippet="target-platforms"/>
             </sample>
             <para>
-                Here you can see that the <apilink class="org.gradle.nativebinaries.TargetedNativeComponent" method="targetPlatforms"/> method is used to
+                Here you can see that the <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetPlatforms"/> method is used to
                 select the set of platforms to target for <literal>executables.main</literal>.
             </para>
             <para>
-                A similar mechanism exists for selecting <apilink class="org.gradle.nativebinaries.TargetedNativeComponent" method="targetBuildTypes"/>
-                and <apilink class="org.gradle.nativebinaries.TargetedNativeComponent" method="targetFlavors"/>.
+                A similar mechanism exists for selecting <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetBuildTypes"/>
+                and <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetFlavors"/>.
             </para>
         </section>
         <section>
             <title>Building all possible variants</title>
             <para>
                 When a set of build types, target platforms, and flavors is defined for a component,
-                a <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> model element is created for every possible
+                a <apilink class="org.gradle.nativeplatform.NativeBinarySpec"/> model element is created for every possible
                 combination of these. However, in many cases it is not possible to build a particular variant, perhaps because
                 no tool chain is available to build for a particular platform.
             </para>
             <para>
-                If a binary variant cannot be built for any reason, then the <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/>
+                If a binary variant cannot be built for any reason, then the <apilink class="org.gradle.nativeplatform.NativeBinarySpec"/>
                 associated with that variant will not be <literal>buildable</literal>. It is possible to use this property to create a task
                 to generate all possible variants on a particular machine.
             </para>
@@ -564,13 +564,13 @@
             </para>
             <itemizedlist>
                 <listitem>
-                    <para><apilink class="org.gradle.nativebinaries.toolchain.Gcc"/></para>
+                    <para><apilink class="org.gradle.nativeplatform.toolchain.Gcc"/></para>
                 </listitem>
                 <listitem>
-                    <para><apilink class="org.gradle.nativebinaries.toolchain.Clang"/></para>
+                    <para><apilink class="org.gradle.nativeplatform.toolchain.Clang"/></para>
                 </listitem>
                 <listitem>
-                    <para><apilink class="org.gradle.nativebinaries.toolchain.VisualCpp"/></para>
+                    <para><apilink class="org.gradle.nativeplatform.toolchain.VisualCpp"/></para>
                 </listitem>
             </itemizedlist>
             <sample id="toolChains" dir="native-binaries/tool-chains" title="Defining tool chains">
@@ -586,7 +586,7 @@
             <title>Using tool chains</title>
             <para>
                 It is not necessary or possible to specify the tool chain that should be used to build.
-                For a given variant, Gradle will attempt to locate a <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/> that is able to build
+                For a given variant, Gradle will attempt to locate a <apilink class="org.gradle.nativeplatform.toolchain.ToolChain"/> that is able to build
                 for the target platform. Available tool chains are searched in the order defined.
             </para>
             <note>
@@ -635,7 +635,7 @@
         <section>
             <title>Cross-compiling with GCC</title>
             <para>
-                Cross-compiling is possible with the <apilink class="org.gradle.nativebinaries.toolchain.Gcc"/> and <apilink class="org.gradle.nativebinaries.toolchain.Clang"/> tool chains,
+                Cross-compiling is possible with the <apilink class="org.gradle.nativeplatform.toolchain.Gcc"/> and <apilink class="org.gradle.nativeplatform.toolchain.Clang"/> tool chains,
                 by adding support for additional target platforms.
                 This is done by specifying a target platform for a toolchain. For each targetted platform a custom configuration can be specified.
             </para>
@@ -666,14 +666,14 @@
         <title>CUnit support</title>
         <para>
             The Gradle <literal>cunit</literal> plugin provides support for compiling and executing CUnit tests in your native-binary project.
-            For each <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/> and <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/>
-            defined in your project, Gradle will create a matching <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec"/> component,
+            For each <apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/> and <apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/>
+            defined in your project, Gradle will create a matching <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component,
             named <literal>${component.name}Test</literal>.
         </para>
         <section>
             <title>CUnit sources</title>
             <para>
-                Gradle will create a <apilink class="org.gradle.language.c.CSourceSet"/> named 'cunit' for each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec"/> component
+                Gradle will create a <apilink class="org.gradle.language.c.CSourceSet"/> named 'cunit' for each <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component
                 in the project. This source set should contain the cunit test files for the component sources. Source files can be located in the conventional location
                 (<literal>src/${component.name}Test/cunit</literal>) or can be configured like any other source set.
             </para>
@@ -693,10 +693,10 @@
         <section>
             <title>Building CUnit executables</title>
             <para>
-                A <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteSpec"/> component has an associated
-                <apilink class="org.gradle.nativebinaries.NativeExecutableSpec"/> or <apilink class="org.gradle.nativebinaries.NativeLibrarySpec"/> component.
-                For each <apilink class="org.gradle.nativebinaries.NativeBinarySpec"/> configured for the main component, a matching
-                <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec"/> will be configured on the test suite component.
+                A <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component has an associated
+                <apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/> or <apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/> component.
+                For each <apilink class="org.gradle.nativeplatform.NativeBinarySpec"/> configured for the main component, a matching
+                <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>
             <sample id="cunitSources" dir="native-binaries/cunit" title="Registering CUnit tests">
@@ -704,14 +704,14 @@
             </sample>
             <note>
                 Both the CUnit sources provided by your project and the generated launcher require the core CUnit headers and libraries.
-                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec"/>.
+                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec"/>.
             </note>
         </section>
 
         <section>
             <title>Running CUnit tests</title>
             <para>
-                For each <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuiteBinarySpec"/>, Gradle will create a task to execute this binary,
+                For each <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec"/>, Gradle will create a task to execute this binary,
                 which will run all of the registered CUnit tests.
                 Test results will be found in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>

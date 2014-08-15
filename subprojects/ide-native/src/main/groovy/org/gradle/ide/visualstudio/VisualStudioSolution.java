@@ -19,13 +19,13 @@ package org.gradle.ide.visualstudio;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.BuildableModelElement;
-import org.gradle.nativebinaries.NativeComponentSpec;
+import org.gradle.nativeplatform.NativeComponentSpec;
 
 import java.util.Set;
 
 /**
- * A visual studio solution, representing one or more {@link org.gradle.nativebinaries.NativeBinarySpec} instances
- * from the same {@link org.gradle.nativebinaries.NativeComponentSpec}.
+ * A visual studio solution, representing one or more {@link org.gradle.nativeplatform.NativeBinarySpec} instances
+ * from the same {@link org.gradle.nativeplatform.NativeComponentSpec}.
  * <p/>
  *
  * The content and location of the generate solution file can be modified by the supplied methods:

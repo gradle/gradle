@@ -21,12 +21,12 @@ import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeExecutableBinarySpec
-import org.gradle.nativebinaries.SharedLibraryBinarySpec
-import org.gradle.nativebinaries.StaticLibraryBinarySpec
+import org.gradle.nativeplatform.NativeBinary
+import org.gradle.nativeplatform.NativeExecutableBinarySpec
+import org.gradle.nativeplatform.SharedLibraryBinarySpec
+import org.gradle.nativeplatform.StaticLibraryBinarySpec
 import org.gradle.language.assembler.tasks.Assemble
-import org.gradle.nativebinaries.toolchain.ToolChainRegistry
+import org.gradle.nativeplatform.toolchain.ToolChainRegistry
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification

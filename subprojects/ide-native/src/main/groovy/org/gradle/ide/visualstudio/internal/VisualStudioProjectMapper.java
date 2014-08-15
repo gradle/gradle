@@ -17,12 +17,12 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.nativebinaries.NativeBinarySpec;
-import org.gradle.nativebinaries.NativeExecutableBinarySpec;
-import org.gradle.nativebinaries.SharedLibraryBinarySpec;
-import org.gradle.nativebinaries.StaticLibraryBinarySpec;
-import org.gradle.nativebinaries.internal.NativeBinarySpecInternal;
-import org.gradle.nativebinaries.test.NativeTestSuiteBinarySpec;
+import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeExecutableBinarySpec;
+import org.gradle.nativeplatform.SharedLibraryBinarySpec;
+import org.gradle.nativeplatform.StaticLibraryBinarySpec;
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 
 import java.util.List;
 

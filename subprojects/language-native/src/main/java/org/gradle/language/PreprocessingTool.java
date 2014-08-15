@@ -17,7 +17,7 @@
 package org.gradle.language;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.Tool;
+import org.gradle.nativeplatform.Tool;
 
 import java.util.Map;
 

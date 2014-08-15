@@ -15,11 +15,11 @@
  */
 package org.gradle.language.rc
 
-import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.fixtures.ToolChainRequirement
-import org.gradle.nativebinaries.fixtures.app.CppHelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

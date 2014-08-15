@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.internal.resolve.ProjectLocator;
+import org.gradle.nativeplatform.internal.resolve.ProjectLocator;
 
 public class DefaultVisualStudioExtension implements VisualStudioExtensionInternal {
     private final VisualStudioProjectRegistry projectRegistry;

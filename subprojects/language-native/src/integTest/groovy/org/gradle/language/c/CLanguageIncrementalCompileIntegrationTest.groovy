@@ -16,8 +16,8 @@
 package org.gradle.language.c
 
 import org.gradle.language.AbstractLanguageIncrementalCompileIntegrationTest
-import org.gradle.nativebinaries.fixtures.app.CHelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import spock.lang.Issue
 
 class CLanguageIncrementalCompileIntegrationTest extends AbstractLanguageIncrementalCompileIntegrationTest {

@@ -22,14 +22,14 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet
+import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.DefaultFlavor
-import org.gradle.nativebinaries.internal.DefaultFlavorContainer
-import org.gradle.nativebinaries.internal.NativeExecutableBinarySpecInternal
+import org.gradle.nativeplatform.*
+import org.gradle.nativeplatform.internal.DefaultFlavor
+import org.gradle.nativeplatform.internal.DefaultFlavorContainer
+import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import org.gradle.language.PreprocessingTool
-import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativeplatform.platform.Platform
 import spock.lang.Specification
 
 class VisualStudioProjectConfigurationTest extends Specification {

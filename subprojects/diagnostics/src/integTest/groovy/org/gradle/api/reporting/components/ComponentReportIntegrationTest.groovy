@@ -17,7 +17,7 @@
 package org.gradle.api.reporting.components
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.nativebinaries.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 

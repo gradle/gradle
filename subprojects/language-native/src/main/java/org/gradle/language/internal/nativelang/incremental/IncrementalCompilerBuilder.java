@@ -19,8 +19,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.nativebinaries.toolchain.ToolChain;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 public class IncrementalCompilerBuilder {
     private final TaskArtifactStateCacheAccess cacheAccess;

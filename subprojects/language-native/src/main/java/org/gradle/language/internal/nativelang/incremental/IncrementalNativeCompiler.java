@@ -27,10 +27,10 @@ import org.gradle.internal.Factory;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.internal.nativelang.incremental.sourceparser.CSourceParser;
 import org.gradle.language.internal.nativelang.incremental.sourceparser.RegexBackedCSourceParser;
-import org.gradle.nativebinaries.toolchain.Clang;
-import org.gradle.nativebinaries.toolchain.Gcc;
-import org.gradle.nativebinaries.toolchain.ToolChain;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.Clang;
+import org.gradle.nativeplatform.toolchain.Gcc;
+import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;

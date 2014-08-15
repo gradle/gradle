@@ -19,8 +19,8 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.NativeExecutableSpec
-import org.gradle.nativebinaries.internal.NativeExecutableBinarySpecInternal
+import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {

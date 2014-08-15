@@ -82,29 +82,29 @@
         <extends targetClass="org.gradle.api.Project" id="jvm" extensionClass="org.gradle.runtime.jvm.JvmComponentExtension"/>
     </plugin>
     <plugin id="native-component" description="Native Component Model Plugin">
-        <extends targetClass="org.gradle.api.Project" id="nativeRuntime" extensionClass="org.gradle.nativebinaries.NativeComponentExtension"/>
-        <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.toolchain.ToolChainRegistry"/>
-        <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativebinaries.BuildTypeContainer"/>
-        <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativebinaries.platform.PlatformContainer"/>
-        <extends targetClass="org.gradle.api.Project" id="flavors" extensionClass="org.gradle.nativebinaries.FlavorContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="nativeRuntime" extensionClass="org.gradle.nativeplatform.NativeComponentExtension"/>
+        <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativeplatform.toolchain.ToolChainRegistry"/>
+        <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativeplatform.BuildTypeContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativeplatform.platform.PlatformContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="flavors" extensionClass="org.gradle.nativeplatform.FlavorContainer"/>
     </plugin>
     <plugin id="cpp" description="C++ Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="cppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="c" description="C Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="cCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="assembler" description="Assembler Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="assembler" extensionClass="org.gradle.nativebinaries.Tool"/>
+        <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="assembler" extensionClass="org.gradle.nativeplatform.Tool"/>
     </plugin>
     <plugin id="objective-c" description="Objective-C Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="objectiveCCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="objective-cpp" description="Objective-C++ Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="objectiveCppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="windows-resources" description="Windows Resources Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="rcCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
+        <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="rcCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
     <plugin id="visual-studio" description="Visual Studio Plugin">
         <extends targetClass="org.gradle.api.Project" id="visualStudio" extensionClass="org.gradle.ide.visualstudio.VisualStudioExtension"/>

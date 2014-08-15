@@ -23,9 +23,9 @@ import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.AbstractBuildableModelElement
-import org.gradle.nativebinaries.NativeLibraryBinary
-import org.gradle.nativebinaries.NativeComponentSpec
-import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
+import org.gradle.nativeplatform.NativeLibraryBinary
+import org.gradle.nativeplatform.NativeComponentSpec
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
     final DefaultVisualStudioProject rootProject

@@ -22,12 +22,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.internal.nativelang.incremental.IncrementalCompilerBuilder;
-import org.gradle.nativebinaries.platform.Platform;
-import org.gradle.nativebinaries.platform.internal.PlatformInternal;
-import org.gradle.nativebinaries.toolchain.ToolChain;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain;
-import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain;
+import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
 
 import javax.inject.Inject;
 import java.io.File;

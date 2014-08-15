@@ -17,11 +17,11 @@
 package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet
-import org.gradle.nativebinaries.NativeBinarySpec
-import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
+import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet
+import org.gradle.nativeplatform.NativeBinarySpec
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.language.PreprocessingTool
-import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter
+import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter
 
 class VisualStudioProjectConfiguration {
     private final DefaultVisualStudioProject vsProject

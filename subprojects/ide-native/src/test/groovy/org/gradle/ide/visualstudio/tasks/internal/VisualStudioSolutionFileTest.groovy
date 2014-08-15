@@ -22,9 +22,9 @@ import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativebinaries.NativeBinarySpec
-import org.gradle.nativebinaries.NativeComponentSpec
-import org.gradle.nativebinaries.internal.NativeBinarySpecInternal
+import org.gradle.nativeplatform.NativeBinarySpec
+import org.gradle.nativeplatform.NativeComponentSpec
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

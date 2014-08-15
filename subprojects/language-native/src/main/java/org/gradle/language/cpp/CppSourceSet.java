@@ -17,8 +17,8 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativebinaries.sourceset.DependentSourceSet;
-import org.gradle.nativebinaries.sourceset.HeaderExportingSourceSet;
+import org.gradle.nativeplatform.sourceset.DependentSourceSet;
+import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
 
 /**
  * A set of C++ source files.

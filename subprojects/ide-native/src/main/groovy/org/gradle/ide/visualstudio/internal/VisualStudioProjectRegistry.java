@@ -19,7 +19,7 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativeplatform.*;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;

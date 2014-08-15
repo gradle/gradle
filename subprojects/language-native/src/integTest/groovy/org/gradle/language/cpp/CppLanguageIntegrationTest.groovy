@@ -17,10 +17,10 @@
 package org.gradle.language.cpp
 
 import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.fixtures.app.CppCompilerDetectingTestApp
-import org.gradle.nativebinaries.fixtures.app.CppHelloWorldApp
-import org.gradle.nativebinaries.fixtures.app.HelloWorldApp
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
 class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 

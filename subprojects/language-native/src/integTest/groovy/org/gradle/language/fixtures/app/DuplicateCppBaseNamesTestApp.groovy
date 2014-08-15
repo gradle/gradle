@@ -16,8 +16,8 @@
 
 package org.gradle.language.fixtures.app
 
-import org.gradle.nativebinaries.fixtures.app.SourceFile
-import org.gradle.nativebinaries.fixtures.app.TestComponent
+import org.gradle.nativeplatform.fixtures.app.SourceFile
+import org.gradle.nativeplatform.fixtures.app.TestComponent
 
 class DuplicateCppBaseNamesTestApp extends TestComponent {
 

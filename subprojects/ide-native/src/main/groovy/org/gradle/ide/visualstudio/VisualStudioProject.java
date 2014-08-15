@@ -19,10 +19,10 @@ package org.gradle.ide.visualstudio;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.BuildableModelElement;
-import org.gradle.nativebinaries.NativeComponentSpec;
+import org.gradle.nativeplatform.NativeComponentSpec;
 
 /**
- * A visual studio project, created from one or more {@link org.gradle.nativebinaries.NativeBinary} instances.
+ * A visual studio project, created from one or more {@link org.gradle.nativeplatform.NativeBinary} instances.
  *
  * <p/>
  *
