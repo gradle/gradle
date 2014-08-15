@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.nativebinaries
+package org.gradle.nativebinaries.sourceset
 import org.gradle.nativebinaries.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

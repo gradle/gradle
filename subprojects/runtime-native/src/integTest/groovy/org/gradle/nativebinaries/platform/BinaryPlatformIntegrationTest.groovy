@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries
+package org.gradle.nativebinaries.platform
 
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
