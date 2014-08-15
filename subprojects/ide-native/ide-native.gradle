@@ -17,11 +17,11 @@
 dependencies {
     compile libraries.groovy
     compile project(':core')
-    compile project(':runtimeNative')
+    compile project(':platformNative')
     compile project(':languageNative')
 }
 
 useTestFixtures()
-useTestFixtures(project: ":runtimeNative")
+useTestFixtures(project: ":platformNative")
 useClassycle()
 

@@ -97,7 +97,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ear-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-runtime-native-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-platform-native-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ide-native-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-native-${version}.jar"))
 

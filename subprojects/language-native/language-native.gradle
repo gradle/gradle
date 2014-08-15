@@ -17,13 +17,13 @@
 dependencies {
     compile libraries.groovy
     compile project(':core')
-    compile project(':runtimeNative')
+    compile project(':platformNative')
 
     integTestRuntime project(":ideNative")
 }
 
 useTestFixtures()
-useTestFixtures(project: ":runtimeNative")
+useTestFixtures(project: ":platformNative")
 useTestFixtures(project: ":languageBase")
 useTestFixtures(project: ":messaging")
 //useClassycle()

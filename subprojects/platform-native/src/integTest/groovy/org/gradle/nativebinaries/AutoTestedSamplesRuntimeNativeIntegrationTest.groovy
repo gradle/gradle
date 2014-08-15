@@ -23,7 +23,7 @@ class AutoTestedSamplesRuntimeNativeIntegrationTest extends AbstractAutoTestedSa
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/runtime-native/src/main")
+        runSamplesFrom("subprojects/platform-native/src/main")
     }
 
 }
