@@ -48,14 +48,8 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
         }
 
         for (MetadataRule<? super VersionSelection> rule: versionSelectionRules) {
-            if (rule.getInputTypes() == null || rule.getInputTypes().size() == 0) {
-                try {
-                    rule.execute(selection, null);
-                } catch (Exception e) {
-                    throw new InvalidUserCodeException(USER_CODE_ERROR, e);
-                }
-            } else {
-                List<Object> inputs = Lists.newArrayList();
+            List<Object> inputs = Lists.newArrayList();
+            if (rule.getInputTypes() != null && rule.getInputTypes().size() > 0) {
                 for (Class<?> inputType : rule.getInputTypes()) {
                     BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
                     moduleAccess.resolveComponentMetaData(((VersionSelectionInternal)selection).getDependencyMetaData(), selection.getCandidate(), descriptorResult);
@@ -76,12 +70,12 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
                     }
                     throw new InvalidUserCodeException(String.format("Unsupported parameter type for version selection rule: %s", inputType.getName()));
                 }
-
-                try {
-                    rule.execute(selection, inputs);
-                } catch (Exception e) {
-                    throw new InvalidUserCodeException(USER_CODE_ERROR, e);
-                }
+            }
+            
+            try {
+                rule.execute(selection, inputs);
+            } catch (Exception e) {
+                throw new InvalidUserCodeException(USER_CODE_ERROR, e);
             }
         }
     }

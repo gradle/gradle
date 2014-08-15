@@ -77,6 +77,8 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
 
         expect:
         succeeds 'resolveConf'
+        // Should use cache
+        succeeds 'resolveConf'
     }
 
     def "component metadata is requested only once for rules that do require it" () {
@@ -85,7 +87,8 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         modules["1.1"] = ivyHttpRepo.module("org.utils", "api", "1.1").withStatus("milestone").publish()
         modules["2.0"] = ivyHttpRepo.module("org.utils", "api", "2.0").publish()
 
-        // Expect the version listing and download for 1.1, but not anything else
+        // Expect the version listing and metadata download for all versions once,
+        // plus artifact download of 1.0 but not anything else
         ivyHttpRepo.directoryList("org.utils", "api").expectGet()
         modules.each { version, module -> module.ivy.expectDownload() }
         modules["1.0"].artifact.expectDownload()
@@ -124,6 +127,96 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         succeeds 'resolveConf'
     }
 
+    def "changed component metadata becomes visible when module is refreshed" () {
+        def modules = [:]
+        modules["1.0"] = ivyHttpRepo.module("org.utils", "api", "1.0").publish()
+        modules["1.1"] = ivyHttpRepo.module("org.utils", "api", "1.1").withBranch('test').withStatus('milestone').publish()
+        modules["2.0"] = ivyHttpRepo.module("org.utils", "api", "2.0").publish()
+
+        // Expect the version listing and ivy download for 1.1 and 2.0, plus
+        // artifact download of 1.1
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        modules["2.0"].ivy.expectDownload()
+        modules["1.1"].ivy.expectDownload()
+        modules["1.1"].artifact.expectDownload()
+
+        def commonBuildFile = """
+            $httpBaseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.+"
+            }
+
+            def ruleInvoked = false
+            def status = null
+            def branch = null
+            configurations.all {
+                resolutionStrategy {
+                    versionSelection {
+                        all { VersionSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                            if (selection.candidate.version == '1.1') {
+                                status = metadata.status
+                                branch = descriptor.branch
+                            }
+                            ruleInvoked = true
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        buildFile << """
+            $commonBuildFile
+
+            resolveConf.doLast {
+                assert ruleInvoked
+                assert status == 'milestone'
+                assert branch == 'test'
+            }
+        """
+
+        then:
+        succeeds 'resolveConf'
+
+        when:
+        modules["1.1"] = ivyHttpRepo.module("org.utils", "api", "1.1").withBranch('master').withStatus('release').publishWithChangedContent()
+
+        and:
+        server.resetExpectations()
+
+        then:
+        // Everything should come from cache
+        succeeds 'resolveConf'
+
+        when:
+        args("--refresh-dependencies")
+        buildFile.text = """
+            $commonBuildFile
+
+            resolveConf.doLast {
+                assert ruleInvoked
+                assert status == 'release'
+                assert branch == 'master'
+            }
+        """
+
+        and:
+        server.resetExpectations()
+        // Expect the version listing, HEAD for 2.0, and full download for changed 1.1
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        modules["2.0"].ivy.expectMetadataRetrieve()
+        modules["1.1"].ivy.expectMetadataRetrieve()
+        modules["1.1"].ivy.sha1.expectGet()
+        modules["1.1"].ivy.expectDownload()
+        modules["1.1"].artifact.expectMetadataRetrieve()
+        modules["1.1"].artifact.sha1.expectGet()
+        modules["1.1"].artifact.expectDownload()
+
+        then:
+        succeeds 'resolveConf'
+    }
+
     def static rules = [
         "always select if ivy branch is test": """{ VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
             if (ivyModule.branch == 'test') {
@@ -131,7 +224,7 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
             }
             ruleInvoked = true
         }""",
-        "always select when status is milestone": """{ VersionSelection selection, ComponentMetadata metadata ->
+        "always select if status is milestone": """{ VersionSelection selection, ComponentMetadata metadata ->
             if (metadata.status == 'milestone') {
                 selection.accept()
             }
@@ -140,6 +233,24 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         "always select if ivy branch is release and status is milestone": """{ VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
             if (ivyModule.branch == 'release' && cm.status == 'milestone') {
                 selection.accept()
+            }
+            ruleInvoked = true
+        }""",
+        "always reject if ivy branch is release": """{ VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
+            if (ivyModule.branch == 'release') {
+                selection.reject()
+            }
+            ruleInvoked = true
+        }""",
+        "always reject if status is integration": """{ VersionSelection selection, ComponentMetadata metadata ->
+            if (metadata.status == 'integration') {
+                selection.reject()
+            }
+            ruleInvoked = true
+        }""",
+        "always reject if ivy branch is release and status is milestone": """{ VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
+            if (ivyModule.branch == 'release' && cm.status == 'milestone') {
+                selection.reject()
             }
             ruleInvoked = true
         }""",
@@ -180,8 +291,14 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         where:
         requestedVersion     | rule                                                             | expectedVersion
         "1.0"                | "always select if ivy branch is test"                            | "2.0"
-        "latest.release"     | "always select when status is milestone"                         | "1.1"
+        "1.+"                | "always select if ivy branch is test"                            | "2.0"
+        "latest.milestone"   | "always select if ivy branch is test"                            | "2.0"
+        "latest.release"     | "always select if status is milestone"                           | "1.1"
         "latest.release"     | "always select if ivy branch is release and status is milestone" | "1.1"
+        "1.+"                | "always reject if ivy branch is release"                         | "1.0"
+        "latest.milestone"   | "always reject if ivy branch is release"                         | "1.0"
+        "latest.integration" | "always reject if status is integration"                         | "1.1"
+        "latest.milestone"   | "always reject if ivy branch is release and status is milestone" | "1.0"
     }
 
     def "produces sensible error when bad parameters are supplied to version selection rule" () {
@@ -218,5 +335,38 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         "VersionSelection vs, o ->"                                                       | "Unsupported parameter type for version selection rule: java.lang.Object"
         "VersionSelection vs, ComponentMetadata cm, String s ->"                          | "Unsupported parameter type for version selection rule: java.lang.String"
         "VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String s ->" | "Unsupported parameter type for version selection rule: java.lang.String"
+    }
+
+    def "produces sensible error when rule throws an exception" () {
+        ivyRepo.module("org.utils", "api", "1.3").publish()
+
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.3"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    versionSelection {
+                        all ${rule}
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'resolveConf'
+        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        failure.assertHasLineNumber(17)
+        failure.assertHasCause("Could not apply version selection rule with all().")
+        failure.assertHasCause("From test")
+
+        where:
+        rule                                                                                                         | _
+        '{ VersionSelection vs -> throw new Exception("From test") }'                                                | _
+        '{ VersionSelection vs, ComponentMetadata cm -> throw new Exception("From test") }'                          | _
+        '{ VersionSelection vs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") }' | _
     }
 }
