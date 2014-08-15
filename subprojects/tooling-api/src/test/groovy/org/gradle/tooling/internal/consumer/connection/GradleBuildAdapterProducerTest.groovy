@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
@@ -41,11 +40,10 @@ class GradleBuildAdapterProducerTest extends Specification {
         1 * versionDetails.maySupportModel(GradleBuild.class) >> true
         GradleBuild gradleBuild = Mock(GradleBuild)
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
-        CancellationToken cancellationToken = Mock(CancellationToken)
         when:
-        def model = modelProducer.produceModel(GradleBuild.class, cancellationToken, operationParameters)
+        def model = modelProducer.produceModel(GradleBuild.class, operationParameters)
         then:
-        1 * delegate.produceModel(GradleBuild, cancellationToken, operationParameters) >> gradleBuild
+        1 * delegate.produceModel(GradleBuild, operationParameters) >> gradleBuild
         model == gradleBuild
     }
 
@@ -54,25 +52,23 @@ class GradleBuildAdapterProducerTest extends Specification {
         1 * versionDetails.maySupportModel(GradleBuild) >> false
         GradleProject gradleProject = gradleProject()
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
-        CancellationToken cancellationToken = Mock(CancellationToken)
         adapter.adapt(GradleProject, gradleProject) >> gradleProject
         adapter.adapt(GradleBuild, _) >> Mock(GradleBuild)
         when:
-        def model = modelProducer.produceModel(GradleBuild, cancellationToken, operationParameters)
+        def model = modelProducer.produceModel(GradleBuild, operationParameters)
         then:
-        1 * delegate.produceModel(GradleProject, cancellationToken, operationParameters) >> gradleProject
+        1 * delegate.produceModel(GradleProject, operationParameters) >> gradleProject
         model instanceof GradleBuild
     }
 
     def "non GradleBuild model requests passed to delegate"() {
         setup:
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
-        CancellationToken cancellationToken = Mock(CancellationToken)
         SomeModel someModel = new SomeModel()
         when:
-        def returnValue = modelProducer.produceModel(SomeModel, cancellationToken, operationParameters)
+        def returnValue = modelProducer.produceModel(SomeModel, operationParameters)
         then:
-        1 * delegate.produceModel(SomeModel, cancellationToken, operationParameters) >> someModel
+        1 * delegate.produceModel(SomeModel, operationParameters) >> someModel
         returnValue == someModel
         0 * versionDetails.maySupportModel(_)
         0 * adapter.adapt(_, _)

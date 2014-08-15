@@ -59,7 +59,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
     }
 
     public <T> T run(Class<T> type, final ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return modelProducer.produceModel(type, operationParameters.getSuppliedCancellationToken(), operationParameters);
+        return modelProducer.produceModel(type, operationParameters);
     }
 
     private static class R16VersionDetails extends VersionDetails {

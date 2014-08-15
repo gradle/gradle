@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
@@ -49,7 +48,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return modelProducer.produceModel(type, operationParameters.getSuppliedCancellationToken(), operationParameters);
+        return modelProducer.produceModel(type, operationParameters);
     }
 
     private static class R12VersionDetails extends VersionDetails {
@@ -85,7 +84,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
             mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
         }
 
-        public <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) {
+        public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
             if (!versionDetails.maySupportModel(type)) {
                 //don't bother asking the provider for this model
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
