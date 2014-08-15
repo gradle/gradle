@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -59,8 +58,8 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         return new R16VersionDetails(version.getVersion());
     }
 
-    public <T> T run(Class<T> type, CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return modelProducer.produceModel(type, cancellationToken, operationParameters);
+    public <T> T run(Class<T> type, final ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        return modelProducer.produceModel(type, operationParameters.getSuppliedCancellationToken(), operationParameters);
     }
 
     private static class R16VersionDetails extends VersionDetails {

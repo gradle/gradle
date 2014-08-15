@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
@@ -40,7 +39,6 @@ import spock.lang.Unroll
 
 class ModelBuilderBackedConsumerConnectionTest extends Specification {
     final metaData = Stub(ConnectionMetaDataVersion1)
-    final cancellationToken = Mock(CancellationToken)
     final parameters = Stub(ConsumerOperationParameters)
     final target = Mock(TestModelBuilder) {
         getMetaData() >> metaData
@@ -102,7 +100,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
         when:
-        connection.run(GradleProject, cancellationToken, parameters)
+        connection.run(GradleProject, parameters)
 
         then:
         1 * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
@@ -119,7 +117,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
         when:
-        connection.run(GradleProject, cancellationToken, parameters)
+        connection.run(GradleProject, parameters)
 
         then:
         UnknownModelException e = thrown()
@@ -137,7 +135,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
         when:
-        def result = connection.run(GradleBuild.class, cancellationToken, parameters)
+        def result = connection.run(GradleBuild.class, parameters)
 
         then:
         result == model
@@ -156,7 +154,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
         when:
-        connection.run(Stub(BuildAction), cancellationToken, parameters)
+        connection.run(Stub(BuildAction), parameters)
 
         then:
         UnsupportedVersionException e = thrown()

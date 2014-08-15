@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
@@ -37,9 +36,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
     def "requests model from consumer connection"() {
         ResultHandlerVersion1<GradleProject> adaptedHandler
         ResultHandler<GradleProject> handler = Mock()
-        CancellationToken cancellationToken = Mock()
         GradleProject result = Mock()
-        builder.withCancellationToken(cancellationToken)
 
         when:
         builder.get(handler)
@@ -50,10 +47,8 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
             action.run(connection)
             adaptedHandler = args[1]
         }
-        1 * connection.run(GradleProject, _, _) >> {args ->
-            CancellationToken cancelParam = args[1]
-            assert cancelParam == cancellationToken
-            ConsumerOperationParameters params = args[2]
+        1 * connection.run(GradleProject, _) >> {args ->
+            ConsumerOperationParameters params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
             assert params.standardInput == null
@@ -61,6 +56,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
             assert params.jvmArguments == null
             assert params.arguments == null
             assert params.progressListener != null
+            assert params.cancellationToken != null
             assert params.tasks == null
             return result
         }
@@ -87,8 +83,8 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
             action.run(connection)
             adaptedHandler = args[1]
         }
-        1 * connection.run(GradleProject, _, _) >> {args ->
-            ConsumerOperationParameters params = args[2]
+        1 * connection.run(GradleProject, _) >> {args ->
+            ConsumerOperationParameters params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
             assert params.progressListener != null

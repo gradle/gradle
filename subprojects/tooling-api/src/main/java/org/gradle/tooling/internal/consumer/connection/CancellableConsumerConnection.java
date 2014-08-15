@@ -18,12 +18,14 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionFailureException;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 
 public class CancellableConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final InternalCancellableConnection executor;
@@ -42,12 +44,12 @@ public class CancellableConsumerConnection extends ModelBuilderBackedConsumerCon
     }
 
     @Override
-    public <T> T run(final BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
+    public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException {
         BuildResult<T> result;
         try {
             // TODO use adapt instead of casting?
-            result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), new BuildCancellationTokenAdapter(cancellationToken), operationParameters);
+            result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), new BuildCancellationTokenAdapter(operationParameters.getSuppliedCancellationToken()), operationParameters);
         } catch (InternalBuildActionFailureException e) {
             throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
         }

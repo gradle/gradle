@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -36,11 +35,11 @@ public class NoToolingApiConnection implements ConsumerConnection {
         return distribution.getDisplayName();
     }
 
-    public <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw fail();
     }
 
-    public <T> T run(BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw fail();
     }
 

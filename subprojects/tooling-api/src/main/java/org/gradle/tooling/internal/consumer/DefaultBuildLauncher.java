@@ -79,7 +79,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
             }
 
             public Void run(ConsumerConnection connection) {
-                return connection.run(Void.class, operationParameters.getSuppliedCancellationToken(), operationParameters);
+                return connection.run(Void.class, operationParameters);
             }
         }, new ResultHandlerAdapter(handler));
     }

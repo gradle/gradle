@@ -48,8 +48,8 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
     }
 
-    public <T> T run(Class<T> type, CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return modelProducer.produceModel(type, cancellationToken, operationParameters);
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        return modelProducer.produceModel(type, operationParameters.getSuppliedCancellationToken(), operationParameters);
     }
 
     private static class R12VersionDetails extends VersionDetails {

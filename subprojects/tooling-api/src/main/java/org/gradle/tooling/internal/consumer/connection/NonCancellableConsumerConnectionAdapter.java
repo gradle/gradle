@@ -39,21 +39,21 @@ public class NonCancellableConsumerConnectionAdapter implements ConsumerConnecti
         return delegate.getDisplayName() + " (non-cancellable)";
     }
 
-    public <T> T run(BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        Runnable callback = handleCancellationPreOperation(cancellationToken);
+    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        Runnable callback = handleCancellationPreOperation(operationParameters.getSuppliedCancellationToken());
         try {
-            return delegate.run(action, cancellationToken, operationParameters);
+            return delegate.run(action, operationParameters);
         } finally {
-            handleCancellationPostOperation(cancellationToken, callback);
+            handleCancellationPostOperation(operationParameters.getSuppliedCancellationToken(), callback);
         }
     }
 
-    public <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        Runnable callback = handleCancellationPreOperation(cancellationToken);
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        Runnable callback = handleCancellationPreOperation(operationParameters.getSuppliedCancellationToken());
         try {
-            return delegate.run(type, cancellationToken, operationParameters);
+            return delegate.run(type, operationParameters);
         } finally {
-            handleCancellationPostOperation(cancellationToken, callback);
+            handleCancellationPostOperation(operationParameters.getSuppliedCancellationToken(), callback);
         }
     }
 

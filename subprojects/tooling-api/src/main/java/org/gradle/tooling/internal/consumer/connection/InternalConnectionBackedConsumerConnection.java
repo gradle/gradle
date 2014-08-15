@@ -54,7 +54,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         new CompatibleIntrospector(getDelegate()).callSafely("configureLogging", connectionParameters.getVerboseLogging());
     }
 
-    public <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters)
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException {
         if (type.equals(Void.class)) {
             doRunBuild(operationParameters);
@@ -63,7 +63,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
             if (operationParameters.getTasks() != null) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
             }
-            return doGetModel(type, cancellationToken, operationParameters);
+            return doGetModel(type, operationParameters);
         }
     }
 
@@ -71,8 +71,8 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         getDelegate().executeBuild(operationParameters, operationParameters);
     }
 
-    private <T> T doGetModel(Class<T> modelType, CancellationToken cancellationToken, final ConsumerOperationParameters operationParameters) {
-        return modelProducer.produceModel(modelType, cancellationToken, operationParameters);
+    private <T> T doGetModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
+        return modelProducer.produceModel(modelType, operationParameters.getSuppliedCancellationToken(), operationParameters);
     }
 
     private static class R10M8VersionDetails extends VersionDetails {
