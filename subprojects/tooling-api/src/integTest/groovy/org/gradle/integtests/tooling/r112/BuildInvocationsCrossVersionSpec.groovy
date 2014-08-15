@@ -67,7 +67,7 @@ project(':b:c') {
         e.cause.message.startsWith('No model of type \'BuildInvocations\' is available in this build.')
     }
 
-    @TargetGradleVersion(">=1.12 <=2.0")
+    @TargetGradleVersion(">=1.12")
     def "can request task selectors in action"() {
         when:
         Map<String, Set<String>> result = withConnection { connection ->
@@ -76,25 +76,10 @@ project(':b:c') {
         then:
         result != null
         result.keySet() == ['test', 'a', 'b', 'c'] as Set
-        result['test'] == ['t1', 't2', 't3'] as Set
-        result['b'] == ['t1', 't2', 't3'] as Set
-        result['c'] == ['t1', 't2'] as Set
-        result['a'].isEmpty()
-    }
-
-    @TargetGradleVersion(">=2.1")
-    def "can request task selectors including implicit tasks in action"() {
-        when:
-        Map<String, Set<String>> result = withConnection { connection ->
-            connection.action(new FetchAllTaskSelectorsBuildAction()).run() }
-
-        then:
-        result != null
-        result.keySet() == ['test', 'a', 'b', 'c'] as Set
-        result['test'] == rootProjectImplicitTasks + ['t1', 't2', 't3'] as Set
-        result['b'] == implicitTasks + ['t1', 't2', 't3'] as Set
-        result['c'] == implicitTasks + ['t1', 't2'] as Set
-        result['a'] == implicitTasks
+        result['test'] == rootProjectImplicitSelectors + ['t1', 't2', 't3'] as Set
+        result['b'] == implicitSelectors + ['t1', 't2', 't3'] as Set
+        result['c'] == implicitSelectors + ['t1', 't2'] as Set
+        result['a'] == implicitSelectors
     }
 
     @TargetGradleVersion(">=1.12")
@@ -149,18 +134,13 @@ project(':b:c') {
     }
 
     def "can fetch task selectors for root project from connection"() {
-        given:
+        when:
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
-        def expectedBuiltinNames = targetDist.version.compareTo(targetDist.version.version('2.0')) > 0 ? rootProjectImplicitTasks : []
 
-        when:
-        def selectors = model.taskSelectors.findAll { TaskSelector it ->
-            !it.description.startsWith(':') && it.name != 'setupBuild' // synthetic task in 1.6
-        }
         then:
-        selectors*.name as Set == expectedBuiltinNames + ['t1', 't2', 't3'] as Set
+        model.taskSelectors*.name as Set == rootProjectImplicitSelectors + ['t1', 't2', 't3'] as Set
     }
 
     @TargetGradleVersion("=1.12")
@@ -183,14 +163,17 @@ project(':b:c') {
 
     @TargetGradleVersion(">=2.0")
     def "can fetch tasks including implicit for project using action"() {
+        def projectBExpectedTasks = (['t2', 't3'] + implicitTasks) as Set
+        def rootProjectExpectedTasks = (['t1'] + rootProjectImplicitTasks) as Set
+
         when:
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
         }
 
         then:
-        tasks.size() == 2 + implicitTasks.size()
-        tasks*.name as Set == (['t2', 't3'] + implicitTasks) as Set
+        tasks.size() == projectBExpectedTasks.size()
+        tasks*.name as Set == projectBExpectedTasks
 
         when:
         tasks[0].project
@@ -205,8 +188,8 @@ project(':b:c') {
         }
 
         then:
-        tasks.size() == 1 + rootProjectImplicitTasks.size()
-        tasks*.name as Set == (['t1'] + rootProjectImplicitTasks) as Set
+        tasks.size() == rootProjectExpectedTasks.size()
+        tasks*.name as Set == rootProjectExpectedTasks
 
         when:
         tasks[0].project
@@ -356,13 +339,11 @@ project(':b:c') {
             connection.getModel(BuildInvocations)
         }
 
-        expect:
-        model.tasks.count { it.name != 'setupBuild' && !rootProjectImplicitTasks.contains(it.name) } == 1
-
         when:
-        def task = model.tasks.find { Task it -> it.name != 'setupBuild' && !rootProjectImplicitTasks.contains(it.name) }
+        def task = model.tasks.find { !rootProjectImplicitTasks.contains(it.name) }
 
         then:
+        task != null
         task.name == 't1'
         task.path == ':t1'
 
