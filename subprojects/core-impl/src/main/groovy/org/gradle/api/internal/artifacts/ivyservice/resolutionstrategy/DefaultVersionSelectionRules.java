@@ -81,7 +81,7 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
         return versionSelectionRules.size() > 0;
     }
 
-    public VersionSelectionRules all(final Action<? super VersionSelection> selectionAction) {
+    public VersionSelectionRules all(Action<? super VersionSelection> selectionAction) {
         versionSelectionRules.add(new VersionSelectionActionRule(selectionAction));
         return this;
     }
