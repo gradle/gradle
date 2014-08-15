@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.loader
 
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import spock.lang.Specification
@@ -33,7 +33,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
     def distro = Mock(Distribution)
     def logger = Mock(ProgressLogger)
     def params = Mock(ConnectionParameters)
-    def cancellationToken = Mock(CancellationToken)
+    def cancellationToken = Mock(BuildCancellationToken)
 
     def loader = new SynchronizedToolingImplementationLoader(Mock(ToolingImplementationLoader))
 

@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -35,7 +35,7 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
         this.delegate = delegate;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, CancellationToken cancellationToken) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
         if (lock.tryLock()) {
             try {
                 return delegate.create(distribution, progressLoggerFactory, connectionParameters, cancellationToken);

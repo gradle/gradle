@@ -15,13 +15,13 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 
 public interface ToolingImplementationLoader {
     ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory,
-                              ConnectionParameters connectionParameters, CancellationToken cancellationToken);
+                              ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken);
 }

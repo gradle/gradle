@@ -15,11 +15,11 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.CancellationToken
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -33,7 +33,7 @@ class DistributionFactoryTest extends Specification {
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
     final ExecutorServiceFactory executorFactory = Mock()
-    final CancellationToken cancellationToken = Mock()
+    final BuildCancellationToken cancellationToken = Mock()
     final ExecutorService executor = Executors.newSingleThreadExecutor()
     final DistributionFactory factory = new DistributionFactory(executorFactory)
 
