@@ -53,5 +53,5 @@ public interface ManifestMergeSpec {
      * @param mergeAction The action to execute.
      * @return this
      */
-    ManifestMergeSpec eachEntry(Closure mergeAction);
+    ManifestMergeSpec eachEntry(Closure<?> mergeAction);
 }
