@@ -22,7 +22,6 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.internal.artifacts.VersionSelectionInternal;
 import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
@@ -36,17 +35,15 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadata
 import java.util.*;
 
 public class DefaultVersionSelectionRules implements VersionSelectionRulesInternal {
-    final Set<Action<? super VersionSelection>> versionSelectionActions = new LinkedHashSet<Action<? super VersionSelection>>();
     final Set<MetadataRule<? super VersionSelection>> versionSelectionRules = new LinkedHashSet<MetadataRule<? super VersionSelection>>();
 
     private final static List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
+
     private final static String USER_CODE_ERROR = "Could not apply version selection rule with all().";
+    private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for version selection rule: %s";
+    private static final String FIRST_PARAMETER_ERROR = "First parameter of a version selection rule needs to be of type '%s'.";
 
     public void apply(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
-        for (Action<? super VersionSelection> action : versionSelectionActions) {
-            new UserCodeAction<VersionSelection>(USER_CODE_ERROR, action).execute(selection);
-        }
-
         for (MetadataRule<? super VersionSelection> rule: versionSelectionRules) {
             List<Object> inputs = Lists.newArrayList();
             if (rule.getInputTypes() != null && rule.getInputTypes().size() > 0) {
@@ -68,10 +65,10 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
                             return;
                         }
                     }
-                    throw new InvalidUserCodeException(String.format("Unsupported parameter type for version selection rule: %s", inputType.getName()));
+                    throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
                 }
             }
-            
+
             try {
                 rule.execute(selection, inputs);
             } catch (Exception e) {
@@ -81,11 +78,11 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
     }
 
     public boolean hasRules() {
-        return versionSelectionRules.size() + versionSelectionActions.size() > 0;
+        return versionSelectionRules.size() > 0;
     }
 
     public VersionSelectionRules all(final Action<? super VersionSelection> selectionAction) {
-        versionSelectionActions.add(selectionAction);
+        versionSelectionRules.add(new VersionSelectionActionRule(selectionAction));
         return this;
     }
 
@@ -99,36 +96,34 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
 
         if (parameterTypes.length == 0) {
             throw new InvalidUserCodeException(
-                    String.format("First parameter of a version selection rule needs to be of type '%s'.",
-                            VersionSelection.class.getSimpleName()));
+                    String.format(FIRST_PARAMETER_ERROR, VersionSelection.class.getSimpleName()));
         } else {
             List<Class<?>> inputTypes = Lists.newArrayList();
 
             if (parameterTypes[0] != VersionSelection.class) {
                 throw new InvalidUserCodeException(
-                        String.format("First parameter of a version selection rule needs to be of type '%s'.",
-                                VersionSelection.class.getSimpleName()));
+                        String.format(FIRST_PARAMETER_ERROR, VersionSelection.class.getSimpleName()));
             }
 
             for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
                 if (VALID_INPUT_TYPES.contains(parameterType)) {
                     inputTypes.add(parameterType);
                 } else {
-                    throw new InvalidUserCodeException(String.format("Unsupported parameter type for version selection rule: %s", parameterType.getName()));
+                    throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, parameterType.getName()));
                 }
             }
 
-            versionSelectionRules.add(new VersionSelectionRule(closure, inputTypes));
+            versionSelectionRules.add(new VersionSelectionClosureRule(closure, inputTypes));
         }
 
         return this;
     }
 
-    private class VersionSelectionRule implements MetadataRule<VersionSelection> {
+    private class VersionSelectionClosureRule implements MetadataRule<VersionSelection> {
         Closure<?> closure;
         List<Class<?>> inputTypes;
 
-        public VersionSelectionRule(Closure<?> closure, List<Class<?>> inputTypes) {
+        public VersionSelectionClosureRule(Closure<?> closure, List<Class<?>> inputTypes) {
             this.closure = closure;
             this.inputTypes = inputTypes;
         }
@@ -157,5 +152,24 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
         }
     }
 
+    private class VersionSelectionActionRule implements MetadataRule<VersionSelection> {
+        Action<? super VersionSelection> action;
+
+        private VersionSelectionActionRule(Action<? super VersionSelection> action) {
+            this.action = action;
+        }
+
+        public Class<VersionSelection> getSubjectType() {
+            return VersionSelection.class;
+        }
+
+        public List<Class<?>> getInputTypes() {
+            return null;
+        }
+
+        public void execute(VersionSelection subject, List<?> inputs) {
+            action.execute(subject);
+        }
+    }
 
 }

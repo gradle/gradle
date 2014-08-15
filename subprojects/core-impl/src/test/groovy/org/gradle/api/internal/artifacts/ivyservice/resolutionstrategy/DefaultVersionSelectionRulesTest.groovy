@@ -42,17 +42,19 @@ class DefaultVersionSelectionRulesTest extends Specification {
                 result.resolved(md, null)
             }
         }
-        def closureCalled = [ false, false, false, false ]
+        def closureCalled = [ false, false, false, false, false ]
         def closure0 = { VersionSelection vs -> closureCalled[0] = true }
         def closure1 = { VersionSelection vs, ComponentMetadata cm -> closureCalled[1] = true }
-        def closure2 = { VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled[2] = true }
-        def closure3 = { VersionSelection vs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled[3] = true }
+        def closure2 = { VersionSelection vs, IvyModuleDescriptor imd -> closureCalled[2] = true }
+        def closure3 = { VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled[3] = true }
+        def closure4 = { VersionSelection vs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled[4] = true }
 
         when:
         versionSelectionRules.all closure0
         versionSelectionRules.all closure1
         versionSelectionRules.all closure2
         versionSelectionRules.all closure3
+        versionSelectionRules.all closure4
         versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
 
         then:
@@ -60,6 +62,7 @@ class DefaultVersionSelectionRulesTest extends Specification {
         closureCalled[1]
         closureCalled[2]
         closureCalled[3]
+        closureCalled[4]
     }
 
     def "metadata is not requested for rules that don't require it"() {
@@ -100,6 +103,7 @@ class DefaultVersionSelectionRulesTest extends Specification {
         inputTypes                                             | _
         [ ]                                                    | _
         [ ComponentMetadata.class ]                            | _
+        [ IvyModuleDescriptor.class ]                          | _
         [ IvyModuleDescriptor.class, ComponentMetadata.class ] | _
         [ ComponentMetadata.class, IvyModuleDescriptor.class ] | _
     }
