@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.nativeintegration.filesystem.services;
 
+import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
+import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem
-
+package org.gradle.internal.nativeintegration.filesystem.services
+import org.gradle.internal.nativeintegration.filesystem.FileException
+import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor
+import org.gradle.internal.nativeintegration.filesystem.FileModeMutator
+import org.gradle.internal.nativeintegration.filesystem.Symlink
 import spock.lang.Specification
 
 class GenericFileSystemTest extends Specification {

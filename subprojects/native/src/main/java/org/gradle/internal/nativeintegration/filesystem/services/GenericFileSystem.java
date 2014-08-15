@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.nativeintegration.filesystem.services;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.gradle.internal.nativeintegration.filesystem.FileException;
+import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
+import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
+import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

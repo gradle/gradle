@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.nativeintegration.filesystem.services;
 
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
+import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
+import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
+import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

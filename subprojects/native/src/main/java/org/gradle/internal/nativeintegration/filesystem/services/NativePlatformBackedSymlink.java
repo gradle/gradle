@@ -14,17 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.nativeintegration.filesystem.services;
+
+import net.rubygrapefruit.platform.PosixFiles;
+import org.gradle.internal.nativeintegration.filesystem.Symlink;
 
 import java.io.File;
 import java.io.IOException;
 
-class FallbackFileCanonicalizer implements FileCanonicalizer {
-    public File canonicalize(File file) throws FileException {
-        try {
-            return file.getCanonicalFile();
-        } catch (IOException e) {
-            throw new FileException(String.format("Could not canonicalize file %s.", file), e);
-        }
+class NativePlatformBackedSymlink implements Symlink {
+    private final PosixFiles posixFiles;
+
+    public NativePlatformBackedSymlink(PosixFiles posixFiles) {
+        this.posixFiles = posixFiles;
+    }
+
+    public boolean isSymlinkSupported() {
+        return true;
+    }
+
+    public void symlink(File link, File target) throws IOException {
+        link.getParentFile().mkdirs();
+        posixFiles.symlink(link, target.getPath());
     }
 }

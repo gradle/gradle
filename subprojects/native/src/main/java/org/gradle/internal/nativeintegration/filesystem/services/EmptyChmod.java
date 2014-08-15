@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.PosixFiles;
+import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 
-class NativePlatformBackedStat implements FileModeAccessor {
-    private final PosixFiles posixFiles;
-
-    public NativePlatformBackedStat(PosixFiles posixFiles) {
-        this.posixFiles = posixFiles;
-    }
-
-    public int getUnixMode(File f) throws IOException {
-        return posixFiles.getMode(f);
+class EmptyChmod implements FileModeMutator {
+    public void chmod(File f, int mode) throws FileNotFoundException {
+        if (!f.exists()) {
+            throw new FileNotFoundException(String.format("File '%s' does not exist.", f));
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.nativeintegration.filesystem.services;
+
+import org.gradle.internal.nativeintegration.filesystem.Symlink;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
-class EmptyChmod implements FileModeMutator {
-    public void chmod(File f, int mode) throws FileNotFoundException {
-        if (!f.exists()) {
-            throw new FileNotFoundException(String.format("File '%s' does not exist.", f));
-        }
+class WindowsSymlink implements Symlink {
+    public boolean isSymlinkSupported() {
+        return false;
+    }
+
+    public void symlink(File link, File target) throws IOException {
+        throw new IOException("Creation of symlinks is not supported on this platform.");
     }
 }

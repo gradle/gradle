@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeintegration.filesystem
+package org.gradle.internal.nativeintegration.filesystem.services
 
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender

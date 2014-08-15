@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.PosixFiles;
+import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
+import org.gradle.internal.nativeintegration.filesystem.FileException;
 
 import java.io.File;
+import java.io.IOException;
 
-class NativePlatformBackedChmod implements FileModeMutator {
-    private final PosixFiles posixFiles;
-
-    public NativePlatformBackedChmod(PosixFiles posixFiles) {
-        this.posixFiles = posixFiles;
-    }
-
-    public void chmod(File file, int mode) {
-        posixFiles.setMode(file, mode);
+class FallbackFileCanonicalizer implements FileCanonicalizer {
+    public File canonicalize(File file) throws FileException {
+        try {
+            return file.getCanonicalFile();
+        } catch (IOException e) {
+            throw new FileException(String.format("Could not canonicalize file %s.", file), e);
+        }
     }
 }

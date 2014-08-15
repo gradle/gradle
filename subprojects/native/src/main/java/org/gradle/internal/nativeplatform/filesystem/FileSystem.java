@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.nativeplatform.filesystem;
 
-package org.gradle.internal.nativeintegration.filesystem;
-
-import java.io.File;
-import java.io.IOException;
-
-class WindowsSymlink implements Symlink {
-    public boolean isSymlinkSupported() {
-        return false;
-    }
-
-    public void symlink(File link, File target) throws IOException {
-        throw new IOException("Creation of symlinks is not supported on this platform.");
-    }
+/**
+ * A file system accessible to Gradle.
+ */
+public interface FileSystem extends org.gradle.internal.nativeintegration.filesystem.FileSystem {
 }

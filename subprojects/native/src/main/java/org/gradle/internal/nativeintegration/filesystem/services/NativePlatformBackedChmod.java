@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.nativeintegration.filesystem.services;
+
+import net.rubygrapefruit.platform.PosixFiles;
+import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 
 import java.io.File;
-import java.io.IOException;
 
-class UnsupportedSymlink implements Symlink {
-    public boolean isSymlinkSupported() {
-        return false;
+class NativePlatformBackedChmod implements FileModeMutator {
+    private final PosixFiles posixFiles;
+
+    public NativePlatformBackedChmod(PosixFiles posixFiles) {
+        this.posixFiles = posixFiles;
     }
 
-    public void symlink(File link, File target) throws IOException {
-        throw new IOException("Support for the creation of symlinks is only available on this platform using Java 7 or later.");
+    public void chmod(File file, int mode) {
+        posixFiles.setMode(file, mode);
     }
 }
