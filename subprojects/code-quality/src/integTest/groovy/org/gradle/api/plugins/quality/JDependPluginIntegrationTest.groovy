@@ -110,6 +110,11 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "does not prematurely resolve configurations"() {
         given:
+        buildFile << """
+            project.gradle.startParameter.taskNames = ['dependencies'] + project.gradle.startParameter.taskNames
+        """
+
+        and:
         goodCode()
 
         expect:
