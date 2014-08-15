@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ear
 
+import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.collections.FileTreeAdapter
@@ -82,9 +83,11 @@ class Ear extends Jar {
                 if (!descriptor.libraryDirectory) {
                     descriptor.libraryDirectory = libDirName
                 }
-                descriptorSource.add(descriptor.fileName) {OutputStream outstr ->
-                    descriptor.writeTo(new OutputStreamWriter(outstr))
-                }
+                descriptorSource.add(descriptor.fileName, new Action<OutputStream>() {
+                    void execute(OutputStream outputStream) {
+                        descriptor.writeTo(new OutputStreamWriter(outputStream))
+                    }
+                });
                 return new FileTreeAdapter(descriptorSource)
             }
             return null
