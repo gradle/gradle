@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer;
 
 import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -30,11 +29,11 @@ import java.io.OutputStream;
 public abstract class AbstractLongRunningOperation<T extends LongRunningOperation> implements LongRunningOperation {
     protected final ConnectionParameters connectionParameters;
     protected final ConsumerOperationParameters.Builder operationParamsBuilder;
-    protected CancellationToken cancellationToken = GradleConnector.newCancellationTokenSource().token();
 
     protected AbstractLongRunningOperation(ConnectionParameters parameters) {
         connectionParameters = parameters;
         operationParamsBuilder = ConsumerOperationParameters.builder();
+        operationParamsBuilder.setCancellationToken(new DefaultCancellationTokenSource().token());
     }
 
     protected abstract T getThis();
@@ -80,7 +79,7 @@ public abstract class AbstractLongRunningOperation<T extends LongRunningOperatio
     }
 
     public LongRunningOperation withCancellationToken(CancellationToken cancellationToken) {
-        this.cancellationToken = Preconditions.checkNotNull(cancellationToken);
+        operationParamsBuilder.setCancellationToken(Preconditions.checkNotNull(cancellationToken));
         return getThis();
     }
 }

@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
@@ -74,18 +73,13 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
 
     public void run(final ResultHandler<? super Void> handler) {
         final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
-        final CancellationToken operationCancellationToken = cancellationToken;
         connection.run(new ConsumerAction<Void>() {
-            public CancellationToken getCancellationToken() {
-                return operationCancellationToken;
-            }
-
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
 
             public Void run(ConsumerConnection connection) {
-                return connection.run(Void.class, operationCancellationToken, operationParameters);
+                return connection.run(Void.class, operationParameters.getSuppliedCancellationToken(), operationParameters);
             }
         }, new ResultHandlerAdapter(handler));
     }
