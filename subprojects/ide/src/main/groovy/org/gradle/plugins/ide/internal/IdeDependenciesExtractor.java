@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.language.base.artifact.SourcesArtifact;
-import org.gradle.language.java.artifact.JavadocArtifact;
+import org.gradle.language.jvm.artifact.JavadocArtifact;
 import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyResolver;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;

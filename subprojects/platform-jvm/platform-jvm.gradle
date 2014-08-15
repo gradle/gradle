@@ -4,5 +4,6 @@ dependencies {
     compile project(":core")
 }
 
+useTestFixtures()
 useClassycle()
 strictCompile()

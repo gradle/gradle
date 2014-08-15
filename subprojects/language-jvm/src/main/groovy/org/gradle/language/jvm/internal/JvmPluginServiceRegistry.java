@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.language.java.internal;
+package org.gradle.language.jvm.internal;
 
-import org.gradle.language.java.artifact.JavadocArtifact;
+import org.gradle.language.jvm.artifact.JavadocArtifact;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;

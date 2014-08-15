@@ -28,6 +28,8 @@ dependencies {
     compile project(':reporting')
     compile project(':languageBase')
     compile project(':languageJvm')
+    compile project(':languageJava')
+    compile project(':languageGroovy')
 
     compile libraries.ant
     compile libraries.asm

@@ -1,0 +1,10 @@
+dependencies {
+    compile libraries.groovy
+    compile project(":core")
+    compile project(":platformJvm")
+    compile project(":languageJvm")
+}
+
+useClassycle(exclude: "org/gradle/api/internal/tasks/compile/**")
+useTestFixtures()
+useTestFixtures(project:":languageBase")

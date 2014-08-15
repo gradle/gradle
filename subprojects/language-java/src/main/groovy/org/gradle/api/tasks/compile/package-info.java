@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.java.artifact;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.component.Artifact;
 
 /**
- * An artifact containing Javadoc documentation.
- *
- * @since 2.0
+ * The compile tasks and options for Java.
  */
-@Incubating
-public interface JavadocArtifact extends Artifact {
-}
+package org.gradle.api.tasks.compile;

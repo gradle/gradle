@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes representing artifacts relevant to the Java language.
+ * The compile tasks and options for Groovy.
  */
-package org.gradle.language.java.artifact;
+package org.gradle.api.tasks.compile;
