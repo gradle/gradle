@@ -50,13 +50,5 @@ public final class DefaultCancellationTokenSource implements CancellationTokenSo
         public boolean isCancellationRequested() {
             return token.isCancellationRequested();
         }
-
-        public boolean addCallback(Runnable cancellationHandler) {
-            return token.addCallback(cancellationHandler);
-        }
-
-        public void removeCallback(Runnable cancellationHandler) {
-            token.removeCallback(cancellationHandler);
-        }
     }
 }

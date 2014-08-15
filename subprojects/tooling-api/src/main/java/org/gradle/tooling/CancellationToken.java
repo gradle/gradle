@@ -32,27 +32,4 @@ public interface CancellationToken {
      * @return Cancellation status.
      */
     boolean isCancellationRequested();
-
-    /**
-     * Registers a callback notified synchronously when token is cancelled.
-     *
-     * <p>The callback method should be fast because it is called synchronously when cancel is requested
-     * and therefore the call to {@link CancellationTokenSource#cancel()} does not return until the callback returns.</p>
-     *
-     * <p>If the token is already cancelled the handler will be called synchronously before this method returns.</p>
-     * <p>Implementation note: an attempt to execute all handlers will be made even if some of them throw an exception.
-     * The exception(s) will be rethrown to the caller.
-     * Errors or other throwables will break the execution immediately.</p>
-     *
-     * @param cancellationHandler callback executed when cancel is requested.
-     * @return current state of cancellation request before callback was added.
-     */
-    boolean addCallback(Runnable cancellationHandler);
-    /**
-     * Removes a callback called when cancellation request happens.
-     * It has no effect if the cancel request already happened.
-     *
-     * @param cancellationHandler removed callback.
-     */
-    void removeCallback(Runnable cancellationHandler);
 }
