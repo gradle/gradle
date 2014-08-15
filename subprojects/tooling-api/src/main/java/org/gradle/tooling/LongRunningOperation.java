@@ -148,10 +148,7 @@ public interface LongRunningOperation {
     LongRunningOperation addProgressListener(ProgressListener listener);
 
     /**
-     * Sets the cancellation token that allows to cancel operation processing.
-     *
-     * <p>Cancellation is cooperative and is not forced, i.e. the operation may or may not be actually cancelled.
-     * </p>
+     * Sets the cancellation token to use to cancel the operation if required.
      *
      * @since 2.1
      */
