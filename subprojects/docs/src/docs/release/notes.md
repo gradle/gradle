@@ -11,22 +11,34 @@ strategies to be applied.  This allows Gradle to customize version selection wit
         conf {
             resolutionStrategy {
                 versionSelection {
+                    // Accept the newest version that matches the dynamic selector
+                    // but does not end with "-experimental".
                     all { VersionSelection selection ->
-                        // Accept the newest version that matches the dynamic selector
-                        // but does not end with "-experimental".
                         if (selection.requested.group == 'org.sample'
                                 && selection.requested.name == 'api'
                                 && selection.candidate.version.endsWith('-experimental')) {
                             selection.reject()
                         }
                     }
+
+                    // Rules can consider component metadata as well
+                    // Accept the highest version with a branch of 'testing' or a status of 'milestone'
+                    all { VersionSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                        if (selection.requested.group == 'org.sample'
+                                && selection.requested.name == 'api'
+                                && (descriptor.branch == 'testing' || metadata.status == 'milestone')) {
+                            selection.accept()
+                        }
+                    }
                 }
             }
         }
-        dependencies {
-            conf "org.sample:api:1.+"
-        }
     }
+    dependencies {
+        conf "org.sample:api:1.+"
+    }
+
+See the [userguide section](userguide/dependency_management.html#version_selection_rules) on version selection rules for further information.
 
 ## Promoted features
 

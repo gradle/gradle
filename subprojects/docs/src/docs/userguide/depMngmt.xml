@@ -1133,19 +1133,31 @@ someroot/[artifact]-[revision].[ext]
                 about the version being requested and the candidate version being considered.  Calling <apilink class="org.gradle.api.artifacts.VersionSelection" method="accept"/>
                 or <apilink class="org.gradle.api.artifacts.VersionSelection" method="reject"/> causes the given candidate version to
                 be explicitly accepted or rejected.  If a given version is neither accepted nor rejected, it will be subject to the default
-                version matching strategies.
+                version matching strategies.  Furthermore, two rules cannot both accept and reject a given version.  They must either both accept,
+                both reject, or one (or both) can choose not to accept or reject the version.
             </para>
             <para>
                 The following example shows a rule that disallows a particular version of a module but allows the default version selection rules to
                 choose the next best candidate.  If the version requested was <literal>1.+</literal>, and versions 1.1, 1.0.1 and 1.0 were
                 available, it would reject 1.1 and select the next newest version available (1.0.1).
             </para>
-            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version Selection Rule">
+            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version selection rule">
                 <sourcefile file="build.gradle" snippet="reject-version-1.1" />
             </sample>
             <para>
                 Note that version selection is applied to <emphasis>all</emphasis> versions available, not just versions that match the requested version.  This allows
                 available versions that do not match the requested version to be explicitly substituted if desired.
+            </para>
+            <para>
+                Version selection rules can also consider component metadata when selecting a version.  Possible metadata arguments that can be considered are
+                <apilink class="org.gradle.api.artifacts.ComponentMetadata"/> and <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor"/>.
+            </para>
+            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version selection rule with metadata">
+                <sourcefile file="build.gradle" snippet="version-selection-with-metadata" />
+            </sample>
+            <para>
+                Note that a <apilink class="org.gradle.api.artifacts.VersionSelection"/> argument is <emphasis>always</emphasis> required when
+                declaring a version selection rule but the metadata arguments are optional.
             </para>
         </section>
     </section>

@@ -1,3 +1,5 @@
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -23,6 +25,7 @@ configurations {
     rejectConfig {
         resolutionStrategy {
             versionSelection {
+                // Accept the highest version matching the requested version that isn't '1.1'
                 all { VersionSelection selection ->
                     if (selection.requested.group == 'org.sample'
                             && selection.requested.name == 'api'
@@ -35,6 +38,33 @@ configurations {
     }
 }
 // END SNIPPET reject-version-1.1
+
+// START SNIPPET version-selection-with-metadata
+configurations {
+    rejectConfig {
+        resolutionStrategy {
+            versionSelection {
+                // Reject any versions with a status of 'experimental'
+                all { VersionSelection selection, ComponentMetadata metadata ->
+                    if (selection.requested.group == 'org.sample'
+                            && selection.requested.name == 'api'
+                            && metadata.status == 'experimental') {
+                        selection.reject()
+                    }
+                }
+                // Accept the highest version with a branch of 'testing' or a status of 'milestone'
+                all { VersionSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                    if (selection.requested.group == 'org.sample'
+                            && selection.requested.name == 'api'
+                            && (descriptor.branch == 'testing' || metadata.status == 'milestone')) {
+                        selection.accept()
+                    }
+                }
+            }
+        }
+    }
+}
+// END SNIPPET version-selection-with-metadata
 
 configurations {
     sampleConfig {

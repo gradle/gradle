@@ -37,6 +37,13 @@ import org.gradle.internal.HasInternalProtocol;
  *                             selection.reject()
  *                         }
  *                     }
+ *                     all { VersionSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+ *                         if (selection.candidate.name == 'someModule'
+ *                                  && descriptor.branch == 'testing'
+ *                                  && metadata.status == 'milestone') {
+ *                                      selection.accept()
+ *                         }
+ *                     }
  *                 }
  *             }
  *         }
@@ -66,8 +73,9 @@ public interface VersionSelectionRules {
 
     /**
      * Add a new version selection rule to the container.  Each rule will receive a {@link org.gradle.api.artifacts.VersionSelection}
-     * object as an argument as well as any other arguments specified for the closure.  Allowable arguments are {@link org.gradle.api.artifacts.ComponentMetadata}
-     * or {@link org.gradle.api.artifacts.ComponentMetadata} and {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
+     * object as an argument as well as any other arguments specified for the closure.  Allowable closure arguments are
+     * {@link org.gradle.api.artifacts.VersionSelection} (required), {@link org.gradle.api.artifacts.ComponentMetadata} and/or
+     * {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
      *
      * @param closure the Closure that implements a rule to be applied to all resolved modules
      * @return this
