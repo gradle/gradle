@@ -16,8 +16,9 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.BaseSerializerFactory;
 import org.gradle.messaging.serialize.Decoder;
@@ -28,15 +29,15 @@ import org.gradle.plugin.use.internal.PluginRequest;
 public class CachingPluginResolutionServiceClient implements PluginResolutionServiceClient {
 
     private final PluginResolutionServiceClient delegate;
-    private final CacheLockingManager cacheAccess;
+    private final PersistentCache cacheAccess;
     private final boolean invalidateCache;
     private final PersistentIndexedCache<Key, Response<PluginUseMetaData>> cache;
 
-    public CachingPluginResolutionServiceClient(PluginResolutionServiceClient delegate, String cacheName, CacheLockingManager cacheLockingManager, boolean invalidateCache) {
+    public CachingPluginResolutionServiceClient(PluginResolutionServiceClient delegate, String cacheName, PersistentCache persistentCache, boolean invalidateCache) {
         this.delegate = delegate;
-        this.cacheAccess = cacheLockingManager;
+        this.cacheAccess = persistentCache;
         this.invalidateCache = invalidateCache;
-        this.cache = cacheLockingManager.createCache(cacheName, new KeySerializer(), new ResponseSerializer());
+        this.cache = persistentCache.createCache(new PersistentIndexedCacheParameters<Key, Response<PluginUseMetaData>>(cacheName, new KeySerializer(), new ResponseSerializer()));
     }
 
     public Response<PluginUseMetaData> queryPluginMetadata(PluginRequest pluginRequest, String portalUrl) {

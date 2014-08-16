@@ -36,6 +36,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     final HttpServer http
 
     final MavenHttpRepository m2repo
+    private GradleVersion gradleVersion = GradleVersion.current()
 
     PluginResolutionServiceTestServer(GradleExecuter executer, MavenFileRepository repo) {
         this.http = new HttpServer()
@@ -58,6 +59,16 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         e.withArgument(
                 "-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$http.address",
         )
+    }
+
+    public <T> T forVersion(GradleVersion gradleVersion, @DelegatesTo(PluginResolutionServiceTestServer) Closure<T> closure) {
+        def previousVersion = this.gradleVersion
+        this.gradleVersion = gradleVersion
+        try {
+            this.with(closure)
+        } finally {
+            this.gradleVersion = previousVersion
+        }
     }
 
     void expectNotFound(String pluginId, String version) {
@@ -124,7 +135,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
             ConfigureUtil.configure(configurer, useResponse)
         }
 
-        http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+        http.expect("/api/gradle/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 json(response, useResponse)
             }
@@ -132,7 +143,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     public void expectPluginQuery(String pluginId, String pluginVersion, @DelegatesTo(value = HttpServletResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-        http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+        http.expect("/api/gradle/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 ConfigureUtil.configure(configurer, response)
             }
@@ -143,7 +154,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         def errorResponse = new MutableErrorResponse()
         ConfigureUtil.configure(configurer, errorResponse)
 
-        http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+        http.expect("/api/gradle/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.status = httpStatus
                 json(response, errorResponse)
@@ -152,7 +163,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     String pluginUrl(String pluginId, String pluginVersion) {
-        "$http.address/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion"
+        "$http.address/api/gradle/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion"
     }
 
     void start() {

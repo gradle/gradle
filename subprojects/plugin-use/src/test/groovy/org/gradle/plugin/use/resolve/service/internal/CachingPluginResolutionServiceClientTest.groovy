@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use.resolve.service.internal
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginRequest
@@ -35,15 +35,15 @@ class CachingPluginResolutionServiceClientTest extends Specification {
     def delegate = Mock(PluginResolutionServiceClient)
     def cacheName = "cache"
     PersistentIndexedCache<CachingPluginResolutionServiceClient.Key, PluginResolutionServiceClient.Response<PluginUseMetaData>> cache = new InMemoryIndexedCache<>(new CachingPluginResolutionServiceClient.ResponseSerializer())
-    def cacheLockingManager = Mock(CacheLockingManager) {
-        createCache(cacheName, _, _) >> cache
+    def persistentCache = Mock(PersistentCache) {
+        createCache(_) >> cache
         useCache(_, _) >> { String opName, org.gradle.internal.Factory<?> factory ->
             factory.create()
         }
     }
 
     def createClient(boolean invalidate = false) {
-        new CachingPluginResolutionServiceClient(delegate, cacheName, cacheLockingManager, invalidate)
+        new CachingPluginResolutionServiceClient(delegate, cacheName, persistentCache, invalidate)
     }
 
     def "caches delegate success response"() {
