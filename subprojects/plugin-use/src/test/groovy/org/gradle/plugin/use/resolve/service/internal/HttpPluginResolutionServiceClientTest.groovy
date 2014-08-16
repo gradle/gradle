@@ -42,15 +42,42 @@ class HttpPluginResolutionServiceClientTest extends Specification {
         stubResponse(200, toJson(metaData))
 
         then:
-        client.queryPluginMetadata(request, URL).response == metaData
+        client.queryPluginMetadata(URL, true, request).response == metaData
     }
 
-    def "returns error response for unsuccessful query"() {
+    def "returns client status successful query"() {
+        given:
+        def status = new ClientStatus("message")
+
+        when:
+        stubResponse(200, toJson(status))
+
+        then:
+        client.queryClientStatus(URL, true, null).response == status
+    }
+
+    def "returns error response for unsuccessful plugin query"() {
         def errorResponse = new ErrorResponse("INTERNAL_SERVER_ERROR", "Not feeling well today")
 
         when:
         stubResponse(500, toJson(errorResponse))
-        def response = client.queryPluginMetadata(request, URL)
+        def response = client.queryPluginMetadata(URL, true, request)
+
+        then:
+        response.error
+        with(response.errorResponse) {
+            errorCode == errorResponse.errorCode
+            message == errorResponse.message
+        }
+        response.statusCode == 500
+    }
+
+    def "returns error response for unsuccessful status query"() {
+        def errorResponse = new ErrorResponse("INTERNAL_SERVER_ERROR", "Not feeling well today")
+
+        when:
+        stubResponse(500, toJson(errorResponse))
+        def response = client.queryClientStatus(URL, true, null)
 
         then:
         response.error
@@ -64,7 +91,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
     def "only exactly 200 means success"() {
         when:
         stubResponse(201, "{}")
-        client.queryPluginMetadata(request, URL)
+        client.queryPluginMetadata(URL, true, request)
 
         then:
         def e = thrown(GradleException)
@@ -74,7 +101,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
     def "outside of 4xx - 5xx is unhanlded"() {
         when:
         stubResponse(650, "{}")
-        client.queryPluginMetadata(request, URL)
+        client.queryPluginMetadata(URL, true, request)
 
         then:
         def e = thrown(GradleException)
@@ -89,7 +116,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
         }
 
         when:
-        client.queryPluginMetadata(customRequest, URL)
+        client.queryPluginMetadata(URL, true, customRequest)
 
         then:
         1 * resourceAccessor.getRawResource(new URI("http://plugin.portal/api/gradle/${GradleVersion.current().getVersion()}/plugin/use/foo%2Fbar/1%2F0")) >> Stub(HttpResponseResource) {

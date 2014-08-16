@@ -61,7 +61,9 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
         PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter) {
             HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(new PasswordCredentials()));
             HttpResourceAccessor accessor = new HttpResourceAccessor(http);
-            PluginResolutionServiceClient httpClient = startParameter.isOffline() ? new OfflinePluginResolutionServiceClient() : new HttpPluginResolutionServiceClient(accessor);
+            PluginResolutionServiceClient httpClient = startParameter.isOffline()
+                    ? new OfflinePluginResolutionServiceClient()
+                    : new HttpPluginResolutionServiceClient(accessor);
 
             PersistentCache cache = cacheRepository
                     .cache(CACHE_NAME)
@@ -69,7 +71,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                     .withLockOptions(mode(FileLockManager.LockMode.None))
                     .open();
 
-            return new CachingPluginResolutionServiceClient(httpClient, CACHE_NAME, cache, startParameter.isRefreshDependencies());
+            PluginResolutionServiceClient cachingClient = new CachingPluginResolutionServiceClient(httpClient, cache);
+            return new DeprecationListeningPluginResolutionServiceClient(cachingClient);
         }
 
         PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, Instantiator instantiator, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScopeRegistry classLoaderScopeRegistry) {

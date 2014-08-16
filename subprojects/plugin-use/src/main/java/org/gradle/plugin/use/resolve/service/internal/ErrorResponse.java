@@ -37,4 +37,8 @@ public class ErrorResponse {
         UNKNOWN_PLUGIN_VERSION
     }
 
+    @Override
+    public String toString() {
+        return "{errorCode='" + errorCode + '\'' + ", message='" + message + '\'' + '}';
+    }
 }

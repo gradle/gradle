@@ -87,7 +87,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             } else if (isDynamicVersion(pluginRequest.getVersion())) {
                 result.notFound(getDescription(), "dynamic plugin versions are not supported");
             } else {
-                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
+                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(getUrl(), startParameter.isRefreshDependencies(), pluginRequest);
                 if (response.isError()) {
                     ErrorResponse errorResponse = response.getErrorResponse();
                     if (response.getStatusCode() == 404) {

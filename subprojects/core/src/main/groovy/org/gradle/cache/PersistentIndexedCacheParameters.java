@@ -33,6 +33,10 @@ public class PersistentIndexedCacheParameters<K, V> {
         this.valueSerializer = valueSerializer;
     }
 
+    public static <K, V> PersistentIndexedCacheParameters<K, V> of(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        return new PersistentIndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer);
+    }
+
     public PersistentIndexedCacheParameters(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
         this(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer);
     }
