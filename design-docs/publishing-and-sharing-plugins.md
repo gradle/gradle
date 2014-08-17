@@ -832,6 +832,8 @@ Introduce a plugin and implicit task that allows a build author to search for pl
 
 ## Story: User specifies centrally that a plugin should be applied to multiple projects
 
+## Story: New plugin mechanism can be used to apply plugins from `buildSrc`
+
 ## Story: New plugin mechanism can be used to apply `Gradle` plugin
 
 ## Story: New plugin mechanism can be used to apply `Settings` plugin
