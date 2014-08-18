@@ -177,24 +177,28 @@ So for a dependency declaration like:
 
 The generated POM file will contain the following content:
 
-    <dependency>
-        <groupId>my.org</groupId>
-        <artifactId>my-module</artifactId>
-        <version>1.2</version>
-        <scope>runtime</scope>
-        <exclusions>
-            <exclusion>
-                <groupId>commons-logging</groupId>
-                <artifactId>commons-logging</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>commons-collections</groupId>
-                <artifactId>*</artifactId>
-            </exclusion>
-        </exclusions>
-    </dependency>
+<p>
+<tt><pre>
+&lt;dependency&gt;
+    &lt;groupId&gt;my.org&lt;/groupId&gt;
+    &lt;artifactId&gt;my-module&lt;/artifactId&gt;
+    &lt;version&gt;1.2&lt;/version&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;exclusions&gt;
+        &lt;exclusion&gt;
+            &lt;groupId&gt;commons-logging&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-logging&lt;/artifactId&gt;
+        &lt;/exclusion&gt;
+        &lt;exclusion&gt;
+            &lt;groupId&gt;commons-collections&lt;/groupId&gt;
+            &lt;artifactId&gt;*&lt;/artifactId&gt;
+        &lt;/exclusion&gt;
+    &lt;/exclusions&gt;
+&lt;/dependency&gt;
+</pre></tt>
+</p>
 
-This feature addresses [GRADLE-2945] was contributed by [Biswa Dahal](https://github.com/ffos).
+This feature addresses [GRADLE-2945] and was contributed by [Biswa Dahal](https://github.com/ffos).
 
 ### Support for the 'branch' attribute when publishing or resolving Ivy modules (i)
 
