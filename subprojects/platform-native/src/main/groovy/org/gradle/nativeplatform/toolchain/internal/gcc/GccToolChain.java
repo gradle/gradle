@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.process.internal.ExecActionFactory;

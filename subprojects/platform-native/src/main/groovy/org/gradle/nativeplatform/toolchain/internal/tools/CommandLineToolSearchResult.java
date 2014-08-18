@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc;
+package org.gradle.nativeplatform.toolchain.internal.tools;
 
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult;
 
