@@ -632,23 +632,17 @@ Change the sample plugin so that it compiles Java source to produce its binaries
     - ~~Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeplatform.*`~~
     - ~~Move integration tests into `platform-native`, breaking into a better package structure~~
 - ~~Move runtime-specific classes (`org.gradle.runtime.*`) out of `language-jvm` into new subproject `platform-jvm`~~
-- Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes
-    - `language-jvm` should be for common base infrastructure
-- Miscellaneous
-    - `platform` subprojects should not depend on `language` subprojects
-    - Split NativeSamplesIntegrationTest for subprojects
-    - Reorganise samples?
-    - verify that auto-tested samples are working for ide-native and language-native
-    - Switch on strict compile for new subprojects
-    - Remove all cycles for subprojects
-    - Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
+- ~~Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes~~
+    - ~~`language-jvm` should be for common base infrastructure~~
+- ~~Miscellaneous~~
+    - ~~Enable classycle for all projects~~
+    - ~~Split NativeSamplesIntegrationTest for subprojects~~
 
 #### Open issues
 
-- `language-native` integration tests require `ide-native` (testing visual studio project generation for particular cases)
+- `language-native` and `plugin-native` integration tests require `ide-native` (testing visual studio project generation for particular cases)
 - where should `cunit` support live?
-    - production code and unit tests
-    - `cunit` test fixtures
+- Reorganise samples?
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
@@ -1238,3 +1232,10 @@ This essentially means two 'containers' - one that holds the main components, an
 - Deprecate and remove support for resolution via configurations.
 - Add a report that shows the details for the components and binaries produced by a project.
 - Bust up the 'plugins' project.
+
+## Tech debt for 'platform-*' and 'language-*' subprojects
+
+- Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
+- Switch on strict compile
+- Remove all classycle exclusions
+
