@@ -261,7 +261,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
     }
 
     void containsDeprecationMessage(String message) {
-        assert effectiveOutput.count("Plugin resolution service client status service ${service.http.address}/api/gradle/${executer.distribution.version.version} reported that this client has been deprecated: $message") == 1
+        assert effectiveOutput.count("Plugin resolution service client status service ${service.apiAddress}/${executer.distribution.version.version} reported that this client has been deprecated: $message") == 1
     }
 
     void containsNoDeprecationMessage() {

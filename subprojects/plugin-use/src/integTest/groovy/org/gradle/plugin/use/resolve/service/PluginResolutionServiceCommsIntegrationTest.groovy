@@ -27,6 +27,7 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
+import static org.hamcrest.Matchers.containsString
 
 /**
  * Tests the communication aspects of working with the plugin resolution service.
@@ -197,7 +198,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
     def "portal redirects are being followed"() {
         portal.expectPluginQuery(PLUGIN_ID, PLUGIN_VERSION) {
-            sendRedirect("/api/gradle/${GradleVersion.current().version}/plugin/use/org.my.otherplugin/2.0")
+            sendRedirect("/${portal.API_PATH}/${GradleVersion.current().version}/plugin/use/org.my.otherplugin/2.0")
         }
         portal.expectQueryAndReturnError("org.my.otherplugin", "2.0", 500) {
             errorCode = "REDIRECTED"
@@ -319,7 +320,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertThatCause(containsText("Could not GET 'http://localhost:\\d+/api/gradle/.+?/plugin/use/org.my.myplugin/1\\.0'"))
+        failure.assertThatCause(containsText("Could not GET 'http://localhost:\\d+/.+?/plugin/use/org.my.myplugin/1\\.0'"))
         failure.assertThatCause(containsText("Connection to http://localhost:\\d+ refused"))
     }
 

@@ -35,6 +35,8 @@ import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 
 class PluginResolutionServiceTestServer extends ExternalResource {
 
+    public final static String API_PATH = "api"
+
     final HttpServer http
 
     final MavenHttpRepository m2repo
@@ -59,9 +61,13 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         executer
     }
 
+    public String getApiAddress() {
+        "$http.address/$API_PATH"
+    }
+
     void injectUrlOverride(GradleExecuter e) {
         e.withArgument(
-                "-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$http.address",
+                "-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$apiAddress",
         )
     }
 
@@ -146,7 +152,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
             ConfigureUtil.configure(configurer, useResponse)
         }
 
-        http.expect("/api/gradle/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+        http.expect("/$API_PATH/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 addDeprecationHeader(response)
                 json(response, useResponse)
@@ -155,7 +161,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     public void expectStatusQuery() {
-        http.expect("/api/gradle/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
+        http.expect("/$API_PATH/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 addDeprecationHeader(response)
                 if (deprecationMessage == null) {
@@ -168,7 +174,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     public void expectStatusQuery404() {
-        http.expect("/api/gradle/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
+        http.expect("/$API_PATH/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.status = 404
                 addDeprecationHeader(response)
@@ -178,7 +184,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     public void expectStatusQueryOutOfProtocol() {
-        http.expect("/api/gradle/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
+        http.expect("/$API_PATH/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.writer.withWriter {
                     it << "foo"
@@ -188,7 +194,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     public void expectPluginQuery(String pluginId, String pluginVersion, @DelegatesTo(value = HttpServletResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-        http.expect("/api/gradle/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+        http.expect("/$API_PATH/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 addDeprecationHeader(response)
                 ConfigureUtil.configure(configurer, response)
@@ -200,7 +206,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         def errorResponse = new MutableErrorResponse()
         ConfigureUtil.configure(configurer, errorResponse)
 
-        http.expect("/api/gradle/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+        http.expect("/$API_PATH/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 addDeprecationHeader(response)
                 response.status = httpStatus
@@ -217,7 +223,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     String pluginUrl(String pluginId, String pluginVersion) {
-        "$http.address/api/gradle/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion"
+        "$apiAddress/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion"
     }
 
     void start() {

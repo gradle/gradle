@@ -40,7 +40,7 @@ import java.net.URISyntaxException;
 public class HttpPluginResolutionServiceClient implements PluginResolutionServiceClient {
     private static final Escaper PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpPluginResolutionServiceClient.class);
-    private static final String CLIENT_REQUEST_BASE = String.format("api/gradle/%s", PATH_SEGMENT_ESCAPER.escape(GradleVersion.current().getVersion()));
+    private static final String CLIENT_REQUEST_BASE = String.format("%s", PATH_SEGMENT_ESCAPER.escape(GradleVersion.current().getVersion()));
     private static final String PLUGIN_USE_REQUEST_URL = "/plugin/use/%s/%s";
     private static final String JSON = "application/json";
 

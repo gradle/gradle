@@ -27,7 +27,7 @@ import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class HttpPluginResolutionServiceClientTest extends Specification {
-    public static final String URL = "http://plugin.portal"
+    public static final String PLUGIN_PORTAL_URL = "http://plugin.portal"
     private resourceAccessor = Mock(HttpResourceAccessor)
     private client = new HttpPluginResolutionServiceClient(resourceAccessor)
     private request = Stub(PluginRequest) {
@@ -42,7 +42,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
         stubResponse(200, toJson(metaData))
 
         then:
-        client.queryPluginMetadata(URL, true, request).response == metaData
+        client.queryPluginMetadata(PLUGIN_PORTAL_URL, true, request).response == metaData
     }
 
     def "returns client status successful query"() {
@@ -53,7 +53,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
         stubResponse(200, toJson(status))
 
         then:
-        client.queryClientStatus(URL, true, null).response == status
+        client.queryClientStatus(PLUGIN_PORTAL_URL, true, null).response == status
     }
 
     def "returns error response for unsuccessful plugin query"() {
@@ -61,7 +61,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
 
         when:
         stubResponse(500, toJson(errorResponse))
-        def response = client.queryPluginMetadata(URL, true, request)
+        def response = client.queryPluginMetadata(PLUGIN_PORTAL_URL, true, request)
 
         then:
         response.error
@@ -77,7 +77,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
 
         when:
         stubResponse(500, toJson(errorResponse))
-        def response = client.queryClientStatus(URL, true, null)
+        def response = client.queryClientStatus(PLUGIN_PORTAL_URL, true, null)
 
         then:
         response.error
@@ -91,7 +91,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
     def "only exactly 200 means success"() {
         when:
         stubResponse(201, "{}")
-        client.queryPluginMetadata(URL, true, request)
+        client.queryPluginMetadata(PLUGIN_PORTAL_URL, true, request)
 
         then:
         def e = thrown(GradleException)
@@ -101,7 +101,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
     def "outside of 4xx - 5xx is unhanlded"() {
         when:
         stubResponse(650, "{}")
-        client.queryPluginMetadata(URL, true, request)
+        client.queryPluginMetadata(PLUGIN_PORTAL_URL, true, request)
 
         then:
         def e = thrown(GradleException)
@@ -116,10 +116,10 @@ class HttpPluginResolutionServiceClientTest extends Specification {
         }
 
         when:
-        client.queryPluginMetadata(URL, true, customRequest)
+        client.queryPluginMetadata(PLUGIN_PORTAL_URL, true, customRequest)
 
         then:
-        1 * resourceAccessor.getRawResource(new URI("http://plugin.portal/api/gradle/${GradleVersion.current().getVersion()}/plugin/use/foo%2Fbar/1%2F0")) >> Stub(HttpResponseResource) {
+        1 * resourceAccessor.getRawResource(new URI("$PLUGIN_PORTAL_URL/${GradleVersion.current().getVersion()}/plugin/use/foo%2Fbar/1%2F0")) >> Stub(HttpResponseResource) {
             getStatusCode() >> 500
             getContentType() >> "application/json"
             withContent(_) >> { Transformer<PluginUseMetaData, InputStream> action ->
