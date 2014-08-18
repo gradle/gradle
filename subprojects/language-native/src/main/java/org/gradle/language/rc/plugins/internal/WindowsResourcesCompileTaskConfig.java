@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.rc.internal;
+package org.gradle.language.rc.plugins.internal;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;

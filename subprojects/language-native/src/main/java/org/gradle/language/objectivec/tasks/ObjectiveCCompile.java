@@ -16,7 +16,7 @@
 package org.gradle.language.objectivec.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.c.tasks.AbstractNativeCompileTask;
+import org.gradle.language.nativebase.tasks.AbstractNativeCompileTask;
 import org.gradle.language.objectivec.internal.DefaultObjectiveCCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 

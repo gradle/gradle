@@ -26,7 +26,7 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.internal.nativelang.NativeLanguageRegistration;
 import org.gradle.nativeplatform.internal.DefaultTool;
-import org.gradle.language.assembler.internal.AssembleTaskConfig;
+import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 
 import java.util.Map;
 

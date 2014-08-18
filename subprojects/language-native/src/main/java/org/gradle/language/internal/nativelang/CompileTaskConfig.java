@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.nativebase.tasks.AbstractNativeCompileTask;
 import org.gradle.nativeplatform.sourceset.DependentSourceSet;
 import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
@@ -33,7 +34,6 @@ import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.language.PreprocessingTool;
-import org.gradle.language.c.tasks.AbstractNativeCompileTask;
 import org.gradle.runtime.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
 

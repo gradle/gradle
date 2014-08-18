@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.assembler.internal;
+package org.gradle.language.assembler.plugins.internal;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
