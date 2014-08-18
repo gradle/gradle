@@ -274,7 +274,8 @@ information about other types of components.
 
 ### Upgrade to Groovy 2.3.6
 
-The version of Groovy that Gradle uses to compile and run build scripts has been upgraded from 2.3.4 to 2.3.6. This should be a non-breaking change.
+The version of Groovy that Gradle uses to compile and run build scripts has been upgraded from 2.3.4 to 2.3.6. 
+This should be a non-breaking change, but is mentioned as it is an update to a library that is used by all Gradle builds.
 
 ### Changed Java compiler integration for joint Java - Scala compilation
 
