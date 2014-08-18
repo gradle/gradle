@@ -1,4 +1,3 @@
-
 This document describes some improvements to Gradle's plugin mechanism to make it easier to publish and share plugins
 within the Gradle community and an organisation.
 
@@ -499,6 +498,25 @@ Note: plugins from buildSrc are not core plugins.
 - ~~`plugins { id "«non core plugin»" }` produces suitable 'not found' type error message~~
 - ~~Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)~~
 
+### Open issues
+
+- When applied using fully qualified id, a core plugin is visible in `project.plugins` container with the non-qualified id:
+
+    plugins { id 'org.gradle.java' }
+    plugins.getById('java')  // this works
+    plugins.getById('org.gradle.java')  // this fails
+
+- Cannot use qualified id with `project.apply()`:
+
+    apply plugin: 'org.gradle.java' // this fails with unknown plugin failure
+
+- Should add a test case that applying a plugin by qualified and non-qualified id works ok.
+- Should be able to use either qualified and non-qualified ids with plugins.getById() regardless of which id was used, or always use the
+qualified id and deprecate using the non-qualified id.
+- Should move the duplicate plugin handling out of `DefaultScriptPluginFactory`. Could go into `PluginRequestApplicator` or `PluginDependenciesService`.
+- Should remove the no-op plugin handling from `DefaultScriptPluginFactory` as it should be handled by `NoopPluginResolver`. Alternatively, remove the special
+case 'no-op' plugin and use the plugin repo fixture instead.
+
 ## ~~Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes~~
 
 > This story doesn't strictly deal with the milestone goal, but is included in this milestone for historical reasons.
@@ -609,6 +627,14 @@ Note: the class loading/visibility required by this story does not reflect the f
 * If a dependency of a plugin fails to resolve, the user may have a hard time working out why that dependency is being downloaded - we should inform them that it's being resolved as part of `buildscript.configurations.classpath` because of a plugin 
 
 > Broken out to later story.
+
+* Handling of buildscript classpath is handled in both `DefaultScriptPluginFactory` and `DefaultPluginRequestApplicator`, depending on whether there are plugin requests
+or not. Should move all this handling to live in a single place (outside of `DefaultScriptPluginFactory`). Looks like the handling in `DefaultScriptPluginFactory` could
+simply be removed, and the call to `PluginRequestApplicator` done regardless of whether there are plugin requests or not.
+* Add a test case that both `buildscript { }` dependencies and `plugins { }` classes are visible in the script, when the script contains both blocks.
+* Should provide feedback when resolving plugins, eg in the status bar.
+* When resolving the implementation classpath, exclude and/or validate those things provided by the Gradle API, eg the Groovy implementation.
+* Resolve all plugin requests as a batch, to allow better feedback and give more info when more than one plugin request cannot be resolved.
 
 ## ~~Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”~~
 
