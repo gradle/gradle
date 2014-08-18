@@ -15,7 +15,7 @@ Here are the new features introduced in this Gradle release.
 
 ### Easier use of community plugins (i)
 
-The new plugin resolution mechanism, backed by the new [Gradle Plugin Portal](http://plugins.gradle.org), makes it easier to use community Gradle plugins.
+The new plugin resolution mechanism, backed by the new [Gradle Plugin Portal](https://plugins.gradle.org), makes it easier to use community Gradle plugins.
 Instead of combining a `buildscript` script block and an `apply`, both statements can be replaced by a
 [plugins script block](dsl/org.gradle.plugin.use.PluginDependenciesSpec.html).
 
@@ -24,7 +24,10 @@ Instead of combining a `buildscript` script block and an `apply`, both statement
     }
 
 Gradle will query the Plugin Portal for the implementation details of the specified plugins.
-The Plugin Portal's plugin browsing interface provides copy/paste friendly snippets.
+The Plugin Portal's plugin [browsing interface](https://plugins.gradle.org) provides copy/paste friendly snippets.
+
+All plugin authors are encouraged to submit their plugins for inclusion in the Plugin Portal.
+Submission instructions can be found [on the Plugin Portal site](https://plugins.gradle.org/submit).
 
 Many enhancements and features are planned for both the Plugin Portal and plugins in general.
 The new `plugins {}` block is not yet a complete replacement for the existing `apply()` method that is used to apply plugins.
