@@ -92,7 +92,7 @@ ext {
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageBase',
-        'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy',
+        'platformJvm', 'languageJvm', 'languageJava', 'languageScala', 'languageGroovy',
         'platformNative', 'languageNative', 'ideNative',
         'plugin-development', 'pluginUse'
     ].collect {

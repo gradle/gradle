@@ -1,0 +1,12 @@
+dependencies {
+    compile libraries.groovy
+    compile project(":core")
+    compile project(":platformJvm")
+    compile project(":languageJvm")
+    compile project(":languageJava")
+    compile project(":scala") //TODO: move contents into languageScala
+}
+
+useClassycle(exclude: "org/gradle/api/internal/tasks/compile/**")
+useTestFixtures()
+useTestFixtures(project:":languageBase")
