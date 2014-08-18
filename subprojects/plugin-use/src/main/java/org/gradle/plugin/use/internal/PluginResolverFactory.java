@@ -47,12 +47,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     public PluginResolver create() {
         List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
         addDefaultResolvers(resolvers);
-        CompositePluginResolver compositePluginResolver = new CompositePluginResolver(resolvers);
-        return compositePluginResolver;
-
-        // Temporarily disabled - LD
-        // PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(scriptClassLoader);
-        // return new NotInPluginRegistryPluginResolverCheck(compositePluginResolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
+        return new CompositePluginResolver(resolvers);
     }
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {

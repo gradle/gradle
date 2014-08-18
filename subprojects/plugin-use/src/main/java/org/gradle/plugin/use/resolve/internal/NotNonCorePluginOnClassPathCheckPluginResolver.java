@@ -24,13 +24,13 @@ import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
-public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
+public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginResolver {
 
     private final PluginResolver delegate;
     private final PluginRegistry corePluginRegistry;
     private final PluginDescriptorLocator pluginDescriptorLocator;
 
-    public NotInPluginRegistryPluginResolverCheck(PluginResolver delegate, PluginRegistry corePluginRegistry, PluginDescriptorLocator pluginDescriptorLocator) {
+    public NotNonCorePluginOnClasspathCheckPluginResolver(PluginResolver delegate, PluginRegistry corePluginRegistry, PluginDescriptorLocator pluginDescriptorLocator) {
         this.delegate = delegate;
         this.corePluginRegistry = corePluginRegistry;
         this.pluginDescriptorLocator = pluginDescriptorLocator;

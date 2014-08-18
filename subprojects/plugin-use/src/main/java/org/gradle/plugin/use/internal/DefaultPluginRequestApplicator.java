@@ -27,6 +27,9 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.UnknownPluginException;
@@ -35,10 +38,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.use.resolve.internal.LegacyPluginResolveContext;
-import org.gradle.plugin.use.resolve.internal.PluginResolution;
-import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
-import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.*;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -50,18 +50,21 @@ import static org.gradle.util.CollectionUtils.*;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
+    private final PluginRegistry pluginRegistry;
     private final PluginResolver pluginResolver;
 
-    public DefaultPluginRequestApplicator(PluginResolver pluginResolver) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolver pluginResolver) {
+        this.pluginRegistry = pluginRegistry;
         this.pluginResolver = pluginResolver;
     }
 
     public void applyPlugins(Iterable<? extends PluginRequest> requests, final ScriptHandler scriptHandler, final PluginAware target, ClassLoaderScope classLoaderScope) {
         final PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator(target);
+        final PluginResolver effectivePluginResolver = wrapInNotInClasspathCheck(classLoaderScope);
 
         List<Result> results = collect(requests, new Transformer<Result, PluginRequest>() {
             public Result transform(PluginRequest request) {
-                return resolveToFoundResult(request);
+                return resolveToFoundResult(effectivePluginResolver, request);
             }
         });
 
@@ -136,6 +139,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
+    private PluginResolver wrapInNotInClasspathCheck(ClassLoaderScope classLoaderScope) {
+        PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoaderScope.getParent().getExportClassLoader());
+        return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
+    }
+
     private void applyPlugin(PluginRequest request, String id, Runnable applicator) {
         try {
             try {
@@ -144,8 +152,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 throw new InvalidPluginException(
                         String.format(
                                 "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
-                                        + " This is caused by an incorrect plugin implementation."
-                                        + " Please contact the plugin author(s).",
+                                + " This is caused by an incorrect plugin implementation."
+                                + " Please contact the plugin author(s).",
                                 request, id
                         ),
                         e
@@ -158,10 +166,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
-    private Result resolveToFoundResult(PluginRequest request) {
+    private Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequest request) {
         Result result = new Result(request);
         try {
-            pluginResolver.resolve(request, result);
+            effectivePluginResolver.resolve(request, result);
         } catch (Exception e) {
             throw new LocationAwareException(
                     new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
