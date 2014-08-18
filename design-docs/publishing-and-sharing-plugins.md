@@ -628,10 +628,12 @@ Note: the class loading/visibility required by this story does not reflect the f
 * Handling of buildscript classpath is handled in both `DefaultScriptPluginFactory` and `DefaultPluginRequestApplicator`, depending on whether there are plugin requests
 or not. Should move all this handling to live in a single place (outside of `DefaultScriptPluginFactory`). Looks like the handling in `DefaultScriptPluginFactory` could
 simply be removed, and the call to `PluginRequestApplicator` done regardless of whether there are plugin requests or not.
+* `PluginResolutionServiceResolver` has a hardcoded set of version matchers to detect a dynamic version. Should instead be injected with the `VersionMatcher` provided by
+the dependency resolution services.
+* `PluginResolutionServiceResolver` should not need to use a `StartParameterResolutionOverride`.
 * Add a test case that both `buildscript { }` dependencies and `plugins { }` classes are visible in the script, when the script contains both blocks.
 * Should provide feedback when resolving plugins, eg in the status bar.
 * When resolving the implementation classpath, exclude and/or validate those things provided by the Gradle API, eg the Groovy implementation.
-* Resolve all plugin requests as a batch, to allow better feedback and give more info when more than one plugin request cannot be resolved.
 
 ## ~~Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”~~
 
@@ -684,6 +686,10 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 - ~~`--offline` can be used if response is cached~~
 - ~~`--offline` fails build if plugin is not cached~~
 - ~~cached resolution by previous version is used~~
+
+### Open issues
+
+- `CachingPluginResolutionServiceClient` does not close the caches it creates.
 
 ## Story: ~~Error message for unknown plugin or plugin version includes link to relevant human search interfaces~~
 
