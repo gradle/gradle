@@ -39,7 +39,7 @@
         </para>
         <para>
             The main purpose of most projects is to build some files that are to be used outside the project.
-            For example, if your project produces a java library, you need to build a jar, and maybe a source jar and
+            For example, if your project produces a Java library, you need to build a jar, and maybe a source jar and
             some documentation, and publish them somewhere.
         </para>
         <para>These outgoing files form the publications of the project. Gradle also takes care of this important work for you. You declare the

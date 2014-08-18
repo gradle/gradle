@@ -19,7 +19,7 @@
     
     <para>The Eclipse plugin generates files that are used by the <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus
         making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>).
-        Both external dependencies (including associated source and javadoc files) and project dependencies are considered.</para>
+        Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.</para>
 
     <para>Since version 1.0-milestone-4 of Gradle, the WTP-generating code was refactored into a separate plugin called <literal>eclipse-wtp</literal>.
         So if you are interested in WTP integration then only apply the <literal>eclipse-wtp</literal> plugin. Otherwise applying the <literal>eclipse</literal> plugin is enough.
@@ -250,7 +250,7 @@
                     <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseJdt"/>
                 </td>
                 <td><literal>eclipse.jdt</literal></td>
-                <td>Allows configuring jdt information (source/target java compatibility)</td>
+                <td>Allows configuring jdt information (source/target Java compatibility)</td>
             </tr>
             <tr>
                 <td>

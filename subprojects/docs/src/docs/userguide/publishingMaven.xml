@@ -115,7 +115,7 @@
             <para>
                  In the following example, artifacts and runtime dependencies are taken from the `java` component, which is added by the <literal>Java Plugin</literal>.
              </para>
-            <sample dir="maven-publish/quickstart" id="publishing_maven:publish-component" title="Adding a MavenPublication for a java component">
+            <sample dir="maven-publish/quickstart" id="publishing_maven:publish-component" title="Adding a MavenPublication for a Java component">
                 <sourcefile file="build.gradle" snippet="publish-component" />
             </sample>
         </section>

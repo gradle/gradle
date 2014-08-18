@@ -727,7 +727,7 @@
             </para>
             <itemizedlist>
                 <listitem>
-                    <para>Allow tests to be declared with javadoc-style annotations.</para>
+                    <para>Allow tests to be declared with Javadoc-style annotations.</para>
                 </listitem>
                 <listitem>
                     <para>Improved HTML reporting, similar to that available for JUnit.</para>

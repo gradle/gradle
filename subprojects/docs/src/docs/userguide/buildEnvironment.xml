@@ -46,7 +46,7 @@
             </varlistentry>
             <varlistentry>
                 <term><literal>org.gradle.java.home</literal></term>
-                <listitem><para>Specifies the java home for the Gradle build process.
+                <listitem><para>Specifies the Java home for the Gradle build process.
                     The value can be set to either a <literal>jdk</literal> or <literal>jre</literal> location,
                     however, depending on what your build does, <literal>jdk</literal> is safer.
                     A reasonable default is used if the setting is unspecified.</para>
@@ -73,8 +73,8 @@
             </varlistentry>
         </para>
         <section>
-            <title>Forked java processes</title>
-            <para>Many settings (like the java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle
+            <title>Forked Java processes</title>
+            <para>Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle
                 must launch a separate JVM process to execute the build after parsing the various <filename>gradle.properties</filename> files.
                 When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution.
                 When Gradle is executed without the daemon, then a new JVM must be launched for every build execution,
