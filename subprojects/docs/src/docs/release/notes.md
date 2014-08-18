@@ -35,32 +35,41 @@ Its functionality will be expanded over coming releases.
 
 ### Incremental Java compilation (i)
 
-Gradle 2.1 brings incubating support for compiling Java code incrementally.
-When this feature is enabled, only classes that are considered stale are recompiled.
-This way not only the compiler does less work, but also fewer output class files are touched.
-The latter feature is extremely important for scenarios involving JRebel - the less output files are touched the quicker the jvm gets refreshed classes.
+Gradle 2.1 adds, incubating, support for compiling Java code incrementally.
 
-We will improve the speed and capability of the incremental Java compiler. Please give use feedback on how well it works for your builds.
-For more details please see the user guide section on “[Incremental compilation](userguide/java_plugin.html#sec:incremental_compile)”.
-To enable the feature, configure the [JavaCompile](dsl/org.gradle.api.tasks.compile.JavaCompile.html) task accordingly:
+Gradle has long had the ability to perform any build task incrementally by only performing the task if the inputs or outputs of the task change.
+When applied to Java compilation, this means that all the source for a given task will be compiled if any source file needs to be recompiled.
+The new incremental compilation feature compliments incremental task execution by only recompiling the actual source that needs to be recompiled, instead of all the source.
 
-    //configuring a single task:
-    compileJava.options.incremental = true
+Incremental compilation has two key benefits:
 
-    //configuring all tasks from root project:
-    subprojects {
+1. Reduced compilation time during development due to less files being compiled
+2. Class files who's content is unchanged by a compile are not updated on the filesystem
+
+The second point above is important for tools such as [JRebel](http://zeroturnaround.com/software/jrebel) 
+that watch for changed class files in order to reload the class at runtime.
+
+Incremental compilation can be enabled via the `options` property of the `JavaCompile` task.
+The following example illustrates enabling incremental compilation for all `JavaCompile` tasks.
+
+    allprojects {
         tasks.withType(JavaCompile) {
             options.incremental = true
         }
     }
+ 
+Incremental compilation requires extra work and record keeping during compilation to achieve.
+This means that a full compile when incremental compile is enabled can be slower than if it was not enabled.
+However, this cost is offset for subsequent compile operations as only a subset of the source is compiled.
 
-We are very excited about the progress on the incremental Java compilation.
-Class dependency analysis of compiled classes is useful for a number of other features that are planned for Gradle, such as:
+The current implementation is not able to fully analyze the impact of all changes to the source code in terms of identifying exactly which classes need to be recompiled.
+In such situations, all of the source will be recompiled in order to avoid inconsistent compilation results.
+Incremental Java compilation will improve over coming Gradle versions to be generally faster, and to invoke a full recompile in response to fewer types of changes.
 
-* detection of unused jars/classes
-* detection of duplicate classes on classpath
-* detection of tests to execute
-* and more
+While we have extensively tested this feature during development, it will significantly benefit from usage “in the field”.
+Please try out this exciting new feature and report any problems encountered via the [Gradle Forums](http://forums.gradle.org).
+
+For more information please see the user guide section on “[Incremental Java Compilation](userguide/java_plugin.html#sec:incremental_compile)”.
 
 ### Use of HTTPS for mavenCentral() and jcenter() dependency repositories
 
