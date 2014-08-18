@@ -22,6 +22,8 @@ import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class DeprecationListeningPluginResolutionServiceClient implements PluginResolutionServiceClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationListeningPluginResolutionServiceClient.class);
@@ -74,6 +76,10 @@ public class DeprecationListeningPluginResolutionServiceClient implements Plugin
                 action.execute(message);
             }
         }
+    }
+
+    public void close() throws IOException {
+        delegate.close();
     }
 
     public static String toMessage(String deprecationMessage, String responseUrl) {

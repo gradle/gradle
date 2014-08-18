@@ -20,6 +20,8 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.plugin.use.internal.PluginRequest;
 
+import java.io.Closeable;
+
 /**
  * A client for a Gradle Plugin Resolution web service.
  * <p>
@@ -34,7 +36,7 @@ import org.gradle.plugin.use.internal.PluginRequest;
  * As such, callers should not always expect this to be honoured.
  */
 @ThreadSafe
-public interface PluginResolutionServiceClient {
+public interface PluginResolutionServiceClient extends Closeable {
 
     /**
      * Fetch information about a particular plugin at a particular version.

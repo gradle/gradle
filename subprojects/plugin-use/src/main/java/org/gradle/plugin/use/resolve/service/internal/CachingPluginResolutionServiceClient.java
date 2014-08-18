@@ -22,10 +22,13 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.plugin.use.internal.PluginRequest;
+
+import java.io.IOException;
 
 public class CachingPluginResolutionServiceClient implements PluginResolutionServiceClient {
 
@@ -115,6 +118,10 @@ public class CachingPluginResolutionServiceClient implements PluginResolutionSer
             }
         });
         return value;
+    }
+
+    public void close() throws IOException {
+        CompositeStoppable.stoppable(delegate, cacheAccess);
     }
 
     private static class ResponseSerializer<T> implements Serializer<Response<T>> {

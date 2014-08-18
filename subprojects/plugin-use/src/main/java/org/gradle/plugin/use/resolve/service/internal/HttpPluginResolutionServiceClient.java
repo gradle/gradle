@@ -128,6 +128,10 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
         }
     }
 
+    public void close() throws IOException {
+
+    }
+
     private PluginUseMetaData validate(String url, PluginUseMetaData pluginUseMetaData) {
         if (pluginUseMetaData.implementationType == null) {
             throw new OutOfProtocolException(url, "invalid plugin metadata - no implementation type specified");
