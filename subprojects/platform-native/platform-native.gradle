@@ -16,9 +16,9 @@
 
 dependencies {
     compile libraries.groovy
-    compile project(':core')
-    compile project(":ide")
     compile libraries.commons_io
+    compile project(':core')
+    compile project(":languageBase")
 
     integTestRuntime project(":maven")
     integTestRuntime project(":ideNative")

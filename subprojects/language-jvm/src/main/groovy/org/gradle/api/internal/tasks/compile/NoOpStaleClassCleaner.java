@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.language.jvm.internal.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 public class NoOpStaleClassCleaner extends StaleClassCleaner {
     @Override

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.runtime.base.internal.toolchain;
 
 public interface ArgCollector {
     

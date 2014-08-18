@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.jvm.internal.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 /**
  * Deletes stale classes before invoking the actual compiler

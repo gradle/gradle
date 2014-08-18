@@ -19,8 +19,8 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
-import org.gradle.language.jvm.internal.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> compiler;
