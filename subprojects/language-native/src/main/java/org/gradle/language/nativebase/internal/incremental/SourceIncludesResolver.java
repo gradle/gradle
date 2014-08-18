@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.language.nativebase.internal.incremental;
 
-package org.gradle.language.objectivec.internal;
+import java.io.File;
+import java.util.Set;
 
-import org.gradle.language.nativebase.internal.AbstractNativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
-
-public class DefaultObjectiveCCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCCompileSpec {
-
+public interface SourceIncludesResolver {
+    Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes);
 }

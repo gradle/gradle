@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.language.objectivec.internal;
+package org.gradle.language.nativebase.internal.incremental.sourceparser;
 
-import org.gradle.language.nativebase.internal.AbstractNativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
+import java.io.File;
+import java.util.List;
 
-public class DefaultObjectiveCCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCCompileSpec {
+/**
+ * A parser to extract information from C-compatible source files.
+ */
+public interface CSourceParser {
 
+    SourceDetails parseSource(File sourceFile);
+
+    interface SourceDetails {
+        List<String> getIncludes();
+        List<String> getImports();
+    }
 }

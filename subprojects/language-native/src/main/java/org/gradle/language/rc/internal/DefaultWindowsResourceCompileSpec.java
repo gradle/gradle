@@ -15,7 +15,7 @@
  */
 package org.gradle.language.rc.internal;
 
-import org.gradle.language.internal.nativelang.AbstractNativeCompileSpec;
+import org.gradle.language.nativebase.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 
 public class DefaultWindowsResourceCompileSpec extends AbstractNativeCompileSpec implements WindowsResourceCompileSpec {

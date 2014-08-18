@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.c.CSourceSet;
-import org.gradle.language.internal.nativelang.AbstractHeaderExportingDependentSourceSet;
+import org.gradle.language.nativebase.internal.AbstractHeaderExportingDependentSourceSet;
 
 import javax.inject.Inject;
 

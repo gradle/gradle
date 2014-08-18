@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.language.nativebase.internal.incremental;
 
-package org.gradle.language.objectivec.internal;
+import java.io.File;
+import java.util.List;
 
-import org.gradle.language.nativebase.internal.AbstractNativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
+public class DefaultIncrementalCompilation implements IncrementalCompilation {
+    private final List<File> recompile;
+    private final List<File> removed;
 
-public class DefaultObjectiveCCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCCompileSpec {
+    public DefaultIncrementalCompilation(List<File> recompile, List<File> removed) {
+        this.recompile = recompile;
+        this.removed = removed;
+    }
 
+    public List<File> getRecompile() {
+        return recompile;
+    }
+
+    public List<File> getRemoved() {
+        return removed;
+    }
 }
