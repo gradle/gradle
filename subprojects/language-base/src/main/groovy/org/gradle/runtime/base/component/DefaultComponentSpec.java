@@ -61,6 +61,10 @@ public class DefaultComponentSpec implements ComponentSpec {
     }
 
     private DefaultComponentSpec(ComponentInfo info) {
+        if (info == null) {
+            throw new ModelInstantiationException("Direct instantiation of a DefaultComponentSpec is not permitted. Use a ComponentTypeBuilder instead.");
+        }
+
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;

@@ -33,6 +33,15 @@ class DefaultComponentSpecTest extends Specification {
         functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
     }
 
+    def "cannot instantiate directly"() {
+        when:
+        new DefaultComponentSpec()
+
+        then:
+        def e = thrown ModelInstantiationException
+        e.message == "Direct instantiation of a DefaultComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
+    }
+
     def "library has name and path"() {
         def component = DefaultComponentSpec.create(DefaultComponentSpec, componentId, functionalSourceSet, instantiator)
 
