@@ -89,6 +89,7 @@ We would like to thank the following community members for making contributions 
 
 * [Jake Wharton](https://github.com/JakeWharton) - clarification of hashing used for Gradle Wrapper downloads
 * [Baron Roberts](https://github.com/baron1405) - fixes to JDepend plugin
+* [Dinio Dinev](https://github.com/diniodinev) - various spelling corrections
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
