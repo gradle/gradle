@@ -26,7 +26,7 @@ import org.gradle.model.*
 import org.gradle.model.collection.*
 
 interface SampleComponent extends ComponentSpec {}
-class DefaultSampleComponent extends DefaultComponentSpec implements SampleComponent {}
+class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
 """
     }
 
@@ -147,7 +147,7 @@ BUILD SUCCESSFUL"""))
         when:
         buildFile << """
         interface SampleLibrary extends LibrarySpec {}
-        class DefaultSampleLibrary extends DefaultComponentSpec implements SampleLibrary {}
+        class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}

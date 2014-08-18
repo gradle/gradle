@@ -34,7 +34,7 @@ import org.gradle.runtime.base.ModelInstantiationException;
  * A custom implementation of {@link ComponentSpec} must extend this type.
  */
 @Incubating
-public class DefaultComponentSpec implements ComponentSpec {
+public abstract class BaseComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final FunctionalSourceSet mainSourceSet;
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
@@ -43,7 +43,10 @@ public class DefaultComponentSpec implements ComponentSpec {
     private final String typeName;
     private final DomainObjectSet<BinarySpec> binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec.class);
 
-    public static <T extends DefaultComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
+    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
+        if (type.equals(BaseComponentSpec.class)) {
+            throw new ModelInstantiationException("Cannot create instance of abstract class BaseComponentSpec.");
+        }
         nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName(), mainSourceSet));
         try {
             try {
@@ -56,13 +59,13 @@ public class DefaultComponentSpec implements ComponentSpec {
         }
     }
 
-    public DefaultComponentSpec() {
+    protected BaseComponentSpec() {
         this(nextComponentInfo.get());
     }
 
-    private DefaultComponentSpec(ComponentInfo info) {
+    private BaseComponentSpec(ComponentInfo info) {
         if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a DefaultComponentSpec is not permitted. Use a ComponentTypeBuilder instead.");
+            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead.");
         }
 
         this.identifier = info.componentIdentifier;

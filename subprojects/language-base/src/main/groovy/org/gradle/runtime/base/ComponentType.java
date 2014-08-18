@@ -30,12 +30,12 @@ import java.lang.annotation.Target;
  * {@link ComponentType} annotation.
  * Furthermore the plugin creates an instance of SampleComponent named 'sampleComponent'.
  *
- * <pre autoTested=''>
+ * <pre autoTested='true'>
  * import org.gradle.model.*
  * import org.gradle.model.collection.*
  *
  * interface SampleComponent extends ComponentSpec {}
- * class DefaultSampleComponent extends DefaultComponentSpec implements SampleComponent {}
+ * class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
  *
  * apply plugin: MySamplePlugin
  *

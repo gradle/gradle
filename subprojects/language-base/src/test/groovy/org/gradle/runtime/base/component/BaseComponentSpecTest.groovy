@@ -24,7 +24,7 @@ import org.gradle.runtime.base.ComponentSpecIdentifier
 import org.gradle.runtime.base.ModelInstantiationException
 import spock.lang.Specification
 
-class DefaultComponentSpecTest extends Specification {
+class BaseComponentSpecTest extends Specification {
     def instantiator = new DirectInstantiator()
     def componentId = Mock(ComponentSpecIdentifier)
     FunctionalSourceSet functionalSourceSet;
@@ -35,40 +35,40 @@ class DefaultComponentSpecTest extends Specification {
 
     def "cannot instantiate directly"() {
         when:
-        new DefaultComponentSpec()
+        new BaseComponentSpec() {}
 
         then:
         def e = thrown ModelInstantiationException
-        e.message == "Direct instantiation of a DefaultComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
+        e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
     }
 
-    def "library has name and path"() {
-        def component = DefaultComponentSpec.create(DefaultComponentSpec, componentId, functionalSourceSet, instantiator)
+    def "cannot create instance of base class"() {
+        when:
+        BaseComponentSpec.create(BaseComponentSpec, componentId, functionalSourceSet, instantiator)
+
+        then:
+        def e = thrown ModelInstantiationException
+        e.message == "Cannot create instance of abstract class BaseComponentSpec."
+    }
+
+    def "library has name, path and sensible display name"() {
+        def component = BaseComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
 
         when:
         _ * componentId.name >> "jvm-lib"
         _ * componentId.projectPath >> ":project-path"
 
         then:
+        component.class == MySampleComponent
         component.name == "jvm-lib"
         component.projectPath == ":project-path"
-        component.displayName == "DefaultComponentSpec 'jvm-lib'"
-    }
-
-    def "has sensible display name"() {
-        def component = DefaultComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
-
-        when:
-        _ * componentId.name >> "jvm-lib"
-
-        then:
         component.displayName == "MySampleComponent 'jvm-lib'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
 
         when:
-        DefaultComponentSpec.create(MyConstructedComponent, componentId, functionalSourceSet, instantiator)
+        BaseComponentSpec.create(MyConstructedComponent, componentId, functionalSourceSet, instantiator)
 
         then:
         def e = thrown ModelInstantiationException
@@ -82,7 +82,7 @@ class DefaultComponentSpecTest extends Specification {
         def lss1 = languageSourceSet("lss1")
         functionalSourceSet.add(lss1)
 
-        def component = DefaultComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
+        def component = BaseComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
 
         and:
         def lss2 = languageSourceSet("lss2")
@@ -98,8 +98,8 @@ class DefaultComponentSpecTest extends Specification {
         }
     }
 
-    static class MySampleComponent extends DefaultComponentSpec {}
-    static class MyConstructedComponent extends DefaultComponentSpec {
+    static class MySampleComponent extends BaseComponentSpec {}
+    static class MyConstructedComponent extends BaseComponentSpec {
         MyConstructedComponent(String arg) {}
     }
 }

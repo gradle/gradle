@@ -19,10 +19,9 @@ import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.collection.CollectionBuilder
 
 interface SampleLibrary extends LibrarySpec { }
-class DefaultSampleLibrary extends DefaultComponentSpec implements SampleLibrary {}
+class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
 class SampleExtension {
     List<String> libraryNames = new ArrayList<String>()

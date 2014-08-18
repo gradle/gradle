@@ -24,20 +24,20 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.runtime.base.*;
-import org.gradle.runtime.base.component.DefaultComponentSpec;
+import org.gradle.runtime.base.component.BaseComponentSpec;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
-public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler<ComponentSpec, DefaultComponentSpec> {
+public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler<ComponentSpec, BaseComponentSpec> {
 
     private Instantiator instantiator;
 
     public ComponentModelRuleDefinitionHandler(Instantiator instantiator) {
-        super("component", ComponentType.class, ComponentSpec.class, DefaultComponentSpec.class, ComponentTypeBuilder.class);
+        super("component", ComponentType.class, ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class);
         this.instantiator = instantiator;
     }
 
     @Override
-    protected Action<MutationActionParameter> createMutationAction(Class<? extends ComponentSpec> type, Class<? extends DefaultComponentSpec> implementation) {
+    protected Action<MutationActionParameter> createMutationAction(Class<? extends ComponentSpec> type, Class<? extends BaseComponentSpec> implementation) {
         return new ComponentTypeRuleMutationAction(instantiator, type, implementation);
     }
 
@@ -55,9 +55,9 @@ public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModel
     private static class ComponentTypeRuleMutationAction implements Action<MutationActionParameter> {
         private final Instantiator instantiator;
         private final Class<? extends ComponentSpec> type;
-        private final Class<? extends DefaultComponentSpec> implementation;
+        private final Class<? extends BaseComponentSpec> implementation;
 
-        public ComponentTypeRuleMutationAction(Instantiator instantiator, Class<? extends ComponentSpec> type, Class<? extends DefaultComponentSpec> implementation) {
+        public ComponentTypeRuleMutationAction(Instantiator instantiator, Class<? extends ComponentSpec> type, Class<? extends BaseComponentSpec> implementation) {
             this.instantiator = instantiator;
             this.type = type;
             this.implementation = implementation;
@@ -71,7 +71,7 @@ public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModel
                 public Object create(String name) {
                     FunctionalSourceSet componentSourceSet = projectSourceSet.maybeCreate(name);
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return DefaultComponentSpec.create(implementation, id, componentSourceSet, instantiator);
+                    return BaseComponentSpec.create(implementation, id, componentSourceSet, instantiator);
                 }
             });
         }

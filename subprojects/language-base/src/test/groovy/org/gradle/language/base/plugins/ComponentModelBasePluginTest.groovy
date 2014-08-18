@@ -30,7 +30,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.runtime.base.BinarySpec
 import org.gradle.runtime.base.TransformationFileType
 import org.gradle.runtime.base.internal.ComponentSpecInternal
-import org.gradle.runtime.base.component.DefaultComponentSpec
+import org.gradle.runtime.base.component.BaseComponentSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -264,13 +264,13 @@ class ComponentModelBasePluginTest extends Specification {
     public static interface TestSourceSet extends LanguageSourceSet {
     }
 
-    public static class TestComponentSpecInternal extends DefaultComponentSpec implements ComponentSpecInternal {
+    public static class TestComponentSpecInternal extends BaseComponentSpec implements ComponentSpecInternal {
         @Override
         Set<Class<? extends TransformationFileType>> getInputTypes() {
             return new HashSet<Class<? extends TransformationFileType>>(0)
         }
     }
 
-    public static class TestComponentSpec extends DefaultComponentSpec {
+    public static class TestComponentSpec extends BaseComponentSpec {
     }
 }
