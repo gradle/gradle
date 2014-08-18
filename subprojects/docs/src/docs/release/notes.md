@@ -227,9 +227,9 @@ When resolving Ivy modules, component metadata rules can also access the branch 
 
 ### Support for publishing extra 'info' elements when publishing Ivy modules (i)
 
-The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports publishing extra 'info' elements to the ivy.xml file generated
+The incubating [ivy-publish](userguide/publishing_ivy.html) plugin now supports publishing extra `'info'` elements to the ivy.xml file generated
 via the [IvyModuleDescriptorSpec](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html) interface.
-Configured extra info elements are added as children of the ivy 'info' element.
+Configured extra info elements are added as children of the ivy `'info'` element.
 
     publishing {
         publications {
@@ -240,11 +240,12 @@ Configured extra info elements are added as children of the ivy 'info' element.
     }
 
 Note that the [ivy schema](http://ant.apache.org/ivy/schemas/ivy.xsd) demands that any extra info elements be added after any child elements
-of 'info' that are defined in the schema (e.g. description or ivyauthor).  This means that any [withXml()](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html#withXml%28org.gradle.api.Action%29)
-actions must take care to insert any schema-defined 'info' child elements <i>before</i> any extra 'info' elements that may have been added.
+of `'info'` that are defined in the schema (e.g. `'description'` or `'ivyauthor'`).  
+This means that any [withXml()](javadoc/org/gradle/api/publish/ivy/IvyModuleDescriptorSpec.html#withXml%28org.gradle.api.Action%29)
+actions must take care to insert any schema-defined 'info' child elements <i>before</i> any extra `'info'` elements that may have been added.
 
-Furthermore, retrieving extra info elements with namespace when resolving Ivy modules is also available now.  This is exposed via the
-[IvyExtraInfo](javadoc/org/gradle/api/artifacts/ivy/IvyExtraInfo.html) object in component metadata rules.
+Furthermore, retrieving extra info elements with namespace when resolving Ivy modules is also available now.  
+This is exposed via the [IvyExtraInfo](javadoc/org/gradle/api/artifacts/ivy/IvyExtraInfo.html) object in component metadata rules.
 
     dependencies {
         components {
