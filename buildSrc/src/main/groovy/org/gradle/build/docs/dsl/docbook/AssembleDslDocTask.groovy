@@ -114,7 +114,7 @@ class AssembleDslDocTask extends DefaultTask {
             plugin.extends.each { Element e ->
                 def targetClass = e.'@targetClass'
                 if (!targetClass) {
-                    throw new RuntimeException("No targetClass specified for extention provided by plugin '$pluginId'.")
+                    throw new RuntimeException("No targetClass specified for extension provided by plugin '$pluginId'.")
                 }
                 def extension = extensions[targetClass]
                 if (!extension) {

@@ -635,7 +635,7 @@ public class PomReader implements PomParent {
     }
 
     /**
-     * Checks if activation property is actived through absense of system property.
+     * Checks if activation property is active through absence of system property.
      *
      * @param propertyElement Property element
      * @return Activation indicator

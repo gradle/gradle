@@ -171,7 +171,7 @@ Any supplied configuration closure will be applied to each created artifact.
     * Each publication identifier in the build (ie every publication in every project) is unique.
     * The XML actions do not change the publication identifier.
 2. Reorganise validation so that it is triggered by the `MavenPublisher` service and the (whatever the ivy equialent is) service.
-3. Use a consistent exception heirarchy for publication validation failures. For example, if using an `InvalidMavenPublicationException` then add an equivalent
+3. Use a consistent exception hierarchy for publication validation failures. For example, if using an `InvalidMavenPublicationException` then add an equivalent
    `InvalidateIvyPublicationException`.
 
 ### Test cases
