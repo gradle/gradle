@@ -86,16 +86,30 @@ Gradle 2.1 includes Groovy 2.3.6, where Gradle 2.0 included Groovy 2.3.4.
 This is a non breaking change.
 All build scripts and plugins that work with Gradle 2.0 will continue to work without change.
 
-### Child processes started by Gradle are better described
+### Child process descriptions in process listings
 
-At the [Gradle Summit 2014 Conference](http://www.gradlesummit.com/conference/santa_clara/2014/06/home)
-we ran a [Contributing To Gradle Workshop](http://www.gradlesummit.com/conference/santa_clara/2014/06/session?id=31169).
-During the session, [Rob Spieldenner](https://github.com/rspieldenner)
-contributed a very nice feature that gives much better insight into the child processes started by Gradle.
-The example output of `jps -m` command now also contains the function of the worker process:
+Gradle often launches child processes during a build to perform work.
+For example, Gradle executes test in a forked JVM process.
+During a large build, particularly when [building in parallel](userguide/multi_project_builds.html#sec:parallel_execution), 
+there may be more than one forked Gradle process at any time.
+In previous Gradle versions, there was no practical way to determine which process was doing what without looking inside the JVM of each process.
+Processes are now started with a description as a command line argument.
+Command line arguments are usually displayed by process listing utilities such as 
+[`ps`](http://www.linfo.org/ps.html) and [`jps`](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jps.html),
+which makes it easy to now identify what kind of Gradle process it is.
 
-    28649 GradleWorkerMain 'Gradle Test Executor 17'
-    28630 GradleWorkerMain 'Gradle Compiler Daemon 1'
+The following is an example of output from `'jps -m'` during a Gradle 2.1 build:
+
+<p>
+<tt><pre>
+28649 GradleWorkerMain 'Gradle Test Executor 17'
+28630 GradleWorkerMain 'Gradle Compiler Daemon 1'
+</pre></tt>
+</p>
+
+This feature was contributed by [Rob Spieldenner](https://github.com/rspieldenner) during the 
+[“Contributing To Gradle Workshop”](http://www.gradlesummit.com/conference/santa_clara/2014/06/session?id=31169)
+at the [Gradle Summit 2014 Conference](http://www.gradlesummit.com/conference/santa_clara/2014/06/home).
 
 ### Groovy Compiler Configuration Script Support (i)
 
