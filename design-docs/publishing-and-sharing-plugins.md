@@ -546,10 +546,6 @@ Note: the class loading/visibility required by this story does not reflect the f
 
 ### Open Issues
 
-* If a dependency of a plugin fails to resolve, the user may have a hard time working out why that dependency is being downloaded - we should inform them that it's being resolved as part of `buildscript.configurations.classpath` because of a plugin
-
-> Broken out to later story.
-
 * Is it worth validating the id/version returned by the service against what we asked for?
 * Handling of buildscript classpath is handled in both `DefaultScriptPluginFactory` and `DefaultPluginRequestApplicator`, depending on whether there are plugin requests
 or not. Should move all this handling to live in a single place (outside of `DefaultScriptPluginFactory`). Looks like the handling in `DefaultScriptPluginFactory` could
