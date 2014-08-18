@@ -108,7 +108,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     private void adaptPermissions(File target) {
-        final Integer specMode = getMode();
+        int specMode = getMode();
         getChmod().chmod(target, specMode);
     }
 
