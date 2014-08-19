@@ -54,12 +54,18 @@ There are several kinds of multi-version tests:
 - `MultiVersionIntegrationSpec` subclasses that run some integration against multiple versions of some external tool (eg multiple Groovy versions)
 - `ToolingApiSpecification` subclasses that run against various combinations of current and older Gradle releases
 - `AbstractInstalledToolChainIntegrationSpec` subclasses that run against the native toolchains that are available on the current machine
+- `BasicGroovyCompilerIntegrationSpec` and `BasicScalaCompilerIntegrationTest` that run tests against all combinations of (fork, compiler-back-end)
 
 For example, we might
 
 - change each of these to cover only a single version for dev and commit build (some of the above already do this, some don't)
 - change each of these to cover only a single version for the environment coverage builds
 - move coverage of the full set of versions to a nightly build
+
+## Implementation
+
+- Replace `ScalaCoverage` with a more general strategy
+- Add some test infrastructure to deal with this in a consistent way
 
 # Run some coverage builds less frequently
 

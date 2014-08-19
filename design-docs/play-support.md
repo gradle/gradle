@@ -79,6 +79,10 @@ Add a `scala-lang` plugin that provides Scala language support for Jvm component
 - Visible to Java source for that component as well?
 - Attach only to source set?
 
+#### Test cases
+
+- Test against multiple versions of Scala.
+
 ### Story: Build author declares a Play application
 
 Add a `play-application` plugin that provides Play application component:
@@ -106,6 +110,10 @@ Add a `play-application` plugin that provides Play application component:
 - Implies Scala version and Java version?
 - Should also be able to attach to a JVM component.
 
+#### Test cases
+
+- Test against multiple versions of Play. Should include version 2.2.3
+
 ## Feature: Developer compiles route and template source for Play application
 
 Extend the standard build lifecycle to compile the route and template source files to bytecode.
@@ -132,6 +140,7 @@ Play plugin:
 ### Open issues
 
 - Can generate template source in parallel?
+- Will need to cross compile the route and template compiler integrations against multiple Play versions.
 
 ## Feature: Developer compiles assets for Play application
 

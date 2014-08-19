@@ -30,6 +30,10 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 * Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
 * Replace usages of `guava-jdk5`.
 
+## Remove Ant <depend> based incremental compilation backend
+
+Now we have real incremental Java compilation, remove the `CompileOptions.useDepend` property and related options.
+
 ## Remove the Gradle Open API stubs
 
 * Remove the remaining Open API interfaces and stubs.
