@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
@@ -157,5 +158,15 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         public ModelRuleDescriptor getDescriptor() {
             return descriptor;
         }
+
+        public final void mutate(final ExtensionContainer extensionContainer, final Inputs inputs) {
+            RuleContext.inContext(getDescriptor(), new Runnable() {
+                public void run() {
+                    doMutate(extensionContainer, inputs);
+                }
+            });
+        }
+
+        protected abstract void doMutate(ExtensionContainer extensions, Inputs inputs);
     }
 }

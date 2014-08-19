@@ -67,7 +67,7 @@ public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModel
             this.implementation = implementation;
         }
 
-        public void mutate(ExtensionContainer extensions, Inputs inputs) {
+        protected void doMutate(ExtensionContainer extensions, Inputs inputs) {
             final ProjectSourceSet projectSourceSet = extensions.getByType(ProjectSourceSet.class);
             ComponentSpecContainer componentSpecs = extensions.getByType(ComponentSpecContainer.class);
             final ProjectIdentifier projectIdentifier = inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();

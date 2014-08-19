@@ -65,7 +65,7 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRule
             this.implementation = implementation;
         }
 
-        public void mutate(ExtensionContainer extensions, Inputs inputs) {
+        protected void doMutate(ExtensionContainer extensions, Inputs inputs) {
             BinaryContainer binaries = extensions.getByType(BinaryContainer.class);
             binaries.registerFactory(type, new NamedDomainObjectFactory() {
                 public Object create(String name) {

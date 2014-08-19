@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.runtime.base.internal.registry;
 
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.runtime.base.ComponentSpec;
-import org.gradle.runtime.base.ComponentSpecContainer;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-public class DefaultComponentSpecContainer extends RuleAwarePolymorphicDomainObjectContainer<ComponentSpec> implements ComponentSpecContainer {
-    public DefaultComponentSpecContainer(Instantiator instantiator) {
-        super(ComponentSpec.class, instantiator);
+public class RuleContext {
+    private static ThreadLocal<ModelRuleDescriptor> context = new ThreadLocal<ModelRuleDescriptor>();
+
+    public static ModelRuleDescriptor get() {
+        return context.get();
+    }
+
+    public static void inContext(ModelRuleDescriptor descriptor, Runnable action) {
+        context.set(descriptor);
+        try {
+            action.run();
+        } finally {
+            context.remove();
+        }
     }
 }
