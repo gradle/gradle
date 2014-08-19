@@ -31,9 +31,11 @@ abstract class InitScriptExecuterFixture implements MethodRule {
         this.testDir = testDir
     }
 
-    abstract String initScriptContent()
+    String initScriptContent() {
+    }
 
-    abstract void afterBuild()
+    void afterBuild() {
+    }
 
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         def temporaryFolder = testDir.testDirectory
@@ -46,10 +48,6 @@ abstract class InitScriptExecuterFixture implements MethodRule {
             afterBuild()
         }
 
-        return new Statement() {
-            public void evaluate() throws Throwable {
-                base.evaluate();
-            }
-        }
+        return base
     }
 }
