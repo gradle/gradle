@@ -16,7 +16,6 @@
 
 package org.gradle.initialization;
 
-import com.google.common.cache.CacheBuilder;
 import org.gradle.api.internal.initialization.ClassLoaderCache;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.DefaultClassLoaderCache;
@@ -28,7 +27,7 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     private final ClassLoaderScope coreScope;
 
     public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry) {
-        ClassLoaderCache cache = new DefaultClassLoaderCache(CacheBuilder.newBuilder().<DefaultClassLoaderCache.Key, ClassLoader>build());
+        ClassLoaderCache cache = new DefaultClassLoaderCache();
         this.coreScope = new RootClassLoaderScope(loaderRegistry.getGradleCoreApiClassLoader(), cache);
         this.coreAndPluginsScope = new RootClassLoaderScope(loaderRegistry.getGradleApiClassLoader(), cache);
     }
