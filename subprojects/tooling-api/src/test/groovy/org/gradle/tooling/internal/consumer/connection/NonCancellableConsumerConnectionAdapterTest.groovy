@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.CancellationToken
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,53 +33,58 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
     def "delegates to connection to run build action"() {
         def action = Mock(BuildAction)
         def parameters = Stub(ConsumerOperationParameters)
-        def cancellation = Mock(CancellationToken)
 
         when:
-        def result = connection.run(action, cancellation, parameters)
+        def result = connection.run(action, parameters)
 
         then:
         result == 'result'
 
         and:
-        1 * target.run(action, cancellation, parameters) >> 'result'
+        1 * target.run(action, parameters) >> 'result'
     }
 
     def "logs when cancelled"() {
         def action = Mock(BuildAction)
-        def parameters = Stub(ConsumerOperationParameters)
-        def cancellation = GradleConnector.newCancellationTokenSource()
+        def cancellation = new DefaultBuildCancellationToken()
+        def parameters = Stub(ConsumerOperationParameters) {
+            getCancellationToken() >> cancellation
+        }
+
+        given:
+        _ * target.run(action, parameters) >> {
+            cancellation.doCancel()
+            'result'
+        }
 
         when:
-        def result = connection.run(action, cancellation.token(), parameters)
+        def result = connection.run(action, parameters)
 
         then:
         result == 'result'
-        cancellation.token().isCancellationRequested()
-        appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
 
         and:
-        1 * target.run(action, cancellation.token(), parameters) >> {
-            cancellation.cancel()
-            'result'
-        }
+        cancellation.cancellationRequested
+        appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
     }
 
     def "no logging when cancelled after action"() {
         def action = Mock(BuildAction)
-        def parameters = Stub(ConsumerOperationParameters)
-        def cancellation = GradleConnector.newCancellationTokenSource()
+        def cancellation = new DefaultBuildCancellationToken()
+        def parameters = Stub(ConsumerOperationParameters) {
+            getCancellationToken() >> cancellation
+        }
 
         when:
-        def result = connection.run(action, cancellation.token(), parameters)
-        cancellation.cancel()
+        def result = connection.run(action, parameters)
+        cancellation.doCancel()
 
         then:
         result == 'result'
-        cancellation.token().isCancellationRequested()
-        !appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
 
         and:
-        1 * target.run(action, cancellation.token(), parameters) >> 'result'
+        1 * target.run(action, parameters) >> 'result'
+        cancellation.cancellationRequested
+        appender.toString().empty
     }
 }

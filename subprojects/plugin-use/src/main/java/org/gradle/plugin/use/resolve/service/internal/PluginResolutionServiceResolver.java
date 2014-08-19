@@ -50,7 +50,7 @@ import java.util.Set;
 public class PluginResolutionServiceResolver implements PluginResolver {
 
     public static final String OVERRIDE_URL_PROPERTY = PluginResolutionServiceResolver.class.getName() + ".repo.override";
-    private static final String DEFAULT_API_URL = "http://plugins.gradle.org";
+    private static final String DEFAULT_API_URL = "https://plugins.gradle.org/api/gradle";
 
     private static final VersionMatcher RANGE_MATCHER = new VersionRangeMatcher(null);
     private static final VersionMatcher SUB_MATCHER = new SubVersionMatcher(null);
@@ -88,7 +88,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             } else if (isDynamicVersion(pluginRequest.getVersion())) {
                 result.notFound(getDescription(), "dynamic plugin versions are not supported");
             } else {
-                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
+                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(getUrl(), startParameter.isRefreshDependencies(), pluginRequest);
                 if (response.isError()) {
                     ErrorResponse errorResponse = response.getErrorResponse();
                     if (response.getStatusCode() == 404) {

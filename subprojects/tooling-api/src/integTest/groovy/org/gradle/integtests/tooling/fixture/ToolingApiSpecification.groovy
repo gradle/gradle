@@ -45,8 +45,10 @@ import spock.lang.Specification
 @TargetGradleVersion('>=1.0-milestone-8')
 abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
-    @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
-    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule
+    public final SetSystemProperties sysProperties = new SetSystemProperties()
+    @Rule
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
@@ -123,6 +125,9 @@ abstract class ToolingApiSpecification extends Specification {
         projectDir.file(path)
     }
 
+    /**
+     * Returns the set of implicit task names expected for a non-root project for the target Gradle version.
+     */
     Set<String> getImplicitTasks() {
         if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.1")) {
             return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
@@ -131,7 +136,47 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
+    /**
+     * Returns the set of implicit selector names expected for a non-root project for the target Gradle version.
+     *
+     * <p>Note that in some versions the handling of implicit selectors was broken, so this method may return a different value
+     * to {@link #getImplicitTasks()}.
+     */
+    Set<String> getImplicitSelectors() {
+        if (GradleVersion.version(targetDist.version.baseVersion.version) <= GradleVersion.version("2.0")) {
+            // Implicit tasks were ignored
+            return []
+        }
+        return getImplicitTasks()
+    }
+
+    /**
+     * Returns the set of implicit task names expected for a root project for the target Gradle version.
+     */
     Set<String> getRootProjectImplicitTasks() {
+        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
+        if (targetVersion == GradleVersion.version("1.6")) {
+            return implicitTasks + ['setupBuild']
+        }
         return implicitTasks + ['init', 'wrapper']
+    }
+
+    /**
+     * Returns the set of implicit selector names expected for a root project for the target Gradle version.
+     *
+     * <p>Note that in some versions the handling of implicit selectors was broken, so this method may return a different value
+     * to {@link #getRootProjectImplicitTasks()}.
+     */
+    Set<String> getRootProjectImplicitSelectors() {
+        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
+        if (targetVersion == GradleVersion.version("1.6")) {
+            // Implicit tasks were ignored, and setupBuild was added as a regular task
+            return ['setupBuild']
+        }
+        if (targetVersion <= GradleVersion.version("2.0")) {
+            // Implicit tasks were ignored
+            return []
+        }
+        return rootProjectImplicitTasks
     }
 }

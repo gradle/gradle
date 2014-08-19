@@ -15,6 +15,7 @@
  */
 package org.gradle.testfixtures.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.CacheFactory;
@@ -45,7 +46,10 @@ public class InMemoryCacheFactory implements CacheFactory {
         return new InMemoryIndexedCache<K, V>(serializer);
     }
 
-    private static class InMemoryCache implements PersistentCache {
+    public static class InMemoryCache implements PersistentCache {
+
+        final Map<String, PersistentIndexedCache<?, ?>> caches = Maps.newLinkedHashMap();
+
         private final File cacheDir;
 
         public InMemoryCache(File cacheDir) {
@@ -60,11 +64,17 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-            return new InMemoryIndexedCache<K, V>(valueSerializer);
+            return createCache(name, valueSerializer);
         }
 
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
-            return new InMemoryIndexedCache<K, V>(parameters.getValueSerializer());
+            return createCache(parameters.getCacheName(), parameters.getValueSerializer());
+        }
+
+        private <K, V> PersistentIndexedCache<K, V> createCache(String name, Serializer<V> valueSerializer) {
+            InMemoryIndexedCache<K, V> cache = new InMemoryIndexedCache<K, V>(valueSerializer);
+            caches.put(name, cache);
+            return cache;
         }
 
         public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {

@@ -16,61 +16,155 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.BaseSerializerFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.plugin.use.internal.PluginRequest;
 
+import java.io.IOException;
+
 public class CachingPluginResolutionServiceClient implements PluginResolutionServiceClient {
 
+    public static final String PLUGIN_USE_METADATA_CACHE_NAME = "plugin-use-metadata";
+    public static final String PLUGIN_USE_METADATA_OP_NAME = "queryPluginMetadata";
+    public static final String CLIENT_STATUS_CACHE_NAME = "client-status";
+    public static final String CLIENT_STATUS_OP_NAME = "queryClientStatus";
+
     private final PluginResolutionServiceClient delegate;
-    private final CacheLockingManager cacheAccess;
-    private final boolean invalidateCache;
-    private final PersistentIndexedCache<Key, Response<PluginUseMetaData>> cache;
+    private final PersistentCache cacheAccess;
+    private final PersistentIndexedCache<PluginRequestKey, Response<PluginUseMetaData>> pluginUseMetadataCache;
+    private final PersistentIndexedCache<ClientStatusKey, Response<ClientStatus>> clientStatusCache;
 
-    public CachingPluginResolutionServiceClient(PluginResolutionServiceClient delegate, String cacheName, CacheLockingManager cacheLockingManager, boolean invalidateCache) {
+    public CachingPluginResolutionServiceClient(PluginResolutionServiceClient delegate, PersistentCache persistentCache) {
         this.delegate = delegate;
-        this.cacheAccess = cacheLockingManager;
-        this.invalidateCache = invalidateCache;
-        this.cache = cacheLockingManager.createCache(cacheName, new KeySerializer(), new ResponseSerializer());
+        this.cacheAccess = persistentCache;
+        this.pluginUseMetadataCache = persistentCache.createCache(PersistentIndexedCacheParameters.of(
+                        PLUGIN_USE_METADATA_CACHE_NAME, new PluginRequestKey.Serializer(), ResponseSerializer.of(new PluginUseMetaData.Serializer()))
+        );
+        this.clientStatusCache = persistentCache.createCache(PersistentIndexedCacheParameters.of(
+                        CLIENT_STATUS_CACHE_NAME, new ClientStatusKey.Serializer(), ResponseSerializer.of(new ClientStatus.Serializer()))
+        );
     }
 
-    public Response<PluginUseMetaData> queryPluginMetadata(PluginRequest pluginRequest, String portalUrl) {
-        return get(pluginRequest, new Key(pluginRequest.getId().toString(), pluginRequest.getVersion(), portalUrl));
-    }
-
-    private Response<PluginUseMetaData> get(final PluginRequest pluginRequest, final Key key) {
-        return cacheAccess.useCache("fetch plugin data", new Factory<Response<PluginUseMetaData>>() {
+    public Response<PluginUseMetaData> queryPluginMetadata(final String portalUrl, final boolean shouldValidate, final PluginRequest pluginRequest) {
+        PluginRequestKey key = PluginRequestKey.of(portalUrl, pluginRequest);
+        Factory<Response<PluginUseMetaData>> factory = new Factory<Response<PluginUseMetaData>>() {
             public Response<PluginUseMetaData> create() {
-                Response<PluginUseMetaData> response = null;
-                if (invalidateCache) {
-                    cache.remove(key);
-                } else {
-                    response = cache.get(key);
-                }
-                if (response == null) {
-                    response = delegate.queryPluginMetadata(pluginRequest, key.url);
-                    if (!response.isError()) {
-                        cache.put(key, response);
+                return delegate.queryPluginMetadata(portalUrl, shouldValidate, pluginRequest);
+            }
+        };
 
-                    }
-                }
+        if (shouldValidate) {
+            return fetch(PLUGIN_USE_METADATA_OP_NAME, pluginUseMetadataCache, key, factory);
+        } else {
+            return maybeFetch(PLUGIN_USE_METADATA_OP_NAME, pluginUseMetadataCache, key, factory);
+        }
+    }
 
-                return response;
+    public Response<ClientStatus> queryClientStatus(final String portalUrl, final boolean shouldValidate, final String checksum) {
+        ClientStatusKey key = new ClientStatusKey(portalUrl);
+        Factory<Response<ClientStatus>> factory = new Factory<Response<ClientStatus>>() {
+            public Response<ClientStatus> create() {
+                return delegate.queryClientStatus(portalUrl, shouldValidate, checksum);
+            }
+        };
+
+        if (shouldValidate) {
+            return fetch(CLIENT_STATUS_OP_NAME, clientStatusCache, key, factory);
+        } else {
+            return maybeFetch(CLIENT_STATUS_OP_NAME, clientStatusCache, key, factory, new Spec<Response<ClientStatus>>() {
+                public boolean isSatisfiedBy(Response<ClientStatus> element) {
+                    return !element.getClientStatusChecksum().equals(checksum);
+                }
+            });
+        }
+    }
+
+    private <K, V extends Response<?>> V maybeFetch(String operationName, final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory) {
+        return maybeFetch(operationName, cache, key, factory, Specs.SATISFIES_NONE);
+    }
+
+    private <K, V extends Response<?>> V maybeFetch(String operationName, final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory, Spec<? super V> shouldFetch) {
+        V cachedValue = cacheAccess.useCache(operationName + " - read", new Factory<V>() {
+            public V create() {
+                return cache.get(key);
             }
         });
+
+        boolean fetch = cachedValue == null || shouldFetch.isSatisfiedBy(cachedValue);
+        if (fetch) {
+            return fetch(operationName, cache, key, factory);
+        } else {
+            return cachedValue;
+        }
     }
 
-    static class Key {
+    private <K, V extends Response<?>> V fetch(String operationName, final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory) {
+        final V value = factory.create();
+        if (value.isError()) {
+            return value;
+        }
+
+        cacheAccess.useCache(operationName + " - write", new Runnable() {
+            public void run() {
+                cache.put(key, value);
+            }
+        });
+        return value;
+    }
+
+    public void close() throws IOException {
+        CompositeStoppable.stoppable(delegate, cacheAccess);
+    }
+
+    private static class ResponseSerializer<T> implements Serializer<Response<T>> {
+
+        private final Serializer<T> payloadSerializer;
+
+        private static <T> ResponseSerializer<T> of(Serializer<T> payloadSerializer) {
+            return new ResponseSerializer<T>(payloadSerializer);
+        }
+
+        private ResponseSerializer(Serializer<T> payloadSerializer) {
+            this.payloadSerializer = payloadSerializer;
+        }
+
+        public Response<T> read(Decoder decoder) throws Exception {
+            return new SuccessResponse<T>(
+                    payloadSerializer.read(decoder),
+                    decoder.readInt(),
+                    decoder.readString(),
+                    decoder.readNullableString()
+            );
+        }
+
+        public void write(Encoder encoder, Response<T> value) throws Exception {
+            T response = value.getResponse();
+            payloadSerializer.write(encoder, response);
+            encoder.writeInt(value.getStatusCode());
+            encoder.writeString(value.getUrl());
+            encoder.writeNullableString(value.getClientStatusChecksum());
+        }
+    }
+
+    static class PluginRequestKey {
         private final String id;
         private final String version;
+
         private final String url;
 
-        private Key(String id, String version, String url) {
+        private static PluginRequestKey of(String url, PluginRequest pluginRequest) {
+            return new PluginRequestKey(pluginRequest.getId().toString(), pluginRequest.getVersion(), url);
+        }
+
+        private PluginRequestKey(String id, String version, String url) {
             this.id = id;
             this.version = version;
             this.url = url;
@@ -85,7 +179,7 @@ public class CachingPluginResolutionServiceClient implements PluginResolutionSer
                 return false;
             }
 
-            Key key = (Key) o;
+            PluginRequestKey key = (PluginRequestKey) o;
 
             return id.equals(key.id) && url.equals(key.url) && version.equals(key.version);
         }
@@ -97,45 +191,57 @@ public class CachingPluginResolutionServiceClient implements PluginResolutionSer
             result = 31 * result + url.hashCode();
             return result;
         }
+
+        private static class Serializer implements org.gradle.messaging.serialize.Serializer<PluginRequestKey> {
+
+            public PluginRequestKey read(Decoder decoder) throws Exception {
+                return new PluginRequestKey(decoder.readString(), decoder.readString(), decoder.readString());
+            }
+
+            public void write(Encoder encoder, PluginRequestKey value) throws Exception {
+                encoder.writeString(value.id);
+                encoder.writeString(value.version);
+                encoder.writeString(value.url);
+            }
+        }
+
     }
 
-    private static class KeySerializer implements Serializer<Key> {
-        public Key read(Decoder decoder) throws Exception {
-            return new Key(decoder.readString(), decoder.readString(), decoder.readString());
+    public static class ClientStatusKey {
+
+        private final String portalUrl;
+
+        public ClientStatusKey(String portalUrl) {
+            this.portalUrl = portalUrl;
         }
 
-        public void write(Encoder encoder, Key value) throws Exception {
-            encoder.writeString(value.id);
-            encoder.writeString(value.version);
-            encoder.writeString(value.url);
-        }
-    }
+        public static class Serializer implements org.gradle.messaging.serialize.Serializer<ClientStatusKey> {
+            public ClientStatusKey read(Decoder decoder) throws Exception {
+                return new ClientStatusKey(decoder.readString());
+            }
 
-    private static class ResponseSerializer implements Serializer<Response<PluginUseMetaData>> {
-
-        public Response<PluginUseMetaData> read(Decoder decoder) throws Exception {
-            return new SuccessResponse<PluginUseMetaData>(
-                    new PluginUseMetaData(
-                            decoder.readString(),
-                            decoder.readString(),
-                            BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.read(decoder),
-                            decoder.readString(),
-                            decoder.readBoolean()
-                    ),
-                    decoder.readInt(),
-                    decoder.readString()
-            );
+            public void write(Encoder encoder, ClientStatusKey value) throws Exception {
+                encoder.writeString(value.portalUrl);
+            }
         }
 
-        public void write(Encoder encoder, Response<PluginUseMetaData> value) throws Exception {
-            PluginUseMetaData response = value.getResponse();
-            encoder.writeString(response.id);
-            encoder.writeString(response.version);
-            BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.write(encoder, response.implementation);
-            encoder.writeString(response.implementationType);
-            encoder.writeBoolean(response.legacy);
-            encoder.writeInt(value.getStatusCode());
-            encoder.writeString(value.getUrl());
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ClientStatusKey that = (ClientStatusKey) o;
+
+            return portalUrl.equals(that.portalUrl);
+        }
+
+        @Override
+        public int hashCode() {
+            return portalUrl.hashCode();
         }
     }
 

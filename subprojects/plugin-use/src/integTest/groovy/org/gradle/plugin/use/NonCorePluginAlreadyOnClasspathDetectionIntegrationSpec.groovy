@@ -18,15 +18,10 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import spock.lang.Ignore
 
-import static org.gradle.plugin.use.resolve.internal.NotInPluginRegistryPluginResolverCheck.pluginOnClasspathErrorMessage
+import static org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver.pluginOnClasspathErrorMessage
 
-/**
- * Tests various interactions between the “new” plugin system and the “legacy”.
- */
-@Ignore
-class PluginUseLegacyIntegrationSpec extends AbstractIntegrationSpec {
+class NonCorePluginAlreadyOnClasspathDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
     private testPluginBuildscriptBlock() {
         return """
@@ -107,6 +102,5 @@ class PluginUseLegacyIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasCause(pluginOnClasspathErrorMessage('plugin'))
     }
-
 
 }

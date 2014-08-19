@@ -18,6 +18,8 @@ package org.gradle.plugin.use.resolve.service
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.plugin.use.resolve.service.internal.ClientStatus
+import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -33,9 +35,14 @@ import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 
 class PluginResolutionServiceTestServer extends ExternalResource {
 
+    public final static String API_PATH = "api"
+
     final HttpServer http
 
     final MavenHttpRepository m2repo
+    private GradleVersion gradleVersion = GradleVersion.current()
+    private String deprecationMessage
+    private String statusChecksum
 
     PluginResolutionServiceTestServer(GradleExecuter executer, MavenFileRepository repo) {
         this.http = new HttpServer()
@@ -54,10 +61,24 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         executer
     }
 
+    public String getApiAddress() {
+        "$http.address/$API_PATH"
+    }
+
     void injectUrlOverride(GradleExecuter e) {
         e.withArgument(
-                "-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$http.address",
+                "-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$apiAddress",
         )
+    }
+
+    public <T> T forVersion(GradleVersion gradleVersion, @DelegatesTo(PluginResolutionServiceTestServer) Closure<T> closure) {
+        def previousVersion = this.gradleVersion
+        this.gradleVersion = gradleVersion
+        try {
+            this.with(closure)
+        } finally {
+            this.gradleVersion = previousVersion
+        }
     }
 
     void expectNotFound(String pluginId, String version) {
@@ -67,7 +88,14 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         }
     }
 
-    /*
+    void deprecateClient(String msg) {
+        this.deprecationMessage = msg
+    }
+
+    void statusChecksum(String checksum) {
+        this.statusChecksum = checksum
+    }
+/*
 
     errorCode: «string», // meaningful known identifier of error type
     message: «string», // Short description of problem
@@ -124,16 +152,51 @@ class PluginResolutionServiceTestServer extends ExternalResource {
             ConfigureUtil.configure(configurer, useResponse)
         }
 
-        http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+        http.expect("/$API_PATH/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
+                addDeprecationHeader(response)
                 json(response, useResponse)
             }
         })
     }
 
-    public void expectPluginQuery(String pluginId, String pluginVersion, @DelegatesTo(value = HttpServletResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-        http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+    public void expectStatusQuery() {
+        http.expect("/$API_PATH/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
+                addDeprecationHeader(response)
+                if (deprecationMessage == null) {
+                    json(response, [:])
+                } else {
+                    json(response, new ClientStatus(deprecationMessage))
+                }
+            }
+        })
+    }
+
+    public void expectStatusQuery404() {
+        http.expect("/$API_PATH/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.status = 404
+                addDeprecationHeader(response)
+                json(response, new MutableErrorResponse())
+            }
+        })
+    }
+
+    public void expectStatusQueryOutOfProtocol() {
+        http.expect("/$API_PATH/${gradleVersion.version}", ["GET"], new HttpServer.ActionSupport("client status") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.writer.withWriter {
+                    it << "foo"
+                }
+            }
+        })
+    }
+
+    public void expectPluginQuery(String pluginId, String pluginVersion, @DelegatesTo(value = HttpServletResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+        http.expect("/$API_PATH/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                addDeprecationHeader(response)
                 ConfigureUtil.configure(configurer, response)
             }
         })
@@ -143,16 +206,24 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         def errorResponse = new MutableErrorResponse()
         ConfigureUtil.configure(configurer, errorResponse)
 
-        http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+        http.expect("/$API_PATH/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
+                addDeprecationHeader(response)
                 response.status = httpStatus
                 json(response, errorResponse)
             }
+
         })
     }
 
+    private void addDeprecationHeader(HttpServletResponse response) {
+        if (deprecationMessage != null) {
+            response.addHeader(HttpPluginResolutionServiceClient.CLIENT_STATUS_CHECKSUM_HEADER, statusChecksum)
+        }
+    }
+
     String pluginUrl(String pluginId, String pluginVersion) {
-        "$http.address/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion"
+        "$apiAddress/${gradleVersion.version}/plugin/use/$pluginId/$pluginVersion"
     }
 
     void start() {

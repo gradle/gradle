@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
@@ -43,7 +42,6 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
     final InternalConnection target = Mock() {
         getMetaData() >> metaData
     }
-    final CancellationToken cancellationToken = Mock()
     final ConsumerOperationParameters parameters = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final ModelMapping modelMapping = Stub()
@@ -75,7 +73,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         def model = Stub(GradleBuild.class)
         def gradleProject = Stub(GradleProject.class)
         when:
-        def result = connection.run(GradleBuild.class, cancellationToken, parameters)
+        def result = connection.run(GradleBuild.class, parameters)
         then:
         result == model
         and:
@@ -91,7 +89,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         def model = Stub(GradleProject)
 
         when:
-        def result = connection.run(GradleProject.class, cancellationToken, parameters)
+        def result = connection.run(GradleProject.class, parameters)
 
         then:
         result == model
@@ -105,7 +103,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
 
     def "runs build using connection's executeBuild() method"() {
         when:
-        connection.run(Void.class, cancellationToken, parameters)
+        connection.run(Void.class, parameters)
 
         then:
         1 * target.executeBuild(parameters, parameters)
@@ -114,7 +112,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
 
     def "fails when unknown model is requested"() {
         when:
-        connection.run(CustomModel.class, cancellationToken, parameters)
+        connection.run(CustomModel.class, parameters)
 
         then:
         UnknownModelException e = thrown()
@@ -126,7 +124,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         parameters.tasks >> ['a']
 
         when:
-        connection.run(GradleProject.class, cancellationToken, parameters)
+        connection.run(GradleProject.class, parameters)
 
         then:
         UnsupportedOperationConfigurationException e = thrown()
@@ -138,7 +136,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         parameters.tasks >> ['a']
 
         when:
-        connection.run(Stub(BuildAction), cancellationToken, parameters)
+        connection.run(Stub(BuildAction), parameters)
 
         then:
         UnsupportedVersionException e = thrown()
