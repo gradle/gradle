@@ -48,7 +48,6 @@ public interface PluginResolutionServiceClient extends Closeable {
      * @param pluginRequest the plugin identity and version
      * @return the plugin data
      */
-    @Nullable
     Response<PluginUseMetaData> queryPluginMetadata(String portalUrl, boolean shouldValidate, PluginRequest pluginRequest);
 
     /**
@@ -66,7 +65,6 @@ public interface PluginResolutionServiceClient extends Closeable {
      * @param checksum the latest checksum value for the status if known, otherwise {@code null}
      * @return the client status
      */
-    @Nullable
     Response<ClientStatus> queryClientStatus(String portalUrl, boolean shouldValidate, @Nullable String checksum);
 
     public static interface Response<T> {
