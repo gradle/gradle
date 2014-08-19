@@ -42,14 +42,14 @@ import java.lang.annotation.Target;
  * class MySamplePlugin implements Plugin<Project> {
  *     void apply(final Project project) {}
  *
- *     @RuleSource
+ *     {@literal @}RuleSource
  *     static class Rules {
- *         @ComponentType
+ *         {@literal @}ComponentType
  *         void register(ComponentTypeBuilder<SampleComponent> builder) {
  *             builder.setDefaultImplementation(DefaultSampleComponent)
  *         }
  *
- *         @Mutate
+ *         {@literal @}Mutate
  *         void createSampleLibraryComponents(CollectionBuilder<SampleComponent> componentSpecs) {
  *             componentSpecs.create("sampleComponent")
  *         }
