@@ -16,9 +16,12 @@
 
 package org.gradle.runtime.base.internal.registry;
 
-import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.runtime.base.*;
 import org.gradle.runtime.base.binary.BaseBinarySpec;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
@@ -34,8 +37,8 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRule
     }
 
     @Override
-    protected Action<MutationActionParameter> createMutationAction(Class<? extends BinarySpec> type, Class<? extends BaseBinarySpec> implementation) {
-        return new BinaryTypeRuleMutationAction(instantiator, type, implementation);
+    protected ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, Class<? extends BinarySpec> type, Class<? extends BaseBinarySpec> implementation) {
+        return new BinaryTypeRuleMutationAction(descriptor, instantiator, type, implementation);
     }
 
     @Override
@@ -49,20 +52,21 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRule
         }
     }
 
-    private static class BinaryTypeRuleMutationAction implements Action<MutationActionParameter> {
+    private static class BinaryTypeRuleMutationAction extends RegisterTypeRule {
 
         private final Instantiator instantiator;
         private final Class<? extends BinarySpec> type;
         private final Class<? extends BaseBinarySpec> implementation;
 
-        public BinaryTypeRuleMutationAction(Instantiator instantiator, Class<? extends BinarySpec> type, Class<? extends BaseBinarySpec> implementation) {
+        public BinaryTypeRuleMutationAction(ModelRuleDescriptor descriptor, Instantiator instantiator, Class<? extends BinarySpec> type, Class<? extends BaseBinarySpec> implementation) {
+            super(descriptor);
             this.instantiator = instantiator;
             this.type = type;
             this.implementation = implementation;
         }
 
-        public void execute(MutationActionParameter mp) {
-            BinaryContainer binaries = mp.extensions.getByType(BinaryContainer.class);
+        public void mutate(ExtensionContainer extensions, Inputs inputs) {
+            BinaryContainer binaries = extensions.getByType(BinaryContainer.class);
             binaries.registerFactory(type, new NamedDomainObjectFactory() {
                 public Object create(String name) {
                     BinaryNamingScheme binaryNamingScheme = new DefaultBinaryNamingSchemeBuilder()

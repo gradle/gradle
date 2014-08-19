@@ -18,12 +18,10 @@ package org.gradle.runtime.base.internal.registry;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
@@ -63,7 +61,7 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         return String.format("annotated with @%s", annotationClass.getSimpleName());
     }
 
-    abstract protected Action<MutationActionParameter> createMutationAction(Class<? extends T> type, Class<? extends U> implementation);
+    abstract protected ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, Class<? extends T> type, Class<? extends U> implementation);
     abstract protected TypeBuilderInternal createBuilder();
 
     public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
@@ -73,7 +71,7 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
 
             dependencies.add(ComponentModelBasePlugin.class);
             if (implementation != null) {
-                modelRegistry.mutate(new RegisterTypeRule(ruleDefinition.getDescriptor(), createMutationAction(type, implementation)));
+                modelRegistry.mutate(createModelMutator(ruleDefinition.getDescriptor(), type, implementation));
             }
         } catch (InvalidComponentModelException e) {
             invalidModelRule(ruleDefinition, e);
@@ -135,16 +133,13 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
     }
 
 
-    protected static class RegisterTypeRule implements ModelMutator<ExtensionContainer> {
+    protected abstract static class RegisterTypeRule implements ModelMutator<ExtensionContainer> {
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<ExtensionContainer> subject;
         private final List<ModelReference<?>> inputs = Lists.newArrayList();
 
-        private final Action<MutationActionParameter> mutationAction;
-
-        protected RegisterTypeRule(ModelRuleDescriptor descriptor, Action<MutationActionParameter> mutationAction) {
+        protected RegisterTypeRule(ModelRuleDescriptor descriptor) {
             this.descriptor = descriptor;
-            this.mutationAction = mutationAction;
 
             subject = ModelReference.of("extensions", ExtensionContainer.class);
             final ModelReference<?> input = ModelReference.of(ProjectIdentifier.class);
@@ -159,22 +154,8 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
             return inputs;
         }
 
-        public void mutate(ExtensionContainer extensions, Inputs inputs) {
-            mutationAction.execute(new MutationActionParameter(extensions, inputs));
-        }
-
         public ModelRuleDescriptor getDescriptor() {
             return descriptor;
-        }
-    }
-
-    protected static class MutationActionParameter {
-        final ExtensionContainer extensions;
-        final Inputs inputs;
-
-        public MutationActionParameter(ExtensionContainer extensions, Inputs inputs) {
-            this.extensions = extensions;
-            this.inputs = inputs;
         }
     }
 }

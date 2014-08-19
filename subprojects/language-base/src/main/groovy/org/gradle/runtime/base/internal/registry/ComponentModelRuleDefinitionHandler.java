@@ -16,13 +16,16 @@
 
 package org.gradle.runtime.base.internal.registry;
 
-import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.runtime.base.*;
 import org.gradle.runtime.base.component.BaseComponentSpec;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
@@ -37,8 +40,8 @@ public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModel
     }
 
     @Override
-    protected Action<MutationActionParameter> createMutationAction(Class<? extends ComponentSpec> type, Class<? extends BaseComponentSpec> implementation) {
-        return new ComponentTypeRuleMutationAction(instantiator, type, implementation);
+    protected ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, Class<? extends ComponentSpec> type, Class<? extends BaseComponentSpec> implementation) {
+        return new ComponentTypeRuleMutationAction(descriptor, instantiator, type, implementation);
     }
 
     @Override
@@ -52,21 +55,22 @@ public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModel
         }
     }
 
-    private static class ComponentTypeRuleMutationAction implements Action<MutationActionParameter> {
+    private static class ComponentTypeRuleMutationAction extends RegisterTypeRule {
         private final Instantiator instantiator;
         private final Class<? extends ComponentSpec> type;
         private final Class<? extends BaseComponentSpec> implementation;
 
-        public ComponentTypeRuleMutationAction(Instantiator instantiator, Class<? extends ComponentSpec> type, Class<? extends BaseComponentSpec> implementation) {
+        public ComponentTypeRuleMutationAction(ModelRuleDescriptor descriptor, Instantiator instantiator, Class<? extends ComponentSpec> type, Class<? extends BaseComponentSpec> implementation) {
+            super(descriptor);
             this.instantiator = instantiator;
             this.type = type;
             this.implementation = implementation;
         }
 
-        public void execute(MutationActionParameter mp) {
-            final ProjectSourceSet projectSourceSet = mp.extensions.getByType(ProjectSourceSet.class);
-            ComponentSpecContainer componentSpecs = mp.extensions.getByType(ComponentSpecContainer.class);
-            final ProjectIdentifier projectIdentifier = mp.inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
+        public void mutate(ExtensionContainer extensions, Inputs inputs) {
+            final ProjectSourceSet projectSourceSet = extensions.getByType(ProjectSourceSet.class);
+            ComponentSpecContainer componentSpecs = extensions.getByType(ComponentSpecContainer.class);
+            final ProjectIdentifier projectIdentifier = inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
             componentSpecs.registerFactory(type, new NamedDomainObjectFactory() {
                 public Object create(String name) {
                     FunctionalSourceSet componentSourceSet = projectSourceSet.maybeCreate(name);
