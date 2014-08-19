@@ -37,20 +37,22 @@ import org.gradle.runtime.base.TypeBuilder;
 
 import java.util.List;
 
+// TODO:DAZ Convert to use ModelType throughout
 public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> implements MethodRuleDefinitionHandler {
 
     protected String modelName;
     private final Class annotationClass;
-    private Class<?> baseInterface;
-    private Class<?> baseImplementation;
-    private Class<? extends TypeBuilder> builderInterface;
+    private ModelType<T> baseInterface;
+    private ModelType<U> baseImplementation;
+    private ModelType<? extends TypeBuilder> builderInterface;
 
-    public AbstractAnnotationModelRuleDefinitionHandler(String modelName, Class annotationClass, Class<?> baseInterface, Class<?> baseImplementation, Class<? extends TypeBuilder> builderInterface){
+    public AbstractAnnotationModelRuleDefinitionHandler(String modelName, Class annotationClass,
+                                                        Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder> builderInterface) {
         this.modelName = modelName;
         this.annotationClass = annotationClass;
-        this.baseInterface = baseInterface;
-        this.baseImplementation = baseImplementation;
-        this.builderInterface = builderInterface;
+        this.baseInterface = ModelType.of(baseInterface);
+        this.baseImplementation = ModelType.of(baseImplementation);
+        this.builderInterface = ModelType.of(builderInterface);
     }
 
     public boolean isSatisfiedBy(MethodRuleDefinition element) {
@@ -67,7 +69,7 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
     public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
             Class<? extends T> type = readType(ruleDefinition);
-            Class<? extends U> implementation = determineImplementationType(ruleDefinition, type, baseImplementation);
+            Class<? extends U> implementation = determineImplementationType(ruleDefinition, type);
 
             dependencies.add(ComponentModelBasePlugin.class);
             if (implementation != null) {
@@ -79,25 +81,25 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
     }
 
     protected Class<? extends T> readType(MethodRuleDefinition ruleDefinition) {
-        if (ruleDefinition.getReferences().size() != 1) {
-            throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type %s.", annotationClass.getSimpleName(), builderInterface.getSimpleName()));
-        }
         if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
             throw new InvalidComponentModelException(String.format("%s method must not have a return value.", annotationClass.getSimpleName()));
         }
+        if (ruleDefinition.getReferences().size() != 1) {
+            throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type '%s'.", annotationClass.getSimpleName(), builderInterface.toString()));
+        }
         ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
-        if (!builderInterface.isAssignableFrom(builder.getRawClass())) {
-            throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type %s.", annotationClass.getSimpleName(), builderInterface.getSimpleName()));
+        if (!builderInterface.isAssignableFrom(builder)) {
+            throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type '%s'.", annotationClass.getSimpleName(), builderInterface.toString()));
         }
         if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidComponentModelException(String.format("%s parameter must declare a type parameter.", builderInterface.getSimpleName()));
+            throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter.", builderInterface.toString()));
         }
-        ModelType<?> modelType = builder.getTypeVariables().get(0);
-        Class<?> spec = modelType.getRawClass();
-        if (!baseInterface.isAssignableFrom(spec) || spec.equals(baseInterface)) {
-            throw new InvalidComponentModelException(String.format("%s type '%s' is not a concrete subtype of '%s'.", StringUtils.capitalize(modelName), modelType.toString(), baseInterface.getSimpleName()));
+        ModelType<?> subType = builder.getTypeVariables().get(0);
+        if (!baseInterface.isAssignableFrom(subType) || subType.isAssignableFrom(baseInterface)) {
+            throw new InvalidComponentModelException(String.format("%s type '%s' is not a concrete subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
         }
-        return (Class<? extends T>) spec;
+        // TODO:DAZ Propogate ModelType out
+        return (Class<? extends T>) subType.getRawClass();
     }
 
 
@@ -108,24 +110,28 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    protected Class<? extends U> determineImplementationType(MethodRuleDefinition ruleDefinition, Class<?> type, Class<?> baseImplementationClass) {
+    protected Class<? extends U> determineImplementationType(MethodRuleDefinition ruleDefinition, Class<? extends T> typeClass) {
+        ModelType<? extends T> type = ModelType.of(typeClass);
         TypeBuilder builder = createBuilder();
         ruleDefinition.getRuleInvoker().invoke(builder);
         Class<?> implementation = builder.getImplementation();
-        if (implementation != null) {
-            if (!baseImplementationClass.isAssignableFrom(implementation)) {
-                throw new InvalidComponentModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementation.getSimpleName(), baseImplementationClass.getSimpleName()));
-            }
-            if (!type.isAssignableFrom(implementation)) {
-                throw new InvalidComponentModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), implementation.getSimpleName(), type.getSimpleName()));
-            }
-            try {
-                implementation.getConstructor();
-            } catch (NoSuchMethodException nsmException) {
-                throw new InvalidComponentModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), implementation.getSimpleName()));
-            }
+        if (implementation == null) {
+            return null;
         }
-        return (Class<? extends U>) implementation;
+        ModelType<?> implementationType = ModelType.of(implementation);
+        if (!baseImplementation.isAssignableFrom(implementationType)) {
+            throw new InvalidComponentModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType.toString(), baseImplementation.toString()));
+        }
+        if (!type.isAssignableFrom(implementationType)) {
+            throw new InvalidComponentModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), implementationType.toString(), type.toString()));
+        }
+        try {
+            implementation.getConstructor();
+        } catch (NoSuchMethodException nsmException) {
+            throw new InvalidComponentModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), implementationType.toString()));
+        }
+        // TODO:DAZ Propogate ModelType out
+        return (Class<? extends U>) implementationType.getRawClass();
     }
 
 
@@ -162,12 +168,11 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         }
     }
 
-
     protected static class MutationActionParameter {
         final ExtensionContainer extensions;
         final Inputs inputs;
 
-        public MutationActionParameter(ExtensionContainer extensions, Inputs inputs){
+        public MutationActionParameter(ExtensionContainer extensions, Inputs inputs) {
             this.extensions = extensions;
             this.inputs = inputs;
         }

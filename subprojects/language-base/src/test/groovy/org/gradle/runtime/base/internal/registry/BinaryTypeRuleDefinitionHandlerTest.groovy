@@ -103,18 +103,18 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
 
         where:
         methodName                         | expectedMessage                                                                              | descr
-        "extraParameter"                   | "BinaryType method must have a single parameter of type BinaryTypeBuilder."                  | "additional rule parameter"
+        "extraParameter"                   | "BinaryType method must have a single parameter of type '${BinaryTypeBuilder.name}'."                  | "additional rule parameter"
         "returnValue"                      | "BinaryType method must not have a return value."                                            | "method with return type"
         "implementationSetMultipleTimes"   | "BinaryType method cannot set default implementation multiple times."                        | "implementation set multiple times"
-        "noTypeParam"                      | "BinaryTypeBuilder parameter must declare a type parameter."                                 | "missing type parameter"
-        "notBinarySpec"                    | "Binary type '${NotBinarySpec.getName()}' is not a concrete subtype of 'BinarySpec'."        | "type not extending BinarySpec"
-        "notCustomBinary"                  | "Binary type '${BinarySpec.getName()}' is not a concrete subtype of 'BinarySpec'."           | "type is BinarySpec"
-        "wildcardType"                     | "Binary type '?' is not a concrete subtype of 'BinarySpec'."                                 | "wildcard type parameter"
-        "extendsType"                      | "Binary type '? extends ${BinarySpec.getName()}' is not a concrete subtype of 'BinarySpec'." | "extends type parameter"
-        "superType"                        | "Binary type '? super ${BinarySpec.getName()}' is not a concrete subtype of 'BinarySpec'."   | "super type parameter"
-        "notImplementingBinaryType"        | "Binary implementation 'NotImplementingCustomBinary' must implement 'SomeBinarySpec'."       | "implementation not implementing type class"
-        "notExtendingDefaultSampleLibrary" | "Binary implementation 'NotExtendingDefaultBinarySpec' must extend 'DefaultBinarySpec'."     | "implementation not extending DefaultBinarySpec"
-        "noDefaultConstructor"             | "Binary implementation 'NoDefaultConstructor' must have public default constructor."         | "implementation with no public default constructor"
+        "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                                 | "missing type parameter"
+        "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a concrete subtype of '${BinarySpec.name}'."        | "type not extending BinarySpec"
+        "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a concrete subtype of '${BinarySpec.name}'."           | "type is BinarySpec"
+        "wildcardType"                     | "Binary type '?' is not a concrete subtype of '${BinarySpec.name}'."                                 | "wildcard type parameter"
+        "extendsType"                      | "Binary type '? extends ${BinarySpec.getName()}' is not a concrete subtype of '${BinarySpec.name}'." | "extends type parameter"
+        "superType"                        | "Binary type '? super ${BinarySpec.getName()}' is not a concrete subtype of '${BinarySpec.name}'."   | "super type parameter"
+        "notImplementingBinaryType"        | "Binary implementation '${NotImplementingCustomBinary.name}' must implement '${SomeBinarySpec.name}'."       | "implementation not implementing type class"
+        "notExtendingDefaultSampleLibrary" | "Binary implementation '${NotExtendingDefaultBinarySpec.name}' must extend '${DefaultBinarySpec.name}'."     | "implementation not extending DefaultBinarySpec"
+        "noDefaultConstructor"             | "Binary implementation '${NoDefaultConstructor.name}' must have public default constructor."         | "implementation with no public default constructor"
     }
 
     def getStringDescription(MethodRuleDefinition ruleDefinition) {

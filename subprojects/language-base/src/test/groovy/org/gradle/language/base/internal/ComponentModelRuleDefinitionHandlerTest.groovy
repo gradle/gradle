@@ -106,19 +106,20 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         ex.cause.message == expectedMessage
 
         where:
-        methodName                         | expectedMessage                                                                                       | descr
-        "extraParameter"                   | "ComponentType method must have a single parameter of type ComponentTypeBuilder."                     | "additional rule parameter"
-        "returnValue"                      | "ComponentType method must not have a return value."                                                  | "method with return type"
-        "implementationSetMultipleTimes"   | "ComponentType method cannot set default implementation multiple times."                              | "implementation set multiple times"
-        "noTypeParam"                      | "ComponentTypeBuilder parameter must declare a type parameter."                                       | "missing type parameter"
-        "wildcardType"                     | "Component type '?' is not a concrete subtype of 'ComponentSpec'."                                    | "wildcard type parameter"
-        "extendsType"                      | "Component type '? extends ${ComponentSpec.getName()}' is not a concrete subtype of 'ComponentSpec'." | "extends type parameter"
-        "superType"                        | "Component type '? super ${ComponentSpec.getName()}' is not a concrete subtype of 'ComponentSpec'."   | "super type parameter"
-        "notComponentSpec"                 | "Component type '${NotComponentSpec.getName()}' is not a concrete subtype of 'ComponentSpec'."        | "type not extending ComponentSpec"
-        "notCustomComponent"               | "Component type '${ComponentSpec.getName()}' is not a concrete subtype of 'ComponentSpec'."           | "type is ComponentSpec"
-        "notImplementingLibraryType"       | "Component implementation 'NotImplementingCustomComponent' must implement 'SomeComponentSpec'."       | "implementation not implementing type class"
-        "notExtendingDefaultSampleLibrary" | "Component implementation 'NotExtendingBaseComponentSpec' must extend 'BaseComponentSpec'."           | "implementation not extending BaseComponentSpec"
-        "noDefaultConstructor"             | "Component implementation 'NoDefaultConstructor' must have public default constructor."               | "implementation with no public default constructor"
+        methodName                         | expectedMessage                                                                                                 | descr
+        "extraParameter"                   | "ComponentType method must have a single parameter of type '${ComponentTypeBuilder.name}'."                     | "additional rule parameter"
+        "returnValue"                      | "ComponentType method must not have a return value."                                                            | "method with return type"
+        "implementationSetMultipleTimes"   | "ComponentType method cannot set default implementation multiple times."                                        | "implementation set multiple times"
+        "noTypeParam"                      | "Parameter of type '${ComponentTypeBuilder.name}' must declare a type parameter."                               | "missing type parameter"
+        "wildcardType"                     | "Component type '?' is not a concrete subtype of '${ComponentSpec.name}'."                                      | "wildcard type parameter"
+        "extendsType"                      | "Component type '? extends ${ComponentSpec.name}' is not a concrete subtype of '${ComponentSpec.name}'."        | "extends type parameter"
+        "superType"                        | "Component type '? super ${ComponentSpec.name}' is not a concrete subtype of '${ComponentSpec.name}'."          | "super type parameter"
+        "notComponentSpec"                 | "Component type '${NotComponentSpec.name}' is not a concrete subtype of '${ComponentSpec.name}'."               | "type not extending ComponentSpec"
+        "notCustomComponent"               | "Component type '${ComponentSpec.name}' is not a concrete subtype of '${ComponentSpec.name}'."                  | "type is ComponentSpec"
+        "notImplementingLibraryType"       | "Component implementation '${NotImplementingCustomComponent.name}' must implement '${SomeComponentSpec.name}'." | "implementation not implementing type class"
+        "notExtendingDefaultSampleLibrary" | "Component implementation '${NotExtendingBaseComponentSpec.name}' must extend '${BaseComponentSpec.name}'."     | "implementation not extending BaseComponentSpec"
+        "noDefaultConstructor"             | "Component implementation '${NoDefaultConstructor.name}' must have public default constructor."                 | "implementation with no public default constructor"
+
     }
 
     def getStringDescription(MethodRuleDefinition ruleDefinition) {
