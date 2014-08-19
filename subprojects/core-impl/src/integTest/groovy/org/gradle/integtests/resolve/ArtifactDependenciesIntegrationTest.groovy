@@ -120,10 +120,10 @@ task listMissingClassifier << { configurations.missingClassifier.each { } }
         inTestDirectory().withTasks('listJar').run()
 
         def result = inTestDirectory().withTasks('listMissingExt').runWithFailure()
-        result.assertThatCause(containsString("Artifact 'org.gradle.test:lib:1.0:lib.zip' not found"))
+        result.assertThatCause(containsString("Artifact 'lib.zip (org.gradle.test:lib:1.0)' not found"))
 
         result = inTestDirectory().withTasks('listMissingClassifier').runWithFailure()
-        result.assertThatCause(containsString("Artifact 'org.gradle.test:lib:1.0:lib-classifier1.jar' not found"))
+        result.assertThatCause(containsString("Artifact 'lib-classifier1.jar (org.gradle.test:lib:1.0)' not found"))
     }
 
     @Test

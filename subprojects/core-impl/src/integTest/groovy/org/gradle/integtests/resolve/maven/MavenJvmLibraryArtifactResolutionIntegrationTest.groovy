@@ -260,7 +260,7 @@ if (project.hasProperty('nocache')) {
     def "resolves and recovers from broken artifacts"() {
         fixture.requestingJavadoc()
                 .expectJavadocArtifactFailure(new ArtifactResolveException(
-                                                "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar'",
+                                                "Could not download artifact 'some-artifact-javadoc.jar (some.group:some-artifact:1.0)'",
                                                 new Throwable("Received status code 500 from server: broken")))
                 .prepare()
 

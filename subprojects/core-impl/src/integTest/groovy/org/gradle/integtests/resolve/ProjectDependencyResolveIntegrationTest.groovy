@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
+
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
         mavenRepo.module("org.other", "externalA", 1.2).publish()
@@ -289,7 +290,7 @@ project(":b") {
         fails 'test'
 
         and:
-        failure.assertResolutionFailure(":b:compile").assertHasCause("Artifact 'test:a:unspecified:b.jar' not found.")
+        failure.assertResolutionFailure(":b:compile").assertHasCause("Artifact 'b.jar (test:a:unspecified)' not found.")
     }
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {
