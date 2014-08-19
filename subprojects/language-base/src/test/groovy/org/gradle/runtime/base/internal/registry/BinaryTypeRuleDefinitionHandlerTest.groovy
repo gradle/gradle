@@ -25,7 +25,7 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.runtime.base.*
-import org.gradle.runtime.base.binary.DefaultBinarySpec
+import org.gradle.runtime.base.binary.BaseBinarySpec
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -102,19 +102,19 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
         ex.cause.message == expectedMessage
 
         where:
-        methodName                         | expectedMessage                                                                              | descr
+        methodName                         | expectedMessage                                                                                        | descr
         "extraParameter"                   | "BinaryType method must have a single parameter of type '${BinaryTypeBuilder.name}'."                  | "additional rule parameter"
-        "returnValue"                      | "BinaryType method must not have a return value."                                            | "method with return type"
-        "implementationSetMultipleTimes"   | "BinaryType method cannot set default implementation multiple times."                        | "implementation set multiple times"
-        "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                                 | "missing type parameter"
-        "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a concrete subtype of '${BinarySpec.name}'."        | "type not extending BinarySpec"
-        "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a concrete subtype of '${BinarySpec.name}'."           | "type is BinarySpec"
-        "wildcardType"                     | "Binary type '?' is not a concrete subtype of '${BinarySpec.name}'."                                 | "wildcard type parameter"
-        "extendsType"                      | "Binary type '? extends ${BinarySpec.getName()}' is not a concrete subtype of '${BinarySpec.name}'." | "extends type parameter"
-        "superType"                        | "Binary type '? super ${BinarySpec.getName()}' is not a concrete subtype of '${BinarySpec.name}'."   | "super type parameter"
-        "notImplementingBinaryType"        | "Binary implementation '${NotImplementingCustomBinary.name}' must implement '${SomeBinarySpec.name}'."       | "implementation not implementing type class"
-        "notExtendingDefaultSampleLibrary" | "Binary implementation '${NotExtendingDefaultBinarySpec.name}' must extend '${DefaultBinarySpec.name}'."     | "implementation not extending DefaultBinarySpec"
-        "noDefaultConstructor"             | "Binary implementation '${NoDefaultConstructor.name}' must have public default constructor."         | "implementation with no public default constructor"
+        "returnValue"                      | "BinaryType method must not have a return value."                                                      | "method with return type"
+        "implementationSetMultipleTimes"   | "BinaryType method cannot set default implementation multiple times."                                  | "implementation set multiple times"
+        "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                         | "missing type parameter"
+        "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a concrete subtype of '${BinarySpec.name}'."               | "type not extending BinarySpec"
+        "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a concrete subtype of '${BinarySpec.name}'."                  | "type is BinarySpec"
+        "wildcardType"                     | "Binary type '?' is not a concrete subtype of '${BinarySpec.name}'."                                   | "wildcard type parameter"
+        "extendsType"                      | "Binary type '? extends ${BinarySpec.getName()}' is not a concrete subtype of '${BinarySpec.name}'."   | "extends type parameter"
+        "superType"                        | "Binary type '? super ${BinarySpec.getName()}' is not a concrete subtype of '${BinarySpec.name}'."     | "super type parameter"
+        "notImplementingBinaryType"        | "Binary implementation '${NotImplementingCustomBinary.name}' must implement '${SomeBinarySpec.name}'." | "implementation not implementing type class"
+        "notExtendingDefaultSampleLibrary" | "Binary implementation '${NotExtendingBaseBinarySpec.name}' must extend '${BaseBinarySpec.name}'."     | "implementation not extending BaseBinarySpec"
+        "noDefaultConstructor"             | "Binary implementation '${NoDefaultConstructor.name}' must have public default constructor."           | "implementation with no public default constructor"
     }
 
     def getStringDescription(MethodRuleDefinition ruleDefinition) {
@@ -137,17 +137,17 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
 
     interface SomeBinarySpec extends BinarySpec {}
 
-    static class SomeBinarySpecImpl extends DefaultBinarySpec implements SomeBinarySpec {}
+    static class SomeBinarySpecImpl extends BaseBinarySpec implements SomeBinarySpec {}
 
     static class SomeBinarySpecOtherImpl extends SomeBinarySpecImpl {}
 
     interface NotBinarySpec {}
 
-    static class NotImplementingCustomBinary extends DefaultBinarySpec implements BinarySpec {}
+    static class NotImplementingCustomBinary extends BaseBinarySpec implements BinarySpec {}
 
-    abstract static class NotExtendingDefaultBinarySpec implements BinaryTypeRuleDefinitionHandlerTest.SomeBinarySpec {}
+    abstract static class NotExtendingBaseBinarySpec implements BinaryTypeRuleDefinitionHandlerTest.SomeBinarySpec {}
 
-    static class NoDefaultConstructor extends DefaultBinarySpec implements SomeBinarySpec {
+    static class NoDefaultConstructor extends BaseBinarySpec implements SomeBinarySpec {
         NoDefaultConstructor(String arg) {
         }
     }
@@ -207,7 +207,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
 
         @BinaryType
         static void notExtendingDefaultSampleLibrary(BinaryTypeBuilder<SomeBinarySpec> builder) {
-            builder.setDefaultImplementation(NotExtendingDefaultBinarySpec)
+            builder.setDefaultImplementation(NotExtendingBaseBinarySpec)
         }
 
         @BinaryType

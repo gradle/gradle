@@ -42,7 +42,7 @@ import java.util.Set;
  *
  */
 @Incubating
-public class DefaultBinarySpec implements BinarySpecInternal {
+public abstract class BaseBinarySpec implements BinarySpecInternal {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
@@ -51,24 +51,30 @@ public class DefaultBinarySpec implements BinarySpecInternal {
     private final String typeName;
     private Task lifecycleTask;
 
-    public static <T extends DefaultBinarySpec> T create(Class<T> type, BinaryNamingScheme namingScheme, Instantiator instantiator) {
+    public static <T extends BaseBinarySpec> T create(Class<T> type, BinaryNamingScheme namingScheme, Instantiator instantiator) {
+        if (type.equals(BaseBinarySpec.class)) {
+            throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
+        }
         nextBinaryInfo.set(new BinaryInfo(namingScheme, type.getSimpleName()));
         try {
             try {
                 return instantiator.newInstance(type);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create Binary of type %s", type.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(String.format("Could not create binary of type %s", type.getSimpleName()), e.getCause());
             }
         } finally {
             nextBinaryInfo.set(null);
         }
     }
 
-    public DefaultBinarySpec() {
+    protected BaseBinarySpec() {
         this(nextBinaryInfo.get());
     }
 
-    private DefaultBinarySpec(BinaryInfo info) {
+    private BaseBinarySpec(BinaryInfo info) {
+        if (info == null) {
+            throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
+        }
         this.typeName = info.typeName;
         this.namingScheme = info.namingScheme;
     }

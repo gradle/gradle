@@ -25,7 +25,7 @@ import org.gradle.model.*
 import org.gradle.model.collection.*
 
 interface SampleBinary extends BinarySpec {}
-class DefaultSampleBinary extends DefaultBinarySpec implements SampleBinary {}
+class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
 """
     }
 
@@ -128,7 +128,7 @@ task checkModel << {
         when:
         buildFile << """
         interface AnotherSampleBinary extends BinarySpec {}
-        class DefaultAnotherSampleBinary extends DefaultBinarySpec implements AnotherSampleBinary {}
+        class DefaultAnotherSampleBinary extends BaseBinarySpec implements AnotherSampleBinary {}
 
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}

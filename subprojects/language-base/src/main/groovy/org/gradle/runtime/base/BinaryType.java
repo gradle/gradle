@@ -35,16 +35,16 @@ import java.lang.annotation.Target;
  * import org.gradle.model.collection.*
  *
  * interface SampleBinary extends BinarySpec {}
- * class DefaultSampleBinary extends DefaultBinarySpec implements SampleBinary {}
+ * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
  *
  * apply plugin: MySamplePlugin
  *
  * class MySamplePlugin implements Plugin<Project> {
  *     void apply(final Project project) {}
  *
- *     @RuleSource
+ *     {@literal @}RuleSource
  *     static class ComponentModel {
- *         @BinaryType
+ *         {@literal @}BinaryType
  *         void defineBinaryType(BinaryTypeBuilder<SampleBinary> builder) {
  *             builder.setDefaultImplementation(DefaultSampleBinary)
  *         }
