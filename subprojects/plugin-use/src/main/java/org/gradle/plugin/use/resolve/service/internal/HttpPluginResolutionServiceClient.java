@@ -53,7 +53,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     }
 
     @Nullable
-    public Response<PluginUseMetaData> queryPluginMetadata(String portalUrl, boolean shouldValidate, final PluginRequest pluginRequest) {
+    public Response<PluginUseMetaData>  queryPluginMetadata(String portalUrl, boolean shouldValidate, final PluginRequest pluginRequest) {
         String escapedId = PATH_SEGMENT_ESCAPER.escape(pluginRequest.getId().toString());
         String escapedPluginVersion = PATH_SEGMENT_ESCAPER.escape(pluginRequest.getVersion());
         final String requestUrl = toRequestUrl(portalUrl, String.format(PLUGIN_USE_REQUEST_URL, escapedId, escapedPluginVersion));

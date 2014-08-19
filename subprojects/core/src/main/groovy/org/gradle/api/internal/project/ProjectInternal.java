@@ -40,6 +40,12 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
 public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope {
+
+    // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
+    // in the ‘core’ and ‘ui’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.
+    String HELP_TASK = "help";
+    String TASKS_TASK = "tasks";
+
     ProjectInternal getParent();
 
     ProjectInternal getRootProject();

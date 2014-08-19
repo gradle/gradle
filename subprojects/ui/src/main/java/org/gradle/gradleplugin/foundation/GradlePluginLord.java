@@ -17,10 +17,10 @@ package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.foundation.CommandLineAssistant;
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
@@ -462,7 +462,7 @@ public class GradlePluginLord {
         //we'll request a task list since there is no way to do a no op. We're not really interested
         //in what's being executed, just the ability to get the task list (which must be populated as
         //part of executing anything).
-        String fullCommandLine = ImplicitTasksConfigurer.TASKS_TASK;
+        String fullCommandLine = ProjectInternal.TASKS_TASK;
 
         if (additionalCommandLineArguments != null) {
             fullCommandLine += ' ' + additionalCommandLineArguments;

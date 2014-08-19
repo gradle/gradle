@@ -17,7 +17,7 @@
 package org.gradle.execution.commandline;
 
 import org.gradle.api.GradleException;
-import org.gradle.configuration.ImplicitTasksConfigurer;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.FailureResolutionAware;
@@ -37,7 +37,7 @@ public class TaskConfigurationException extends GradleException implements Failu
 
     public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
         output.text("Run ");
-        clientMetaData.describeCommand(output.withStyle(UserInput), ImplicitTasksConfigurer.HELP_TASK);
+        clientMetaData.describeCommand(output.withStyle(UserInput), ProjectInternal.HELP_TASK);
         output.withStyle(UserInput).format(" --task %s", taskPath);
         output.text(" to get task usage details.");
     }
