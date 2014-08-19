@@ -40,11 +40,11 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRule
 
     @Override
     protected TypeBuilder createBuilder() {
-        return new MyBinaryTypeBuilder();
+        return new DefaultBinaryTypeBuilder();
     }
 
-    private static class MyBinaryTypeBuilder<T extends BinarySpec> extends AbstractTypeBuilder<T> implements BinaryTypeBuilder<T> {
-        public MyBinaryTypeBuilder() {
+    private static class DefaultBinaryTypeBuilder<T extends BinarySpec> extends AbstractTypeBuilder<T> implements BinaryTypeBuilder<T> {
+        public DefaultBinaryTypeBuilder() {
             super(BinaryType.class);
         }
     }

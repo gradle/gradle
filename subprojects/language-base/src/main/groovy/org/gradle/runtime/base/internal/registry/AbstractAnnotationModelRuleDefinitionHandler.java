@@ -92,12 +92,10 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         if (builder.getTypeVariables().size() != 1) {
             throw new InvalidComponentModelException(String.format("%s parameter must declare a type parameter.", builderInterface.getSimpleName()));
         }
-        Class<?> spec = builder.getTypeVariables().get(0).getRawClass();
-        if (!baseInterface.isAssignableFrom(spec)) {
-            throw new InvalidComponentModelException(String.format("%s type '%s' must extend '%s'.", StringUtils.capitalize(modelName), spec.getSimpleName(), baseInterface.getSimpleName()));
-        }
-        if (spec.equals(baseInterface)) {
-            throw new InvalidComponentModelException(String.format("%s type must be a subtype of '%s'.", StringUtils.capitalize(modelName), baseInterface.getSimpleName()));
+        ModelType<?> modelType = builder.getTypeVariables().get(0);
+        Class<?> spec = modelType.getRawClass();
+        if (!baseInterface.isAssignableFrom(spec) || spec.equals(baseInterface)) {
+            throw new InvalidComponentModelException(String.format("%s type '%s' is not a concrete subtype of '%s'.", StringUtils.capitalize(modelName), modelType.toString(), baseInterface.getSimpleName()));
         }
         return (Class<? extends T>) spec;
     }

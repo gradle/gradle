@@ -43,11 +43,11 @@ public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModel
 
     @Override
     protected TypeBuilder createBuilder() {
-        return new MyComponentTypeBuilder();
+        return new DefaultComponentTypeBuilder();
     }
 
-    private static class MyComponentTypeBuilder<T extends ComponentSpec> extends AbstractTypeBuilder<T> implements ComponentTypeBuilder<T> {
-        public MyComponentTypeBuilder() {
+    private static class DefaultComponentTypeBuilder<T extends ComponentSpec> extends AbstractTypeBuilder<T> implements ComponentTypeBuilder<T> {
+        public DefaultComponentTypeBuilder() {
             super(ComponentType.class);
         }
     }
