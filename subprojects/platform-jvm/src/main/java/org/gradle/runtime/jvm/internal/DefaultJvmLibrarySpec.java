@@ -16,12 +16,8 @@
 
 package org.gradle.runtime.jvm.internal;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.specs.Spec;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.runtime.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
@@ -33,7 +29,8 @@ import org.gradle.runtime.base.internal.ComponentSpecInternal;
 import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
 import org.gradle.runtime.jvm.JvmLibrarySpec;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
@@ -41,22 +38,6 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
-
-    private HashMap<Integer, JvmPlatform> buildFor = new HashMap<Integer, JvmPlatform>();
-
-    public HashMap<Integer, JvmPlatform> getBuildFor() {
-        return buildFor;
-    }
-
-    public void setBuildFor(JvmPlatform... platforms) {
-        int a = 0;
-        for (JvmPlatform platform: platforms) { //TODO: addAll?
-            this.buildFor.put(a, platform);
-            a += 1;
-        }
-    }
-
-
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
         this.mainSourceSet = mainSourceSet;

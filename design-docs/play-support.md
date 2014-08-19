@@ -89,9 +89,7 @@ Add a `play-application` plugin that provides Play application component:
 
     jvm {
         playApplications {
-            helloworld {
-                buildFor [platforms.play "2.3.0"]
-            }
+            helloworld
         }
     }
 
