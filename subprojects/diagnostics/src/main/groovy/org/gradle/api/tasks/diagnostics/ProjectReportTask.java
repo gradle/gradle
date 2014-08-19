@@ -19,7 +19,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.HelpTasksPlugin;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.graph.GraphRenderer;
@@ -78,7 +77,7 @@ public class ProjectReportTask extends AbstractReportTask {
             textOutput.println();
             textOutput.text("To see a list of all the projects in this build, run ");
             metaData.describeCommand(textOutput.withStyle(UserInput), project.getRootProject().absoluteProjectPath(
-                    HelpTasksPlugin.PROJECTS_TASK));
+                    ProjectInternal.PROJECTS_TASK));
             textOutput.println();
         }
     }

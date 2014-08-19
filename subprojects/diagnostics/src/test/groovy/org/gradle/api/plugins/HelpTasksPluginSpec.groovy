@@ -34,7 +34,7 @@ class HelpTasksPluginSpec extends Specification {
         hasHelpTask(ProjectInternal.HELP_TASK, Help)
         hasHelpTask(HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask)
         hasHelpTask(HelpTasksPlugin.DEPENDENCIES_TASK, DependencyReportTask)
-        hasHelpTask(HelpTasksPlugin.PROJECTS_TASK, ProjectReportTask)
+        hasHelpTask(ProjectInternal.PROJECTS_TASK, ProjectReportTask)
         hasHelpTask(ProjectInternal.TASKS_TASK, TaskReportTask)
         hasHelpTask(HelpTasksPlugin.PROPERTIES_TASK, PropertyReportTask)
         hasHelpTask(HelpTasksPlugin.COMPONENTS_TASK, ComponentReport)
