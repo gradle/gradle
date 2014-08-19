@@ -1,13 +1,27 @@
-New DSL makes it easy to apply community plugins. First Gradle release that is integrated with the plugin portal.
-Easier to find and use plugins.
+The big news in Gradle 2.1 is the new, simpler, mechanism for using community plugins in your build, integrated with the new [Gradle Plugin Portal](https://plugins.gradle.org). 
+This is one of many improvements planned to expand the Gradle platform by making the lives of both plugins developers and users through new features and tooling.
 
-Incremental Java compilation means faster builds.
+Another very new exciting feature is the addition of incremental Java compilation, which promises to significantly reduce compilation times during the development cycle.
+Users of Apache Ant and Apache Maven may be familiar with incremental Java compilation from those tools.
+Gradle's incremental Java compiler is not based on the same approach as these tools and does not suffer from the same set of problems that plague 
+incremental compilation with these tools.
+Please see the “Incremental Java compilation” section in “New and noteworthy” for more information.
 
-New publishing plugins received some improvements.
+The `maven-publish` and `ivy-publish` have been improved in this release.
+When using the `maven-publish` plugin, dependency exclusions specified when consuming dependencies are now translated to the published POM when publishing in Maven format.
+The `ivy-publish` plugin is continuing to expand and support more of Apache Ivy's extensive configuration options.
+In this release it is now easier to specify the `branch` attribute for Ivy publications and to specify arbitrary “extra info”.
 
-IDE integration continues to be a focus. Can now cancel a build through the tooling API, which is the API used by the IDE integrations.
+IDE integration continues to be a strong area of focus.
+The [Tooling API](userguide/embedding.html), which is used by IDEs and other tooling to embed Gradle, now supports canceling a running operation or build.
+This is a particularly welcome improvement for Android Studio users, who can expect the coming releases of Android Studio to leverage this new functionality.
 
-20 community contributions is a record for any Gradle release.
+We are particularly proud of Gradle 2.1 containing contributions from 18 people outside of the core Gradle development team, which is a new record for the project.
+Thank you to everyone who contributed. Also, thanks to all who raise issue reports for the Gradle 2.0 release allowing us to make Gradle 2.1 even better.
+
+As usual there's also a smattering of other improvements and bug fixes, detailed below.
+
+We hope you enjoy Gradle 2.1.
 
 ## New and noteworthy
 
@@ -65,6 +79,12 @@ However, this cost is offset for subsequent compile operations as only a subset 
 The current implementation is not able to fully analyze the impact of all changes to the source code in terms of identifying exactly which classes need to be recompiled.
 In such situations, all of the source will be recompiled in order to avoid inconsistent compilation results.
 Incremental Java compilation will improve over coming Gradle versions to be generally faster, and to invoke a full recompile in response to fewer types of changes.
+
+It is worthwhile to note that Gradle's incremental Java compiler is not based on Apache Ant's incremental compiler (which is also used by Apache Maven).
+Incremental compilation with Ant (and Maven) has severe limitations and is notorious for producing inconsistent results.
+That is, it frequently produces different set of bytecode to what a full recompile would produce.
+This is due to it being based on timestamp comparisons and dependency analysis through bytecode analysis alone.
+The Gradle incremental compiler is not based on timestamps and also employs bytecode **and source** analysis in order to more thoroughly analyze the impact of a change.
 
 While we have extensively tested this feature during development, it will significantly benefit from usage “in the field”.
 Please try out this exciting new feature and report any problems encountered via the [Gradle Forums](http://forums.gradle.org).
