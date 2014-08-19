@@ -41,7 +41,7 @@ public interface PluginResolutionServiceClient extends Closeable {
     /**
      * Fetch information about a particular plugin at a particular version.
      * <p>
-     * This maps to the {@code /gradle/«gradle version»/plugin/use/«id»/«version»} service.
+     * This maps to the {@code /«gradle version»/plugin/use/«id»/«version»} service.
      *
      * @param portalUrl the base url of the web service
      * @param shouldValidate whether cached information should be validated
@@ -53,7 +53,7 @@ public interface PluginResolutionServiceClient extends Closeable {
     /**
      * Fetch status information about the current client.
      * <p>
-     * This maps to the {@code /gradle/«gradle version»} service.
+     * This maps to the {@code /«gradle version»} service.
      * <p>
      * The {@code checksum} parameter can be used as a hint for the suitability of a cached response.
      * If {@code shouldValidate} is false and the client has cached response with the given checksum, the cached response may be returned.
