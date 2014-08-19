@@ -86,7 +86,7 @@ Options
      --task     The task to show help for.
 
 Description
-     Displays a help message
+     Displays a help message.
 
 BUILD SUCCESSFUL"""))
     }

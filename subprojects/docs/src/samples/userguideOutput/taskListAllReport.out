@@ -33,9 +33,9 @@ webapp:dependencies - Displays all dependencies declared in project ':webapp'.
 dependencyInsight - Displays the insight into a specific dependency in root project 'projectReports'.
 api:dependencyInsight - Displays the insight into a specific dependency in project ':api'.
 webapp:dependencyInsight - Displays the insight into a specific dependency in project ':webapp'.
-help - Displays a help message
-api:help - Displays a help message
-webapp:help - Displays a help message
+help - Displays a help message.
+api:help - Displays a help message.
+webapp:help - Displays a help message.
 projects - Displays the sub-projects of root project 'projectReports'.
 api:projects - Displays the sub-projects of project ':api'.
 webapp:projects - Displays the sub-projects of project ':webapp'.
