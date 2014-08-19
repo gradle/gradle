@@ -160,7 +160,7 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
     static class Rules {
         @ComponentType
         static void validTypeRule(ComponentTypeBuilder<SomeComponentSpec> builder) {
-            builder.setDefaultImplementation(SomeComponentSpecImpl)
+            builder.defaultImplementation = SomeComponentSpecImpl
         }
 
         @ComponentType

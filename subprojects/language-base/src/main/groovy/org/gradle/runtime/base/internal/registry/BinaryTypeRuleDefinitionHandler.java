@@ -39,7 +39,7 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRule
     }
 
     @Override
-    protected TypeBuilder createBuilder() {
+    protected TypeBuilderInternal createBuilder() {
         return new DefaultBinaryTypeBuilder();
     }
 

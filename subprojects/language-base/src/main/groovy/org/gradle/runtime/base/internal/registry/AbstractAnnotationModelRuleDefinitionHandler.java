@@ -64,7 +64,7 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
     }
 
     abstract protected Action<MutationActionParameter> createMutationAction(Class<? extends T> type, Class<? extends U> implementation);
-    abstract protected TypeBuilder createBuilder();
+    abstract protected TypeBuilderInternal createBuilder();
 
     public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
@@ -112,9 +112,9 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
 
     protected Class<? extends U> determineImplementationType(MethodRuleDefinition ruleDefinition, Class<? extends T> typeClass) {
         ModelType<? extends T> type = ModelType.of(typeClass);
-        TypeBuilder builder = createBuilder();
+        TypeBuilderInternal builder = createBuilder();
         ruleDefinition.getRuleInvoker().invoke(builder);
-        Class<?> implementation = builder.getImplementation();
+        Class<?> implementation = builder.getDefaultImplementation();
         if (implementation == null) {
             return null;
         }

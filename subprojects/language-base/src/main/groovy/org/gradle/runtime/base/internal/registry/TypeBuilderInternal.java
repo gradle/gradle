@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base;
+package org.gradle.runtime.base.internal.registry;
 
-import org.gradle.api.Incubating;
+import org.gradle.runtime.base.TypeBuilder;
 
-/**
- * A TypeBuilder to configure read the implementation class of a type.
- * @param <C> The component type.
- * */
-@Incubating
-public interface TypeBuilder<C> {
-
-    /**
-     * Allows the plugin to register the implementation type.
-     * @param implementation the implementation class.
-     */
-    TypeBuilder<C> setDefaultImplementation(Class<? extends C> implementation);
+public interface TypeBuilderInternal<T> extends TypeBuilder<T> {
+    Class<? extends T> getDefaultImplementation();
 }

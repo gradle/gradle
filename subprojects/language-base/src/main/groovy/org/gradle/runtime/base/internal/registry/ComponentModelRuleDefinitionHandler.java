@@ -42,7 +42,7 @@ public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModel
     }
 
     @Override
-    protected TypeBuilder createBuilder() {
+    protected TypeBuilderInternal createBuilder() {
         return new DefaultComponentTypeBuilder();
     }
 

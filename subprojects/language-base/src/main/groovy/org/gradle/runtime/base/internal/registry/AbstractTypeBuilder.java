@@ -17,12 +17,8 @@
 package org.gradle.runtime.base.internal.registry;
 
 import org.gradle.runtime.base.InvalidComponentModelException;
-import org.gradle.runtime.base.TypeBuilder;
 
-/**
- *
- * */
-public abstract class AbstractTypeBuilder<T> implements TypeBuilder<T> {
+public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
     Class<? extends T> implementation;
 
@@ -30,14 +26,15 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilder<T> {
         this.markerAnnotation = markerAnnotation;
     }
 
-    public void setDefaultImplementation(Class<? extends T> implementation) {
+    public TypeBuilderInternal<T> setDefaultImplementation(Class<? extends T> implementation) {
         if (this.implementation != null) {
             throw new InvalidComponentModelException(String.format("%s method cannot set default implementation multiple times.", markerAnnotation.getSimpleName()));
         }
         this.implementation = implementation;
+        return this;
     }
 
-    public Class<? extends T> getImplementation() {
+    public Class<? extends T> getDefaultImplementation() {
         return this.implementation;
     }
 }
