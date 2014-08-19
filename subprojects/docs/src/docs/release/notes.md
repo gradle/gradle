@@ -16,7 +16,7 @@ Here are the new features introduced in this Gradle release.
 ### Easier use of community plugins (i)
 
 The new plugin resolution mechanism, backed by the new [Gradle Plugin Portal](https://plugins.gradle.org), makes it easier to use community Gradle plugins.
-Instead of combining a `buildscript` script block and an `apply`, both statements can be replaced by a
+Instead of combining a `buildscript` script block and an `apply` statement, both statements can be replaced by a
 [plugins script block](dsl/org.gradle.plugin.use.PluginDependenciesSpec.html).
 
     plugins {
@@ -44,7 +44,7 @@ The new incremental compilation feature compliments incremental task execution b
 Incremental compilation has two key benefits:
 
 1. Reduced compilation time during development due to less files being compiled
-2. Class files who's content is unchanged by a compile are not updated on the filesystem
+2. Class files whose content is unchanged by a compile are not updated on the filesystem
 
 The second point above is important for tools such as [JRebel](http://zeroturnaround.com/software/jrebel) 
 that watch for changed class files in order to reload the class at runtime.
@@ -245,22 +245,30 @@ This is exposed via the [IvyExtraInfo](javadoc/org/gradle/api/artifacts/ivy/IvyE
         }
     }
 
-Note that the Map<String, String> representation for extraInfo in [IvyModuleDescriptor](javadoc/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html)
+Note that the `Map<String, String>` representation for extra info elements in [IvyModuleDescriptor](javadoc/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html)
 has been replaced with [IvyExtraInfo](javadoc/org/gradle/api/artifacts/ivy/IvyExtraInfo.html).
 
-### Task visibility is exposed in Tooling API (i)
+### Tooling API improvements
 
-Tasks and selectors accessible from the Tooling API now expose information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html) as the `public` property.
+The [tooling API](userguide/embedding.html) is used to embed and programmatically invoke Gradle builds. This release sees some new features added
+to the tooling API.
 
 ### Cancellation support in Tooling API (i)
 
-The Tooling API now provides cancel [operations](javadoc/org/gradle/tooling/LongRunningOperation.html) which use a
-[CancellationTokenSource](http://www.gradle.org/docs/nightly/javadoc/org/gradle/tooling/CancellationTokenSource.html)
+The Tooling API now provides a way to cancel [operations](javadoc/org/gradle/tooling/LongRunningOperation.html), such as running a build, using the
+[CancellationTokenSource](http://www.gradle.org/docs/nightly/javadoc/org/gradle/tooling/CancellationTokenSource.html) API
 to submit cancel requests.  The current implementation attempts to cancel the build first, and then will resort to stopping the daemon.
+
+### Task visibility is exposed in Tooling API (i)
+
+This release sees further improvements to the `BuildInvocations` model added in Gradle 1.12. In particular, tasks and selectors accessible from this model now
+expose information about their [visibility](javadoc/org/gradle/tooling/model/Launchable.html) as the `public` property.
+
+This change means that it is now possible to implement the equivalent of `gradle tasks` using the tooling API.
 
 ### Command line report to show details of the components produced by the build (i)
 
-Sometimes it can be difficult to figure out exactly how Gradle has been configured and what a given build produces.
+Sometimes it can be difficult to figure out exactly how Gradle has been configured and what a given build will produce.
 To help address this, Gradle now includes a new command line report that shows you some useful details about the components
 that your project produces. To use the report, simply run `gradle components`.
 
@@ -319,7 +327,7 @@ If you use Java 1.6 you need to configure an older version of FindBugs explicitl
 ### Changes to incubating native language plugins
 
 The Gradle team is currently working hard on a new, faster configuration model as well as rework that will enable full dependency management
-support for native plugins. As part of this work, many changes have been made to the incubating native language plugins. While some effort has been
+support for native binaries. As part of this work, many changes have been made to the incubating native language plugins. While some effort has been
 made to avoid unnecessary breakages, in many cases such changes have been required.
 
 It is anticipated that these plugins will remain unstable for the next release or two. Considering that fact, it may be prudent to hold off upgrading your native
@@ -348,20 +356,20 @@ For example, `ProjectNativeComponent` is now `NativeComponentSpec` and `CUnitTes
 
 In addition to these renames for consistency, the following changes were made:
 
-- Merged NativeTestSuite and ProjectComponentNativeTestSuite
-- NativeTestSuiteBinary no longer extends NativeExecutableBinary
-- Merged TestSuiteExecutableBinary into NativeTestSuiteBinary
+- Merged `NativeTestSuite` and `ProjectComponentNativeTestSuite`
+- `NativeTestSuiteBinary` no longer extends `NativeExecutableBinary`
+- Merged `TestSuiteExecutableBinary` into `NativeTestSuiteBinary`
 
 #### Changes to native cross compilation and custom platforms support
 
 To avoid a proliferation of methods on [PlatformConfigurableToolChain](dsl/org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain.html), we removed:
 
-* target(Platform, Action)
-* target(Platform)
-* target(Iterable<? extends Platform>)
-* target(List<String>)
-* target(String... platformNames)
-* target(Iterable<? extends Platform>, Action<? super TargetedPlatformToolChain>)
+* `target(Platform, Action)`
+* `target(Platform)`
+* `target(Iterable<? extends Platform>)`
+* `target(List<String>)`
+* `target(String... platformNames)`
+* `target(Iterable<? extends Platform>, Action<? super TargetedPlatformToolChain>)`
 
 #### Changes to `sources` DSL
 
@@ -414,10 +422,10 @@ major changes have been made to this base plugin.
 
 #### Domain model reorganisation
 
-- Renamed ProjectComponent -> ComponentSpec
-- Renamed ProjectComponentContainer -> ComponentSpecContainer
-- Renamed ComponentSpecIdentifier -> NamedProjectComponentIdentifier
-- Renamed ProjectBinary -> BinarySpec
+- Renamed `ProjectComponent` -> `ComponentSpec`
+- Renamed `ProjectComponentContainer` -> `ComponentSpecContainer`
+- Renamed `ComponentSpecIdentifier` -> `NamedProjectComponentIdentifier`
+- Renamed `ProjectBinary` -> `BinarySpec`
 
 #### Renamed `projectComponents` container to `componentSpecs`
 
@@ -494,8 +502,8 @@ and `ResourceSourceSet` on each `FunctionalSourceSet`.
 
 #### Domain model reorganisation
 
-- Renamed ProjectClassDirectoryBinary -> ClassDirectoryBinarySpec
-- Renamed ProjectJarBinary -> JarBinarySpec
+- Renamed `ProjectClassDirectoryBinary` -> `ClassDirectoryBinarySpec`
+- Renamed `ProjectJarBinary` -> `JarBinarySpec`
 
 ### Generated maven pom contains dependency exclusions
 
