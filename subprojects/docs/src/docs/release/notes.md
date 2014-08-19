@@ -1,5 +1,5 @@
 The big news in Gradle 2.1 is the new, simpler, mechanism for using community plugins in your build, integrated with the new [Gradle Plugin Portal](https://plugins.gradle.org). 
-This is one of many improvements planned to expand the Gradle platform by making the lives of both plugins developers and users through new features and tooling.
+This is one of many improvements planned to expand the Gradle platform by making the lives of both plugins developers and users better through new features and tooling.
 
 Another very new exciting feature is the addition of incremental Java compilation, which promises to significantly reduce compilation times during the development cycle.
 Users of Apache Ant and Apache Maven may be familiar with incremental Java compilation from those tools.
@@ -7,7 +7,7 @@ Gradle's incremental Java compiler is not based on the same approach as these to
 incremental compilation with these tools.
 Please see the “Incremental Java compilation” section in “New and noteworthy” for more information.
 
-The `maven-publish` and `ivy-publish` have been improved in this release.
+The `maven-publish` and `ivy-publish` plugins have been improved in this release.
 When using the `maven-publish` plugin, dependency exclusions specified when consuming dependencies are now translated to the published POM when publishing in Maven format.
 The `ivy-publish` plugin is continuing to expand and support more of Apache Ivy's extensive configuration options.
 In this release it is now easier to specify the `branch` attribute for Ivy publications and to specify arbitrary “extra info”.
