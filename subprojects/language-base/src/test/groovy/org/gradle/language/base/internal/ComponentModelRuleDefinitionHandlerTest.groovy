@@ -110,7 +110,7 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         "extraParameter"                   | "ComponentType method must have a single parameter of type ComponentTypeBuilder."               | "additional rule parameter"
         "returnValue"                      | "ComponentType method must not have a return value."                                            | "method with return type"
         "implementationSetMultipleTimes"   | "ComponentType method cannot set default implementation multiple times."                        | "implementation set multiple times"
-        "noTypeParam"                      | "ComponentTypeBuilder parameter must declare a type parameter (must be generified)."            | "missing type parameter"
+        "noTypeParam"                      | "ComponentTypeBuilder parameter must declare a type parameter."                                 | "missing type parameter"
         "notComponentSpec"                 | "Component type 'NotComponentSpec' must extend 'ComponentSpec'."                                | "type not extending ComponentSpec"
         "notCustomComponent"               | "Component type must be a subtype of 'ComponentSpec'."                                          | "type is ComponentSpec"
         "notImplementingLibraryType"       | "Component implementation 'NotImplementingCustomComponent' must implement 'SomeComponentSpec'." | "implementation not implementing type class"

@@ -261,6 +261,6 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot register a factory for type Person because a factory for this type already registered."
+        e.message == "Cannot register a factory for type Person because a factory for this type is already registered."
     }
 }

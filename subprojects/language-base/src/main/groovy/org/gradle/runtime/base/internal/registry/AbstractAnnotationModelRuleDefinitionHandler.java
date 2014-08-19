@@ -90,7 +90,7 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
             throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type %s.", annotationClass.getSimpleName(), builderInterface.getSimpleName()));
         }
         if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidComponentModelException(String.format("%s parameter must declare a type parameter (must be generified).", builderInterface.getSimpleName()));
+            throw new InvalidComponentModelException(String.format("%s parameter must declare a type parameter.", builderInterface.getSimpleName()));
         }
         Class<?> spec = builder.getTypeVariables().get(0).getRawClass();
         if (!baseInterface.isAssignableFrom(spec)) {

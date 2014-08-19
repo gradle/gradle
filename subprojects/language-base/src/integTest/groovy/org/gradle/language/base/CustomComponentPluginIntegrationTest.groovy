@@ -248,7 +248,7 @@ BUILD SUCCESSFUL"""))
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
         failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>)"
-        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type already registered."
+        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type is already registered."
     }
 
     def buildWithCustomComponentPlugin() {
