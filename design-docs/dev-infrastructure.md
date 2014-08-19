@@ -136,3 +136,7 @@ This applies to unmanaged machines running Linux and one Windows box.
 ## Use the same Linux distribution on all machines
 
 Upgrade existing Saucy machines and probably also Precise.
+
+# Build against Early Access builds of the JDK
+
+This would include new releases of 6, 7, 8 and 9.
