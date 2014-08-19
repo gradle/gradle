@@ -121,10 +121,6 @@ Reduce the size of the log output:
 - Move it to the stage 3 (implicitly as a dependency of the coverage builds).
 - We might also split this up and move the various bits into the various stages.
 
-# Install BarKeep code review tool
-
-Set up [BarKeep](http://getbarkeep.org/) on `dev1` as an alternative to Crucible.
-
 # Build machines provisioning
 
 ## Add monitoring to all build machines
