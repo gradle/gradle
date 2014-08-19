@@ -244,25 +244,25 @@ A mock up:
 - Report on unknown target for configuration closure.
 - Can take extensions as input too?
 
-## Story: Build script configures tasks defined using configuration rule
+## Story: Build author configures task created by configuration rule supplied by plugin
 
-Improve the model DSL to allow tasks to be configured in the build script:
-
-    model {
-        tasks {
-            someTask {
-                ...
-            }
-        }
-    }
+1. Build author has prior knowledge of task name (i.e. story does not cover any documentation or tooling to allow discovery of task name)
+1. Configuration does not take any external inputs (i.e. all necessary configuration is the application of constants)
+1. Task is not required by to be accessed outside model rule (e.g. does not needed to be added as dependency of “legacy” task)
+1. Task is not created during “legacy” configuration phase
 
 ### Test cases
 
+- User successfully configures task
+  - Can add dependency on other task using task name
+  - Can change configuration property of specific task type (e.g. something not defined by `Task`)
+- User receives useful error message when specified task (i.e using name) is not found
+  - Error message includes names of X tasks with names closest to given name (incl. where these tasks were defined)
+- User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)
+
 ### Open issues
 
-- Reasonable behaviour when `someTask { ... }` appears as a top level statement in build script.
-- Replace `TaskContainerInternal.placeholderActions()` with something more general.
-- DSL to allow tasks to be defined.
+- Level of diagnostics required for when the user tries to configure the task the “old” way
 
 ## Story: Model DSL rule uses a model as input
 
@@ -291,6 +291,20 @@ A mock up:
 - Move `Project.afterEvaluate()` to fire after the build script has been executed.
 - Include rule execution time in the profile report.
 
+
+## Story: Internal Gradle plugin defines lazily created task that is visible during configuration phase
+
+This story aims to replace the `TaskContainerInternal.placeholderActions()` mechanism with model rules which is used for `help`, `tasks`, `wrapper` etc.
+The capability to defer task creation generally is covered by previous stories.
+This story particularly deals with the backwards compatibility requirements of moving the declaration of these tasks to the model rule infrastructure.
+
+## Story: Build author creates task with configuration based on plugin model element
+
+This story makes it viable for a build author to create a task based on managed model.
+This requires a DSL for creating model elements.
+
+## Story: 
+ 
 # Milestone 2 - Build author uses public rule DSL to configure model and tasks
 
 ## Story: Build user receives useful error message when a plugin they are using has a rule that does not fully bind
