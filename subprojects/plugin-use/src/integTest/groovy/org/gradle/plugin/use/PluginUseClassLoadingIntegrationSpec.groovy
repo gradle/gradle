@@ -23,7 +23,7 @@ import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.junit.Rule
 
-class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
+class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
 
     public static final String PLUGIN_ID = "org.myplugin"
     public static final String VERSION = "1.0"
@@ -130,6 +130,29 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
 
         expect:
         succeeds("verify")
+    }
+
+    def "plugin classes are reused if possible"() {
+        given:
+        publishPlugin()
+        settingsFile << """
+            include "p1"
+            include "p2"
+        """
+
+        when:
+        file("p1/build.gradle") << USE
+        file("p2/build.gradle") << USE
+
+        buildScript """
+            evaluationDependsOnChildren()
+            task verify <<  {
+                project(":p1").pluginClass.is(project(":p2").pluginClass)
+            }
+        """
+
+        then:
+        succeeds "verify"
     }
 
     void publishPlugin() {

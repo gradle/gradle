@@ -33,14 +33,18 @@ import java.util.Map;
 public class DefaultPluginRegistry implements PluginRegistry {
     private final Map<String, Class<? extends Plugin<?>>> idMappings = new HashMap<String, Class<? extends Plugin<?>>>();
     private final DefaultPluginRegistry parent;
-    private final Factory<ClassLoader> classLoaderFactory;
+    private final Factory<? extends ClassLoader> classLoaderFactory;
     private final Instantiator instantiator;
 
     public DefaultPluginRegistry(ClassLoader classLoader, Instantiator instantiator) {
-        this(null, Factories.constant(classLoader), instantiator);
+        this(Factories.constant(classLoader), instantiator);
     }
 
-    private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<ClassLoader> classLoaderFactory, Instantiator instantiator) {
+    public DefaultPluginRegistry(Factory<? extends ClassLoader> classLoaderFactory, Instantiator instantiator) {
+        this(null, classLoaderFactory, instantiator);
+    }
+
+    private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<? extends ClassLoader> classLoaderFactory, Instantiator instantiator) {
         this.parent = parent;
         this.classLoaderFactory = classLoaderFactory;
         this.instantiator = instantiator;
