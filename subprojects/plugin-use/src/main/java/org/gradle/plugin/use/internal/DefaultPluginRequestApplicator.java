@@ -41,10 +41,7 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.use.resolve.internal.*;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.gradle.util.CollectionUtils.*;
 
@@ -190,14 +187,13 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             // this shouldn't happen, resolvers should call notFound()
             return String.format("Plugin %s was not found", pluginRequest.getDisplayName());
         } else {
-            StringBuilder sb = new StringBuilder("Plugin ")
-                    .append(pluginRequest.getDisplayName())
-                    .append(" was not found in any of the following sources:\n");
+            Formatter sb = new Formatter();
+            sb.format("Plugin %s was not found in any of the following sources:%n", pluginRequest.getDisplayName());
 
             for (NotFound notFound : result.notFoundList) {
-                sb.append('\n').append("- ").append(notFound.source);
+                sb.format("%n- %s", notFound.source);
                 if (notFound.detail != null) {
-                    sb.append(" (").append(notFound.detail).append(")");
+                    sb.format(" (%s)", notFound.detail);
                 }
             }
 
