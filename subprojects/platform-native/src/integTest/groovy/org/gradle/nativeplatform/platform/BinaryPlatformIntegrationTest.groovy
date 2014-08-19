@@ -329,7 +329,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             return new OtoolBinaryInfo(file)
         }
         if (os.windows) {
-            return new DumpbinBinaryInfo(file, AbstractInstalledToolChainIntegrationSpec.toolChain)
+            return new DumpbinBinaryInfo(file)
         }
         return new ReadelfBinaryInfo(file)
     }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.process.ExecSpec;
+import org.gradle.runtime.base.internal.toolchain.ArgCollector;
 
 public class ExecSpecBackedArgCollector implements ArgCollector {
     private final ExecSpec action;

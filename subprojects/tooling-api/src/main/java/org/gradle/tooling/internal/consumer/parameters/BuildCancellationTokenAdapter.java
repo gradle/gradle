@@ -16,14 +16,14 @@
 
 package org.gradle.tooling.internal.consumer.parameters;
 
-import org.gradle.tooling.CancellationToken;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
 public class BuildCancellationTokenAdapter implements InternalCancellationToken {
-    private final CancellationToken cancellationToken;
+    private final BuildCancellationToken cancellationToken;
 
-    public BuildCancellationTokenAdapter(CancellationToken internalCancellationToken) {
-        this.cancellationToken = internalCancellationToken;
+    public BuildCancellationTokenAdapter(BuildCancellationToken cancellationToken) {
+        this.cancellationToken = cancellationToken;
     }
 
     public boolean isCancellationRequested() {

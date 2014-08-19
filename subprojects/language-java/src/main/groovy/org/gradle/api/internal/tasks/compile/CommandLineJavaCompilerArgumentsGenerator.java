@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.runtime.base.internal.toolchain.ArgCollector;
+import org.gradle.runtime.base.internal.toolchain.ArgWriter;
 
 import java.io.*;
 import java.util.Collections;

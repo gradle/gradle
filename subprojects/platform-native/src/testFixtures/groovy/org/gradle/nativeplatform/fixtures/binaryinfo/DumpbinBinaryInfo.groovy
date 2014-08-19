@@ -15,12 +15,10 @@
  */
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
-
 import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
 import org.gradle.nativeplatform.platform.internal.DefaultPlatform
@@ -32,7 +30,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
     final File vcBin
     final String vcPath
 
-    DumpbinBinaryInfo(File binaryFile, InstalledToolChain tc) {
+    DumpbinBinaryInfo(File binaryFile) {
         this.binaryFile = binaryFile
 
         VisualStudioInstall vsInstall = findVisualStudio()

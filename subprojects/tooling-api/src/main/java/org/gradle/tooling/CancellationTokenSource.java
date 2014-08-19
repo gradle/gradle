@@ -19,11 +19,16 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 
 /**
- * Object that creates {@link CancellationToken}, and also issues cancellation request passed to this token.
+ * A {@code CancellationTokenSource} allows you to issue cancellation requests to one or more {@link org.gradle.tooling.LongRunningOperation}
+ * instances. To use a token source:
  *
- * <p>This is a client side part of cancellation support:
- * Tooling API clients can create cancellation token using instance of this class and send cancel request to it
- * when needed.</p>
+ * <ul>
+ *     <li>Create a token source using {@link GradleConnector#newCancellationTokenSource()}.</li>
+ *     <li>Attach the token to one or more operations using {@link org.gradle.tooling.LongRunningOperation#withCancellationToken(CancellationToken)}.
+ *     You need to do this before you start the operation.
+ *     </li>
+ *     <li>Later, you can cancel the associated operations by calling {@link #cancel()} on this token source.</li>
+ * </ul>
  *
  * <p>All implementations of this interface are required to be thread safe.</p>
  *
@@ -32,9 +37,8 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface CancellationTokenSource {
     /**
-     * Initiates cancel request that is passed to {@link org.gradle.tooling.CancellationToken}
-     * where it will be handled.
-     * <p>Any callbacks registered with the token will be executed.</p>
+     * Initiates cancel request. All operations that have been associated with this token will be cancelled.
+     *
      * <p>It is assumed that the implementation will do 'best-effort' attempt to perform cancellation.
      * This method returns immediately and if the cancellation is successful the cancelled operation
      * will notify its {@link org.gradle.tooling.ResultHandler#onFailure(GradleConnectionException)}

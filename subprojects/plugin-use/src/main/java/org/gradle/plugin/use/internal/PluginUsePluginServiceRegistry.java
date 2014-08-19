@@ -23,11 +23,13 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -39,9 +41,11 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.use.resolve.service.internal.*;
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
-    private static final String CACHE_NAME = "plugin-resolution";
+    public static final String CACHE_NAME = "plugin-resolution";
 
     public void registerGlobalServices(ServiceRegistration registration) {
     }
@@ -54,11 +58,21 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
     }
 
     private static class BuildScopeServices {
-        PluginResolutionServiceClient createPluginResolutionServiceClient(CacheLockingManager cacheLockingManager, StartParameter startParameter) {
+        PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter) {
             HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(new PasswordCredentials()));
             HttpResourceAccessor accessor = new HttpResourceAccessor(http);
-            PluginResolutionServiceClient httpClient = startParameter.isOffline() ? new OfflinePluginResolutionServiceClient() : new HttpPluginResolutionServiceClient(accessor);
-            return new CachingPluginResolutionServiceClient(httpClient, CACHE_NAME, cacheLockingManager, startParameter.isRefreshDependencies());
+            PluginResolutionServiceClient httpClient = startParameter.isOffline()
+                    ? new OfflinePluginResolutionServiceClient()
+                    : new HttpPluginResolutionServiceClient(accessor);
+
+            PersistentCache cache = cacheRepository
+                    .cache(CACHE_NAME)
+                    .withDisplayName("Plugin Resolution Cache")
+                    .withLockOptions(mode(FileLockManager.LockMode.None))
+                    .open();
+
+            PluginResolutionServiceClient cachingClient = new CachingPluginResolutionServiceClient(httpClient, cache);
+            return new DeprecationListeningPluginResolutionServiceClient(cachingClient);
         }
 
         PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, Instantiator instantiator, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScopeRegistry classLoaderScopeRegistry) {
@@ -79,8 +93,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver);
         }
 
-        PluginRequestApplicator createPluginRequestApplicator(PluginResolverFactory pluginResolverFactory) {
-            return new DefaultPluginRequestApplicator(pluginResolverFactory.create());
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory) {
+            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory.create());
         }
     }
 }

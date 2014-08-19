@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.runtime.base.internal.toolchain.ArgWriter;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

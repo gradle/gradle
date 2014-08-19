@@ -5,6 +5,6 @@ dependencies {
     compile project(":languageJvm")
 }
 
-useClassycle(exclude: "org/gradle/api/internal/tasks/compile/**")
+useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**"])
 useTestFixtures()
 useTestFixtures(project:":languageBase")

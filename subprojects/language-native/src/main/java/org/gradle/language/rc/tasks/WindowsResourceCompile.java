@@ -21,7 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.language.internal.nativelang.incremental.IncrementalCompilerBuilder;
+import org.gradle.language.nativebase.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.language.rc.internal.DefaultWindowsResourceCompileSpec;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.platform.internal.PlatformInternal;

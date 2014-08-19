@@ -15,9 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer.loader
 
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
@@ -27,7 +27,7 @@ class CachingToolingImplementationLoaderTest extends Specification {
     final ToolingImplementationLoader target = Mock()
     final ProgressLoggerFactory loggerFactory = Mock()
     final ConnectionParameters params = Mock()
-    final CancellationToken cancellationToken = Mock()
+    final BuildCancellationToken cancellationToken = Mock()
     final CachingToolingImplementationLoader loader = new CachingToolingImplementationLoader(target)
 
     def delegatesToTargetLoaderToCreateImplementation() {

@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.gcc.CommandLineToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
 import java.io.File;

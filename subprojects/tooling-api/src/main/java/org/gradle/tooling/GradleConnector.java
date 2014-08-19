@@ -66,7 +66,7 @@ public abstract class GradleConnector {
     }
 
     /**
-     * Creates new {@link CancellationTokenSource} to be used with {@link org.gradle.tooling.LongRunningOperation#withCancellationToken(CancellationToken)}.
+     * Creates a new {@link CancellationTokenSource} that can be used to cancel one or more {@link org.gradle.tooling.LongRunningOperation} executions.
      *
      * @return The instance. Never returns {@code null}.
      * @since 2.1

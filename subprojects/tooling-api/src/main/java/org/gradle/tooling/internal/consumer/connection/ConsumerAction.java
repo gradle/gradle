@@ -16,12 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 public interface ConsumerAction<T> {
-    CancellationToken getCancellationToken();
-
     ConsumerOperationParameters getParameters();
 
     T run(ConsumerConnection connection);

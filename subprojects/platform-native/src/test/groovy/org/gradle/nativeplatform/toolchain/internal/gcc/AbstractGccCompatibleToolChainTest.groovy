@@ -30,6 +30,7 @@ import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.ToolType
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
 import org.gradle.process.internal.ExecActionFactory

@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.api.Action
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
-import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.SourceObjectMapping
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
@@ -41,10 +40,9 @@ class CancellableConsumerConnectionTest extends Specification {
         def action = Mock(BuildAction)
         def parameters = Stub(ConsumerOperationParameters)
         def buildController = Mock(InternalBuildController)
-        def cancellation = Mock(CancellationToken)
 
         when:
-        def result = connection.run(action, cancellation, parameters)
+        def result = connection.run(action, parameters)
 
         then:
         result == 'result'
@@ -62,11 +60,10 @@ class CancellableConsumerConnectionTest extends Specification {
     def "adapts build action failure"() {
         def action = Mock(BuildAction)
         def parameters = Stub(ConsumerOperationParameters)
-        def cancellation = Mock(CancellationToken)
         def failure = new RuntimeException()
 
         when:
-        connection.run(action, cancellation, parameters)
+        connection.run(action, parameters)
 
         then:
         BuildActionFailureException e = thrown()
@@ -79,11 +76,10 @@ class CancellableConsumerConnectionTest extends Specification {
 
     def "runs build using connection's getModel() method"() {
         def parameters = Stub(ConsumerOperationParameters)
-        def cancellation = Mock(CancellationToken)
         ModelIdentifier modelIdentifier = Mock()
 
         when:
-        def result = connection.run(Void.class, cancellation, parameters)
+        def result = connection.run(Void.class, parameters)
 
         then:
         result == 'result'

@@ -90,9 +90,36 @@ Also remove the fast feedback agent pool
 
 # Leverage parallel execution
 
-# Install BarKeep code review tool
+# Make pipeline more likely to pass
 
-Set up [BarKeep](http://getbarkeep.org/) on `dev1` as an alternative to Crucible.
+Stabilise the flakey tests.
+
+# Reduce size of artifacts
+
+Reduce the size of the log output:
+
+- size of artifacts for a single Windows Java 1.7 Cross-Version test is 1.75 GB
+- can we bump up the log level threshold to reduce the amount of logs?
+
+# Improve vcs-based triggers
+
+- Do not trigger full pipeline for each commit
+- Do not run multiple instances of Stage 4 (Full Coverage) in parallel
+- Adjust Commit configurations such that concurrent commits by different developers lead to multiple builds with the commits grouped by developer
+- Configure TC to automatically restart a coverage build if it has failed
+
+# Reduce feedback time and queue size
+
+- Change the triggering of the coverage builds to coalesce commits, rather than triggering for each commits
+- Move some agents to the fast feedback pool, to reserve bandwidth for the commit builds (revisit pools in general)
+- Split the commit and coverage builds into separate core and plugins builds, so things happen in parallel and failures require less rework
+- Run the multi-version tests against a single version, and only cover all the versions in a single coverage build
+
+# Avoid distribution build on each check-in
+
+- Leave in stage 1, and reuse the output for both the linux and windows commit builds. They currently build everything from scratch, which takes a few minutes. On the other hand, this does offer some coverage that the Gradle build can actually build the distro on various platforms (for external contributors). But we probably don’t care enough about this coverage to do this on every commit.
+- Move it to the stage 3 (implicitly as a dependency of the coverage builds).
+- We might also split this up and move the various bits into the various stages.
 
 # Build machines provisioning
 
@@ -109,3 +136,7 @@ This applies to unmanaged machines running Linux and one Windows box.
 ## Use the same Linux distribution on all machines
 
 Upgrade existing Saucy machines and probably also Precise.
+
+# Build against Early Access builds of the JDK
+
+This would include new releases of 6, 7, 8 and 9.

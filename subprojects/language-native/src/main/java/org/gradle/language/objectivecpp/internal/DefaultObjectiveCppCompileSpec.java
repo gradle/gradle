@@ -16,7 +16,7 @@
 
 package org.gradle.language.objectivecpp.internal;
 
-import org.gradle.language.internal.nativelang.AbstractNativeCompileSpec;
+import org.gradle.language.nativebase.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 
 public class DefaultObjectiveCppCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCppCompileSpec {

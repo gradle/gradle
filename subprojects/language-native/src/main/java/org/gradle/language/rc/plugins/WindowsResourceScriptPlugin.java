@@ -22,12 +22,12 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.internal.nativelang.NativeLanguageRegistration;
+import org.gradle.language.nativebase.internal.NativeLanguageRegistration;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
+import org.gradle.language.rc.plugins.internal.WindowsResourcesCompileTaskConfig;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.language.internal.nativelang.DefaultPreprocessingTool;
-import org.gradle.language.rc.internal.WindowsResourcesCompileTaskConfig;
+import org.gradle.language.nativebase.internal.DefaultPreprocessingTool;
 import org.gradle.runtime.base.BinarySpec;
 
 import java.util.Map;

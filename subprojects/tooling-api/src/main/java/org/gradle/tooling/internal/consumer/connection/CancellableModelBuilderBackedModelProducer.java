@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
@@ -25,7 +24,10 @@ import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAda
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
 public class CancellableModelBuilderBackedModelProducer extends AbstractModelProducer {
@@ -38,14 +40,14 @@ public class CancellableModelBuilderBackedModelProducer extends AbstractModelPro
         mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
     }
 
-    public <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) {
+    public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (!versionDetails.maySupportModel(type)) {
             throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
         }
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         BuildResult<?> result;
         try {
-            result = builder.getModel(modelIdentifier, new BuildCancellationTokenAdapter(cancellationToken), operationParameters);
+            result = builder.getModel(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }

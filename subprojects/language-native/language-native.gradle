@@ -26,4 +26,5 @@ useTestFixtures()
 useTestFixtures(project: ":platformNative")
 useTestFixtures(project: ":languageBase")
 useTestFixtures(project: ":messaging")
-//useClassycle()
+
+useClassycle()
