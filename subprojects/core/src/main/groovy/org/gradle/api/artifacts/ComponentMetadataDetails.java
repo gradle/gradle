@@ -29,38 +29,7 @@ import java.util.List;
  */
 @Incubating
 @NonExtensible
-public interface ComponentMetadataDetails {
-    /**
-     * Returns the identifier of the component.
-     *
-     * @return the identifier of the component.
-     */
-    ModuleVersionIdentifier getId();
-
-    /**
-     * Tells whether the component is changing or immutable.
-     *
-     * @return whether the component is changing or immutable.
-     */
-    boolean isChanging();
-
-    /**
-     * Returns the status of the component. Must
-     * match one of the values in {@link #getStatusScheme()}.
-     *
-     * @return the status of the component
-     */
-    String getStatus();
-
-    /**
-     * Returns the status scheme of the component. Values are
-     * ordered from least to most mature status.
-     * Defaults to {@code ["integration", "milestone", "release"]}.
-     *
-     * @return the status scheme of the component
-     */
-    List<String> getStatusScheme();
-
+public interface ComponentMetadataDetails extends ComponentMetadata {
     /**
      * Sets whether the component is changing or immutable.
      *

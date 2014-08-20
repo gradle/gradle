@@ -19,7 +19,8 @@ package org.gradle.api.artifacts;
 import java.util.List;
 
 /**
- * Created on 8/11/14.
+ * Provides a read-only view of a resolved component's metadata, which typically originates from
+ * a component descriptor (Ivy file, Maven POM).
  */
 public interface ComponentMetadata {
     /**
