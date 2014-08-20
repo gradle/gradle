@@ -32,10 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyToCo
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleVersionSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflict;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
@@ -85,7 +82,7 @@ public class DependencyGraphBuilder {
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver);
-        ConflictHandler conflictHandler = new ConflictHandler(new DirectDependencyForcingResolver(conflictResolver, resolveState.root.moduleRevision));
+        ConflictHandler conflictHandler = new DefaultConflictHandler(new DirectDependencyForcingResolver(conflictResolver, resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
 
