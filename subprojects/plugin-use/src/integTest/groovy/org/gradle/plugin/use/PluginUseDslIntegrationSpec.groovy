@@ -229,10 +229,10 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
                 "id('noop').version('bar')",
                 "id 'noop' version 'bar'",
                 "id('noop').\nversion 'bar'",
-                "id('noop');id('noop')",
-                "id('noop')\nid('noop')",
-                "id('noop').version('bar');id('noop').version('foo')",
-                "id('noop').version('bar')\nid('noop').version('foo')",
+                "id('java');id('noop')",
+                "id('java')\nid('noop')",
+                "id('noop').version('bar');id('java')",
+                "id('noop').version('bar')\nid('java')",
         ]
     }
 
