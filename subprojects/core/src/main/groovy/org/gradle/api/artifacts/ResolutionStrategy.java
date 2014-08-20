@@ -233,10 +233,10 @@ public interface ResolutionStrategy {
      * The versionSelection block provides rules for how versions should be selected.  This is useful for defining
      * your own version scheme.
      *
-     * @param closure Action to be applied to the {@link org.gradle.api.artifacts.VersionSelectionRules}
+     * @param action Action to be applied to the {@link org.gradle.api.artifacts.VersionSelectionRules}
      * @return this ResolutionStrategy instance
      * @since 2.2
      */
     @Incubating
-    ResolutionStrategy versionSelection(Action<VersionSelectionRules> closure);
+    ResolutionStrategy versionSelection(Action<VersionSelectionRules> action);
 }

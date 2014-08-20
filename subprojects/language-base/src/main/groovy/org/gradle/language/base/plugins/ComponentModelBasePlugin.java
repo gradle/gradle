@@ -168,7 +168,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Finalize
-            // Needs to run after NativeComponentModelPlugin.Rules.configureGeneratedSourceSets()
+        // Needs to run after NativeComponentModelPlugin.Rules.configureGeneratedSourceSets()
         void applyDefaultSourceConventions(ProjectSourceSet sources) {
             for (FunctionalSourceSet functionalSourceSet : sources) {
                 for (LanguageSourceSet languageSourceSet : functionalSourceSet) {

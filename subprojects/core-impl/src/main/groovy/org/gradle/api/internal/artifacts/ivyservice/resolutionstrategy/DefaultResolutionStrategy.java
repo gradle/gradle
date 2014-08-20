@@ -117,8 +117,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return versionSelection;
     }
 
-    public ResolutionStrategy versionSelection(Action<VersionSelectionRules> closure) {
-        closure.execute(versionSelection);
+    public ResolutionStrategy versionSelection(Action<VersionSelectionRules> action) {
+        action.execute(versionSelection);
         return this;
     }
 

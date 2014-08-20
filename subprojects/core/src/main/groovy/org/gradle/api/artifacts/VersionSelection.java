@@ -43,12 +43,12 @@ public interface VersionSelection {
     ModuleComponentIdentifier getCandidate();
 
     /**
-     * Accepts the selection as a resolution.
+     * Accepts the candidate for the resolution.
      */
     void accept();
 
     /**
-     * Rejects the selection as a resolution.
+     * Rejects the candidate for the resolution.
      */
     void reject();
 }
