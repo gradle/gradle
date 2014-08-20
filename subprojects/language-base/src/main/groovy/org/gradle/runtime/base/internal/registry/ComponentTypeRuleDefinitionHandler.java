@@ -40,8 +40,8 @@ public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRu
     }
 
     @Override
-    protected ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, Class<? extends ComponentSpec> type, Class<? extends BaseComponentSpec> implementation) {
-        return new ComponentTypeRuleMutationAction(descriptor, instantiator, type, implementation);
+    protected <V extends ComponentSpec, U extends BaseComponentSpec> ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, ModelType<V> type, ModelType<U> implementation) {
+        return new ComponentTypeRuleMutationAction(descriptor, instantiator, type.getConcreteClass(), implementation.getConcreteClass());
     }
 
     @Override
@@ -79,6 +79,5 @@ public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRu
                 }
             });
         }
-
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.BinarySpec;
@@ -40,8 +41,8 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractComponentModelRuleD
     }
 
     @Override
-    protected ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, Class<? extends BinarySpec> type, Class<? extends BaseBinarySpec> implementation) {
-        return new BinaryTypeRuleMutationAction(descriptor, instantiator, type, implementation);
+    protected <V extends BinarySpec, U extends BaseBinarySpec> ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, ModelType<V> type, ModelType<U> implementation) {
+        return new BinaryTypeRuleMutationAction<V, U>(descriptor, instantiator, type.getConcreteClass(), implementation.getConcreteClass());
     }
 
     @Override
@@ -55,13 +56,13 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractComponentModelRuleD
         }
     }
 
-    private static class BinaryTypeRuleMutationAction extends RegisterTypeRule {
+    private static class BinaryTypeRuleMutationAction<V extends BinarySpec, U extends BaseBinarySpec> extends RegisterTypeRule {
 
         private final Instantiator instantiator;
-        private final Class<? extends BinarySpec> type;
-        private final Class<? extends BaseBinarySpec> implementation;
+        private final Class<V> type;
+        private final Class<U> implementation;
 
-        public BinaryTypeRuleMutationAction(ModelRuleDescriptor descriptor, Instantiator instantiator, Class<? extends BinarySpec> type, Class<? extends BaseBinarySpec> implementation) {
+        public BinaryTypeRuleMutationAction(ModelRuleDescriptor descriptor, Instantiator instantiator, Class<V> type, Class<U> implementation) {
             super(descriptor);
             this.instantiator = instantiator;
             this.type = type;
@@ -79,7 +80,6 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractComponentModelRuleD
                 }
             });
         }
-
     }
 }
 

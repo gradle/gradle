@@ -37,7 +37,6 @@ import org.gradle.runtime.base.TypeBuilder;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-// TODO:DAZ Convert to use ModelType throughout
 public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<A> {
 
     protected String modelName;
@@ -55,14 +54,14 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    abstract protected ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, Class<? extends T> type, Class<? extends U> implementation);
+    abstract protected <V extends T, W extends U> ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, ModelType<V> type, ModelType<W> implementation);
 
     abstract protected TypeBuilderInternal createBuilder();
 
     public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
-            Class<? extends T> type = readType(ruleDefinition);
-            Class<? extends U> implementation = determineImplementationType(ruleDefinition, type);
+            ModelType<? extends T> type = readType(ruleDefinition);
+            ModelType<? extends U> implementation = determineImplementationType(ruleDefinition, type);
 
             dependencies.add(ComponentModelBasePlugin.class);
             if (implementation != null) {
@@ -73,7 +72,7 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         }
     }
 
-    protected Class<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
+    protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
         if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
             throw new InvalidComponentModelException(String.format("%s method must not have a return value.", annotationClass.getSimpleName()));
         }
@@ -91,8 +90,7 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         if (!baseInterface.isAssignableFrom(subType) || subType.isAssignableFrom(baseInterface)) {
             throw new InvalidComponentModelException(String.format("%s type '%s' is not a concrete subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
         }
-        // TODO:DAZ Propogate ModelType out
-        return (Class<? extends T>) subType.getRawClass();
+        return (ModelType<? extends T>) subType;
     }
 
 
@@ -103,8 +101,7 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    protected Class<? extends U> determineImplementationType(MethodRuleDefinition<?> ruleDefinition, Class<? extends T> typeClass) {
-        ModelType<? extends T> type = ModelType.of(typeClass);
+    protected ModelType<? extends U> determineImplementationType(MethodRuleDefinition<?> ruleDefinition, ModelType<? extends T> type) {
         TypeBuilderInternal builder = createBuilder();
         ruleDefinition.getRuleInvoker().invoke(builder);
         Class<?> implementation = builder.getDefaultImplementation();
@@ -119,12 +116,11 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
             throw new InvalidComponentModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), implementationType.toString(), type.toString()));
         }
         try {
-            implementation.getConstructor();
+            implementationType.getRawClass().getConstructor();
         } catch (NoSuchMethodException nsmException) {
             throw new InvalidComponentModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), implementationType.toString()));
         }
-        // TODO:DAZ Propogate ModelType out
-        return (Class<? extends U>) implementationType.getRawClass();
+        return (ModelType<? extends U>) implementationType;
     }
 
     protected abstract static class RegisterTypeRule implements ModelMutator<ExtensionContainer> {
