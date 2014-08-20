@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
+import spock.lang.Ignore
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
@@ -154,6 +155,19 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         //resolution sequence: a1,a2,!,b,c,!
         publishedMavenModules 'a:2->b', 'b->c'
         expect: resolvedModules 'a:2', 'b'
+    }
+
+    def "latest replacement wins"() {
+        declaredDependencies 'a', 'b', 'c'
+        declaredReplacements 'a->b', 'a->c' //2 replacements for the same source module
+        expect: resolvedModules 'c', 'b'
+    }
+
+    @Ignore
+    def "supports consecutive replacements"() {
+        declaredDependencies 'a', 'b', 'c'
+        declaredReplacements 'a->b', 'b->c'
+        expect: resolvedModules 'c'
     }
 
     //TODO SF when forced
