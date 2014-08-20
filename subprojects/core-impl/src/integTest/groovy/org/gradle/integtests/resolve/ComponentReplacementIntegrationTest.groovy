@@ -167,4 +167,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'c->a'
         expect: resolvedModules 'a:2', 'b'
     }
+
+    //TODO SF when forced
 }

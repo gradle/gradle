@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 
 public interface ConflictHandler {
     @Nullable
@@ -27,4 +28,6 @@ public interface ConflictHandler {
     boolean hasConflicts();
 
     void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction);
+
+    void registerResolver(ModuleConflictResolver conflictResolver);
 }

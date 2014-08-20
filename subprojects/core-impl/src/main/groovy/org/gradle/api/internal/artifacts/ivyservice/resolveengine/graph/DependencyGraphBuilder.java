@@ -51,19 +51,19 @@ public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private final DependencyToModuleVersionIdResolver dependencyResolver;
     private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
-    private final ModuleConflictResolver conflictResolver;
+    private final ConflictHandler conflictHandler;
     private final ModuleToModuleVersionResolver moduleResolver;
     private final ArtifactResolver artifactResolver;
 
     public DependencyGraphBuilder(DependencyToModuleVersionIdResolver dependencyResolver,
                                   ModuleToModuleVersionResolver moduleResolver,
                                   ArtifactResolver artifactResolver,
-                                  ModuleConflictResolver conflictResolver,
+                                  ConflictHandler conflictHandler,
                                   DependencyToConfigurationResolver dependencyToConfigurationResolver) {
         this.dependencyResolver = dependencyResolver;
         this.moduleResolver = moduleResolver;
         this.artifactResolver = artifactResolver;
-        this.conflictResolver = conflictResolver;
+        this.conflictHandler = conflictHandler;
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
     }
 
@@ -82,7 +82,7 @@ public class DependencyGraphBuilder {
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver);
-        ConflictHandler conflictHandler = new DefaultConflictHandler(new DirectDependencyForcingResolver(conflictResolver, resolveState.root.moduleRevision));
+        conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
 
@@ -862,11 +862,9 @@ public class DependencyGraphBuilder {
     }
 
     private static class DirectDependencyForcingResolver implements ModuleConflictResolver {
-        private final ModuleConflictResolver resolver;
         private final ModuleVersionResolveState root;
 
-        private DirectDependencyForcingResolver(ModuleConflictResolver resolver, ModuleVersionResolveState root) {
-            this.resolver = resolver;
+        private DirectDependencyForcingResolver(ModuleVersionResolveState root) {
             this.root = root;
         }
 
@@ -879,7 +877,7 @@ public class DependencyGraphBuilder {
                     }
                 }
             }
-            return resolver.select(candidates);
+            return null;
         }
     }
 }

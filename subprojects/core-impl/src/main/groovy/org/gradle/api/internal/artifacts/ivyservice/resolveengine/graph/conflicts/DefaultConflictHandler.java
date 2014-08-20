@@ -32,13 +32,14 @@ public class DefaultConflictHandler implements ConflictHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
-    private final ModuleConflictResolver conflictResolver;
+    private final CompositeConflictResolver compositeResolver = new CompositeConflictResolver();
     private final Map<ModuleIdentifier, DefaultModuleConflict> conflicts = new LinkedHashMap<ModuleIdentifier, DefaultModuleConflict>();
     private final Map<ModuleIdentifier, CandidateModule> modules = new HashMap<ModuleIdentifier, CandidateModule>();
     private final Map<ModuleIdentifier, CandidateModule> targetToSource = new LinkedHashMap<ModuleIdentifier, CandidateModule>();
 
     public DefaultConflictHandler(ModuleConflictResolver conflictResolver) {
-        this.conflictResolver = conflictResolver;
+        assert conflictResolver != null;
+        compositeResolver.addFirst(conflictResolver);
     }
 
     /**
@@ -108,9 +109,13 @@ public class DefaultConflictHandler implements ConflictHandler {
         assert hasConflicts();
         ModuleIdentifier first = conflicts.keySet().iterator().next();
         DefaultModuleConflict firstConflict = conflicts.remove(first);
-        ModuleRevisionResolveState selected = conflictResolver.select(firstConflict.getVersions());
+        ModuleRevisionResolveState selected = compositeResolver.select(firstConflict.getVersions());
         ConflictResolutionResult result = new DefaultConflictResolutionResult(firstConflict, selected);
         resolutionAction.execute(result);
         LOGGER.debug("Selected {} from conflicting modules {}.", selected, firstConflict.getVersions());
+    }
+
+    public void registerResolver(ModuleConflictResolver conflictResolver) {
+        compositeResolver.addFirst(conflictResolver);
     }
 }
