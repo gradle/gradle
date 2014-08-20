@@ -641,7 +641,56 @@ can provide a convention that applies to all components, and the exceptions can 
 
 ### Story: Build author declares target JVM version for a JVM library
 
+For example:
+
+    plugins {
+        id 'java-lang'
+    }
+
+    platforms {
+        // Java versions are visible here
+    }
+
+    libraries {
+        myLib {
+            buildFor platforms.java("7")
+        }
+    }
+
+This declares that the bytecode for the binary should be generated for Java 7, and should be compiled against the Java 7 API.
+Assume that the source also uses Java 7 language features.
+
+#### Test cases
+
+#### Open issues
+
+- Strict vs lenient.
+- Target platform should be visible in the component report
+- Target platform should be visible in the dependencies reports
+
 ### Story: Build author declares that JVM library should be built for multiple JVM versions
+
+For example:
+
+    plugins {
+        id 'java-lang'
+    }
+
+    platforms {
+        // Java versions are visible here
+    }
+
+    libraries {
+        myLib {
+            buildFor platforms.java("6")
+            buildFor platforms.java("8")
+        }
+    }
+
+#### Open issues
+
+- Binaries should be visible in the component report
+- Discover or configure the JDK installations
 
 ### Story: Plugin declares custom language source set
 
@@ -663,6 +712,7 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 - Rework the existing `SoftwareComponent` implementations so that they are `Component` implementations instead.
 - Expose all native and jvm components through `project.components`.
 - Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
+- The target JVM for a legacy Java library is the lowest of `sourceCompatibility` and `targetCompatibility`.
 
 ```
 apply plugin: 'java'
@@ -856,33 +906,10 @@ For example:
 
 - Add this to native libraries
 
-## Feature: Build author declares the target JVM for a Java library
-
-For example:
-
-    apply plugin: 'new-java'
-
-    platforms {
-        // Java versions are visible here
-    }
-
-    libraries {
-        myLib {
-            buildFor platforms.java7
-        }
-    }
-
-This declares that the bytecode for the binary should be generated for Java 7, and should be compiled against the Java 7 API.
-Assume that the source also uses Java 7 language features.
+## Feature: JVM platform aware dependency resolution
 
 When a library `a` depends on another library `b`, assert that the target JVM for `b` is compatible with the target JVM for `a` - that is
-JVM for `a` is same or newer than the JVM for `b`.
-
-The target JVM for a legacy Java library is the lowest of `sourceCompatibility` and `targetCompatibility`.
-
-### Open issues
-
-- Need to discover or configure the JDK installations.
+JVM for `a` is same or newer than the JVM for `b`, or select the appropriate variant for `b`.
 
 ## Feature: Build author declares a custom target platform for a Java library
 
@@ -1103,22 +1130,6 @@ Change the sample plugin to allow a target JVM based platform to be declared:
         }
     }
 
-## Feature: Java library produces multiple variants
-
-For example:
-
-    apply plugin: 'new-java'
-
-    libraries {
-        myLib {
-            buildFor platforms.java6, platforms.java8
-        }
-    }
-
-Builds a binary for Java 6 and Java 8.
-
-Dependency resolution selects the best binary from each dependency for the target platform.
-
 ## Feature: Dependency resolution for native components
 
 ## Feature: Build user views the dependencies for the native components of a project
@@ -1196,7 +1207,6 @@ This essentially means two 'containers' - one that holds the main components, an
     - Source and javadoc artifacts.
 - Test suites.
 - Libraries declare an API that is used at compile time.
-- Java component plugins support variants.
 - Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
 - The `application` plugin should also declare a jvm application.
 - The `war` plugin should also declare a j2ee web application.
@@ -1213,7 +1223,6 @@ This essentially means two 'containers' - one that holds the main components, an
 - Need a better name for `TransformationFileType`.
 - Support multiple input source sets for a component and binary.
     - Apply conflict resolution across all inputs source sets.
-- Support for custom language implementations.
 - Java language support
     - Java language level.
     - Source encoding.

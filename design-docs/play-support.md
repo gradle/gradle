@@ -78,6 +78,7 @@ Add a `scala-lang` plugin that provides Scala language support for Jvm component
 - Implies Java version?
 - Visible to Java source for that component as well?
 - Attach only to source set?
+- Should be visible in components report and dependencies reports.
 
 #### Test cases
 
@@ -108,7 +109,8 @@ Add a `play-application` plugin that provides Play application component:
 
 - Provide a DSL to declare the target Play platform for a Play application.
 - Implies Scala version and Java version?
-- Should also be able to attach to a JVM component.
+- Should also be able to attach to a JVM library, to create a Play library.
+- Should be visible in components report and dependencies reports.
 
 #### Test cases
 
