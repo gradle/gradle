@@ -225,7 +225,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Can combine old and new JVM plugins in the same project
     - `gradle assemble` builds both jars
 
-## Feature: Custom plugin defines a custom library type
+## Feature: Plugin defines a custom library type
 
 This features allows the development of a custom plugin that can contribute Library, Binary and Task instances to the language domain.
 
@@ -312,7 +312,7 @@ A custom library implementation:
 - ~~Friendly error message when attempting to register the same library type with different implementations~~
 - ~~Custom libraries show up in components report~~
 
-### Story: Custom plugin uses rule to declare custom component type
+### Story: Plugin uses rule to declare custom component type
 
 To avoid a future explosion of nested annotations, this story switches the mechanism for declaring a custom library type to use an
 annotated method, rather than a type annotation.
@@ -414,7 +414,7 @@ A custom binary implementation:
     - Does not extend `DefaultBinarySpec`
 - Friendly error message when attempting to register the same binary type with different implementations
 
-### Story: Custom plugin defines binaries for each custom component
+### Story: Plugin defines binaries for each custom component
 
 This story introduces a mechanism by this a developer can define the binaries that should be built for a custom library.
 
@@ -493,7 +493,7 @@ Running `gradle assemble` will execute lifecycle task for each binary.
     - Need to attach source sets to components.
 - Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
 
-### Story: Custom plugin defines tasks from binaries
+### Story: Plugin defines tasks from binaries
 
 Add a rule to the sample plugin:
 
@@ -614,13 +614,6 @@ can provide a convention that applies to all components, and the exceptions can 
 
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
-### Story: Custom binary is built from Java sources
-
-Change the sample plugin so that it compiles Java source to produce its binaries
-
-- Uses same conventions as a Java library.
-- No dependencies.
-
 ### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
 
 - ~~Move tasks/plugins/etc that are used to compile native languages for the native runtime into `org.gradle.language.*`~~
@@ -643,6 +636,25 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 - `language-native` and `plugin-native` integration tests require `ide-native` (testing visual studio project generation for particular cases)
 - where should `cunit` support live?
 - Reorganise samples?
+
+## Feature: Plugin implements custom language support
+
+### Story: Build author declares target JVM version for a JVM library
+
+### Story: Build author declares that JVM library should be built for multiple JVM versions
+
+### Story: Plugin declares custom language source set
+
+### Story: Plugin provides custom language implementation
+
+### Story: Core plugins declare language implementations
+
+### Feature: Custom binary is built from Java sources
+
+Change the sample plugin so that it compiles Java source to produce its binaries
+
+- Uses same conventions as a Java library.
+- No dependencies.
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
