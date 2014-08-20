@@ -694,9 +694,112 @@ For example:
 
 ### Story: Plugin declares custom language source set
 
+For example:
+
+    interface CustomLanguageSourceSet extends LanguageSourceSet {
+        String someProperty
+    }
+    class DefaultCustomLanguageSourceSet extends DefaultLanguageSourceSet implements CustomLanguageSourceSet {
+        ...
+    }
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @LanguageType
+            void defineMyLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
+                builder.setLanguageName("custom")
+                builder.setDefaultImplementation(DefaultCustomLanguageSourceSet)
+            }
+        }
+    }
+
+Given this, can now define source sets of type `CustomLanguageSourceSet` in a `FunctionalSourceSet` or `ComponentSourceSet`:
+
+    sources {
+        main {
+            custom(CustomLanguageSourceSet) { ... }
+        }
+    }
+
+The source set is configured with conventional source directories based on the source set name.
+
+For this story, the language is not included as input to any component. It is simply possible to define source sets for the custom
+language.
+
+#### Test cases
+
+- Source set uses the conventional source directory.
+
+#### Open issues
+
+- Detangle 'the things I need to compile a language of this type' (a set of files, some settings) from
+ 'a way to configure an arbitrary set of source files of this language` (the source set). The plugin should only have to declare the things it
+ needs to compile. A plugin might still be able to additionally declare a source set type, when some custom implementation is required.
+
+### Story: Plugin declares custom language implementation
+
+For example:
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @LanguageTransform
+            void compileMyLanguage(CollectionBuilder<Task> taskBuilder, CustomLanguageSourceSet source, SampleBinary binary) {
+            }
+        }
+    }
+
+Given this, a source set of the appropriate type is added when a component may include a binary of the type declared in the transform rule. A source
+set is not added for components where the language cannot be transformed.
+
+For this story, the source is not actually compiled or included in a binary, or tasks defined. This is added later.
+
+#### Test cases
+
+- Source set is added to components for which a transform is registered.
+    - Source set uses the conventional source directory.
+    - Source set is visible in the component reports
+- Source set is not added to components for which a transform is not registered.
+
 ### Story: Plugin provides custom language implementation
 
+For example:
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @LanguageTransform
+            void compileMyLanguage(CollectionBuilder<Task> taskBuilder, CustomLanguageSourceSet source, SampleBinary binary) {
+                ... uses the builder to define some tasks ...
+            }
+        }
+    }
+
+Running `gradle assemble` will invoke the compilation tasks defined by the transform rule, and the output included in the target binary.
+
+The tasks are not defined if the language source set is empty or buildable by some other task.
+
+#### Test cases
+
+- Can build a JVM library from a custom language.
+    - Running `gradle assemble` compiles the custom language and includes the output in the JAR.
+- Can build a custom binary from a custom language.
+    - Running `gradle assemble` compiles the custom language and include the output in the
+- Source set is not added to components for which a transform is not registered.
+- Compile tasks are not defined if the source set is empty.
+
+#### Open issues
+
+- Need to be able to apply a naming scheme for tasks, and some way to inject an output location for each transformation.
+
 ### Story: Core plugins declare language implementations
+
+Change the native, Java and classpath resource language plugins to replace usages of `LanguageRegistration` with the declarative approach above.
+
+#### Open issues
+
+- Probably don't need `TransformationFileType` any more.
 
 ### Feature: Custom binary is built from Java sources
 
