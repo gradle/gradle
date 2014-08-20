@@ -34,7 +34,7 @@ public class DefaultConflictHandler implements ConflictHandler {
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
     private final CompositeConflictResolver compositeResolver = new CompositeConflictResolver();
-    private final Map<ModuleIdentifier, DefaultModuleConflict> conflicts = new LinkedHashMap<ModuleIdentifier, DefaultModuleConflict>();
+    final Map<ModuleIdentifier, DefaultModuleConflict> conflicts = new LinkedHashMap<ModuleIdentifier, DefaultModuleConflict>();
     private final Map<ModuleIdentifier, CandidateModule> modules = new HashMap<ModuleIdentifier, CandidateModule>();
     private final Map<ModuleIdentifier, CandidateModule> targetToSource = new LinkedHashMap<ModuleIdentifier, CandidateModule>();
     private final ModuleReplacementsData moduleReplacements;
@@ -102,7 +102,11 @@ public class DefaultConflictHandler implements ConflictHandler {
      * Informs if there are any batched up conflicts.
      */
     public boolean hasConflicts() {
-        return !conflicts.isEmpty();
+        return getConflictCount() > 0;
+    }
+
+    int getConflictCount() {
+        return conflicts.size();
     }
 
     /**
