@@ -513,8 +513,6 @@ Note: plugins from buildSrc are not core plugins.
 - Should add a test case that applying a plugin by qualified and non-qualified id works ok.
 - Should be able to use either qualified and non-qualified ids with plugins.getById() regardless of which id was used, or always use the
 qualified id and deprecate using the non-qualified id.
-- Should remove the no-op plugin handling from `DefaultScriptPluginFactory` as it should be handled by `NoopPluginResolver`. Alternatively, remove the special
-case 'no-op' plugin and use the plugin repo fixture instead.
 
 ## ~~Story: User uses non-declarative plugin from `plugins.gradle.org` of static version with dependency on core plugin~~
 

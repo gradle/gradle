@@ -37,7 +37,6 @@ import static org.gradle.util.CollectionUtils.collect;
  */
 public class PluginDependenciesService {
 
-    public static final PluginId NOOP_PLUGIN_ID = PluginId.of("noop");
     private final ScriptSource scriptSource;
 
     public PluginDependenciesService(ScriptSource scriptSource) {
@@ -86,11 +85,6 @@ public class PluginDependenciesService {
 
         // Check for duplicates
         for (PluginId key : groupedById.keySet()) {
-            // Ignore duplicate noops - noop plugin just used for testing
-            if (key.equals(NOOP_PLUGIN_ID)) {
-                continue;
-            }
-
             List<PluginRequest> pluginRequestsForId = groupedById.get(key);
             if (pluginRequestsForId.size() > 1) {
                 PluginRequest first = pluginRequests.get(0);

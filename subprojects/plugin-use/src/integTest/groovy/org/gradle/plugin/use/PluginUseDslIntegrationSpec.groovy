@@ -30,7 +30,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
           plugins {
-            id "noop"
+            id "java"
             id "noop" version "1.0"
           }
         """
@@ -215,6 +215,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     @Unroll
     def "allowed syntax in plugins block - #code"() {
+        given:
         when:
         buildScript("""plugins {\n$code\n}""")
 
