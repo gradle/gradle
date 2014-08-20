@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class ObjectiveCPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "objective-c"
     }
 }

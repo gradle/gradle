@@ -34,7 +34,7 @@ class LanguageBasePluginTest extends WellBehavedPluginTest {
     }
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         return 'language-base'
     }
 

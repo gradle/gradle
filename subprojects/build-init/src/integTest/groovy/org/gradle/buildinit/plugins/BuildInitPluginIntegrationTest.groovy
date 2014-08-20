@@ -35,7 +35,7 @@ class BuildInitPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "build-init"
     }
 

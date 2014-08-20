@@ -498,22 +498,6 @@ Note: plugins from buildSrc are not core plugins.
 - ~~`plugins { id "«non core plugin»" }` produces suitable 'not found' type error message~~
 - ~~Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)~~
 
-### Open issues
-
-- When applied using fully qualified id, a core plugin is visible in `project.plugins` container with the non-qualified id:
-
-    plugins { id 'org.gradle.java' }
-    plugins.getById('java')  // this works
-    plugins.getById('org.gradle.java')  // this fails
-
-- Cannot use qualified id with `project.apply()`:
-
-    apply plugin: 'org.gradle.java' // this fails with unknown plugin failure
-
-- Should add a test case that applying a plugin by qualified and non-qualified id works ok.
-- Should be able to use either qualified and non-qualified ids with plugins.getById() regardless of which id was used, or always use the
-qualified id and deprecate using the non-qualified id.
-
 ## ~~Story: User uses non-declarative plugin from `plugins.gradle.org` of static version with dependency on core plugin~~
 
 The plugin portal resolver returns a payload indicating that this plugin is non-declarative and should be loaded as such.

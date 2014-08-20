@@ -24,7 +24,7 @@ class JvmComponentPluginGoodBehaviourTest extends WellBehavedPluginTest {
     }
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "jvm-component"
     }
 }

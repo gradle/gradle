@@ -24,7 +24,7 @@ class JavaLanguagePluginGoodBehaviourTest extends WellBehavedPluginTest {
     }
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "java-lang"
     }
 }

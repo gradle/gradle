@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class NativeComponentPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "native-component"
     }
 }

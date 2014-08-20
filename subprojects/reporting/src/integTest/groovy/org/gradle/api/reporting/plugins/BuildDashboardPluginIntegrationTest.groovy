@@ -104,7 +104,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         file('settings.gradle') << "include 'subproject'"
     }
 
-    String getPluginId() {
+    String getPluginName() {
         'build-dashboard'
     }
 

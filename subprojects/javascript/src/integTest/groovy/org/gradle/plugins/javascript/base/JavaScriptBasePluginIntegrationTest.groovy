@@ -23,7 +23,7 @@ import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixture
 class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "javascript-base"
     }
 

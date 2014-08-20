@@ -89,8 +89,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
         ClassLoader classLoader = this.classLoaderFactory.create();
 
-        PluginDescriptorLocator pluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
-        PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId);
+        PluginDescriptor pluginDescriptor = findPluginDescriptor(pluginId, classLoader);
         if (pluginDescriptor == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
@@ -117,5 +116,10 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
         idMappings.put(pluginId, implClass);
         return implClass;
+    }
+
+    protected PluginDescriptor findPluginDescriptor(String pluginId, ClassLoader classLoader) {
+        PluginDescriptorLocator pluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
+        return pluginDescriptorLocator.findPluginDescriptor(pluginId);
     }
 }

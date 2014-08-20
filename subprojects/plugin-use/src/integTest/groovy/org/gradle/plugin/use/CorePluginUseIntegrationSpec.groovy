@@ -22,6 +22,9 @@ import static org.hamcrest.Matchers.startsWith
 
 class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
+    public static final String QUALIFIED_JAVA = "org.gradle.java"
+    public static final String UNQUALIFIED_JAVA = "java"
+
     void "can resolve core plugins"() {
         when:
         buildScript """
@@ -130,6 +133,63 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds "tasks"
+    }
+
+    def "can use qualified and unqualified ids to detect core plugins"() {
+        when:
+        buildScript """
+            plugins {
+                id "$pluginId"
+            }
+
+            def i = 0
+            plugins.withId("$QUALIFIED_JAVA") {
+                ++i
+            }
+            plugins.withId("$UNQUALIFIED_JAVA") {
+                ++i
+            }
+            assert i == 2
+
+            assert plugins.getPlugin("$QUALIFIED_JAVA")
+            assert plugins.getPlugin("$UNQUALIFIED_JAVA")
+        """
+
+        then:
+        succeeds "tasks"
+
+        where:
+        pluginId << [QUALIFIED_JAVA, UNQUALIFIED_JAVA]
+    }
+
+    def "can use apply method to load core plugins qualified or unqualified"() {
+        when:
+        buildScript """
+            apply plugin: "${plugins[1]}"
+        """
+
+        then:
+        succeeds "clean"
+
+        where:
+        plugins << [QUALIFIED_JAVA, UNQUALIFIED_JAVA].permutations()
+    }
+
+    def "can use apply method with other form of core plugin without problem"() {
+        when:
+        buildScript """
+            plugins {
+                id "${plugins[0]}"
+            }
+
+            apply plugin: "${plugins[1]}"
+        """
+
+        then:
+        succeeds "clean"
+
+        where:
+        plugins << [QUALIFIED_JAVA, UNQUALIFIED_JAVA].permutations()
     }
 
 }

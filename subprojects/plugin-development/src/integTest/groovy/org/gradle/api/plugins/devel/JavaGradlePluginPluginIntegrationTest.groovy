@@ -25,7 +25,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "java-gradle-plugin"
     }
 

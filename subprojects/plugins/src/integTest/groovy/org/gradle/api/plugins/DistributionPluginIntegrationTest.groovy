@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.containsString
 class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "distribution"
     }
 
