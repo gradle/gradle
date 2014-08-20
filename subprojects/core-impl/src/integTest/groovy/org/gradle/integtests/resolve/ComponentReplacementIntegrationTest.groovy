@@ -39,7 +39,9 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    //publishes and declares the dependencies
     void declaredDependencies(String ... deps) {
+        publishedMavenModules(deps)
         def content = ''
         deps.each {
             content += "dependencies.conf '${new TestDependency(it).notation}'\n"
@@ -70,98 +72,90 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "ignores replacement if not in graph"() {
-        publishedMavenModules 'a', 'b'
         declaredDependencies 'a'
         declaredReplacements 'a->b'
         expect: resolvedModules 'a'
     }
 
     def "ignores replacement if org does not match"() {
-        publishedMavenModules 'a', 'org:b', 'com:b'
         declaredDependencies 'a', 'com:b'
         declaredReplacements 'a->org:b'
         expect: resolvedModules 'a', 'com:b'
     }
 
     def "just uses replacement if source not in graph"() {
-        publishedMavenModules 'a', 'b'
         declaredDependencies 'b'
         declaredReplacements 'a->b'
         expect: resolvedModules 'b'
     }
 
     def "replaces already resolved module"() {
-        publishedMavenModules 'a', 'b'
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b'
         expect: resolvedModules 'b'
     }
 
     def "replaces not yet resolved module"() {
-        publishedMavenModules 'a', 'b'
         declaredDependencies 'b', 'a'
         declaredReplacements 'a->b'
         expect: resolvedModules 'b'
     }
 
     def "uses highest when it is last"() {
-        publishedMavenModules 'a', 'b:1', 'b:2'
         declaredDependencies 'b', 'a', 'b:2'
         declaredReplacements 'a->b'
         expect: resolvedModules 'b:2'
     }
 
     def "uses highest when it is last following replacedBy"() {
-        publishedMavenModules 'a', 'b:1', 'b:2'
         declaredDependencies 'a', 'b', 'b:2'
         declaredReplacements 'a->b'
         expect: resolvedModules 'b:2'
     }
 
     def "uses highest when it is first"() {
-        publishedMavenModules 'a', 'b:1', 'b:2'
         declaredDependencies 'b:2', 'b', 'a'
         declaredReplacements 'a->b'
         expect: resolvedModules 'b:2'
     }
 
     def "uses highest when it is first followed by replacedBy"() {
-        publishedMavenModules 'a', 'b:1', 'b:2'
         declaredDependencies 'b:2', 'b', 'a'
         declaredReplacements 'a->b'
         expect: resolvedModules 'b:2'
     }
 
     def "evicts transitive dependencies of replaced module"() {
-        publishedMavenModules 'a->b', 'c->d', 'd->e'
         declaredDependencies 'a', 'c'
         declaredReplacements 'a->e'
         //resolution sequence: a,c,b,d,e!
+        publishedMavenModules 'a->b', 'c->d', 'd->e'
         expect: resolvedModules 'c', 'd', 'e' //'b' is evicted
     }
 
     def "replaces transitive module"() {
-        publishedMavenModules 'a->b', 'c->d'
         declaredDependencies 'a', 'c'
         declaredReplacements 'b->d'
+        publishedMavenModules 'a->b', 'c->d'
         expect: resolvedModules 'a', 'd', 'c'
     }
 
     def "replaces module even if it was already conflict-resolved"() {
-        publishedMavenModules 'a:1', 'a:2->b', 'b->c'
         declaredDependencies 'a:1', 'a:2'
-        //resolution sequence: a1,a2,!,b,c,!
         declaredReplacements 'a->c'
+        //resolution sequence: a1,a2,!,b,c,!
+        publishedMavenModules 'a:2->b', 'b->c'
         expect: resolvedModules 'c'
     }
 
     def "uses already resolved highest version"() {
-        publishedMavenModules 'a:1', 'a:2->b', 'b->c'
         declaredDependencies 'a:1', 'a:2'
-        //resolution sequence: a1,a2,!,b,c,!
         declaredReplacements 'c->a'
+        //resolution sequence: a1,a2,!,b,c,!
+        publishedMavenModules 'a:2->b', 'b->c'
         expect: resolvedModules 'a:2', 'b'
     }
 
     //TODO SF when forced
+    //when resolve target is unresolved, check exception
 }
