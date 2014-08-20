@@ -660,13 +660,28 @@ For example:
 This declares that the bytecode for the binary should be generated for Java 7, and should be compiled against the Java 7 API.
 Assume that the source also uses Java 7 language features.
 
+For this story, only the current JDK will be considered as a candidate to perform the compilation. Later stories could add support for JDK discovery
+(the test fixtures do this).
+
 #### Test cases
 
-#### Open issues
+- Running `gradle assemble` will build for Java 6 and the resulting bytecode will use the Java 6 bytecode version.
+- Reasonable error message when the current JDK cannot build for the target Java version.
 
-- Strict vs lenient.
+#### Open issues/considerations
+
+- Add some convenience for 'the current java version'?
+- Require the Java platform to be declared? Use the current Java version as default?
+- Strict vs lenient: If I declare I want to build for Java 6 and I'm running on Java 8, is that ok or a problem?
+- DSL should (later) allow declaration of a Java platform with a custom bootstrap classpath (for cross compilation, Android, etc).
+- DSL should (later) allow a customised JVM-based platform to be declared, for example, to build things that are to run in some Web container.
+- DSL should (later) allow platforms to be composed, for example, Scala 2.11.0 on Java 1.8 vs Scala 2.11.0 on Java 1.6.
+    - A Java platform is really a composite made up of Java-the-language + JVM-the-platform.
+- Plugin declares a custom Java platform.
+- Plugin declares a custom platform.
 - Target platform should be visible in the component report
 - Target platform should be visible in the dependencies reports
+- Sync the DSL with native components
 
 ### Story: Build author declares that JVM library should be built for multiple JVM versions
 
@@ -687,10 +702,18 @@ For example:
         }
     }
 
+This will result in 2 Jar binaries being defined for the `myLib` library.
+
+#### Test cases
+
+- A Jar binary is defined for each target platform.
+- Running `gradle assemble` will build the Jars, and the bytecode in each Jar uses the correct bytecode version.
+
 #### Open issues
 
 - Binaries should be visible in the component report
 - Discover or configure the JDK installations
+- Need some convention or mechanism for source that is conditionally included based on the target platform.
 
 ### Story: Plugin declares custom language source set
 
@@ -1299,6 +1322,16 @@ However, we also want a way to apply rules to components regardless of where the
 for each component, define a source set for each supported language that we can link/assemble into the binaries for the component.
 
 This essentially means two 'containers' - one that holds the main components, and another that contains all components.
+
+## Feature: Build user runs unit tests for JVM library
+
+Apply a convention to define test suites for JVM components. Should be able to run the unit tests for each variant.
+
+Test suites should be visible in the components report.
+
+Should be possible to declare functional test suites for components.
+
+Should be possible to declare stand-alone test suite with custom variants.
 
 # Open issues and Later work
 
