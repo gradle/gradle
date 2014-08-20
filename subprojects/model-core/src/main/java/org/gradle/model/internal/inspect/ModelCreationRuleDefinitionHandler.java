@@ -24,15 +24,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
-public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionHandler {
-    public boolean isSatisfiedBy(MethodRuleDefinition<?> ruleDefinition) {
-        return ruleDefinition.getAnnotation(Model.class) != null;
-    }
-
-    public String getDescription() {
-        return "annotated with @Model";
-    }
-
+public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<Model> {
     public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
 
         // TODO validate model name

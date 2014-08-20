@@ -22,12 +22,15 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.runtime.base.*;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.base.BinaryType;
+import org.gradle.runtime.base.BinaryTypeBuilder;
 import org.gradle.runtime.base.binary.BaseBinarySpec;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 
-public class BinaryTypeRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler<BinarySpec, BaseBinarySpec> {
+public class BinaryTypeRuleDefinitionHandler extends AbstractComponentModelRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
 
     private Instantiator instantiator;
 

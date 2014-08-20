@@ -30,34 +30,34 @@ import org.gradle.runtime.base.ComponentType
 import org.gradle.runtime.base.ComponentTypeBuilder
 import org.gradle.runtime.base.InvalidComponentModelException
 import org.gradle.runtime.base.component.BaseComponentSpec
-import org.gradle.runtime.base.internal.registry.ComponentModelRuleDefinitionHandler
+import org.gradle.runtime.base.internal.registry.ComponentTypeRuleDefinitionHandler
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.lang.reflect.Method
 
-class ComponentModelRuleDefinitionHandlerTest extends Specification {
+class ComponentTypeRuleDefinitionHandlerTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
     def ruleDefinition = Mock(MethodRuleDefinition)
     def modelRegistry = Mock(ModelRegistry)
     def ruleDependencies = Mock(RuleSourceDependencies)
 
-    ComponentModelRuleDefinitionHandler componentRuleHandler = new ComponentModelRuleDefinitionHandler(instantiator)
+    ComponentTypeRuleDefinitionHandler componentRuleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
 
     def "handles methods annotated with @ComponentType"() {
         when:
         1 * ruleDefinition.getAnnotation(ComponentType) >> null
 
         then:
-        !componentRuleHandler.isSatisfiedBy(ruleDefinition)
+        !componentRuleHandler.spec.isSatisfiedBy(ruleDefinition)
 
 
         when:
         1 * ruleDefinition.getAnnotation(ComponentType) >> Mock(ComponentType)
 
         then:
-        componentRuleHandler.isSatisfiedBy(ruleDefinition)
+        componentRuleHandler.spec.isSatisfiedBy(ruleDefinition)
     }
 
     def "applies ComponentModelBasePlugin and creates component type rule"() {
@@ -137,7 +137,7 @@ class ComponentModelRuleDefinitionHandlerTest extends Specification {
         Settings settings = Mock(Settings)
         _ * pluginApplication.target >> settings
         _ * pluginApplication.plugin >> plugin
-        componentRuleHandler = new ComponentModelRuleDefinitionHandler(instantiator)
+        componentRuleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
     }
 
     interface SomeComponentSpec extends ComponentSpec {}

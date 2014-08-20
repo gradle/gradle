@@ -30,11 +30,11 @@ import org.gradle.runtime.base.*;
 import org.gradle.runtime.base.component.BaseComponentSpec;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
-public class ComponentModelRuleDefinitionHandler extends AbstractAnnotationModelRuleDefinitionHandler<ComponentSpec, BaseComponentSpec> {
+public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRuleDefinitionHandler<ComponentType, ComponentSpec, BaseComponentSpec> {
 
     private Instantiator instantiator;
 
-    public ComponentModelRuleDefinitionHandler(Instantiator instantiator) {
+    public ComponentTypeRuleDefinitionHandler(Instantiator instantiator) {
         super("component", ComponentType.class, ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class);
         this.instantiator = instantiator;
     }

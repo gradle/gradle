@@ -35,7 +35,7 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
 
     private static class ProjectScopeServices {
         MethodRuleDefinitionHandler createComponentModelPluginInspector(Instantiator instantiator) {
-            return new ComponentModelRuleDefinitionHandler(instantiator);
+            return new ComponentTypeRuleDefinitionHandler(instantiator);
         }
 
         MethodRuleDefinitionHandler createBinaryTypeModelPluginInspector(Instantiator instantiator) {

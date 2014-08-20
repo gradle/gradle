@@ -17,17 +17,10 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.model.Mutate;
-import org.gradle.model.internal.registry.ModelRegistry;
 
-import java.lang.annotation.Annotation;
-
-public class MutateRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler {
+public class MutateRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Mutate> {
     @Override
-    protected Class<? extends Annotation> getMarkerAnnotation() {
-        return Mutate.class;
-    }
-
-    public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
-        mutationMethod(modelRegistry, ruleDefinition, false);
+    protected boolean isFinalize() {
+        return false;
     }
 }

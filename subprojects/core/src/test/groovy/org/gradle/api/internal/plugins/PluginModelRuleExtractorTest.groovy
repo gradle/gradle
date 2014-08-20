@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.specs.Spec
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.RuleSource
@@ -111,11 +112,15 @@ class PluginModelRuleExtractorTest extends Specification {
     }
 
     def "registers sources"() {
+        given:
+        def spec = Stub(Spec) {
+            isSatisfiedBy(_) >> { MethodRuleDefinition definition -> definition.getAnnotation(Model) != null }
+        }
         when:
         extractor.execute(application(new HasSource(), new ModelAwareTarget()))
 
         then:
-        handler.isSatisfiedBy(_) >> { MethodRuleDefinition definition -> definition.getAnnotation(Model) != null }
+        _ * handler.spec >> spec
 
         and:
         1 * handler.register({it.methodName == "thing"}, registry, _ as PluginModelRuleExtractor.PluginRuleSourceDependencies)

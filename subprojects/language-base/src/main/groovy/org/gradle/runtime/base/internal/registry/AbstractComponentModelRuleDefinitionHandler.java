@@ -27,26 +27,27 @@ import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.AbstractAnnotationDrivenMethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.InvalidComponentModelException;
 import org.gradle.runtime.base.TypeBuilder;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 // TODO:DAZ Convert to use ModelType throughout
-public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> implements MethodRuleDefinitionHandler {
+public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<A> {
 
     protected String modelName;
-    private final Class annotationClass;
+    private final Class<A> annotationClass;
     private ModelType<T> baseInterface;
     private ModelType<U> baseImplementation;
     private ModelType<? extends TypeBuilder> builderInterface;
 
-    public AbstractAnnotationModelRuleDefinitionHandler(String modelName, Class annotationClass,
-                                                        Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder> builderInterface) {
+    public AbstractComponentModelRuleDefinitionHandler(String modelName, Class<A> annotationClass,
+                                                       Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder> builderInterface) {
         this.modelName = modelName;
         this.annotationClass = annotationClass;
         this.baseInterface = ModelType.of(baseInterface);
@@ -54,15 +55,8 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    public boolean isSatisfiedBy(MethodRuleDefinition<?> element) {
-        return element.getAnnotation(annotationClass) != null;
-    }
-
-    public String getDescription() {
-        return String.format("annotated with @%s", annotationClass.getSimpleName());
-    }
-
     abstract protected ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, Class<? extends T> type, Class<? extends U> implementation);
+
     abstract protected TypeBuilderInternal createBuilder();
 
     public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
@@ -132,7 +126,6 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         // TODO:DAZ Propogate ModelType out
         return (Class<? extends U>) implementationType.getRawClass();
     }
-
 
     protected abstract static class RegisterTypeRule implements ModelMutator<ExtensionContainer> {
         private final ModelRuleDescriptor descriptor;

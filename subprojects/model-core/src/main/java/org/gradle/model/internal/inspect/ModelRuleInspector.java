@@ -115,7 +115,7 @@ public class ModelRuleInspector {
     private MethodRuleDefinitionHandler getMethodHandler(MethodRuleDefinition<?> ruleDefinition) {
         MethodRuleDefinitionHandler handler = null;
         for (MethodRuleDefinitionHandler candidateHandler : handlers) {
-            if (candidateHandler.isSatisfiedBy(ruleDefinition)) {
+            if (candidateHandler.getSpec().isSatisfiedBy(ruleDefinition)) {
                 if (handler == null) {
                     handler = candidateHandler;
                 } else {

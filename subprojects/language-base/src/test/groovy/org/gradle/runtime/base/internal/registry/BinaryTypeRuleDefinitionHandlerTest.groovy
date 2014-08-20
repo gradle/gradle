@@ -46,14 +46,14 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
         1 * ruleDefinition.getAnnotation(BinaryType) >> null
 
         then:
-        !componentRuleHandler.isSatisfiedBy(ruleDefinition)
+        !componentRuleHandler.spec.isSatisfiedBy(ruleDefinition)
 
 
         when:
         1 * ruleDefinition.getAnnotation(BinaryType) >> Mock(BinaryType)
 
         then:
-        componentRuleHandler.isSatisfiedBy(ruleDefinition)
+        componentRuleHandler.spec.isSatisfiedBy(ruleDefinition)
     }
 
     def "applies ComponentModelBasePlugin and creates binary type rule"() {
@@ -132,7 +132,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
         Settings settings = Mock(Settings)
         _ * pluginApplication.target >> settings
         _ * pluginApplication.plugin >> plugin
-        componentRuleHandler = new ComponentModelRuleDefinitionHandler(instantiator)
+        componentRuleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
     }
 
     interface SomeBinarySpec extends BinarySpec {}
