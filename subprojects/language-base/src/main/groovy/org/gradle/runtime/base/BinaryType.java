@@ -46,7 +46,7 @@ import java.lang.annotation.Target;
  *     static class ComponentModel {
  *         {@literal @}BinaryType
  *         void defineBinaryType(BinaryTypeBuilder<SampleBinary> builder) {
- *             builder.setDefaultImplementation(DefaultSampleBinary)
+ *             builder.defaultImplementation(DefaultSampleBinary)
  *         }
  *     }
  * }

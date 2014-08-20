@@ -40,7 +40,7 @@ class MySamplePlugin implements Plugin<Project> {
 
         @ComponentType
         void register(ComponentTypeBuilder<SampleLibrary> builder) {
-            builder.setDefaultImplementation(DefaultSampleLibrary)
+            builder.defaultImplementation(DefaultSampleLibrary)
         }
 
         @Mutate

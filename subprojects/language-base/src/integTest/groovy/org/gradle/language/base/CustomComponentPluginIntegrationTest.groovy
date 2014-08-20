@@ -57,7 +57,7 @@ task checkModel << {
             static class Rules {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.setDefaultImplementation(DefaultSampleComponent)
+                    builder.defaultImplementation(DefaultSampleComponent)
                 }
             }
         }
@@ -109,7 +109,7 @@ BUILD SUCCESSFUL"""))
             static class Rules {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.setDefaultImplementation(DefaultSampleComponent)
+                    builder.defaultImplementation(DefaultSampleComponent)
                 }
             }
         }
@@ -156,12 +156,12 @@ BUILD SUCCESSFUL"""))
             static class Rules {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.setDefaultImplementation(DefaultSampleComponent)
+                    builder.defaultImplementation(DefaultSampleComponent)
                 }
 
                 @ComponentType
                 void registerAnother(ComponentTypeBuilder<SampleLibrary> builder) {
-                    builder.setDefaultImplementation(DefaultSampleLibrary)
+                    builder.defaultImplementation(DefaultSampleLibrary)
                 }
 
                 @Mutate
@@ -236,7 +236,7 @@ BUILD SUCCESSFUL"""))
             static class Rules1 {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.setDefaultImplementation(DefaultSampleComponent)
+                    builder.defaultImplementation(DefaultSampleComponent)
                 }
             }
         }
@@ -261,7 +261,7 @@ BUILD SUCCESSFUL"""))
             static class Rules {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
-                    builder.setDefaultImplementation(DefaultSampleComponent)
+                    builder.defaultImplementation(DefaultSampleComponent)
                 }
                 @Mutate
                 void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {

@@ -63,7 +63,7 @@ task checkModel << {
             static class Rules {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.setDefaultImplementation(DefaultSampleBinary)
+                    builder.defaultImplementation(DefaultSampleBinary)
                 }
             }
         }
@@ -90,7 +90,7 @@ task checkModel << {
             static class Rules {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.setDefaultImplementation(DefaultSampleBinary)
+                    builder.defaultImplementation(DefaultSampleBinary)
                 }
             }
         }
@@ -137,7 +137,7 @@ task checkModel << {
             static class Rules {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.setDefaultImplementation(DefaultSampleBinary)
+                    builder.defaultImplementation(DefaultSampleBinary)
                 }
 
                 @Mutate
@@ -147,7 +147,7 @@ task checkModel << {
 
                 @BinaryType
                 void registerAnother(BinaryTypeBuilder<AnotherSampleBinary> builder) {
-                    builder.setDefaultImplementation(DefaultAnotherSampleBinary)
+                    builder.defaultImplementation(DefaultAnotherSampleBinary)
                 }
 
                 @Mutate
@@ -216,7 +216,7 @@ task checkModel << {
             static class Rules1 {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.setDefaultImplementation(DefaultSampleBinary)
+                    builder.defaultImplementation(DefaultSampleBinary)
                 }
             }
         }
@@ -268,7 +268,7 @@ BUILD SUCCESSFUL"""))
             static class Rules {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.setDefaultImplementation(DefaultSampleBinary)
+                    builder.defaultImplementation(DefaultSampleBinary)
                 }
 
                 @Mutate

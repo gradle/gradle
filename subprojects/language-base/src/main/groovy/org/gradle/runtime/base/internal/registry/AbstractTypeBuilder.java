@@ -26,7 +26,7 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
         this.markerAnnotation = markerAnnotation;
     }
 
-    public TypeBuilderInternal<T> setDefaultImplementation(Class<? extends T> implementation) {
+    public TypeBuilderInternal<T> defaultImplementation(Class<? extends T> implementation) {
         if (this.implementation != null) {
             throw new InvalidComponentModelException(String.format("%s method cannot set default implementation multiple times.", markerAnnotation.getSimpleName()));
         }

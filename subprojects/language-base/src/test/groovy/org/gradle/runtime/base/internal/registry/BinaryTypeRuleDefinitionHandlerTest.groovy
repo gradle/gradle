@@ -155,7 +155,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
     static class Rules {
         @BinaryType
         static void validTypeRule(BinaryTypeBuilder<SomeBinarySpec> builder) {
-            builder.setDefaultImplementation(SomeBinarySpecImpl)
+            builder.defaultImplementation(SomeBinarySpecImpl)
         }
 
         @BinaryType
@@ -172,8 +172,8 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
 
         @BinaryType
         static void implementationSetMultipleTimes(BinaryTypeBuilder<SomeBinarySpec> builder) {
-            builder.setDefaultImplementation(SomeBinarySpecImpl)
-            builder.setDefaultImplementation(SomeBinarySpecOtherImpl)
+            builder.defaultImplementation(SomeBinarySpecImpl)
+            builder.defaultImplementation(SomeBinarySpecOtherImpl)
         }
 
         @BinaryType
@@ -202,17 +202,17 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
 
         @BinaryType
         static void notImplementingBinaryType(BinaryTypeBuilder<SomeBinarySpec> builder) {
-            builder.setDefaultImplementation(NotImplementingCustomBinary)
+            builder.defaultImplementation(NotImplementingCustomBinary)
         }
 
         @BinaryType
         static void notExtendingDefaultSampleLibrary(BinaryTypeBuilder<SomeBinarySpec> builder) {
-            builder.setDefaultImplementation(NotExtendingBaseBinarySpec)
+            builder.defaultImplementation(NotExtendingBaseBinarySpec)
         }
 
         @BinaryType
         static void noDefaultConstructor(BinaryTypeBuilder<SomeBinarySpec> builder) {
-            builder.setDefaultImplementation(NoDefaultConstructor)
+            builder.defaultImplementation(NoDefaultConstructor)
         }
     }
 }

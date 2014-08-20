@@ -160,7 +160,7 @@ class ComponentTypeRuleDefinitionHandlerTest extends Specification {
     static class Rules {
         @ComponentType
         static void validTypeRule(ComponentTypeBuilder<SomeComponentSpec> builder) {
-            builder.defaultImplementation = SomeComponentSpecImpl
+            builder.defaultImplementation(SomeComponentSpecImpl)
         }
 
         @ComponentType
@@ -189,8 +189,8 @@ class ComponentTypeRuleDefinitionHandlerTest extends Specification {
 
         @ComponentType
         static void implementationSetMultipleTimes(ComponentTypeBuilder<SomeComponentSpec> builder) {
-            builder.setDefaultImplementation(SomeComponentSpecImpl)
-            builder.setDefaultImplementation(SomeComponentSpecOtherImpl)
+            builder.defaultImplementation(SomeComponentSpecImpl)
+            builder.defaultImplementation(SomeComponentSpecOtherImpl)
         }
 
         @ComponentType
@@ -207,17 +207,17 @@ class ComponentTypeRuleDefinitionHandlerTest extends Specification {
 
         @ComponentType
         static void notImplementingLibraryType(ComponentTypeBuilder<SomeComponentSpec> builder) {
-            builder.setDefaultImplementation(NotImplementingCustomComponent)
+            builder.defaultImplementation(NotImplementingCustomComponent)
         }
 
         @ComponentType
         static void notExtendingDefaultSampleLibrary(ComponentTypeBuilder<SomeComponentSpec> builder) {
-            builder.setDefaultImplementation(NotExtendingBaseComponentSpec)
+            builder.defaultImplementation(NotExtendingBaseComponentSpec)
         }
 
         @ComponentType
         static void noDefaultConstructor(ComponentTypeBuilder<SomeComponentSpec> builder) {
-            builder.setDefaultImplementation(NoDefaultConstructor)
+            builder.defaultImplementation(NoDefaultConstructor)
         }
     }
 }

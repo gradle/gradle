@@ -46,7 +46,7 @@ import java.lang.annotation.Target;
  *     static class Rules {
  *         {@literal @}ComponentType
  *         void register(ComponentTypeBuilder<SampleComponent> builder) {
- *             builder.setDefaultImplementation(DefaultSampleComponent)
+ *             builder.defaultImplementation(DefaultSampleComponent)
  *         }
  *
  *         {@literal @}Mutate

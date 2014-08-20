@@ -29,5 +29,5 @@ public interface TypeBuilder<C> {
      * Allows the plugin to register the implementation type.
      * @param implementation the implementation class.
      */
-    TypeBuilder<C> setDefaultImplementation(Class<? extends C> implementation);
+    TypeBuilder<C> defaultImplementation(Class<? extends C> implementation);
 }
