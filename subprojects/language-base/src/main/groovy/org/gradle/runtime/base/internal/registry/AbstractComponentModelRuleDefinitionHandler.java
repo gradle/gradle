@@ -33,6 +33,7 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.runtime.base.InvalidComponentModelException;
 import org.gradle.runtime.base.TypeBuilder;
+import org.gradle.runtime.base.internal.rules.RuleContext;
 
 import java.lang.annotation.Annotation;
 import java.util.List;

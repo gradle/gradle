@@ -18,6 +18,7 @@ package org.gradle.runtime.base.internal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.BinarySpec;
+import org.gradle.runtime.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 
 public class DefaultBinaryContainer extends RuleAwarePolymorphicDomainObjectContainer<BinarySpec> implements BinaryContainer {
     public DefaultBinaryContainer(Instantiator instantiator) {

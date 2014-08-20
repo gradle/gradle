@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal.registry;
+package org.gradle.runtime.base.internal.rules;
 
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal;
+package org.gradle.runtime.base.internal.rules;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
@@ -23,7 +23,6 @@ import org.gradle.api.Namer;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.runtime.base.internal.registry.RuleContext;
 
 import java.util.Map;
 

@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base.internal
+package org.gradle.runtime.base.internal.rules
 
 import org.gradle.api.GradleException
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.runtime.base.internal.registry.RuleContext
 import spock.lang.Specification
 
 class RuleAwarePolymorphicDomainObjectContainerTest extends Specification {
