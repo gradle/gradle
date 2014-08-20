@@ -16,52 +16,59 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Collection;
 import java.util.Map;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
-class ConflictContainer<T> {
+/**
+ * Generic container for conflicts.
+ */
+class ConflictContainer<K, T> {
 
-    private final Map<ModuleIdentifier, Conflict> conflicts = newLinkedHashMap();
-    private final Map<ModuleIdentifier, Collection<? extends T>> modules = newHashMap();
-    private final Map<ModuleIdentifier, ModuleIdentifier> targetToSource = newLinkedHashMap();
+    private final Map<K, Conflict> conflicts = newLinkedHashMap();
+    private final Map<K, Collection<? extends T>> elements = newHashMap();
+    private final Map<K, K> targetToSource = newLinkedHashMap();
 
-    public Conflict newModule(ModuleIdentifier newModule, Collection<? extends T> candidates, ModuleIdentifier replacedBy) {
-        modules.put(newModule, candidates);
+    /**
+     * Adds new element and returns a conflict instance if given element is conflicted
+     *
+     * @param target an element of some sort
+     * @param candidates candidates for given element
+     * @param replacedBy optional element that replaces the target
+     */
+    public Conflict newElement(K target, Collection<? extends T> candidates, @Nullable K replacedBy) {
+        elements.put(target, candidates);
         if (replacedBy != null) {
-            targetToSource.put(replacedBy, newModule);
-            if (modules.containsKey(replacedBy)) {
+            targetToSource.put(replacedBy, target);
+            if (elements.containsKey(replacedBy)) {
                 //1) we've seen the replacement, register new conflict and return
-                return registerConflict(newModule, replacedBy);
+                return registerConflict(target, replacedBy);
             }
         }
 
-        ModuleIdentifier replacementSource = targetToSource.get(newModule);
+        K replacementSource = targetToSource.get(target);
         if (replacementSource != null) {
             //2) new module is a replacement to a module we've seen already, register conflict and return
-            return registerConflict(replacementSource, newModule);
+            return registerConflict(replacementSource, target);
         }
 
         if (candidates.size() > 1) {
             //3) new module has more than 1 version, register conflict and return
-            return registerConflict(newModule, null);
+            return registerConflict(target, target);
         }
         return null;
     }
 
-    private Conflict registerConflict(ModuleIdentifier module, ModuleIdentifier replacedBy) {
-        if (replacedBy == null) {
-            Conflict c = new Conflict(module, modules.get(module));
-            conflicts.put(module, c);
-            return c;
-        }
-        Collection<? extends T> candidates = modules.get(replacedBy);
+    private Conflict registerConflict(K module, K replacedBy) {
+        Collection<? extends T> candidates = elements.get(replacedBy);
         assert candidates != null;
         conflicts.remove(replacedBy);
         Conflict c = new Conflict(module, replacedBy, candidates);
@@ -73,29 +80,31 @@ class ConflictContainer<T> {
         return conflicts.size();
     }
 
-    public Conflict pop() {
-        ModuleIdentifier first = conflicts.keySet().iterator().next();
+    public Conflict popConflict() {
+        assert !conflicts.isEmpty();
+        K first = conflicts.keySet().iterator().next();
         return conflicts.remove(first);
     }
 
     class Conflict implements ModuleConflict {
-        Collection<ModuleIdentifier> modules;
+        Collection<K> elements;
         Collection<? extends T> candidates;
 
-        public Conflict(ModuleIdentifier module, Collection<? extends T> candidates) {
-            this.modules = newArrayList(module);
-            this.candidates = candidates;
-        }
-
-        public Conflict(ModuleIdentifier module, ModuleIdentifier replacedBy, Collection<? extends T> candidates) {
-            this.modules = newArrayList(module, replacedBy);
+        public Conflict(K target, K replacedBy, Collection<? extends T> candidates) {
+            this.elements = newLinkedHashSet();
+            this.elements.add(target);
+            this.elements.add(replacedBy);
             this.candidates = candidates;
         }
 
         public void withAffectedModules(Action<ModuleIdentifier> affectedModulesAction) {
-            for (ModuleIdentifier m : modules) {
-                affectedModulesAction.execute(m);
+            for (K m : elements) {
+                affectedModulesAction.execute((ModuleIdentifier) m);
             }
+        }
+
+        public String toString() {
+            return Joiner.on(",").join(elements) + ":" + Joiner.on(",").join(candidates);
         }
     }
 }

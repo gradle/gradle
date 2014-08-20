@@ -30,7 +30,7 @@ public class DefaultConflictHandler implements ConflictHandler {
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
     private final CompositeConflictResolver compositeResolver = new CompositeConflictResolver();
-    private final ConflictContainer<ModuleRevisionResolveState> conflicts = new ConflictContainer<ModuleRevisionResolveState>();
+    private final ConflictContainer<ModuleIdentifier, ModuleRevisionResolveState> conflicts = new ConflictContainer<ModuleIdentifier, ModuleRevisionResolveState>();
     private final ModuleReplacementsData moduleReplacements;
 
     public DefaultConflictHandler(ModuleConflictResolver conflictResolver, ModuleReplacementsData moduleReplacements) {
@@ -44,7 +44,7 @@ public class DefaultConflictHandler implements ConflictHandler {
     @Nullable
     public ModuleConflict registerModule(CandidateModule newModule) {
         ModuleIdentifier replacedBy = moduleReplacements.getReplacementFor(newModule.getId());
-        return conflicts.newModule(newModule.getId(), newModule.getVersions(), replacedBy);
+        return conflicts.newElement(newModule.getId(), newModule.getVersions(), replacedBy);
     }
 
     /**
@@ -63,7 +63,7 @@ public class DefaultConflictHandler implements ConflictHandler {
      */
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
-        ConflictContainer.Conflict conflict = conflicts.pop();
+        ConflictContainer.Conflict conflict = conflicts.popConflict();
         ModuleRevisionResolveState selected = compositeResolver.select(conflict.candidates);
         ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict, selected);
         resolutionAction.execute(result);

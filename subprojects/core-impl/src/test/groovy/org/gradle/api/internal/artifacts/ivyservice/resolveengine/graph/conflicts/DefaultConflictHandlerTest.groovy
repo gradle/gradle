@@ -144,21 +144,6 @@ class DefaultConflictHandlerTest extends Specification {
         handler.conflictCount == 0
     }
 
-    def "coverage"() {
-        /*
-            a->b
-            a,
-            b,
-            a,b
-            b,a
-            b1,b2,a
-            b1,a,b2
-            a,b1,b2
-         */
-    }
-
-    def "conflicts are resolved orderly"() {}
-
     private CandidateModule candidate(String group, String name, String ... versions) {
         def candidate = Stub(CandidateModule)
         candidate.getId() >> DefaultModuleIdentifier.newId(group, name)
