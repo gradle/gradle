@@ -79,6 +79,12 @@ public abstract class ModelType<T> {
         return typeToken.getRawType();
     }
 
+    public Class<T> getConcreteClass() {
+        @SuppressWarnings("unchecked")
+        Class<T> concreteClass = (Class<T>) getRawClass();
+        return concreteClass;
+    }
+
     public boolean isParameterized() {
         return typeToken.getType() instanceof ParameterizedType;
     }

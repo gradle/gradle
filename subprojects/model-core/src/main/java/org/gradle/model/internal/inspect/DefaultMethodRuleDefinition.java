@@ -32,19 +32,40 @@ import java.util.List;
 
 import static org.gradle.util.CollectionUtils.findFirst;
 
-public class DefaultMethodRuleDefinition implements MethodRuleDefinition {
+public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R> {
     private final Method method;
+    private final ModelType<T> instanceType;
+    private final ModelType<R> returnType;
 
-    public DefaultMethodRuleDefinition(Method method) {
+    private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
         this.method = method;
+        this.instanceType = instanceType;
+        this.returnType = returnType;
+    }
+    
+    public static <T, R> MethodRuleDefinition<R> create(Class<T> source, Method method) {
+        @SuppressWarnings("unchecked") ModelType<R> returnType = (ModelType<R>) ModelType.of(method.getGenericReturnType());
+        return new DefaultMethodRuleDefinition<T, R>(method, ModelType.of(source), returnType);
     }
 
     public String getMethodName() {
         return method.getName();
     }
 
-    public ModelType<?> getReturnType() {
-        return ModelType.of(method.getGenericReturnType());
+    public ModelType<R> getReturnType() {
+        return returnType;
+    }
+
+    public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+        return method.getAnnotation(annotationType);
+    }
+
+    public ModelRuleDescriptor getDescriptor() {
+        return new MethodModelRuleDescriptor(method);
+    }
+
+    public ModelRuleInvoker<R> getRuleInvoker() {
+        return new DefaultModelRuleInvoker<T, R>(method, instanceType, returnType);
     }
 
     public List<ModelReference<?>> getReferences() {
@@ -58,26 +79,14 @@ public class DefaultMethodRuleDefinition implements MethodRuleDefinition {
         return inputBindingBuilder.build();
     }
 
-    public ModelRuleDescriptor getDescriptor() {
-        return new MethodModelRuleDescriptor(method);
-    }
-
-    public ModelRuleInvoker getRuleInvoker() {
-        return new DefaultModelRuleInvoker(method);
-    }
-
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        return method.getAnnotation(annotationType);
-    }
-
-    private <T> ModelReference<T> reference(Type type, Annotation[] annotations, int i) {
+    private ModelReference<?> reference(Type type, Annotation[] annotations, int i) {
         Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
             public boolean isSatisfiedBy(Annotation element) {
                 return element.annotationType().equals(Path.class);
             }
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
-        @SuppressWarnings("unchecked") ModelType<T> cast = (ModelType<T>) ModelType.of(type);
+        ModelType<?> cast = ModelType.of(type);
         return ModelReference.of(path == null ? null : ModelPath.path(path), cast, String.format("parameter %s", i + 1));
     }
 

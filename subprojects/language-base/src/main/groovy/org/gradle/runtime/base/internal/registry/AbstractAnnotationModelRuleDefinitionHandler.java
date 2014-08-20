@@ -54,7 +54,7 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    public boolean isSatisfiedBy(MethodRuleDefinition element) {
+    public boolean isSatisfiedBy(MethodRuleDefinition<?> element) {
         return element.getAnnotation(annotationClass) != null;
     }
 
@@ -65,7 +65,7 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
     abstract protected ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, Class<? extends T> type, Class<? extends U> implementation);
     abstract protected TypeBuilderInternal createBuilder();
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
             Class<? extends T> type = readType(ruleDefinition);
             Class<? extends U> implementation = determineImplementationType(ruleDefinition, type);
@@ -79,7 +79,7 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
         }
     }
 
-    protected Class<? extends T> readType(MethodRuleDefinition ruleDefinition) {
+    protected Class<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
         if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
             throw new InvalidComponentModelException(String.format("%s method must not have a return value.", annotationClass.getSimpleName()));
         }
@@ -102,14 +102,14 @@ public abstract class AbstractAnnotationModelRuleDefinitionHandler<T, U> impleme
     }
 
 
-    protected void invalidModelRule(MethodRuleDefinition ruleDefinition, InvalidComponentModelException e) {
+    protected void invalidModelRule(MethodRuleDefinition<?> ruleDefinition, InvalidComponentModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(String.format(" is not a valid %s model rule method.", modelName));
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    protected Class<? extends U> determineImplementationType(MethodRuleDefinition ruleDefinition, Class<? extends T> typeClass) {
+    protected Class<? extends U> determineImplementationType(MethodRuleDefinition<?> ruleDefinition, Class<? extends T> typeClass) {
         ModelType<? extends T> type = ModelType.of(typeClass);
         TypeBuilderInternal builder = createBuilder();
         ruleDefinition.getRuleInvoker().invoke(builder);

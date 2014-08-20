@@ -25,7 +25,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import java.util.List;
 
 public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionHandler {
-    public boolean isSatisfiedBy(MethodRuleDefinition ruleDefinition) {
+    public boolean isSatisfiedBy(MethodRuleDefinition<?> ruleDefinition) {
         return ruleDefinition.getAnnotation(Model.class) != null;
     }
 
@@ -33,7 +33,7 @@ public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionH
         return "annotated with @Model";
     }
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
 
         // TODO validate model name
         String modelName = determineModelName(ruleDefinition);
@@ -50,14 +50,14 @@ public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionH
         doRegisterCreation(ruleDefinition, returnType, modelName, modelRegistry);
     }
 
-    private <R> void doRegisterCreation(final MethodRuleDefinition ruleDefinition, final ModelType<R> type, final String modelName, final ModelRegistry modelRegistry) {
+    private <R> void doRegisterCreation(final MethodRuleDefinition<?> ruleDefinition, final ModelType<R> type, final String modelName, final ModelRegistry modelRegistry) {
         ModelPath path = ModelPath.path(modelName);
         List<ModelReference<?>> references = ruleDefinition.getReferences();
 
         modelRegistry.create(new MethodModelCreator<R>(type, path, references, ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor()));
     }
 
-    private String determineModelName(MethodRuleDefinition ruleDefinition) {
+    private String determineModelName(MethodRuleDefinition<?> ruleDefinition) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
         if (annotationValue == null || annotationValue.isEmpty()) {
             return ruleDefinition.getMethodName();
@@ -72,9 +72,9 @@ public class ModelCreationRuleDefinitionHandler implements MethodRuleDefinitionH
         private final ModelPromise promise;
         private final ModelRuleDescriptor descriptor;
         private List<ModelReference<?>> inputs;
-        private final ModelRuleInvoker ruleInvoker;
+        private final ModelRuleInvoker<?> ruleInvoker;
 
-        public MethodModelCreator(ModelType<R> type, ModelPath path, List<ModelReference<?>> inputs, ModelRuleInvoker ruleInvoker, ModelRuleDescriptor descriptor) {
+        public MethodModelCreator(ModelType<R> type, ModelPath path, List<ModelReference<?>> inputs, ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor) {
             this.type = type;
             this.path = path;
             this.inputs = inputs;

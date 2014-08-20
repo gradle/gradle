@@ -81,7 +81,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
     def ruleDefinitionForMethod(String methodName) {
         for (Method candidate : Rules.class.getDeclaredMethods()) {
             if (candidate.getName().equals(methodName)) {
-                return new DefaultMethodRuleDefinition(candidate)
+                return DefaultMethodRuleDefinition.create(Rules.class, candidate)
             }
         }
         throw new IllegalArgumentException("Not a test method name")

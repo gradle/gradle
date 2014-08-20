@@ -27,7 +27,7 @@ public class MutateRuleDefinitionHandler extends AbstractMutationRuleDefinitionH
         return Mutate.class;
     }
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         mutationMethod(modelRegistry, ruleDefinition, false);
     }
 }

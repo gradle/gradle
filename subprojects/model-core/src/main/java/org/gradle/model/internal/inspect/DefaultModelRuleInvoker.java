@@ -17,39 +17,33 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.model.internal.core.ModelType;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-class DefaultModelRuleInvoker implements ModelRuleInvoker {
-    private final Method method;
+class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
+    private final JavaMethod<I, R> javaMethod;
+    private final ModelType<I> source;
 
-    DefaultModelRuleInvoker(Method method) {
-        this.method = method;
+    DefaultModelRuleInvoker(Method method, ModelType<I> source, ModelType<R> returnType) {
+        javaMethod = JavaReflectionUtil.method(source.getConcreteClass(), returnType.getConcreteClass(), method);
+        this.source = source;
     }
 
-    public Object invoke(Object... args) {
-        Object instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance(method.getDeclaringClass());
-
-        method.setAccessible(true);
-
-        try {
-            return method.invoke(instance, args);
-        } catch (Exception e) {
-            Throwable t = e;
-            if (t instanceof InvocationTargetException) {
-                t = e.getCause();
-            }
-
-            throw UncheckedException.throwAsUncheckedException(t);
-        }
+    public R invoke(Object... args) {
+        I instance = Modifier.isStatic(javaMethod.getMethod().getModifiers()) ? null : toInstance();
+        return javaMethod.invoke(instance, args);
     }
 
-    private <T> T toInstance(Class<T> source) {
+    private I toInstance() {
         try {
-            Constructor<T> declaredConstructor = source.getDeclaredConstructor();
+            Class<I> concreteClass = source.getConcreteClass();
+            Constructor<I> declaredConstructor = concreteClass.getDeclaredConstructor();
             declaredConstructor.setAccessible(true);
             return declaredConstructor.newInstance();
         } catch (InstantiationException e) {

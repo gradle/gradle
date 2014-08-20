@@ -29,17 +29,17 @@ public abstract class AbstractMutationRuleDefinitionHandler implements MethodRul
        return String.format("annotated with @%s", getMarkerAnnotation().getSimpleName());
    }
 
-   public boolean isSatisfiedBy(MethodRuleDefinition ruleDefinition) {
+   public boolean isSatisfiedBy(MethodRuleDefinition<?> ruleDefinition) {
        return ruleDefinition.getAnnotation(getMarkerAnnotation()) != null;
    }
 
     protected abstract Class<? extends Annotation> getMarkerAnnotation();
 
-    protected void mutationMethod(ModelRegistry modelRegistry, final MethodRuleDefinition ruleDefinition, boolean finalize) {
+    protected void mutationMethod(ModelRegistry modelRegistry, final MethodRuleDefinition<?> ruleDefinition, boolean finalize) {
         rule(modelRegistry, ruleDefinition, finalize);
     }
 
-    public static void rule(final ModelRegistry modelRegistry, final MethodRuleDefinition ruleDefinition, final boolean isFinalizer) {
+    public static void rule(final ModelRegistry modelRegistry, final MethodRuleDefinition<?> ruleDefinition, final boolean isFinalizer) {
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
 
         ModelReference<?> subject = bindings.get(0);
@@ -53,7 +53,7 @@ public abstract class AbstractMutationRuleDefinitionHandler implements MethodRul
         }
     }
 
-    private static <T> MethodModelMutator<T> toMutator(MethodRuleDefinition ruleDefinition, ModelReference<T> first, List<ModelReference<?>> tail) {
+    private static <T> MethodModelMutator<T> toMutator(MethodRuleDefinition<?> ruleDefinition, ModelReference<T> first, List<ModelReference<?>> tail) {
         return new MethodModelMutator<T>(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), first, tail);
     }
 
@@ -61,9 +61,9 @@ public abstract class AbstractMutationRuleDefinitionHandler implements MethodRul
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<T> subject;
         private final List<ModelReference<?>> inputs;
-        private final ModelRuleInvoker ruleInvoker;
+        private final ModelRuleInvoker<?> ruleInvoker;
 
-        public MethodModelMutator(ModelRuleInvoker ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
+        public MethodModelMutator(ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
             this.ruleInvoker = ruleInvoker;
             this.subject = subject;
             this.inputs = inputs;

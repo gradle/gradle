@@ -23,17 +23,17 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public interface MethodRuleDefinition {
+public interface MethodRuleDefinition<R> {
 
     String getMethodName();
 
-    <T extends Annotation> T getAnnotation(Class<T> annotationType);
+    <A extends Annotation> A getAnnotation(Class<A> annotationType);
 
-    ModelType<?> getReturnType();
+    ModelType<R> getReturnType();
 
     List<ModelReference<?>> getReferences();
 
     ModelRuleDescriptor getDescriptor();
 
-    ModelRuleInvoker getRuleInvoker();
+    ModelRuleInvoker<R> getRuleInvoker();
 }

@@ -16,6 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-public interface ModelRuleInvoker {
-    Object invoke(Object... args);
+public interface ModelRuleInvoker<R> {
+    R invoke(Object... args);
 }

@@ -27,7 +27,7 @@ public class FinalizeRuleDefinitionHandler extends AbstractMutationRuleDefinitio
         return Finalize.class;
     }
 
-    public void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         mutationMethod(modelRegistry, ruleDefinition, true);
     }
 }
