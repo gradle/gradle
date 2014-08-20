@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
 import org.gradle.api.logging.Logger;
@@ -36,19 +37,21 @@ public class DefaultConflictHandler implements ConflictHandler {
     private final Map<ModuleIdentifier, DefaultModuleConflict> conflicts = new LinkedHashMap<ModuleIdentifier, DefaultModuleConflict>();
     private final Map<ModuleIdentifier, CandidateModule> modules = new HashMap<ModuleIdentifier, CandidateModule>();
     private final Map<ModuleIdentifier, CandidateModule> targetToSource = new LinkedHashMap<ModuleIdentifier, CandidateModule>();
+    private final ModuleReplacementsData moduleReplacements;
 
-    public DefaultConflictHandler(ModuleConflictResolver conflictResolver) {
-        assert conflictResolver != null;
-        compositeResolver.addFirst(conflictResolver);
+    public DefaultConflictHandler(ModuleConflictResolver conflictResolver, ModuleReplacementsData moduleReplacements) {
+        this.moduleReplacements = moduleReplacements;
+        this.compositeResolver.addFirst(conflictResolver);
     }
 
     /**
      * Registers new newModule and returns an instance of a conflict if conflict exists.
      */
     @Nullable
-    public ModuleConflict registerModule(CandidateModule newModule, ModuleIdentifier replacedBy) {
+    public ModuleConflict registerModule(CandidateModule newModule) {
         //TODO SF, this whole thing needs a rewrite and better model than a bunch of map fields
         modules.put(newModule.getId(), newModule);
+        ModuleIdentifier replacedBy = moduleReplacements.getReplacementFor(newModule.getId());
         //1) we've seen the replacement already:
         if (replacedBy != null) {
             targetToSource.put(replacedBy, newModule);

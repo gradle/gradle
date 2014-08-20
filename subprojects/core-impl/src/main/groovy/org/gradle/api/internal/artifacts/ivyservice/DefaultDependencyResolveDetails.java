@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -30,7 +28,6 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     private final ModuleVersionSelector requested;
     private ComponentSelectionReason selectionReason;
     private ModuleVersionSelector target;
-    private ModuleIdentifier preferredTarget;
 
     public DefaultDependencyResolveDetails(ModuleVersionSelector requested) {
         this.requested = requested;
@@ -61,12 +58,6 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         this.selectionReason = VersionSelectionReasons.SELECTED_BY_RULE;
     }
 
-    public void prefer(Object notation) {
-        selectionReason = VersionSelectionReasons.REQUESTED;
-        String[] s = notation.toString().split(":");
-        this.preferredTarget = new DefaultModuleIdentifier(s[0], s[1]);
-    }
-
     public ComponentSelectionReason getSelectionReason() {
         return selectionReason;
     }
@@ -77,9 +68,5 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
 
     public boolean isUpdated() {
         return selectionReason != null;
-    }
-
-    public ModuleIdentifier getPreferredTarget() {
-        return preferredTarget;
     }
 }

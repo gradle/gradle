@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.artifacts.DependencyResolveDetails;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
-
-public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
-    void useVersion(String version, ComponentSelectionReason selectionReason);
+//TODO SF elevate, rework the API
+public interface ComponentModuleDetails {
+    void replacedBy(String moduleId);
 }

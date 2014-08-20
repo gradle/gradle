@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.dsl.ModuleReplacements
 import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
@@ -45,14 +46,14 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleR
 
 class DependencyGraphBuilderTest extends Specification {
     final ConfigurationInternal configuration = Mock()
-    final ModuleConflictResolver conflictResolver = Mock()
+    final ModuleConflictResolver conflictResolver = Mock() //TODO SF should use ConflictHandler and include more related coverage
     final DependencyToModuleVersionIdResolver dependencyResolver = Mock()
     final ArtifactResolver artifactResolver = Mock()
     final ResolutionResultBuilder resultBuilder = Mock()
     final ModuleVersionMetaData root = revision('root')
     final ModuleToModuleVersionResolver moduleResolver = Mock()
     final DependencyToConfigurationResolver dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(dependencyResolver, moduleResolver, artifactResolver, new DefaultConflictHandler(conflictResolver), dependencyToConfigurationResolver)
+    final DependencyGraphBuilder builder = new DependencyGraphBuilder(dependencyResolver, moduleResolver, artifactResolver, new DefaultConflictHandler(conflictResolver, Stub(ModuleReplacements)), dependencyToConfigurationResolver)
 
     def setup() {
         config(root, 'root', 'default')
@@ -876,7 +877,6 @@ class DependencyGraphBuilderTest extends Specification {
         _ * result.id >> to.id;
         _ * result.failure >> null
         _ * result.selectionReason >> null
-        _ * result.preferredTarget >> null
         0 * result._
     }
 

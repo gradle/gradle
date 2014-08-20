@@ -53,12 +53,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         def content = ''
         reps.each {
             def d = new TestDependency(it)
-            content +=  """configurations.conf.resolutionStrategy.eachDependency {
-                                if (it.target.group == '${d.group}' && it.target.name == '${d.name}') {
-                                    it.prefer '${d.pointsTo.group}:${d.pointsTo.name}'
-                                }
-                            }
-                        """
+            content +=  "dependencies.components.module('${d.group}:${d.name}').replacedBy '${d.pointsTo.group}:${d.pointsTo.name}'\n"
         }
         buildFile << """
             $content
