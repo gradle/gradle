@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
-public interface ModuleMetadataProcessor {
-    void process(ModuleVersionMetaData metadata);
-    ModuleReplacementsData getModuleReplacements(); //TODO SF it's not a right place for it
+public interface ModuleMetadataHandler {
+    void processMetadata(ModuleVersionMetaData metadata);
+    ModuleReplacementsData getModuleReplacements();
 }

@@ -123,8 +123,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories,
-                                                       ModuleMetadataProcessor metadataProcessor) {
-            return new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataProcessor);
+                                                       ModuleMetadataHandler metadataHandler) {
+            return new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataHandler);
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {
@@ -136,9 +136,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ArtifactResolutionQueryFactory createArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
-                                                                            ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor,
+                                                                            ResolveIvyFactory ivyFactory, ModuleMetadataHandler metadataHandler,
                                                                             CacheLockingManager cacheLockingManager, ComponentTypeRegistry componentTypeRegistry) {
-            return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoryHandler, ivyFactory, metadataProcessor, cacheLockingManager, componentTypeRegistry);
+            return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, cacheLockingManager, componentTypeRegistry);
 
         }
     }

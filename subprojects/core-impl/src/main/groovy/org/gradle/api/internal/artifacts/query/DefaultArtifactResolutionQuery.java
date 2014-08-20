@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ComponentResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
@@ -51,7 +51,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ConfigurationContainerInternal configurationContainer;
     private final RepositoryHandler repositoryHandler;
     private final ResolveIvyFactory ivyFactory;
-    private final ModuleMetadataProcessor metadataProcessor;
+    private final ModuleMetadataHandler metadataHandler;
     private final CacheLockingManager lockingManager;
     private final ComponentTypeRegistry componentTypeRegistry;
 
@@ -60,12 +60,12 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private Set<Class<? extends Artifact>> artifactTypes = Sets.newLinkedHashSet();
 
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
-                                          ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor, CacheLockingManager lockingManager,
+                                          ResolveIvyFactory ivyFactory, ModuleMetadataHandler metadataHandler, CacheLockingManager lockingManager,
                                           ComponentTypeRegistry componentTypeRegistry) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
-        this.metadataProcessor = metadataProcessor;
+        this.metadataHandler = metadataHandler;
         this.lockingManager = lockingManager;
         this.componentTypeRegistry = componentTypeRegistry;
     }
@@ -96,7 +96,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ConfigurationInternal configuration = configurationContainer.detachedConfiguration();
-        final RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataProcessor);
+        final RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler);
         final ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(repositoryChain.getArtifactResolver());
 
         return lockingManager.useCache("resolve artifacts", new Factory<ArtifactResolutionResult>() {

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+import org.gradle.api.internal.artifacts.ModuleMetadataHandler
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
@@ -51,9 +51,9 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def moduleArtifactsCache = Mock(ModuleArtifactsCache)
     def artifactAtRepositoryCache = Mock(CachedArtifactIndex)
     def cachePolicy = Stub(CachePolicy)
-    def metadataProcessor = Stub(ModuleMetadataProcessor)
+    def metadataHandler = Stub(ModuleMetadataHandler)
     def repo = new CachingModuleComponentRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache,
-            cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor)
+            cachePolicy, new BuildCommencedTimeProvider(), metadataHandler)
 
     @Unroll
     def "artifact last modified date is cached - lastModified = #lastModified"() {
