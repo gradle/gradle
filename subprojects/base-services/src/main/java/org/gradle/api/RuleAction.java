@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts;
-
-import org.gradle.api.Incubating;
+package org.gradle.api;
 
 import java.util.List;
 
 /**
- * Represents a rule applied with metadata.
+ * An action representing a rule, taking declared inputs and performing an action on a subject.
  *
- * @param <T>
+ * @param <T> The subject type
  */
 @Incubating
-public interface MetadataRule<T> {
-    Class<T> getSubjectType();
+public interface RuleAction<T> {
     List<Class<?>> getInputTypes();
     void execute(T subject, List<?> inputs);
 }

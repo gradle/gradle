@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadata
-import org.gradle.api.artifacts.MetadataRule
+import org.gradle.api.RuleAction
 import org.gradle.api.artifacts.VersionSelection
 import org.gradle.api.artifacts.VersionSelectionRules
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -89,7 +89,7 @@ class DefaultVersionSelectionRulesTest extends Specification {
                 result.resolved(md, null)
             }
         }
-        def metadataRule = new TestMetadataRule()
+        def metadataRule = new TestRuleAction()
         metadataRule.inputTypes = inputTypes
 
         when:
@@ -173,7 +173,7 @@ class DefaultVersionSelectionRulesTest extends Specification {
         where:
         closureOrRuleOrAction                                                                                      | _
         new TestExceptionAction()                                                                                  | _
-        new TestExceptionMetadataRule()                                                                            | _
+        new TestExceptionRuleAction()                                                                            | _
         { VersionSelection vs -> throw new Exception("From test") }                                                | _
         { VersionSelection vs, ComponentMetadata cm -> throw new Exception("From test") }                          | _
         { VersionSelection vs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") } | _
@@ -187,7 +187,7 @@ class DefaultVersionSelectionRulesTest extends Specification {
                 result.resolved(md, null)
             }
         }
-        def metadataRule = new TestMetadataRule()
+        def metadataRule = new TestRuleAction()
         metadataRule.inputTypes = inputTypes
 
         when:
@@ -239,18 +239,14 @@ class DefaultVersionSelectionRulesTest extends Specification {
         where:
         closureOrActionOrRule            | _
         { VersionSelection vs -> }       | _
-        new TestMetadataRule()           | _
+        new TestRuleAction()           | _
         new TestVersionSelectionAction() | _
     }
 
-    private class TestMetadataRule implements MetadataRule<VersionSelection> {
+    private class TestRuleAction implements RuleAction<VersionSelection> {
         boolean called = false
         List<Class> inputTypes = []
 
-        @Override
-        Class getSubjectType() {
-            return VersionSelection.class
-        }
 
         @Override
         List<Class<?>> getInputTypes() {
@@ -263,7 +259,7 @@ class DefaultVersionSelectionRulesTest extends Specification {
         }
     }
 
-    private class TestExceptionMetadataRule extends TestMetadataRule {
+    private class TestExceptionRuleAction extends TestRuleAction {
         @Override
         void execute(VersionSelection subject, List inputs) {
             throw new Exception("From test")
