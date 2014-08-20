@@ -31,7 +31,22 @@ public class CorePluginRegistry extends DefaultPluginRegistry {
     @Override
     protected PluginDescriptor findPluginDescriptor(String pluginId, ClassLoader classLoader) {
         String qualified = maybeQualify(pluginId);
-        return super.findPluginDescriptor(qualified, classLoader);
+        PluginDescriptor qualifiedDescriptor = super.findPluginDescriptor(qualified, classLoader);
+        if (qualifiedDescriptor != null || qualified.equals(pluginId)) {
+            return qualifiedDescriptor;
+        }
+
+        // Try to load the plugin unqualified.
+        // This is only applicable when users are unit testing plugins.
+        // What happens there is that the plugin descriptor and class are loaded via the system classloader (i.e. they are on the test classpath)
+        // The classloader we are given here has full visibility of the test classpath (it's the plugins class loader, which is just the runtime classloader in this case)
+        // If we don't find the plugin at this level, the child plugin registry will find the descriptor but not the class.
+        // This is because that registry is based on the API classloader, which allows gradle-plugins/ resources, but restricts the packages that can be loaded.
+        // The end result is a ClassNotFoundException.
+        // Therefore, try for the plugin unqualified in order to load the plugin under test here during unit testing.
+        // A better solution would be to allow the API classloader to only see core plugin descriptors, and to add the test classpath to the Project object under test's class loader scope.
+
+        return super.findPluginDescriptor(pluginId, classLoader);
     }
 
     private String maybeQualify(String id) {
