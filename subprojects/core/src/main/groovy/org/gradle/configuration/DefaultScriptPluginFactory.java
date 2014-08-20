@@ -16,8 +16,6 @@
 
 package org.gradle.configuration;
 
-import com.google.common.collect.ListMultimap;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -33,24 +31,18 @@ import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.plugin.internal.PluginId;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginDependenciesService;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
-
-    public static final PluginId NOOP_PLUGIN_ID = PluginId.of("noop");
 
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
@@ -140,29 +132,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
             if (!pluginRequests.isEmpty()) { // implies target is PluginAware
-                ListMultimap<PluginId, PluginRequest> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequest>() {
-                    public PluginId transform(PluginRequest pluginRequest) {
-                        return pluginRequest.getId();
-                    }
-                });
-
-                // Check for duplicates
-                for (PluginId key : groupedById.keySet()) {
-                    // Ignore duplicate noops - noop plugin just used for testing
-                    if (key.equals(NOOP_PLUGIN_ID)) {
-                        continue;
-                    }
-
-                    List<PluginRequest> pluginRequestsForId = groupedById.get(key);
-                    if (pluginRequestsForId.size() > 1) {
-                        PluginRequest first = pluginRequests.get(0);
-                        PluginRequest second = pluginRequests.get(1);
-
-                        InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
-                        throw new LocationAwareException(exception, second.getScriptSource(), second.getLineNumber());
-                    }
-                }
-
                 // This is safe because earlier on we only allow plugins {} for ProjectScript
                 PluginAware pluginAware = (PluginAware) target;
                 pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginAware, targetScope);
