@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -28,8 +28,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionM
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.component.ArtifactType;
@@ -66,7 +66,7 @@ public class ResolveIvyFactory {
 
     public RepositoryChain create(ConfigurationInternal configuration,
                                   Iterable<? extends ResolutionAwareRepository> repositories,
-                                  ModuleMetadataHandler metadataHandler) {
+                                  ModuleMetadataProcessor metadataProcessor) {
         ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal)configuration.getResolutionStrategy();
         ResolutionRules resolutionRules = resolutionStrategy.getResolutionRules();
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
@@ -88,12 +88,12 @@ public class ResolveIvyFactory {
             //     - This might help later when we integrate in-memory caching with file-backed caching.
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new LocalModuleComponentRepository(baseRepository, metadataHandler);
+                moduleComponentRepository = new LocalModuleComponentRepository(baseRepository, metadataProcessor);
             } else {
                 moduleComponentRepository = new CacheLockReleasingModuleComponentsRepository(moduleComponentRepository, cacheLockingManager);
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
                 moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
-                        cachePolicy, timeProvider, metadataHandler);
+                        cachePolicy, timeProvider, metadataProcessor);
             }
 
             if (baseRepository.isDynamicResolveMode()) {

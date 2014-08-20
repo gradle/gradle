@@ -17,21 +17,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
+import org.gradle.api.internal.artifacts.metadata.*
+import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
@@ -51,9 +46,9 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def moduleArtifactsCache = Mock(ModuleArtifactsCache)
     def artifactAtRepositoryCache = Mock(CachedArtifactIndex)
     def cachePolicy = Stub(CachePolicy)
-    def metadataHandler = Stub(ModuleMetadataHandler)
+    def metadataProcessor = Stub(ModuleMetadataProcessor)
     def repo = new CachingModuleComponentRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache,
-            cachePolicy, new BuildCommencedTimeProvider(), metadataHandler)
+            cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor)
 
     @Unroll
     def "artifact last modified date is cached - lastModified = #lastModified"() {

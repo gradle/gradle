@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
@@ -57,14 +57,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private final ModuleComponentRepository delegate;
     private final BuildCommencedTimeProvider timeProvider;
-    private final ModuleMetadataHandler metadataHandler;
+    private final ModuleMetadataProcessor metadataProcessor;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                             ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
-                                            ModuleMetadataHandler metadataHandler) {
+                                            ModuleMetadataProcessor metadataProcessor) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleVersionsCache = moduleVersionsCache;
@@ -72,7 +72,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
         this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
-        this.metadataHandler = metadataHandler;
+        this.metadataProcessor = metadataProcessor;
     }
 
     public String getId() {
@@ -168,7 +168,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
             MutableModuleVersionMetaData metaData = cachedMetaData.getMetaData();
-            metadataHandler.processMetadata(metaData);
+            metadataProcessor.processMetadata(metaData);
             if (dependency.isChanging() || metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
@@ -288,7 +288,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     MutableModuleVersionMetaData metaData = result.getMetaData();
                     ModuleSource moduleSource = result.getModuleSource();
                     ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData, moduleSource);
-                    metadataHandler.processMetadata(metaData);
+                    metadataProcessor.processMetadata(metaData);
                     result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), dependency.isChanging() || metaData.isChanging(), moduleSource));
                     break;
                 case Failed:
