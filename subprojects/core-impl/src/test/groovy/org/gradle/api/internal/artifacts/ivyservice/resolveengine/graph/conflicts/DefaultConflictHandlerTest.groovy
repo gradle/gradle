@@ -71,7 +71,6 @@ class DefaultConflictHandlerTest extends Specification {
 
         then:
         !a1X
-        a2X == a3X
         handler.conflictCount == 1
     }
 

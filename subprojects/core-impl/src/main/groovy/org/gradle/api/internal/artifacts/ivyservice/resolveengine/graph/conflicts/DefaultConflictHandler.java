@@ -25,18 +25,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevision
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 public class DefaultConflictHandler implements ConflictHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
     private final CompositeConflictResolver compositeResolver = new CompositeConflictResolver();
-    final Map<ModuleIdentifier, DefaultModuleConflict> conflicts = new LinkedHashMap<ModuleIdentifier, DefaultModuleConflict>();
-    private final Map<ModuleIdentifier, CandidateModule> modules = new HashMap<ModuleIdentifier, CandidateModule>();
-    private final Map<ModuleIdentifier, CandidateModule> targetToSource = new LinkedHashMap<ModuleIdentifier, CandidateModule>();
+    private final ConflictContainer<ModuleRevisionResolveState> conflicts = new ConflictContainer<ModuleRevisionResolveState>();
     private final ModuleReplacementsData moduleReplacements;
 
     public DefaultConflictHandler(ModuleConflictResolver conflictResolver, ModuleReplacementsData moduleReplacements) {
@@ -49,53 +43,8 @@ public class DefaultConflictHandler implements ConflictHandler {
      */
     @Nullable
     public ModuleConflict registerModule(CandidateModule newModule) {
-        //TODO SF, this whole thing needs a rewrite and better model than a bunch of map fields
-        modules.put(newModule.getId(), newModule);
         ModuleIdentifier replacedBy = moduleReplacements.getReplacementFor(newModule.getId());
-        //1) we've seen the replacement already:
-        if (replacedBy != null) {
-            targetToSource.put(replacedBy, newModule);
-            //if we have already seen the replacement, register conflict (or update existing conflict)
-            CandidateModule replacement = modules.get(replacedBy);
-            if (replacement != null) {
-                DefaultModuleConflict result = createOrGetConflict(newModule);
-                //we need to remove the replacementConflict (if exists) otherwise we may have separate conflicts for replacement source and target
-                //TODO SF this is not nice and we may need exactly the same for scenario #2
-                DefaultModuleConflict replacementConflict = conflicts.remove(replacement.getId());
-                if (replacementConflict != null) {
-                    result.replacedBy(replacementConflict.getVersions());
-                } else {
-                    result.replacedBy(replacement.getVersions());
-                }
-                return result;
-            }
-        }
-
-        //2) new module is a replacement to a module we've seen already
-        CandidateModule replacementSource = targetToSource.get(newModule.getId());
-        if (replacementSource != null) {
-            DefaultModuleConflict result = createOrGetConflict(replacementSource);
-            result.replacedBy(newModule.getVersions());
-            return result;
-        }
-
-        //3) new module has more than one version
-        if (newModule.getVersions().size() > 1) {
-            return createOrGetConflict(newModule);
-        }
-
-        return null;
-    }
-
-    private DefaultModuleConflict createOrGetConflict(CandidateModule module) {
-        DefaultModuleConflict c = conflicts.get(module.getId());
-        if (c == null) {
-            c = new DefaultModuleConflict(module.getVersions());
-            conflicts.put(module.getId(), c);
-        }
-        c.addVersions(module.getVersions());
-
-        return c;
+        return conflicts.newModule(newModule.getId(), newModule.getVersions(), replacedBy);
     }
 
     /**
@@ -106,7 +55,7 @@ public class DefaultConflictHandler implements ConflictHandler {
     }
 
     int getConflictCount() {
-        return conflicts.size();
+        return conflicts.getSize();
     }
 
     /**
@@ -114,12 +63,11 @@ public class DefaultConflictHandler implements ConflictHandler {
      */
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
-        ModuleIdentifier first = conflicts.keySet().iterator().next();
-        DefaultModuleConflict firstConflict = conflicts.remove(first);
-        ModuleRevisionResolveState selected = compositeResolver.select(firstConflict.getVersions());
-        ConflictResolutionResult result = new DefaultConflictResolutionResult(firstConflict, selected);
+        ConflictContainer.Conflict conflict = conflicts.pop();
+        ModuleRevisionResolveState selected = compositeResolver.select(conflict.candidates);
+        ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict, selected);
         resolutionAction.execute(result);
-        LOGGER.debug("Selected {} from conflicting modules {}.", selected, firstConflict.getVersions());
+        LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);
     }
 
     public void registerResolver(ModuleConflictResolver conflictResolver) {
