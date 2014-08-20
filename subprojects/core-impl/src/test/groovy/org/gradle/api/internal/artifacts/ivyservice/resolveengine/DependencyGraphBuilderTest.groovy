@@ -21,10 +21,11 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.artifacts.*
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacements
+import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
@@ -46,14 +47,15 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleR
 
 class DependencyGraphBuilderTest extends Specification {
     final ConfigurationInternal configuration = Mock()
-    final ModuleConflictResolver conflictResolver = Mock() //TODO SF should use ConflictHandler and include more related coverage
+    final ModuleConflictResolver conflictResolver = Mock()
     final DependencyToModuleVersionIdResolver dependencyResolver = Mock()
     final ArtifactResolver artifactResolver = Mock()
     final ResolutionResultBuilder resultBuilder = Mock()
     final ModuleVersionMetaData root = revision('root')
     final ModuleToModuleVersionResolver moduleResolver = Mock()
     final DependencyToConfigurationResolver dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(dependencyResolver, moduleResolver, artifactResolver, new DefaultConflictHandler(conflictResolver, Stub(ModuleReplacements)), dependencyToConfigurationResolver)
+    final ModuleReplacementsData moduleReplacements = Mock()
+    final DependencyGraphBuilder builder = new DependencyGraphBuilder(dependencyResolver, moduleResolver, artifactResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), dependencyToConfigurationResolver)
 
     def setup() {
         config(root, 'root', 'default')
@@ -64,6 +66,12 @@ class DependencyGraphBuilderTest extends Specification {
         _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ModuleVersionMetaData module, ComponentUsage context, BuildableArtifactSetResolveResult result ->
             result.resolved(module.artifacts)
         }
+    }
+
+    private DefaultLenientConfiguration resolve() {
+        def results = new DefaultResolvedConfigurationBuilder(new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
+        builder.resolve(configuration, resultBuilder, results)
+        new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
     }
 
     def "does not resolve a given module selector more than once"() {
@@ -82,12 +90,6 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         modules(result) == ids(a, b, c)
-    }
-
-    private DefaultLenientConfiguration resolve() {
-        def results = new DefaultResolvedConfigurationBuilder(new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
-        builder.resolve(configuration, resultBuilder, results)
-        new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
     }
 
     def "correctly notifies the resolution result builder"() {
@@ -110,6 +112,35 @@ class DependencyGraphBuilderTest extends Specification {
         1 * resultBuilder.resolvedConfiguration({ it.name == 'root' }, { it*.requested.module == ['a', 'b'] })
         then:
         1 * resultBuilder.resolvedConfiguration({ it.name == 'a' }, { it*.requested.module == ['c', 'd'] && it*.failure.count { it != null } == 1 })
+    }
+
+    def "honors component replacements"() {
+        given:
+        def a = revision('a') // a->c
+        def b = revision('b') // b->d, replaces a
+        def c = revision('c') //transitive of evicted a
+        def d = revision('d')
+
+        traverses root, a
+        traverses root, b
+        doesNotResolve a, c
+        traverses b, d
+
+        moduleReplacements.getReplacementFor(new DefaultModuleIdentifier("group", "a")) >> new DefaultModuleIdentifier("group", "b")
+        1 * conflictResolver.select(!null) >> {
+            Collection<ModuleRevisionResolveState> candidates = it[0]
+            def sel = candidates.find { it.id.name == 'b' }
+            assert sel
+            sel
+        }
+        0 * conflictResolver._
+
+        when:
+        def result = resolve()
+        result.rethrowFailure()
+
+        then:
+        modules(result) == ids(b, d)
     }
 
     def "does not resolve a given dynamic module selector more than once"() {
