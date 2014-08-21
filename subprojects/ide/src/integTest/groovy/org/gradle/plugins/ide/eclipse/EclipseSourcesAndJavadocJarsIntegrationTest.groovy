@@ -30,14 +30,25 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         assert lib.javadocLocation.endsWith("/module-1.0-${javadocClassifier}.jar!/")
     }
 
-
     void ideFileContainsSourcesAndJavadocEntryForEachLib(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
         def classpath = new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
         classpath.libs.each {
             assert it.sourcePath.endsWith("/module-1.0-${sourcesClassifier}.jar")
             assert it.javadocLocation.endsWith("/module-1.0-${javadocClassifier}.jar!/")
         }
+    }
 
+    void ideFileContainsArtifactsWithSourceEntries(Map<String, Map<String, String>> artifactSources) {
+        def classpath = new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
+        assert classpath.libs.size() == artifactSources.size()
+
+        artifactSources.eachWithIndex {expectedModuleFileName, expectedSourceFileName, index ->
+            def lib = classpath.libs[index]
+
+            assert lib.jarPath.endsWith(expectedModuleFileName)
+            assert lib.sourcePath.endsWith(expectedSourceFileName["sources"])
+            assert lib.javadocLocation.endsWith("${expectedSourceFileName["javadoc"]}!/")
+        }
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
