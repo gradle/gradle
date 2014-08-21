@@ -36,6 +36,24 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
 
     }
 
+    void ideFileContainsArtifactsWithSourceEntries(Map<String, Map<String, String>> artifactSources) {
+        def iml = parseFile("root.iml")
+
+
+        assert iml.component.orderEntry.library.CLASSES.root.size() == artifactSources.size()
+
+        artifactSources.eachWithIndex {expectedModuleFileName, expectedAuxiliaryFileNames, index ->
+            def moduleUrl = iml.component.orderEntry.library.CLASSES.root.@url[index].text()
+            assert moduleUrl.endsWith("/$expectedModuleFileName!/")
+
+            def sourcesUrl = iml.component.orderEntry.library.SOURCES.root.@url[index].text()
+            assert sourcesUrl.endsWith("/${expectedAuxiliaryFileNames["sources"]}!/")
+
+            def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[index].text()
+            assert javadocUrl.endsWith("/${expectedAuxiliaryFileNames["javadoc"]}!/")
+        }
+    }
+
     void ideFileContainsNoSourcesAndJavadocEntry() {
         IdeaModuleFixture iml =  parseIml("root.iml")
         iml.dependencies.libraries.size() == 1
