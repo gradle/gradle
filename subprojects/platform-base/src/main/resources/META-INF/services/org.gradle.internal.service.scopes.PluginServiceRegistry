@@ -1,1 +1,1 @@
-platform.base.internal.registry.ComponentModelBaseServiceRegistry
+org.gradle.platform.base.internal.registry.ComponentModelBaseServiceRegistry
