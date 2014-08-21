@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.java;
-
-import org.gradle.api.Incubating;
-import org.gradle.jvm.Classpath;
-import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * A set of sources passed to the Java compiler.
+ * Base plugins that add support for JVM runtime.
  */
 @Incubating
-public interface JavaSourceSet extends LanguageSourceSet {
-    Classpath getCompileClasspath();
-}
+package org.gradle.jvm.plugins;
+
+import org.gradle.api.Incubating;

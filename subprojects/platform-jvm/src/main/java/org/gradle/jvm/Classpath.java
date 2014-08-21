@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.java;
+package org.gradle.jvm;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.jvm.Classpath;
-import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.api.file.FileCollection;
 
 /**
- * A set of sources passed to the Java compiler.
+ * A collection of files to be used as a class path.
  */
 @Incubating
-public interface JavaSourceSet extends LanguageSourceSet {
-    Classpath getCompileClasspath();
+public interface Classpath extends Buildable {
+    FileCollection getFiles();
 }

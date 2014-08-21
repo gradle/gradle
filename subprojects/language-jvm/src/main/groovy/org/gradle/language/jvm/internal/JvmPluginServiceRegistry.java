@@ -22,7 +22,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.runtime.jvm.JvmLibrary;
+import org.gradle.jvm.JvmLibrary;
 
 public class JvmPluginServiceRegistry implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {

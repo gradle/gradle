@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule

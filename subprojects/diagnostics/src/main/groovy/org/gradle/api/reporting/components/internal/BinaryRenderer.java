@@ -25,8 +25,8 @@ import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.runtime.base.BinarySpec;
-import org.gradle.runtime.jvm.JarBinarySpec;
-import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
+import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.JvmLibraryBinarySpec;
 
 class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
     private final FileResolver fileResolver;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.jvm;
+
+package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.jvm.JvmLibraryBinarySpec;
+
+import java.io.File;
 
 /**
- * An exploded binary containing resources and compiled class files.
+ * Definition of a Jar file binary that is to be built by Gradle.
  */
-// TODO: maybe we need to allow additional dirs like SourceSetOutput does
-// (esp. for backwards compatibility). Wonder if it's still necessary to distinguish
-// between classes and resources dirs, instead of just maintaining a collection of dirs.
-// As far as generated resources are concerned, it might be better to model
-// them as an additional (Buildable) ResourceSet.
 @Incubating @HasInternalProtocol
-public interface ClassDirectoryBinarySpec extends JvmLibraryBinarySpec {
+public interface JarBinarySpec extends JvmLibraryBinarySpec {
+    /**
+     * The ProjectJvmLibrary that this binary belongs to.
+     */
+    JvmLibrarySpec getLibrary();
+
+    /**
+     * The jar file output for this binary.
+     */
+    File getJarFile();
+
+    /**
+     * Sets the jar file output for this binary.
+     */
+    void setJarFile(File jarFile);
 }

@@ -32,8 +32,8 @@ import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.runtime.base.BinarySpec;
-import org.gradle.runtime.jvm.JvmByteCode;
-import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
+import org.gradle.jvm.JvmByteCode;
+import org.gradle.jvm.JvmLibraryBinarySpec;
 
 import java.io.File;
 import java.util.*;

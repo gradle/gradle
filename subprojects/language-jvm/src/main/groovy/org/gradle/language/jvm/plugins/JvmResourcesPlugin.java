@@ -27,7 +27,7 @@ import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.runtime.base.BinarySpec;
-import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
+import org.gradle.jvm.JvmLibraryBinarySpec;
 
 import java.util.Collections;
 import java.util.Map;
@@ -62,7 +62,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         }
 
         public Class<? extends TransformationFileType> getOutputType() {
-            return org.gradle.runtime.jvm.JvmResources.class;
+            return org.gradle.jvm.JvmResources.class;
         }
 
         public SourceTransformTaskConfig getTransformTask() {

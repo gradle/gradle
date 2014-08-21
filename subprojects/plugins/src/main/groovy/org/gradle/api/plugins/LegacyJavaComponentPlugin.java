@@ -32,7 +32,7 @@ import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.toolchain.JavaToolChain;
 
 import javax.inject.Inject;
 import java.io.File;

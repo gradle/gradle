@@ -25,7 +25,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 
 public class DefaultJavaToolChain implements JavaToolChainInternal {
     private final JavaCompilerFactory compilerFactory;

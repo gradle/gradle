@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.jvm.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.*;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.jvm.Classpath;
+import org.gradle.api.tasks.TaskDependency;
 
-public class SourceSetCompileClasspath implements Classpath {
-    private final SourceSet sourceSet;
+public class DefaultClasspath implements Classpath {
+    private final FileCollection files;
 
-    public SourceSetCompileClasspath(SourceSet sourceSet) {
-        this.sourceSet = sourceSet;
+    public DefaultClasspath(FileResolver fileResolver, TaskResolver taskResolver) {
+        files = new DefaultConfigurableFileCollection(fileResolver, taskResolver);
     }
 
     public FileCollection getFiles() {
-        return sourceSet.getCompileClasspath();
+        return files;
     }
 
     public TaskDependency getBuildDependencies() {
-        return sourceSet.getCompileClasspath().getBuildDependencies();
+        return files.getBuildDependencies();
     }
 }

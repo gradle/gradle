@@ -143,7 +143,7 @@
                 <td>org.gradle.api.Script</td>
             </tr>
             <tr>
-                <td>org.gradle.runtime.jvm.toolchain.JavaToolChain</td>
+                <td>org.gradle.jvm.toolchain.JavaToolChain</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.SourceSet</td>

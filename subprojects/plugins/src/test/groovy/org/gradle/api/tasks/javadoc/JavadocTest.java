@@ -23,7 +23,7 @@ import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;

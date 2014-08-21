@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.java;
 
+package org.gradle.jvm;
+
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.jvm.Classpath;
-import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * A set of sources passed to the Java compiler.
+ * The configuration for jvm components created by this build.
  */
 @Incubating
-public interface JavaSourceSet extends LanguageSourceSet {
-    Classpath getCompileClasspath();
+public interface JvmComponentExtension {
+    /**
+     * Provides the set of JVM libraries that can be created by this build.
+     */
+    NamedDomainObjectContainer<JvmLibrarySpec> getLibraries();
+
+    /**
+     * Configures the set of JVM libraries.
+     */
+    void libraries(Action<? super NamedDomainObjectContainer<? super JvmLibrarySpec>> action);
 }

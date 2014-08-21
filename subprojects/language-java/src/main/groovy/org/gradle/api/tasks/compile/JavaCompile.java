@@ -35,8 +35,8 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.runtime.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;

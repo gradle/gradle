@@ -24,8 +24,8 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.runtime.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.util.GUtil;
 
 import java.io.File;

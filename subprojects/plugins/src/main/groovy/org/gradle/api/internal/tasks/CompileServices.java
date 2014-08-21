@@ -32,7 +32,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 
 public class CompileServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {

@@ -37,7 +37,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
-import org.gradle.runtime.jvm.JvmLibrary;
+import org.gradle.jvm.JvmLibrary;
 
 import java.io.File;
 import java.util.*;
