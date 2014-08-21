@@ -79,21 +79,21 @@ This has implications for the DSL, as some criteria can be expressed statically 
 
 ## Component model
 
-There are 2 things about a component that define 'what' the component is:
+There are several properties of a component that define 'what' the component is:
 
-- The source languages that the component is built from
-- The 'entry points' through which the component is invoked:
+- The 'entry points' through which the component may be invoked:
     - API
     - Main method
     - J2EE servlet application
     - Play application
     - JNI method implementations
     - Gradle plugin
+- The source languages that the component is built from. Or, more generally, the type of inputs the component is built from.
 
 For example:
 
 - A component that provides an API is-a library
-- A component built from a JVM language is-a JVM component (and runs on the JVM)
+- A component built from a JVM language is-a JVM component (and so runs on the JVM)
 - A component built from a native language is-a native component (and runs on the native C runtime)
 - A component that provides a main method is-a command-line application
 - A component that provides a Web servlet is-a Web application
@@ -132,7 +132,7 @@ Or:
     model {
         components {
             lib1(JavaLibrary) {
-                // This is-a Jvm library built from Java source
+                // The explicit type parameter means that this is-a Jvm library built from Java source
             }
             lib2(JvmLibrary) {
                 // This is-a Jvm library built from some implicit source languages
@@ -140,7 +140,7 @@ Or:
         }
     }
 
-Or:
+Or, some syntax variations:
 
     model {
         mylib(JavaLibrary) {
@@ -168,7 +168,7 @@ Certain capabilities are mixed-in when the component is defined. This is really 
     model {
         components {
             lib1(Library, JvmComponent) {
-                // This is a JVM library with implicit languages
+                // Mix two capabilities together: this is a JVM library with implicit languages
             }
             app1(CommandLineApplication, NativeComponent) {
                 // This is a native executable
@@ -183,13 +183,21 @@ Certain capabilities are mixed-in when the component is defined. This is really 
         }
     }
 
-Or:
+Or, with a different syntax:
 
     model {
         lib1 {
             // These statements have to be first in the block
             isA Library
             isA ServletWebApplication
+
+            // Other configuration
+        }
+
+        // Or
+        lib2 {
+            provides JvmApi
+            provides ServletWebApplication
 
             // Other configuration
         }
@@ -228,7 +236,7 @@ Or:
         myLib = component {
             // Can only express entry points and language properties here
             provides = api
-            languages = lang.java
+            source = lang.java
         }
         myLib {
             // Other configuration goes here
@@ -236,7 +244,7 @@ Or:
 
         // Infer the type from the static declarations
         component myLib
-        myLib.languages = lang.java
+        myLib.source = lang.java
         myLib.targetPlatforms = platforms.java("1.6")
         myLib.source.java.sourceLanguage = lang.java("1.6")
         myLib { ... }
@@ -248,7 +256,7 @@ Or:
         // Declare certain static facts about a component
         library myLib
         commandLineApplication myLib
-        myLib.languages lang.java, lang.scala
+        myLib.source lang.java, lang.scala
     }
 
 For these options, rules would be able to receive and mutate some 'definition' view to determine the types of an object. These types would be
@@ -257,8 +265,28 @@ constructor parameters of the object.
 
 There would still be static types that represent certain capabilities, and these would be available for use in rules.
 
-### Option 4 - Combined
+### Option 4 - Infer type from code structure:
 
-Both static types and property values can be used to determine facts about the component.
+    model {
+        mylib {
+            // 'api' block means this provides an API
+            api { ... configure the API ... }
+            // 'source.java' block means this is built from Java
+            source {
+                java { ... configure Java source ... }
+            }
+        }
+
+        // Would have to state these things even if not required
+        lib1 {
+            api
+            source.java
+        }
+        lib2 {
+            executable
+            source.c
+            source.windowsResources
+        }
+    }
 
 ## Add more stuff here
