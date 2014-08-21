@@ -18,6 +18,7 @@ package org.gradle.runtime.base.internal.registry;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -29,34 +30,30 @@ import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
 
 public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRuleDefinitionHandler<ComponentType, ComponentSpec, BaseComponentSpec> {
 
-    private Instantiator instantiator;
-
-    public ComponentTypeRuleDefinitionHandler(Instantiator instantiator) {
-        super("component", ComponentType.class, ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class);
-        this.instantiator = instantiator;
-    }
-
-    @Override
-    protected <V extends ComponentSpec, W extends BaseComponentSpec> Action<? super TypeRegistrationContext> createTypeRegistrationAction(final ModelType<V> type, final ModelType<W> implementation) {
-        return new Action<TypeRegistrationContext>() {
-            public void execute(final TypeRegistrationContext context) {
+    public ComponentTypeRuleDefinitionHandler(final Instantiator instantiator) {
+        super("component", ComponentType.class, ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, new Action<RegistrationContext<ComponentSpec, BaseComponentSpec>>() {
+            public void execute(final RegistrationContext<ComponentSpec, BaseComponentSpec> context) {
                 ExtensionContainer extensions = context.getExtensions();
-                final ProjectSourceSet projectSourceSet = extensions.getByType(ProjectSourceSet.class);
+                ProjectSourceSet projectSourceSet = extensions.getByType(ProjectSourceSet.class);
                 ComponentSpecContainer componentSpecs = extensions.getByType(ComponentSpecContainer.class);
-                componentSpecs.registerFactory(type.getConcreteClass(), new NamedDomainObjectFactory<V>() {
-                    public V create(String name) {
+                doRegister(context.getType(), context.getImplementation(), projectSourceSet, componentSpecs, context.getProjectIdentifier());
+            }
+
+            private <T extends ComponentSpec, I extends BaseComponentSpec> void doRegister(final ModelType<T> type, final ModelType<I> implementation, final ProjectSourceSet projectSourceSet, ComponentSpecContainer componentSpecs, final ProjectIdentifier projectIdentifier) {
+                componentSpecs.registerFactory(type.getConcreteClass(), new NamedDomainObjectFactory<T>() {
+                    public T create(String name) {
                         FunctionalSourceSet componentSourceSet = projectSourceSet.maybeCreate(name);
-                        ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(context.getProjectIdentifier().getPath(), name);
+                        ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
 
                         // safe because we implicitly know that U extends V, but can't express this in the type system
                         @SuppressWarnings("unchecked")
-                        V created = (V) BaseComponentSpec.create(implementation.getConcreteClass(), id, componentSourceSet, instantiator);
+                        T created = (T) BaseComponentSpec.create(implementation.getConcreteClass(), id, componentSourceSet, instantiator);
 
                         return created;
                     }
                 });
             }
-        };
+        });
     }
 
     @Override

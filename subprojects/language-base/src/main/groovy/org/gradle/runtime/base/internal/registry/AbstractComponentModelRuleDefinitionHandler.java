@@ -46,17 +46,17 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
     private ModelType<T> baseInterface;
     private ModelType<U> baseImplementation;
     private ModelType<? extends TypeBuilder> builderInterface;
+    private Action<? super RegistrationContext<T, U>> registerer;
 
     public AbstractComponentModelRuleDefinitionHandler(String modelName, Class<A> annotationClass,
-                                                       Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder> builderInterface) {
+                                                       Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder> builderInterface, Action<? super RegistrationContext<T, U>> registerer) {
         this.modelName = modelName;
         this.annotationClass = annotationClass;
+        this.registerer = registerer;
         this.baseInterface = ModelType.of(baseInterface);
         this.baseImplementation = ModelType.of(baseImplementation);
         this.builderInterface = ModelType.of(builderInterface);
     }
-
-    abstract protected <V extends T, W extends U> Action<? super TypeRegistrationContext> createTypeRegistrationAction(ModelType<V> type, ModelType<W> implementation);
 
     abstract protected TypeBuilderInternal createBuilder();
 
@@ -67,8 +67,7 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
 
             dependencies.add(ComponentModelBasePlugin.class);
             if (implementation != null) {
-                Action<? super TypeRegistrationContext> typeRegistrationAction = createTypeRegistrationAction(type, implementation);
-                ModelMutator<?> mutator = new RegisterTypeRule(ruleDefinition.getDescriptor(), typeRegistrationAction);
+                ModelMutator<?> mutator = new RegisterTypeRule<T, U>(type, implementation, ruleDefinition.getDescriptor(), registerer);
                 modelRegistry.mutate(mutator);
             }
         } catch (InvalidComponentModelException e) {
@@ -133,19 +132,47 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         return (ModelType<? extends U>) implementationType;
     }
 
-    protected interface TypeRegistrationContext {
-        ExtensionContainer getExtensions();
+    protected static class RegistrationContext<T, U> {
+        private final ModelType<? extends T> type;
+        private final ModelType<? extends U> implementation;
+        private final ExtensionContainer extensions;
+        private final ProjectIdentifier projectIdentifier;
 
-        ProjectIdentifier getProjectIdentifier();
+        public RegistrationContext(ModelType<? extends T> type, ModelType<? extends U> implementation, ExtensionContainer extensions, ProjectIdentifier projectIdentifier) {
+            this.type = type;
+            this.implementation = implementation;
+            this.extensions = extensions;
+            this.projectIdentifier = projectIdentifier;
+        }
+
+        public ModelType<? extends T> getType() {
+            return type;
+        }
+
+        public ModelType<? extends U> getImplementation() {
+            return implementation;
+        }
+
+        public ExtensionContainer getExtensions() {
+            return extensions;
+        }
+
+        public ProjectIdentifier getProjectIdentifier() {
+            return projectIdentifier;
+        }
     }
 
-    private static class RegisterTypeRule implements ModelMutator<ExtensionContainer> {
+    private static class RegisterTypeRule<T, U> implements ModelMutator<ExtensionContainer> {
+        private final ModelType<? extends T> type;
+        private final ModelType<? extends U> implementation;
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<ExtensionContainer> subject;
         private final List<ModelReference<?>> inputs;
-        private final Action<? super TypeRegistrationContext> registerAction;
+        private final Action<? super RegistrationContext<T, U>> registerAction;
 
-        protected RegisterTypeRule(ModelRuleDescriptor descriptor, Action<? super TypeRegistrationContext> registerAction) {
+        protected RegisterTypeRule(ModelType<? extends T> type, ModelType<? extends U> implementation, ModelRuleDescriptor descriptor, Action<? super RegistrationContext<T, U>> registerAction) {
+            this.type = type;
+            this.implementation = implementation;
             this.descriptor = descriptor;
             this.registerAction = registerAction;
 
@@ -168,18 +195,10 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         public final void mutate(final ExtensionContainer extensionContainer, final Inputs inputs) {
             RuleContext.inContext(getDescriptor(), new Runnable() {
                 public void run() {
-                    registerAction.execute(new TypeRegistrationContext() {
-                        public ExtensionContainer getExtensions() {
-                            return extensionContainer;
-                        }
-
-                        public ProjectIdentifier getProjectIdentifier() {
-                            return inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
-                        }
-                    });
+                    RegistrationContext<T, U> context = new RegistrationContext<T, U>(type, implementation, extensionContainer, inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance());
+                    registerAction.execute(context);
                 }
             });
         }
     }
-
 }
