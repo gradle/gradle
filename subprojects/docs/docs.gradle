@@ -326,20 +326,21 @@ task javadocAll(type: Javadoc) {
     source publicGroovyProjects.collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
     classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
-    include 'org/gradle/api/**'
     include 'org/gradle/*'
-    include 'org/gradle/external/javadoc/**'
-    include 'org/gradle/language/**'
-    include 'org/gradle/ide/**'
-    include 'org/gradle/nativeplatform/**'
-    include 'org/gradle/process/**'
-    include 'org/gradle/plugins/**'
-    include 'org/gradle/runtime/**'
-    include 'org/gradle/testfixtures/**'
-    include 'org/gradle/tooling/**'
-    include 'org/gradle/testing/jacoco/**'
+    include 'org/gradle/api/**'
     include 'org/gradle/buildinit/**'
+    include 'org/gradle/external/javadoc/**'
+    include 'org/gradle/ide/**'
+    include 'org/gradle/jvm/**'
+    include 'org/gradle/language/**'
+    include 'org/gradle/nativeplatform/**'
+    include 'org/gradle/platform/**'
     include 'org/gradle/plugin/use/*'
+    include 'org/gradle/plugins/**'
+    include 'org/gradle/process/**'
+    include 'org/gradle/testfixtures/**'
+    include 'org/gradle/testing/jacoco/**'
+    include 'org/gradle/tooling/**'
     exclude '**/internal/**'
     options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
