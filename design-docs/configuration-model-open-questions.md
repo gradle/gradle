@@ -25,9 +25,9 @@ different criteria (eg path or type) from the DSL or a plugin.
 - How do I define views for a given object or class of objects?
 - How can I extend an object to add more stuff to it?
 
-## Mock ups
+# Mock ups
 
-### Some notes - Adam
+## Some notes about rules - Adam
 
 A rule:
 - Declares which objects are the input of rule.
@@ -74,4 +74,182 @@ Under this, a `Task` is an action.
 A rule generally can be transformed into a rule with broader criteria whose action defines a further rule with the specific criteria.
 This has implications for the DSL, as some criteria can be expressed statically in method signatures and some additional criteria can be expressed as code.
 
-### Add some stuff here
+## Component model
+
+There are 2 things about a component that define 'what' the component is:
+- The source languages that the component is built from
+- The 'entry points' that the component is invoked from or provides:
+    - API
+    - Main method
+    - Web servlet
+    - Play application
+    - JNI methods
+    - Gradle plugin
+
+For example:
+    - A component that provides an API is-a library
+    - A component built from a JVM language is-a JVM component (and runs on the JVM)
+    - A component built from a native language is-a native component (and runs on the native C runtime)
+    - A component that provides a main method is-a command-line application
+    - A component that provides a Web servlet is-a Web application
+    - A library that is built from Java is-a Java library
+    - A library that is built from Java and Scala is-a JVM library
+    - A library built from C and C++ is-a native library
+    - A component that provides an API and a main method is both a library and a command-line application.
+
+Not every combination of entry points and source languages makes sense, but many do.
+
+The DSL should be able to express any legal combination, plus some way to conveniently express common combinations. For example:
+    - A Java library -> built from Java and provides an API
+    - A C library -> built from C and provides an API
+    - A C executable -> built from C and provides a main method
+
+A 3rd fundamental property of a component is the set of target runtimes. The runtimes can often be inferred from either the source languages or the entry point,
+or may be explicitly defined.
+
+### Option 1 - Static types
+
+Each combination is bound together in a Java interface. This is more or less what we are doing now:
+
+    model {
+        jvm {
+            libraries {
+                mylib {
+                    // Type is implicit given the context: This is a Jvm Library built from some implicit source languages
+                }
+            }
+        }
+    }
+
+Or:
+
+    model {
+        components {
+            lib1(JavaLibrary) {
+                // This is-a Jvm library built from Java source
+            }
+            lib2(JvmLibrary) {
+                // This is-a Jvm library built from some implicit source languages
+            }
+        }
+    }
+
+Or:
+
+    model {
+        mylib(JavaLibrary) {
+            // This is implicitly a top-level component
+        }
+    }
+
+    model {
+        // Some syntax variants
+        myLib = component(JavaLibrary) { ... }
+        component('myLib', JavaLibrary) { ... }
+        component myLib(JavaLibrary) { ... }
+        JavaLibrary myLib = { ... }
+
+        // Or, given we know the component types, can generate factory methods
+        myLib = javaLibrary { ... }
+        javaLibrary(myLib) { ... }
+        javaLibrary myLib { ... }
+    }
+
+### Option 2 - Mix-in static types
+
+Certain capabilities are mixed-in when the component is defined. This is really just a more general case of the above:
+
+    model {
+        components {
+            lib1(Library, JvmComponent) {
+                // This is a JVM library with implicit languages
+            }
+            app1(CommandLineApplication, NativeComponent) {
+                // This is a native executable
+            }
+            comp2(CommandLineApplication, Library, NativeComponent) {
+                // This is a both a native command-line application and a native library
+                // It would produce executables, static libs and shared libs as output
+            }
+            lib2(JavaLibrary) {
+                // Can still bundle stuff up together into a specific combination
+            }
+        }
+    }
+
+Or:
+
+    model {
+        lib1 {
+            // These statements have to be first in the block
+            isA Library
+            isA ServletWebApplication
+
+            // Other configuration
+        }
+    }
+
+### Option 3 - Infer type from certain property values
+
+First determine the source languages and entry points of a component, then infer the types of the component. The types would
+determine which additional properties are available and the views which the component can be presented as:
+
+    model {
+        components {
+            mylib {
+                // This is a JVM library built from Java and Scala
+
+                // This is an implicit code block of 'static' facts
+                // These statements must be assignment statements whose RHS references immutable things only (constants, other model elements and factory methods that return immutable things)
+                provides = api
+                source = langs.java, langs.scala
+                targetPlatforms = platforms.scala("2.10"), platforms.scala("2.11")
+
+                // Additional configuration. This must be declared after the above. Can contain arbitrary code
+                // The delegate for this code is-a JavaComponent and is-a ScalaComponent and is-a JvmLibrary
+                source { ... }
+            }
+            lib2 {
+                // Type could be implicit based on how various rules configure the properties
+            }
+        }
+    }
+
+Or:
+
+    model {
+        // Define then configure
+        myLib = component {
+            // Can only express entry points and language properties here
+            provides = api
+            languages = lang.java
+        }
+        myLib {
+            // Other configuration goes here
+        }
+
+        // Infer the type from the static declarations
+        component myLib
+        myLib.languages = lang.java
+        myLib.targetPlatforms = platforms.java("1.6")
+        myLib.source.java.sourceLanguage = lang.java("1.6")
+        myLib { ... }
+    }
+
+Or:
+
+    model {
+        // Declare certain static facts about a component
+        library myLib
+        commandLineApplication myLib
+        myLib.languages lang.java, lang.scala
+    }
+
+For these options, a rule would be able to receive and mutate the 'definition' view to determine the types of an object. These types would be
+mixed together and made available for mutation by other rules.
+
+### Option 4 - Combined
+
+Both static types and property values can be used to determine facts about the component:
+
+## Add more stuff here
