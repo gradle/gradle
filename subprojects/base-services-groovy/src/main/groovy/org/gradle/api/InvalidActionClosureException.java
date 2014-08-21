@@ -17,34 +17,24 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
-import org.gradle.util.CollectionUtils;
-
-import java.util.List;
+import org.gradle.internal.exceptions.Contextual;
 
 /**
- * Thrown when a {@link Closure} is given as an {@link Action} implementation, but has the wrong signature.
+ * Thrown when a {@link Closure} is given as an {@link Action} or {@link RuleAction} implementation, but has the wrong signature.
  */
+@Contextual
 public class InvalidActionClosureException extends GradleException {
 
     private final Closure<?> closure;
-    private final Object argument;
 
-    public InvalidActionClosureException(Closure<?> closure, Object argument) {
-        super(toMessage(closure, argument));
+    public InvalidActionClosureException(String message, Closure<?> closure) {
+        super(message);
         this.closure = closure;
-        this.argument = argument;
     }
 
-    private static String toMessage(Closure<?> closure, Object argument) {
-        List<Object> classNames = CollectionUtils.collect(closure.getParameterTypes(), new Transformer<Object, Class>() {
-            public Object transform(Class clazz) {
-                return clazz.getName();
-            }
-        });
-        return String.format(
-                "The closure '%s' is not valid as an action for argument '%s'. It should accept no parameters, or one compatible with type '%s'. It accepts (%s).",
-                closure, argument, argument.getClass().getName(), CollectionUtils.join(", ", classNames)
-        );
+    public InvalidActionClosureException(String message, Closure<?> closure, Throwable cause) {
+        this(message, closure);
+        initCause(cause);
     }
 
     /**
@@ -54,14 +44,5 @@ public class InvalidActionClosureException extends GradleException {
      */
     public Closure<?> getClosure() {
         return closure;
-    }
-
-    /**
-     * The argument the action was executed with.
-     *
-     * @return The argument the action was executed with.
-     */
-    public Object getArgument() {
-        return argument;
     }
 }

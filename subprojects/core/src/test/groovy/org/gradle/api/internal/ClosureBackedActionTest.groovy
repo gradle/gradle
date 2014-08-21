@@ -66,7 +66,6 @@ class ClosureBackedActionTest extends Specification {
         then:
         def e = thrown InvalidActionClosureException
         e.closure.is(closure)
-        e.argument.is(arg)
         e.message == "The closure '${closure.toString()}' is not valid as an action for argument '1'. It should accept no parameters, or one compatible with type 'java.lang.String'. It accepts (java.util.Map)."
     }
 
@@ -81,7 +80,6 @@ class ClosureBackedActionTest extends Specification {
         then:
         def e = thrown InvalidActionClosureException
         e.closure.is(closure)
-        e.argument.is(arg)
         e.message == "The closure '${closure.toString()}' is not valid as an action for argument '1'. It should accept no parameters, or one compatible with type 'java.lang.String'. It accepts (java.util.Map, java.util.List)."
     }
 

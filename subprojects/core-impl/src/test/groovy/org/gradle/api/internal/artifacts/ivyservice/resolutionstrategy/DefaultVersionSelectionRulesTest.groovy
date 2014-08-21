@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Action
+import org.gradle.api.InvalidActionClosureException
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.RuleAction
+import org.gradle.api.artifacts.ComponentMetadata
+import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.VersionSelection
 import org.gradle.api.artifacts.VersionSelectionRules
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -121,26 +123,6 @@ class DefaultVersionSelectionRulesTest extends Specification {
         action.called
     }
 
-    def "produces sensible error when bad parameter type is provided" () {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
-
-        when:
-        versionSelectionRules.all closure
-
-        then:
-        def e = thrown(InvalidUserCodeException)
-        e.message == message
-
-        where:
-        closure                                                                                     | message
-        { it -> }                                                                                   | "First parameter of a version selection rule needs to be of type 'VersionSelection'."
-        { String something -> }                                                                     | "First parameter of a version selection rule needs to be of type 'VersionSelection'."
-        { IvyModuleDescriptor imd, ComponentMetadata cm -> }                                        | "First parameter of a version selection rule needs to be of type 'VersionSelection'."
-        { VersionSelection vs, String something -> }                                                | "Unsupported parameter type for version selection rule: java.lang.String"
-        { VersionSelection vs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type for version selection rule: java.lang.String"
-        { VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type for version selection rule: java.lang.String"
-    }
-
     def "produces sensible error with parameter-less closure" () {
         def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
 
@@ -148,8 +130,60 @@ class DefaultVersionSelectionRulesTest extends Specification {
         versionSelectionRules.all { }
 
         then:
+        def e = thrown(InvalidActionClosureException)
+        e.message == "The closure provided is not valid as a rule action for 'VersionSelectionRules'."
+        e.cause.message == "First parameter of rule action closure must be of type 'VersionSelection'."
+    }
+
+    def "produces sensible error for invalid closure" () {
+        def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
+            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
+                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
+                result.resolved(md, null)
+            }
+        }
+        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+
+        when:
+        versionSelectionRules.all closure
+        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+
+        then:
+        def e = thrown(InvalidActionClosureException)
+        e.message == "The closure provided is not valid as a rule action for 'VersionSelectionRules'."
+        e.cause.message == message
+
+        where:
+        closure                                                                                     | message
+        { it -> }                                                                                   | "First parameter of rule action closure must be of type 'VersionSelection'."
+        { String something -> }                                                                     | "First parameter of rule action closure must be of type 'VersionSelection'."
+        { IvyModuleDescriptor imd, ComponentMetadata cm -> }                                        | "First parameter of rule action closure must be of type 'VersionSelection'."
+        { VersionSelection vs, String something -> }                                                | "Unsupported parameter type for version selection rule: java.lang.String"
+        { VersionSelection vs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type for version selection rule: java.lang.String"
+        { VersionSelection vs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type for version selection rule: java.lang.String"
+        { VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type for version selection rule: java.lang.String"
+    }
+
+
+    def "produces sensible error when bad input type is declared for rule action" () {
+        def ruleAction = Mock(RuleAction)
+        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+
+        when:
+        ruleAction.inputTypes >> inputTypes
+        versionSelectionRules.all ruleAction
+
+        then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "First parameter of a version selection rule needs to be of type 'VersionSelection'."
+        e.message == message
+
+        where:
+        inputTypes                                       | message
+        [String]                                         | "Unsupported parameter type for version selection rule: java.lang.String"
+        [ComponentMetadata, String]                      | "Unsupported parameter type for version selection rule: java.lang.String"
+        [IvyModuleDescriptor, String]                    | "Unsupported parameter type for version selection rule: java.lang.String"
+        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type for version selection rule: java.lang.String"
+        [ComponentMetadataDetails]                       | "Unsupported parameter type for version selection rule: ${ComponentMetadataDetails.name}"
     }
 
     def "produces sensible error when closure or rule or action throws exception" () {

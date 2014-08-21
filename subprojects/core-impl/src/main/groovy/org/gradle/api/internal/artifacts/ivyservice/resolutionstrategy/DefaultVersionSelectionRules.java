@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidActionClosureException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentMetadata;
@@ -26,6 +27,8 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.VersionSelection;
 import org.gradle.api.artifacts.VersionSelectionRules;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.internal.NoInputsRuleAction;
+import org.gradle.api.internal.ClosureBackedRuleAction;
 import org.gradle.api.internal.artifacts.VersionSelectionInternal;
 import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
@@ -33,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 
 import java.util.*;
@@ -44,22 +48,21 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
 
     private final static String USER_CODE_ERROR = "Could not apply version selection rule with all().";
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for version selection rule: %s";
-    private static final String FIRST_PARAMETER_ERROR = "First parameter of a version selection rule needs to be of type '%s'.";
 
     public void apply(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
         for (RuleAction<? super VersionSelection> rule : versionSelectionRules) {
             List<Object> inputs = Lists.newArrayList();
             for (Class<?> inputType : rule.getInputTypes()) {
-                BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
-                moduleAccess.resolveComponentMetaData(((VersionSelectionInternal) selection).getDependencyMetaData(), selection.getCandidate(), descriptorResult);
                 if (inputType == ComponentMetadata.class) {
-                    ComponentMetadataDetails componentMetadata = new ComponentMetadataDetailsAdapter(descriptorResult.getMetaData());
+                    MutableModuleVersionMetaData metaData = getMetaData(selection, moduleAccess);
+                    ComponentMetadataDetails componentMetadata = new ComponentMetadataDetailsAdapter(metaData);
                     inputs.add(componentMetadata);
                     continue;
                 }
                 if (inputType == IvyModuleDescriptor.class) {
-                    if (descriptorResult.getMetaData() instanceof IvyModuleVersionMetaData) {
-                        IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) descriptorResult.getMetaData();
+                    MutableModuleVersionMetaData metaData = getMetaData(selection, moduleAccess);
+                    if (metaData instanceof IvyModuleVersionMetaData) {
+                        IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metaData;
                         inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
                         continue;
                     } else {
@@ -77,91 +80,45 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
         }
     }
 
+    private MutableModuleVersionMetaData getMetaData(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
+        BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
+        moduleAccess.resolveComponentMetaData(((VersionSelectionInternal) selection).getDependencyMetaData(), selection.getCandidate(), descriptorResult);
+        return descriptorResult.getMetaData();
+    }
+
     public boolean hasRules() {
         return versionSelectionRules.size() > 0;
     }
 
     public VersionSelectionRules all(Action<? super VersionSelection> selectionAction) {
-        versionSelectionRules.add(new VersionSelectionRuleAction(selectionAction));
+        versionSelectionRules.add(new NoInputsRuleAction<VersionSelection>(selectionAction));
         return this;
     }
 
     public VersionSelectionRules all(RuleAction<? super VersionSelection> ruleAction) {
-        versionSelectionRules.add(ruleAction);
+        versionSelectionRules.add(validateInputTypes(ruleAction));
         return this;
     }
 
     public VersionSelectionRules all(Closure<?> closure) {
-        Class<?>[] parameterTypes = closure.getParameterTypes();
-
-        if (parameterTypes.length == 0) {
-            throw new InvalidUserCodeException(
-                    String.format(FIRST_PARAMETER_ERROR, VersionSelection.class.getSimpleName()));
-        }
-
-        List<Class<?>> inputTypes = Lists.newArrayList();
-
-        if (parameterTypes[0] != VersionSelection.class) {
-            throw new InvalidUserCodeException(
-                    String.format(FIRST_PARAMETER_ERROR, VersionSelection.class.getSimpleName()));
-        }
-
-        for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
-            if (VALID_INPUT_TYPES.contains(parameterType)) {
-                inputTypes.add(parameterType);
-            } else {
-                throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, parameterType.getName()));
-            }
-        }
-
-        versionSelectionRules.add(new VersionSelectionClosureRule(closure, inputTypes));
-
+        versionSelectionRules.add(createRuleActionFromClosure(closure));
         return this;
     }
 
-    private class VersionSelectionClosureRule implements RuleAction<VersionSelection> {
-        Closure<?> closure;
-        List<Class<?>> inputTypes;
-
-        public VersionSelectionClosureRule(Closure<?> closure, List<Class<?>> inputTypes) {
-            this.closure = closure;
-            this.inputTypes = inputTypes;
+    private RuleAction<? super VersionSelection> createRuleActionFromClosure(Closure<?> closure) {
+        try {
+            return validateInputTypes(new ClosureBackedRuleAction<VersionSelection>(VersionSelection.class, closure));
+        } catch (RuntimeException e) {
+            throw new InvalidActionClosureException(String.format("The closure provided is not valid as a rule action for '%s'.", VersionSelectionRules.class.getSimpleName()), closure, e);
         }
+    }
 
-        public List<Class<?>> getInputTypes() {
-            return inputTypes;
-        }
-
-        public void execute(VersionSelection subject, List<?> inputs) {
-            if (inputs == null || inputs.size() == 0) {
-                closure.call(subject);
-            } else {
-                Object[] argList = new Object[inputs.size() + 1];
-                argList[0] = subject;
-                int i = 1;
-                for (Object arg : inputs) {
-                    argList[i++] = arg;
-                }
-                closure.call(argList);
+    private RuleAction<? super VersionSelection> validateInputTypes(RuleAction<? super VersionSelection> ruleAction) {
+        for (Class<?> inputType : ruleAction.getInputTypes()) {
+            if (!VALID_INPUT_TYPES.contains(inputType)) {
+                throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
             }
-
         }
+        return ruleAction;
     }
-
-    private class VersionSelectionRuleAction implements RuleAction<VersionSelection> {
-        Action<? super VersionSelection> action;
-
-        private VersionSelectionRuleAction(Action<? super VersionSelection> action) {
-            this.action = action;
-        }
-
-        public List<Class<?>> getInputTypes() {
-            return Collections.emptyList();
-        }
-
-        public void execute(VersionSelection subject, List<?> inputs) {
-            action.execute(subject);
-        }
-    }
-
 }

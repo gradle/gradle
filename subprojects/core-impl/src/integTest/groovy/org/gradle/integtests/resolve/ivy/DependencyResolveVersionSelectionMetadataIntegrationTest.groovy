@@ -15,9 +15,7 @@
  */
 
 package org.gradle.integtests.resolve.ivy
-
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.hamcrest.Matchers
 import spock.lang.Unroll
 
 class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -332,6 +330,7 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         }""",
     ]
 
+    @Unroll
     def "uses selection rule '#rule' to select a particular version" () {
         ivyRepo.module("org.utils", "api", "1.0").withStatus("release").publish()
         ivyRepo.module("org.utils", "api", "1.1").withStatus("milestone").withBranch('release').publish()
@@ -377,7 +376,7 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         "latest.milestone"   | "always reject if ivy branch is release and status is milestone" | "1.0"
     }
 
-    def "produces sensible error when bad parameters are supplied to version selection rule" () {
+    def "produces sensible error for invalid version selection rule" () {
         ivyRepo.module("org.utils", "api", "1.3").publish()
 
         buildFile << """
@@ -398,17 +397,17 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
 
         expect:
         fails 'resolveConf'
-        failure.assertThatDescription(Matchers.startsWith("A problem occurred evaluating root project"))
-        failure.assertHasLineNumber(17)
-        failure.assertHasCause(message)
+        failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failureHasCause("The closure provided is not valid as a rule action for 'VersionSelectionRules'.")
+        failureHasCause(message)
 
         where:
         parameters                                                                        | message
-        ""                                                                                | "First parameter of a version selection rule needs to be of type 'VersionSelection'."
-        "vs ->"                                                                           | "First parameter of a version selection rule needs to be of type 'VersionSelection'."
-        "String vs ->"                                                                    | "First parameter of a version selection rule needs to be of type 'VersionSelection'."
-        "VersionSelection vs, String s ->"                                                | "Unsupported parameter type for version selection rule: java.lang.String"
+        ""                                                                                | "First parameter of rule action closure must be of type 'VersionSelection'."
+        "vs ->"                                                                           | "First parameter of rule action closure must be of type 'VersionSelection'."
+        "String vs ->"                                                                    | "First parameter of rule action closure must be of type 'VersionSelection'."
         "VersionSelection vs, o ->"                                                       | "Unsupported parameter type for version selection rule: java.lang.Object"
+        "VersionSelection vs, String s ->"                                                | "Unsupported parameter type for version selection rule: java.lang.String"
         "VersionSelection vs, ComponentMetadata cm, String s ->"                          | "Unsupported parameter type for version selection rule: java.lang.String"
         "VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String s ->" | "Unsupported parameter type for version selection rule: java.lang.String"
     }
