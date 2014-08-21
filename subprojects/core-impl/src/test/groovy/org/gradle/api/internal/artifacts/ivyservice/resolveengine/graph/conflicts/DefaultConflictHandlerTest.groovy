@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevision
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static com.google.common.collect.Sets.newHashSet
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class DefaultConflictHandlerTest extends Specification {
@@ -37,10 +36,9 @@ class DefaultConflictHandlerTest extends Specification {
         def b = candidate("org", "b")
 
         expect:
-        !handler.registerModule(a)
-        !handler.registerModule(b)
+        !handler.registerModule(a).conflictExists()
+        !handler.registerModule(b).conflictExists()
         !handler.hasConflicts()
-        handler.conflictCount == 0
     }
 
     def "registers module with version conflict"() {
@@ -52,95 +50,42 @@ class DefaultConflictHandlerTest extends Specification {
         def bX = handler.registerModule(b)
 
         then:
-        aX
-        !bX
+        aX.conflictExists()
+        !bX.conflictExists()
         handler.hasConflicts()
-        handler.conflictCount == 1
     }
 
-    def "registers known module with new versions"() {
-        def a1 = candidate("org", "a", "1")
-        def a2 = candidate("org", "a", "1", "2")
-        def a3 = candidate("org", "a", "1", "2", "3")
+    def "registers module with module conflict"() {
+        def a = candidate("org", "a", "1", "2")
+        def b = candidate("org", "b", "1")
+
+        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> DefaultModuleIdentifier.newId("org", "b")
 
         when:
-        def a1X = handler.registerModule(a1)
-        def a2X = handler.registerModule(a2)
-        def a3X = handler.registerModule(a3)
+        def aX = handler.registerModule(a)
+        def bX = handler.registerModule(b)
 
         then:
-        !a1X
-        handler.conflictCount == 1
+        aX.conflictExists()
+        bX.conflictExists()
+        handler.hasConflicts()
     }
 
     def "resolves conflict"() {
-        def x = candidate("org", "x", "5")
-        def a1 = candidate("org", "a", "1")
-        def a2 = candidate("org", "a", "1", "2")
-        def a3 = candidate("org", "a", "1", "2", "3")
-
-        handler.registerModule(x)
-        handler.registerModule(a1)
-        handler.registerModule(a2)
-        handler.registerModule(a3)
-
-        when:
-        handler.resolveNextConflict { ConflictResolutionResult r ->
-            assert r.selected.id == newId("org", "a", "3")
-        }
-
-        then:
-        1 * resolver.select({ newHashSet(it*.id.version) == newHashSet("1", "2", "3") }) >> { args -> args[0].find { it.id.version == "3" } }
-        0 * resolver._
-
-        then:
-        handler.conflictCount == 0
-    }
-
-    //TODO SF I don't like those tests. There are getting hard to write. Let's keep this coverage until DefaultConflictHandler is refactored
-
-    def "module conflict when replacement is first"() {
         def a = candidate("org", "a", "1", "2")
-        def b = candidate("org", "b", "3", "4")
-
-        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> DefaultModuleIdentifier.newId("org", "b")
-
-        handler.registerModule(b)
         handler.registerModule(a)
 
         when:
         handler.resolveNextConflict { ConflictResolutionResult r ->
-            assert r.selected.id == newId("org", "b", "4")
+            assert r.selected.id == newId("org", "a", "2")
         }
 
         then:
-        1 * resolver.select({ it*.id.version == ["3", "4"] }) >> { args -> args[0].find { it.id.version == "4" } }
+        1 * resolver.select({ it*.id.version == ["1", "2"] }) >> { args -> args[0].find { it.id.version == "2" } }
         0 * resolver._
 
         then:
-        handler.conflictCount == 0
-    }
-
-    def "module conflict when replacement is last"() {
-        def a = candidate("org", "a", "1", "2")
-        def b = candidate("org", "b", "3", "4")
-
-        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> DefaultModuleIdentifier.newId("org", "b")
-
-        handler.registerModule(a)
-        handler.registerModule(b)
-
-        when:
-        handler.resolveNextConflict { ConflictResolutionResult r ->
-            assert r.selected.id == newId("org", "b", "4")
-        }
-
-        then:
-        1 * resolver.select({ it*.id.version == ["3", "4"] }) >> { args -> args[0].find { it.id.version == "4" } }
-        0 * resolver._
-
-        then:
-        handler.conflictCount == 0
+        !handler.hasConflicts()
     }
 
     private CandidateModule candidate(String group, String name, String ... versions) {
@@ -152,28 +97,5 @@ class DefaultConflictHandlerTest extends Specification {
             v
         }
         candidate
-    }
-
-    def "handles replacement chain"() {
-        def a = candidate("org", "a", "1")
-        def b = candidate("org", "b", "2")
-        def c = candidate("org", "c", "3")
-
-        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> DefaultModuleIdentifier.newId("org", "b")
-        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "b")) >> DefaultModuleIdentifier.newId("org", "c")
-
-        handler.registerModule(a)
-        handler.registerModule(b)
-        handler.registerModule(c)
-
-        when:
-        handler.conflictCount == 1
-        handler.resolveNextConflict { ConflictResolutionResult r ->
-            assert r.selected.id == newId("org", "c", "3")
-        }
-
-        then:
-        1 * resolver.select({ it*.id.version == ["3"] }) >> { args -> args[0].find { it.id.version == "3" } }
-        0 * resolver._
     }
 }
