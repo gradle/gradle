@@ -20,11 +20,24 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 
 public interface ConflictHandler {
+
+    /**
+     * Registers new module and returns information about any potential conflict
+     */
     PotentialConflict registerModule(CandidateModule newModule);
 
+    /**
+     * Informs whether there is any conflict at present
+     */
     boolean hasConflicts();
 
+    /**
+     * Resolves next conflict and trigger provided action after the resolution
+     */
     void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction);
 
+    /**
+     * Registers a conflict resolver that is used for resolving conflicts. It is possible to register multiple resolvers.
+     */
     void registerResolver(ModuleConflictResolver conflictResolver);
 }
