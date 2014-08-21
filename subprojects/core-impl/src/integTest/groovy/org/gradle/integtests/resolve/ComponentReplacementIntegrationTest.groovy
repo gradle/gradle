@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
-import spock.lang.Ignore
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
@@ -163,7 +162,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect: resolvedModules 'c', 'b'
     }
 
-    @Ignore
     def "supports consecutive replacements"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'b->c'

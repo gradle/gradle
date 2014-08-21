@@ -59,7 +59,7 @@ class ConflictContainerTest extends Specification {
         container.popConflict().toString() == "a:1,2"
     }
 
-    def "replacement conflict"() {
+    def "contains replacement conflict"() {
         container.newElement("a", [1, 2], "b")
         container.newElement("b", [3, 4], null)
         expect:
@@ -67,15 +67,15 @@ class ConflictContainerTest extends Specification {
         container.popConflict().toString() == "a,b:3,4"
     }
 
-    def "replacement conflict reversed"() {
+    def "contains replacement conflict reversed"() {
         container.newElement("b", [3, 4], null)
         container.newElement("a", [1, 2], "b")
         expect:
         container.size == 1
-        container.popConflict().toString() == "a,b:3,4"
+        container.popConflict().toString() == "b,a:3,4"
     }
 
-    def "replacement and standard conflict"() {
+    def "contains replacement and standard conflict"() {
         container.newElement("a", [1, 2], "b")
         container.newElement("b", [3], null)
         container.newElement("b", [3, 4], null)
@@ -85,17 +85,17 @@ class ConflictContainerTest extends Specification {
         container.popConflict().toString() == "a,b:3,4"
     }
 
-    def "replacement and standard conflict reversed"() {
+    def "contains replacement and standard conflict reversed"() {
         container.newElement("b", [3], null)
         container.newElement("b", [3, 4], null)
         container.newElement("a", [1, 2], "b")
 
         expect:
         container.size == 1
-        container.popConflict().toString() == "a,b:3,4"
+        container.popConflict().toString() == "b,a:3,4"
     }
 
-    def "replacement and standard conflict mixed"() {
+    def "contains replacement and standard conflict mixed"() {
         container.newElement("b", [3], null)
         container.newElement("a", [1, 2], "b")
         container.newElement("b", [3, 4], null)
@@ -105,7 +105,7 @@ class ConflictContainerTest extends Specification {
         container.popConflict().toString() == "a,b:3,4"
     }
 
-    def "replacement and standard conflict interleaving"() {
+    def "contains replacement and standard conflict interleaving"() {
         container.newElement("a", [1], null)
         container.newElement("b", [1, 2], null) //standard
         container.newElement("c", [3], "a") //module
@@ -115,5 +115,15 @@ class ConflictContainerTest extends Specification {
         container.size == 2
         container.popConflict().toString() == "b:1,2"
         container.popConflict().toString() == "c,a:1"
+    }
+
+    def "contains chained conflicts"() {
+        container.newElement("a", [1], "b") //a->b->c
+        container.newElement("b", [2], "c")
+        container.newElement("c", [3], null)
+
+        expect:
+        container.conflicts.size() == 1
+        container.popConflict().toString() == "a,b,c:3"
     }
 }

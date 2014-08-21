@@ -22,23 +22,25 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 
 /**
- * Generic container for conflicts.
+ * Generic container for conflicts. It's generic so that hopefully it's easier to comprehend (and test).
  */
 class ConflictContainer<K, T> {
 
-    private final Map<K, Conflict> conflicts = newLinkedHashMap();
+    final Map<K, Conflict> conflicts = newLinkedHashMap();
     private final Map<K, Collection<? extends T>> elements = newHashMap();
     private final Map<K, K> targetToSource = newLinkedHashMap();
 
     /**
-     * Adds new element and returns a conflict instance if given element is conflicted
+     * Adds new element and returns a conflict instance if given element is conflicted. Element is conflicted when:
+     *  - has more than 1 candidate
+     *  - is in conflict with an existing element (via replacedBy relationship)
      *
      * @param target an element of some sort
      * @param candidates candidates for given element
@@ -67,12 +69,33 @@ class ConflictContainer<K, T> {
         return null;
     }
 
-    private Conflict registerConflict(K module, K replacedBy) {
+    private Conflict registerConflict(K target, K replacedBy) {
+        //replacement candidates are the only important candidates
         Collection<? extends T> candidates = elements.get(replacedBy);
         assert candidates != null;
-        conflicts.remove(replacedBy);
-        Conflict c = new Conflict(module, replacedBy, candidates);
-        conflicts.put(module, c);
+
+        Collection<K> participants = new LinkedHashSet<K>();
+        participants.add(target);
+        participants.add(replacedBy);
+
+        //We need to ensure that the conflict is orderly injected to the list of conflicts
+        //Brand new conflict goes to the end
+        //If we find any matching conflict we have to hook up with it
+
+        //Find an existing matching conflict
+        for (K e : conflicts.keySet()) {
+            Conflict c = conflicts.get(e);
+            if (c.participants.contains(target) || c.participants.contains(replacedBy)) {
+                //If there is already registered conflict with matching participants, hook up to this conflict
+                c.candidates = candidates;
+                c.participants.addAll(participants);
+                return c;
+            }
+        }
+
+        //No conflict with matching participants found, create new
+        Conflict c = new Conflict(participants, candidates);
+        conflicts.put(target, c);
         return c;
     }
 
@@ -86,25 +109,23 @@ class ConflictContainer<K, T> {
         return conflicts.remove(first);
     }
 
-    class Conflict implements ModuleConflict {
-        Collection<K> elements;
+    class Conflict implements ModuleConflict { //TODO SF should not implement ModuleConflict
+        Collection<K> participants;
         Collection<? extends T> candidates;
 
-        public Conflict(K target, K replacedBy, Collection<? extends T> candidates) {
-            this.elements = newLinkedHashSet();
-            this.elements.add(target);
-            this.elements.add(replacedBy);
+        public Conflict(Collection<K> participants, Collection<? extends T> candidates) {
+            this.participants = participants;
             this.candidates = candidates;
         }
 
         public void withAffectedModules(Action<ModuleIdentifier> affectedModulesAction) {
-            for (K m : elements) {
+            for (K m : participants) {
                 affectedModulesAction.execute((ModuleIdentifier) m);
             }
         }
 
         public String toString() {
-            return Joiner.on(",").join(elements) + ":" + Joiner.on(",").join(candidates);
+            return Joiner.on(",").join(participants) + ":" + Joiner.on(",").join(candidates);
         }
     }
 }
