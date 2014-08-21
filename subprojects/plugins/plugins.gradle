@@ -26,7 +26,7 @@ dependencies {
     compile project(':core')
     compile project(':coreImpl')
     compile project(':reporting')
-    compile project(':languageBase')
+    compile project(':platformJvm')
     compile project(':languageJvm')
     compile project(':languageJava')
     compile project(':languageGroovy')

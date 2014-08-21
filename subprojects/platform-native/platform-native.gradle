@@ -18,7 +18,7 @@ dependencies {
     compile libraries.groovy
     compile libraries.commons_io
     compile project(':core')
-    compile project(":languageBase")
+    compile project(":platformBase")
 
     integTestRuntime project(":maven")
     // Required to test visual studio project file generation for generated sources
@@ -30,7 +30,7 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ":messaging")
 useTestFixtures(sourceSet: "testFixtures")
-useTestFixtures(project: ":languageBase")
+useTestFixtures(project: ":platformBase")
 
 useClassycle(exclude: ["org/gradle/nativeplatform/plugins/**",
                        "org/gradle/nativeplatform/tasks/**",

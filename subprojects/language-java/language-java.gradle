@@ -7,4 +7,4 @@ dependencies {
 
 useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**"])
 useTestFixtures()
-useTestFixtures(project:":languageBase")
+useTestFixtures(project:":platformBase")
