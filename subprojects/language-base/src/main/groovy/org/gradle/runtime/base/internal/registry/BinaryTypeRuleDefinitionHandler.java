@@ -18,7 +18,9 @@ package org.gradle.runtime.base.internal.registry;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.BinarySpec;
@@ -28,43 +30,45 @@ import org.gradle.runtime.base.binary.BaseBinarySpec;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 
-public class BinaryTypeRuleDefinitionHandler extends AbstractComponentModelRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
+public class BinaryTypeRuleDefinitionHandler extends ComponentModelRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
 
     public BinaryTypeRuleDefinitionHandler(final Instantiator instantiator) {
-        super("binary", BinaryType.class, BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, new Action<RegistrationContext<BinarySpec, BaseBinarySpec>>() {
-            public void execute(RegistrationContext<BinarySpec, BaseBinarySpec> context) {
-                BinaryContainer binaries = context.getExtensions().getByType(BinaryContainer.class);
-                doRegister(binaries, context.getType(), context.getImplementation());
-            }
-
-            private <T extends BinarySpec, U extends BaseBinarySpec> void doRegister(BinaryContainer binaries, ModelType<T> type, final ModelType<U> implementation) {
-                binaries.registerFactory(type.getConcreteClass(), new NamedDomainObjectFactory<T>() {
-                    public T create(String name) {
-                        BinaryNamingScheme binaryNamingScheme = new DefaultBinaryNamingSchemeBuilder()
-                                .withComponentName(name)
-                                .build();
-
-                        // safe because we implicitly know that U extends V, but can't express this in the type system
-                        @SuppressWarnings("unchecked")
-                        T created = (T) BaseBinarySpec.create(implementation.getConcreteClass(), binaryNamingScheme, instantiator);
-
-                        return created;
-                    }
-                });
-            }
-        });
+        super("binary", BinaryType.class, BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultBinaryTypeBuilder.class), new RegistrationAction(instantiator));
     }
 
-    @Override
-    protected TypeBuilderInternal createBuilder() {
-        return new DefaultBinaryTypeBuilder();
-    }
-
-    private static class DefaultBinaryTypeBuilder<T extends BinarySpec> extends AbstractTypeBuilder<T> implements BinaryTypeBuilder<T> {
+    public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
         public DefaultBinaryTypeBuilder() {
             super(BinaryType.class);
         }
     }
 
+    private static class RegistrationAction implements Action<RegistrationContext<BinarySpec, BaseBinarySpec>> {
+        private final Instantiator instantiator;
+
+        public RegistrationAction(Instantiator instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        public void execute(RegistrationContext<BinarySpec, BaseBinarySpec> context) {
+            BinaryContainer binaries = context.getExtensions().getByType(BinaryContainer.class);
+            doRegister(binaries, context.getType(), context.getImplementation());
+        }
+
+        private <T extends BinarySpec, U extends BaseBinarySpec> void doRegister(BinaryContainer binaries, ModelType<T> type, final ModelType<U> implementation) {
+            binaries.registerFactory(type.getConcreteClass(), new NamedDomainObjectFactory<T>() {
+                public T create(String name) {
+                    BinaryNamingScheme binaryNamingScheme = new DefaultBinaryNamingSchemeBuilder()
+                            .withComponentName(name)
+                            .build();
+
+                    // safe because we implicitly know that U extends V, but can't express this in the type system
+                    @SuppressWarnings("unchecked")
+                    T created = (T) BaseBinarySpec.create(implementation.getConcreteClass(), binaryNamingScheme, instantiator);
+
+                    return created;
+                }
+            });
+        }
+    }
 }
 

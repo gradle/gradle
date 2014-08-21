@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.internal.Factory;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.Inputs;
@@ -39,26 +40,26 @@ import org.gradle.runtime.base.internal.rules.RuleContext;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<A> {
+public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<A> {
 
-    protected String modelName;
+    private final String modelName;
     private final Class<A> annotationClass;
-    private ModelType<T> baseInterface;
-    private ModelType<U> baseImplementation;
-    private ModelType<? extends TypeBuilder> builderInterface;
-    private Action<? super RegistrationContext<T, U>> registerer;
+    private final ModelType<T> baseInterface;
+    private final ModelType<U> baseImplementation;
+    private final ModelType<? extends TypeBuilder> builderInterface;
+    private final Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory;
+    private final Action<? super RegistrationContext<T, U>> registerer;
 
-    public AbstractComponentModelRuleDefinitionHandler(String modelName, Class<A> annotationClass,
-                                                       Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder> builderInterface, Action<? super RegistrationContext<T, U>> registerer) {
+    public ComponentModelRuleDefinitionHandler(String modelName, Class<A> annotationClass,
+                                               Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory, Action<? super RegistrationContext<T, U>> registerer) {
         this.modelName = modelName;
         this.annotationClass = annotationClass;
+        this.typeBuilderFactory = typeBuilderFactory;
         this.registerer = registerer;
         this.baseInterface = ModelType.of(baseInterface);
         this.baseImplementation = ModelType.of(baseImplementation);
         this.builderInterface = ModelType.of(builderInterface);
     }
-
-    abstract protected TypeBuilderInternal createBuilder();
 
     public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
@@ -95,11 +96,12 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
             throw new InvalidComponentModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
         }
 
-        if (!baseInterface.isSubclass(subType)) {
+        ModelType<? extends T> asSubclass = baseInterface.asSubclass(subType);
+        if (asSubclass == null) {
             throw new InvalidComponentModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
         }
 
-        return (ModelType<? extends T>) subType;
+        return asSubclass;
     }
 
 
@@ -111,25 +113,31 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
     }
 
     protected ModelType<? extends U> determineImplementationType(MethodRuleDefinition<?> ruleDefinition, ModelType<? extends T> type) {
-        TypeBuilderInternal builder = createBuilder();
+        TypeBuilderInternal<T> builder = typeBuilderFactory.create();
         ruleDefinition.getRuleInvoker().invoke(builder);
-        Class<?> implementation = builder.getDefaultImplementation();
+        Class<? extends T> implementation = builder.getDefaultImplementation();
         if (implementation == null) {
             return null;
         }
-        ModelType<?> implementationType = ModelType.of(implementation);
-        if (!baseImplementation.isAssignableFrom(implementationType)) {
-            throw new InvalidComponentModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType.toString(), baseImplementation.toString()));
+
+        ModelType<? extends T> implementationType = ModelType.of(implementation);
+        ModelType<? extends U> asSubclass = baseImplementation.asSubclass(implementationType);
+
+        if (asSubclass == null) {
+            throw new InvalidComponentModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
         }
-        if (!type.isAssignableFrom(implementationType)) {
-            throw new InvalidComponentModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), implementationType.toString(), type.toString()));
+
+        if (!type.isAssignableFrom(asSubclass)) {
+            throw new InvalidComponentModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), asSubclass, type));
         }
+
         try {
-            implementationType.getRawClass().getConstructor();
+            asSubclass.getRawClass().getConstructor();
         } catch (NoSuchMethodException nsmException) {
-            throw new InvalidComponentModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), implementationType.toString()));
+            throw new InvalidComponentModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), asSubclass));
         }
-        return (ModelType<? extends U>) implementationType;
+
+        return asSubclass;
     }
 
     protected static class RegistrationContext<T, U> {

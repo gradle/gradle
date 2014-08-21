@@ -89,12 +89,12 @@ class ModelTypeTest extends Specification {
         def anything = ModelType.of(getClass().getDeclaredMethod("m3", List.class).getGenericParameterTypes()[0]).typeVariables[0]
 
         expect:
-        !ModelType.of(String).isSubclass(ModelType.of(String))
-        ModelType.of(CharSequence).isSubclass(ModelType.of(String))
-        !ModelType.of(String).isSubclass(ModelType.of(CharSequence))
-        !anything.isSubclass(superString)
-        !superString.isSubclass(anything)
-        !superString.isSubclass(extendsString)
-        !extendsString.isSubclass(superString)
+        !ModelType.of(String).asSubclass(ModelType.of(String))
+        ModelType.of(CharSequence).asSubclass(ModelType.of(String))
+        !ModelType.of(String).asSubclass(ModelType.of(CharSequence))
+        !anything.asSubclass(superString)
+        !superString.asSubclass(anything)
+        !superString.asSubclass(extendsString)
+        !extendsString.asSubclass(superString)
     }
 }

@@ -104,14 +104,21 @@ public abstract class ModelType<T> {
         }
     }
 
-    public boolean isSubclass(ModelType<?> modelType) {
+    public ModelType<? extends T> asSubclass(ModelType<?> modelType) {
         if (isWildcard() || modelType.isWildcard()) {
-            return false;
+            return null;
         }
 
         Class<? super T> thisClass = getRawClass();
         Class<?> otherClass = modelType.getRawClass();
-        return thisClass.isAssignableFrom(otherClass) && !thisClass.equals(otherClass);
+        boolean isSubclass = thisClass.isAssignableFrom(otherClass) && !thisClass.equals(otherClass);
+
+        if (isSubclass) {
+            @SuppressWarnings("unchecked") ModelType<? extends T> cast = (ModelType<? extends T>) modelType;
+            return cast;
+        } else {
+            return null;
+        }
     }
 
     public boolean isAssignableFrom(ModelType<?> modelType) {
