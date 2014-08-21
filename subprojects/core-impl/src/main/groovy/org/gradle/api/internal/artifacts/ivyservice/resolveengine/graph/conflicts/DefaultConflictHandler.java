@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevision
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictFactory.moduleConflict;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflictFactory.potentialConflict;
 
 public class DefaultConflictHandler implements ConflictHandler {
 
@@ -44,9 +44,9 @@ public class DefaultConflictHandler implements ConflictHandler {
      * Registers new newModule and returns an instance of a conflict if conflict exists.
      */
     @Nullable
-    public ModuleConflict registerModule(CandidateModule newModule) {
+    public PotentialConflict registerModule(CandidateModule newModule) {
         ModuleIdentifier replacedBy = moduleReplacements.getReplacementFor(newModule.getId());
-        return moduleConflict(conflicts.newElement(newModule.getId(), newModule.getVersions(), replacedBy));
+        return potentialConflict(conflicts.newElement(newModule.getId(), newModule.getVersions(), replacedBy));
     }
 
     /**
@@ -67,7 +67,7 @@ public class DefaultConflictHandler implements ConflictHandler {
         assert hasConflicts();
         ConflictContainer.Conflict conflict = conflicts.popConflict();
         ModuleRevisionResolveState selected = compositeResolver.select(conflict.candidates);
-        ConflictResolutionResult result = new DefaultConflictResolutionResult(moduleConflict(conflict), selected);
+        ConflictResolutionResult result = new DefaultConflictResolutionResult(potentialConflict(conflict), selected);
         resolutionAction.execute(result);
         LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);
     }

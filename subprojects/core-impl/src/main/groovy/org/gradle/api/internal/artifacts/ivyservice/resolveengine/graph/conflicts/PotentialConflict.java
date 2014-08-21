@@ -19,10 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-public interface ModuleConflict {
+public interface PotentialConflict {
     /**
      * Executes an action with each module that participates in the conflict.
      * In a typical version conflict, e.g. org:foo:1.0 VS org:foo:2.0 there is only one participating module: org:foo.
      */
     void withParticipatingModules(Action<ModuleIdentifier> action);
+
+    /**
+     * informs whether the conflict exists
+     */
+    boolean conflictExists();
 }

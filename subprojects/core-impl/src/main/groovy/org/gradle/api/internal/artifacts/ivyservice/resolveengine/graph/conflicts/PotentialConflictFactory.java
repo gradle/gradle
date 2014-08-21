@@ -20,14 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
 
-class ModuleConflictFactory {
+class PotentialConflictFactory {
 
-    static ModuleConflict moduleConflict(final ConflictContainer<ModuleIdentifier, ? extends ModuleRevisionResolveState>.Conflict conflict) {
-        if (conflict == null) {
-            return null;
-        }
-        return new ModuleConflict() {
+    static PotentialConflict potentialConflict(final ConflictContainer<ModuleIdentifier, ? extends ModuleRevisionResolveState>.Conflict conflict) {
+        return new PotentialConflict() {
+            public boolean conflictExists() {
+                return conflict != null;
+            }
+
             public void withParticipatingModules(Action<ModuleIdentifier> action) {
+                assert conflictExists();
                 for (ModuleIdentifier participant : conflict.participants) {
                     action.execute(participant);
                 }

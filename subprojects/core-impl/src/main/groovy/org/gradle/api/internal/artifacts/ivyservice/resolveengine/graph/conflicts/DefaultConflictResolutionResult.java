@@ -19,15 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
 
 class DefaultConflictResolutionResult implements ConflictResolutionResult {
-    private final ModuleConflict conflict;
+    private final PotentialConflict conflict;
     private final ModuleRevisionResolveState selected;
 
-    public DefaultConflictResolutionResult(ModuleConflict conflict, ModuleRevisionResolveState selected) {
+    public DefaultConflictResolutionResult(PotentialConflict conflict, ModuleRevisionResolveState selected) {
         this.conflict = conflict;
         this.selected = selected;
     }
 
-    public ModuleConflict getConflict() {
+    public PotentialConflict getConflict() {
         return conflict;
     }
 

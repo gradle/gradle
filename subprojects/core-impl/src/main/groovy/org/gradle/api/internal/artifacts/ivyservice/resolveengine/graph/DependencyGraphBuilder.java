@@ -34,7 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleVersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflict;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
@@ -123,8 +123,8 @@ public class DependencyGraphBuilder {
                         ModuleResolveState module = resolveState.getModule(moduleId);
 
                         // A new module revision. Check for conflict
-                        ModuleConflict c = conflictHandler.registerModule(module);
-                        if (c == null) {
+                        PotentialConflict c = conflictHandler.registerModule(module);
+                        if (c.conflictExists()) {
                             // No conflict. Select it for now
                             LOGGER.debug("Selecting new module version {}", moduleRevision);
                             module.select(moduleRevision);

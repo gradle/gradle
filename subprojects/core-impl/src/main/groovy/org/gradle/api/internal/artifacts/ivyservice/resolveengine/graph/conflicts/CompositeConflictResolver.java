@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class CompositeConflictResolver implements ModuleConflictResolver {
+class CompositeConflictResolver implements ModuleConflictResolver {
 
     private final List<ModuleConflictResolver> resolvers = new LinkedList<ModuleConflictResolver>();
 

@@ -23,7 +23,7 @@ public interface ConflictResolutionResult {
     /**
      * Conflict this result is about.
      */
-    ModuleConflict getConflict();
+    PotentialConflict getConflict();
 
     /**
      * The actual selected version.
