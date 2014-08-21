@@ -88,9 +88,15 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
             throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter.", builderInterface.toString()));
         }
         ModelType<?> subType = builder.getTypeVariables().get(0);
-        if (!baseInterface.isAssignableFrom(subType) || subType.isAssignableFrom(baseInterface)) {
-            throw new InvalidComponentModelException(String.format("%s type '%s' is not a concrete subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
+
+        if (subType.isWildcard()) {
+            throw new InvalidComponentModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
         }
+
+        if (!baseInterface.isSubclass(subType)) {
+            throw new InvalidComponentModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
+        }
+
         return (ModelType<? extends T>) subType;
     }
 

@@ -25,6 +25,7 @@ import com.google.common.reflect.TypeToken;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,8 +37,9 @@ import java.util.List;
  * Represent a fully resolved/bound type.
  */
 public abstract class ModelType<T> {
-    // TODO restrict this to concrete types, validated recursively
+
     // TODO analyze performance cost of wrapping Guava's type token instead of inlining the code
+    // TODO there is no handling of TypeVariable here - at least need some validation that the incoming Type is not a variable
 
     private static class Simple<T> extends ModelType<T> {
         private Simple(TypeToken<T> typeToken) {
@@ -102,8 +104,59 @@ public abstract class ModelType<T> {
         }
     }
 
+    public boolean isSubclass(ModelType<?> modelType) {
+        if (isWildcard() || modelType.isWildcard()) {
+            return false;
+        }
+
+        Class<? super T> thisClass = getRawClass();
+        Class<?> otherClass = modelType.getRawClass();
+        return thisClass.isAssignableFrom(otherClass) && !thisClass.equals(otherClass);
+    }
+
     public boolean isAssignableFrom(ModelType<?> modelType) {
         return typeToken.isAssignableFrom(modelType.typeToken);
+    }
+
+    public boolean isWildcard() {
+        return getWildcardType() != null;
+    }
+
+    public ModelType<?> getUpperBound() {
+        WildcardType wildcardType = getWildcardType();
+        if (wildcardType == null) {
+            return null;
+        } else {
+            ModelType<?> upperBoundType = ModelType.of(wildcardType.getUpperBounds()[0]);
+            if (upperBoundType.equals(UNTYPED)) {
+                return null;
+            } else {
+                return upperBoundType;
+            }
+        }
+    }
+
+    public ModelType<?> getLowerBound() {
+        WildcardType wildcardType = getWildcardType();
+        if (wildcardType == null) {
+            return null;
+        } else {
+            Type[] lowerBounds = wildcardType.getLowerBounds();
+            if (lowerBounds.length == 0) {
+                return null;
+            } else {
+                return ModelType.of(lowerBounds[0]);
+            }
+        }
+    }
+
+    private WildcardType getWildcardType() {
+        Type type = typeToken.getType();
+        if (type instanceof WildcardType) {
+            return (WildcardType) type;
+        } else {
+            return null;
+        }
     }
 
     @Override
