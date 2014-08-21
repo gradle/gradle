@@ -124,7 +124,7 @@ public class DependencyGraphBuilder {
 
                         // A new module revision. Check for conflict
                         PotentialConflict c = conflictHandler.registerModule(module);
-                        if (c.conflictExists()) {
+                        if (!c.conflictExists()) {
                             // No conflict. Select it for now
                             LOGGER.debug("Selecting new module version {}", moduleRevision);
                             module.select(moduleRevision);
