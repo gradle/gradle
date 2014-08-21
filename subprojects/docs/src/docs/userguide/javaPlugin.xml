@@ -1177,7 +1177,7 @@
                 debugger to attach to port 5005 before proceeding with test execution.
             </para>
             <para>
-                This can also be enabled at invocation time via the <userinput>--debug-jvm</userinput> task option.
+                This can also be enabled at invocation time via the <userinput>--debug-jvm</userinput> task option (since Gradle 1.12).
             </para>
         </section>
 
