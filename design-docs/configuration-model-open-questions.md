@@ -30,6 +30,7 @@ different criteria (eg path or type) from the DSL or a plugin.
 ## Some notes about rules - Adam
 
 A rule:
+
 - Declares which objects are the input of rule.
 - Declares which objects are the output of the rule.
 - Declares the view it requires of each object.
@@ -37,6 +38,7 @@ A rule:
 - The function is invoked once for each set of input objects that meet the declared criteria.
 
 Considerations:
+
 - An input may also be an output, for example when the rule mutates an object.
 - There may be relationships between the inputs and outputs, for example to configure a native test suite I want to
 use the component under test as input to determine the variants to build for the test suite.
@@ -47,6 +49,7 @@ a function is some work that is performed, for which we have varying degrees of 
 is it deterministic? do we know all its inputs?
 
 Types of rule actions:
+
 - Declare some top level object (in some scope).
 - Declare some object as the value of a single-valued property of some other object.
 - Declare some object in a multi-valued property of some other object.
@@ -77,6 +80,7 @@ This has implications for the DSL, as some criteria can be expressed statically 
 ## Component model
 
 There are 2 things about a component that define 'what' the component is:
+
 - The source languages that the component is built from
 - The 'entry points' through which the component is invoked:
     - API
@@ -87,6 +91,7 @@ There are 2 things about a component that define 'what' the component is:
     - Gradle plugin
 
 For example:
+
     - A component that provides an API is-a library
     - A component built from a JVM language is-a JVM component (and runs on the JVM)
     - A component built from a native language is-a native component (and runs on the native C runtime)
@@ -100,6 +105,7 @@ For example:
 Not every combination of entry points and source languages makes sense, but many do.
 
 The DSL should be able to express any legal combination, plus some way to conveniently express common combinations. For example:
+
     - A Java library -> built from Java and provides an API
     - A C library -> built from C and provides an API
     - A C executable -> built from C and provides a main method
