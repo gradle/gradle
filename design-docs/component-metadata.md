@@ -205,22 +205,19 @@ This story makes available the component and Ivy meta-data as optional read only
 
 ### Implementation
 
-    interface MetadataRule<T> {
-        Class<T> getSubjectType()
+    interface RuleAction<T> {
         List<Class<?>> getInputTypes()
         void execute(T subject, List<?> inputs)
     }
 
 - Add ComponentMetadata as read-only view of ComponentMetadataDetails
     - Rename internal ComponentMetaData -> ExternalComponentMetaData
-- Add `VersionSelectionRules.all(MetadataRule<VersionSelection> rule)
+- Add `VersionSelectionRules.all(RuleAction<VersionSelection> rule)
     - Only allowable input types are `ComponentMetadata` and `IvyModuleDescriptor`
     - Provide a `ModuleComponentRepositoryAccess` to `VersionSelectionRulesInternal.apply()`
     - Look up and supply the module metadata for any rule that requires it.
 - Add `VersionSelectionRules.all(Closure)` : See ComponentMetadataHandler for example
-    - Convert closure to `MetadataRule`
-- Add `ComponentMetadataHandler.eachComponent(MetadataRule<ComponentMetadataDetails>) as Java API for component metadata rule
-    - Map closure method to `MetadataRule`
+    - Convert closure to `RuleAction`
 
 ### Test cases
 
@@ -236,6 +233,10 @@ This story makes available the component and Ivy meta-data as optional read only
     - Unsupported other parameter type
     - No closure parameter
     - Rule action throws exception
+
+### Open issues
+
+- Should accept untyped subject parameter in rule closure?
 
 ## Story: Replace versionSelection rules with componentSelection rules
 
@@ -316,6 +317,12 @@ The primary changes are:
     - Reason is logged as "not an Ivy Module" (or similar)
 - All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted
 - Test cases from earlier stories will be modified or replaced by the test cases here
+
+## Story: Add Java API for component metadata rules
+
+Use `RuleAction` to provide a Java API for component metadata rules: `ComponentMetadataHandler.eachComponent(RuleAction<ComponentMetadataDetails>)`
+
+Generate closure-based methods for any methods that take a `RuleAction` parameter, and remove the existing Closure-accepting duplicates.
 
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 
