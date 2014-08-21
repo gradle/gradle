@@ -18,11 +18,20 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
 
-public interface ModuleConflict {
-    /**
-     * Executes an action with each module that participates in the conflict.
-     * In a typical version conflict, e.g. org:foo:1.0 VS org:foo:2.0 there is only one participating module: org:foo.
-     */
-    void withParticipatingModules(Action<ModuleIdentifier> action);
+class ModuleConflictFactory {
+
+    static ModuleConflict moduleConflict(final ConflictContainer<ModuleIdentifier, ? extends ModuleRevisionResolveState>.Conflict conflict) {
+        if (conflict == null) {
+            return null;
+        }
+        return new ModuleConflict() {
+            public void withParticipatingModules(Action<ModuleIdentifier> action) {
+                for (ModuleIdentifier participant : conflict.participants) {
+                    action.execute(participant);
+                }
+            }
+        };
+    }
 }

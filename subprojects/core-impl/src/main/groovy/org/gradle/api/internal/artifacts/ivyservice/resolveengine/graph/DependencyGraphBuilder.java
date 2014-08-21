@@ -135,7 +135,7 @@ public class DependencyGraphBuilder {
                             // Deselect the currently selected version, and remove all outgoing edges from the version
                             // This will propagate through the graph and prune configurations that are no longer required
                             // For each module participating in the conflict (many times there is only one participating module that has multiple versions)
-                            c.withAffectedModules(new Action<ModuleIdentifier>() {
+                            c.withParticipatingModules(new Action<ModuleIdentifier>() {
                                 public void execute(ModuleIdentifier module) {
                                     ModuleVersionResolveState previouslySelected = resolveState.getModule(module).clearSelection();
                                     if (previouslySelected != null) {
@@ -154,7 +154,7 @@ public class DependencyGraphBuilder {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 conflictHandler.resolveNextConflict(new Action<ConflictResolutionResult>() {
                     public void execute(final ConflictResolutionResult result) {
-                        result.getConflict().withAffectedModules(new Action<ModuleIdentifier>() {
+                        result.getConflict().withParticipatingModules(new Action<ModuleIdentifier>() {
                             public void execute(ModuleIdentifier moduleIdentifier) {
                                 ModuleVersionResolveState selected = result.getSelected();
                                 // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the

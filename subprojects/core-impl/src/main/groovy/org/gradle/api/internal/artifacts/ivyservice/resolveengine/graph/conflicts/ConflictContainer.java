@@ -17,9 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -109,19 +107,13 @@ class ConflictContainer<K, T> {
         return conflicts.remove(first);
     }
 
-    class Conflict implements ModuleConflict { //TODO SF should not implement ModuleConflict
+    class Conflict {
         Collection<K> participants;
         Collection<? extends T> candidates;
 
         public Conflict(Collection<K> participants, Collection<? extends T> candidates) {
             this.participants = participants;
             this.candidates = candidates;
-        }
-
-        public void withAffectedModules(Action<ModuleIdentifier> affectedModulesAction) {
-            for (K m : participants) {
-                affectedModulesAction.execute((ModuleIdentifier) m);
-            }
         }
 
         public String toString() {
