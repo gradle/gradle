@@ -71,14 +71,14 @@ Add a `scala-lang` plugin that provides Scala language support for Jvm component
 - No dependencies, other than Scala version
 - No joint compilation with Java
 - Can build a library from both Java and Scala
+- Uses a hard-coded Scala version.
 
 ### Story: Build author declares target Scala platform
 
 - Provide a DSL to declare the target Scala platform for Scala source files.
 - Implies Java version?
 - Visible to Java source for that component as well?
-- Attach only to source set?
-- Should be visible in components report and dependencies reports.
+- Scala version should be visible in components report and dependencies reports.
 
 #### Test cases
 
@@ -95,7 +95,6 @@ Add a `play-application` plugin that provides Play application component:
     jvm {
         playApplications {
             helloworld {
-                buildFor [platforms.play "2.3.0"]
             }
         }
     }
@@ -104,13 +103,14 @@ Add a `play-application` plugin that provides Play application component:
 - No dependencies, other than Scala version and Play version.
 - Can build from Java or Scala or both.
 - App is not usable without routes provided by later story.
+- Uses a hard-coded Play version.
 
 ### Story: Build author declares target Play platform
 
 - Provide a DSL to declare the target Play platform for a Play application.
 - Implies Scala version and Java version?
 - Should also be able to attach to a JVM library, to create a Play library.
-- Should be visible in components report and dependencies reports.
+- Play version should be visible in components report and dependencies reports.
 
 #### Test cases
 

@@ -639,7 +639,7 @@ can provide a convention that applies to all components, and the exceptions can 
 
 ## Feature: Plugin implements custom language support
 
-### Story: Build author declares target JVM version for a JVM library
+### Story: Build author declares target Java version for a Java library
 
 For example:
 
@@ -663,6 +663,10 @@ Assume that the source also uses Java 7 language features.
 For this story, only the current JDK will be considered as a candidate to perform the compilation. Later stories could add support for JDK discovery
 (the test fixtures do this).
 
+Target platform should be reachable from the `JvmBinarySpec`.
+
+Update sample to include a Java version declaration.
+
 #### Test cases
 
 - Running `gradle assemble` will build for Java 6 and the resulting bytecode will use the Java 6 bytecode version.
@@ -682,6 +686,7 @@ For this story, only the current JDK will be considered as a candidate to perfor
 - Target platform should be visible in the component report
 - Target platform should be visible in the dependencies reports
 - Sync the DSL with native components
+- Split out configurable 'platform spec' out from consumable 'platform' definition.
 
 ### Story: Build author declares that JVM library should be built for multiple JVM versions
 
@@ -702,7 +707,9 @@ For example:
         }
     }
 
-This will result in 2 Jar binaries being defined for the `myLib` library.
+This will result in 2 Jar binaries being defined for the `myLib` library. Running `gradle assemble` will build both these binaries.
+
+Add a sample to show a JVM library built for multiple Java versions.
 
 #### Test cases
 
@@ -759,6 +766,7 @@ language.
 - Detangle 'the things I need to compile a language of this type' (a set of files, some settings) from
  'a way to configure an arbitrary set of source files of this language` (the source set). The plugin should only have to declare the things it
  needs to compile. A plugin might still be able to additionally declare a source set type, when some custom implementation is required.
+- Platform should be attached to source set as well.
 
 ### Story: Plugin declares custom language implementation
 
@@ -803,6 +811,9 @@ Running `gradle assemble` will invoke the compilation tasks defined by the trans
 
 The tasks are not defined if the language source set is empty or buildable by some other task.
 
+Add a sample to show how to add a custom language for a JVM library. Add a sample to show how to implement a custom component type from some
+custom language.
+
 #### Test cases
 
 - Can build a JVM library from a custom language.
@@ -824,7 +835,7 @@ Change the native, Java and classpath resource language plugins to replace usage
 
 - Probably don't need `TransformationFileType` any more.
 
-### Feature: Custom binary is built from Java sources
+## Feature: Custom binary is built from Java sources
 
 Change the sample plugin so that it compiles Java source to produce its binaries
 
