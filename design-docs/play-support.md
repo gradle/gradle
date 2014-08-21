@@ -84,6 +84,10 @@ Add a `scala-lang` plugin that provides Scala language support for Jvm component
 
 - Test against multiple versions of Scala.
 
+#### Open issues
+
+- Replace `ScalaRuntime` with Scala platform and some kind of toolchain.
+
 ### Story: Build author declares a Play application
 
 Add a `play-application` plugin that provides Play application component:

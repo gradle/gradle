@@ -685,7 +685,6 @@ Update sample to include a Java version declaration.
 - Plugin declares a custom platform.
 - Target platform should be visible in the component report
 - Target platform should be visible in the dependencies reports
-- Sync the DSL with native components
 - Split out configurable 'platform spec' out from consumable 'platform' definition.
 
 ### Story: Build author declares that JVM library should be built for multiple JVM versions
@@ -721,6 +720,12 @@ Add a sample to show a JVM library built for multiple Java versions.
 - Binaries should be visible in the component report
 - Discover or configure the JDK installations
 - Need some convention or mechanism for source that is conditionally included based on the target platform.
+
+### Story: Use a consistent approach for native and JVM platforms
+
+- Rename `Platform` to `NativePlatform` (it's really a 'hosted C environment' as per the ISO C spec)
+- Use a similar DSL for declaring the target platforms of all platform aware component types.
+- Replace or reuse `platforms` container.
 
 ### Story: Plugin declares custom language source set
 
@@ -1370,6 +1375,7 @@ Should be possible to declare stand-alone test suite with custom variants.
 - Need a better name for `TransformationFileType`.
 - Support multiple input source sets for a component and binary.
     - Apply conflict resolution across all inputs source sets.
+- Generate API documentation from source.
 - Java language support
     - Java language level.
     - Source encoding.
