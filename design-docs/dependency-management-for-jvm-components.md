@@ -648,7 +648,7 @@ For example:
     }
 
     platforms {
-        // Java versions are visible here
+        // Can operate on Java platforms here
     }
 
     libraries {
@@ -665,7 +665,10 @@ For this story, only the current JDK will be considered as a candidate to perfor
 
 Target platform should be reachable from the `JvmBinarySpec`.
 
-Update sample to include a Java version declaration.
+#### Implementation plan
+
+- Add `org.gradle.language.java.JavaPlatform` interface and default implementation.
+- Update samples to include a Java version declaration.
 
 #### Test cases
 
@@ -696,7 +699,7 @@ For example:
     }
 
     platforms {
-        // Java versions are visible here
+        // Can operate on platforms here
     }
 
     libraries {
@@ -723,9 +726,16 @@ Add a sample to show a JVM library built for multiple Java versions.
 
 ### Story: Use a consistent approach for native and JVM platforms
 
-- Rename `Platform` to `NativePlatform` (it's really a 'hosted C environment' as per the ISO C spec)
-- Use a similar DSL for declaring the target platforms of all platform aware component types.
+- Extract `NativePlatform` out of `Platform` (it's really a 'hosted C environment' as per the ISO C spec)
+- Extract `NativeToolChain` out of `ToolChain` and change `JavaToolChain` to extend `ToolChain`.
+- Move `Platform` and `ToolChain` out of the native packages into base packages.
+- Use a consistent DSL for declaring the target platforms of all platform aware component types.
 - Replace or reuse `platforms` container.
+- Mention breaking change in release notes.
+
+#### Open issues
+
+- Add infrastructure to coerce string to platform, architecture or operating system types.
 
 ### Story: Plugin declares custom language source set
 
