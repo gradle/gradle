@@ -164,6 +164,10 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     protected void failureDescriptionStartsWith(String description) {
         failure.assertThatDescription(CoreMatchers.startsWith(description))
     }
+
+    protected void failureDescriptionContains(String description) {
+        failure.assertThatDescription(CoreMatchers.containsString(description))
+    }
     
     private assertHasResult() {
         assert result != null : "result is null, you haven't run succeeds()"

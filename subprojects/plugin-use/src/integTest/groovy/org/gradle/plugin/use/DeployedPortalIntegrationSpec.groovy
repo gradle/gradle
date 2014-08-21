@@ -17,11 +17,19 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+//These tests depend on https://plugins.gradle.org
+@Requires(TestPrecondition.ONLINE)
 class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
     private final static String HELLO_WORLD_PLUGIN_ID = "org.gradle.hello-world"
     private final static String HELLO_WORLD_PLUGIN_VERSION = "0.2"
+
+    def setup() {
+        requireOwnGradleUserHomeDir()
+    }
 
     def "can resolve a plugin from portal"() {
         when:
@@ -50,6 +58,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         fails("dependencies")
 
         and:
-        failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found")
+        failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
+        failureDescriptionContains("- Gradle Central Plugin Repository (no 'org.gradle.non-existing' plugin available - see https://plugins.gradle.org for available plugins)")
     }
 }
