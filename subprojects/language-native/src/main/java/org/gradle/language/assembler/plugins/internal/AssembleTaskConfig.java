@@ -26,7 +26,7 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.language.assembler.tasks.Assemble;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 
 public class AssembleTaskConfig implements SourceTransformTaskConfig {
     public String getTaskPrefix() {

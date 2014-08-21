@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal
 import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
-import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

@@ -20,10 +20,10 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.runtime.base.BinaryContainer
-import org.gradle.runtime.base.internal.BinaryNamingScheme
-import org.gradle.runtime.base.internal.DefaultBinaryContainer
-import org.gradle.runtime.base.internal.BinarySpecInternal
+import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.internal.DefaultBinaryContainer
+import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.util.TestUtil
 
 class LanguageBasePluginTest extends WellBehavedPluginTest {

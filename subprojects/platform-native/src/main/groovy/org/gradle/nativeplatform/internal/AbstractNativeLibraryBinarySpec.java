@@ -27,8 +27,8 @@ import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
-import org.gradle.runtime.base.LibraryBinarySpec;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.LibraryBinarySpec;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 import java.util.Collections;

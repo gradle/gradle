@@ -19,13 +19,13 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.runtime.base.TransformationFileType;
+import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
-import org.gradle.runtime.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;

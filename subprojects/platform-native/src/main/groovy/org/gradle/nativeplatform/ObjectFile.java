@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.TransformationFileType;
+import org.gradle.platform.base.TransformationFileType;
 
 /**
  * LanguageOutputType marking object file output type.

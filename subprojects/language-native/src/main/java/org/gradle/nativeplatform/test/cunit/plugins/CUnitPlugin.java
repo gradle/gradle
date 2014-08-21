@@ -45,12 +45,12 @@ import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.base.internal.ComponentSpecInternal;
-import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
 

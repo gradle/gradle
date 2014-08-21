@@ -17,8 +17,8 @@
 package org.gradle.jvm.internal.plugins
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.runtime.base.BinaryContainer
-import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.jvm.JvmBinaryTasks
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.plugins.JvmComponentPlugin

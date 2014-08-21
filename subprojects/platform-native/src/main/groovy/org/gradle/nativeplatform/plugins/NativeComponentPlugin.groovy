@@ -31,7 +31,7 @@ import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin
-import org.gradle.runtime.base.BinaryContainer
+import org.gradle.platform.base.BinaryContainer
 
 /**
  * A plugin that creates tasks used for constructing native binaries.

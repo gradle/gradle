@@ -220,8 +220,8 @@ BUILD SUCCESSFUL"""))
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
-        failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid component model rule method."
-        failure.assertHasCause "ComponentType method must have a single parameter of type 'org.gradle.runtime.base.ComponentTypeBuilder'."
+        failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid component model rule method."
+        failure.assertHasCause "ComponentType method must have a single parameter of type 'org.gradle.platform.base.ComponentTypeBuilder'."
     }
 
     def "cannot register same component type multiple times"(){
@@ -247,8 +247,8 @@ BUILD SUCCESSFUL"""))
         fails "tasks"
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
-        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>)"
-        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type was already registered by MySamplePlugin\$Rules#register(org.gradle.runtime.base.ComponentTypeBuilder<SampleComponent>)."
+        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)"
+        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type was already registered by MySamplePlugin\$Rules#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)."
     }
 
     def buildWithCustomComponentPlugin() {

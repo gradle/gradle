@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.sourceset.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;

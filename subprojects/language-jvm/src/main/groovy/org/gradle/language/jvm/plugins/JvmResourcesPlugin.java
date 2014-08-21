@@ -17,7 +17,7 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.runtime.base.TransformationFileType;
+import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -26,7 +26,7 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.jvm.JvmLibraryBinarySpec;
 
 import java.util.Collections;

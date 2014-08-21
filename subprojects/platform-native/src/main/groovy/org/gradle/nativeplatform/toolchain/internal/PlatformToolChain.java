@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.runtime.base.internal.toolchain.ToolProvider;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 public interface PlatformToolChain extends ToolSearchResult, ToolProvider {
 }

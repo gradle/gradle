@@ -19,7 +19,7 @@ package org.gradle.language.base.internal;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 
 public interface SourceTransformTaskConfig {
     String getTaskPrefix();

@@ -17,7 +17,7 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.NativeExecutableSpec;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.ComponentSpecIdentifier;
 
 public class DefaultNativeExecutableSpec extends AbstractTargetedNativeComponentSpec implements NativeExecutableSpec {
     public DefaultNativeExecutableSpec(ComponentSpecIdentifier id, FunctionalSourceSet functionalSourceSet) {

@@ -22,8 +22,8 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.runtime.base.ComponentSpecIdentifier
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeComponentTest extends Specification {

@@ -15,7 +15,7 @@
  */
 
 package org.gradle.jvm.internal
-import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.toolchain.JavaToolChain
 import spock.lang.Specification

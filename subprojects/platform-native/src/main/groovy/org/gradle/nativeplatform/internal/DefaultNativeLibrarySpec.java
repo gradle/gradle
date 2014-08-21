@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.internal;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.ComponentSpecIdentifier;
 
 public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpec implements NativeLibrarySpec {
     public DefaultNativeLibrarySpec(ComponentSpecIdentifier id, FunctionalSourceSet sourceSet) {

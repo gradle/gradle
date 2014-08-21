@@ -23,8 +23,8 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.runtime.base.BinarySpec;
-import org.gradle.runtime.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 public class CreateSourceTransformTask {
     private final LanguageRegistration language;

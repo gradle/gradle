@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.runtime.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpec;
 
 public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
     private final SourceSetRenderer sourceSetRenderer;

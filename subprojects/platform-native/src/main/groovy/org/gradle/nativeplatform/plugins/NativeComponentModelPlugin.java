@@ -39,10 +39,10 @@ import org.gradle.nativeplatform.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ComponentSpecContainer;
-import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import javax.inject.Inject;
 import java.io.File;

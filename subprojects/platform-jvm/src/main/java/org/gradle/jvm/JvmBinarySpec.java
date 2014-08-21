@@ -17,7 +17,7 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.jvm.toolchain.JavaToolChain;
 
 import java.io.File;

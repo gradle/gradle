@@ -28,10 +28,10 @@ import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
-import org.gradle.runtime.base.ComponentSpecIdentifier
-import org.gradle.runtime.base.internal.BinaryNamingScheme
-import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.platform.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class NativeBinarySpecTest extends Specification {

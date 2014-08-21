@@ -17,9 +17,9 @@
 package org.gradle.language.base.internal;
 
 
-import org.gradle.runtime.base.TransformationFileType;
+import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 
 import java.util.Map;
 

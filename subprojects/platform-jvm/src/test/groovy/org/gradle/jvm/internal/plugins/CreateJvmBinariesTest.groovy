@@ -19,11 +19,11 @@ package org.gradle.jvm.internal.plugins
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.runtime.base.BinaryContainer
-import org.gradle.runtime.base.ComponentSpecIdentifier
-import org.gradle.runtime.base.BinarySpec
-import org.gradle.runtime.base.internal.BinaryNamingScheme
-import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
+import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.internal.DefaultJarBinarySpec
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec

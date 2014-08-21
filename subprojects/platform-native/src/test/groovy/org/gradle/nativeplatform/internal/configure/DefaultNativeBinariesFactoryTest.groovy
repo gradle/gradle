@@ -22,11 +22,11 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
 import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
-import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
 import spock.lang.Specification
 
 class DefaultNativeBinariesFactoryTest extends Specification {

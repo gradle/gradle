@@ -24,8 +24,8 @@ import org.gradle.nativeplatform.internal.DefaultStaticLibraryBinarySpec;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.toolchain.ToolChain;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
 public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
     private final Instantiator instantiator;

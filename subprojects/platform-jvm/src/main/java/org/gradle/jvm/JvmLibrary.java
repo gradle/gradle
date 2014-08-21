@@ -17,7 +17,7 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.Library;
+import org.gradle.platform.base.Library;
 
 /**
  * A Library component that runs on the Java Virtual Machine.

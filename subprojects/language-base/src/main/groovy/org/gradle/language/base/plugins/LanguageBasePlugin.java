@@ -32,10 +32,10 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.BinarySpec;
-import org.gradle.runtime.base.internal.BinarySpecInternal;
-import org.gradle.runtime.base.internal.DefaultBinaryContainer;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -44,7 +44,7 @@ import java.util.List;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
+ * Adds a {@link org.gradle.platform.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.

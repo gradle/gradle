@@ -16,7 +16,7 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.LibrarySpec;
+import org.gradle.platform.base.LibrarySpec;
 
 /**
  * A library component that is built by a gradle project.

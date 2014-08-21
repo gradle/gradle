@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.test;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.runtime.base.test.TestSuiteBinarySpec;
+import org.gradle.platform.base.test.TestSuiteBinarySpec;
 
 import java.io.File;
 

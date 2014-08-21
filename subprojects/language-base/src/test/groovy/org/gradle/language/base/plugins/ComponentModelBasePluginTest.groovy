@@ -27,10 +27,10 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.LanguageRegistration
 import org.gradle.language.base.internal.SourceTransformTaskConfig
 import org.gradle.model.internal.core.ModelPath
-import org.gradle.runtime.base.BinarySpec
-import org.gradle.runtime.base.TransformationFileType
-import org.gradle.runtime.base.internal.ComponentSpecInternal
-import org.gradle.runtime.base.component.BaseComponentSpec
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.TransformationFileType
+import org.gradle.platform.base.internal.ComponentSpecInternal
+import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

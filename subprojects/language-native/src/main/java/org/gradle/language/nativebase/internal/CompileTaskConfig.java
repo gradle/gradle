@@ -34,7 +34,7 @@ import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.language.PreprocessingTool;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;

@@ -200,8 +200,8 @@ task checkModel << {
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
-        failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.runtime.base.BinaryTypeBuilder<SampleBinary>, java.lang.String) is not a valid binary model rule method."
-        failure.assertHasCause "BinaryType method must have a single parameter of type 'org.gradle.runtime.base.BinaryTypeBuilder'."
+        failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>, java.lang.String) is not a valid binary model rule method."
+        failure.assertHasCause "BinaryType method must have a single parameter of type 'org.gradle.platform.base.BinaryTypeBuilder'."
     }
 
     def "cannot register same binary type multiple times"(){
@@ -227,8 +227,8 @@ task checkModel << {
         fails "tasks"
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-binary'."
-        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.runtime.base.BinaryTypeBuilder<SampleBinary>)"
-        failure.assertHasCause "Cannot register a factory for type SampleBinary because a factory for this type was already registered by MySamplePlugin\$Rules#register(org.gradle.runtime.base.BinaryTypeBuilder<SampleBinary>)."
+        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>)"
+        failure.assertHasCause "Cannot register a factory for type SampleBinary because a factory for this type was already registered by MySamplePlugin\$Rules#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>)."
     }
 
 

@@ -24,7 +24,7 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibraryBinarySpec;
 

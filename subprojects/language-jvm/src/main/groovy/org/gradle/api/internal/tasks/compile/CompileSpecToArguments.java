@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.runtime.base.internal.toolchain.ArgCollector;
+import org.gradle.platform.base.internal.toolchain.ArgCollector;
 
 public interface CompileSpecToArguments<T> {
     public void collectArguments(T spec, ArgCollector collector);

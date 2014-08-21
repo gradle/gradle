@@ -18,7 +18,7 @@ package org.gradle.jvm;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.LibrarySpec;
+import org.gradle.platform.base.LibrarySpec;
 
 /**
  * Definition of a JVM library component that is to be built by Gradle.

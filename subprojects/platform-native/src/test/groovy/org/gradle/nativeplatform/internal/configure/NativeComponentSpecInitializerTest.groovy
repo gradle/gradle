@@ -19,11 +19,11 @@ package org.gradle.nativeplatform.internal.configure
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal

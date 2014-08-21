@@ -29,7 +29,7 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal;
 import org.gradle.language.PreprocessingTool;
 import org.gradle.language.rc.tasks.WindowsResourceCompile;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 
 import java.io.File;
 import java.util.Set;

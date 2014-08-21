@@ -20,7 +20,7 @@ import org.gradle.nativeplatform.sourceset.DependentSourceSet;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.runtime.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
 import java.util.Collection;

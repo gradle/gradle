@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.ApplicationBinarySpec;
+import org.gradle.platform.base.ApplicationBinarySpec;
 
 import java.io.File;
 

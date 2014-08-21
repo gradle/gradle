@@ -28,7 +28,7 @@ import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
 import org.gradle.language.rc.plugins.internal.WindowsResourcesCompileTaskConfig;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.language.nativebase.internal.DefaultPreprocessingTool;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 
 import java.util.Map;
 

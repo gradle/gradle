@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.runtime.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.jvm.JarBinarySpec;
 
 public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal {

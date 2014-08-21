@@ -21,8 +21,8 @@ import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.nativeplatform.NativeExecutableSpec;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class NativeExecutableSpecFactory implements NamedDomainObjectFactory<NativeExecutableSpec> {
     private final Instantiator instantiator;

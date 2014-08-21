@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.runtime.base.ComponentSpecContainer;
+import org.gradle.platform.base.ComponentSpecContainer;
 
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectLocator projectLocator;

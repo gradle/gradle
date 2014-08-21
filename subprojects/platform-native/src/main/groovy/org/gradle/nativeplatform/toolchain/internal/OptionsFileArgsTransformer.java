@@ -21,7 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.runtime.base.internal.toolchain.ArgWriter;
+import org.gradle.platform.base.internal.toolchain.ArgWriter;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

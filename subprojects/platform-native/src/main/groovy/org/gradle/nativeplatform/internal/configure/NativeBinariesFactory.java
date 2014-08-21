@@ -16,7 +16,7 @@
 package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.platform.Platform;
