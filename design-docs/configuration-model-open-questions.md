@@ -92,23 +92,23 @@ There are 2 things about a component that define 'what' the component is:
 
 For example:
 
-    - A component that provides an API is-a library
-    - A component built from a JVM language is-a JVM component (and runs on the JVM)
-    - A component built from a native language is-a native component (and runs on the native C runtime)
-    - A component that provides a main method is-a command-line application
-    - A component that provides a Web servlet is-a Web application
-    - A library that is built from Java is-a Java library
-    - A library that is built from Java and Scala is-a JVM library
-    - A library built from C and C++ is-a native library
-    - A component that provides an API and a main method is both a library and a command-line application.
+- A component that provides an API is-a library
+- A component built from a JVM language is-a JVM component (and runs on the JVM)
+- A component built from a native language is-a native component (and runs on the native C runtime)
+- A component that provides a main method is-a command-line application
+- A component that provides a Web servlet is-a Web application
+- A library that is built from Java is-a Java library
+- A library that is built from Java and Scala is-a JVM library
+- A library built from C and C++ is-a native library
+- A component that provides an API and a main method is both a library and a command-line application.
 
 Not every combination of entry points and source languages makes sense, but many do.
 
 The DSL should be able to express any legal combination, plus some way to conveniently express common combinations. For example:
 
-    - A Java library -> built from Java and provides an API
-    - A C library -> built from C and provides an API
-    - A C executable -> built from C and provides a main method
+- A Java library -> built from Java and provides an API
+- A C library -> built from C and provides an API
+- A C executable -> built from C and provides a main method
 
 A 3rd fundamental property of a component is the set of target runtimes. A runtime, or at least the type of runtime, can often be inferred from either the source
 languages or the entry point.
