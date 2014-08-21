@@ -528,8 +528,8 @@ Note: the class loading/visibility required by this story does not reflect the f
 ### Open Issues
 
 * Is it worth validating the id/version returned by the service against what we asked for?
-* Handling of buildscript classpath is handled in both `DefaultScriptPluginFactory` and `DefaultPluginRequestApplicator`, depending on whether there are plugin requests
-or not. Should move all this handling to live in a single place (outside of `DefaultScriptPluginFactory`). Looks like the handling in `DefaultScriptPluginFactory` could
+* Handling of buildscript classpath is done in both `DefaultScriptPluginFactory` and `DefaultPluginRequestApplicator`, depending on whether there are plugin requests
+or not. Should move all this handling to live in a single place outside of `DefaultScriptPluginFactory`. Looks like the handling in `DefaultScriptPluginFactory` could
 simply be removed, and the call to `PluginRequestApplicator` done regardless of whether there are plugin requests or not.
 * `PluginResolutionServiceResolver` has a hardcoded set of version matchers to detect a dynamic version. Should instead be injected with the `VersionMatcher` provided by
 the dependency resolution services.
@@ -537,6 +537,13 @@ the dependency resolution services.
 * Add a test case that both `buildscript { }` dependencies and `plugins { }` classes are visible in the script, when the script contains both blocks.
 * Should provide feedback when resolving plugins, eg in the status bar.
 * When resolving the implementation classpath, exclude and/or validate those things provided by the Gradle API, eg the Groovy implementation.
+* Non-declarative plugins can see classes inherited from parent project.
+* `DefaultClassLoaderScope` produces a non-optimal ClassLoader structure when a scope has no local ClassLoaders and a single export URLClassLoader whose parent is the exported ClassLoader of the parent Scope.
+In this case, this export ClassLoader can be used directly as both the local and exported ClassLoader of the current scope. This is a common case, where a script has
+a `buildscript { }` block or a `plugins { }` block with non-declarative plugins only. There's a similar problem when a scope has a single local URLClassLoader and
+no export ClassLoader. There isn't currently a way to hit this case, however.
+* `DefaultClassLoaderScope` should leave the parent scope's exported ClassLoader out of a multi-parent ClassLoaders when the parent ClassLoader is reachable
+from some other ClassLoader, to reduce the number of paths through the ClassLoader graph.
 
 ## ~~Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”~~
 
@@ -615,6 +622,7 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
 ### Open issues
 
+- Should cache resolution in memory, rather than hitting the file system for each `PluginRequest`.
 - `CachingPluginResolutionServiceClient` does not close the caches it creates.
 
 ## Story: ~~Error message for unknown plugin or plugin version includes link to relevant human search interfaces~~
