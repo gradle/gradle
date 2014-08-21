@@ -249,6 +249,8 @@ For these options, rules would be able to receive and mutate some 'definition' v
 mixed together and the properties made available for mutation by other rules. The properties of the definition view essentially form the
 constructor parameters of the object.
 
+There would still be static types that represent certain capabilities, and these would be available for use in rules.
+
 ### Option 4 - Combined
 
 Both static types and property values can be used to determine facts about the component.
