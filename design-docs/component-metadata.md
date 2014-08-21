@@ -318,12 +318,6 @@ The primary changes are:
 - All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted
 - Test cases from earlier stories will be modified or replaced by the test cases here
 
-## Story: Add Java API for component metadata rules
-
-Use `RuleAction` to provide a Java API for component metadata rules: `ComponentMetadataHandler.eachComponent(RuleAction<ComponentMetadataDetails>)`
-
-Generate closure-based methods for any methods that take a `RuleAction` parameter, and remove the existing Closure-accepting duplicates.
-
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 
 To make it easy to diagnose why no components match a particular version selector, this story adds context to the existing
@@ -364,6 +358,13 @@ This story adds some convenience DSL to target a selection rule a particular gro
 ## Open issues
 
 - Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
+
+
+## Story: Add Java API for component metadata rules
+
+Use `RuleAction` to provide a Java API for component metadata rules: `ComponentMetadataHandler.eachComponent(RuleAction<ComponentMetadataDetails>)`
+
+Generate closure-based methods for any methods that take a `RuleAction` parameter, and remove the existing Closure-accepting duplicates.
 
 # Later milestones
 
