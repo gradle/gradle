@@ -71,12 +71,17 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractComponentModelRuleD
 
         protected void doMutate(ExtensionContainer extensions, Inputs inputs) {
             BinaryContainer binaries = extensions.getByType(BinaryContainer.class);
-            binaries.registerFactory(type, new NamedDomainObjectFactory() {
-                public Object create(String name) {
+            binaries.registerFactory(type, new NamedDomainObjectFactory<V>() {
+                public V create(String name) {
                     BinaryNamingScheme binaryNamingScheme = new DefaultBinaryNamingSchemeBuilder()
                             .withComponentName(name)
                             .build();
-                    return BaseBinarySpec.create(implementation, binaryNamingScheme, instantiator);
+
+                    // safe because we implicitly know that U extends V, but can't express this in the type system
+                    @SuppressWarnings("unchecked")
+                    V created = (V) BaseBinarySpec.create(implementation, binaryNamingScheme, instantiator);
+
+                    return created;
                 }
             });
         }

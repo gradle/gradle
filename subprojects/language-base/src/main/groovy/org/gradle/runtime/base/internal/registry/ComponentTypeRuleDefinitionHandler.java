@@ -41,7 +41,7 @@ public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRu
 
     @Override
     protected <V extends ComponentSpec, U extends BaseComponentSpec> ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, ModelType<V> type, ModelType<U> implementation) {
-        return new ComponentTypeRuleMutationAction(descriptor, instantiator, type.getConcreteClass(), implementation.getConcreteClass());
+        return new ComponentTypeRuleMutationAction<V, U>(descriptor, instantiator, type.getConcreteClass(), implementation.getConcreteClass());
     }
 
     @Override
@@ -55,12 +55,12 @@ public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRu
         }
     }
 
-    private static class ComponentTypeRuleMutationAction extends RegisterTypeRule {
+    private static class ComponentTypeRuleMutationAction<V extends ComponentSpec, U extends BaseComponentSpec> extends RegisterTypeRule {
         private final Instantiator instantiator;
-        private final Class<? extends ComponentSpec> type;
-        private final Class<? extends BaseComponentSpec> implementation;
+        private final Class<V> type;
+        private final Class<U> implementation;
 
-        public ComponentTypeRuleMutationAction(ModelRuleDescriptor descriptor, Instantiator instantiator, Class<? extends ComponentSpec> type, Class<? extends BaseComponentSpec> implementation) {
+        public ComponentTypeRuleMutationAction(ModelRuleDescriptor descriptor, Instantiator instantiator, Class<V> type, Class<U> implementation) {
             super(descriptor);
             this.instantiator = instantiator;
             this.type = type;
@@ -71,11 +71,16 @@ public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRu
             final ProjectSourceSet projectSourceSet = extensions.getByType(ProjectSourceSet.class);
             ComponentSpecContainer componentSpecs = extensions.getByType(ComponentSpecContainer.class);
             final ProjectIdentifier projectIdentifier = inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
-            componentSpecs.registerFactory(type, new NamedDomainObjectFactory() {
-                public Object create(String name) {
+            componentSpecs.registerFactory(type, new NamedDomainObjectFactory<V>() {
+                public V create(String name) {
                     FunctionalSourceSet componentSourceSet = projectSourceSet.maybeCreate(name);
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return BaseComponentSpec.create(implementation, id, componentSourceSet, instantiator);
+
+                    // safe because we implicitly know that U extends V, but can't express this in the type system
+                    @SuppressWarnings("unchecked")
+                    V created = (V) BaseComponentSpec.create(implementation, id, componentSourceSet, instantiator);
+
+                    return created;
                 }
             });
         }
