@@ -76,6 +76,7 @@ public class EarPluginConvention {
         this.instantiator = instantiator
         this.fileResolver = fileResolver
         deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class, fileResolver, instantiator)
+        deploymentDescriptor.readFrom "META-INF/application.xml"
         deploymentDescriptor.readFrom "$appDirName/META-INF/$deploymentDescriptor.fileName"
     }
 

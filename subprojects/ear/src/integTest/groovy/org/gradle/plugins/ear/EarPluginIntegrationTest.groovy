@@ -109,6 +109,29 @@ dependencies {
     }
 
     @Test
+    void "uses application.xml located in root folder"() {
+        def applicationXml = """<?xml version="1.0"?>
+<application xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="6">
+  <application-name>customear</application-name>
+  <display-name>displayname</display-name>
+  <library-directory>mylib</library-directory>
+</application>
+"""
+
+        file('META-INF/application.xml') << applicationXml
+        file("build.gradle").write("""
+apply plugin: 'ear'
+""")
+
+        //when
+        executer.withTasks('assemble').run()
+
+        //then
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertFileContent("META-INF/application.xml", applicationXml)
+    }
+
+    @Test
     void "uses content found in specified app folder"() {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
