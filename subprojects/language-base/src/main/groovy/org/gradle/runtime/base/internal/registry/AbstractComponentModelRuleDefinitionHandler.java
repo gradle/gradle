@@ -16,8 +16,9 @@
 
 package org.gradle.runtime.base.internal.registry;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -55,7 +56,7 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    abstract protected <V extends T, W extends U> ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, ModelType<V> type, ModelType<W> implementation);
+    abstract protected <V extends T, W extends U> Action<? super TypeRegistrationContext> createTypeRegistrationAction(ModelType<V> type, ModelType<W> implementation);
 
     abstract protected TypeBuilderInternal createBuilder();
 
@@ -66,7 +67,9 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
 
             dependencies.add(ComponentModelBasePlugin.class);
             if (implementation != null) {
-                modelRegistry.mutate(createModelMutator(ruleDefinition.getDescriptor(), type, implementation));
+                Action<? super TypeRegistrationContext> typeRegistrationAction = createTypeRegistrationAction(type, implementation);
+                ModelMutator<?> mutator = new RegisterTypeRule(ruleDefinition.getDescriptor(), typeRegistrationAction);
+                modelRegistry.mutate(mutator);
             }
         } catch (InvalidComponentModelException e) {
             invalidModelRule(ruleDefinition, e);
@@ -130,17 +133,24 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         return (ModelType<? extends U>) implementationType;
     }
 
-    protected abstract static class RegisterTypeRule implements ModelMutator<ExtensionContainer> {
+    protected interface TypeRegistrationContext {
+        ExtensionContainer getExtensions();
+
+        ProjectIdentifier getProjectIdentifier();
+    }
+
+    private static class RegisterTypeRule implements ModelMutator<ExtensionContainer> {
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<ExtensionContainer> subject;
-        private final List<ModelReference<?>> inputs = Lists.newArrayList();
+        private final List<ModelReference<?>> inputs;
+        private final Action<? super TypeRegistrationContext> registerAction;
 
-        protected RegisterTypeRule(ModelRuleDescriptor descriptor) {
+        protected RegisterTypeRule(ModelRuleDescriptor descriptor, Action<? super TypeRegistrationContext> registerAction) {
             this.descriptor = descriptor;
+            this.registerAction = registerAction;
 
             subject = ModelReference.of("extensions", ExtensionContainer.class);
-            final ModelReference<?> input = ModelReference.of(ProjectIdentifier.class);
-            inputs.add(input);
+            inputs = ImmutableList.<ModelReference<?>>of(ModelReference.of(ProjectIdentifier.class));
         }
 
         public ModelReference<ExtensionContainer> getSubject() {
@@ -158,11 +168,18 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
         public final void mutate(final ExtensionContainer extensionContainer, final Inputs inputs) {
             RuleContext.inContext(getDescriptor(), new Runnable() {
                 public void run() {
-                    doMutate(extensionContainer, inputs);
+                    registerAction.execute(new TypeRegistrationContext() {
+                        public ExtensionContainer getExtensions() {
+                            return extensionContainer;
+                        }
+
+                        public ProjectIdentifier getProjectIdentifier() {
+                            return inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
+                        }
+                    });
                 }
             });
         }
-
-        protected abstract void doMutate(ExtensionContainer extensions, Inputs inputs);
     }
+
 }

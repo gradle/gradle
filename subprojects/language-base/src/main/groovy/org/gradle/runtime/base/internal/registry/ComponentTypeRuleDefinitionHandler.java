@@ -16,16 +16,13 @@
 
 package org.gradle.runtime.base.internal.registry;
 
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.runtime.base.*;
 import org.gradle.runtime.base.component.BaseComponentSpec;
 import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
@@ -40,8 +37,26 @@ public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRu
     }
 
     @Override
-    protected <V extends ComponentSpec, U extends BaseComponentSpec> ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, ModelType<V> type, ModelType<U> implementation) {
-        return new ComponentTypeRuleMutationAction<V, U>(descriptor, instantiator, type.getConcreteClass(), implementation.getConcreteClass());
+    protected <V extends ComponentSpec, W extends BaseComponentSpec> Action<? super TypeRegistrationContext> createTypeRegistrationAction(final ModelType<V> type, final ModelType<W> implementation) {
+        return new Action<TypeRegistrationContext>() {
+            public void execute(final TypeRegistrationContext context) {
+                ExtensionContainer extensions = context.getExtensions();
+                final ProjectSourceSet projectSourceSet = extensions.getByType(ProjectSourceSet.class);
+                ComponentSpecContainer componentSpecs = extensions.getByType(ComponentSpecContainer.class);
+                componentSpecs.registerFactory(type.getConcreteClass(), new NamedDomainObjectFactory<V>() {
+                    public V create(String name) {
+                        FunctionalSourceSet componentSourceSet = projectSourceSet.maybeCreate(name);
+                        ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(context.getProjectIdentifier().getPath(), name);
+
+                        // safe because we implicitly know that U extends V, but can't express this in the type system
+                        @SuppressWarnings("unchecked")
+                        V created = (V) BaseComponentSpec.create(implementation.getConcreteClass(), id, componentSourceSet, instantiator);
+
+                        return created;
+                    }
+                });
+            }
+        };
     }
 
     @Override
@@ -55,34 +70,4 @@ public class ComponentTypeRuleDefinitionHandler extends AbstractComponentModelRu
         }
     }
 
-    private static class ComponentTypeRuleMutationAction<V extends ComponentSpec, U extends BaseComponentSpec> extends RegisterTypeRule {
-        private final Instantiator instantiator;
-        private final Class<V> type;
-        private final Class<U> implementation;
-
-        public ComponentTypeRuleMutationAction(ModelRuleDescriptor descriptor, Instantiator instantiator, Class<V> type, Class<U> implementation) {
-            super(descriptor);
-            this.instantiator = instantiator;
-            this.type = type;
-            this.implementation = implementation;
-        }
-
-        protected void doMutate(ExtensionContainer extensions, Inputs inputs) {
-            final ProjectSourceSet projectSourceSet = extensions.getByType(ProjectSourceSet.class);
-            ComponentSpecContainer componentSpecs = extensions.getByType(ComponentSpecContainer.class);
-            final ProjectIdentifier projectIdentifier = inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
-            componentSpecs.registerFactory(type, new NamedDomainObjectFactory<V>() {
-                public V create(String name) {
-                    FunctionalSourceSet componentSourceSet = projectSourceSet.maybeCreate(name);
-                    ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-
-                    // safe because we implicitly know that U extends V, but can't express this in the type system
-                    @SuppressWarnings("unchecked")
-                    V created = (V) BaseComponentSpec.create(implementation, id, componentSourceSet, instantiator);
-
-                    return created;
-                }
-            });
-        }
-    }
 }

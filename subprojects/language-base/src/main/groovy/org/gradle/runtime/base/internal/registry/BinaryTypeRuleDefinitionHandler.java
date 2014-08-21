@@ -16,13 +16,10 @@
 
 package org.gradle.runtime.base.internal.registry;
 
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.BinarySpec;
 import org.gradle.runtime.base.BinaryType;
@@ -41,8 +38,25 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractComponentModelRuleD
     }
 
     @Override
-    protected <V extends BinarySpec, U extends BaseBinarySpec> ModelMutator<ExtensionContainer> createModelMutator(ModelRuleDescriptor descriptor, ModelType<V> type, ModelType<U> implementation) {
-        return new BinaryTypeRuleMutationAction<V, U>(descriptor, instantiator, type.getConcreteClass(), implementation.getConcreteClass());
+    protected <V extends BinarySpec, W extends BaseBinarySpec> Action<? super TypeRegistrationContext> createTypeRegistrationAction(final ModelType<V> type, final ModelType<W> implementation) {
+        return new Action<TypeRegistrationContext>() {
+            public void execute(TypeRegistrationContext typeRegistrationContext) {
+                BinaryContainer binaries = typeRegistrationContext.getExtensions().getByType(BinaryContainer.class);
+                binaries.registerFactory(type.getConcreteClass(), new NamedDomainObjectFactory<V>() {
+                    public V create(String name) {
+                        BinaryNamingScheme binaryNamingScheme = new DefaultBinaryNamingSchemeBuilder()
+                                .withComponentName(name)
+                                .build();
+
+                        // safe because we implicitly know that U extends V, but can't express this in the type system
+                        @SuppressWarnings("unchecked")
+                        V created = (V) BaseBinarySpec.create(implementation.getConcreteClass(), binaryNamingScheme, instantiator);
+
+                        return created;
+                    }
+                });
+            }
+        };
     }
 
     @Override
@@ -56,35 +70,5 @@ public class BinaryTypeRuleDefinitionHandler extends AbstractComponentModelRuleD
         }
     }
 
-    private static class BinaryTypeRuleMutationAction<V extends BinarySpec, U extends BaseBinarySpec> extends RegisterTypeRule {
-
-        private final Instantiator instantiator;
-        private final Class<V> type;
-        private final Class<U> implementation;
-
-        public BinaryTypeRuleMutationAction(ModelRuleDescriptor descriptor, Instantiator instantiator, Class<V> type, Class<U> implementation) {
-            super(descriptor);
-            this.instantiator = instantiator;
-            this.type = type;
-            this.implementation = implementation;
-        }
-
-        protected void doMutate(ExtensionContainer extensions, Inputs inputs) {
-            BinaryContainer binaries = extensions.getByType(BinaryContainer.class);
-            binaries.registerFactory(type, new NamedDomainObjectFactory<V>() {
-                public V create(String name) {
-                    BinaryNamingScheme binaryNamingScheme = new DefaultBinaryNamingSchemeBuilder()
-                            .withComponentName(name)
-                            .build();
-
-                    // safe because we implicitly know that U extends V, but can't express this in the type system
-                    @SuppressWarnings("unchecked")
-                    V created = (V) BaseBinarySpec.create(implementation, binaryNamingScheme, instantiator);
-
-                    return created;
-                }
-            });
-        }
-    }
 }
 
