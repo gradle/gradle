@@ -78,12 +78,12 @@ This has implications for the DSL, as some criteria can be expressed statically 
 
 There are 2 things about a component that define 'what' the component is:
 - The source languages that the component is built from
-- The 'entry points' that the component is invoked from or provides:
+- The 'entry points' through which the component is invoked:
     - API
     - Main method
-    - Web servlet
+    - J2EE servlet application
     - Play application
-    - JNI methods
+    - JNI method implementations
     - Gradle plugin
 
 For example:
@@ -104,8 +104,8 @@ The DSL should be able to express any legal combination, plus some way to conven
     - A C library -> built from C and provides an API
     - A C executable -> built from C and provides a main method
 
-A 3rd fundamental property of a component is the set of target runtimes. The runtimes can often be inferred from either the source languages or the entry point,
-or may be explicitly defined.
+A 3rd fundamental property of a component is the set of target runtimes. A runtime, or at least the type of runtime, can often be inferred from either the source
+languages or the entry point.
 
 ### Option 1 - Static types
 
@@ -245,11 +245,12 @@ Or:
         myLib.languages lang.java, lang.scala
     }
 
-For these options, a rule would be able to receive and mutate the 'definition' view to determine the types of an object. These types would be
-mixed together and made available for mutation by other rules.
+For these options, rules would be able to receive and mutate some 'definition' view to determine the types of an object. These types would be
+mixed together and the properties made available for mutation by other rules. The properties of the definition view essentially form the
+constructor parameters of the object.
 
 ### Option 4 - Combined
 
-Both static types and property values can be used to determine facts about the component:
+Both static types and property values can be used to determine facts about the component.
 
 ## Add more stuff here
