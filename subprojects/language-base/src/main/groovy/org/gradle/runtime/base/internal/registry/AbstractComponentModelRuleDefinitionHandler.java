@@ -59,7 +59,7 @@ public abstract class AbstractComponentModelRuleDefinitionHandler<A extends Anno
 
     abstract protected TypeBuilderInternal createBuilder();
 
-    public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
             ModelType<? extends U> implementation = determineImplementationType(ruleDefinition, type);

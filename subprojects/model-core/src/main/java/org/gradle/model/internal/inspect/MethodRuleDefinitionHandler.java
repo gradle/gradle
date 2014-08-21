@@ -31,5 +31,5 @@ public interface MethodRuleDefinitionHandler {
 
     String getDescription();
 
-    void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies);
+    <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies);
 }

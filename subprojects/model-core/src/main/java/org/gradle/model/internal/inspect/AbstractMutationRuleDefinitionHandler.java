@@ -26,7 +26,7 @@ import java.util.List;
 
 public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
 
-    public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
 
         ModelReference<?> subject = bindings.get(0);

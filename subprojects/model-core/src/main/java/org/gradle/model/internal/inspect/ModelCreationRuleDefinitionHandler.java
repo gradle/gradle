@@ -25,7 +25,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import java.util.List;
 
 public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<Model> {
-    public void register(MethodRuleDefinition<?> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
 
         // TODO validate model name
         String modelName = determineModelName(ruleDefinition);
@@ -37,16 +37,11 @@ public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDriven
         }
 
         // TODO validate the return type (generics?)
-        ModelType<?> returnType = ruleDefinition.getReturnType();
-
-        doRegisterCreation(ruleDefinition, returnType, modelName, modelRegistry);
-    }
-
-    private <R> void doRegisterCreation(final MethodRuleDefinition<?> ruleDefinition, final ModelType<R> type, final String modelName, final ModelRegistry modelRegistry) {
+        ModelType<T> returnType = ruleDefinition.getReturnType();
         ModelPath path = ModelPath.path(modelName);
         List<ModelReference<?>> references = ruleDefinition.getReferences();
 
-        modelRegistry.create(new MethodModelCreator<R>(type, path, references, ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor()));
+        modelRegistry.create(new MethodModelCreator<T>(returnType, path, references, ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor()));
     }
 
     private String determineModelName(MethodRuleDefinition<?> ruleDefinition) {
@@ -64,9 +59,9 @@ public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDriven
         private final ModelPromise promise;
         private final ModelRuleDescriptor descriptor;
         private List<ModelReference<?>> inputs;
-        private final ModelRuleInvoker<?> ruleInvoker;
+        private final ModelRuleInvoker<R> ruleInvoker;
 
-        public MethodModelCreator(ModelType<R> type, ModelPath path, List<ModelReference<?>> inputs, ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor) {
+        public MethodModelCreator(ModelType<R> type, ModelPath path, List<ModelReference<?>> inputs, ModelRuleInvoker<R> ruleInvoker, ModelRuleDescriptor descriptor) {
             this.type = type;
             this.path = path;
             this.inputs = inputs;
@@ -96,18 +91,17 @@ public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDriven
             return InstanceModelAdapter.of(type, instance);
         }
 
-        // TODO:DAZ Work out how to generify MethodRuleDefinition
         @SuppressWarnings("unchecked")
         private R invoke(Inputs inputs) {
             if (inputs.size() == 0) {
-                return (R) ruleInvoker.invoke();
+                return ruleInvoker.invoke();
             } else {
                 Object[] args = new Object[inputs.size()];
                 for (int i = 0; i < inputs.size(); i++) {
                     args[i] = inputs.get(i, this.inputs.get(i).getType()).getInstance();
                 }
 
-                return (R) ruleInvoker.invoke(args);
+                return ruleInvoker.invoke(args);
             }
         }
 
