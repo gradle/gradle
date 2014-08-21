@@ -23,12 +23,11 @@ import org.gradle.api.InvalidActionClosureException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentMetadata;
-import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.VersionSelection;
 import org.gradle.api.artifacts.VersionSelectionRules;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.internal.NoInputsRuleAction;
 import org.gradle.api.internal.ClosureBackedRuleAction;
+import org.gradle.api.internal.NoInputsRuleAction;
 import org.gradle.api.internal.artifacts.VersionSelectionInternal;
 import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
@@ -36,10 +35,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultVersionSelectionRules implements VersionSelectionRulesInternal {
     final Set<RuleAction<? super VersionSelection>> versionSelectionRules = new LinkedHashSet<RuleAction<? super VersionSelection>>();
@@ -50,26 +52,27 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for version selection rule: %s";
 
     public void apply(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
+        MetadataProvider metadataProvider = new MetadataProvider(selection, moduleAccess);
+
         for (RuleAction<? super VersionSelection> rule : versionSelectionRules) {
             List<Object> inputs = Lists.newArrayList();
             for (Class<?> inputType : rule.getInputTypes()) {
                 if (inputType == ComponentMetadata.class) {
-                    MutableModuleVersionMetaData metaData = getMetaData(selection, moduleAccess);
-                    ComponentMetadataDetails componentMetadata = new ComponentMetadataDetailsAdapter(metaData);
-                    inputs.add(componentMetadata);
+                    inputs.add(metadataProvider.getComponentMetadata());
                     continue;
                 }
                 if (inputType == IvyModuleDescriptor.class) {
-                    MutableModuleVersionMetaData metaData = getMetaData(selection, moduleAccess);
-                    if (metaData instanceof IvyModuleVersionMetaData) {
-                        IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metaData;
-                        inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
+                    IvyModuleDescriptor ivyModuleDescriptor = metadataProvider.getIvyModuleDescriptor();
+                    if (ivyModuleDescriptor != null) {
+                        inputs.add(ivyModuleDescriptor);
                         continue;
                     } else {
+                        // Don't process rule for non-ivy modules
                         return;
                     }
                 }
-                throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
+                // We've already validated the inputs: should never get here.
+                throw new IllegalStateException();
             }
 
             try {
@@ -78,12 +81,6 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
                 throw new InvalidUserCodeException(USER_CODE_ERROR, e);
             }
         }
-    }
-
-    private MutableModuleVersionMetaData getMetaData(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
-        BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
-        moduleAccess.resolveComponentMetaData(((VersionSelectionInternal) selection).getDependencyMetaData(), selection.getCandidate(), descriptorResult);
-        return descriptorResult.getMetaData();
     }
 
     public boolean hasRules() {
@@ -120,5 +117,43 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
             }
         }
         return ruleAction;
+    }
+    
+    private static class MetadataProvider {
+        private final VersionSelection versionSelection;
+        private final ModuleComponentRepositoryAccess moduleAccess;
+        private MutableModuleVersionMetaData cachedMetaData;
+
+        private MetadataProvider(VersionSelection versionSelection, ModuleComponentRepositoryAccess moduleAccess) {
+            this.versionSelection = versionSelection;
+            this.moduleAccess = moduleAccess;
+        }
+
+        public ComponentMetadata getComponentMetadata() {
+            return new ComponentMetadataDetailsAdapter(getMetaData());
+        }
+
+        public IvyModuleDescriptor getIvyModuleDescriptor() {
+            ModuleVersionMetaData metaData = getMetaData();
+            if (metaData instanceof IvyModuleVersionMetaData) {
+                IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metaData;
+                return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
+            }
+            return null;
+        }
+
+        private MutableModuleVersionMetaData getMetaData() {
+            if (cachedMetaData == null) {
+                cachedMetaData = initMetaData(versionSelection, moduleAccess);
+            }
+            return cachedMetaData;
+        }
+
+        private MutableModuleVersionMetaData initMetaData(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
+            BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
+            moduleAccess.resolveComponentMetaData(((VersionSelectionInternal) selection).getDependencyMetaData(), selection.getCandidate(), descriptorResult);
+            return descriptorResult.getMetaData();
+        }
+        
     }
 }
