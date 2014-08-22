@@ -642,6 +642,10 @@ This story covers improving the feedback when Gradle is dealing with buildscript
 
 # Milestone 2 - more accurate classloading
 
+## Story: Gradle core and API classloaders only load core plugins
+
+See https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/groovy/org/gradle/api/internal/plugins/CorePluginRegistry.java#L39-39
+
 ## Story: Non-declarative plugins are isolated, and share everything to the local scope only
 
 This story restricts the visibility of classes from non-declarative plugins in that they are not exported from their usage scope.
