@@ -80,7 +80,7 @@
         <sample id="buildlifecycle" dir="userguide/buildlifecycle/basic" title="Single project build">
             <sourcefile file="settings.gradle"/>
             <sourcefile file="build.gradle"/>
-            <output args="test"/>
+            <output args="test testBoth"/>
         </sample>
         <para>For a build script, the property access and method calls are delegated to a project object. Similarly
             property access and method calls within the settings file is delegated to a settings object. Look at
