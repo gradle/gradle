@@ -21,9 +21,7 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.*;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
@@ -34,7 +32,7 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
 
     private Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private Spec<T> notInSpec = new ItemNotInCompositeSpec();
-    
+
     public CompositeDomainObjectSet(Class<T> type) {
         //noinspection unchecked
         super(type, new CompositeCollection());
@@ -81,12 +79,13 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
         return super.whenObjectRemoved(Actions.<T>filter(action, notInSpec));
     }
     
-    public void addCollection(DomainObjectCollection<? extends T> collection) {
+    public CompositeDomainObjectSet<T> addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().getCollections().contains(collection)) {
             getStore().addComposited(collection);
             collection.all(getEventRegister().getAddAction());
             collection.whenObjectRemoved(getEventRegister().getRemoveAction());
         }
+        return this;
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
@@ -115,4 +114,15 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
         }
     }
 
+    /**
+     * Only allows adding beforeChange actions before any collections are composited.
+     * It can be improved in future but for now it is sufficient.
+     */
+    public CompositeDomainObjectSet<T> beforeChange(Runnable action) {
+        if(!getStore().getCollections().isEmpty()) {
+            throw new IllegalStateException("beforeChange action can only be added before any collections are composited.");
+        }
+        whenObjectAdded(Actions.toAction(action));
+        return this;
+    }
 }

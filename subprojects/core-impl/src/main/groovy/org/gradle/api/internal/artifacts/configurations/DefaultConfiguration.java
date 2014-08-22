@@ -88,7 +88,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ownDependencies.beforeChange(new VetoContainerChangeAction());
 
         dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
-        inheritedDependencies = new CompositeDomainObjectSet<Dependency>(Dependency.class, ownDependencies);
+        inheritedDependencies = new CompositeDomainObjectSet<Dependency>(Dependency.class)
+                .beforeChange(new VetoContainerChangeAction())
+                .addCollection(ownDependencies);
+
         allDependencies = new DefaultDependencySet(String.format("%s all dependencies", getDisplayName()), inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);

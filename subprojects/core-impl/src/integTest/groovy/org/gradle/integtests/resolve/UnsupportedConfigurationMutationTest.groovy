@@ -19,7 +19,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
@@ -35,7 +34,6 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3155")
-    @Ignore
     def "does not allow adding dependencies to hierarchy after resolution"() {
         buildFile << """
             configurations {
@@ -47,5 +45,18 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
         when: fails()
         then: failure.assertHasCause("You can't change configuration 'b' because it is already resolved!")
+    }
+
+    @Issue("GRADLE-3155")
+    def "allows changing ancestor configuration if it does not affect resolved child"() {
+        buildFile << """
+            configurations {
+                a
+                b.extendsFrom a
+                b.resolve()
+                a.description = 'some conf'
+            }
+        """
+        expect: succeeds()
     }
 }
