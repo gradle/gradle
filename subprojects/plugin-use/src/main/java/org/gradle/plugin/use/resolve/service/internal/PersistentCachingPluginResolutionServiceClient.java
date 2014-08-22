@@ -30,7 +30,7 @@ import org.gradle.plugin.use.internal.PluginRequest;
 
 import java.io.IOException;
 
-public class CachingPluginResolutionServiceClient implements PluginResolutionServiceClient {
+public class PersistentCachingPluginResolutionServiceClient implements PluginResolutionServiceClient {
 
     public static final String PLUGIN_USE_METADATA_CACHE_NAME = "plugin-use-metadata";
     public static final String PLUGIN_USE_METADATA_OP_NAME = "queryPluginMetadata";
@@ -42,7 +42,7 @@ public class CachingPluginResolutionServiceClient implements PluginResolutionSer
     private final PersistentIndexedCache<PluginRequestKey, Response<PluginUseMetaData>> pluginUseMetadataCache;
     private final PersistentIndexedCache<ClientStatusKey, Response<ClientStatus>> clientStatusCache;
 
-    public CachingPluginResolutionServiceClient(PluginResolutionServiceClient delegate, PersistentCache persistentCache) {
+    public PersistentCachingPluginResolutionServiceClient(PluginResolutionServiceClient delegate, PersistentCache persistentCache) {
         this.delegate = delegate;
         this.cacheAccess = persistentCache;
         this.pluginUseMetadataCache = persistentCache.createCache(PersistentIndexedCacheParameters.of(

@@ -72,8 +72,9 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                     .withLockOptions(mode(FileLockManager.LockMode.None))
                     .open();
 
-            PluginResolutionServiceClient cachingClient = new CachingPluginResolutionServiceClient(httpClient, cache);
-            return new DeprecationListeningPluginResolutionServiceClient(cachingClient);
+            PluginResolutionServiceClient persistentCachingClient = new PersistentCachingPluginResolutionServiceClient(httpClient, cache);
+            PluginResolutionServiceClient inMemoryCachingClient = new InMemoryCachingPluginResolutionServiceClient(persistentCachingClient);
+            return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
         }
 
         PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, Instantiator instantiator, VersionMatcher versionMatcher, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScopeRegistry classLoaderScopeRegistry) {

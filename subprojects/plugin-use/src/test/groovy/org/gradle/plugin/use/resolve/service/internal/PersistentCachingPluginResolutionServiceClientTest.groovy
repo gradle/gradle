@@ -25,7 +25,7 @@ import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
 import spock.lang.Specification
 
-class CachingPluginResolutionServiceClientTest extends Specification {
+class PersistentCachingPluginResolutionServiceClientTest extends Specification {
 
     public static final String PORTAL_URL_1 = "http://foo"
     public static final PluginRequest REQUEST_1 = request("foo")
@@ -42,16 +42,16 @@ class CachingPluginResolutionServiceClientTest extends Specification {
 
     def caches = new InMemoryCacheFactory.InMemoryCache(testDirectoryProvider.testDirectory)
 
-    PersistentIndexedCache<CachingPluginResolutionServiceClient.PluginRequestKey, PluginResolutionServiceClient.Response<PluginUseMetaData>> getPluginCache() {
-        caches[CachingPluginResolutionServiceClient.PLUGIN_USE_METADATA_CACHE_NAME]
+    PersistentIndexedCache<PersistentCachingPluginResolutionServiceClient.PluginRequestKey, PluginResolutionServiceClient.Response<PluginUseMetaData>> getPluginCache() {
+        caches[PersistentCachingPluginResolutionServiceClient.PLUGIN_USE_METADATA_CACHE_NAME]
     }
 
-    PersistentIndexedCache<CachingPluginResolutionServiceClient.ClientStatusKey, PluginResolutionServiceClient.Response<ClientStatus>> getClientStatusCache() {
-        caches[CachingPluginResolutionServiceClient.CLIENT_STATUS_CACHE_NAME]
+    PersistentIndexedCache<PersistentCachingPluginResolutionServiceClient.ClientStatusKey, PluginResolutionServiceClient.Response<ClientStatus>> getClientStatusCache() {
+        caches[PersistentCachingPluginResolutionServiceClient.CLIENT_STATUS_CACHE_NAME]
     }
 
     def createClient() {
-        new CachingPluginResolutionServiceClient(delegate, caches)
+        new PersistentCachingPluginResolutionServiceClient(delegate, caches)
     }
 
     def "caches delegate success response"() {

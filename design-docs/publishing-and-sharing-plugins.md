@@ -600,11 +600,6 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 - ~~`--offline` fails build if plugin is not cached~~
 - ~~cached resolution by previous version is used~~
 
-### Open issues
-
-- Should cache resolution in memory, rather than hitting the file system for each `PluginRequest`.
-- `CachingPluginResolutionServiceClient` does not close the caches it creates.
-
 ## Story: ~~Error message for unknown plugin or plugin version includes link to relevant human search interfaces~~
 
 The “not found” responses from the portal include an arbitrary message. 

@@ -148,4 +148,16 @@ public abstract class Transformers {
             }
         };
     }
+
+    /**
+     * Always returns the given argument.
+     */
+    public static <T, I> Transformer<T, I> constant(final T t) {
+        return new Transformer<T, I>() {
+            public T transform(I original) {
+                return t;
+            }
+        };
+    }
+
 }

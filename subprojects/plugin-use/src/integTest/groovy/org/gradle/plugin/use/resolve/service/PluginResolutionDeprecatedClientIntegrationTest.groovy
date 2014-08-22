@@ -20,7 +20,7 @@ package org.gradle.plugin.use.resolve.service
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashUtil
 import org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
-import org.gradle.plugin.use.resolve.service.internal.CachingPluginResolutionServiceClient
+import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.junit.Rule
@@ -71,7 +71,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
 
         // test that the right scoped cache was created.
         // would be nice to have a less fragile way to do this.
-        new File(executer.gradleUserHomeDir, "caches/${executer.distribution.version.version}/${PluginUsePluginServiceRegistry.CACHE_NAME}/${CachingPluginResolutionServiceClient.CLIENT_STATUS_CACHE_NAME}.bin".toString()).exists()
+        new File(executer.gradleUserHomeDir, "caches/${executer.distribution.version.version}/${PluginUsePluginServiceRegistry.CACHE_NAME}/${PersistentCachingPluginResolutionServiceClient.CLIENT_STATUS_CACHE_NAME}.bin".toString()).exists()
     }
 
     def "deprecation message is output once per build"() {
