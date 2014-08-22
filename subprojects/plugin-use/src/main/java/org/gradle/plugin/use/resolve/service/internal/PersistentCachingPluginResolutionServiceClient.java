@@ -139,7 +139,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
         public Response<T> read(Decoder decoder) throws Exception {
             return new SuccessResponse<T>(
                     payloadSerializer.read(decoder),
-                    decoder.readInt(),
+                    decoder.readSmallInt(),
                     decoder.readString(),
                     decoder.readNullableString()
             );
@@ -148,7 +148,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
         public void write(Encoder encoder, Response<T> value) throws Exception {
             T response = value.getResponse();
             payloadSerializer.write(encoder, response);
-            encoder.writeInt(value.getStatusCode());
+            encoder.writeSmallInt(value.getStatusCode());
             encoder.writeString(value.getUrl());
             encoder.writeNullableString(value.getClientStatusChecksum());
         }

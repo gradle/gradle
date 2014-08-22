@@ -88,7 +88,7 @@ public class BaseSerializerFactory {
 
     private static class StringMapSerializer implements Serializer<Map<String, String>> {
         public Map<String, String> read(Decoder decoder) throws Exception {
-            int pairs = decoder.readInt();
+            int pairs = decoder.readSmallInt();
             ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
             for (int i = 0; i < pairs; ++i) {
                 builder.put(decoder.readString(), decoder.readString());
@@ -97,7 +97,7 @@ public class BaseSerializerFactory {
         }
 
         public void write(Encoder encoder, Map<String, String> value) throws Exception {
-            encoder.writeInt(value.size());
+            encoder.writeSmallInt(value.size());
             for (Map.Entry<String, String> entry : value.entrySet()) {
                 encoder.writeString(entry.getKey());
                 encoder.writeString(entry.getValue());
