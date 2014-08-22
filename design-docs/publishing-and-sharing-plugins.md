@@ -528,7 +528,6 @@ Note: the class loading/visibility required by this story does not reflect the f
 ### Open Issues
 
 * When resolving the implementation classpath, exclude and/or validate those things provided by the Gradle API, eg the Groovy implementation.
-* Non-declarative plugins can see classes inherited from parent project.
 * `DefaultClassLoaderScope` produces a non-optimal ClassLoader structure when a scope has no local ClassLoaders and a single export URLClassLoader whose parent is the exported ClassLoader of the parent Scope.
 In this case, this export ClassLoader can be used directly as both the local and exported ClassLoader of the current scope. This is a common case, where a script has
 a `buildscript { }` block or a `plugins { }` block with non-declarative plugins only. There's a similar problem when a scope has a single local URLClassLoader and
@@ -656,14 +655,19 @@ This story covers improving the feedback when Gradle is dealing with buildscript
 - Indication of progress when resolving/obtaining plugin implementations
   - For declarative plugins, we can include the plugin details in the context (as each of these plugins has an individual resolve)
 
+
 # Milestone 2 - more flexible usage
 
-## Story: Classes introduced to build script exclusively for use by `plugins {}` are not inherited
+## Story: Non-declarative plugins are isolated, and share everything to the local scope only
+
+This story restricts the visibility of classes from non-declarative plugins in that they are not exported from their usage scope.
+Moreover, such classes should not have visibility of other classes other than classes defined by the plugin's implementation.
 
 ### Test Coverage
 
 - Plugin implementation classes are not visible to script plugins applied to target script
 - Plugin implementation classes are not visible to build scripts of child projects
+- Classes defined by parent scope of target are not visible to plugin
 
 ## Story: Script plugins are able to use `plugins {}`
 
