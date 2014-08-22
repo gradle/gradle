@@ -609,12 +609,7 @@ If a plugin declares that it uses libX@1.0 but it is forced to use libX@2.0, the
 
 - Should we just fail here? (we don't know that the conflict is fatal, things might still work)
 
-### Open Issues
-
-- Should we just fail here? (we don't know that the conflict is fatal, things might still work)
-
 # Milestone 3 - more flexible usage
-
 
 ## Story: Script plugins are able to use `plugins {}`
 
@@ -648,7 +643,6 @@ To diagnose this they would have to have knowledge of each plugin's dependencies
 ## Story: Plugin author uses plugin development plugin to build a plugin
 
 This story adds a plugin development plugin to help plugin authors build a plugin. Later stories will add the ability to test and publish the plugin.
-
 
 ## Story: User uses declarative plugin via plugin dependencies DSL that depends on core Gradle plugin
 
