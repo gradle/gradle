@@ -94,7 +94,7 @@ ext {
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy',
         'platformNative', 'languageNative', 'ideNative',
-        'plugin-development', 'pluginUse'
+        'pluginDevelopment', 'pluginUse'
     ].collect {
         project(it)
     }

@@ -62,7 +62,7 @@ include 'languageJava'
 include 'languageGroovy'
 include 'languageNative'
 include 'pluginUse'
-include 'plugin-development'
+include 'pluginDevelopment'
 include 'modelCore'
 include 'modelGroovy'
 
