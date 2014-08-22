@@ -525,11 +525,6 @@ Note: the class loading/visibility required by this story does not reflect the f
 - ~~Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message~~
 - ~~Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message~~
 
-### Open Issues
-
-* `DefaultClassLoaderScope` should leave the parent scope's exported ClassLoader out of a multi-parent ClassLoaders when the parent ClassLoader is reachable
-from some other ClassLoader, to reduce the number of paths through the ClassLoader graph.
-
 ## ~~Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”~~
 
 The plugin portal has a standardised JSON payload for errors.

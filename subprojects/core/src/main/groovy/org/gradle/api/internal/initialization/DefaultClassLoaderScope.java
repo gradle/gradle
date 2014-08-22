@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
@@ -55,10 +54,10 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     private ClassLoader buildLockedLoader(ClassLoader parent, List<? extends Factory<? extends ClassLoader>> rest) {
         if (rest.size() == 1) {
             ClassLoader loneLoader = rest.get(0).create();
-            if (loneLoader.getParent().equals(parent)) {
+            if (isOrHasParent(loneLoader, parent)) {
                 return loneLoader;
             } else {
-                rest = Collections.singletonList(Factories.constant(loneLoader));
+                return new CachingClassLoader(buildOpenLoader(parent, Collections.singleton(loneLoader)));
             }
         }
 
@@ -66,12 +65,27 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     }
 
     private MultiParentClassLoader buildOpenLoader(ClassLoader parent, Collection<? extends ClassLoader> loaders) {
+        for (ClassLoader loader : loaders) {
+            if (isOrHasParent(loader, parent)) {
+                return new MultiParentClassLoader(loaders);
+            }
+        }
+
         List<ClassLoader> parents = new ArrayList<ClassLoader>(loaders.size() + 1);
         parents.add(parent);
         for (ClassLoader loader : loaders) {
             parents.add(loader);
         }
         return new MultiParentClassLoader(parents);
+    }
+
+    private boolean isOrHasParent(ClassLoader search, ClassLoader target) {
+        if (search.equals(target)) {
+            return true;
+        } else {
+            ClassLoader parent = search.getParent();
+            return parent != null && isOrHasParent(parent, target);
+        }
     }
 
     private void buildEffectiveLoaders() {
