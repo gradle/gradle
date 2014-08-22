@@ -647,13 +647,11 @@ For example:
         id 'java-lang'
     }
 
-    platforms {
-        // Can operate on Java platforms here
-    }
-
-    libraries {
-        myLib {
-            buildFor platforms.java("7")
+    jvm {
+        libraries {
+            myLib {
+                target java("7")
+            }
         }
     }
 
@@ -677,18 +675,18 @@ Target platform should be reachable from the `JvmBinarySpec`.
 
 #### Open issues/considerations
 
-- Add some convenience for 'the current java version'?
-- Require the Java platform to be declared? Use the current Java version as default?
-- Strict vs lenient: If I declare I want to build for Java 6 and I'm running on Java 8, is that ok or a problem?
-- DSL should (later) allow declaration of a Java platform with a custom bootstrap classpath (for cross compilation, Android, etc).
-- DSL should (later) allow a customised JVM-based platform to be declared, for example, to build things that are to run in some Web container.
+- Add some convenience for 'the current java version'? (No)
+- Require the Java platform to be declared? Use the current Java version as default? (No)
+- Strict vs lenient: If I declare I want to build for Java 6 and I'm running on Java 8, is that ok or a problem? (Lenient)
+- DSL should (later) allow declaration of a Java platform with a custom bootstrap classpath (for cross compilation, Android, etc). (Later)
+- DSL should (later) allow a customised JVM-based platform to be declared, for example, to build things that are to run in some Web container. (Later)
 - DSL should (later) allow platforms to be composed, for example, Scala 2.11.0 on Java 1.8 vs Scala 2.11.0 on Java 1.6.
-    - A Java platform is really a composite made up of Java-the-language + JVM-the-platform.
-- Plugin declares a custom Java platform.
-- Plugin declares a custom platform.
-- Target platform should be visible in the component report
-- Target platform should be visible in the dependencies reports
-- Split out configurable 'platform spec' out from consumable 'platform' definition.
+    - A Java platform is really a composite made up of Java-the-language + JVM-the-platform. (Later)
+- Plugin declares a custom Java platform. (Later)
+- Plugin declares a custom platform. (Later)
+- Target platform should be visible in the component report (Yes)
+- Target platform should be visible in the dependencies reports (Later)
+- Split out configurable 'platform spec' out from consumable 'platform' definition. (Later)
 
 ### Story: Build author declares that JVM library should be built for multiple JVM versions
 
@@ -698,18 +696,16 @@ For example:
         id 'java-lang'
     }
 
-    platforms {
-        // Can operate on platforms here
-    }
-
-    libraries {
-        myLib {
-            buildFor platforms.java("6")
-            buildFor platforms.java("8")
+    jvm {
+        libraries {
+            myLib {
+                target java("6")
+                target java("8")
+            }
         }
     }
 
-This will result in 2 Jar binaries being defined for the `myLib` library. Running `gradle assemble` will build both these binaries.
+This will result in 2 Jar binaries being defined for the `myLib` library. Running `gradle assemble` will build both these binaries. Reuse BinaryNamingScheme for now.
 
 Add a sample to show a JVM library built for multiple Java versions.
 
@@ -720,9 +716,13 @@ Add a sample to show a JVM library built for multiple Java versions.
 
 #### Open issues
 
-- Binaries should be visible in the component report
-- Discover or configure the JDK installations
-- Need some convention or mechanism for source that is conditionally included based on the target platform.
+- Binaries should be visible in the component report (Yes, should be already done so write test)
+- Discover or configure the JDK installations (Later)
+- Need some convention or mechanism for source that is conditionally included based on the target platform. (Later)
+
+### Story: Build author can describe the "language level" for the source
+
+TODO
 
 ### Story: Use a consistent approach for native and JVM platforms
 
