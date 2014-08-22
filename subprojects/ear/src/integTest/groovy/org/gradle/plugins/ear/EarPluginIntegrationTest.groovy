@@ -118,7 +118,7 @@ dependencies {
 </application>
 """
 
-        file('META-INF/application.xml') << applicationXml
+        file('META-INF/application.xml').createFile().write(applicationXml)
         file("build.gradle").write("""
 apply plugin: 'ear'
 """)
