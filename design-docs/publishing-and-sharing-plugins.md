@@ -527,8 +527,6 @@ Note: the class loading/visibility required by this story does not reflect the f
 
 ### Open Issues
 
-* `PluginResolutionServiceResolver` has a hardcoded set of version matchers to detect a dynamic version. Should instead be injected with the `VersionMatcher` provided by
-the dependency resolution services.
 * `PluginResolutionServiceResolver` should not need to use a `StartParameterResolutionOverride`.
 * Add a test case that both `buildscript { }` dependencies and `plugins { }` classes are visible in the script, when the script contains both blocks.
 * Should provide feedback when resolving plugins, eg in the status bar.
