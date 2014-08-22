@@ -26,8 +26,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task compile(type: JavaCompile) {
                 classpath = files()
-                sourceCompatibility = "1.7"
-                targetCompatibility = "1.7"
+                sourceCompatibility = JavaVersion.current()
+                targetCompatibility = JavaVersion.current()
                 destinationDir = file("build/classes")
                 dependencyCacheDir = file("build/dependency-cache")
                 source "src/main/java"
