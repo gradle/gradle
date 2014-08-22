@@ -27,7 +27,6 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
-import static org.hamcrest.Matchers.containsString
 
 /**
  * Tests the communication aspects of working with the plugin resolution service.
