@@ -543,43 +543,6 @@ The detail of the error response differentiates the response from a generic 404.
 - ~~Response advertised as structured error response is malformed JSON~~
 - ~~Response advertised as structured error response is of compatible schema, but has extra unexpected elements~~
 
-## Story: User is notified that Gradle version is deprecated for use with plugin portal
-
-The plugin portal may include a http header that indicates that the client has a “status”, by providing a checksum of this status.
-The full status info can be retrieved by GETing the JSON document at /api/gradle/«gradle version» (this response should contain the same checksum header).
-This JSON document may include a 'deprecationMessage' item which is a string.
-
-When this endpoint is returning a deprecationMessage for the client, every build should display the deprecation message (only once, like other deprecation messages).
-However, every build should not be required to make a HTTP call to the status endpoint.
-Whenever a request is made to the service, the status checksum header should be used to determine whether the client's cached status is still current.
-This does mean that the server's status may be different than the client's cached copy, if the client has not made a request to the service in some time.
-To mitigate this, running with `--refresh-dependencies` will enforce that the status is checked.
-
-The general approach when making a request to the service is:
-
-- Does the response contain the status checksum header? 
-    - NO - do not print deprecation message
-    - YES - Is there a cached status response?  
-        - NO - Fetch status (cache result)
-        - YES - Does cached checksum match checksum from 1?
-            - NO - fetch status document (cache result)
-            - YES - use cached status 
-
-If there is a problem fetching the status (error response, or out of protocol response) the problem should be logged and operations continue as normal (i.e. non working status service does not fail the build).
-
-### Test Coverage
-
-- ~~Plugin query responses do not need to contain header - no message printed~~
-- ~~response contains checksum, status service provides message, message printed~~
-- ~~response contains checksum, status service provides message - multiple plugin requests in build, one message printed~~
-- ~~response contains checksum, status service provides no message - no message printed~~
-- ~~response contains checksum, status service returns error - no message printed~~
-- ~~response contains checksum, status service returns out of protocol response - no message printed~~
-- ~~status cached for checksum across builds~~
-- ~~cached status is invalidated when running with --refresh-dependencies~~
-- ~~can use --offline when status is cached - message printed~~
-- ~~deprecation can be retracted - status is invalidated when previously non null checksum becomes null~~
-
 ## ~~Story: Plugin resolution is cached between builds~~
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
