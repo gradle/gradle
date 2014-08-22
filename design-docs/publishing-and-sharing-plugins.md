@@ -527,7 +527,6 @@ Note: the class loading/visibility required by this story does not reflect the f
 
 ### Open Issues
 
-* Add a test case that both `buildscript { }` dependencies and `plugins { }` classes are visible in the script, when the script contains both blocks.
 * Should provide feedback when resolving plugins, eg in the status bar.
 * When resolving the implementation classpath, exclude and/or validate those things provided by the Gradle API, eg the Groovy implementation.
 * Non-declarative plugins can see classes inherited from parent project.

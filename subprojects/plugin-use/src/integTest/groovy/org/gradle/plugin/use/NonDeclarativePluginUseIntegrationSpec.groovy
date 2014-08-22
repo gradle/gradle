@@ -131,6 +131,40 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         output.contains 'ops = [withId 1, withId 2, withType 1, withType 2]'
     }
 
+    def "classes from builscript and plugin block are visible in same build"() {
+        given:
+        def pluginBuilder2 = new PluginBuilder(file("plugin2"))
+        pluginBuilder2.addPlugin("project.task('plugin2Task')", "test-plugin-2", "TestPlugin2")
+
+        def module2 = service.m2repo.module(GROUP, ARTIFACT + "2", VERSION)
+        pluginBuilder2.publishTo(executer, module2.artifactFile)
+        module2.allowAll()
+
+        def module = publishPlugin ""
+        module.dependsOn(GROUP, ARTIFACT + "2", VERSION)
+        module.publishPom()
+
+        when:
+        buildScript """
+            buildscript {
+              dependencies {
+                classpath "$GROUP:${ARTIFACT + 2}:$VERSION"
+              }
+              repositories {
+                maven { url "$service.m2repo.uri" }
+              }
+            }
+            $USE
+
+
+            def class1 = ${pluginBuilder.packageName}.TestPlugin
+            def class2 = ${pluginBuilder2.packageName}.TestPlugin2
+        """
+
+        then:
+        succeeds("tasks")
+    }
+
     def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
         given:
         [1, 2].each { n ->
