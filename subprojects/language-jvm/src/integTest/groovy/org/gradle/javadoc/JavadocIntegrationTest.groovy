@@ -79,4 +79,22 @@ Joe! -->
         file("build/docs/javadoc/Foo.html").text.contains("""Hey
 Joe!""")
     }
+
+    @Issue("GRADLE-3152")
+    def "can use the task without applying java-base plugin"() {
+        buildFile << """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        run("javadoc")
+
+        then:
+        file("build/javadoc/Foo.html").exists()
+    }
 }

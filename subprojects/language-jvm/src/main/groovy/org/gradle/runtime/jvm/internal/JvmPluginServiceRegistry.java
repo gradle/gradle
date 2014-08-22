@@ -16,13 +16,25 @@
 
 package org.gradle.runtime.jvm.internal;
 
-import org.gradle.language.java.artifact.JavadocArtifact;
-import org.gradle.language.base.artifact.SourcesArtifact;
+import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.api.internal.tasks.DefaultJavaToolChain;
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
+import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.language.base.artifact.SourcesArtifact;
+import org.gradle.language.java.artifact.JavadocArtifact;
+import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.runtime.jvm.JvmLibrary;
+import org.gradle.runtime.jvm.internal.toolchain.JavaToolChainInternal;
 
 public class JvmPluginServiceRegistry implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -30,9 +42,11 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
 
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
+        registration.addProvider(new BuildScopeCompileServices());
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeCompileServices());
     }
 
     private static class ComponentRegistrationAction {
@@ -42,6 +56,22 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
             componentTypeRegistry.registerComponentType(JvmLibrary.class)
                     .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES)
                     .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
+        }
+    }
+
+    private static class BuildScopeCompileServices {
+        CompilerDaemonManager createCompilerDaemonManager(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
+            return new CompilerDaemonManager(new CompilerClientsManager(new CompilerDaemonStarter(workerFactory, startParameter)));
+        }
+    }
+
+    private static class ProjectScopeCompileServices {
+        JavaCompilerFactory createJavaCompilerFactory(GradleInternal gradle, CompilerDaemonManager compilerDaemonManager) {
+            return new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonManager);
+        }
+
+        JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
+            return new DefaultJavaToolChain(compilerFactory, execActionFactory);
         }
     }
 }

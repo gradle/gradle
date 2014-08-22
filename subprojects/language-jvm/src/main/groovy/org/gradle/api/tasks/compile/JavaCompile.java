@@ -61,6 +61,11 @@ public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();
     private JavaToolChain toolChain;
 
+    @Inject
+    public JavaCompile(JavaToolChain toolChain) {
+        this.toolChain = toolChain;
+    }
+
     /**
      * Returns the tool chain that will be used to compile the Java source.
      *
