@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.VersionSelection;
+import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-public interface VersionSelectionInternal extends VersionSelection {
+public interface ComponentSelectionInternal extends ComponentSelection {
     public enum State {
         NOT_SET,
         ACCEPTED,

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
-class SamplesVersionSelectionRulesIntegrationTest extends AbstractIntegrationSpec {
+class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 

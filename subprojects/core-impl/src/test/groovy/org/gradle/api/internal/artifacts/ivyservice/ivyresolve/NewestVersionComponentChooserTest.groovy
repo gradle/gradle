@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.artifacts.VersionSelection
+import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
@@ -33,7 +33,7 @@ import spock.lang.Unroll
 class NewestVersionComponentChooserTest extends Specification {
     def versionMatcher = Mock(VersionMatcher)
     def latestStrategy = Mock(LatestStrategy)
-    def versionSelectionRules = Mock(VersionSelectionRulesInternal)
+    def versionSelectionRules = Mock(ComponentSelectionRulesInternal)
 
     def chooser = new NewestVersionComponentChooser(latestStrategy, versionMatcher, versionSelectionRules)
 
@@ -168,7 +168,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 default: return false
             }
         }
-        _ * versionSelectionRules.apply(_,_) >> { VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
+        _ * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
             if (selection.candidate.version == triggerVersion) {
                 selection."${operation}"()
             }
@@ -214,7 +214,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 default: return false
             }
         }
-        _ * versionSelectionRules.apply(_,_) >> { VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
+        _ * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
             if (selection.candidate.version == triggerVersion) {
                 selection."${operation}"()
             }
@@ -248,7 +248,7 @@ class NewestVersionComponentChooserTest extends Specification {
         // Should not get a versionMatcher.accept call for 1.3
         0 * versionMatcher.accept("1.3", "1.3")
         1 * versionMatcher.accept("1.3", "1.2") >> false
-        3 * versionSelectionRules.apply(_,_) >> { VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
+        3 * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
             if (selection.candidate.version == '1.3') {
                 selection.reject()
             }
@@ -276,7 +276,7 @@ class NewestVersionComponentChooserTest extends Specification {
         // Should not get a versionMatcher.accept call for 1.3 or 1.2
         0 * versionMatcher.accept("1.3", "1.3")
         0 * versionMatcher.accept("1.3", "1.2")
-        3 * versionSelectionRules.apply(_,_) >> { VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
+        3 * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
             switch(selection.candidate.version) {
                 case '1.3':
                     selection.reject()

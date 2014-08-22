@@ -164,7 +164,7 @@
                 <td>org.gradle.api.artifacts.query.ArtifactResolutionQuery</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.VersionSelectionRules</td>
+                <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
             </tr>
             <tr>
                 <td>org.gradle.api.dsl.ConventionProperty</td>

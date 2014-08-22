@@ -345,12 +345,12 @@ This story adds some convenience DSL to target a selection rule a particular gro
 
     configurations.all {
         resolutionStrategy {
-            versionSelection {
-                group "foo" { VersionSelection selection ->
+            componentSelection {
+                group "foo" { ComponentSelection selection ->
                 }
-                group "foo" module "bar" { VersionSelection selection ->
+                group "foo" module "bar" { ComponentSelection selection ->
                 }
-                module "foo:bar" { VersionSelection selection ->
+                module "foo:bar" { ComponentSelection selection ->
                 }
             }
         }

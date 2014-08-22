@@ -23,11 +23,11 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.RuleAction
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataDetails
-import org.gradle.api.artifacts.VersionSelection
-import org.gradle.api.artifacts.VersionSelectionRules
+import org.gradle.api.artifacts.ComponentSelection
+import org.gradle.api.artifacts.ComponentSelectionRules
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
-import org.gradle.api.internal.artifacts.VersionSelectionInternal
+import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
@@ -35,9 +35,9 @@ import org.gradle.api.internal.artifacts.metadata.DefaultMavenModuleVersionMetaD
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import spock.lang.Specification
 
-class DefaultVersionSelectionRulesTest extends Specification {
+class DefaultComponentSelectionRulesTest extends Specification {
     def "all closure rules added get applied" () {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
@@ -45,19 +45,19 @@ class DefaultVersionSelectionRulesTest extends Specification {
             }
         }
         def closureCalled = [ false, false, false, false, false ]
-        def closure0 = { VersionSelection vs -> closureCalled[0] = true }
-        def closure1 = { VersionSelection vs, ComponentMetadata cm -> closureCalled[1] = true }
-        def closure2 = { VersionSelection vs, IvyModuleDescriptor imd -> closureCalled[2] = true }
-        def closure3 = { VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled[3] = true }
-        def closure4 = { VersionSelection vs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled[4] = true }
+        def closure0 = { ComponentSelection cs -> closureCalled[0] = true }
+        def closure1 = { ComponentSelection cs, ComponentMetadata cm -> closureCalled[1] = true }
+        def closure2 = { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled[2] = true }
+        def closure3 = { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled[3] = true }
+        def closure4 = { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled[4] = true }
 
         when:
-        versionSelectionRules.all closure0
-        versionSelectionRules.all closure1
-        versionSelectionRules.all closure2
-        versionSelectionRules.all closure3
-        versionSelectionRules.all closure4
-        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+        componentSelectionRules.all closure0
+        componentSelectionRules.all closure1
+        componentSelectionRules.all closure2
+        componentSelectionRules.all closure3
+        componentSelectionRules.all closure4
+        componentSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
 
         then:
         closureCalled[0]
@@ -68,23 +68,23 @@ class DefaultVersionSelectionRulesTest extends Specification {
     }
 
     def "metadata is not requested for rules that don't require it"() {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Mock(ModuleComponentRepositoryAccess) {
             0 * resolveComponentMetaData(_, _, _)
         }
         def closureCalled = false
-        def closure = { VersionSelection vs -> closureCalled = true }
+        def closure = { ComponentSelection cs -> closureCalled = true }
 
         when:
-        versionSelectionRules.all closure
-        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+        componentSelectionRules.all closure
+        componentSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
 
         then:
         closureCalled
     }
 
     def "can add metadata rules via api"() {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
@@ -95,8 +95,8 @@ class DefaultVersionSelectionRulesTest extends Specification {
         metadataRule.inputTypes = inputTypes
 
         when:
-        versionSelectionRules.all metadataRule
-        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+        componentSelectionRules.all metadataRule
+        componentSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
 
         then:
         metadataRule.called
@@ -111,28 +111,28 @@ class DefaultVersionSelectionRulesTest extends Specification {
     }
 
     def "can add action rules via api"() {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules versionSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess)
-        def Action<VersionSelection> action = new TestVersionSelectionAction()
+        def Action<ComponentSelection> action = new TestComponentSelectionAction()
 
         when:
         versionSelectionRules.all action
-        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+        versionSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
 
         then:
         action.called
     }
 
     def "produces sensible error with parameter-less closure" () {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
 
         when:
-        versionSelectionRules.all { }
+        componentSelectionRules.all { }
 
         then:
         def e = thrown(InvalidActionClosureException)
-        e.message == "The closure provided is not valid as a rule action for 'VersionSelectionRules'."
-        e.cause.message == "First parameter of rule action closure must be of type 'VersionSelection'."
+        e.message == "The closure provided is not valid as a rule action for 'ComponentSelectionRules'."
+        e.cause.message == "First parameter of rule action closure must be of type 'ComponentSelection'."
     }
 
     def "produces sensible error for invalid closure" () {
@@ -142,36 +142,36 @@ class DefaultVersionSelectionRulesTest extends Specification {
                 result.resolved(md, null)
             }
         }
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
 
         when:
-        versionSelectionRules.all closure
-        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+        componentSelectionRules.all closure
+        componentSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
 
         then:
         def e = thrown(InvalidActionClosureException)
-        e.message == "The closure provided is not valid as a rule action for 'VersionSelectionRules'."
+        e.message == "The closure provided is not valid as a rule action for 'ComponentSelectionRules'."
         e.cause.message == message
 
         where:
-        closure                                                                                     | message
-        { it -> }                                                                                   | "First parameter of rule action closure must be of type 'VersionSelection'."
-        { String something -> }                                                                     | "First parameter of rule action closure must be of type 'VersionSelection'."
-        { IvyModuleDescriptor imd, ComponentMetadata cm -> }                                        | "First parameter of rule action closure must be of type 'VersionSelection'."
-        { VersionSelection vs, String something -> }                                                | "Unsupported parameter type for version selection rule: java.lang.String"
-        { VersionSelection vs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type for version selection rule: java.lang.String"
-        { VersionSelection vs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type for version selection rule: java.lang.String"
-        { VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type for version selection rule: java.lang.String"
+        closure                                                                                       | message
+        { it -> }                                                                                     | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        { String something -> }                                                                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        { IvyModuleDescriptor imd, ComponentMetadata cm -> }                                          | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        { ComponentSelection cs, String something -> }                                                | "Unsupported parameter type for component selection rule: java.lang.String"
+        { ComponentSelection cs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type for component selection rule: java.lang.String"
+        { ComponentSelection cs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type for component selection rule: java.lang.String"
+        { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type for component selection rule: java.lang.String"
     }
 
 
     def "produces sensible error when bad input type is declared for rule action" () {
         def ruleAction = Mock(RuleAction)
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
 
         when:
         ruleAction.inputTypes >> inputTypes
-        versionSelectionRules.all ruleAction
+        componentSelectionRules.all ruleAction
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -179,15 +179,15 @@ class DefaultVersionSelectionRulesTest extends Specification {
 
         where:
         inputTypes                                       | message
-        [String]                                         | "Unsupported parameter type for version selection rule: java.lang.String"
-        [ComponentMetadata, String]                      | "Unsupported parameter type for version selection rule: java.lang.String"
-        [IvyModuleDescriptor, String]                    | "Unsupported parameter type for version selection rule: java.lang.String"
-        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type for version selection rule: java.lang.String"
-        [ComponentMetadataDetails]                       | "Unsupported parameter type for version selection rule: ${ComponentMetadataDetails.name}"
+        [String]                                         | "Unsupported parameter type for component selection rule: java.lang.String"
+        [ComponentMetadata, String]                      | "Unsupported parameter type for component selection rule: java.lang.String"
+        [IvyModuleDescriptor, String]                    | "Unsupported parameter type for component selection rule: java.lang.String"
+        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type for component selection rule: java.lang.String"
+        [ComponentMetadataDetails]                       | "Unsupported parameter type for component selection rule: ${ComponentMetadataDetails.name}"
     }
 
     def "produces sensible error when closure or rule or action throws exception" () {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
@@ -196,25 +196,25 @@ class DefaultVersionSelectionRulesTest extends Specification {
         }
 
         when:
-        versionSelectionRules.all closureOrRuleOrAction
-        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+        componentSelectionRules.all closureOrRuleOrAction
+        componentSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "Could not apply version selection rule with all()."
+        e.message == "Could not apply component selection rule with all()."
         e.cause.message == "From test"
 
         where:
-        closureOrRuleOrAction                                                                                      | _
-        new TestExceptionAction()                                                                                  | _
-        new TestExceptionRuleAction()                                                                            | _
-        { VersionSelection vs -> throw new Exception("From test") }                                                | _
-        { VersionSelection vs, ComponentMetadata cm -> throw new Exception("From test") }                          | _
-        { VersionSelection vs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") } | _
+        closureOrRuleOrAction                                                                                        | _
+        new TestExceptionAction()                                                                                    | _
+        new TestExceptionRuleAction()                                                                                | _
+        { ComponentSelection cs -> throw new Exception("From test") }                                                | _
+        { ComponentSelection cs, ComponentMetadata cm -> throw new Exception("From test") }                          | _
+        { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") } | _
     }
 
     def "produces sensible error when bad input types are provided with rule"() {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
@@ -225,12 +225,12 @@ class DefaultVersionSelectionRulesTest extends Specification {
         metadataRule.inputTypes = inputTypes
 
         when:
-        versionSelectionRules.all metadataRule
-        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+        componentSelectionRules.all metadataRule
+        componentSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "Unsupported parameter type for version selection rule: java.lang.String"
+        e.message == "Unsupported parameter type for component selection rule: java.lang.String"
 
         where:
         inputTypes                                                           | _
@@ -240,7 +240,7 @@ class DefaultVersionSelectionRulesTest extends Specification {
     }
 
     def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component" () {
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
                 def md = new DefaultMavenModuleVersionMetaData(Stub(ModuleDescriptor), "bundle", false)
@@ -250,8 +250,8 @@ class DefaultVersionSelectionRulesTest extends Specification {
         def closureCalled = false
 
         when:
-        versionSelectionRules.all { VersionSelection vs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closureCalled = true }
-        versionSelectionRules.apply(Stub(VersionSelectionInternal), moduleAccess)
+        componentSelectionRules.all { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closureCalled = true }
+        componentSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
 
         then:
         ! closureCalled
@@ -259,25 +259,25 @@ class DefaultVersionSelectionRulesTest extends Specification {
 
     def "accurately returns whether or not any rules are configured" () {
         when:
-        def VersionSelectionRules versionSelectionRules = new DefaultVersionSelectionRules()
+        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
 
         then:
-        ! versionSelectionRules.hasRules()
+        ! componentSelectionRules.hasRules()
 
         when:
-        versionSelectionRules.all closureOrActionOrRule
+        componentSelectionRules.all closureOrActionOrRule
 
         then:
-        versionSelectionRules.hasRules()
+        componentSelectionRules.hasRules()
 
         where:
         closureOrActionOrRule            | _
-        { VersionSelection vs -> }       | _
-        new TestRuleAction()           | _
-        new TestVersionSelectionAction() | _
+        { ComponentSelection vs -> }     | _
+        new TestRuleAction()             | _
+        new TestComponentSelectionAction() | _
     }
 
-    private class TestRuleAction implements RuleAction<VersionSelection> {
+    private class TestRuleAction implements RuleAction<ComponentSelection> {
         boolean called = false
         List<Class> inputTypes = []
 
@@ -288,30 +288,30 @@ class DefaultVersionSelectionRulesTest extends Specification {
         }
 
         @Override
-        void execute(VersionSelection subject, List inputs) {
+        void execute(ComponentSelection subject, List inputs) {
             called = true
         }
     }
 
     private class TestExceptionRuleAction extends TestRuleAction {
         @Override
-        void execute(VersionSelection subject, List inputs) {
+        void execute(ComponentSelection subject, List inputs) {
             throw new Exception("From test")
         }
     }
 
-    private class TestVersionSelectionAction implements Action<VersionSelection> {
+    private class TestComponentSelectionAction implements Action<ComponentSelection> {
         boolean called = false
 
         @Override
-        void execute(VersionSelection versionSelection) {
+        void execute(ComponentSelection componentSelection) {
             called = true
         }
     }
 
-    private class TestExceptionAction implements Action<VersionSelection> {
+    private class TestExceptionAction implements Action<ComponentSelection> {
         @Override
-        void execute(VersionSelection versionSelection) {
+        void execute(ComponentSelection componentSelection) {
             throw new Exception("From test")
         }
     }

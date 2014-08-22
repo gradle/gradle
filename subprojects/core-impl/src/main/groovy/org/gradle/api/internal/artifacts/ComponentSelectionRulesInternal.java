@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.VersionSelection;
-import org.gradle.api.artifacts.VersionSelectionRules;
+import org.gradle.api.artifacts.ComponentSelection;
+import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 
-public interface VersionSelectionRulesInternal extends VersionSelectionRules {
-    void apply(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess);
+public interface ComponentSelectionRulesInternal extends ComponentSelectionRules {
+    void apply(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess);
     boolean hasRules();
 }

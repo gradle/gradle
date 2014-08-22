@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultVersionSelection;
-import org.gradle.api.internal.artifacts.VersionSelectionInternal;
-import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
+import org.gradle.api.internal.artifacts.DefaultComponentSelection;
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
@@ -33,9 +33,9 @@ import java.util.List;
 class NewestVersionComponentChooser implements ComponentChooser {
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
-    private final VersionSelectionRulesInternal versionSelectionRules;
+    private final ComponentSelectionRulesInternal versionSelectionRules;
 
-    NewestVersionComponentChooser(LatestStrategy latestStrategy, VersionMatcher versionMatcher, VersionSelectionRulesInternal versionSelectionRules) {
+    NewestVersionComponentChooser(LatestStrategy latestStrategy, VersionMatcher versionMatcher, ComponentSelectionRulesInternal versionSelectionRules) {
         this.latestStrategy = latestStrategy;
         this.versionMatcher = versionMatcher;
         this.versionSelectionRules = versionSelectionRules;
@@ -80,7 +80,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
             // Apply version selection rules
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
 
-            VersionSelectionInternal selection = new DefaultVersionSelection(dependency, candidateIdentifier);
+            ComponentSelectionInternal selection = new DefaultComponentSelection(dependency, candidateIdentifier);
             versionSelectionRules.apply(selection, moduleAccess);
 
             switch(selection.getState()) {
@@ -106,7 +106,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
             ModuleComponentIdentifier candidateIdentifier = metaData.getComponentId();
 
             // Apply version selection rules
-            VersionSelectionInternal selection = new DefaultVersionSelection(dependency, candidateIdentifier);
+            ComponentSelectionInternal selection = new DefaultComponentSelection(dependency, candidateIdentifier);
             versionSelectionRules.apply(selection, moduleAccess);
 
             switch(selection.getState()) {

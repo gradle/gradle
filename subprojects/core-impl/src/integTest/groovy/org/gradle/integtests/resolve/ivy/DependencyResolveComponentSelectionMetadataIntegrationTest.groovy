@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
-class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class DependencyResolveComponentSelectionMetadataIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     String getBaseBuildFile() {
         """
@@ -61,8 +61,8 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
             def ruleInvoked = false
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
-                        all { VersionSelection vs ->
+                    componentSelection {
+                        all { ComponentSelection vs ->
                             ruleInvoked = true
                         }
                     }
@@ -103,11 +103,11 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
             def rule2Invoked = false
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
-                        all { VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm ->
+                    componentSelection {
+                        all { ComponentSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm ->
                             rule1Invoked = true
                         }
-                        all { VersionSelection vs, ComponentMetadata cm ->
+                        all { ComponentSelection vs, ComponentMetadata cm ->
                             rule2Invoked = true
                         }
                     }
@@ -151,8 +151,8 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
             def branch = null
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
-                        all { VersionSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                    componentSelection {
+                        all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
                             if (selection.candidate.version == '1.1') {
                                 status = metadata.status
                                 branch = descriptor.branch
@@ -217,7 +217,7 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
     }
 
     @Unroll
-    def "all version selection rules requiring metadata are applied when resolving #versionRequested" () {
+    def "all component selection rules requiring metadata are applied when resolving #versionRequested" () {
         versionsAvailable.each { v ->
             if (v instanceof List) {
                 ivyRepo.module("org.utils", "api", v[0]).withStatus(v[1])publish()
@@ -239,21 +239,21 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
             def rule4VersionsInvoked = []
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         // Rule 1
-                        all { VersionSelection selection, ComponentMetadata metadata ->
+                        all { ComponentSelection selection, ComponentMetadata metadata ->
                             rule1VersionsInvoked.add(selection.candidate.version)
                         }
                         // Rule 2
-                        all { VersionSelection selection, IvyModuleDescriptor descriptor ->
+                        all { ComponentSelection selection, IvyModuleDescriptor descriptor ->
                             rule2VersionsInvoked.add(selection.candidate.version)
                         }
                         // Rule 3
-                        all { VersionSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                        all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
                             rule3VersionsInvoked.add(selection.candidate.version)
                         }
                         // Rule 4
-                        all { VersionSelection selection, ComponentMetadata metadata, IvyModuleDescriptor descriptor ->
+                        all { ComponentSelection selection, ComponentMetadata metadata, IvyModuleDescriptor descriptor ->
                             rule4VersionsInvoked.add(selection.candidate.version)
                         }
                     }
@@ -292,37 +292,37 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
     }
 
     def static rules = [
-        "always select if ivy branch is test": """{ VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
+        "always select if ivy branch is test": """{ ComponentSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
             if (ivyModule.branch == 'test') {
                 selection.accept()
             }
             ruleInvoked = true
         }""",
-        "always select if status is milestone": """{ VersionSelection selection, ComponentMetadata metadata ->
+        "always select if status is milestone": """{ ComponentSelection selection, ComponentMetadata metadata ->
             if (metadata.status == 'milestone') {
                 selection.accept()
             }
             ruleInvoked = true
         }""",
-        "always select if ivy branch is release and status is milestone": """{ VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
+        "always select if ivy branch is release and status is milestone": """{ ComponentSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
             if (ivyModule.branch == 'release' && cm.status == 'milestone') {
                 selection.accept()
             }
             ruleInvoked = true
         }""",
-        "always reject if ivy branch is release": """{ VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
+        "always reject if ivy branch is release": """{ ComponentSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
             if (ivyModule.branch == 'release') {
                 selection.reject()
             }
             ruleInvoked = true
         }""",
-        "always reject if status is integration": """{ VersionSelection selection, ComponentMetadata metadata ->
+        "always reject if status is integration": """{ ComponentSelection selection, ComponentMetadata metadata ->
             if (metadata.status == 'integration') {
                 selection.reject()
             }
             ruleInvoked = true
         }""",
-        "always reject if ivy branch is release and status is milestone": """{ VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
+        "always reject if ivy branch is release and status is milestone": """{ ComponentSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata cm ->
             if (ivyModule.branch == 'release' && cm.status == 'milestone') {
                 selection.reject()
             }
@@ -346,7 +346,7 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
             def ruleInvoked = false
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         all ${rules[rule]}
                     }
                 }
@@ -376,7 +376,7 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         "latest.milestone"   | "always reject if ivy branch is release and status is milestone" | "1.0"
     }
 
-    def "produces sensible error for invalid version selection rule" () {
+    def "produces sensible error for invalid component selection rule" () {
         ivyRepo.module("org.utils", "api", "1.3").publish()
 
         buildFile << """
@@ -388,7 +388,7 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
 
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         all { ${parameters} }
                     }
                 }
@@ -398,18 +398,18 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failureHasCause("The closure provided is not valid as a rule action for 'VersionSelectionRules'.")
+        failureHasCause("The closure provided is not valid as a rule action for 'ComponentSelectionRules'.")
         failureHasCause(message)
 
         where:
         parameters                                                                        | message
-        ""                                                                                | "First parameter of rule action closure must be of type 'VersionSelection'."
-        "vs ->"                                                                           | "First parameter of rule action closure must be of type 'VersionSelection'."
-        "String vs ->"                                                                    | "First parameter of rule action closure must be of type 'VersionSelection'."
-        "VersionSelection vs, o ->"                                                       | "Unsupported parameter type for version selection rule: java.lang.Object"
-        "VersionSelection vs, String s ->"                                                | "Unsupported parameter type for version selection rule: java.lang.String"
-        "VersionSelection vs, ComponentMetadata cm, String s ->"                          | "Unsupported parameter type for version selection rule: java.lang.String"
-        "VersionSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String s ->" | "Unsupported parameter type for version selection rule: java.lang.String"
+        ""                                                                                | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        "vs ->"                                                                           | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        "String vs ->"                                                                    | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        "ComponentSelection vs, o ->"                                                       | "Unsupported parameter type for component selection rule: java.lang.Object"
+        "ComponentSelection vs, String s ->"                                                | "Unsupported parameter type for component selection rule: java.lang.String"
+        "ComponentSelection vs, ComponentMetadata cm, String s ->"                          | "Unsupported parameter type for component selection rule: java.lang.String"
+        "ComponentSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String s ->" | "Unsupported parameter type for component selection rule: java.lang.String"
     }
 
     def "produces sensible error when rule throws an exception" () {
@@ -424,7 +424,7 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
 
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         all ${rule}
                     }
                 }
@@ -435,13 +435,13 @@ class DependencyResolveVersionSelectionMetadataIntegrationTest extends AbstractH
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
         failure.assertHasLineNumber(17)
-        failure.assertHasCause("Could not apply version selection rule with all().")
+        failure.assertHasCause("Could not apply component selection rule with all().")
         failure.assertHasCause("From test")
 
         where:
         rule                                                                                                         | _
-        '{ VersionSelection vs -> throw new Exception("From test") }'                                                | _
-        '{ VersionSelection vs, ComponentMetadata cm -> throw new Exception("From test") }'                          | _
-        '{ VersionSelection vs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") }' | _
+        '{ ComponentSelection cs -> throw new Exception("From test") }'                                                | _
+        '{ ComponentSelection cs, ComponentMetadata cm -> throw new Exception("From test") }'                          | _
+        '{ ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") }' | _
     }
 }

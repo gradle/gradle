@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
-class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyResolutionTest {
+class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependencyResolutionTest {
 
     String getBaseBuildFile() {
         """
@@ -62,13 +62,13 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
             def rule2VersionsInvoked = []
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         // Rule 1
-                        all { VersionSelection selection ->
+                        all { ComponentSelection selection ->
                             rule1VersionsInvoked.add(selection.candidate.version)
                         }
                         // Rule 2
-                        all { VersionSelection selection ->
+                        all { ComponentSelection selection ->
                             rule2VersionsInvoked.add(selection.candidate.version)
                         }
                     }
@@ -110,8 +110,8 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
 
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
-                        all { VersionSelection selection ->
+                    componentSelection {
+                        all { ComponentSelection selection ->
                             foo()
                         }
                     }
@@ -141,13 +141,13 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
             def rule2VersionsInvoked = []
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         // Rule 1
-                        all { VersionSelection selection ->
+                        all { ComponentSelection selection ->
                             selection.accept()
                         }
                         // Rule 2
-                        all { VersionSelection selection ->
+                        all { ComponentSelection selection ->
                             selection.reject()
                         }
                     }
@@ -178,16 +178,16 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
             def rule2Invoked = false
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         // Rule 1
-                        all { VersionSelection selection ->
+                        all { ComponentSelection selection ->
                             if (selection.candidate.version == '1.3') {
                                 rule1Invoked = true
                                 selection."${operation}"()
                             }
                         }
                         // Rule 2
-                        all { VersionSelection selection ->
+                        all { ComponentSelection selection ->
                             if (selection.candidate.version == '1.3') {
                                 rule2Invoked = true
                                 selection."${operation}"()
@@ -229,8 +229,8 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
 
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
-                        all { VersionSelection selection ->
+                    componentSelection {
+                        all { ComponentSelection selection ->
                             selection.reject()
                         }
                     }
@@ -245,32 +245,32 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
     }
 
     private static def rules = [
-            "always select 2.0": """{ VersionSelection selection ->
+            "always select 2.0": """{ ComponentSelection selection ->
                 if (selection.candidate.version == '2.0') {
                     selection.accept()
                 }
                 ruleInvoked = true
             }
             """,
-            "always reject 1.1": """{ VersionSelection selection ->
+            "always reject 1.1": """{ ComponentSelection selection ->
                 if (selection.candidate.version == '1.1') {
                     selection.reject()
                 }
                 ruleInvoked = true
             }
             """,
-            "never select or reject any version": """{ VersionSelection selection ->
+            "never select or reject any version": """{ ComponentSelection selection ->
                 ruleInvoked = true
             }
             """,
-            "accept 2.0 as milestone": """{ VersionSelection selection ->
+            "accept 2.0 as milestone": """{ ComponentSelection selection ->
                 if (selection.candidate.version == '2.0' && selection.requested.version == 'latest.milestone') {
                     selection.accept()
                 }
                 ruleInvoked = true
             }
             """,
-            "accept 1.1 as release": """{ VersionSelection selection ->
+            "accept 1.1 as release": """{ ComponentSelection selection ->
                 if (selection.candidate.version == '1.1' && selection.requested.version == 'latest.release') {
                     selection.accept()
                 }
@@ -295,7 +295,7 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
             def ruleInvoked = false
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         all ${rules[rule]}
                     }
                 }
@@ -354,7 +354,7 @@ class DependencyResolveVersionSelectionRulesTest extends AbstractHttpDependencyR
             def ruleInvoked = false
             configurations.all {
                 resolutionStrategy {
-                    versionSelection {
+                    componentSelection {
                         all ${rules[rule]}
                     }
                 }

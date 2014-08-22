@@ -23,7 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
@@ -41,7 +41,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class LazyDependencyToModuleResolverTest extends Specification {
     final target = Mock(DependencyToModuleVersionResolver)
     final matcher = Mock(VersionMatcher)
-    final versionSelectionRules = Mock(VersionSelectionRulesInternal)
+    final versionSelectionRules = Mock(ComponentSelectionRulesInternal)
     final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher, versionSelectionRules)
 
     def "does not resolve module for static version dependency until requested"() {

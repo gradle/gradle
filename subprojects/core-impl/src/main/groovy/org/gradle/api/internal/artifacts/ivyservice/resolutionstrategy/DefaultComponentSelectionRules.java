@@ -23,13 +23,13 @@ import org.gradle.api.InvalidActionClosureException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentMetadata;
-import org.gradle.api.artifacts.VersionSelection;
-import org.gradle.api.artifacts.VersionSelectionRules;
+import org.gradle.api.artifacts.ComponentSelection;
+import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.ClosureBackedRuleAction;
 import org.gradle.api.internal.NoInputsRuleAction;
-import org.gradle.api.internal.artifacts.VersionSelectionInternal;
-import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaDataResolveResult;
@@ -43,18 +43,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultVersionSelectionRules implements VersionSelectionRulesInternal {
-    final Set<RuleAction<? super VersionSelection>> versionSelectionRules = new LinkedHashSet<RuleAction<? super VersionSelection>>();
+public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
+    final Set<RuleAction<? super ComponentSelection>> rules = new LinkedHashSet<RuleAction<? super ComponentSelection>>();
 
     private final static List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
 
-    private final static String USER_CODE_ERROR = "Could not apply version selection rule with all().";
-    private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for version selection rule: %s";
+    private final static String USER_CODE_ERROR = "Could not apply component selection rule with all().";
+    private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for component selection rule: %s";
 
-    public void apply(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
+    public void apply(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
         MetadataProvider metadataProvider = new MetadataProvider(selection, moduleAccess);
 
-        for (RuleAction<? super VersionSelection> rule : versionSelectionRules) {
+        for (RuleAction<? super ComponentSelection> rule : rules) {
             List<Object> inputs = Lists.newArrayList();
             for (Class<?> inputType : rule.getInputTypes()) {
                 if (inputType == ComponentMetadata.class) {
@@ -84,33 +84,33 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
     }
 
     public boolean hasRules() {
-        return versionSelectionRules.size() > 0;
+        return rules.size() > 0;
     }
 
-    public VersionSelectionRules all(Action<? super VersionSelection> selectionAction) {
-        versionSelectionRules.add(new NoInputsRuleAction<VersionSelection>(selectionAction));
+    public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
+        rules.add(new NoInputsRuleAction<ComponentSelection>(selectionAction));
         return this;
     }
 
-    public VersionSelectionRules all(RuleAction<? super VersionSelection> ruleAction) {
-        versionSelectionRules.add(validateInputTypes(ruleAction));
+    public ComponentSelectionRules all(RuleAction<? super ComponentSelection> ruleAction) {
+        rules.add(validateInputTypes(ruleAction));
         return this;
     }
 
-    public VersionSelectionRules all(Closure<?> closure) {
-        versionSelectionRules.add(createRuleActionFromClosure(closure));
+    public ComponentSelectionRules all(Closure<?> closure) {
+        rules.add(createRuleActionFromClosure(closure));
         return this;
     }
 
-    private RuleAction<? super VersionSelection> createRuleActionFromClosure(Closure<?> closure) {
+    private RuleAction<? super ComponentSelection> createRuleActionFromClosure(Closure<?> closure) {
         try {
-            return validateInputTypes(new ClosureBackedRuleAction<VersionSelection>(VersionSelection.class, closure));
+            return validateInputTypes(new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection.class, closure));
         } catch (RuntimeException e) {
-            throw new InvalidActionClosureException(String.format("The closure provided is not valid as a rule action for '%s'.", VersionSelectionRules.class.getSimpleName()), closure, e);
+            throw new InvalidActionClosureException(String.format("The closure provided is not valid as a rule action for '%s'.", ComponentSelectionRules.class.getSimpleName()), closure, e);
         }
     }
 
-    private RuleAction<? super VersionSelection> validateInputTypes(RuleAction<? super VersionSelection> ruleAction) {
+    private RuleAction<? super ComponentSelection> validateInputTypes(RuleAction<? super ComponentSelection> ruleAction) {
         for (Class<?> inputType : ruleAction.getInputTypes()) {
             if (!VALID_INPUT_TYPES.contains(inputType)) {
                 throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
@@ -120,12 +120,12 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
     }
     
     private static class MetadataProvider {
-        private final VersionSelection versionSelection;
+        private final ComponentSelection componentSelection;
         private final ModuleComponentRepositoryAccess moduleAccess;
         private MutableModuleVersionMetaData cachedMetaData;
 
-        private MetadataProvider(VersionSelection versionSelection, ModuleComponentRepositoryAccess moduleAccess) {
-            this.versionSelection = versionSelection;
+        private MetadataProvider(ComponentSelection componentSelection, ModuleComponentRepositoryAccess moduleAccess) {
+            this.componentSelection = componentSelection;
             this.moduleAccess = moduleAccess;
         }
 
@@ -144,14 +144,14 @@ public class DefaultVersionSelectionRules implements VersionSelectionRulesIntern
 
         private MutableModuleVersionMetaData getMetaData() {
             if (cachedMetaData == null) {
-                cachedMetaData = initMetaData(versionSelection, moduleAccess);
+                cachedMetaData = initMetaData(componentSelection, moduleAccess);
             }
             return cachedMetaData;
         }
 
-        private MutableModuleVersionMetaData initMetaData(VersionSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
+        private MutableModuleVersionMetaData initMetaData(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
             BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
-            moduleAccess.resolveComponentMetaData(((VersionSelectionInternal) selection).getDependencyMetaData(), selection.getCandidate(), descriptorResult);
+            moduleAccess.resolveComponentMetaData(((ComponentSelectionInternal) selection).getDependencyMetaData(), selection.getCandidate(), descriptorResult);
             return descriptorResult.getMetaData();
         }
         

@@ -22,13 +22,13 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-public class DefaultVersionSelection implements VersionSelectionInternal {
+public class DefaultComponentSelection implements ComponentSelectionInternal {
     DependencyMetaData metadata;
     ModuleComponentSelector requested;
     ModuleComponentIdentifier candidate;
     State state = State.NOT_SET;
 
-    public DefaultVersionSelection(DependencyMetaData metadata, ModuleComponentIdentifier candidate) {
+    public DefaultComponentSelection(DependencyMetaData metadata, ModuleComponentIdentifier candidate) {
         this.metadata = metadata;
         this.candidate = candidate;
         this.requested = DefaultModuleComponentSelector.newSelector(metadata.getRequested());

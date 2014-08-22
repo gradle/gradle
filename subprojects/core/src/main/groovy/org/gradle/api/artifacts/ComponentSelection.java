@@ -22,12 +22,12 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
 /***
- * Represents a tuple of the requested version of a module and a candidate version
- * to be evaluated in a version selection rule.
+ * Represents a tuple of the component selector of a module and a candidate version
+ * to be evaluated in a component selection rule.
  */
 @HasInternalProtocol
 @Incubating
-public interface VersionSelection {
+public interface ComponentSelection {
     /**
      * Gets the requested version of the module.
      *

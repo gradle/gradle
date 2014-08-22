@@ -73,7 +73,7 @@ public class ResolveIvyFactory {
 
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, latestStrategy, resolutionStrategy.getVersionSelection());
+        UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, latestStrategy, resolutionStrategy.getComponentSelection());
         RepositoryChain parentLookupResolver = new ParentModuleLookupResolver(userResolverChain, cacheLockingManager);
 
         for (ResolutionAwareRepository repository : repositories) {

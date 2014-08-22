@@ -24,9 +24,9 @@ repositories {
 configurations {
     rejectConfig {
         resolutionStrategy {
-            versionSelection {
+            componentSelection {
                 // Accept the highest version matching the requested version that isn't '1.1'
-                all { VersionSelection selection ->
+                all { ComponentSelection selection ->
                     if (selection.requested.group == 'org.sample'
                             && selection.requested.name == 'api'
                             && selection.candidate.version == '1.1') {
@@ -43,9 +43,9 @@ configurations {
 configurations {
     rejectConfig {
         resolutionStrategy {
-            versionSelection {
+            componentSelection {
                 // Reject any versions with a status of 'experimental'
-                all { VersionSelection selection, ComponentMetadata metadata ->
+                all { ComponentSelection selection, ComponentMetadata metadata ->
                     if (selection.requested.group == 'org.sample'
                             && selection.requested.name == 'api'
                             && metadata.status == 'experimental') {
@@ -53,7 +53,7 @@ configurations {
                     }
                 }
                 // Accept the highest version with a branch of 'testing' or a status of 'milestone'
-                all { VersionSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
                     if (selection.requested.group == 'org.sample'
                             && selection.requested.name == 'api'
                             && (descriptor.branch == 'testing' || metadata.status == 'milestone')) {
@@ -69,8 +69,8 @@ configurations {
 configurations {
     sampleConfig {
         resolutionStrategy {
-            versionSelection {
-                all { VersionSelection selection ->
+            componentSelection {
+                all { ComponentSelection selection ->
                     // Force selector like 1.1+ to be interpreted as any
                     // version that starts with "1.1.", so 1.1, 1.1.0 or
                     // 1.1.20.1 would match, but not 1.2, 1.10 or 1.18.

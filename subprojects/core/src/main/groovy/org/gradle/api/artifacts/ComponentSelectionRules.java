@@ -23,22 +23,22 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /***
- * Represents a container for version selection rules.  Rules can be applied as part of the
- * resolutionStrategy of a configuration and individual versions can be explicitly accepted
- * or rejected by rule.  Versions that are neither accepted or rejected will be subject to
+ * Represents a container for component selection rules.  Rules can be applied as part of the
+ * resolutionStrategy of a configuration and individual components can be explicitly accepted
+ * or rejected by rule.  Components that are neither accepted or rejected will be subject to
  * the default version matching strategies.
  *
  * <pre>
  *     configurations {
  *         conf {
  *             resolutionStrategy {
- *                 versionSelection {
- *                     all { VersionSelection selection ->
+ *                 componentSelection {
+ *                     all { ComponentSelection selection ->
  *                         if (selection.candidate.name == 'someModule' && selection.candidate.version == '1.1') {
  *                             selection.reject()
  *                         }
  *                     }
- *                     all { VersionSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+ *                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
  *                         if (selection.candidate.name == 'someModule'
  *                                  && descriptor.branch == 'testing'
  *                                  && metadata.status == 'milestone') {
@@ -53,39 +53,39 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 @Incubating
-public interface VersionSelectionRules {
+public interface ComponentSelectionRules {
     /**
-     * Adds a simple version selection rule that will apply to all resolved components.
-     * Each rule will receive a {@link org.gradle.api.artifacts.VersionSelection} object as an argument.
+     * Adds a simple component selection rule that will apply to all resolved components.
+     * Each rule will receive a {@link ComponentSelection} object as an argument.
      *
      * @param selectionAction the Action or Closure that implements a rule to be applied
      * @return this
      */
-    public VersionSelectionRules all(Action<? super VersionSelection> selectionAction);
+    public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction);
 
     /**
-     * Adds a version selection rule that will apply to all resolved components.
+     * Adds a component selection rule that will apply to all resolved components.
      *
-     * Each rule will receive a {@link org.gradle.api.artifacts.VersionSelection} object as an argument
+     * Each rule will receive a {@link ComponentSelection} object as an argument
      * as well as any other inputs defined in the {@link org.gradle.api.RuleAction}. Allowable values for
      * {@link org.gradle.api.RuleAction#getInputTypes()} are {@link org.gradle.api.artifacts.ComponentMetadata} and {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
      *
      * @param ruleAction the MetadataRule that implements a rule to be applied
      * @return this
      */
-    public VersionSelectionRules all(RuleAction<? super VersionSelection> ruleAction);
+    public ComponentSelectionRules all(RuleAction<? super ComponentSelection> ruleAction);
 
     /**
-     * Adds a version selection rule that will apply to all resolved components.
+     * Adds a component selection rule that will apply to all resolved components.
      *
-     * Each rule will receive a {@link org.gradle.api.artifacts.VersionSelection} object as an argument
+     * Each rule will receive a {@link ComponentSelection} object as an argument
      * as well as any other arguments specified for the closure.
-     * Allowable closure arguments are {@link org.gradle.api.artifacts.VersionSelection} (required),
+     * Allowable closure arguments are {@link ComponentSelection} (required),
      * {@link org.gradle.api.artifacts.ComponentMetadata} and/or
      * {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
      *
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
-    public VersionSelectionRules all(Closure<?> closure);
+    public ComponentSelectionRules all(Closure<?> closure);
 }

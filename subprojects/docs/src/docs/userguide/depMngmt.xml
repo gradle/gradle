@@ -1128,10 +1128,10 @@ someroot/[artifact]-[revision].[ext]
                 is not known in advance.
             </para>
             <para>
-                Rules are configured via the <apilink class="org.gradle.api.artifacts.VersionSelectionRules"/> object.  Each rule configured
-                will be called with a <apilink class="org.gradle.api.artifacts.VersionSelection"/> object as an argument which contains information
-                about the version being requested and the candidate version being considered.  Calling <apilink class="org.gradle.api.artifacts.VersionSelection" method="accept"/>
-                or <apilink class="org.gradle.api.artifacts.VersionSelection" method="reject"/> causes the given candidate version to
+                Rules are configured via the <apilink class="org.gradle.api.artifacts.ComponentSelectionRules"/> object.  Each rule configured
+                will be called with a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> object as an argument which contains information
+                about the version being requested and the candidate version being considered.  Calling <apilink class="org.gradle.api.artifacts.ComponentSelection" method="accept"/>
+                or <apilink class="org.gradle.api.artifacts.ComponentSelection" method="reject"/> causes the given candidate version to
                 be explicitly accepted or rejected.  If a given version is neither accepted nor rejected, it will be subject to the default
                 version matching strategies.  Furthermore, two rules cannot both accept and reject a given version.  They must either both accept,
                 both reject, or one (or both) can choose not to accept or reject the version.
@@ -1156,7 +1156,7 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="version-selection-with-metadata" />
             </sample>
             <para>
-                Note that a <apilink class="org.gradle.api.artifacts.VersionSelection"/> argument is <emphasis>always</emphasis> required when
+                Note that a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> argument is <emphasis>always</emphasis> required when
                 declaring a version selection rule but the metadata arguments are optional.
             </para>
         </section>
