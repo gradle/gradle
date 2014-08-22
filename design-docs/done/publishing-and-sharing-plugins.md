@@ -105,3 +105,17 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 - ~~Plugin id and version numbers can contain URL meta chars and unicode chars (regardless of valid plugin ids not being allowed to contain non ascii alphanum or -) - request URLs should be well formed~~
 - ~~Reasonable error message on network failure talking to plugin portal~~
 - ~~Reasonable error message on network failure talking to repository containing plugin implementation~~
+
+## Story: ~~Error message for unknown plugin or plugin version includes link to relevant human search interfaces~~
+
+The “not found” responses from the portal include an arbitrary message.
+This should be displayed to the user, as it can provide more information.
+
+e.g. when a plugin is not found, the URL of the search interface can be displayed.
+When a particular version is not found, the URL for the plugin can be displayed (which provides the available versions)
+
+### Test Coverage
+
+- ~~When a plugin is not found, the message provided by the resolution service is displayed~~
+- ~~When a plugin version is not found, the message provided by the resolution service is displayed~~
+

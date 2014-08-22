@@ -600,19 +600,6 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 - ~~`--offline` fails build if plugin is not cached~~
 - ~~cached resolution by previous version is used~~
 
-## Story: ~~Error message for unknown plugin or plugin version includes link to relevant human search interfaces~~
-
-The “not found” responses from the portal include an arbitrary message. 
-This should be displayed to the user, as it can provide more information.
-
-e.g. when a plugin is not found, the URL of the search interface can be displayed.
-When a particular version is not found, the URL for the plugin can be displayed (which provides the available versions)
-
-### Test Coverage
-
-- ~~When a plugin is not found, the message provided by the resolution service is displayed~~
-- ~~When a plugin version is not found, the message provided by the resolution service is displayed~~
-
 ## Story: Make new plugin resolution mechanism public
 
 Story is predicated on plugins.gradle.org providing a searchable interface for plugins.
