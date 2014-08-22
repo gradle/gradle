@@ -527,7 +527,6 @@ Note: the class loading/visibility required by this story does not reflect the f
 
 ### Open Issues
 
-* Should provide feedback when resolving plugins, eg in the status bar.
 * When resolving the implementation classpath, exclude and/or validate those things provided by the Gradle API, eg the Groovy implementation.
 * Non-declarative plugins can see classes inherited from parent project.
 * `DefaultClassLoaderScope` produces a non-optimal ClassLoader structure when a scope has no local ClassLoaders and a single export URLClassLoader whose parent is the exported ClassLoader of the parent Scope.
@@ -647,6 +646,15 @@ Story is predicated on plugins.gradle.org providing a searchable interface for p
 - Announce in the release notes.
 
 Note: Plugin authors cannot really contribution to plugins.gradle.org at this point. The content will be “hand curated”.
+
+## Story: User sees visual indication of plugin resolution
+
+This story covers improving the feedback when Gradle is dealing with buildscript {} and plugins {} blocks.
+
+- Indication of entering “pre configure phase” (where we execute buildscript and plugins)
+- Indication of progress for resolution of individual plugins to implementations (i.e. when communicating with resolution service)
+- Indication of progress when resolving/obtaining plugin implementations
+  - For declarative plugins, we can include the plugin details in the context (as each of these plugins has an individual resolve)
 
 # Milestone 2 - more flexible usage
 
