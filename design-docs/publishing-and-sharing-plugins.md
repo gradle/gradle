@@ -527,7 +527,6 @@ Note: the class loading/visibility required by this story does not reflect the f
 
 ### Open Issues
 
-* When resolving the implementation classpath, exclude and/or validate those things provided by the Gradle API, eg the Groovy implementation.
 * `DefaultClassLoaderScope` produces a non-optimal ClassLoader structure when a scope has no local ClassLoaders and a single export URLClassLoader whose parent is the exported ClassLoader of the parent Scope.
 In this case, this export ClassLoader can be used directly as both the local and exported ClassLoader of the current scope. This is a common case, where a script has
 a `buildscript { }` block or a `plugins { }` block with non-declarative plugins only. There's a similar problem when a scope has a single local URLClassLoader and
@@ -655,8 +654,7 @@ This story covers improving the feedback when Gradle is dealing with buildscript
 - Indication of progress when resolving/obtaining plugin implementations
   - For declarative plugins, we can include the plugin details in the context (as each of these plugins has an individual resolve)
 
-
-# Milestone 2 - more flexible usage
+# Milestone 2 - more accurate classloading
 
 ## Story: Non-declarative plugins are isolated, and share everything to the local scope only
 
@@ -668,6 +666,33 @@ Moreover, such classes should not have visibility of other classes other than cl
 - Plugin implementation classes are not visible to script plugins applied to target script
 - Plugin implementation classes are not visible to build scripts of child projects
 - Classes defined by parent scope of target are not visible to plugin
+
+## Story: Avoid redundant resolution / downloading of plugin dependencies that are provided by the Gradle API
+
+e.g. There's no point in downloading a Groovy implementation for a plugin as the Gradle API is going to impose one on the plugin.
+
+## Story: Build user is warned when a plugin they are using has dependencies that conflict with Gradle API
+
+If a plugin declares that it uses Groovy 10 but it's not going to get that, the user should be warned about this.
+
+### Open Issues
+
+- Should we just fail here? (we don't know that the conflict is fatal, things might still work)
+
+## Story: Build user is warned when a plugin they are using has dependencies that conflict with other classes visible to the plugin
+
+If a plugin declares that it uses libX@1.0 but it is forced to use libX@2.0, the user should be warned about this.
+
+### Open Issues
+
+- Should we just fail here? (we don't know that the conflict is fatal, things might still work)
+
+### Open Issues
+
+- Should we just fail here? (we don't know that the conflict is fatal, things might still work)
+
+# Milestone 3 - more flexible usage
+
 
 ## Story: Script plugins are able to use `plugins {}`
 
@@ -694,7 +719,7 @@ To diagnose this they would have to have knowledge of each plugin's dependencies
 
 - Failed resolution of module implementation of non declarative plugin fails with error message indicating why resolve was happening
 
-# Milestone 3 - declarative plugins
+# Milestone 4 - declarative plugins
 
 ## Story: Script plugins are able to use `plugins {}`
 
@@ -745,7 +770,7 @@ Plugin authors should be able to write their plugin in such a way that it works 
 
 # Story: Author of declarative plugin builds plugin that depends on non-core declarative plugin
 
-# Milestone 4 - “parkable”
+# Milestone 5 - “parkable”
 
 ## Story: Gradle is routinely tested against real plugins.gradle.org codebase
 
