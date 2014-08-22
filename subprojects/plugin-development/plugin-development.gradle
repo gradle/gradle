@@ -22,3 +22,5 @@ dependencies {
 }
 
 useTestFixtures()
+useClassycle()
+strictCompile()
