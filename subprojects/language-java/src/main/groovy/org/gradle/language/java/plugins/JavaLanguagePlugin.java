@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.jvm.JarBinarySpec;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
@@ -84,7 +85,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
                     JavaCompile compile = (JavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    JvmLibraryBinarySpec binary = (JvmLibraryBinarySpec) binarySpec;
+                    JarBinarySpec binary = (JarBinarySpec) binarySpec;
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
@@ -92,8 +93,8 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
 
                     compile.setSource(javaSourceSet.getSource());
                     compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
-                    compile.setSourceCompatibility(JavaVersion.current().toString());
-                    compile.setTargetCompatibility(JavaVersion.current().toString());
+                    compile.setSourceCompatibility(JavaVersion.current().toString()); //TODO: Needs to be fixed for the target to make sense
+                    compile.setTargetCompatibility(binary.getLibrary().getPlatform().getTarget());
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);

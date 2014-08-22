@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm;
+package org.gradle.api.internal.platform;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.platform.JvmPlatform;
-import org.gradle.platform.base.LibrarySpec;
+import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
 
-/**
- * Definition of a JVM library component that is to be built by Gradle.
- */
 @Incubating
-public interface JvmLibrarySpec extends LibrarySpec {
-    /**
-     * {@inheritDoc}
-     */
-    DomainObjectSet<JvmLibraryBinarySpec> getBinaries();
-
-    JvmPlatform getPlatform();
+public interface JvmPlatform {
+    String getTarget();
 }

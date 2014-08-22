@@ -17,7 +17,10 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.platform.JvmPlatform;
+import org.gradle.api.internal.platform.JvmPlatformFactory;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
@@ -38,6 +41,8 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
+    private JvmPlatform platform = JvmPlatformFactory.create(JavaVersion.current().toString());
+
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
         this.mainSourceSet = mainSourceSet;
@@ -81,5 +86,17 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
 
     public Set<Class<? extends TransformationFileType>> getInputTypes() {
         return languageOutputs;
+    }
+
+    public JvmPlatform getPlatform() {
+        return this.platform;
+    }
+
+    public void target(JvmPlatform platform) {
+        this.platform = platform;
+    }
+
+    public static JvmPlatform java(String... versions) {
+        return JvmPlatformFactory.create(versions);
     }
 }
