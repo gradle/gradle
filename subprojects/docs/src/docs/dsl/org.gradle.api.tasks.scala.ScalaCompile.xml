@@ -5,7 +5,7 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>scala</literal> plugin <overrides>Default with <litera>java</litera> plugin</overrides></td>
+                    <td>Default with <literal>scala</literal> plugin <overrides>Default with <literal>java</literal> plugin</overrides></td>
                 </tr>
             </thead>
             <tr>
