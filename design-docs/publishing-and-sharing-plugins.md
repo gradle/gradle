@@ -527,10 +527,6 @@ Note: the class loading/visibility required by this story does not reflect the f
 
 ### Open Issues
 
-* Is it worth validating the id/version returned by the service against what we asked for?
-* Handling of buildscript classpath is done in both `DefaultScriptPluginFactory` and `DefaultPluginRequestApplicator`, depending on whether there are plugin requests
-or not. Should move all this handling to live in a single place outside of `DefaultScriptPluginFactory`. Looks like the handling in `DefaultScriptPluginFactory` could
-simply be removed, and the call to `PluginRequestApplicator` done regardless of whether there are plugin requests or not.
 * `PluginResolutionServiceResolver` has a hardcoded set of version matchers to detect a dynamic version. Should instead be injected with the `VersionMatcher` provided by
 the dependency resolution services.
 * `PluginResolutionServiceResolver` should not need to use a `StartParameterResolutionOverride`.

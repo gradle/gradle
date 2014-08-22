@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -55,7 +56,16 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginResolver = pluginResolver;
     }
 
-    public void applyPlugins(Iterable<? extends PluginRequest> requests, final ScriptHandler scriptHandler, final PluginAware target, ClassLoaderScope classLoaderScope) {
+    public void applyPlugins(Collection<? extends PluginRequest> requests, final ScriptHandler scriptHandler, @Nullable final PluginAware target, ClassLoaderScope classLoaderScope) {
+        if (requests.isEmpty()) {
+            defineScriptHandlerClassScope(scriptHandler, classLoaderScope);
+            return;
+        }
+
+        if (target == null) {
+            throw new IllegalStateException("Plugin target is 'null' and there are plugin requests");
+        }
+
         final PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator(target);
         final PluginResolver effectivePluginResolver = wrapInNotInClasspathCheck(classLoaderScope);
 
@@ -104,15 +114,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             }
         }
 
-        Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-        Set<File> files = classpathConfiguration.getFiles();
-        if (!files.isEmpty()) {
-            ClassPath classPath = new DefaultClassPath(files);
-            Factory<? extends ClassLoader> loader = classLoaderScope.getParent().loader(classPath);
-            classLoaderScope.export(loader);
-        }
-
-        classLoaderScope.lock();
+        defineScriptHandlerClassScope(scriptHandler, classLoaderScope);
 
         // We're making an assumption here that the target's plugin registry is backed classLoaderScope.
         // Because we are only build.gradle files right now, this holds.
@@ -134,6 +136,18 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 }
             });
         }
+    }
+
+    private void defineScriptHandlerClassScope(ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope) {
+        Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+        Set<File> files = classpathConfiguration.getFiles();
+        if (!files.isEmpty()) {
+            ClassPath classPath = new DefaultClassPath(files);
+            Factory<? extends ClassLoader> loader = classLoaderScope.getParent().loader(classPath);
+            classLoaderScope.export(loader);
+        }
+
+        classLoaderScope.lock();
     }
 
     private PluginResolver wrapInNotInClasspathCheck(ClassLoaderScope classLoaderScope) {

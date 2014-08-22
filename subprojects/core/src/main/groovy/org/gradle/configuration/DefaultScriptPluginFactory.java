@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
@@ -29,8 +28,6 @@ import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptTransformer;
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
@@ -38,9 +35,7 @@ import org.gradle.plugin.use.internal.PluginDependenciesService;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 
-import java.io.File;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
@@ -131,20 +126,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             classPathScriptRunner.run();
 
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
-            if (!pluginRequests.isEmpty()) { // implies target is PluginAware
-                // This is safe because earlier on we only allow plugins {} for ProjectScript
-                PluginAware pluginAware = (PluginAware) target;
-                pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginAware, targetScope);
-            } else {
-                Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-                Set<File> files = classpathConfiguration.getFiles();
-                if (!files.isEmpty()) {
-                    ClassPath classPath = new DefaultClassPath(files);
-                    Factory<? extends ClassLoader> loader = targetScope.getParent().loader(classPath);
-                    targetScope.export(loader);
-                }
-                targetScope.lock();
-            }
+            PluginAware pluginAware = target instanceof PluginAware ? (PluginAware) target : null;
+            pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginAware, targetScope);
 
             compiler.setClassloader(targetScope.getLocalClassLoader());
 
