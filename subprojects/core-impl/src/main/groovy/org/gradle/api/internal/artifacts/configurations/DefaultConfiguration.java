@@ -117,7 +117,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setVisible(boolean visible) {
-        throwExceptionIfNotInUnresolvedState();
+        throwExceptionIfAlreadyResolved();
         this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
         return this;
     }
@@ -127,7 +127,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
-        throwExceptionIfNotInUnresolvedState();
+        throwExceptionIfAlreadyResolved();
         for (Configuration configuration : this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
             inheritedDependencies.removeCollection(configuration.getAllDependencies());
@@ -140,7 +140,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        throwExceptionIfNotInUnresolvedState();
+        throwExceptionIfAlreadyResolved();
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
@@ -159,7 +159,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setTransitive(boolean transitive) {
-        throwExceptionIfNotInUnresolvedState();
+        throwExceptionIfAlreadyResolved();
         this.transitive = transitive;
         return this;
     }
@@ -169,7 +169,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setDescription(String description) {
-        throwExceptionIfNotInUnresolvedState();
+        throwExceptionIfAlreadyResolved();
         this.description = description;
         return this;
     }
@@ -284,12 +284,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        throwExceptionIfNotInUnresolvedState();
+        throwExceptionIfAlreadyResolved();
         this.excludeRules = excludeRules;
     }
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
-        throwExceptionIfNotInUnresolvedState();
+        throwExceptionIfAlreadyResolved();
         excludeRules.add(new ExcludeRuleNotationParser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
         return this;
     }
@@ -383,7 +383,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    private void throwExceptionIfNotInUnresolvedState() {
+    private void throwExceptionIfAlreadyResolved() {
         if (getState() != State.UNRESOLVED) {
             throw new InvalidUserDataException("You can't change configuration '" + getName() + "' because it is already resolved!");
         }
@@ -485,7 +485,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private class VetoContainerChangeAction implements Runnable {
         public void run() {
-            throwExceptionIfNotInUnresolvedState();
+            throwExceptionIfAlreadyResolved();
         }
     }
 
