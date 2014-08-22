@@ -156,3 +156,20 @@ If there is a problem fetching the status (error response, or out of protocol re
 - ~~can use --offline when status is cached - message printed~~
 - ~~deprecation can be retracted - status is invalidated when previously non null checksum becomes null~~
 
+## Story: Make new plugin resolution mechanism public
+
+Story is predicated on plugins.gradle.org providing a searchable interface for plugins.
+
+- Update http://www.gradle.org/plugins
+  - Should have far less content, just a few short words that Gradle has a vibrant plugin mechanism / ecosystem and link to portal and user guide
+  - less is more here
+- Update the 'plugins' wiki page to direct build authors and plugin authors to `http://plugins.gradle.org` instead.
+- Add link to further documentation in relevant error message (at least the compile time validation of plugin {} syntax)
+- Include new DSL in DSL reference.
+- Include types in the public API.
+- Add links to user guide to `org.gradle.plugin.use` types Javadoc
+- Add some material to the user guide discussion about using plugins.
+- Update website to replace references to the 'plugins' wiki page to instead reference `http://plugins.gradle.org`
+- Announce in the release notes.
+
+Note: Plugin authors cannot really contribution to plugins.gradle.org at this point. The content will be “hand curated”.
