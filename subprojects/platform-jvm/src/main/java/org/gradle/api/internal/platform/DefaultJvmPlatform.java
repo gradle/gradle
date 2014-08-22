@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.platform;
 
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-
-import java.util.Arrays;
-
 public class DefaultJvmPlatform implements JvmPlatform {
     private final String target;
 
@@ -32,6 +28,6 @@ public class DefaultJvmPlatform implements JvmPlatform {
     }
 
     public String toString() {
-        return String.format("compile target JVM: %s", target);
+        return String.format("compatibility target: %s", target);
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.platform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
 
 @Incubating
 public interface JvmPlatform {
