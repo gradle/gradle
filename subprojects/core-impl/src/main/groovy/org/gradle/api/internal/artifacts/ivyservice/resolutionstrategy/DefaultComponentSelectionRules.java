@@ -29,78 +29,21 @@ import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.ClosureBackedRuleAction;
 import org.gradle.api.internal.NoInputsRuleAction;
-import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultComponentSelectionRules.class);
-
-    final Set<RuleAction<? super ComponentSelection>> noInputRules = Sets.newLinkedHashSet();
-    final Set<RuleAction<? super ComponentSelection>> inputRules = Sets.newLinkedHashSet();
+    final Set<RuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
 
     private final static List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
 
-    private final static String USER_CODE_ERROR = "Could not apply component selection rule with all().";
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for component selection rule: %s";
 
-    public void apply(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
-        MetadataProvider metadataProvider = new MetadataProvider(selection, moduleAccess);
-
-        if (processRules(noInputRules, selection, metadataProvider)) {
-            processRules(inputRules, selection, metadataProvider);
-        }
-    }
-
-    private boolean processRules(Set<RuleAction<? super ComponentSelection>> rules, ComponentSelection selection, MetadataProvider metadataProvider) {
-        for (RuleAction<? super ComponentSelection> rule : rules) {
-            processRule(selection, metadataProvider, rule);
-
-            if (((ComponentSelectionInternal) selection).isRejected()) {
-                LOGGER.info(String.format("Selection of '%s' rejected by component selection rule: %s", selection.getCandidate(), ((ComponentSelectionInternal) selection).getRejectionReason()));
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void processRule(ComponentSelection selection, MetadataProvider metadataProvider, RuleAction<? super ComponentSelection> rule) {
-        List<Object> inputs = Lists.newArrayList();
-        for (Class<?> inputType : rule.getInputTypes()) {
-            if (inputType == ComponentMetadata.class) {
-                inputs.add(metadataProvider.getComponentMetadata());
-                continue;
-            }
-            if (inputType == IvyModuleDescriptor.class) {
-                IvyModuleDescriptor ivyModuleDescriptor = metadataProvider.getIvyModuleDescriptor();
-                if (ivyModuleDescriptor == null) {
-                    // Rules that require ivy module descriptor input are not fired for non-ivy modules
-                    return;
-                }
-                inputs.add(ivyModuleDescriptor);
-                continue;
-            }
-            // We've already validated the inputs: should never get here.
-            throw new IllegalStateException();
-        }
-
-        try {
-            rule.execute(selection, inputs);
-        } catch (Exception e) {
-            throw new InvalidUserCodeException(USER_CODE_ERROR, e);
-        }
+    public Collection<RuleAction<? super ComponentSelection>> getRules() {
+        return rules;
     }
 
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
@@ -119,11 +62,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     private void addRule(RuleAction<? super ComponentSelection> ruleAction) {
-        if (ruleAction.getInputTypes().isEmpty()) {
-            noInputRules.add(ruleAction);
-        } else {
-            inputRules.add(ruleAction);
-        }
+        rules.add(ruleAction);
     }
 
     private RuleAction<? super ComponentSelection> createRuleActionFromClosure(Closure<?> closure) {
@@ -141,43 +80,5 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
             }
         }
         return ruleAction;
-    }
-    
-    private static class MetadataProvider {
-        private final ComponentSelection componentSelection;
-        private final ModuleComponentRepositoryAccess moduleAccess;
-        private MutableModuleVersionMetaData cachedMetaData;
-
-        private MetadataProvider(ComponentSelection componentSelection, ModuleComponentRepositoryAccess moduleAccess) {
-            this.componentSelection = componentSelection;
-            this.moduleAccess = moduleAccess;
-        }
-
-        public ComponentMetadata getComponentMetadata() {
-            return new ComponentMetadataDetailsAdapter(getMetaData());
-        }
-
-        public IvyModuleDescriptor getIvyModuleDescriptor() {
-            ModuleVersionMetaData metaData = getMetaData();
-            if (metaData instanceof IvyModuleVersionMetaData) {
-                IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metaData;
-                return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
-            }
-            return null;
-        }
-
-        private MutableModuleVersionMetaData getMetaData() {
-            if (cachedMetaData == null) {
-                cachedMetaData = initMetaData(componentSelection, moduleAccess);
-            }
-            return cachedMetaData;
-        }
-
-        private MutableModuleVersionMetaData initMetaData(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
-            BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
-            moduleAccess.resolveComponentMetaData(((ComponentSelectionInternal) selection).getDependencyMetaData(), selection.getCandidate(), descriptorResult);
-            return descriptorResult.getMetaData();
-        }
-        
     }
 }

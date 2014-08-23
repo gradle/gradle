@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
-
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Action
 import org.gradle.api.InvalidActionClosureException
@@ -24,21 +23,23 @@ import org.gradle.api.RuleAction
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.artifacts.ComponentSelectionRules
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+import org.gradle.api.internal.NoInputsRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentSelectionRulesProcessor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.DefaultMavenModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import spock.lang.Specification
 
 class DefaultComponentSelectionRulesTest extends Specification {
+    ComponentSelectionRulesInternal rules = new DefaultComponentSelectionRules()
     ComponentSelectionInternal componentSelection
 
     def setup() {
@@ -47,98 +48,23 @@ class DefaultComponentSelectionRulesTest extends Specification {
         componentSelection = new DefaultComponentSelection(dependencyMetaData, componentIdentifier)
     }
 
-
-    def "all non-rejecting rules are evaluated" () {
-        def ComponentSelectionRules rules = new DefaultComponentSelectionRules()
-        def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
-                result.resolved(md, null)
-            }
-        }
-        def closureCalled = []
+    def "converts closure input to rule actions"() {
         when:
-        rules.all { ComponentSelection cs -> closureCalled << 0 }
-        rules.all { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
-        rules.all { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2}
-        rules.all { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 3 }
-        rules.all { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 4 }
-
-        and:
-        rules.apply(componentSelection, moduleAccess)
+        rules.all { ComponentSelection cs ->  }
+        rules.all { ComponentSelection cs, ComponentMetadata cm ->  }
+        rules.all { ComponentSelection cs, IvyModuleDescriptor imd -> }
+        rules.all { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> }
 
         then:
-        !componentSelection.rejected
-        closureCalled == [0, 1, 2, 3, 4]
-    }
-
-    def "short-circuits evaluate when rule rejects candidate" () {
-        def ComponentSelectionRules rules = new DefaultComponentSelectionRules()
-        def moduleAccess = Mock(ModuleComponentRepositoryAccess) {
-            0 * resolveComponentMetaData(_, _, _)
-        }
-        def closuresCalled = []
-
-        when:
-        rules.all { ComponentSelection cs -> closuresCalled << 0 }
-        rules.all { ComponentSelection cs -> cs.reject("rejecting") }
-        rules.all { ComponentSelection cs -> closuresCalled << 1 }
-
-        and:
-        rules.apply(componentSelection, moduleAccess)
-
-        then:
-        componentSelection.rejected
-        componentSelection.rejectionReason == "rejecting"
-        closuresCalled == [0]
-    }
-
-    def "prefers non-metadata rules over rules requiring metadata"() {
-        def ComponentSelectionRules rules = new DefaultComponentSelectionRules()
-        def moduleAccess = Mock(ModuleComponentRepositoryAccess) {
-            0 * resolveComponentMetaData(_, _, _)
-        }
-        def closuresCalled = []
-
-        when:
-        rules.all { ComponentSelection cs -> closuresCalled << 0 }
-        rules.all { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
-        rules.all { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 2}
-        rules.all { ComponentSelection cs -> closuresCalled << 3 }
-        rules.all { ComponentSelection cs -> cs.reject("rejected") }
-
-        and:
-        rules.apply(componentSelection, moduleAccess)
-
-        then:
-        componentSelection.rejected
-        componentSelection.rejectionReason == "rejected"
-
-        and:
-        closuresCalled == [0, 3]
-    }
-
-    def "metadata is not requested for rules that don't require it"() {
-        def ComponentSelectionRules rules = new DefaultComponentSelectionRules()
-        def moduleAccess = Mock(ModuleComponentRepositoryAccess) {
-            0 * resolveComponentMetaData(_, _, _)
-        }
-        def closureCalled = false
-
-        when:
-        rules.all { ComponentSelection cs -> closureCalled = true }
-        rules.apply(componentSelection, moduleAccess)
-
-        then:
-        !componentSelection.rejected
-        closureCalled
+        rules.rules[0].inputTypes == []
+        rules.rules[1].inputTypes == [ComponentMetadata]
+        rules.rules[2].inputTypes == [IvyModuleDescriptor]
+        rules.rules[3].inputTypes == [IvyModuleDescriptor, ComponentMetadata]
     }
 
     def "produces sensible error with parameter-less closure" () {
-        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
-
         when:
-        componentSelectionRules.all { }
+        rules.all { }
 
         then:
         def e = thrown(InvalidActionClosureException)
@@ -147,17 +73,8 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "produces sensible error for invalid closure" () {
-        def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
-                result.resolved(md, null)
-            }
-        }
-        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
-
         when:
-        componentSelectionRules.all closure
-        componentSelectionRules.apply(Stub(ComponentSelectionInternal), moduleAccess)
+        rules.all closure
 
         then:
         def e = thrown(InvalidActionClosureException)
@@ -176,52 +93,34 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "can add metadata rules via api"() {
-        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
-        def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
-                result.resolved(md, null)
-            }
-        }
         def metadataRule = new TestRuleAction()
-        metadataRule.inputTypes = inputTypes
 
         when:
-        componentSelectionRules.all metadataRule
-        componentSelectionRules.apply(componentSelection, moduleAccess)
+        rules.all metadataRule
 
         then:
-        metadataRule.called
-
-        where:
-        inputTypes                                             | _
-        [ ]                                                    | _
-        [ ComponentMetadata.class ]                            | _
-        [ IvyModuleDescriptor.class ]                          | _
-        [ IvyModuleDescriptor.class, ComponentMetadata.class ] | _
-        [ ComponentMetadata.class, IvyModuleDescriptor.class ] | _
+        rules.rules[0] == metadataRule
     }
 
     def "can add action rules via api"() {
-        def ComponentSelectionRules versionSelectionRules = new DefaultComponentSelectionRules()
-        def moduleAccess = Stub(ModuleComponentRepositoryAccess)
         def Action<ComponentSelection> action = new TestComponentSelectionAction()
 
         when:
-        versionSelectionRules.all action
-        versionSelectionRules.apply(componentSelection, moduleAccess)
+        rules.all action
 
         then:
-        action.called
+        def ruleAction = rules.rules[0]
+        ruleAction.inputTypes == []
+        ruleAction instanceof NoInputsRuleAction
+        ruleAction.action == action
     }
 
     def "produces sensible error when bad input type is declared for rule action" () {
         def ruleAction = Mock(RuleAction)
-        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
 
         when:
         ruleAction.inputTypes >> inputTypes
-        componentSelectionRules.all ruleAction
+        rules.all ruleAction
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -236,35 +135,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         [ComponentMetadataDetails]                       | "Unsupported parameter type for component selection rule: ${ComponentMetadataDetails.name}"
     }
 
-    def "produces sensible error when closure or rule or action throws exception" () {
-        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
-        def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
-                result.resolved(md, null)
-            }
-        }
-
-        when:
-        componentSelectionRules.all closureOrRuleOrAction
-        componentSelectionRules.apply(componentSelection, moduleAccess)
-
-        then:
-        def e = thrown(InvalidUserCodeException)
-        e.message == "Could not apply component selection rule with all()."
-        e.cause.message == "From test"
-
-        where:
-        closureOrRuleOrAction                                                                                        | _
-        new TestExceptionAction()                                                                                    | _
-        new TestExceptionRuleAction()                                                                                | _
-        { ComponentSelection cs -> throw new Exception("From test") }                                                | _
-        { ComponentSelection cs, ComponentMetadata cm -> throw new Exception("From test") }                          | _
-        { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") } | _
-    }
-
     def "produces sensible error when bad input types are provided with rule"() {
-        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
@@ -275,8 +146,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         metadataRule.inputTypes = inputTypes
 
         when:
-        componentSelectionRules.all metadataRule
-        componentSelectionRules.apply(componentSelection, moduleAccess)
+        rules.all metadataRule
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -288,25 +158,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
         [ ComponentMetadata.class, String.class ]                            | _
         [ IvyModuleDescriptor.class, ComponentMetadata.class, String.class ] | _
     }
-
-    def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component" () {
-        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
-        def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultMavenModuleVersionMetaData(Stub(ModuleDescriptor), "bundle", false)
-                result.resolved(md, null)
-            }
-        }
-        def closureCalled = false
-
-        when:
-        componentSelectionRules.all { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closureCalled = true }
-        componentSelectionRules.apply(componentSelection, moduleAccess)
-
-        then:
-        ! closureCalled
-    }
-
 
     private class TestRuleAction implements RuleAction<ComponentSelection> {
         boolean called = false
@@ -324,13 +175,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
         }
     }
 
-    private class TestExceptionRuleAction extends TestRuleAction {
-        @Override
-        void execute(ComponentSelection subject, List inputs) {
-            throw new Exception("From test")
-        }
-    }
-
     private class TestComponentSelectionAction implements Action<ComponentSelection> {
         boolean called = false
 
@@ -340,10 +184,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         }
     }
 
-    private class TestExceptionAction implements Action<ComponentSelection> {
-        @Override
-        void execute(ComponentSelection componentSelection) {
-            throw new Exception("From test")
-        }
+    def process(ModuleComponentRepositoryAccess moduleAccess) {
+        new ComponentSelectionRulesProcessor().apply(componentSelection, rules.rules, moduleAccess)
     }
 }

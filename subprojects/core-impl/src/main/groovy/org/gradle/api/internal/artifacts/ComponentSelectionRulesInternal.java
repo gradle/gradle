@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+
+import java.util.Collection;
 
 public interface ComponentSelectionRulesInternal extends ComponentSelectionRules {
-    void apply(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess);
+    Collection<RuleAction<? super ComponentSelection>> getRules();
 }

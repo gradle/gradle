@@ -96,10 +96,10 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
         "1.+"                | "select 1.1"    | "1.1"  | '["1.2", "1.1"]'                      | ['1.1']
         "1.+"                | "select status" | "1.1"  | '["1.2", "1.1"]'                      | ['1.2', '1.1']
         "1.+"                | "select branch" | "1.1"  | '["1.2", "1.1"]'                      | ['1.2', '1.1']
-        "latest.integration" | "select 1.1"    | "1.1"  | '["2.1", "2.0", "1.2", "1.1"]'        | ['2.1', '2.0', '1.2', '1.1']
+        "latest.integration" | "select 1.1"    | "1.1"  | '["2.1", "2.0", "1.2", "1.1"]'        | ['1.1'] // Custom rule fires before version matching
         "latest.integration" | "select status" | "2.0"  | '["2.1", "2.0"]'                      | ['2.1', '2.0']
         "latest.integration" | "select branch" | "2.0"  | '["2.1", "2.0"]'                      | ['2.1', '2.0']
-        "latest.milestone"   | "select 1.1"    | "1.1"  | '["2.0", "1.1"]'                      | ['2.1', '2.0', '1.2', '1.1']
+        "latest.milestone"   | "select 1.1"    | "1.1"  | '["2.1", "2.0", "1.2", "1.1"]'        | ['1.1'] // Custom rule fires before version matching
         "latest.milestone"   | "select status" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
         "latest.milestone"   | "select branch" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
         "1.1"                | "select 1.1"    | "1.1"  | '["1.1"]'                             | ['1.1']
@@ -154,10 +154,13 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
 
         where:
-        selector             | rule            | candidates                            | downloadedMetadata
-        "1.+"                | "reject all"    | '["1.2", "1.1", "1.0"]'               | []
-        "latest.integration" | "reject all"    | '["2.1", "2.0", "1.2", "1.1", "1.0"]' | ['2.1', '2.0', '1.2', '1.1', '1.0']
-        "latest.milestone"   | "reject all"    | '["2.0", "1.1"]'                      | ['2.1', '2.0', '1.2', '1.1', '1.0']
+        selector             | rule                       | candidates                            | downloadedMetadata
+        "1.+"                | "reject all"               | '["1.2", "1.1", "1.0"]'               | []
+        "latest.integration" | "reject all"               | '["2.1", "2.0", "1.2", "1.1", "1.0"]' | []
+        "latest.milestone"   | "reject all"               | '["2.1", "2.0", "1.2", "1.1", "1.0"]' | []
+        "1.+"                | "reject all with metadata" | '["1.2", "1.1", "1.0"]'               | ['1.2', '1.1', '1.0']
+        "latest.integration" | "reject all with metadata" | '["2.1", "2.0", "1.2", "1.1", "1.0"]' | ['2.1', '2.0', '1.2', '1.1', '1.0']
+        "latest.milestone"   | "reject all with metadata" | '["2.0", "1.1"]'                      | ['2.1', '2.0', '1.2', '1.1', '1.0']
     }
 
     @Unroll
@@ -212,6 +215,11 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
 
     private static def rules = [
             "reject all": """{ ComponentSelection selection ->
+                selection.reject("rejecting everything")
+                candidates << selection.candidate.version
+            }
+            """,
+            "reject all with metadata": """{ ComponentSelection selection, ComponentMetadata metadata ->
                 selection.reject("rejecting everything")
                 candidates << selection.candidate.version
             }
