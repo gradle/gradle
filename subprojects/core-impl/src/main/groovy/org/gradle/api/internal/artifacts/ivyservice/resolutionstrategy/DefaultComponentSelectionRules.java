@@ -103,10 +103,6 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         }
     }
 
-    public boolean hasRules() {
-        return noInputRules.size() > 0 || inputRules.size() > 0;
-    }
-
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
         addRule(new NoInputsRuleAction<ComponentSelection>(selectionAction));
         return this;

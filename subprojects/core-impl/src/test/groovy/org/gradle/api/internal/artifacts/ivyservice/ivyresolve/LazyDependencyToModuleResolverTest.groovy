@@ -98,36 +98,6 @@ class LazyDependencyToModuleResolverTest extends Specification {
         0 * target._
     }
 
-    def "treats static version dependency as dynamic when version selection rules are present"() {
-        def dependency = dependency()
-        def metaData = module()
-
-        given:
-        matcher.isDynamic(_) >> false
-        versionSelectionRules.hasRules() >> true
-
-        when:
-        def idResolveResult = resolver.resolve(dependency)
-        def id = idResolveResult.id
-
-        then:
-        id == metaData.id
-
-        and:
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(metaData)}
-        0 * target._
-
-        when:
-        def moduleResolveResult = idResolveResult.resolve()
-
-        then:
-        moduleResolveResult.id == metaData.id
-        moduleResolveResult.metaData == metaData
-
-        and:
-        0 * target._
-    }
-
     def moduleIdentifier(ModuleDescriptor moduleDescriptor) {
         return new DefaultModuleVersionIdentifier(moduleDescriptor.moduleRevisionId.organisation, moduleDescriptor.moduleRevisionId.name, moduleDescriptor.moduleRevisionId.revision)
     }

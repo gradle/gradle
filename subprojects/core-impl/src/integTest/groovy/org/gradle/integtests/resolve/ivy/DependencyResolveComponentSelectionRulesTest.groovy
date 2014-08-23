@@ -80,7 +80,9 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
 """
 
         when:
-        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        if (selector != "1.1") {
+            ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        }
         downloadedMetadata.each {
             modules[it].ivy.expectGet()
         }
@@ -106,7 +108,7 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
     }
 
     @Unroll
-    def "uses '#rule' rule to reject all candidates for #selector" () {
+    def "uses '#rule' rule to reject all candidates for dynamic version #selector" () {
         buildFile << """
             $httpBaseBuildFile
 
@@ -117,7 +119,7 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all ${rules['reject all']}
+                        all ${rules[rule]}
                     }
                 }
             }
@@ -139,6 +141,7 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
         succeeds 'checkConf'
 
         when:
+        server.resetExpectations()
         ivyHttpRepo.directoryList("org.utils", "api").expectGet()
         downloadedMetadata.each {
             modules[it].ivy.expectHead()
@@ -155,11 +158,56 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
         "1.+"                | "reject all"    | '["1.2", "1.1", "1.0"]'               | []
         "latest.integration" | "reject all"    | '["2.1", "2.0", "1.2", "1.1", "1.0"]' | ['2.1', '2.0', '1.2', '1.1', '1.0']
         "latest.milestone"   | "reject all"    | '["2.0", "1.1"]'                      | ['2.1', '2.0', '1.2', '1.1', '1.0']
-        "1.0"                | "reject all"    | '["1.0"]'                             | []
-        "1.0"                | "select 1.1"    | '["1.0"]'                             | []
-        "1.0"                | "select status" | '["1.0"]'                             | []// TODO:DAZ I think this should be downloading...
-        "1.0"                | "select branch" | '["1.0"]'                             | []
-        "1.1"                | "reject all"    | '["1.1"]'                             | []
+    }
+
+    @Unroll
+    def "uses '#rule' rule to reject all candidates for static version #selector" () {
+        buildFile << """
+            $httpBaseBuildFile
+
+            dependencies {
+                conf "org.utils:api:${selector}"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all ${rules[rule]}
+                    }
+                }
+            }
+
+            task checkConf << {
+                def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                assert artifacts.size() == 0
+                assert candidates == ${candidates}
+            }
+"""
+
+        when:
+        downloadedMetadata.each {
+            modules[it].ivy.expectGet()
+        }
+
+        then:
+        succeeds 'checkConf'
+
+        when:
+        server.resetExpectations()
+
+        then:
+        fails 'resolveConf'
+        failureDescriptionStartsWith("Execution failed for task ':resolveConf'.")
+        failureHasCause("Could not resolve all dependencies for configuration ':conf'.")
+        failureHasCause("Could not find org.utils:api:${selector}.")
+
+        where:
+        selector             | rule            | candidates                            | downloadedMetadata
+        "1.0"                | "reject all"    | '["1.0"]'                             | ['1.0']
+        "1.0"                | "select 1.1"    | '["1.0"]'                             | ['1.0']
+        "1.0"                | "select status" | '["1.0"]'                             | ['1.0']
+        "1.0"                | "select branch" | '["1.0"]'                             | ['1.0']
+        "1.1"                | "reject all"    | '["1.1"]'                             | ['1.1']
     }
 
     private static def rules = [
@@ -451,7 +499,6 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
         """
 
         when:
-        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
         modules['2.0'].ivy.expectDownload()
         modules['2.0'].artifact.expectDownload()
 

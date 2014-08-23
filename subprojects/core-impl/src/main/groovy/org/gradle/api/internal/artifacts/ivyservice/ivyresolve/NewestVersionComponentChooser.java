@@ -42,7 +42,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
     }
 
     public boolean canSelectMultipleComponents(ModuleVersionSelector selector) {
-        return versionMatcher.isDynamic(selector.getVersion()) || versionSelectionRules.hasRules();
+        return versionMatcher.isDynamic(selector.getVersion());
     }
 
     public ExternalComponentMetaData choose(ExternalComponentMetaData one, ExternalComponentMetaData two) {
@@ -67,27 +67,23 @@ class NewestVersionComponentChooser implements ComponentChooser {
     }
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
-        if (versionMatcher.needModuleMetadata(dependency.getRequested().getVersion())) {
-            return chooseBestMatchingDependencyWithMetaData(versions, dependency, moduleAccess);
-        } else {
-            return chooseBestMatchingDependency(versions, dependency, moduleAccess);
-        }
-    }
-
-    private ModuleComponentIdentifier chooseBestMatchingDependency(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
+        boolean versionMatcherRequiresMetadata = versionMatcher.needModuleMetadata(dependency.getRequested().getVersion());
         ModuleVersionSelector requested = dependency.getRequested();
         for (Versioned candidate : sortLatestFirst(versions)) {
-            // Invoke version matcher
-            if (!versionMatcher.accept(requested.getVersion(), candidate.getVersion())) {
-                continue;
-            }
-
-            // Apply version selection rules
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
-            ComponentSelectionInternal selection = new DefaultComponentSelection(dependency, candidateIdentifier);
-            versionSelectionRules.apply(selection, moduleAccess);
 
-            if (selection.isRejected()) {
+            if (versionMatcherRequiresMetadata) {
+                MutableModuleVersionMetaData metaData = resolveComponentMetaData(dependency, candidate, moduleAccess);
+                if (!versionMatcher.accept(requested.getVersion(), metaData)) {
+                    continue;
+                }
+            } else {
+                if (!versionMatcher.accept(requested.getVersion(), candidate.getVersion())) {
+                    continue;
+                }
+            }
+
+            if (isRejectedByRules(candidateIdentifier, dependency, moduleAccess)) {
                 continue;
             }
 
@@ -96,28 +92,10 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return null;
     }
 
-    private ModuleComponentIdentifier chooseBestMatchingDependencyWithMetaData(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
-        ModuleVersionSelector requested = dependency.getRequested();
-        for (Versioned candidate : sortLatestFirst(versions)) {
-            MutableModuleVersionMetaData metaData = resolveComponentMetaData(dependency, candidate, moduleAccess);
-            ModuleComponentIdentifier candidateIdentifier = metaData.getComponentId();
-
-            // Invoke version matcher
-            if (!versionMatcher.accept(requested.getVersion(), metaData)) {
-                continue;
-            }
-
-            // Apply version selection rules
-            ComponentSelectionInternal selection = new DefaultComponentSelection(dependency, candidateIdentifier);
-            versionSelectionRules.apply(selection, moduleAccess);
-
-            if (selection.isRejected()) {
-                continue;
-            }
-
-            return candidateIdentifier;
-        }
-        return null;
+    public boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
+        ComponentSelectionInternal selection = new DefaultComponentSelection(dependency, candidateIdentifier);
+        versionSelectionRules.apply(selection, moduleAccess);
+        return selection.isRejected();
     }
 
     private MutableModuleVersionMetaData resolveComponentMetaData(DependencyMetaData dependency, Versioned candidate, ModuleComponentRepositoryAccess moduleAccess) {

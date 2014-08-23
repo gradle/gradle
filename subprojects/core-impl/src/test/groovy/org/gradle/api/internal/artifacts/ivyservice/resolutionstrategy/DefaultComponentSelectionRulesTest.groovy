@@ -307,25 +307,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
         ! closureCalled
     }
 
-    def "accurately returns whether or not any rules are configured" () {
-        when:
-        def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
-
-        then:
-        ! componentSelectionRules.hasRules()
-
-        when:
-        componentSelectionRules.all closureOrActionOrRule
-
-        then:
-        componentSelectionRules.hasRules()
-
-        where:
-        closureOrActionOrRule            | _
-        { ComponentSelection vs -> }     | _
-        new TestRuleAction()             | _
-        new TestComponentSelectionAction() | _
-    }
 
     private class TestRuleAction implements RuleAction<ComponentSelection> {
         boolean called = false

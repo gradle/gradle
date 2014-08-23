@@ -22,5 +22,4 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 
 public interface ComponentSelectionRulesInternal extends ComponentSelectionRules {
     void apply(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess);
-    boolean hasRules();
 }

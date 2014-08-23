@@ -42,8 +42,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
     }
 
     public ModuleVersionIdResolveResult resolve(DependencyMetaData dependency) {
-        if (versionMatcher.isDynamic(dependency.getRequested().getVersion())
-                || versionSelectionRules.hasRules()) {
+        if (versionMatcher.isDynamic(dependency.getRequested().getVersion())) {
             DynamicVersionResolveResult result = new DynamicVersionResolveResult(dependency);
             result.resolve();
             return result;

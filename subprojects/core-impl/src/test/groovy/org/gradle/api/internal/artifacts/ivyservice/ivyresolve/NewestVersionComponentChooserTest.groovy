@@ -41,7 +41,6 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         1 * selector.version >> "foo"
         versionMatcher.isDynamic("foo") >> false
-        versionSelectionRules.hasRules() >> false
 
         then:
         !chooser.canSelectMultipleComponents(selector)
@@ -49,18 +48,6 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         1 * selector.version >> "bar"
         versionMatcher.isDynamic("bar") >> true
-
-        then:
-        chooser.canSelectMultipleComponents(selector)
-    }
-
-    def "uses version selection rules to determine if selector can select multiple components"() {
-        def selector = Mock(ModuleVersionSelector)
-
-        when:
-        1 * selector.version >> "bar"
-        versionMatcher.isDynamic("bar") >> false
-        versionSelectionRules.hasRules() >> true
 
         then:
         chooser.canSelectMultipleComponents(selector)
