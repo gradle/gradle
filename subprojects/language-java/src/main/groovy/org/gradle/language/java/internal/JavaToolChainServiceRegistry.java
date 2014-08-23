@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
@@ -54,7 +54,7 @@ public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
             return new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonManager);
         }
 
-        JavaToolChain createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
+        JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
             return new DefaultJavaToolChain(compilerFactory, execActionFactory);
         }
     }

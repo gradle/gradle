@@ -2,6 +2,8 @@ dependencies {
     compile libraries.groovy
     compile project(":platformJvm")
     compile project(":platformBase")
+
+    testRuntime project(":languageJava")
 }
 
 // TODO:DAZ Review this post-merge
