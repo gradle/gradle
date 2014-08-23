@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ComponentSelectionInternal.State
 
 class DefaultComponentSelectionTest extends Specification {
     DefaultComponentSelection selection
@@ -29,52 +27,28 @@ class DefaultComponentSelectionTest extends Specification {
         selection = new DefaultComponentSelection(Stub(DependencyMetaData), Stub(ModuleComponentIdentifier))
     }
 
-    def "default state of version selection is not set" () {
+    def "accepted by default"() {
         expect:
-        selection.state == State.NOT_SET
+        !selection.rejected
+        selection.rejectionReason == null
     }
 
-    def "accepting or rejection changes state correctly" () {
+    def "accepted until rejected"() {
         when:
-        selection."${operation}"()
+        selection.reject("bad")
 
         then:
-        selection.state == expectedState
-
-        where:
-        operation | expectedState
-        "accept"  | State.ACCEPTED
-        "reject"  | State.REJECTED
+        selection.rejected
+        selection.rejectionReason == "bad"
     }
 
-    def "changing an already accepted or rejected throws an exception"() {
+    def "last rejection wins"() {
         when:
-        operations.each { operation ->
-            selection."${operation}"()
-        }
+        selection.reject("bad")
+        selection.reject("worse")
 
         then:
-        def e = thrown(InvalidUserCodeException)
-
-        where:
-        operations            | _
-        [ "accept", "reject"] | _
-        [ "reject", "accept"] | _
-    }
-
-    def "accepting or rejecting multiple times does not throw an exception"() {
-        when:
-        (1..3).each {
-            selection."${operation}"()
-        }
-
-        then:
-        noExceptionThrown()
-        selection.state == expectedState
-
-        where:
-        operation | expectedState
-        "accept"  | State.ACCEPTED
-        "reject"  | State.REJECTED
+        selection.rejected
+        selection.rejectionReason == "worse"
     }
 }

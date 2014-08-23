@@ -246,7 +246,7 @@ The primary changes are:
 - Rename functionality from 'versionSelection' rules to 'componentSelection' rules.
 - Default version matching will be applied first. Custom rules are not evaluated for any component where default version matching rejects candidate.
 - Custom rules provide a fixed selection criteria for a candidate component, without consideration of the `ModuleComponentSelector`.
-- Every defined rule must either accept or reject the candidate component. It is an error for a rule _not_ to specify accept or reject.
+- Every defined rule can reject the candidate component. If a rule does not reject the candidate, it is assumed accepted.
 - A reason must be specified when rejecting, for reporting purposes.
 - For a candidate to be considered, every defined rule must accept candidate. If any rule rejects the candidate, it is not considered.
 - Once a rule rejects a candidate, no other rules will be evaluated (short-circuit rules).
@@ -258,11 +258,9 @@ The primary changes are:
 
 ### User visible changes
 
-    ModuleComponentSelection {
+    ComponentSelection {
         ModuleComponentIdentifier getCandidate()
-        void accept()
         void reject(String reason)
-        void rejectIf(Boolean condition, String reason)
     }
 
     resolutionStrategy.all {
@@ -271,14 +269,14 @@ The primary changes are:
             all { ModuleComponentSelection selection ->
                 ModuleComponentIdentifier componentId = selection.getCandidate()
                 def isBeta = determineIfBeta(componentId.getVersion())
-                selection.rejectIf(isBeta, "component is beta")
+                if (isBeta) {
+                    selection.reject("component is beta")
+                }
             }
 
             // Accept only modules from a particular branch
             all { ModuleComponentSelection selection, IvyModuleMetadata ivy ->
-                if (ivy.branch == 'foo') {
-                    selection.accept()
-                } else {
+                if (ivy.branch != 'foo') {
                     selection.reject("Not the correct branch")
                 }
             }
@@ -287,36 +285,35 @@ The primary changes are:
 
 ### Implementation
 
-- Use the term 'ComponentSelection' in place of 'VersionSelection' for custom rules.
-- Replace `VersionSelection` with `ModuleComponentSelection` as defined above.
-- Change `NewestVersionComponentChooser` to evaluate version selector prior to evaluating custom rules.
+- ~~Use the term 'ComponentSelection' in place of 'VersionSelection' for custom rules.~~
+- ~~Replace `VersionSelection` with `ComponentSelection` as defined above.~~
+- ~~Change `NewestVersionComponentChooser` to evaluate version selector prior to evaluating custom rules.~~
 - Change the `ComponentSelectionRules` mechanism to:
-    - Fail if any rule doesn't accept or reject candidate
-    - Short-circuit remaining rules when any rule rejects candidate
-    - Report the reason for rejecting a particular candidate
-    - Evaluate rules with no additional inputs prior to rules with additional inputs
+    - ~~Short-circuit remaining rules when any rule rejects candidate~~
+    - Log the reason for rejecting a particular candidate
+    - ~~Evaluate rules with no additional inputs prior to rules with additional inputs~~
 - For this story, `NewestVersionComponentChooser` will simply log the reason for rejecting a candidate
 
 ### Test cases
 
-- No rules are fired when no versions match the version selector
+- ~~No rules are fired when no versions match the version selector~~
 - For a dynamic version selector "1.+":
-    - Custom rule can reject all candidates: user gets general 'not found' error message.
-      the version selector, and the reason each was rejected.
-    - Custom rule can select one of the candidates, no further candidates are considered.
+    - ~~Custom rule can reject all candidates: user gets general 'not found' error message.~~
+    - ~~Custom rule can select one of the candidates, no further candidates are considered.~~
+    - ~~Custom rule can select one of the candidates using the component metadata~~
+    - ~~Custom rule can select one of the candidates using the ivy module descriptor~~
     - Custom rule can reject all candidates from one repository, and accept a candidate from a subsequent repository.
 - For a static version selector "1.0":
-    - Custom rule can reject candidate: user gets general 'not found' error message.
+    - ~~Custom rule can reject candidate: user gets general 'not found' error message.~~
     - Custom rule can reject candidate from one repository, and accept a matching candidate from a subsequent repository.
 - With multiple custom rules:
     - If any rule rejects a candidate, the candidate is not selected.
     - Once a rule rejects a candidate, no other rules are evaluated for the candidate.
     - A rule that declares only a `ModuleComponentSelection` input is evaluated before a rule that declares a `ComponentMetadata` input.
-- Useful error message when a rule neither accepts or rejects a candidate
 - A Maven module candidate is not considered when a custom rule requires an `IvyModuleDescriptor` input
     - Reason is logged as "not an Ivy Module" (or similar)
-- All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted
-- Test cases from earlier stories will be modified or replaced by the test cases here
+- ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~
+- ~~Test cases from earlier stories will be modified or replaced by the test cases here~~
 
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 

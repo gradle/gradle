@@ -77,52 +77,45 @@ class NewestVersionComponentChooser implements ComponentChooser {
     private ModuleComponentIdentifier chooseBestMatchingDependency(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
         ModuleVersionSelector requested = dependency.getRequested();
         for (Versioned candidate : sortLatestFirst(versions)) {
+            // Invoke version matcher
+            if (!versionMatcher.accept(requested.getVersion(), candidate.getVersion())) {
+                continue;
+            }
+
             // Apply version selection rules
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
-
             ComponentSelectionInternal selection = new DefaultComponentSelection(dependency, candidateIdentifier);
             versionSelectionRules.apply(selection, moduleAccess);
 
-            switch(selection.getState()) {
-                case ACCEPTED:
-                    return candidateIdentifier;
-                case REJECTED:
-                    continue;
-                default:
-                    break;
+            if (selection.isRejected()) {
+                continue;
             }
 
-            // Invoke version matcher
-            if (versionMatcher.accept(requested.getVersion(), candidate.getVersion())) {
-                return candidateIdentifier;
-            }
+            return candidateIdentifier;
         }
         return null;
     }
 
     private ModuleComponentIdentifier chooseBestMatchingDependencyWithMetaData(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
+        ModuleVersionSelector requested = dependency.getRequested();
         for (Versioned candidate : sortLatestFirst(versions)) {
             MutableModuleVersionMetaData metaData = resolveComponentMetaData(dependency, candidate, moduleAccess);
             ModuleComponentIdentifier candidateIdentifier = metaData.getComponentId();
+
+            // Invoke version matcher
+            if (!versionMatcher.accept(requested.getVersion(), metaData)) {
+                continue;
+            }
 
             // Apply version selection rules
             ComponentSelectionInternal selection = new DefaultComponentSelection(dependency, candidateIdentifier);
             versionSelectionRules.apply(selection, moduleAccess);
 
-            switch(selection.getState()) {
-                case ACCEPTED:
-                    return candidateIdentifier;
-                case REJECTED:
-                    continue;
-                default:
-                    break;
+            if (selection.isRejected()) {
+                continue;
             }
 
-            // Invoke version matcher
-            if (versionMatcher.accept(dependency.getRequested().getVersion(), metaData)) {
-                // We already resolved the correct module.
-                return candidateIdentifier;
-            }
+            return candidateIdentifier;
         }
         return null;
     }

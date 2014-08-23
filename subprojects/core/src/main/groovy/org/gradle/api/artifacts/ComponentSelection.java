@@ -43,12 +43,7 @@ public interface ComponentSelection {
     ModuleComponentIdentifier getCandidate();
 
     /**
-     * Accepts the candidate for the resolution.
-     */
-    void accept();
-
-    /**
      * Rejects the candidate for the resolution.
      */
-    void reject();
+    void reject(String reason);
 }

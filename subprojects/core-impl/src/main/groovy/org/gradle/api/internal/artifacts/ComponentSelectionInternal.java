@@ -20,13 +20,9 @@ import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 public interface ComponentSelectionInternal extends ComponentSelection {
-    public enum State {
-        NOT_SET,
-        ACCEPTED,
-        REJECTED
-    }
-
-    State getState();
+    boolean isRejected();
+    
+    String getRejectionReason();
 
     DependencyMetaData getDependencyMetaData();
 }

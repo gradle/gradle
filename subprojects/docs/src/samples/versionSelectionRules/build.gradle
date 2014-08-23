@@ -28,9 +28,9 @@ configurations {
                 // Accept the highest version matching the requested version that isn't '1.1'
                 all { ComponentSelection selection ->
                     if (selection.requested.group == 'org.sample'
-                            && selection.requested.name == 'api'
+                            && selection.requested.module == 'api'
                             && selection.candidate.version == '1.1') {
-                        selection.reject()
+                        selection.reject("wrong version")
                     }
                 }
             }
@@ -47,17 +47,17 @@ configurations {
                 // Reject any versions with a status of 'experimental'
                 all { ComponentSelection selection, ComponentMetadata metadata ->
                     if (selection.requested.group == 'org.sample'
-                            && selection.requested.name == 'api'
+                            && selection.requested.module == 'api'
                             && metadata.status == 'experimental') {
-                        selection.reject()
+                        selection.reject("don't consider experimental candidates")
                     }
                 }
-                // Accept the highest version with a branch of 'testing' or a status of 'milestone'
+                // Accept the highest version with a branch of 'testing' and a status of 'milestone'
                 all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
-                    if (selection.requested.group == 'org.sample'
-                            && selection.requested.name == 'api'
-                            && (descriptor.branch == 'testing' || metadata.status == 'milestone')) {
-                        selection.accept()
+                    if (selection.requested.group == 'org.sample' && selection.requested.name == 'api') {
+                        if (descriptor.branch != 'testing' || metadata.status != 'milestone') {
+                            selection.reject("only consider testing branch with milestone status")
+                        }
                     }
                 }
             }
@@ -78,10 +78,9 @@ configurations {
                         def prefix = selection.requested.version - '+'
                         if (selection.candidate.version == prefix || selection.candidate.version.startsWith("${prefix}.")) {
                             logger.lifecycle("** Accepted version: ${selection.candidate.version} **")
-                            selection.accept()
                         } else {
                             logger.lifecycle("Rejected version: ${selection.candidate.version}")
-                            selection.reject()
+                            selection.reject("Rejecting '${selection.candidate}' for '${selection.requested}'")
                         }
                     }
                 }

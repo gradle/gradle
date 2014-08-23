@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 public class DefaultComponentSelection implements ComponentSelectionInternal {
-    DependencyMetaData metadata;
-    ModuleComponentSelector requested;
-    ModuleComponentIdentifier candidate;
-    State state = State.NOT_SET;
+    private DependencyMetaData metadata;
+    private ModuleComponentSelector requested;
+    private ModuleComponentIdentifier candidate;
+    private boolean rejected;
+    private String rejectionReason;
 
     public DefaultComponentSelection(DependencyMetaData metadata, ModuleComponentIdentifier candidate) {
         this.metadata = metadata;
@@ -42,37 +42,20 @@ public class DefaultComponentSelection implements ComponentSelectionInternal {
         return candidate;
     }
 
-    public void accept() {
-        switch(this.state) {
-            case NOT_SET:
-            case ACCEPTED:
-                this.state = State.ACCEPTED;
-                break;
-            default:
-                throw stateChangeFailure();
-        }
+    public void reject(String reason) {
+        rejected = true;
+        rejectionReason = reason;
     }
 
-    public void reject() {
-        switch(this.state) {
-            case NOT_SET:
-            case REJECTED:
-                this.state = State.REJECTED;
-                break;
-            default:
-                throw stateChangeFailure();
-        }
+    public boolean isRejected() {
+        return rejected;
     }
 
-    public State getState() {
-        return state;
+    public String getRejectionReason() {
+        return rejectionReason;
     }
 
     public DependencyMetaData getDependencyMetaData() {
         return metadata;
-    }
-
-    private RuntimeException stateChangeFailure() {
-        return new InvalidUserCodeException("Once a version selection has been accepted or rejected, it cannot be changed.");
     }
 }

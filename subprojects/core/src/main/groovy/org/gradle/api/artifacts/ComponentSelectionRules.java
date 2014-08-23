@@ -35,14 +35,14 @@ import org.gradle.internal.HasInternalProtocol;
  *                 componentSelection {
  *                     all { ComponentSelection selection ->
  *                         if (selection.candidate.name == 'someModule' && selection.candidate.version == '1.1') {
- *                             selection.reject()
+ *                             selection.reject("bad version '1.1' for 'someModule'")
  *                         }
  *                     }
  *                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
- *                         if (selection.candidate.name == 'someModule'
- *                                  && descriptor.branch == 'testing'
- *                                  && metadata.status == 'milestone') {
- *                                      selection.accept()
+ *                         if (selection.candidate.name == 'someModule' && descriptor.branch == 'testing') {
+ *                             if (metadata.status != 'milestone') {
+ *                                 selection.reject("only use milestones for someModule:testing")
+ *                             }
  *                         }
  *                     }
  *                 }

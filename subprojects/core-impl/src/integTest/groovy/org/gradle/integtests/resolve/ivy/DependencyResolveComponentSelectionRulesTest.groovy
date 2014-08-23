@@ -17,9 +17,19 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
 
 class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependencyResolutionTest {
+    Map<String, IvyHttpModule> modules = [:]
+
+    def setup() {
+        modules['1.0'] = ivyHttpRepo.module("org.utils", "api", "1.0").publish()
+        modules['1.1'] = ivyHttpRepo.module("org.utils", "api", "1.1").withBranch("test").withStatus("milestone").publish()
+        modules['1.2'] = ivyHttpRepo.module("org.utils", "api", "1.2").publish()
+        modules['2.0'] = ivyHttpRepo.module("org.utils", "api", "2.0").withBranch("test").withStatus("milestone").publish()
+        modules['2.1'] = ivyHttpRepo.module("org.utils", "api", "2.1").publish()
+    }
 
     String getBaseBuildFile() {
         """
@@ -42,70 +52,180 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
     }
 
     @Unroll
-    def "all version selection rules are applied when resolving #versionRequested" () {
-        versionsAvailable.each { v ->
-            if (v instanceof List) {
-                ivyRepo.module("org.utils", "api", v[0]).withStatus(v[1])publish()
-            } else {
-                ivyRepo.module("org.utils", "api", v).publish()
-            }
-        }
+    def "uses '#rule' rule to choose component for #selector" () {
 
         buildFile << """
-            $baseBuildFile
+            $httpBaseBuildFile
 
             dependencies {
-                conf "org.utils:api:${versionRequested}"
+                conf "org.utils:api:${selector}"
             }
 
-            def rule1VersionsInvoked = []
-            def rule2VersionsInvoked = []
+            def candidates = []
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        // Rule 1
-                        all { ComponentSelection selection ->
-                            rule1VersionsInvoked.add(selection.candidate.version)
-                        }
-                        // Rule 2
-                        all { ComponentSelection selection ->
-                            rule2VersionsInvoked.add(selection.candidate.version)
-                        }
+                        all ${rules[rule]}
                     }
                 }
             }
 
             resolveConf.doLast {
-                def versionsExpected = ${versionsExpected}
-                assert rule1VersionsInvoked.size() == versionsExpected.size()
-                assert rule1VersionsInvoked.containsAll(versionsExpected)
-                assert rule2VersionsInvoked.size() == versionsExpected.size()
-                assert rule2VersionsInvoked.containsAll(versionsExpected)
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '${resolutionExpected}'
+                def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
+                assert artifacts.size() == 1
+                assert artifacts[0].moduleVersion.id.version == '${chosen}'
+                assert candidates == ${candidates}
             }
-        """
+"""
 
-        expect:
+        when:
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        downloadedMetadata.each {
+            modules[it].ivy.expectGet()
+        }
+        modules[chosen].artifact.expectGet()
+
+        then:
         succeeds 'resolveConf'
 
         where:
-        versionRequested     | versionsAvailable                                                | versionsExpected          | resolutionExpected
-        '1.+'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"        | '1.1'
-        'latest.integration' | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0' ]"               | '2.0'
-        'latest.release'     | [['2.0', 'integration'], ['1.1', 'release'], ['1.0', 'release']] | "[ '2.0', '1.1' ]"        | '1.1'
-        '1.0'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1', '1.0' ]" | '1.0'
-        '1.1'                | [ '2.0', '1.1', '1.0' ]                                          | "[ '2.0', '1.1' ]"        | '1.1'
+        selector             | rule            | chosen | candidates                            | downloadedMetadata
+        "1.+"                | "select 1.1"    | "1.1"  | '["1.2", "1.1"]'                      | ['1.1']
+        "1.+"                | "select status" | "1.1"  | '["1.2", "1.1"]'                      | ['1.2', '1.1']
+        "1.+"                | "select branch" | "1.1"  | '["1.2", "1.1"]'                      | ['1.2', '1.1']
+        "latest.integration" | "select 1.1"    | "1.1"  | '["2.1", "2.0", "1.2", "1.1"]'        | ['2.1', '2.0', '1.2', '1.1']
+        "latest.integration" | "select status" | "2.0"  | '["2.1", "2.0"]'                      | ['2.1', '2.0']
+        "latest.integration" | "select branch" | "2.0"  | '["2.1", "2.0"]'                      | ['2.1', '2.0']
+        "latest.milestone"   | "select 1.1"    | "1.1"  | '["2.0", "1.1"]'                      | ['2.1', '2.0', '1.2', '1.1']
+        "latest.milestone"   | "select status" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
+        "latest.milestone"   | "select branch" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
+        "1.1"                | "select 1.1"    | "1.1"  | '["1.1"]'                             | ['1.1']
+        "1.1"                | "select status" | "1.1"  | '["1.1"]'                             | ['1.1']
+        "1.1"                | "select branch" | "1.1"  | '["1.1"]'                             | ['1.1']
     }
 
-    def "produces sensible error when bad code is supplied in version selection rule" () {
-        ivyRepo.module("org.utils", "api", "1.3").publish()
+    @Unroll
+    def "uses '#rule' rule to reject all candidates for #selector" () {
+        buildFile << """
+            $httpBaseBuildFile
 
+            dependencies {
+                conf "org.utils:api:${selector}"
+            }
+
+            def candidates = []
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all ${rules['reject all']}
+                    }
+                }
+            }
+
+            task checkConf << {
+                def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                assert artifacts.size() == 0
+                assert candidates == ${candidates}
+            }
+"""
+
+        when:
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        downloadedMetadata.each {
+            modules[it].ivy.expectGet()
+        }
+
+        then:
+        succeeds 'checkConf'
+
+        when:
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        downloadedMetadata.each {
+            modules[it].ivy.expectHead()
+        }
+
+        then:
+        fails 'resolveConf'
+        failureDescriptionStartsWith("Execution failed for task ':resolveConf'.")
+        failureHasCause("Could not resolve all dependencies for configuration ':conf'.")
+        failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
+
+        where:
+        selector             | rule            | candidates                            | downloadedMetadata
+        "1.+"                | "reject all"    | '["1.2", "1.1", "1.0"]'               | []
+        "latest.integration" | "reject all"    | '["2.1", "2.0", "1.2", "1.1", "1.0"]' | ['2.1', '2.0', '1.2', '1.1', '1.0']
+        "latest.milestone"   | "reject all"    | '["2.0", "1.1"]'                      | ['2.1', '2.0', '1.2', '1.1', '1.0']
+        "1.0"                | "reject all"    | '["1.0"]'                             | []
+        "1.0"                | "select 1.1"    | '["1.0"]'                             | []
+        "1.0"                | "select status" | '["1.0"]'                             | []// TODO:DAZ I think this should be downloading...
+        "1.0"                | "select branch" | '["1.0"]'                             | []
+        "1.1"                | "reject all"    | '["1.1"]'                             | []
+    }
+
+    private static def rules = [
+            "reject all": """{ ComponentSelection selection ->
+                selection.reject("rejecting everything")
+                candidates << selection.candidate.version
+            }
+            """,
+            "select 1.1": """{ ComponentSelection selection ->
+                if (selection.candidate.version != '1.1') {
+                    selection.reject("not 1.1")
+                }
+                candidates << selection.candidate.version
+            }
+            """,
+            "select branch": """{ ComponentSelection selection, IvyModuleDescriptor ivy ->
+                if (ivy.branch != 'test') {
+                    selection.reject("not branch")
+                }
+                candidates << selection.candidate.version
+            }
+            """,
+            "select status": """{ ComponentSelection selection, ComponentMetadata metadata ->
+                if (metadata.status != 'milestone') {
+                    selection.reject("not milestone")
+                }
+                candidates << selection.candidate.version
+            }
+            """
+    ]
+
+    def "rules are not fired when no candidate matches selector"() {
         buildFile << """
             $baseBuildFile
 
             dependencies {
-                conf "org.utils:api:1.3"
+                conf "org.utils:api:3.+"
+            }
+
+            def candidates = []
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection selection ->
+                            candidates << selection.candidate.version
+                        }
+                    }
+                }
+            }
+
+            task checkConf << {
+                def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                assert artifacts.size() == 0
+                assert candidates.empty
+            }
+"""
+        expect:
+        succeeds 'checkConf'
+    }
+
+    def "produces sensible error when bad code is supplied in version selection rule" () {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.2"
             }
 
             configurations.all {
@@ -122,34 +242,56 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasLineNumber(18)
-        failure.assertHasCause("Could not apply version selection rule with all().")
+        failure.assertHasCause("Could not apply component selection rule with all().")
         failure.assertHasCause("Could not find method foo()")
     }
 
-    def "produces sensible error when two rules set the version selection state differently" () {
-        ivyRepo.module("org.utils", "api", "1.3").publish()
-
+    def "produces sensible error for invalid component selection rule" () {
         buildFile << """
             $baseBuildFile
 
             dependencies {
-                conf "org.utils:api:1.3"
+                conf "org.utils:api:1.2"
             }
 
-            def rule1VersionsInvoked = []
-            def rule2VersionsInvoked = []
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        // Rule 1
-                        all { ComponentSelection selection ->
-                            selection.accept()
-                        }
-                        // Rule 2
-                        all { ComponentSelection selection ->
-                            selection.reject()
-                        }
+                        all { ${parameters} }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'resolveConf'
+        failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failureHasCause("The closure provided is not valid as a rule action for 'ComponentSelectionRules'.")
+        failureHasCause(message)
+
+        where:
+        parameters                                                                        | message
+        ""                                                                                | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        "vs ->"                                                                           | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        "String vs ->"                                                                    | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        "ComponentSelection vs, o ->"                                                       | "Unsupported parameter type for component selection rule: java.lang.Object"
+        "ComponentSelection vs, String s ->"                                                | "Unsupported parameter type for component selection rule: java.lang.String"
+        "ComponentSelection vs, ComponentMetadata cm, String s ->"                          | "Unsupported parameter type for component selection rule: java.lang.String"
+        "ComponentSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String s ->" | "Unsupported parameter type for component selection rule: java.lang.String"
+    }
+
+    def "produces sensible error when rule throws an exception" () {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.2"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all ${rule}
                     }
                 }
             }
@@ -158,225 +300,141 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasLineNumber(25)
-        failure.assertHasCause("Could not apply version selection rule with all().")
-        failure.assertHasCause("Once a version selection has been accepted or rejected, it cannot be changed.")
+        failure.assertHasCause("Could not apply component selection rule with all().")
+        failure.assertHasCause("From test")
+
+        where:
+        rule                                                                                                           | _
+        '{ ComponentSelection cs -> throw new RuntimeException("From test") }'                                         | _
+        '{ ComponentSelection cs -> throw new Exception("From test") }'                                                | _
+        '{ ComponentSelection cs, ComponentMetadata cm -> throw new Exception("From test") }'                          | _
+        '{ ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") }' | _
     }
 
-    def "two version selection rules can set the state to the same thing" () {
-        ivyRepo.module("org.utils", "api", "1.3").publish()
-        ivyRepo.module("org.utils", "api", "1.2").publish()
-
+    def "component metadata is requested only once for rules that do require it" () {
         buildFile << """
-            $baseBuildFile
+            $httpBaseBuildFile
+
+            dependencies {
+                conf "org.utils:api:2.0"
+            }
+
+            def rule1candidates = []
+            def rule2candidates = []
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm ->
+                            rule1candidates << vs.candidate.version
+                        }
+                        all { ComponentSelection vs, ComponentMetadata cm ->
+                            rule2candidates << vs.candidate.version
+                        }
+                    }
+                }
+            }
+
+            resolveConf.doLast {
+                assert rule1candidates == ['2.0']
+                assert rule2candidates == ['2.0']
+            }
+        """
+
+        when:
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        modules['2.0'].ivy.expectDownload()
+        modules['2.0'].artifact.expectDownload()
+
+        then:
+        succeeds 'resolveConf'
+
+        when:
+        // Should use cache second time
+        server.resetExpectations()
+
+        then:
+        succeeds 'resolveConf'
+    }
+
+    def "changed component metadata becomes visible when module is refreshed" () {
+
+        def commonBuildFile = """
+            $httpBaseBuildFile
 
             dependencies {
                 conf "org.utils:api:1.+"
             }
 
-            def rule1Invoked = false
-            def rule2Invoked = false
+            def status11 = null
+            def branch11 = null
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        // Rule 1
-                        all { ComponentSelection selection ->
-                            if (selection.candidate.version == '1.3') {
-                                rule1Invoked = true
-                                selection."${operation}"()
-                            }
-                        }
-                        // Rule 2
-                        all { ComponentSelection selection ->
-                            if (selection.candidate.version == '1.3') {
-                                rule2Invoked = true
-                                selection."${operation}"()
+                        all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                            if (selection.candidate.version == '1.1') {
+                                status11 = metadata.status
+                                branch11 = descriptor.branch
+                            } else {
+                                selection.reject('not 1.1')
                             }
                         }
                     }
                 }
             }
+        """
+
+        when:
+        buildFile << """
+            $commonBuildFile
 
             resolveConf.doLast {
-                assert rule1Invoked
-                assert rule2Invoked
-                configurations.conf.files.each { println it }
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '${expectedVersion}'
+                assert status11 == 'milestone'
+                assert branch11 == 'test'
             }
         """
 
-        expect:
-        succeeds 'resolveConf'
-
-        where:
-        operation | expectedVersion
-        "accept"  | "1.3"
-        "reject"  | "1.2"
-    }
-
-    def "rejects all versions by rule" () {
-        ivyRepo.module("org.utils", "api", "1.0").publish()
-        ivyRepo.module("org.utils", "api", "1.1").publish()
-        ivyRepo.module("org.utils", "api", "2.0").publish()
-
-        buildFile << """
-            $baseBuildFile
-
-            dependencies {
-                conf "org.utils:api:1.0"
-            }
-
-            configurations.all {
-                resolutionStrategy {
-                    componentSelection {
-                        all { ComponentSelection selection ->
-                            selection.reject()
-                        }
-                    }
-                }
-            }
-        """
-
-        expect:
-        fails 'resolveConf'
-        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasCause("Could not find any version that matches org.utils:api:1.0.")
-    }
-
-    private static def rules = [
-            "always select 2.0": """{ ComponentSelection selection ->
-                if (selection.candidate.version == '2.0') {
-                    selection.accept()
-                }
-                ruleInvoked = true
-            }
-            """,
-            "always reject 1.1": """{ ComponentSelection selection ->
-                if (selection.candidate.version == '1.1') {
-                    selection.reject()
-                }
-                ruleInvoked = true
-            }
-            """,
-            "never select or reject any version": """{ ComponentSelection selection ->
-                ruleInvoked = true
-            }
-            """,
-            "accept 2.0 as milestone": """{ ComponentSelection selection ->
-                if (selection.candidate.version == '2.0' && selection.requested.version == 'latest.milestone') {
-                    selection.accept()
-                }
-                ruleInvoked = true
-            }
-            """,
-            "accept 1.1 as release": """{ ComponentSelection selection ->
-                if (selection.candidate.version == '1.1' && selection.requested.version == 'latest.release') {
-                    selection.accept()
-                }
-                ruleInvoked = true
-            }
-            """
-    ]
-
-    @Unroll
-    def "uses selection rule '#rule' to select a particular version" () {
-        ivyRepo.module("org.utils", "api", "1.0").withStatus("release").publish()
-        ivyRepo.module("org.utils", "api", "1.1").withStatus("milestone").publish()
-        ivyRepo.module("org.utils", "api", "2.0").publish()
-
-        buildFile << """
-            $baseBuildFile
-
-            dependencies {
-                conf "org.utils:api:${requestedVersion}"
-            }
-
-            def ruleInvoked = false
-            configurations.all {
-                resolutionStrategy {
-                    componentSelection {
-                        all ${rules[rule]}
-                    }
-                }
-            }
-
-            resolveConf.doLast {
-                assert ruleInvoked == true
-                configurations.conf.files.each { println it }
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '${expectedVersion}'
-            }
-        """
-
-        expect:
-        succeeds 'resolveConf'
-
-        where:
-        requestedVersion     | rule                                 | expectedVersion
-        "1.0"                | "always select 2.0"                  | "2.0"
-        "1.+"                | "always select 2.0"                  | "2.0"
-        "1.+"                | "always reject 1.1"                  | "1.0"
-        "latest.milestone"   | "always reject 1.1"                  | "1.0"
-        "latest.milestone"   | "accept 2.0 as milestone"            | "2.0"
-        "latest.release"     | "accept 1.1 as release"              | "1.1"
-        "1.0"                | "never select or reject any version" | "1.0"
-        "1.+"                | "never select or reject any version" | "1.1"
-        "latest.integration" | "never select or reject any version" | "2.0"
-        "latest.milestone"   | "never select or reject any version" | "1.1"
-    }
-
-    @Unroll
-    def "verify server interactions for #requestedVersion with selection rules applied"() {
-        def modules = [:]
-        modules["1.0"] = ivyHttpRepo.module("org.utils", "api", "1.0").withStatus("release").publish()
-        modules["1.1"] = ivyHttpRepo.module("org.utils", "api", "1.1").withStatus("milestone").publish()
-        modules["2.0"] = ivyHttpRepo.module("org.utils", "api", "2.0").publish()
-
-        // Setup server interactions
+        and:
         ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-        interactions.each { version, expectations ->
-            if (expectations[0]) {
-                modules[version].ivy.expectDownload()
-            }
-            if (expectations[1]) {
-                modules[version].artifact.expectDownload()
-            }
-        }
+        modules["1.2"].ivy.expectDownload()
+        modules["1.1"].ivy.expectDownload()
+        modules["1.1"].artifact.expectDownload()
 
-        buildFile << """
-            $httpBaseBuildFile
+        then:
+        succeeds 'resolveConf'
 
-            dependencies {
-                conf "org.utils:api:${requestedVersion}"
-            }
+        when:
+        modules["1.1"].withBranch('master').withStatus('release').publishWithChangedContent()
 
-            def ruleInvoked = false
-            configurations.all {
-                resolutionStrategy {
-                    componentSelection {
-                        all ${rules[rule]}
-                    }
-                }
-            }
+        and:
+        server.resetExpectations()
+
+        then:
+        // Everything should come from cache
+        succeeds 'resolveConf'
+
+        when:
+        buildFile.text = """
+            $commonBuildFile
 
             resolveConf.doLast {
-                assert ruleInvoked
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts.size() == 1
-                assert configurations.conf.resolvedConfiguration.resolvedArtifacts[0].moduleVersion.id.version == '${expectedVersion}'
+                assert status11 == 'release'
+                assert branch11 == 'master'
             }
         """
 
-        expect:
-        succeeds 'resolveConf'
-        // Should get from cache on second run
-        succeeds 'resolveConf'
+        and:
+        server.resetExpectations()
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        modules["1.2"].ivy.expectHead()
+        modules["1.1"].ivy.expectHead()
+        modules["1.1"].ivy.sha1.expectGet()
+        modules["1.1"].ivy.expectDownload()
+        modules["1.1"].artifact.expectMetadataRetrieve()
+        modules["1.1"].artifact.sha1.expectGet()
+        modules["1.1"].artifact.expectDownload()
 
-        where:
-        // interactions define for each version whether a download is expected for ivy.xml and artifact respectively
-        requestedVersion | rule                    | expectedVersion | interactions
-        "1.0"            | "always select 2.0"     | "2.0"           | ["2.0": [true,  true],  "1.1": [false, false], "1.0": [false, false]]
-        "1.+"            | "always reject 1.1"     | "1.0"           | ["2.0": [false, false], "1.1": [false, false], "1.0": [true,  true]]
-        "latest.release" | "accept 1.1 as release" | "1.1"           | ["2.0": [true,  false], "1.1": [true,  true],  "1.0": [false, false]]
+        then:
+        args("--refresh-dependencies")
+        succeeds 'resolveConf'
     }
 }

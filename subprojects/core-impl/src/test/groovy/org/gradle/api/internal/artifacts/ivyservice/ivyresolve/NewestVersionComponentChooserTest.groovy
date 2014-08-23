@@ -15,20 +15,19 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.ComponentSelection
+import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class NewestVersionComponentChooserTest extends Specification {
     def versionMatcher = Mock(VersionMatcher)
@@ -57,13 +56,6 @@ class NewestVersionComponentChooserTest extends Specification {
 
     def "uses version selection rules to determine if selector can select multiple components"() {
         def selector = Mock(ModuleVersionSelector)
-        when:
-        1 * selector.version >> "foo"
-        versionMatcher.isDynamic("foo") >> false
-        1 * versionSelectionRules.hasRules() >> false
-
-        then:
-        !chooser.canSelectMultipleComponents(selector)
 
         when:
         1 * selector.version >> "bar"
@@ -138,15 +130,42 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * latestStrategy.sort(_) >> versions
         1 * versionMatcher.accept("1.+", "2.0") >> false
         1 * versionMatcher.accept("1.+", "1.3") >> true
-        2 * versionSelectionRules.apply(_,_)
+        1 * versionSelectionRules.apply({ComponentSelection selection -> selection.candidate.version == "1.3"}, _)
         0 * _
 
         then:
         chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
     }
 
-    @Unroll
-    def "chooses dynamic version selected by rule (#operation #triggerVersion) without metadata" () {
+    def "chooses newest matching version requiring metadata"() {
+        given:
+        def selector = new DefaultModuleVersionSelector("group", "name", "latest.milestone")
+        def listing = Mock(ModuleVersionListing)
+        def dependency = Mock(DependencyMetaData)
+        def repo = Mock(ModuleComponentRepositoryAccess)
+        def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+
+        when:
+        _ * dependency.getRequested() >> selector
+        _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
+        _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleVersionMetaDataResolveResult result ->
+            result.resolved(Stub(MutableModuleVersionMetaData) {
+                getComponentId() >> { candidateId }
+            }, null)
+        }
+        1 * versionMatcher.needModuleMetadata("latest.milestone") >> true
+        1 * listing.versions >> (versions as Set)
+        1 * latestStrategy.sort(_) >> versions
+        1 * versionMatcher.accept("latest.milestone", {ModuleVersionMetaData md -> md.componentId.version == "2.0"}) >> false
+        1 * versionMatcher.accept("latest.milestone", {ModuleVersionMetaData md -> md.componentId.version == "1.3"}) >> true
+        1 * versionSelectionRules.apply({ComponentSelection selection -> selection.candidate.version == "1.3"}, _)
+        0 * _
+
+        then:
+        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
+    }
+
+    def "rejects dynamic version by rule without metadata" () {
         given:
         def selector = new DefaultModuleVersionSelector("group", "name", "1.+")
         def listing = Mock(ModuleVersionListing)
@@ -169,24 +188,17 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         _ * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
-            if (selection.candidate.version == triggerVersion) {
-                selection."${operation}"()
+            if (selection.candidate.version == '1.3') {
+                selection.reject("rejected")
             }
         }
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "${expectedVersion}")
-
-        where:
-        // when we see the triggerVersion we should do the operation and then get the expectedVersion as the end result
-        triggerVersion | operation | expectedVersion
-        '2.0'          | "accept"  | '2.0'
-        '1.3'          | "reject"  | '1.2'
+        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
     }
 
-    @Unroll
-    def "chooses dynamic version selected by rule (#operation #triggerVersion) with metadata" () {
+    def "rejects dynamic version by rule with metadata" () {
         given:
         def selector = new DefaultModuleVersionSelector("group", "name", "latest.release")
         def listing = Mock(ModuleVersionListing)
@@ -215,20 +227,15 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         _ * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
-            if (selection.candidate.version == triggerVersion) {
-                selection."${operation}"()
+            if (selection.candidate.version == '1.3') {
+                selection.reject("rejected")
             }
         }
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "${expectedVersion}")
+        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
 
-        where:
-        // when we see the triggerVersion we should do the operation and then get the expectedVersion as the end result
-        triggerVersion | operation | expectedVersion
-        '2.0'          | "accept"  | '2.0'
-        '1.3'          | "reject"  | '1.2'
     }
 
     def "rejects static version by selection rule" () {
@@ -245,13 +252,11 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         1 * versionMatcher.accept("1.3", "2.0") >> false
-        // Should not get a versionMatcher.accept call for 1.3
-        0 * versionMatcher.accept("1.3", "1.3")
+        1 * versionMatcher.accept("1.3", "1.3") >> true
         1 * versionMatcher.accept("1.3", "1.2") >> false
-        3 * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
-            if (selection.candidate.version == '1.3') {
-                selection.reject()
-            }
+
+        1 * versionSelectionRules.apply({ComponentSelection cs -> cs.requested.version == "1.3"}, _) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
+            selection.reject("reason")
         }
         0 * _
 
@@ -259,42 +264,7 @@ class NewestVersionComponentChooserTest extends Specification {
         chooser.choose(listing, dependency, repo) == null
     }
 
-    def "substitutes static version by selection rule" () {
-        given:
-        def selector = new DefaultModuleVersionSelector("group", "name", "1.3")
-        def listing = Mock(ModuleVersionListing)
-        def dependency = Mock(DependencyMetaData)
-        def repo = Mock(ModuleComponentRepositoryAccess)
-        def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-
-        when:
-        _ * dependency.getRequested() >> selector
-        1 * versionMatcher.needModuleMetadata("1.3") >> false
-        1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
-        1 * versionMatcher.accept("1.3", "2.0") >> false
-        // Should not get a versionMatcher.accept call for 1.3 or 1.2
-        0 * versionMatcher.accept("1.3", "1.3")
-        0 * versionMatcher.accept("1.3", "1.2")
-        3 * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
-            switch(selection.candidate.version) {
-                case '1.3':
-                    selection.reject()
-                    break;
-                case '1.2':
-                    selection.accept()
-                    break;
-                default:
-                    break;
-            }
-        }
-        0 * _
-
-        then:
-        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
-    }
-
-    def "returns null when no versions are chosen without metadata"() {
+    def "returns null when no versions match without metadata"() {
         given:
         def selector = new DefaultModuleVersionSelector("group", "name", "1.3")
         def listing = Mock(ModuleVersionListing)
@@ -308,7 +278,7 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         3 * versionMatcher.accept("1.3", _) >> false
-        3 * versionSelectionRules.apply(_,_)
+        0 * versionSelectionRules.apply(_,_)
         0 * _
 
         then:
@@ -335,7 +305,30 @@ class NewestVersionComponentChooserTest extends Specification {
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         3 * versionMatcher.accept("latest.release", _) >> false
-        3 * versionSelectionRules.apply(_,_)
+        0 * versionSelectionRules.apply(_,_)
+        0 * _
+
+        then:
+        chooser.choose(listing, dependency, repo) == null
+    }
+
+    def "returns null when all matching versions match are rejected by rule"() {
+        given:
+        def selector = new DefaultModuleVersionSelector("group", "name", "latest.integration")
+        def listing = Mock(ModuleVersionListing)
+        def dependency = Mock(DependencyMetaData)
+        def repo = Mock(ModuleComponentRepositoryAccess)
+        def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+
+        when:
+        _ * dependency.getRequested() >> selector
+        1 * versionMatcher.needModuleMetadata("latest.integration") >> false
+        1 * listing.versions >> (versions as Set)
+        1 * latestStrategy.sort(_) >> versions
+        3 * versionMatcher.accept("latest.integration", _) >> true
+        3 * versionSelectionRules.apply(_,_) >> { ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess ->
+            selection.reject("Rejecting everything")
+        }
         0 * _
 
         then:

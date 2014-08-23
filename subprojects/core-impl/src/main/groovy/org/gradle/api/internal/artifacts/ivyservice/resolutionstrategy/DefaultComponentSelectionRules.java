@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
@@ -39,12 +40,13 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
-    final Set<RuleAction<? super ComponentSelection>> rules = new LinkedHashSet<RuleAction<? super ComponentSelection>>();
+
+    final Set<RuleAction<? super ComponentSelection>> noInputRules = Sets.newLinkedHashSet();
+    final Set<RuleAction<? super ComponentSelection>> inputRules = Sets.newLinkedHashSet();
 
     private final static List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
 
@@ -54,7 +56,16 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     public void apply(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
         MetadataProvider metadataProvider = new MetadataProvider(selection, moduleAccess);
 
-        for (RuleAction<? super ComponentSelection> rule : rules) {
+        processRules(noInputRules, selection, metadataProvider);
+        processRules(inputRules, selection, metadataProvider);
+    }
+
+    private void processRules(Set<RuleAction<? super ComponentSelection>> inputRules1, ComponentSelection selection, MetadataProvider metadataProvider) {
+        for (RuleAction<? super ComponentSelection> rule : inputRules1) {
+            if (((ComponentSelectionInternal) selection).isRejected()) {
+                break;
+            }
+
             List<Object> inputs = Lists.newArrayList();
             for (Class<?> inputType : rule.getInputTypes()) {
                 if (inputType == ComponentMetadata.class) {
@@ -84,22 +95,30 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     public boolean hasRules() {
-        return rules.size() > 0;
+        return noInputRules.size() > 0 || inputRules.size() > 0;
     }
 
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
-        rules.add(new NoInputsRuleAction<ComponentSelection>(selectionAction));
+        addRule(new NoInputsRuleAction<ComponentSelection>(selectionAction));
         return this;
     }
 
     public ComponentSelectionRules all(RuleAction<? super ComponentSelection> ruleAction) {
-        rules.add(validateInputTypes(ruleAction));
+        addRule(validateInputTypes(ruleAction));
         return this;
     }
 
     public ComponentSelectionRules all(Closure<?> closure) {
-        rules.add(createRuleActionFromClosure(closure));
+        addRule(createRuleActionFromClosure(closure));
         return this;
+    }
+
+    private void addRule(RuleAction<? super ComponentSelection> ruleAction) {
+        if (ruleAction.getInputTypes().isEmpty()) {
+            noInputRules.add(ruleAction);
+        } else {
+            inputRules.add(ruleAction);
+        }
     }
 
     private RuleAction<? super ComponentSelection> createRuleActionFromClosure(Closure<?> closure) {
