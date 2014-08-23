@@ -292,6 +292,44 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
         succeeds 'resolveConf'
     }
 
+    def "maven module is not affected by rule requiring ivy module descriptor input"() {
+        def mavenModule = mavenRepo.module("org.utils", "api", "1.1").publishWithChangedContent()
+
+        buildFile << """
+            configurations { conf }
+            repositories {
+                ivy { url "${ivyRepo.uri}" }
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                conf "org.utils:api:1.1"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection selection, IvyModuleDescriptor ivy ->
+                            selection.reject("rejecting all ivy modules")
+                        }
+                    }
+                }
+            }
+
+            task retrieve(type: Copy) {
+                from configurations.conf
+                into "libs"
+            }
+"""
+        when:
+        succeeds "retrieve"
+
+        then:
+        file("libs").assertHasDescendants("api-1.1.jar")
+        file("libs/api-1.1.jar").assertIsDifferentFrom(modules['1.1'].jarFile)
+        file("libs/api-1.1.jar").assertIsCopyOf(mavenModule.artifactFile)
+    }
+
     def "produces sensible error when bad code is supplied in version selection rule" () {
         buildFile << """
             $baseBuildFile

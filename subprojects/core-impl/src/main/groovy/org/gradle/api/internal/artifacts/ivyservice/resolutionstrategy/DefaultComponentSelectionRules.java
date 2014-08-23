@@ -39,11 +39,14 @@ import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultComponentSelectionRules.class);
 
     final Set<RuleAction<? super ComponentSelection>> noInputRules = Sets.newLinkedHashSet();
     final Set<RuleAction<? super ComponentSelection>> inputRules = Sets.newLinkedHashSet();
@@ -56,41 +59,47 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     public void apply(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
         MetadataProvider metadataProvider = new MetadataProvider(selection, moduleAccess);
 
-        processRules(noInputRules, selection, metadataProvider);
-        processRules(inputRules, selection, metadataProvider);
+        if (processRules(noInputRules, selection, metadataProvider)) {
+            processRules(inputRules, selection, metadataProvider);
+        }
     }
 
-    private void processRules(Set<RuleAction<? super ComponentSelection>> inputRules1, ComponentSelection selection, MetadataProvider metadataProvider) {
-        for (RuleAction<? super ComponentSelection> rule : inputRules1) {
+    private boolean processRules(Set<RuleAction<? super ComponentSelection>> rules, ComponentSelection selection, MetadataProvider metadataProvider) {
+        for (RuleAction<? super ComponentSelection> rule : rules) {
+            processRule(selection, metadataProvider, rule);
+
             if (((ComponentSelectionInternal) selection).isRejected()) {
-                break;
+                LOGGER.info(String.format("Selection of '%s' rejected by component selection rule: %s", selection.getCandidate(), ((ComponentSelectionInternal) selection).getRejectionReason()));
+                return false;
             }
+        }
+        return true;
+    }
 
-            List<Object> inputs = Lists.newArrayList();
-            for (Class<?> inputType : rule.getInputTypes()) {
-                if (inputType == ComponentMetadata.class) {
-                    inputs.add(metadataProvider.getComponentMetadata());
-                    continue;
-                }
-                if (inputType == IvyModuleDescriptor.class) {
-                    IvyModuleDescriptor ivyModuleDescriptor = metadataProvider.getIvyModuleDescriptor();
-                    if (ivyModuleDescriptor != null) {
-                        inputs.add(ivyModuleDescriptor);
-                        continue;
-                    } else {
-                        // Don't process rule for non-ivy modules
-                        return;
-                    }
-                }
-                // We've already validated the inputs: should never get here.
-                throw new IllegalStateException();
+    private void processRule(ComponentSelection selection, MetadataProvider metadataProvider, RuleAction<? super ComponentSelection> rule) {
+        List<Object> inputs = Lists.newArrayList();
+        for (Class<?> inputType : rule.getInputTypes()) {
+            if (inputType == ComponentMetadata.class) {
+                inputs.add(metadataProvider.getComponentMetadata());
+                continue;
             }
+            if (inputType == IvyModuleDescriptor.class) {
+                IvyModuleDescriptor ivyModuleDescriptor = metadataProvider.getIvyModuleDescriptor();
+                if (ivyModuleDescriptor == null) {
+                    // Rules that require ivy module descriptor input are not fired for non-ivy modules
+                    return;
+                }
+                inputs.add(ivyModuleDescriptor);
+                continue;
+            }
+            // We've already validated the inputs: should never get here.
+            throw new IllegalStateException();
+        }
 
-            try {
-                rule.execute(selection, inputs);
-            } catch (Exception e) {
-                throw new InvalidUserCodeException(USER_CODE_ERROR, e);
-            }
+        try {
+            rule.execute(selection, inputs);
+        } catch (Exception e) {
+            throw new InvalidUserCodeException(USER_CODE_ERROR, e);
         }
     }
 

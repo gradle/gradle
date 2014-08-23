@@ -290,9 +290,9 @@ The primary changes are:
 - ~~Change `NewestVersionComponentChooser` to evaluate version selector prior to evaluating custom rules.~~
 - Change the `ComponentSelectionRules` mechanism to:
     - ~~Short-circuit remaining rules when any rule rejects candidate~~
-    - Log the reason for rejecting a particular candidate
+    - ~~Log the reason for rejecting a particular candidate~~
     - ~~Evaluate rules with no additional inputs prior to rules with additional inputs~~
-- For this story, `NewestVersionComponentChooser` will simply log the reason for rejecting a candidate
+- ~~For this story, `NewestVersionComponentChooser` will simply log the reason for rejecting a candidate~~
 
 ### Test cases
 
@@ -310,8 +310,7 @@ The primary changes are:
     - ~~If any rule rejects a candidate, the candidate is not selected.~~
     - ~~Once a rule rejects a candidate, no other rules are evaluated for the candidate.~~
     - ~~A rule that declares only a `ModuleComponentSelection` input is evaluated before a rule that declares a `ComponentMetadata` input.
-- A Maven module candidate is not considered when a custom rule requires an `IvyModuleDescriptor` input
-    - Reason is logged as "not an Ivy Module" (or similar)
+- ~~Component selection rule that requires an `IvyModuleDescriptor` input does not affect selection of maven module~~
 - ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~
 - ~~Test cases from earlier stories will be modified or replaced by the test cases here~~
 
