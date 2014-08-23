@@ -302,14 +302,14 @@ The primary changes are:
     - ~~Custom rule can select one of the candidates, no further candidates are considered.~~
     - ~~Custom rule can select one of the candidates using the component metadata~~
     - ~~Custom rule can select one of the candidates using the ivy module descriptor~~
-    - Custom rule can reject all candidates from one repository, and accept a candidate from a subsequent repository.
+    - ~~Custom rule can reject all candidates from one repository, and accept a candidate from a subsequent repository.~~
 - For a static version selector "1.0":
     - ~~Custom rule can reject candidate: user gets general 'not found' error message.~~
-    - Custom rule can reject candidate from one repository, and accept a matching candidate from a subsequent repository.
+    - ~~Custom rule can reject candidate from one repository, and accept a matching candidate from a subsequent repository.~~
 - With multiple custom rules:
-    - If any rule rejects a candidate, the candidate is not selected.
-    - Once a rule rejects a candidate, no other rules are evaluated for the candidate.
-    - A rule that declares only a `ModuleComponentSelection` input is evaluated before a rule that declares a `ComponentMetadata` input.
+    - ~~If any rule rejects a candidate, the candidate is not selected.~~
+    - ~~Once a rule rejects a candidate, no other rules are evaluated for the candidate.~~
+    - ~~A rule that declares only a `ModuleComponentSelection` input is evaluated before a rule that declares a `ComponentMetadata` input.
 - A Maven module candidate is not considered when a custom rule requires an `IvyModuleDescriptor` input
     - Reason is logged as "not an Ivy Module" (or similar)
 - ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~

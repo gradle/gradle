@@ -33,6 +33,7 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
 
     String getBaseBuildFile() {
         """
+        def candidates = []
         configurations { conf }
         repositories {
             ivy { url "${ivyRepo.uri}" }
@@ -43,6 +44,7 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
 
     String getHttpBaseBuildFile() {
         """
+        def candidates = []
         configurations { conf }
         repositories {
             ivy { url "${ivyHttpRepo.uri}" }
@@ -61,7 +63,6 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
                 conf "org.utils:api:${selector}"
             }
 
-            def candidates = []
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
@@ -113,7 +114,6 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
                 conf "org.utils:api:${selector}"
             }
 
-            def candidates = []
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
@@ -191,6 +191,51 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
             """
     ]
 
+    @Unroll
+    def "can use component selection rule to choose component from different repository for #selector"() {
+        def ivyRepo2 = ivyRepo("repo2")
+        def module2 = ivyRepo2.module("org.utils", "api", "1.1").withBranch("other").publishWithChangedContent()
+
+        buildFile << """
+            configurations { conf }
+            repositories {
+                ivy { url "${ivyRepo.uri}" }
+                ivy { url "${ivyRepo2.uri}" }
+            }
+
+            dependencies {
+                conf "org.utils:api:${selector}"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection selection, IvyModuleDescriptor ivy ->
+                            if (ivy.branch != "other") {
+                                selection.reject("looking for other")
+                            }
+                        }
+                    }
+                }
+            }
+
+            task retrieve(type: Copy) {
+                from configurations.conf
+                into "libs"
+            }
+"""
+        when:
+        succeeds "retrieve"
+
+        then:
+        file("libs").assertHasDescendants("api-1.1.jar")
+        file("libs/api-1.1.jar").assertIsDifferentFrom(modules['1.1'].jarFile)
+        file("libs/api-1.1.jar").assertIsCopyOf(module2.jarFile)
+
+        where:
+        selector << ["1.1", "1.+"]
+    }
+
     def "rules are not fired when no candidate matches selector"() {
         buildFile << """
             $baseBuildFile
@@ -199,7 +244,6 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
                 conf "org.utils:api:3.+"
             }
 
-            def candidates = []
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
@@ -218,6 +262,34 @@ class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependenc
 """
         expect:
         succeeds 'checkConf'
+    }
+
+    def "further rules are not fired when any rule rejects candidate"() {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.+"
+            }
+
+            def extraRuleCandidates = []
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection selection, ComponentMetadata metadata ->
+                            extraRuleCandidates << selection.candidate.version
+                        }
+                        all ${rules['select 1.1']}
+                    }
+                }
+            }
+
+            resolveConf.doLast {
+                assert extraRuleCandidates == ['1.1']
+            }
+"""
+        expect:
+        succeeds 'resolveConf'
     }
 
     def "produces sensible error when bad code is supplied in version selection rule" () {
