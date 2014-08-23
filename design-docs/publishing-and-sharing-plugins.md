@@ -663,10 +663,6 @@ This likely requires build time functionality introduced by the plugin developme
 
 ## Story: Author of non-declarative plugin builds plugin that depends on declarative plugin
 
-## Story: Plugin resolution is cached across the entire build
-
-Don't make the same request to plugins.gradle.org in a single build, reuse implementation classloaders.
-
 ## Story: Plugin author uses plugin development plugin to publish a plugin
 
 This story extends the plugin development plugin to generate the meta-data and publish a plugin.
