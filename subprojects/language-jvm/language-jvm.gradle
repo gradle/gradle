@@ -4,5 +4,6 @@ dependencies {
     compile project(":platformBase")
 }
 
-useClassycle()
+// TODO:DAZ Review this post-merge
+useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**", "org/gradle/external/javadoc/internal/**"])
 useTestFixtures()

@@ -73,7 +73,6 @@ class JavaBasePluginTest extends Specification {
         compileJava.description == "Compiles Java source 'custom:java'."
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
-        compileJava.toolChain != null
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
 
@@ -151,7 +150,6 @@ class JavaBasePluginTest extends Specification {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.toolChain != null
         compile.sourceCompatibility == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
@@ -162,7 +160,6 @@ class JavaBasePluginTest extends Specification {
         test.reports.html.enabled
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
-        javadoc.toolChain != null
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }

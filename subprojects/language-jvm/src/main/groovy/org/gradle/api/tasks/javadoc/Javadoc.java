@@ -28,6 +28,7 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.util.GUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -84,6 +85,11 @@ public class Javadoc extends SourceTask {
     private String executable;
 
     private JavaToolChain toolChain;
+
+    @Inject
+    public Javadoc(JavaToolChain toolChain) {
+        this.toolChain = toolChain;
+    }
 
     @TaskAction
     protected void generate() {
