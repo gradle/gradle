@@ -316,6 +316,42 @@ The primary changes are:
 - ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~
 - ~~Test cases from earlier stories will be modified or replaced by the test cases here~~
 
+## Story: Build script targets component selection rule to particular module
+
+This story adds some convenience DSL to target a selection rule a particular group or module:
+
+### User visible changes
+
+    configurations.all {
+        resolutionStrategy {
+            componentSelection {
+                group("foo") { ComponentSelection selection ->
+                }
+                group("foo").module("bar") { ComponentSelection selection ->
+                }
+                module("foo:bar") { ComponentSelection selection ->
+                }
+            }
+        }
+
+### Test cases
+
+- Use rule to control selection of components within a specific module.
+- Multiple rules can target a particular module: combine a group and a module targeted rule
+- Rules are not fired for components of non-targeted module.
+- If a rule requires metadata input, that rule does not trigger metadata download for non-targeted modules.
+- Useful error message when:
+    - 'group' value is empty or null
+    - 'module' value is empty or null
+    - 'module' value that has preceding 'group' contains ':' character
+    - 'module' value that has no preceding group does not match `group:module` pattern
+    - 'group' or 'module' value contains invalid characters: '*', '+', ???
+
+
+## Open issues
+
+- Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
+
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 
 To make it easy to diagnose why no components match a particular version selector, this story adds context to the existing
@@ -334,29 +370,6 @@ that matched the specified version selector, together with the reason each was r
 ### Open issues
 
 - Dependency reports should indicate reasons for candidate selection (why other candidates were rejected).
-
-## Story: Build script targets versionSelection rule to particular module
-
-This story adds some convenience DSL to target a selection rule a particular group or module:
-
-### User visible changes
-
-    configurations.all {
-        resolutionStrategy {
-            componentSelection {
-                group "foo" { ComponentSelection selection ->
-                }
-                group "foo" module "bar" { ComponentSelection selection ->
-                }
-                module "foo:bar" { ComponentSelection selection ->
-                }
-            }
-        }
-
-## Open issues
-
-- Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
-
 
 ## Story: Add Java API for component metadata rules
 
