@@ -244,21 +244,22 @@ This is an update to the previous 3 stories, based on some further analysis and 
 The primary changes are:
 
 - Rename functionality from 'versionSelection' rules to 'componentSelection' rules.
-- Default version matching will be applied first. Custom rules are not evaluated for any component where default version matching rejects candidate.
-- Custom rules provide a fixed selection criteria for a candidate component, without consideration of the `ModuleComponentSelector`.
+- Default version matching will be modeled as a 'componentSelection' rule, applied before any custom rules.
 - Every defined rule can reject the candidate component. If a rule does not reject the candidate, it is assumed accepted.
 - A reason must be specified when rejecting, for reporting purposes.
 - For a candidate to be considered, every defined rule must accept candidate. If any rule rejects the candidate, it is not considered.
 - Once a rule rejects a candidate, no other rules will be evaluated (short-circuit rules).
-- If a rule requires an `IvyModuleDescriptor` input, then that rule implicitly reject any non-ivy module.
-    - Until we add module targeting (next story), rules will not be usable in a mixed ivy/maven environment.
+    - Custom rules are not evaluated for any component where default version matching rejects candidate.
 - Rules that require additional inputs (`ComponentMetadata` or `IvyModuleDescriptor`) will be evaluated _after_ rules that do not declare these inputs.
+    - This includes the built-in version matching rule, so a custom rule that doesn't require additional input will be evaluated before `latest.release`.
+- If a rule requires an `IvyModuleDescriptor` input, then that rule is not applied to non-ivy modules.
 - Order of rule execution cannot be specified
-- It will no longer be possible to implement a custom version matching algorithm using these rules.
+- Custom rules can further refine, but not replace the built-in version matching algorithm.
 
 ### User visible changes
 
     ComponentSelection {
+        ModuleComponentSelector getRequested()
         ModuleComponentIdentifier getCandidate()
         void reject(String reason)
     }
@@ -293,6 +294,7 @@ The primary changes are:
     - ~~Log the reason for rejecting a particular candidate~~
     - ~~Evaluate rules with no additional inputs prior to rules with additional inputs~~
 - ~~For this story, `NewestVersionComponentChooser` will simply log the reason for rejecting a candidate~~
+- ~~Convert standard version matching algorithm into componentSelection rules.~~
 
 ### Test cases
 
