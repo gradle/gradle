@@ -359,8 +359,8 @@ Add a binary type to the sample plugin:
     }
 
     // Define implementations for the binary types - these will go away at some point
-    class DefaultSampleBinary extends DefaultBinarySpec implements SampleBinary {}
-    class DefaultOtherSampleBinary extends DefaultBinarySpec implements OtherSampleBinary {}
+    class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
+    class DefaultOtherSampleBinary extends BaseBinarySpec implements OtherSampleBinary {}
 
     class MySamplePlugin implements Plugin<Project> {
         @RuleSource
@@ -385,14 +385,14 @@ A custom binary type:
 
 A custom binary implementation:
 - Implements the custom binary type.
-- Extends `DefaultBinarySpec`.
+- Extends `BaseBinarySpec`.
 - Has a public no-arg constructor.
 
 #### Implementation Plan
 
-- Add a `DefaultBinarySpec` implementation or `BinarySpec` that has a no-arg constructor.
+- Add a `BaseBinarySpec` implementation or `BinarySpec` that has a no-arg constructor.
 - Introduce a `@BinaryType` rule type for registering a binary type and implementation
-    - Assert that the implementation class extends `DefaultBinarySpec`, has a no-arg constructor and implements the type.
+    - Assert that the implementation class extends `BaseBinarySpec`, has a no-arg constructor and implements the type.
     - Register a factory for the type with the `BinaryContainer`.
 - Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of binary subtypes.
 - Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
@@ -411,8 +411,14 @@ A custom binary implementation:
 - Friendly error message when supplied binary implementation:
     - Does not have a public no-arg constructor
     - Does not implement binary type
-    - Does not extend `DefaultBinarySpec`
+    - Does not extend `BaseBinarySpec`
 - Friendly error message when attempting to register the same binary type with different implementations
+
+#### Open issues
+
+- `BaseBinarySpec` leaks `BinarySpecInternal`
+- Existing JVM and native binary implementations should extend `BaseBinarySpec`
+
 
 ### Story: Plugin defines binaries for each custom component
 

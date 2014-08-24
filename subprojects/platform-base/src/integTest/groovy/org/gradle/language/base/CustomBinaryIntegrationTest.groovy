@@ -123,7 +123,6 @@ task checkModel << {
         succeeds "checkModel"
     }
 
-    // @Ignore("fix me")
     def "can define and create multiple binary types in the same plugin"(){
         when:
         buildFile << """
