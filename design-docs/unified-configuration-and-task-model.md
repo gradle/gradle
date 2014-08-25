@@ -251,6 +251,9 @@ A mock up:
 1. Task is not required by to be accessed outside model rule (e.g. does not needed to be added as dependency of “legacy” task)
 1. Task is not created during “legacy” configuration phase
 
+The majority of what is required for this story is already implemented.
+One thing that will be required is improved diagnostics to help the user debug a mistyped task name (see test coverage).
+
 ### Test cases
 
 - User successfully configures task
