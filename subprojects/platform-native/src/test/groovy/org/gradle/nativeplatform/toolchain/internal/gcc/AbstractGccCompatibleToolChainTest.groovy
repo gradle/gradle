@@ -25,8 +25,8 @@ import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
-import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
@@ -123,12 +123,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolSearchPath.locate(_, _) >> tool
 
         int platformActionApplied = 0
-        toolChain.target([platform1.getName(), platform2.getName()], new Action<TargetedPlatformToolChain>() {
-            void execute(TargetedPlatformToolChain configurableToolChain) {
+        toolChain.target([platform1.getName(), platform2.getName()], new Action<PlatformToolChain>() {
+            void execute(PlatformToolChain configurableToolChain) {
                 platformActionApplied++;
             }
         });
-        PlatformToolChain selected = toolChain.select(platform1)
+        PlatformToolProvider selected = toolChain.select(platform1)
         then:
         selected.isAvailable();
         assert platformActionApplied == 1
@@ -157,7 +157,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         toolChain.target(platform1.getName())
         toolChain.target(platform2.getName())
-        PlatformToolChain selected = toolChain.select(platform1)
+        PlatformToolProvider selected = toolChain.select(platform1)
         then:
         selected.outputFileSuffix == ".obj"
         when:
@@ -174,7 +174,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
-        TargetedPlatformToolChain configurableToolChain = newConfigurableToolChain()
+        PlatformToolChain configurableToolChain = newConfigurableToolChain()
         then:
 
         with(toolChain.getPlatformConfiguration(platform).apply(configurableToolChain)) {
@@ -274,7 +274,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.target("platform1", platformConfig1)
         toolChain.target("platform2", platformConfig2)
 
-        PlatformToolChain platformToolChain = toolChain.select(platform)
+        PlatformToolProvider platformToolChain = toolChain.select(platform)
 
         then:
         platformToolChain.available
@@ -292,8 +292,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
-        toolChain.target(platform.getName(), new Action<TargetedPlatformToolChain>() {
-            void execute(TargetedPlatformToolChain configurableToolChain) {
+        toolChain.target(platform.getName(), new Action<PlatformToolChain>() {
+            void execute(PlatformToolChain configurableToolChain) {
                 configurationApplied = true;
             }
         })
@@ -315,7 +315,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { TargetedPlatformToolChain<?> platformToolChain ->
+        1 * action.execute(_) >> { PlatformToolChain<?> platformToolChain ->
             assert platformToolChain.platform == platform
             assert platformToolChain['cCompiler']
             assert platformToolChain['cppCompiler']
@@ -352,8 +352,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
     }
 
-    TargetedPlatformToolChain newConfigurableToolChain() {
-        TargetedPlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(Stub(Platform),
+    PlatformToolChain newConfigurableToolChain() {
+        PlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(Stub(Platform),
                 instantiator,
                 "PlatformTestToolChain",
                 "Platform specific toolchain")

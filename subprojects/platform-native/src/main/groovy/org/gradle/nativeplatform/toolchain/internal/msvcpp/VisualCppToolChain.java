@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain;
+import org.gradle.nativeplatform.toolchain.PlatformToolChain;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
@@ -97,24 +97,24 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
         this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
-    public PlatformToolChain select(Platform targetPlatform) {
+    public PlatformToolProvider select(Platform targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
         if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
         }
         if (!result.isAvailable()) {
-            return new UnavailablePlatformToolChain(result);
+            return new UnavailablePlatformToolProvider(result);
         }
 
-        VisualCppTargetedPlatformToolChain configurableToolChain = instantiator.newInstance(VisualCppTargetedPlatformToolChain.class, targetPlatform, instantiator);
+        VisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(VisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
         Map<String, CommandLineToolConfigurationInternal> toolConfigurations = new HashMap<String, CommandLineToolConfigurationInternal>();
         for (CommandLineToolConfigurationInternal tool : toolConfigurations.values()) {
             toolConfigurations.put(tool.getName(), tool);
         }
-        return new VisualCppPlatformToolChain(toolConfigurations, visualCpp, windowsSdk, targetPlatform);
+        return new VisualCppPlatformToolProvider(toolConfigurations, visualCpp, windowsSdk, targetPlatform);
     }
 
     private ToolChainAvailability getAvailability() {
@@ -179,10 +179,10 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
-    public static class VisualCppTargetedPlatformToolChain extends DefaultNamedDomainObjectSet<CommandLineToolConfiguration> implements TargetedPlatformToolChain<CommandLineToolConfiguration> {
+    public static class VisualCppPlatformToolChain extends DefaultNamedDomainObjectSet<CommandLineToolConfiguration> implements PlatformToolChain<CommandLineToolConfiguration> {
         private final Platform platform;
 
-        public VisualCppTargetedPlatformToolChain(Platform platform, Instantiator instantiator) {
+        public VisualCppPlatformToolChain(Platform platform, Instantiator instantiator) {
             super(CommandLineToolConfiguration.class, instantiator);
             this.platform = platform;
             add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cCompiler"));
@@ -198,13 +198,13 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
         }
     }
 
-    private class VisualCppPlatformToolChain implements PlatformToolChain {
+    private class VisualCppPlatformToolProvider implements PlatformToolProvider {
         private Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
         private final VisualCppInstall visualCpp;
         private final WindowsSdk sdk;
         private final Platform targetPlatform;
 
-        private VisualCppPlatformToolChain(Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
+        private VisualCppPlatformToolProvider(Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
             this.commandLineToolConfigurations = commandLineToolConfigurations;
             this.visualCpp = visualCpp;
             this.sdk = sdk;

@@ -70,7 +70,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
 
         // No tool chains can build for this platform. Assemble a description of why
-        Map<String, PlatformToolChain> candidates = new LinkedHashMap<String, PlatformToolChain>();
+        Map<String, PlatformToolProvider> candidates = new LinkedHashMap<String, PlatformToolProvider>();
         for (ToolChainInternal toolChain : searchOrder) {
             candidates.put(toolChain.getDisplayName(), toolChain.select(targetPlatform));
         }
@@ -80,9 +80,9 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
 
     private static class UnavailableToolChainDescription implements ToolSearchResult {
         private final Platform targetPlatform;
-        private final Map<String, PlatformToolChain> candidates;
+        private final Map<String, PlatformToolProvider> candidates;
 
-        private UnavailableToolChainDescription(Platform targetPlatform, Map<String, PlatformToolChain> candidates) {
+        private UnavailableToolChainDescription(Platform targetPlatform, Map<String, PlatformToolProvider> candidates) {
             this.targetPlatform = targetPlatform;
             this.candidates = candidates;
         }
@@ -94,7 +94,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(String.format("No tool chain is available to build for platform '%s'", targetPlatform.getName()));
             visitor.startChildren();
-            for (Map.Entry<String, PlatformToolChain> entry : candidates.entrySet()) {
+            for (Map.Entry<String, PlatformToolProvider> entry : candidates.entrySet()) {
                 visitor.node(entry.getKey());
                 visitor.startChildren();
                 entry.getValue().explain(visitor);
@@ -123,8 +123,8 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             return "unavailable";
         }
 
-        public PlatformToolChain select(Platform targetPlatform) {
-            return new UnavailablePlatformToolChain(failure);
+        public PlatformToolProvider select(Platform targetPlatform) {
+            return new UnavailablePlatformToolProvider(failure);
         }
 
         public String getExecutableName(String executablePath) {

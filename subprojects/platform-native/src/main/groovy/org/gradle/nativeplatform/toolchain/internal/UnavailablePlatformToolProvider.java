@@ -22,10 +22,10 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.TreeVisitor;
 
-public class UnavailablePlatformToolChain implements PlatformToolChain {
+public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     private final ToolSearchResult failure;
 
-    public UnavailablePlatformToolChain(ToolSearchResult failure) {
+    public UnavailablePlatformToolProvider(ToolSearchResult failure) {
         this.failure = failure;
     }
 

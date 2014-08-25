@@ -23,12 +23,11 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration
-import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
+import org.gradle.nativeplatform.toolchain.PlatformToolChain
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class GccToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
@@ -50,7 +49,7 @@ class GccToolChainTest extends Specification {
         toolChain.select(Stub(Platform) { getName() >> "platform" })
 
         then:
-        1 * action.execute(_) >> { TargetedPlatformToolChain<GccCommandLineToolConfiguration> platformToolChain ->
+        1 * action.execute(_) >> { PlatformToolChain<GccCommandLineToolConfiguration> platformToolChain ->
             assert platformToolChain['assembler'].executable == 'as'
             assert platformToolChain['cCompiler'].executable == 'gcc'
             assert platformToolChain['cppCompiler'].executable == 'g++'

@@ -23,7 +23,7 @@ public interface ToolChainInternal extends ToolChain {
     /**
      * Locates the tools that can target the given platform.
      */
-    PlatformToolChain select(Platform targetPlatform);
+    PlatformToolProvider select(Platform targetPlatform);
 
     String getExecutableName(String executablePath);
 

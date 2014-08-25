@@ -20,9 +20,9 @@ import org.gradle.api.GradleException
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
-class UnavailablePlatformToolChainTest extends Specification {
+class UnavailablePlatformToolProviderTest extends Specification {
     def reason = new ToolChainAvailability().unavailable("broken")
-    def toolChain = new UnavailablePlatformToolChain(reason)
+    def toolChain = new UnavailablePlatformToolProvider(reason)
 
     def "is not available"() {
         expect:

@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.PlatformContainer
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.toolchain.ToolChainRegistry
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -226,7 +226,7 @@ class NativeComponentModelPluginTest extends Specification {
     def toolChain(def name) {
         Stub(ToolChainInternal) {
             getName() >> name
-            select(_) >> Stub(PlatformToolChain) {
+            select(_) >> Stub(PlatformToolProvider) {
                 isAvailable() >> true
             }
         }

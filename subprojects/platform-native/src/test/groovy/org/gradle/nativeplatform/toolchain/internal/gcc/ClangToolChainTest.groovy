@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration
-import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
+import org.gradle.nativeplatform.toolchain.PlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -44,7 +44,7 @@ class ClangToolChainTest extends Specification {
         toolChain.select(Stub(Platform) { getName() >> "platform" })
 
         then:
-        1 * action.execute(_) >> { TargetedPlatformToolChain<GccCommandLineToolConfiguration> platformToolChain ->
+        1 * action.execute(_) >> { PlatformToolChain<GccCommandLineToolConfiguration> platformToolChain ->
             assert platformToolChain['assembler'].executable == 'as'
             assert platformToolChain['cCompiler'].executable == 'clang'
             assert platformToolChain['cppCompiler'].executable == 'clang++'

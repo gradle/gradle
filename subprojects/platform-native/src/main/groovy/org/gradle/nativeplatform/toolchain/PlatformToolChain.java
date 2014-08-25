@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.platform.Platform;
  * @param <T> the tool class
  */
 @Incubating
-public interface TargetedPlatformToolChain<T> extends NamedDomainObjectSet<T> {
+public interface PlatformToolChain<T> extends NamedDomainObjectSet<T> {
     /**
      * Returns the platform which this tool chain builds for.
      */

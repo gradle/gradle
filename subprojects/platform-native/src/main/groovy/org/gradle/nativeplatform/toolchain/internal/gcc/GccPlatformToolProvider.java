@@ -32,14 +32,14 @@ import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 
-class GccPlatformToolChain implements PlatformToolChain {
+class GccPlatformToolProvider implements PlatformToolProvider {
     private final ToolSearchPath toolSearchPath;
     private final ToolRegistry toolRegistry;
     private final ExecActionFactory execActionFactory;
     private final boolean useCommandFile;
     private final String outputFileSuffix;
 
-    GccPlatformToolChain(ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, String outputFileSuffix, boolean useCommandFile) {
+    GccPlatformToolProvider(ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, String outputFileSuffix, boolean useCommandFile) {
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
         this.execActionFactory = execActionFactory;

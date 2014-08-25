@@ -27,7 +27,7 @@ import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
 
 import javax.inject.Inject;
@@ -72,8 +72,8 @@ public class WindowsResourceCompile extends DefaultTask {
         spec.args(getCompilerArgs());
         spec.setIncrementalCompile(inputs.isIncremental());
 
-        PlatformToolChain platformToolChain = toolChain.select(targetPlatform);
-        WorkResult result = getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolChain.newCompiler(spec), toolChain).execute(spec);
+        PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
+        WorkResult result = getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec), toolChain).execute(spec);
         setDidWork(result.getDidWork());
     }
 
