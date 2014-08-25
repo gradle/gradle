@@ -83,7 +83,7 @@ task sayHearthyGoodbye << {
 
         //starting jetty
         sample sample
-        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").start()
+        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").withArgument("-i").start()
 
         //jetty is started
         available("http://localhost:$httpPort/quickstart")
