@@ -302,8 +302,6 @@ This story particularly deals with the backwards compatibility requirements of m
 
 This story makes it viable for a build author to create a task based on managed model.
 This requires a DSL for creating model elements.
-
-## Story: 
  
 # Milestone 2 - Build author uses public rule DSL to configure model and tasks
 
