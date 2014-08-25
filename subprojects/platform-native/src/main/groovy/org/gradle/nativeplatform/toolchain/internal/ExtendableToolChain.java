@@ -16,11 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.listener.ActionBroadcast;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
+import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain;
 
 import java.io.File;
 
@@ -28,6 +31,7 @@ public abstract class ExtendableToolChain<T extends CommandLineToolConfiguration
     private final String name;
     protected final OperatingSystem operatingSystem;
     private final FileResolver fileResolver;
+    protected final ActionBroadcast<TargetedPlatformToolChain<T>> configureActions = new ActionBroadcast<TargetedPlatformToolChain<T>>();
 
     protected ExtendableToolChain(Class<? extends T> type, String name, OperatingSystem operatingSystem, FileResolver fileResolver, Instantiator instantiator) {
         super(type, instantiator);
@@ -69,6 +73,10 @@ public abstract class ExtendableToolChain<T extends CommandLineToolConfiguration
 
     public String getStaticLibraryName(String libraryName) {
         return operatingSystem.getStaticLibraryName(libraryName);
+    }
+
+    public void eachPlatform(Action<? super TargetedPlatformToolChain<T>> action) {
+        configureActions.add(action);
     }
 
     protected File resolve(Object path) {

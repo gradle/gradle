@@ -101,39 +101,6 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         executable("build/binaries/mainExecutable/sparc/main").exec().out == helloWorldApp.englishOutput
     }
 
-    def "can add action to tool chain that modifies tool arguments prior to execution"() {
-        when:
-        buildFile << """
-            model {
-                toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        cCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
-                        }
-                        linker.withArguments { args ->
-                            args.remove "CUSTOM"
-                        }
-                        staticLibArchiver.withArguments { args ->
-                            args.remove "CUSTOM"
-                        }
-                    }
-                }
-            }
-            binaries.all {
-                cCompiler.args "CUSTOM"
-                linker.args "CUSTOM"
-            }
-            binaries.withType(StaticLibraryBinarySpec) {
-                staticLibArchiver.args "CUSTOM"
-            }
-"""
-        then:
-        succeeds "mainExecutable"
-
-        then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
-    }
-
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "can configure tool executables"() {
         def binDir = testDirectory.createDir("bin")

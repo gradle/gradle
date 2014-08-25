@@ -16,12 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
+import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativeplatform.platform.Platform
-import org.gradle.nativeplatform.toolchain.ToolChain
+import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration
@@ -39,7 +40,7 @@ class VisualCppToolChainTest extends Specification {
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
     final Instantiator instantiator = Mock(Instantiator)
-    ToolChain toolChain
+    VisualCppToolChain toolChain
 
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
         locateVisualStudioInstalls(_) >> visualStudioLookup
@@ -237,6 +238,30 @@ class VisualCppToolChainTest extends Specification {
 
         where:
         toolConfigurationName << ["cCompiler", "cppCompiler", "linker", "staticLibArchiver"]
+    }
+
+    def "provided action can configure platform tool chain"() {
+        given:
+        def platform = Stub(Platform)
+        def visualStudio = Stub(VisualStudioInstall)
+        def visualCpp = Stub(VisualCppInstall)
+        visualStudioLookup.available >> true
+        windowsSdkLookup.available >> true
+        visualStudioLookup.visualStudio >> visualStudio
+        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        visualStudio.visualCpp >> visualCpp
+        visualCpp.isSupportedPlatform(platform) >> true
+
+        def action = Mock(Action)
+        toolChain.eachPlatform(action)
+
+        when:
+        toolChain.select(platform)
+
+        then:
+        1 * action.execute(_) >> { TargetedPlatformToolChain<?> platformToolChain ->
+            assert platformToolChain.platform == platform
+        }
     }
 
     def file(String name) {

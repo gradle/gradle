@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
@@ -25,15 +26,12 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
+import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 import org.gradle.process.internal.ExecActionFactory;
@@ -44,9 +42,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.SortedMap;
 
-public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp, ToolChainInternal {
+public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfiguration> implements VisualCpp, ToolChainInternal {
 
     private final String name;
     protected final OperatingSystem operatingSystem;
@@ -113,7 +110,13 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolChain(result);
         }
-        return new VisualCppPlatformToolChain(getAsMap(), visualCpp, windowsSdk, targetPlatform);
+
+        Map<String, CommandLineToolConfigurationInternal> toolConfigurations = (Map) getAsMap();
+        VisualCppTargetedPlatformToolChain configurableToolChain = new VisualCppTargetedPlatformToolChain(targetPlatform, toolConfigurations, getInstantiator());
+        configureActions.execute(configurableToolChain);
+        toolConfigurations = (Map) configurableToolChain.getAsMap();
+
+        return new VisualCppPlatformToolChain(toolConfigurations, visualCpp, windowsSdk, targetPlatform);
     }
 
     private ToolChainAvailability getAvailability() {
@@ -178,13 +181,35 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
+    private class VisualCppTargetedPlatformToolChain extends DefaultNamedDomainObjectSet<CommandLineToolConfiguration> implements TargetedPlatformToolChain<CommandLineToolConfiguration> {
+        private final Platform platform;
+
+        private VisualCppTargetedPlatformToolChain(Platform platform, Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, Instantiator instantiator) {
+            super(CommandLineToolConfiguration.class, instantiator);
+            this.platform = platform;
+            for (CommandLineToolConfigurationInternal tool : commandLineToolConfigurations.values()) {
+                add(copy(tool));
+            }
+        }
+
+        private CommandLineToolConfigurationInternal copy(CommandLineToolConfigurationInternal tool) {
+            DefaultCommandLineToolConfiguration copy = new DefaultCommandLineToolConfiguration(tool.getName());
+            copy.withArguments(tool.getArgAction());
+            return copy;
+        }
+
+        public Platform getPlatform() {
+            return platform;
+        }
+    }
+
     private class VisualCppPlatformToolChain implements PlatformToolChain {
-        private SortedMap<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
+        private Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
         private final VisualCppInstall visualCpp;
         private final WindowsSdk sdk;
         private final Platform targetPlatform;
 
-        private VisualCppPlatformToolChain(SortedMap<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
+        private VisualCppPlatformToolChain(Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
             this.commandLineToolConfigurations = commandLineToolConfigurations;
             this.visualCpp = visualCpp;
             this.sdk = sdk;

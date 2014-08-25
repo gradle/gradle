@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
-import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration
 import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
@@ -304,6 +303,23 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         configurationApplied
     }
 
+    def "provided action can configure platform tool chain"() {
+        given:
+        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+
+        def action = Mock(Action)
+        toolChain.eachPlatform(action)
+
+        when:
+        toolChain.select(platform)
+
+        then:
+        1 * action.execute(_) >> { TargetedPlatformToolChain<?> platformToolChain ->
+            assert platformToolChain.platform == platform
+        }
+    }
+
     def getMessage(ToolSearchResult result) {
         def formatter = new TreeFormatter()
         result.explain(formatter)
@@ -327,7 +343,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
             return "Test"
         }
     }
-
 
     TargetedPlatformToolChain newConfigurableToolChain() {
         def tools = [:]

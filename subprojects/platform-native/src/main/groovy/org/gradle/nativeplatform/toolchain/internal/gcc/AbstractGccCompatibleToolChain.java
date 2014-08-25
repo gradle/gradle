@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.tools.*;
@@ -43,7 +44,7 @@ import static java.util.Arrays.asList;
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
  */
-public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain implements PlatformConfigurableToolChain {
+public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain<GccCommandLineToolConfiguration> implements PlatformConfigurableToolChain {
     private final ExecActionFactory execActionFactory;
     private final ToolSearchPath toolSearchPath;
     private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
@@ -107,7 +108,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         configInsertLocation++;
     }
 
-    public org.gradle.nativeplatform.toolchain.internal.PlatformToolChain select(Platform targetPlatform) {
+    public PlatformToolChain select(Platform targetPlatform) {
         TargetPlatformConfiguration targetPlatformConfigurationConfiguration = getPlatformConfiguration(targetPlatform);
         ToolChainAvailability result = new ToolChainAvailability();
         if (targetPlatformConfigurationConfiguration == null) {
@@ -116,8 +117,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
 
         DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform, getAsMap(), instantiator, getName(), getDisplayName());
-
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
+        configureActions.execute(configurableToolChain);
 
         initTools(configurableToolChain, result);
         if (!result.isAvailable()) {
