@@ -146,3 +146,7 @@ Upgrade existing Saucy machines and probably also Precise.
 # Build against Early Access builds of the JDK
 
 This would include new releases of 6, 7, 8 and 9.
+
+# Enable TC's performance monitors
+
+See: http://blog.jetbrains.com/teamcity/2013/02/teamcity-performance-monitor/
