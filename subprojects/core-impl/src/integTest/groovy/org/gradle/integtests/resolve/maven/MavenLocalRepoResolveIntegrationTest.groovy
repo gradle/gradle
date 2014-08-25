@@ -69,8 +69,21 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
+        def sysPropRepo = mavenLocal("artifactrepo")
+        m2Installation.generateGlobalSettingsFile(sysPropRepo)
+        def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
+
+        when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(moduleA)
+    }
+
+    def "can resolve artifacts from local m2 with custom local repository defined by system-property"() {
+        given:
         def artifactRepo = mavenLocal("artifactrepo")
-        m2Installation.generateGlobalSettingsFile(artifactRepo)
+        System.setProperty("maven.repo.local", artifactRepo.rootDir.getAbsolutePath())
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
         when:
@@ -87,6 +100,22 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         m2Installation.generateGlobalSettingsFile(globalRepo).generateUserSettingsFile(userRepo)
         def moduleA = userRepo.module('group', 'projectA', '1.2').publish()
         globalRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
+
+        when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(moduleA)
+    }
+
+    def "local repository in System Property take precedence over the local repository user settings"() {
+        given:
+        def userRepo = mavenLocal("userArtifactRepo")
+        m2Installation.generateUserSettingsFile(userRepo)
+        def sysPropRepo = mavenLocal("artifactrepo")
+        System.setProperty("maven.repo.local", sysPropRepo.rootDir.getAbsolutePath())
+        def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
+        userRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
         when:
         run 'retrieve'
