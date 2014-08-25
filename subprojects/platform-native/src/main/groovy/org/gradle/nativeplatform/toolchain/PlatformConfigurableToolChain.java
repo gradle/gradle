@@ -32,5 +32,5 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a target platform specified by name with additional configuration action.
      */
-    public void target(String platformName, Action<? super TargetedPlatformToolChain> action);
+    public void target(String platformName, Action<? super TargetedPlatformToolChain<GccCommandLineToolConfiguration>> action);
 }

@@ -23,8 +23,9 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain;
+import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.PlatformConfigurableToolChain;
+import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolChain;
@@ -32,7 +33,10 @@ import org.gradle.nativeplatform.toolchain.internal.tools.*;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.SortedMap;
 
 import static java.util.Arrays.asList;
 
@@ -73,10 +77,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-
-
-
-    protected void initTools(TargetedPlatformToolChain targetedPlatformToolChain, ToolChainAvailability availability) {
+    protected void initTools(TargetedPlatformToolChain<GccCommandLineToolConfiguration> targetedPlatformToolChain, ToolChainAvailability availability) {
         SortedMap allTools = targetedPlatformToolChain.getAsMap();
         boolean found = false;
         for (Object o : allTools.values()) {
@@ -93,11 +94,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(platformName, Actions.<TargetedPlatformToolChain>doNothing());
     }
 
-    public void target(String platformName, Action<? super TargetedPlatformToolChain> action) {
+    public void target(String platformName, Action<? super TargetedPlatformToolChain<GccCommandLineToolConfiguration>> action) {
         target(new DefaultTargetPlatformConfiguration(asList(platformName), action));
     }
 
-    public void target(List<String> platformNames, Action<? super TargetedPlatformToolChain> action) {
+    public void target(List<String> platformNames, Action<? super TargetedPlatformToolChain<GccCommandLineToolConfiguration>> action) {
         target(new DefaultTargetPlatformConfiguration(platformNames, action));
     }
 
@@ -114,7 +115,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolChain(result);
         }
 
-        DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, CommandLineToolConfiguration.class, getAsMap(), instantiator, getName(), getDisplayName());
+        DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform, getAsMap(), instantiator, getName(), getDisplayName());
 
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
 
@@ -225,8 +226,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    private static void configureTool(TargetedPlatformToolChain toolChain, String tool, Action<List<String>> config) {
-        CommandLineToolConfiguration cppCompiler = (CommandLineToolConfiguration) toolChain.getByName(tool);
+    private static void configureTool(TargetedPlatformToolChain<GccCommandLineToolConfiguration> toolChain, String tool, Action<List<String>> config) {
+        CommandLineToolConfiguration cppCompiler = toolChain.getByName(tool);
         cppCompiler.withArguments(config);
     }
 
@@ -236,9 +237,9 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         private final Collection<String> platformNames;
         private Action<? super TargetedPlatformToolChain> configurationAction;
 
-        public DefaultTargetPlatformConfiguration(Collection<String> targetPlatformNames, Action<? super TargetedPlatformToolChain> configurationAction) {
+        public DefaultTargetPlatformConfiguration(Collection<String> targetPlatformNames, Action<? super TargetedPlatformToolChain<GccCommandLineToolConfiguration>> configurationAction) {
             this.platformNames = targetPlatformNames;
-            this.configurationAction = configurationAction;
+            this.configurationAction = (Action)configurationAction;
         }
 
         public boolean supportsPlatform(Platform targetPlatform) {

@@ -339,7 +339,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         tools.put("linker", new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, ""))
         tools.put("staticLibArchiver", new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, ""))
 
-        TargetedPlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(CommandLineToolConfiguration.class,
+        TargetedPlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(Stub(Platform),
                 tools,
                 instantiator,
                 "PlatformTestToolChain",
