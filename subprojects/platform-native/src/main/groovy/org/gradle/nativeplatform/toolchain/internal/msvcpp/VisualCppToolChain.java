@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -56,6 +57,7 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private final WindowsSdkLocator windowsSdkLocator;
+    private final Instantiator instantiator;
     private File installDir;
     private File windowsSdkDir;
     private VisualCppInstall visualCpp;
@@ -64,14 +66,7 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, Instantiator instantiator) {
-        super(CommandLineToolConfigurationInternal.class, name, operatingSystem, fileResolver, instantiator);
-
-        add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cCompiler"));
-        add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cppCompiler"));
-        add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "linker"));
-        add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "staticLibArchiver"));
-        add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "assembler"));
-        add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "rcCompiler"));
+        super(name, operatingSystem, fileResolver);
 
         this.name = name;
         this.operatingSystem = operatingSystem;
@@ -79,6 +74,7 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;
+        this.instantiator = instantiator;
     }
 
     protected String getTypeName() {
@@ -111,11 +107,13 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
             return new UnavailablePlatformToolChain(result);
         }
 
-        Map<String, CommandLineToolConfigurationInternal> toolConfigurations = (Map) getAsMap();
-        VisualCppTargetedPlatformToolChain configurableToolChain = new VisualCppTargetedPlatformToolChain(targetPlatform, toolConfigurations, getInstantiator());
+        VisualCppTargetedPlatformToolChain configurableToolChain = instantiator.newInstance(VisualCppTargetedPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
-        toolConfigurations = (Map) configurableToolChain.getAsMap();
 
+        Map<String, CommandLineToolConfigurationInternal> toolConfigurations = new HashMap<String, CommandLineToolConfigurationInternal>();
+        for (CommandLineToolConfigurationInternal tool : toolConfigurations.values()) {
+            toolConfigurations.put(tool.getName(), tool);
+        }
         return new VisualCppPlatformToolChain(toolConfigurations, visualCpp, windowsSdk, targetPlatform);
     }
 
@@ -181,21 +179,18 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
-    private class VisualCppTargetedPlatformToolChain extends DefaultNamedDomainObjectSet<CommandLineToolConfiguration> implements TargetedPlatformToolChain<CommandLineToolConfiguration> {
+    public static class VisualCppTargetedPlatformToolChain extends DefaultNamedDomainObjectSet<CommandLineToolConfiguration> implements TargetedPlatformToolChain<CommandLineToolConfiguration> {
         private final Platform platform;
 
-        private VisualCppTargetedPlatformToolChain(Platform platform, Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, Instantiator instantiator) {
+        public VisualCppTargetedPlatformToolChain(Platform platform, Instantiator instantiator) {
             super(CommandLineToolConfiguration.class, instantiator);
             this.platform = platform;
-            for (CommandLineToolConfigurationInternal tool : commandLineToolConfigurations.values()) {
-                add(copy(tool));
-            }
-        }
-
-        private CommandLineToolConfigurationInternal copy(CommandLineToolConfigurationInternal tool) {
-            DefaultCommandLineToolConfiguration copy = new DefaultCommandLineToolConfiguration(tool.getName());
-            copy.withArguments(tool.getArgAction());
-            return copy;
+            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cCompiler"));
+            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cppCompiler"));
+            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "linker"));
+            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "staticLibArchiver"));
+            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "assembler"));
+            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "rcCompiler"));
         }
 
         public Platform getPlatform() {

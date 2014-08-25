@@ -16,16 +16,19 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
+import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration
+import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ClangToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
@@ -33,23 +36,22 @@ class ClangToolChainTest extends Specification {
     final Instantiator instantiator = new DirectInstantiator()
     final toolChain = new ClangToolChain("clang", OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), instantiator)
 
-    @Unroll
-    def "has default #tool registered using #name"() {
-        expect:
-        toolChain.getByName(tool).executable == executable
-        where:
-        tool                | executable
-        "cCompiler"         | "clang"
-        "cppCompiler"       | "clang++"
-        "linker"            | "clang++"
-        "staticLibArchiver" | "ar"
-    }
+    def "provides default tools"() {
+        def action = Mock(Action)
 
-    def "can update tool names"() {
         when:
-        toolChain.getByName("cCompiler").executable = "foo"
+        toolChain.target("platform", action)
+        toolChain.select(Stub(Platform) { getName() >> "platform" })
 
         then:
-        toolChain.getByName("cCompiler").executable == "foo"
+        1 * action.execute(_) >> { TargetedPlatformToolChain<GccCommandLineToolConfiguration> platformToolChain ->
+            assert platformToolChain['assembler'].executable == 'as'
+            assert platformToolChain['cCompiler'].executable == 'clang'
+            assert platformToolChain['cppCompiler'].executable == 'clang++'
+            assert platformToolChain['objcCompiler'].executable == 'clang'
+            assert platformToolChain['objcppCompiler'].executable == 'clang++'
+            assert platformToolChain['linker'].executable == 'clang++'
+            assert platformToolChain['staticLibArchiver'].executable == 'ar'
+        }
     }
 }

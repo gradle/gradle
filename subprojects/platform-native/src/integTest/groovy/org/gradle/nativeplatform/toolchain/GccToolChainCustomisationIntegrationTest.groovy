@@ -114,9 +114,11 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                 toolChains {
                     ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
                         path file('${binDir.toURI()}')
-                        cCompiler.executable = 'c-compiler'
-                        staticLibArchiver.executable = 'static-lib'
-                        linker.executable = 'linker'
+                        eachPlatform {
+                            cCompiler.executable = 'c-compiler'
+                            staticLibArchiver.executable = 'static-lib'
+                            linker.executable = 'linker'
+                        }
                     }
                 }
             }

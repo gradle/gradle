@@ -16,10 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
+import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration
+import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,23 +42,23 @@ class GccToolChainTest extends Specification {
         toolChain.getSharedLibraryLinkFileName("test") == toolChain.getSharedLibraryName("test")
     }
 
-    @Unroll
-    def "has default #tool registered"() {
-        expect:
-        toolChain.getByName(tool).executable == executable
-        where:
-        tool                | executable
-        "cCompiler"         | "gcc"
-        "cppCompiler"       | "g++"
-        "linker"            | "g++"
-        "staticLibArchiver" | "ar"
-    }
+    def "provides default tools"() {
+        def action = Mock(Action)
 
-    def "can update tool names"() {
         when:
-        toolChain.getByName("cCompiler").executable = "foo"
+        toolChain.target("platform", action)
+        toolChain.select(Stub(Platform) { getName() >> "platform" })
+
         then:
-        toolChain.getByName("cCompiler").executable == "foo"
+        1 * action.execute(_) >> { TargetedPlatformToolChain<GccCommandLineToolConfiguration> platformToolChain ->
+            assert platformToolChain['assembler'].executable == 'as'
+            assert platformToolChain['cCompiler'].executable == 'gcc'
+            assert platformToolChain['cppCompiler'].executable == 'g++'
+            assert platformToolChain['objcCompiler'].executable == 'gcc'
+            assert platformToolChain['objcppCompiler'].executable == 'g++'
+            assert platformToolChain['linker'].executable == 'g++'
+            assert platformToolChain['staticLibArchiver'].executable == 'ar'
+        }
     }
 
     def "resolves path entries"() {

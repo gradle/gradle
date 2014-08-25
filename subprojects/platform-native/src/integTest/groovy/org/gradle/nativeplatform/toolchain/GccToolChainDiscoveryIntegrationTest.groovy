@@ -60,7 +60,9 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
             model {
                 toolChains {
                     ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        cppCompiler.executable = 'does-not-exist'
+                        eachPlatform {
+                            cppCompiler.executable = 'does-not-exist'
+                        }
                     }
                 }
             }
@@ -77,8 +79,10 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
             model {
                 toolChains {
                     ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        all {
-                            executable = 'does-not-exist'
+                        eachPlatform {
+                            all {
+                                executable = 'does-not-exist'
+                            }
                         }
                     }
                 }
@@ -95,8 +99,10 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
             model {
                 toolChains {
                     ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        all {
-                            executable = 'does-not-exist'
+                        eachPlatform {
+                            all {
+                                executable = 'does-not-exist'
+                            }
                         }
                     }
                 }
@@ -116,7 +122,9 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
             model {
                 toolChains {
                     ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        cCompiler.executable = 'does-not-exist'
+                        eachPlatform {
+                            cCompiler.executable = 'does-not-exist'
+                        }
                     }
                 }
             }
@@ -134,7 +142,9 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
             model {
                 toolChains {
                     ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        linker.executable = 'does-not-exist'
+                        eachPlatform {
+                            linker.executable = 'does-not-exist'
+                        }
                     }
                 }
             }

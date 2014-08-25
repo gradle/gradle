@@ -15,42 +15,26 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain;
-import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
-
-import java.util.List;
-import java.util.Map;
 
 public class DefaultGccPlatformToolChain extends DefaultNamedDomainObjectSet<GccCommandLineToolConfiguration> implements TargetedPlatformToolChain<GccCommandLineToolConfiguration> {
     private final Platform platform;
     private final String name;
     private final String displayName;
 
-    public DefaultGccPlatformToolChain(Platform platform, Map<String, GccCommandLineToolConfigurationInternal> asMap, Instantiator instantiator, String name, String displayName) {
+    public DefaultGccPlatformToolChain(Platform platform, Instantiator instantiator, String name, String displayName) {
         super(GccCommandLineToolConfiguration.class, instantiator);
         this.platform = platform;
         this.name = name;
         this.displayName = displayName;
-        for (GccCommandLineToolConfigurationInternal tool : asMap.values()) {
-            add(newConfiguredGccTool(tool));
-        }
     }
 
     public Platform getPlatform() {
         return platform;
-    }
-
-    private GccCommandLineToolConfiguration newConfiguredGccTool(GccCommandLineToolConfigurationInternal defaultTool) {
-        DefaultGccCommandLineToolConfiguration platformTool = getInstantiator().newInstance(DefaultGccCommandLineToolConfiguration.class, defaultTool.getName(), defaultTool.getToolType(), defaultTool.getExecutable());
-        Action<List<String>> argAction = defaultTool.getArgAction();
-        platformTool.withArguments(argAction);
-        return platformTool;
     }
 
     public String getDisplayName() {

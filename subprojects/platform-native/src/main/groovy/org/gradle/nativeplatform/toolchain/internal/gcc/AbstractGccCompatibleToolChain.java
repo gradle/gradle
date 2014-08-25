@@ -34,10 +34,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.*;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.SortedMap;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -53,7 +50,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath toolSearchPath,
                                           Instantiator instantiator) {
-        super(GccCommandLineToolConfigurationInternal.class, name, operatingSystem, fileResolver, instantiator);
+        super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.toolSearchPath = toolSearchPath;
         this.instantiator = instantiator;
@@ -79,14 +76,14 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     protected void initTools(TargetedPlatformToolChain<GccCommandLineToolConfiguration> targetedPlatformToolChain, ToolChainAvailability availability) {
-        SortedMap allTools = targetedPlatformToolChain.getAsMap();
+        Map<String, GccCommandLineToolConfiguration> allTools = targetedPlatformToolChain.getAsMap();
         boolean found = false;
         for (Object o : allTools.values()) {
             GccCommandLineToolConfigurationInternal tool = (GccCommandLineToolConfigurationInternal) o;
             found |= toolSearchPath.locate(tool.getToolType(), tool.getExecutable()).isAvailable();
         }
         if (!found) {
-            GccCommandLineToolConfigurationInternal cCompiler = (GccCommandLineToolConfigurationInternal) getByName("cCompiler");
+            GccCommandLineToolConfigurationInternal cCompiler = (GccCommandLineToolConfigurationInternal) allTools.get("cCompiler");
             availability.mustBeAvailable(locate(cCompiler));
         }
     }
@@ -116,7 +113,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolChain(result);
         }
 
-        DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform, getAsMap(), instantiator, getName(), getDisplayName());
+        DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform, instantiator, getName(), getDisplayName());
+        addDefaultTools(configurableToolChain);
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
         configureActions.execute(configurableToolChain);
 
@@ -129,6 +127,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         String objectFileSuffix = targetPlatform.getOperatingSystem().isWindows() ? ".obj" : ".o";
         return new GccPlatformToolChain(toolSearchPath, platformTools, execActionFactory, objectFileSuffix, canUseCommandFile());
     }
+
+    protected abstract void addDefaultTools(DefaultGccPlatformToolChain toolChain);
 
     protected TargetPlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {
         for (TargetPlatformConfiguration platformConfig : platformConfigs) {
