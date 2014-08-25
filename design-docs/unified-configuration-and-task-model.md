@@ -254,6 +254,9 @@ A mock up:
 The majority of what is required for this story is already implemented.
 One thing that will be required is improved diagnostics to help the user debug a mistyped task name (see test coverage).
 
+Also, must verify that runtime failures include enough information for the user to find the faulty code.
+For this story, it is not necessary for the failure message to fully indicate why the particular rule is being executed.
+
 ### Test cases
 
 - User successfully configures task
@@ -262,10 +265,6 @@ One thing that will be required is improved diagnostics to help the user debug a
 - User receives useful error message when specified task (i.e using name) is not found
   - Error message includes names of X tasks with names closest to given name (incl. where these tasks were defined)
 - User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)
-
-### Open issues
-
-- Level of diagnostics required for when the user tries to configure the task the “old” way
 
 ## Story: Model DSL rule uses a model as input
 
