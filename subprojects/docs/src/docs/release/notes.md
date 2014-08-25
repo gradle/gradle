@@ -90,6 +90,7 @@ executing the first block.
 
 ### Native language support
 
+- Renamed `TargetedPlatformToolChain` to `PlatformToolChain`.
 - Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
 
 ## External contributions
