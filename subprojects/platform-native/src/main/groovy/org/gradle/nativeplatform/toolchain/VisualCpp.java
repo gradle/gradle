@@ -49,5 +49,5 @@ public interface VisualCpp extends ToolChain {
     /**
      * Adds an action that can fine-tune the tool configuration for each platform supported by this tool chain.
      */
-    public void eachPlatform(Action<? super PlatformToolChain<CommandLineToolConfiguration>> action);
+    public void eachPlatform(Action<? super VisualCppPlatformToolChain> action);
 }

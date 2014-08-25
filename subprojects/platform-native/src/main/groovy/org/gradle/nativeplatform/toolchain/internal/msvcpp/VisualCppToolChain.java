@@ -28,8 +28,8 @@ import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.PlatformToolChain;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
+import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
@@ -44,7 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfiguration> implements VisualCpp, ToolChainInternal {
+public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements VisualCpp, ToolChainInternal {
 
     private final String name;
     protected final OperatingSystem operatingSystem;
@@ -107,7 +107,7 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
             return new UnavailablePlatformToolProvider(result);
         }
 
-        VisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(VisualCppPlatformToolChain.class, targetPlatform, instantiator);
+        DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
         Map<String, CommandLineToolConfigurationInternal> toolConfigurations = new HashMap<String, CommandLineToolConfigurationInternal>();
@@ -179,10 +179,10 @@ public class VisualCppToolChain extends ExtendableToolChain<CommandLineToolConfi
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
-    public static class VisualCppPlatformToolChain extends DefaultNamedDomainObjectSet<CommandLineToolConfiguration> implements PlatformToolChain<CommandLineToolConfiguration> {
+    public static class DefaultVisualCppPlatformToolChain extends DefaultNamedDomainObjectSet<CommandLineToolConfiguration> implements VisualCppPlatformToolChain {
         private final Platform platform;
 
-        public VisualCppPlatformToolChain(Platform platform, Instantiator instantiator) {
+        public DefaultVisualCppPlatformToolChain(Platform platform, Instantiator instantiator) {
             super(CommandLineToolConfiguration.class, instantiator);
             this.platform = platform;
             add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cCompiler"));

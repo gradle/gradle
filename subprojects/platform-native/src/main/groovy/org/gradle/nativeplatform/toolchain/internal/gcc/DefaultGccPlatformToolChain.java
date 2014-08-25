@@ -19,9 +19,9 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.PlatformToolChain;
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 
-public class DefaultGccPlatformToolChain extends DefaultNamedDomainObjectSet<GccCommandLineToolConfiguration> implements PlatformToolChain<GccCommandLineToolConfiguration> {
+public class DefaultGccPlatformToolChain extends DefaultNamedDomainObjectSet<GccCommandLineToolConfiguration> implements GccPlatformToolChain {
     private final Platform platform;
     private final String name;
     private final String displayName;

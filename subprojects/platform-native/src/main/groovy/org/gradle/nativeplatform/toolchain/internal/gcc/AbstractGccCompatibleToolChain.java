@@ -22,25 +22,26 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.PlatformConfigurableToolChain;
-import org.gradle.nativeplatform.toolchain.PlatformToolChain;
-import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.nativeplatform.toolchain.*;
+import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.tools.*;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
  */
-public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain<GccCommandLineToolConfiguration> implements PlatformConfigurableToolChain {
+public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain<GccPlatformToolChain> implements PlatformConfigurableToolChain {
     private final ExecActionFactory execActionFactory;
     private final ToolSearchPath toolSearchPath;
     private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
@@ -91,11 +92,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(platformName, Actions.<PlatformToolChain>doNothing());
     }
 
-    public void target(String platformName, Action<? super PlatformToolChain<GccCommandLineToolConfiguration>> action) {
+    public void target(String platformName, Action<? super GccPlatformToolChain> action) {
         target(new DefaultTargetPlatformConfiguration(asList(platformName), action));
     }
 
-    public void target(List<String> platformNames, Action<? super PlatformToolChain<GccCommandLineToolConfiguration>> action) {
+    public void target(List<String> platformNames, Action<? super GccPlatformToolChain> action) {
         target(new DefaultTargetPlatformConfiguration(platformNames, action));
     }
 
@@ -235,11 +236,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
         //TODO this should be a container of platforms
         private final Collection<String> platformNames;
-        private Action<? super PlatformToolChain> configurationAction;
+        private Action<? super GccPlatformToolChain> configurationAction;
 
-        public DefaultTargetPlatformConfiguration(Collection<String> targetPlatformNames, Action<? super PlatformToolChain<GccCommandLineToolConfiguration>> configurationAction) {
+        public DefaultTargetPlatformConfiguration(Collection<String> targetPlatformNames, Action<? super GccPlatformToolChain> configurationAction) {
             this.platformNames = targetPlatformNames;
-            this.configurationAction = (Action)configurationAction;
+            this.configurationAction = configurationAction;
         }
 
         public boolean supportsPlatform(Platform targetPlatform) {
@@ -247,7 +248,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
 
         public PlatformToolChain apply(PlatformToolChain platformToolChain) {
-            configurationAction.execute(platformToolChain);
+            configurationAction.execute((GccPlatformToolChain) platformToolChain);
             return platformToolChain;
         }
     }

@@ -23,7 +23,6 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface PlatformConfigurableToolChain extends ToolChain {
-
     /**
      * Add support for target platform specified by name.
      */
@@ -32,10 +31,10 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a target platform specified by name with additional configuration action.
      */
-    public void target(String platformName, Action<? super PlatformToolChain<GccCommandLineToolConfiguration>> action);
+    public void target(String platformName, Action<? super GccPlatformToolChain> action);
 
     /**
      * Adds an action that can fine-tune the tool configuration for each platform supported by this tool chain.
      */
-    public void eachPlatform(Action<? super PlatformToolChain<GccCommandLineToolConfiguration>> action);
+    public void eachPlatform(Action<? super GccPlatformToolChain> action);
 }
