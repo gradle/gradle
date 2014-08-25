@@ -15,11 +15,9 @@
  */
 
 package org.gradle.scala.environment
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ScalaCoverage
+
+import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -34,6 +32,11 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
     def "scala java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
+        if (GradleContextualExecuter.daemon && !(forkMode && !useAnt)) {
+            // don't load up scala in process when testing with the daemon as it blows out permgen
+            return
+        }
+
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre
         file("src/main/scala/org/test/JavaClazz.java") << """
