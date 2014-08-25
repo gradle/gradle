@@ -40,6 +40,11 @@ strategies to be applied.  This allows Gradle to customize version selection wit
 
 See the [userguide section](userguide/dependency_management.html#version_selection_rules) on version selection rules for further information.
 
+### Native language support improvements
+
+- Added `eachPlatform()` method to each `ToolChain` type, to allow fine-grained customization of a particular tool chain on a per-platform basis.
+- Added `TargetedPlatformToolChain.getPlatform()` to allow tool chain customization logic access to the platform the tool chain is to be used for.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -82,6 +87,10 @@ executing the first block.
             path = path.replace('template', 'concrete')
         }
     }
+
+### Native language support
+
+- Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
 
 ## External contributions
 
