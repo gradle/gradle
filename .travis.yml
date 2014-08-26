@@ -5,3 +5,6 @@ script:
   - ./gradlew pullRequestValidation
 env:
   - TERM=dumb
+branches:
+  only:
+    - master
