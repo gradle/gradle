@@ -116,6 +116,40 @@ class GccLinkerTest extends Specification {
         0 * _
     }
 
+    def "ignores install name for windows"() {
+        given:
+        def testDir = tmpDirProvider.testDirectory
+        def outputFile = testDir.file("output/lib")
+
+        final expectedArgs = [
+                "-shared",
+                "-o", outputFile.absolutePath,
+                testDir.file("one.o").absolutePath].flatten()
+
+        when:
+        Platform platform = Mock(Platform)
+        platform.getOperatingSystem() >> new DefaultOperatingSystem("windows", OperatingSystem.WINDOWS)
+
+        LinkerSpec spec = Mock(SharedLibraryLinkerSpec)
+        spec.getSystemArgs() >> []
+        spec.getArgs() >> []
+        spec.getOutputFile() >> outputFile
+        spec.getLibraries() >> []
+        spec.getLibraryPath() >> []
+        spec.getInstallName() >> "installName"
+        spec.getTargetPlatform() >> platform
+        spec.getObjectFiles() >> [testDir.file("one.o")]
+
+        and:
+        linker.execute(spec)
+
+        then:
+        1 * invocation.copy() >> invocation
+        1 * invocation.setArgs(expectedArgs)
+        1 * commandLineTool.execute(invocation)
+        0 * _
+    }
+
     def "sets -soname for linux"() {
         given:
         def testDir = tmpDirProvider.testDirectory
