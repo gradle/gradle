@@ -145,6 +145,41 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "bar message: custom message!"
     }
 
+    def "can configure dependencies between generated tasks using task name"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(CollectionBuilder<Task> tasks) {
+                        tasks.create("foo")
+                        tasks.create("bar")
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks.bar {
+                    dependsOn "foo"
+                }
+            }
+        """
+
+        when:
+        succeeds "bar"
+
+        then:
+        executedTasks == [":foo", ":bar"]
+    }
+
     def "two rules attempt to create task"() {
         given:
         buildScript """
@@ -297,6 +332,42 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>) > create(foo)")
         failure.assertHasCause("config failure")
+    }
+
+    def "failure during task configuration is reasonably reported"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(CollectionBuilder<Task> tasks) {
+                        tasks.create("foo")
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks.foo {
+                    throw new RuntimeException("config failure")
+                }
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: model.tasks.foo")
+        failure.assertHasCause("config failure")
+        failure.assertHasLineNumber(21)
     }
 
 }
