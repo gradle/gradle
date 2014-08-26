@@ -23,11 +23,16 @@ public class DefaultJvmPlatform implements JvmPlatform {
         this.target = target;
     }
 
-    public String getTarget() {
+    public String getCompatibilityTarget() {
         return target;
     }
 
+    public String getSourceTarget() {
+
+        return target; //TODO: Source target should be configurable separably from compatibility target
+       }
+
     public String toString() {
-        return String.format("compatibility target: %s", target);
+        return String.format("Compatibility target: %s", target);
     }
 }

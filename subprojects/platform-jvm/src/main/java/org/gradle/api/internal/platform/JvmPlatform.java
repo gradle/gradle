@@ -20,5 +20,6 @@ import org.gradle.api.Incubating;
 
 @Incubating
 public interface JvmPlatform {
-    String getTarget();
+    String getCompatibilityTarget();
+    String getSourceTarget();
 }
