@@ -20,8 +20,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Actions;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.PlatformToolChain;
@@ -105,7 +105,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         configInsertLocation++;
     }
 
-    public PlatformToolProvider select(Platform targetPlatform) {
+    public PlatformToolProvider select(PlatformInternal targetPlatform) {
         TargetPlatformConfiguration targetPlatformConfigurationConfiguration = getPlatformConfiguration(targetPlatform);
         ToolChainAvailability result = new ToolChainAvailability();
         if (targetPlatformConfigurationConfiguration == null) {
@@ -129,7 +129,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     protected abstract void addDefaultTools(DefaultGccPlatformToolChain toolChain);
 
-    protected TargetPlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {
+    protected TargetPlatformConfiguration getPlatformConfiguration(PlatformInternal targetPlatform) {
         for (TargetPlatformConfiguration platformConfig : platformConfigs) {
             if (platformConfig.supportsPlatform(targetPlatform)) {
                 return platformConfig;
@@ -143,7 +143,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
-        public boolean supportsPlatform(Platform targetPlatform) {
+        public boolean supportsPlatform(PlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && targetPlatform.getArchitecture() == ArchitectureInternal.TOOL_CHAIN_DEFAULT;
         }
@@ -154,9 +154,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     private static class Intel32Architecture implements TargetPlatformConfiguration {
 
-        public boolean supportsPlatform(Platform targetPlatform) {
-            return targetPlatform.getOperatingSystem().isCurrent()
-                    && ((ArchitectureInternal) targetPlatform.getArchitecture()).isI386();
+        public boolean supportsPlatform(PlatformInternal targetPlatform) {
+            return targetPlatform.getOperatingSystem().isCurrent() && targetPlatform.getArchitecture().isI386();
         }
 
         public void apply(GccPlatformToolChain gccToolChain) {
@@ -183,10 +182,10 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     private static class Intel64Architecture implements TargetPlatformConfiguration {
-        public boolean supportsPlatform(Platform targetPlatform) {
+        public boolean supportsPlatform(PlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && !OperatingSystem.current().isWindows() // Currently don't support building 64-bit binaries on GCC/Windows
-                    && ((ArchitectureInternal) targetPlatform.getArchitecture()).isAmd64();
+                    && targetPlatform.getArchitecture().isAmd64();
         }
 
         public void apply(GccPlatformToolChain gccToolChain) {
@@ -223,7 +222,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             this.configurationAction = configurationAction;
         }
 
-        public boolean supportsPlatform(Platform targetPlatform) {
+        public boolean supportsPlatform(PlatformInternal targetPlatform) {
             return platformNames.contains(targetPlatform.getName());
         }
 

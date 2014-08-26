@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativeplatform.platform.internal;
 
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.OperatingSystem;
 
-public interface PlatformInternal extends Platform {
-    ArchitectureInternal getArchitecture();
-
-    OperatingSystemInternal getOperatingSystem();
-
-    String getCompatibilityString();
+public interface OperatingSystemInternal extends OperatingSystem {
+    org.gradle.internal.os.OperatingSystem getInternalOs();
 }

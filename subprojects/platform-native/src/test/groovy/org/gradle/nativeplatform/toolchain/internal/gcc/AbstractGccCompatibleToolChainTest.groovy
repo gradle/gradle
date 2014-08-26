@@ -21,10 +21,11 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
-import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
+import org.gradle.nativeplatform.platform.internal.PlatformInternal
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.PlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
@@ -52,7 +53,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def instantiator = new DirectInstantiator()
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolSearchPath, instantiator)
-    def platform = Stub(Platform)
+    def platform = Stub(PlatformInternal)
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
@@ -114,8 +115,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def "selected toolChain applies platform configuration action"() {
-        Platform platform1 = Mock(Platform)
-        Platform platform2 = Mock(Platform)
+        def platform1 = Mock(PlatformInternal)
+        def platform2 = Mock(PlatformInternal)
         platform1.getName() >> "platform1"
 
         platform1.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
@@ -144,12 +145,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
 
     def "selected toolChain uses objectfile suffix based on targetplatform"() {
-        Platform platform1 = Mock(Platform)
-        Platform platform2 = Mock(Platform)
+        def platform1 = Mock(PlatformInternal)
+        def platform2 = Mock(PlatformInternal)
         platform1.getName() >> "platform1"
-        def  platformOSWin = Mock(org.gradle.nativeplatform.platform.OperatingSystem)
+        def  platformOSWin = Mock(OperatingSystemInternal)
         platformOSWin.isWindows() >> true
-        def  platformOSNonWin = Mock(org.gradle.nativeplatform.platform.OperatingSystem)
+        def  platformOSNonWin = Mock(OperatingSystemInternal)
         platformOSNonWin.isWindows() >> false
         platform1.getOperatingSystem() >> platformOSWin
         platform2.getOperatingSystem() >> platformOSNonWin

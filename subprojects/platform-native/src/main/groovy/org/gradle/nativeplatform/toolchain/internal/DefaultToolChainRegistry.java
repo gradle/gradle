@@ -21,6 +21,7 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.util.TreeVisitor;
 
@@ -62,7 +63,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
     }
 
-    public ToolChain getForPlatform(Platform targetPlatform) {
+    public ToolChain getForPlatform(PlatformInternal targetPlatform) {
         for (ToolChainInternal toolChain : searchOrder) {
             if (toolChain.select(targetPlatform).isAvailable()) {
                 return toolChain;
@@ -123,7 +124,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             return "unavailable";
         }
 
-        public PlatformToolProvider select(Platform targetPlatform) {
+        public PlatformToolProvider select(PlatformInternal targetPlatform) {
             return new UnavailablePlatformToolProvider(failure);
         }
 

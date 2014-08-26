@@ -19,14 +19,15 @@ package org.gradle.nativeplatform.internal.configure
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.internal.PlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class NativeComponentSpecInitializerTest extends Specification {
@@ -35,7 +36,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def nativeBinariesFactory = Mock(NativeBinariesFactory)
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
 
-    def platform = createStub(Platform, "platform1")
+    def platform = createStub(PlatformInternal, "platform1")
     def buildType = createStub(BuildType, "buildType1")
     def flavor = createStub(Flavor, "flavor1")
 
@@ -72,7 +73,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     }
 
     def "includes platform in name for when multiple platforms"() {
-        final Platform platform2 = createStub(Platform, "platform2")
+        def platform2 = createStub(PlatformInternal, "platform2")
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 [platform, platform2], [buildType], [flavor])

@@ -17,17 +17,15 @@
 package org.gradle.nativeplatform.platform.internal;
 
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.nativeplatform.platform.Architecture;
-import org.gradle.nativeplatform.platform.OperatingSystem;
 
 public class DefaultPlatform implements PlatformInternal {
-    private final NotationParser<Object, Architecture> archParser;
-    private final NotationParser<Object, OperatingSystem> osParser;
+    private final NotationParser<Object, ArchitectureInternal> archParser;
+    private final NotationParser<Object, OperatingSystemInternal> osParser;
     private final String name;
-    private Architecture architecture;
-    private OperatingSystem operatingSystem;
+    private ArchitectureInternal architecture;
+    private OperatingSystemInternal operatingSystem;
 
-    public DefaultPlatform(String name, NotationParser<Object, Architecture> archParser, NotationParser<Object, OperatingSystem> osParser) {
+    public DefaultPlatform(String name, NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystemInternal> osParser) {
         this.name = name;
         this.architecture = ArchitectureInternal.TOOL_CHAIN_DEFAULT;
         this.operatingSystem = DefaultOperatingSystem.TOOL_CHAIN_DEFAULT;
@@ -52,7 +50,7 @@ public class DefaultPlatform implements PlatformInternal {
         return String.format("platform '%s'", name);
     }
 
-    public Architecture getArchitecture() {
+    public ArchitectureInternal getArchitecture() {
         return architecture;
     }
 
@@ -60,7 +58,7 @@ public class DefaultPlatform implements PlatformInternal {
         architecture = archParser.parseNotation(notation);
     }
 
-    public OperatingSystem getOperatingSystem() {
+    public OperatingSystemInternal getOperatingSystem() {
         return operatingSystem;
     }
 

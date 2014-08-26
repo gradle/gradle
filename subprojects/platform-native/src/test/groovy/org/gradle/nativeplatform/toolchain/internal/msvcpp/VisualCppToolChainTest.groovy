@@ -22,7 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
-import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.internal.PlatformInternal
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
@@ -93,7 +93,7 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.available >> false
 
         and:
-        def result = toolChain.select(Stub(Platform))
+        def result = toolChain.select(Stub(PlatformInternal))
 
         then:
         !result.available
@@ -108,7 +108,7 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
         and:
-        def result = toolChain.select(Stub(Platform))
+        def result = toolChain.select(Stub(PlatformInternal))
 
         then:
         !result.available
@@ -119,7 +119,7 @@ class VisualCppToolChainTest extends Specification {
         when:
         def visualStudio = Stub(VisualStudioInstall)
         def visualCpp = Stub(VisualCppInstall)
-        def platform = Stub(Platform) { getName() >> 'platform' }
+        def platform = Stub(PlatformInternal) { getName() >> 'platform' }
         visualStudioLookup.available >> true
         windowsSdkLookup.available >> true
         visualStudioLookup.visualStudio >> visualStudio
@@ -139,7 +139,7 @@ class VisualCppToolChainTest extends Specification {
         when:
         def visualStudio = Stub(VisualStudioInstall)
         def visualCpp = Stub(VisualCppInstall)
-        def platform = Stub(Platform)
+        def platform = Stub(PlatformInternal)
         visualStudioLookup.available >> true
         windowsSdkLookup.available >> true
         visualStudioLookup.visualStudio >> visualStudio
@@ -202,7 +202,7 @@ class VisualCppToolChainTest extends Specification {
 
     def "provided action can configure platform tool chain"() {
         given:
-        def platform = Stub(Platform)
+        def platform = Stub(PlatformInternal)
         def visualStudio = Stub(VisualStudioInstall)
         def visualCpp = Stub(VisualCppInstall)
         visualStudioLookup.available >> true

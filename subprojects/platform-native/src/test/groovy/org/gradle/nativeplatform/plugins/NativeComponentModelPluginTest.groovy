@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.PlatformContainer
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
+import org.gradle.nativeplatform.platform.internal.PlatformInternal
 import org.gradle.nativeplatform.toolchain.ToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
@@ -111,7 +112,7 @@ class NativeComponentModelPluginTest extends Specification {
                 add toolChain("tc")
             }
             platforms {
-                add named(Platform, "platform")
+                add named(PlatformInternal, "platform")
             }
             buildTypes {
                 add named(BuildType, "bt")
@@ -146,7 +147,7 @@ class NativeComponentModelPluginTest extends Specification {
                 add toolChain("tc")
             }
             platforms {
-                add named(Platform, "platform")
+                add named(PlatformInternal, "platform")
             }
             buildTypes {
                 add named(BuildType, "bt")

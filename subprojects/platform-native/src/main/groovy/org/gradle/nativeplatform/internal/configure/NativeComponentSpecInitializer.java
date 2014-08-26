@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.Action;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
@@ -51,7 +52,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
         for (Platform platform : targetedComponent.choosePlatforms(allPlatforms)) {
-            ToolChain toolChain = toolChainRegistry.getForPlatform(platform);
+            ToolChain toolChain = toolChainRegistry.getForPlatform((PlatformInternal) platform);
             for (BuildType buildType : targetedComponent.chooseBuildTypes(allBuildTypes)) {
                 for (Flavor flavor : targetedComponent.chooseFlavors(allFlavors)) {
                     BinaryNamingSchemeBuilder namingScheme = initializeNamingScheme(targetedComponent, projectNativeComponent.getName(), platform, buildType, flavor);
