@@ -90,7 +90,7 @@ executing the first block.
 
 ### Native language support
 
-- Renamed `TargetedPlatformToolChain` to `PlatformToolChain`.
+- Replaced `TargetedPlatformToolChain` with `GccPlatformToolChain` and `VisualCppPlatformToolChain`.
 - Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
 
 ## External contributions
