@@ -593,6 +593,12 @@ Moreover, such classes should not have visibility of other classes other than cl
 
 e.g. There's no point in downloading a Groovy implementation for a plugin as the Gradle API is going to impose one on the plugin.
 
+This should work for:
+
+- Classpath declared in a `buildscript` block.
+- Implementation classpath for a declarative plugin.
+- Implementation classpath for a non-declarative plugin.
+
 ## Story: Build user is warned when a plugin they are using has dependencies that conflict with Gradle API
 
 If a plugin declares that it uses Groovy 10 but it's not going to get that, the user should be warned about this.

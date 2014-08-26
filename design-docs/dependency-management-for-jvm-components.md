@@ -618,6 +618,8 @@ can provide a convention that applies to all components, and the exceptions can 
 - This code should only run when the particular binary needs to be closed.
 - Add the equivalent for source sets.
 
+### Story: Running `gradle assemble` informs user when no binaries are buildable
+
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
 ### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
@@ -665,7 +667,7 @@ This declares that the bytecode for the binary should be generated for Java 7, a
 Assume that the source also uses Java 7 language features.
 
 For this story, only the current JDK will be considered as a candidate to perform the compilation. Later stories could add support for JDK discovery
-(the test fixtures do this).
+(the test fixtures do this). When not specified, default to whichever target JVM the current JDK defaults to.
 
 Target platform should be reachable from the `JvmBinarySpec`.
 
@@ -678,11 +680,10 @@ Target platform should be reachable from the `JvmBinarySpec`.
 
 - Running `gradle assemble` will build for Java 6 and the resulting bytecode will use the Java 6 bytecode version.
 - Reasonable error message when the current JDK cannot build for the target Java version.
+- Target JVM runtime appears in the output of the components report.
 
 #### Open issues/considerations
 
-- Add some convenience for 'the current java version'? (No)
-- Require the Java platform to be declared? Use the current Java version as default? (No)
 - Strict vs lenient: If I declare I want to build for Java 6 and I'm running on Java 8, is that ok or a problem? (Lenient)
 - DSL should (later) allow declaration of a Java platform with a custom bootstrap classpath (for cross compilation, Android, etc). (Later)
 - DSL should (later) allow a customised JVM-based platform to be declared, for example, to build things that are to run in some Web container. (Later)
@@ -690,7 +691,6 @@ Target platform should be reachable from the `JvmBinarySpec`.
     - A Java platform is really a composite made up of Java-the-language + JVM-the-platform. (Later)
 - Plugin declares a custom Java platform. (Later)
 - Plugin declares a custom platform. (Later)
-- Target platform should be visible in the component report (Yes)
 - Target platform should be visible in the dependencies reports (Later)
 - Split out configurable 'platform spec' out from consumable 'platform' definition. (Later)
 
@@ -719,10 +719,10 @@ Add a sample to show a JVM library built for multiple Java versions.
 
 - A Jar binary is defined for each target platform.
 - Running `gradle assemble` will build the Jars, and the bytecode in each Jar uses the correct bytecode version.
+- Binaries with correct target JVM runtime appear in the output of the components report.
 
 #### Open issues
 
-- Binaries should be visible in the component report (Yes, should be already done so write test)
 - Discover or configure the JDK installations (Later)
 - Need some convention or mechanism for source that is conditionally included based on the target platform. (Later)
 
@@ -742,6 +742,13 @@ TODO
 #### Open issues
 
 - Add infrastructure to coerce string to platform, architecture or operating system types.
+- Turn what is `ToolChain` into a tool chain locator or factory.
+- Turn what is `PlatformToolChain` into an immutable tool chain. Resolve the tool chain during configuration, and use this as input for incremental build.
+- Treat Java tool chain as input for incremental build.
+- Link using `g++` or `clang++` only when a c++ runtime is required.
+- Link with correct flags for a windows resource only binary (ie when neither c nor c++ runtime is required).
+- Provide the correct flags to compile and link against Foundation framework when using objective-c
+- Use mingw under cygwin when target is windows, gcc under cygwin when target is posix
 
 ### Story: Plugin declares custom language source set
 
