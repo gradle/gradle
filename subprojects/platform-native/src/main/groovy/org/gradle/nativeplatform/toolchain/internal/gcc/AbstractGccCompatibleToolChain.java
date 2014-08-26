@@ -23,8 +23,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
+import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
-import org.gradle.nativeplatform.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativeplatform.toolchain.PlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.tools.*;
@@ -41,7 +41,7 @@ import static java.util.Arrays.asList;
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
  */
-public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain<GccPlatformToolChain> implements PlatformConfigurableToolChain {
+public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain<GccPlatformToolChain> implements GccCompatibleToolChain {
     private final ExecActionFactory execActionFactory;
     private final ToolSearchPath toolSearchPath;
     private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
