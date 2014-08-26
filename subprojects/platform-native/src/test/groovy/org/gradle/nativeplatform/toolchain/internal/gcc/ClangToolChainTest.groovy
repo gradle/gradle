@@ -22,8 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.platform.Platform
-import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration
-import org.gradle.nativeplatform.toolchain.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -44,14 +43,14 @@ class ClangToolChainTest extends Specification {
         toolChain.select(Stub(Platform) { getName() >> "platform" })
 
         then:
-        1 * action.execute(_) >> { PlatformToolChain<GccCommandLineToolConfiguration> platformToolChain ->
-            assert platformToolChain['assembler'].executable == 'as'
-            assert platformToolChain['cCompiler'].executable == 'clang'
-            assert platformToolChain['cppCompiler'].executable == 'clang++'
-            assert platformToolChain['objcCompiler'].executable == 'clang'
-            assert platformToolChain['objcppCompiler'].executable == 'clang++'
-            assert platformToolChain['linker'].executable == 'clang++'
-            assert platformToolChain['staticLibArchiver'].executable == 'ar'
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            assert platformToolChain.assembler.executable == 'as'
+            assert platformToolChain.cCompiler.executable == 'clang'
+            assert platformToolChain.cppCompiler.executable == 'clang++'
+            assert platformToolChain.objcCompiler.executable == 'clang'
+            assert platformToolChain.objcppCompiler.executable == 'clang++'
+            assert platformToolChain.linker.executable == 'clang++'
+            assert platformToolChain.staticLibArchiver.executable == 'ar'
         }
     }
 }

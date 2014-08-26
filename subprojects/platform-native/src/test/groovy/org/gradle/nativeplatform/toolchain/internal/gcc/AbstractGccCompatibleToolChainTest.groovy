@@ -25,12 +25,14 @@ import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.PlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
+import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
@@ -178,22 +180,15 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         then:
 
         with(toolChain.getPlatformConfiguration(platform).apply(configurableToolChain)) {
-            def args = []
-            configurableToolChain.getByName("linker").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("cppCompiler").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("cCompiler").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("assembler").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("staticLibArchiver").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("objcCompiler").getArgAction().execute(args)
-            args == []
+            argsFor(linker) == []
+            argsFor(cCompiler) == []
+            argsFor(cppCompiler) == []
+            argsFor(assembler) == []
+            argsFor(staticLibArchiver) == []
+            argsFor(objcCompiler) == []
+            argsFor(objcppCompiler) == []
         }
     }
-
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "supplies args for supported architecture"() {
@@ -206,17 +201,17 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform).available
 
         with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(getByName("linker")) == [linkerArg]
+            argsFor(linker) == [linkerArg]
 
-            argsFor(getByName("cppCompiler")) == [compilerArg]
-            argsFor(getByName("cCompiler")) == [compilerArg]
+            argsFor(cppCompiler) == [compilerArg]
+            argsFor(cCompiler) == [compilerArg]
 
             if (OperatingSystem.current().isMacOsX()) {
-                argsFor(getByName("assembler")) == osxAssemblerArgs
+                argsFor(assembler) == osxAssemblerArgs
             } else {
-                argsFor(getByName("assembler")) == [assemblerArg]
+                argsFor(assembler) == [assemblerArg]
             }
-            argsFor(getByName("staticLibArchiver")) == []
+            argsFor(staticLibArchiver) == []
         }
 
         where:
@@ -236,11 +231,11 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform).available
 
         with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(getByName("cppCompiler")) == ["-m32"]
-            argsFor(getByName("cCompiler")) == ["-m32"]
-            argsFor(getByName("linker")) == ["-m32"]
-            argsFor(getByName("assembler")) == ["--32"]
-            argsFor(getByName("staticLibArchiver")) == []
+            argsFor(cppCompiler) == ["-m32"]
+            argsFor(cCompiler) == ["-m32"]
+            argsFor(linker) == ["-m32"]
+            argsFor(assembler) == ["--32"]
+            argsFor(staticLibArchiver) == []
         }
     }
 
@@ -315,12 +310,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { PlatformToolChain<?> platformToolChain ->
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
             assert platformToolChain.platform == platform
-            assert platformToolChain['cCompiler']
-            assert platformToolChain['cppCompiler']
-            assert platformToolChain['linker']
-            assert platformToolChain['staticLibArchiver']
+            assert platformToolChain.cCompiler
+            assert platformToolChain.cppCompiler
+            assert platformToolChain.linker
+            assert platformToolChain.staticLibArchiver
         }
     }
 
@@ -353,10 +348,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     PlatformToolChain newConfigurableToolChain() {
-        PlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(Stub(Platform),
-                instantiator,
-                "PlatformTestToolChain",
-                "Platform specific toolchain")
+        PlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(Stub(Platform)
+        )
 
         configurableToolChain.add(new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, ""))
         configurableToolChain.add(new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, ""))
@@ -369,7 +362,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         return configurableToolChain;
     }
 
-    def argsFor(def tool) {
+    def argsFor(GccCommandLineToolConfigurationInternal tool) {
         def args = []
         tool.getArgAction().execute(args)
         args

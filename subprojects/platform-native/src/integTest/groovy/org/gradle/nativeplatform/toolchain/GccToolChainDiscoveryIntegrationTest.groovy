@@ -80,9 +80,9 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
                 toolChains {
                     ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
                         eachPlatform {
-                            all {
-                                executable = 'does-not-exist'
-                            }
+                            cCompiler.executable = 'does-not-exist'
+                            cppCompiler.executable = 'does-not-exist'
+                            linker.executable = 'does-not-exist'
                         }
                     }
                 }
@@ -100,9 +100,13 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
                 toolChains {
                     ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
                         eachPlatform {
-                            all {
-                                executable = 'does-not-exist'
-                            }
+                            assembler.executable = 'does-not-exist'
+                            cCompiler.executable = 'does-not-exist'
+                            cppCompiler.executable = 'does-not-exist'
+                            linker.executable = 'does-not-exist'
+                            staticLibArchiver.executable = 'does-not-exist'
+                            objcCompiler.executable = 'does-not-exist'
+                            objcppCompiler.executable = 'does-not-exist'
                         }
                     }
                 }

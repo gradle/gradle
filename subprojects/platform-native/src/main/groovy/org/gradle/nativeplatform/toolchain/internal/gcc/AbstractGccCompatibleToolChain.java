@@ -22,11 +22,11 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.toolchain.*;
-import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability;
-import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
+import org.gradle.nativeplatform.toolchain.PlatformConfigurableToolChain;
+import org.gradle.nativeplatform.toolchain.PlatformToolChain;
+import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.tools.*;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -75,15 +75,14 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    protected void initTools(PlatformToolChain<GccCommandLineToolConfiguration> platformToolChain, ToolChainAvailability availability) {
-        Map<String, GccCommandLineToolConfiguration> allTools = platformToolChain.getAsMap();
+    protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
+        Map<ToolType, GccCommandLineToolConfigurationInternal> allTools = platformToolChain.getTools();
         boolean found = false;
-        for (Object o : allTools.values()) {
-            GccCommandLineToolConfigurationInternal tool = (GccCommandLineToolConfigurationInternal) o;
+        for (GccCommandLineToolConfigurationInternal tool : allTools.values()) {
             found |= toolSearchPath.locate(tool.getToolType(), tool.getExecutable()).isAvailable();
         }
         if (!found) {
-            GccCommandLineToolConfigurationInternal cCompiler = (GccCommandLineToolConfigurationInternal) allTools.get("cCompiler");
+            GccCommandLineToolConfigurationInternal cCompiler = allTools.get(ToolType.C_COMPILER);
             availability.mustBeAvailable(locate(cCompiler));
         }
     }
@@ -113,7 +112,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolProvider(result);
         }
 
-        DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform, instantiator, getName(), getDisplayName());
+        DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform);
         addDefaultTools(configurableToolChain);
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
         configureActions.execute(configurableToolChain);
@@ -123,7 +122,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolProvider(result);
         }
 
-        ToolRegistry platformTools = new ConfiguredToolRegistry(configurableToolChain);
+        ToolRegistry platformTools = new ConfiguredToolRegistry(configurableToolChain.getTools().values());
         String objectFileSuffix = targetPlatform.getOperatingSystem().isWindows() ? ".obj" : ".o";
         return new GccPlatformToolProvider(toolSearchPath, platformTools, execActionFactory, objectFileSuffix, canUseCommandFile());
     }
@@ -161,20 +160,21 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                     && ((ArchitectureInternal) targetPlatform.getArchitecture()).isI386();
         }
 
-        public PlatformToolChain apply(PlatformToolChain platformToolChain) {
+        public PlatformToolChain apply(final PlatformToolChain platformToolChain) {
             Action<PlatformToolChain> action = new Action<PlatformToolChain>() {
                 public void execute(PlatformToolChain configurableToolChain) {
+                    DefaultGccPlatformToolChain gccToolChain = (DefaultGccPlatformToolChain) configurableToolChain;
                     Action<List<String>> m32args = new Action<List<String>>() {
                         public void execute(List<String> args) {
                             args.add("-m32");
                         }
                     };
-                    configureTool(configurableToolChain, "cppCompiler", m32args);
-                    configureTool(configurableToolChain, "cCompiler", m32args);
-                    configureTool(configurableToolChain, "objcCompiler", m32args);
-                    configureTool(configurableToolChain, "objcppCompiler", m32args);
-                    configureTool(configurableToolChain, "linker", m32args);
-                    configureTool(configurableToolChain, "assembler", new Action<List<String>>() {
+                    gccToolChain.getCppCompiler().withArguments(m32args);
+                    gccToolChain.getcCompiler().withArguments(m32args);
+                    gccToolChain.getObjcCompiler().withArguments(m32args);
+                    gccToolChain.getObjcppCompiler().withArguments(m32args);
+                    gccToolChain.getLinker().withArguments(m32args);
+                    gccToolChain.getAssembler().withArguments(new Action<List<String>>() {
                         public void execute(List<String> args) {
                             if (OperatingSystem.current().isMacOsX()) {
                                 args.addAll(asList("-arch", "i386"));
@@ -201,17 +201,18 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
             Action<PlatformToolChain> action = new Action<PlatformToolChain>() {
                 public void execute(PlatformToolChain configurableToolChain) {
+                    DefaultGccPlatformToolChain gccToolChain = (DefaultGccPlatformToolChain) configurableToolChain;
                     Action<List<String>> m64args = new Action<List<String>>() {
                         public void execute(List<String> args) {
                             args.add("-m64");
                         }
                     };
-                    configureTool(configurableToolChain, "cppCompiler", m64args);
-                    configureTool(configurableToolChain, "cCompiler", m64args);
-                    configureTool(configurableToolChain, "objcCompiler", m64args);
-                    configureTool(configurableToolChain, "objcppCompiler", m64args);
-                    configureTool(configurableToolChain, "linker", m64args);
-                    configureTool(configurableToolChain, "assembler", new Action<List<String>>() {
+                    gccToolChain.getCppCompiler().withArguments(m64args);
+                    gccToolChain.getcCompiler().withArguments(m64args);
+                    gccToolChain.getObjcCompiler().withArguments(m64args);
+                    gccToolChain.getObjcppCompiler().withArguments(m64args);
+                    gccToolChain.getLinker().withArguments(m64args);
+                    gccToolChain.getAssembler().withArguments(new Action<List<String>>() {
                         public void execute(List<String> args) {
                             if (OperatingSystem.current().isMacOsX()) {
                                 args.addAll(asList("-arch", "x86_64"));
@@ -227,9 +228,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    private static void configureTool(PlatformToolChain<GccCommandLineToolConfiguration> toolChain, String tool, Action<List<String>> config) {
-        CommandLineToolConfiguration cppCompiler = toolChain.getByName(tool);
-        cppCompiler.withArguments(config);
+    private static void configureTool(CommandLineToolConfiguration tool, Action<List<String>> config) {
+        tool.withArguments(config);
     }
 
     private static class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {

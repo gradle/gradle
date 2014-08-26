@@ -17,16 +17,13 @@
 package org.gradle.nativeplatform.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.nativeplatform.platform.Platform;
 
 /**
  * A platform specific configurable tool chain.
- *
- * @param <T> the tool class
  */
 @Incubating
-public interface PlatformToolChain<T> extends NamedDomainObjectSet<T> {
+public interface PlatformToolChain {
     /**
      * Returns the platform which this tool chain builds for.
      */

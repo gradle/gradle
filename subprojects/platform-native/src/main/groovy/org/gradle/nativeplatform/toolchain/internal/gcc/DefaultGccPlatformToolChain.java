@@ -15,33 +15,60 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
+import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 
-public class DefaultGccPlatformToolChain extends DefaultNamedDomainObjectSet<GccCommandLineToolConfiguration> implements GccPlatformToolChain {
+import java.util.HashMap;
+import java.util.Map;
+
+public class DefaultGccPlatformToolChain implements GccPlatformToolChain {
     private final Platform platform;
-    private final String name;
-    private final String displayName;
+    private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
-    public DefaultGccPlatformToolChain(Platform platform, Instantiator instantiator, String name, String displayName) {
-        super(GccCommandLineToolConfiguration.class, instantiator);
+    public DefaultGccPlatformToolChain(Platform platform) {
         this.platform = platform;
-        this.name = name;
-        this.displayName = displayName;
+    }
+
+    public Map<ToolType, GccCommandLineToolConfigurationInternal> getTools() {
+        return tools;
+    }
+
+    public void add(DefaultGccCommandLineToolConfiguration tool) {
+        tools.put(tool.getToolType(), tool);
     }
 
     public Platform getPlatform() {
         return platform;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public GccCommandLineToolConfigurationInternal getcCompiler() {
+        return tools.get(ToolType.C_COMPILER);
     }
 
-    public String getName() {
-        return name;
+    public GccCommandLineToolConfigurationInternal getCppCompiler() {
+        return tools.get(ToolType.CPP_COMPILER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getObjcCompiler() {
+        return tools.get(ToolType.OBJECTIVEC_COMPILER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getObjcppCompiler() {
+        return tools.get(ToolType.OBJECTIVECPP_COMPILER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getAssembler() {
+        return tools.get(ToolType.ASSEMBLER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getLinker() {
+        return tools.get(ToolType.LINKER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getStaticLibArchiver() {
+        return tools.get(ToolType.STATIC_LIB_ARCHIVER);
     }
 }

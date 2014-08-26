@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
@@ -110,11 +109,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        Map<String, CommandLineToolConfigurationInternal> toolConfigurations = new HashMap<String, CommandLineToolConfigurationInternal>();
-        for (CommandLineToolConfigurationInternal tool : toolConfigurations.values()) {
-            toolConfigurations.put(tool.getName(), tool);
-        }
-        return new VisualCppPlatformToolProvider(toolConfigurations, visualCpp, windowsSdk, targetPlatform);
+        return new VisualCppPlatformToolProvider(configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform);
     }
 
     private ToolChainAvailability getAvailability() {
@@ -179,18 +174,43 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
-    public static class DefaultVisualCppPlatformToolChain extends DefaultNamedDomainObjectSet<CommandLineToolConfiguration> implements VisualCppPlatformToolChain {
+    public static class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolChain {
         private final Platform platform;
+        private final Map<ToolType, CommandLineToolConfigurationInternal> tools;
 
         public DefaultVisualCppPlatformToolChain(Platform platform, Instantiator instantiator) {
-            super(CommandLineToolConfiguration.class, instantiator);
             this.platform = platform;
-            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cCompiler"));
-            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cppCompiler"));
-            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "linker"));
-            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "staticLibArchiver"));
-            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "assembler"));
-            add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "rcCompiler"));
+            tools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
+            tools.put(ToolType.C_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cCompiler"));
+            tools.put(ToolType.CPP_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cppCompiler"));
+            tools.put(ToolType.LINKER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "linker"));
+            tools.put(ToolType.STATIC_LIB_ARCHIVER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "staticLibArchiver"));
+            tools.put(ToolType.ASSEMBLER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "assembler"));
+            tools.put(ToolType.WINDOW_RESOURCES_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "rcCompiler"));
+        }
+
+        public CommandLineToolConfiguration getcCompiler() {
+            return tools.get(ToolType.C_COMPILER);
+        }
+
+        public CommandLineToolConfiguration getCppCompiler() {
+            return tools.get(ToolType.CPP_COMPILER);
+        }
+
+        public CommandLineToolConfiguration getRcCompiler() {
+            return tools.get(ToolType.WINDOW_RESOURCES_COMPILER);
+        }
+
+        public CommandLineToolConfiguration getAssembler() {
+            return tools.get(ToolType.ASSEMBLER);
+        }
+
+        public CommandLineToolConfiguration getLinker() {
+            return tools.get(ToolType.LINKER);
+        }
+
+        public CommandLineToolConfiguration getStaticLibArchiver() {
+            return tools.get(ToolType.STATIC_LIB_ARCHIVER);
         }
 
         public Platform getPlatform() {
@@ -199,12 +219,12 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     }
 
     private class VisualCppPlatformToolProvider implements PlatformToolProvider {
-        private Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
+        private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
         private final VisualCppInstall visualCpp;
         private final WindowsSdk sdk;
         private final Platform targetPlatform;
 
-        private VisualCppPlatformToolProvider(Map<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
+        private VisualCppPlatformToolProvider(Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
             this.commandLineToolConfigurations = commandLineToolConfigurations;
             this.visualCpp = visualCpp;
             this.sdk = sdk;
@@ -248,35 +268,35 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         public Compiler<CppCompileSpec> createCppCompiler() {
             CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cppCompiler")), addIncludePathAndDefinitions(CppCompileSpec.class));
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class));
             return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
         }
 
         public Compiler<CCompileSpec> createCCompiler() {
             CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cCompiler")), addIncludePathAndDefinitions(CCompileSpec.class));
+            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class));
             return new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
         public Compiler<AssembleSpec> createAssembler() {
             CommandLineTool commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
-            return new Assembler(commandLineTool, invocation(commandLineToolConfigurations.get("assembler")));
+            return new Assembler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.ASSEMBLER)));
         }
 
         public Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
             CommandLineTool commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("rcCompiler")), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
+            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
             return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
         }
 
         public Compiler<LinkerSpec> createLinker() {
             CommandLineTool commandLineTool = tool("Linker", visualCpp.getLinker(targetPlatform));
-            return new LinkExeLinker(commandLineTool, invocation(commandLineToolConfigurations.get("linker")), addLibraryPath());
+            return new LinkExeLinker(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.LINKER)), addLibraryPath());
         }
 
         public Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
             CommandLineTool commandLineTool = tool("Static library archiver", visualCpp.getArchiver(targetPlatform));
-            return new LibExeStaticLibraryArchiver(commandLineTool, invocation(commandLineToolConfigurations.get("staticLibArchiver")));
+            return new LibExeStaticLibraryArchiver(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.STATIC_LIB_ARCHIVER)));
         }
 
         private CommandLineTool tool(String toolName, File exe) {

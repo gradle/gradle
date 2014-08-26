@@ -22,8 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.platform.Platform
-import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration
-import org.gradle.nativeplatform.toolchain.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -49,14 +48,14 @@ class GccToolChainTest extends Specification {
         toolChain.select(Stub(Platform) { getName() >> "platform" })
 
         then:
-        1 * action.execute(_) >> { PlatformToolChain<GccCommandLineToolConfiguration> platformToolChain ->
-            assert platformToolChain['assembler'].executable == 'as'
-            assert platformToolChain['cCompiler'].executable == 'gcc'
-            assert platformToolChain['cppCompiler'].executable == 'g++'
-            assert platformToolChain['objcCompiler'].executable == 'gcc'
-            assert platformToolChain['objcppCompiler'].executable == 'g++'
-            assert platformToolChain['linker'].executable == 'g++'
-            assert platformToolChain['staticLibArchiver'].executable == 'ar'
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            assert platformToolChain.assembler.executable == 'as'
+            assert platformToolChain.cCompiler.executable == 'gcc'
+            assert platformToolChain.cppCompiler.executable == 'g++'
+            assert platformToolChain.objcCompiler.executable == 'gcc'
+            assert platformToolChain.objcppCompiler.executable == 'g++'
+            assert platformToolChain.linker.executable == 'g++'
+            assert platformToolChain.staticLibArchiver.executable == 'ar'
         }
     }
 

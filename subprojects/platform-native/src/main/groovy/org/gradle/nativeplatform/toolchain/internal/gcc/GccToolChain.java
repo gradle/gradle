@@ -20,14 +20,12 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.toolchain.Gcc;
-import org.gradle.nativeplatform.toolchain.PlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,11 +70,11 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     @Override
-    protected void initTools(PlatformToolChain platformToolChain, ToolChainAvailability availability) {
+    protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
         if (versionResult == null) {
-            CommandLineToolSearchResult compiler = locate((GccCommandLineToolConfigurationInternal) platformToolChain.getByName("cCompiler"));
+            CommandLineToolSearchResult compiler = locate(platformToolChain.getcCompiler());
             if (!compiler.isAvailable()) {
-                compiler = locate((GccCommandLineToolConfigurationInternal) platformToolChain.getByName("cppCompiler"));
+                compiler = locate(platformToolChain.getCppCompiler());
             }
             availability.mustBeAvailable(compiler);
             if (!compiler.isAvailable()) {

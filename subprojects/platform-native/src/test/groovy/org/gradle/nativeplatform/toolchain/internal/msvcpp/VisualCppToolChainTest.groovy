@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativeplatform.platform.Platform
-import org.gradle.nativeplatform.toolchain.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
@@ -219,14 +219,14 @@ class VisualCppToolChainTest extends Specification {
         toolChain.select(platform)
 
         then:
-        1 * action.execute(_) >> { PlatformToolChain<?> platformToolChain ->
+        1 * action.execute(_) >> { VisualCppPlatformToolChain platformToolChain ->
             assert platformToolChain.platform == platform
-            assert platformToolChain['assembler']
-            assert platformToolChain['cCompiler']
-            assert platformToolChain['cppCompiler']
-            assert platformToolChain['rcCompiler']
-            assert platformToolChain['linker']
-            assert platformToolChain['staticLibArchiver']
+            assert platformToolChain.assembler
+            assert platformToolChain.cCompiler
+            assert platformToolChain.cppCompiler
+            assert platformToolChain.rcCompiler
+            assert platformToolChain.linker
+            assert platformToolChain.staticLibArchiver
         }
     }
 
