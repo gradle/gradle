@@ -91,6 +91,7 @@ executing the first block.
 ### Native language support
 
 - Replaced `TargetedPlatformToolChain` with `GccPlatformToolChain` and `VisualCppPlatformToolChain`.
+- Renamed `PlatformConfigurableToolChain` to `GccCompatibleToolChain`.
 - Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
 
 ## External contributions
