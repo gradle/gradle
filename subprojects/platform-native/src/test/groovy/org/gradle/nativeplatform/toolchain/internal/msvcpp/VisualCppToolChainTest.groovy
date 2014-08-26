@@ -55,22 +55,6 @@ class VisualCppToolChainTest extends Specification {
         toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
     }
 
-    def "uses .lib file for shared library at link time"() {
-        given:
-        operatingSystem.getSharedLibraryName("test") >> "test.dll"
-
-        expect:
-        toolChain.getSharedLibraryLinkFileName("test") == "test.lib"
-    }
-
-    def "uses .dll file for shared library at runtime time"() {
-        given:
-        operatingSystem.getSharedLibraryName("test") >> "test.dll"
-
-        expect:
-        toolChain.getSharedLibraryName("test") == "test.dll"
-    }
-
     def "installs an unavailable tool chain when not windows"() {
         given:
         def operatingSystem = Stub(OperatingSystem)

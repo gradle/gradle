@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.internal.BinaryNamingScheme
@@ -182,7 +183,7 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return new TestNativeBinarySpec(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName", "", []), resolver)
+        return new TestNativeBinarySpec(owner, flavor, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, new DefaultBinaryNamingScheme("baseName", "", []), resolver)
     }
 
     class TestNativeComponentSpec extends AbstractNativeComponentSpec {
@@ -198,9 +199,9 @@ class NativeBinarySpecTest extends Specification {
     class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
 
-        TestNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+        TestNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, PlatformToolProvider toolProvider, Platform targetPlatform, BuildType buildType,
                    BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-            super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver)
+            super(owner, flavor, toolChain, toolProvider, targetPlatform, buildType, namingScheme, resolver)
             this.owner = owner
         }
 

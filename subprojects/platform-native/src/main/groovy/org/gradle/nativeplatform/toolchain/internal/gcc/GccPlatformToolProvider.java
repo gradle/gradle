@@ -19,13 +19,9 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
@@ -34,17 +30,19 @@ import org.gradle.util.TreeVisitor;
 
 class GccPlatformToolProvider implements PlatformToolProvider {
     private final ToolSearchPath toolSearchPath;
+    private final OperatingSystemInternal targetOperatingSystem;
     private final ToolRegistry toolRegistry;
     private final ExecActionFactory execActionFactory;
     private final boolean useCommandFile;
     private final String outputFileSuffix;
 
-    GccPlatformToolProvider(ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, String outputFileSuffix, boolean useCommandFile) {
+    GccPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, String outputFileSuffix, boolean useCommandFile) {
+        this.targetOperatingSystem = targetOperatingSystem;
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
         this.execActionFactory = execActionFactory;
         this.useCommandFile = useCommandFile;
-        this.outputFileSuffix = outputFileSuffix;
+        this.outputFileSuffix = "." + getObjectFileExtension();
     }
 
     public boolean isAvailable() {
@@ -52,6 +50,26 @@ class GccPlatformToolProvider implements PlatformToolProvider {
     }
 
     public void explain(TreeVisitor<? super String> visitor) {
+    }
+
+    public String getObjectFileExtension() {
+        return targetOperatingSystem.isWindows() ? "obj" : "o";
+    }
+
+    public String getExecutableName(String executablePath) {
+        return targetOperatingSystem.getInternalOs().getExecutableName(executablePath);
+    }
+
+    public String getSharedLibraryName(String libraryPath) {
+        return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
+    }
+
+    public String getSharedLibraryLinkFileName(String libraryPath) {
+        return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
+    }
+
+    public String getStaticLibraryName(String libraryPath) {
+        return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
     }
 
     public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
@@ -109,10 +127,6 @@ class GccPlatformToolProvider implements PlatformToolProvider {
     public Compiler<AssembleSpec> createAssembler() {
         GccCommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
         return new Assembler(commandLineTool(assemblerTool), commandLineToolInvocation(assemblerTool), outputFileSuffix);
-    }
-
-    public Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
-        throw new RuntimeException("Windows resource compiler is not available");
     }
 
     public Compiler<LinkerSpec> createLinker() {

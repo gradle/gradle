@@ -30,5 +30,5 @@ public interface ToolChainRegistryInternal extends ToolChainRegistry {
      */
     void addDefaultToolChains();
 
-    ToolChain getForPlatform(PlatformInternal targetPlatform);
+    ToolChainInternal getForPlatform(PlatformInternal targetPlatform);
 }

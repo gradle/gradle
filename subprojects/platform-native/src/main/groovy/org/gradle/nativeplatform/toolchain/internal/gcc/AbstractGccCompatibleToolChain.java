@@ -110,7 +110,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         ToolChainAvailability result = new ToolChainAvailability();
         if (targetPlatformConfigurationConfiguration == null) {
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
-            return new UnavailablePlatformToolProvider(result);
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
         DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform);
@@ -120,11 +120,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
         initTools(configurableToolChain, result);
         if (!result.isAvailable()) {
-            return new UnavailablePlatformToolProvider(result);
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
         String objectFileSuffix = targetPlatform.getOperatingSystem().isWindows() ? ".obj" : ".o";
-        return new GccPlatformToolProvider(toolSearchPath, configurableToolChain, execActionFactory, objectFileSuffix, canUseCommandFile());
+        return new GccPlatformToolProvider(targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, objectFileSuffix, canUseCommandFile());
     }
 
     protected abstract void addDefaultTools(DefaultGccPlatformToolChain toolChain);

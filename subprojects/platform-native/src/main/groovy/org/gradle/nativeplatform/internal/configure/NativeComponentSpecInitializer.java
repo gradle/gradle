@@ -17,15 +17,16 @@
 package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.Action;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
 import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -52,11 +53,13 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
         for (Platform platform : targetedComponent.choosePlatforms(allPlatforms)) {
-            ToolChain toolChain = toolChainRegistry.getForPlatform((PlatformInternal) platform);
+            PlatformInternal platformInternal = (PlatformInternal) platform;
+            ToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
+            PlatformToolProvider toolProvider = toolChain.select(platformInternal);
             for (BuildType buildType : targetedComponent.chooseBuildTypes(allBuildTypes)) {
                 for (Flavor flavor : targetedComponent.chooseFlavors(allFlavors)) {
                     BinaryNamingSchemeBuilder namingScheme = initializeNamingScheme(targetedComponent, projectNativeComponent.getName(), platform, buildType, flavor);
-                    factory.createNativeBinaries(projectNativeComponent, namingScheme, toolChain, platform, buildType, flavor);
+                    factory.createNativeBinaries(projectNativeComponent, namingScheme, toolChain, toolProvider, platform, buildType, flavor);
                 }
             }
         }

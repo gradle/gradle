@@ -55,22 +55,6 @@ public abstract class ExtendableToolChain<T extends PlatformToolChain> implement
         return String.format("%s-%s", getName(), operatingSystem.getName());
     }
 
-    public String getExecutableName(String executablePath) {
-        return operatingSystem.getExecutableName(executablePath);
-    }
-
-    public String getSharedLibraryName(String libraryName) {
-        return operatingSystem.getSharedLibraryName(libraryName);
-    }
-
-    public String getSharedLibraryLinkFileName(String libraryName) {
-        return getSharedLibraryName(libraryName);
-    }
-
-    public String getStaticLibraryName(String libraryName) {
-        return operatingSystem.getStaticLibraryName(libraryName);
-    }
-
     public void eachPlatform(Action<? super T> action) {
         configureActions.add(action);
     }

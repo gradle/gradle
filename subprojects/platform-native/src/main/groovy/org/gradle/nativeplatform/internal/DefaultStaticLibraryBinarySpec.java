@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
@@ -37,9 +38,9 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
     private File staticLibraryFile;
 
-    public DefaultStaticLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                          BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
+    public DefaultStaticLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, PlatformToolProvider toolProvider, Platform platform,
+                                          BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(library, flavor, toolChain, toolProvider, platform, buildType, namingScheme, resolver);
     }
 
     public File getStaticLibraryFile() {

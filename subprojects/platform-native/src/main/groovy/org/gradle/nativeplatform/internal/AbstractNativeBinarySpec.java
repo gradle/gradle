@@ -18,16 +18,17 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.nativeplatform.sourceset.DependentSourceSet;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.sourceset.DependentSourceSet;
+import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -41,17 +42,19 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
     private final DefaultTool linker = new DefaultTool();
     private final DefaultTool staticLibArchiver = new DefaultTool();
     private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
+    private final PlatformToolProvider toolProvider;
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
-    private final ToolChainInternal toolChain;
+    private final ToolChain toolChain;
     private final Platform targetPlatform;
     private final BuildType buildType;
     private final NativeDependencyResolver resolver;
     private boolean buildable;
 
-    protected AbstractNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                                       BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    protected AbstractNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChain toolChain, PlatformToolProvider toolProvider, Platform targetPlatform,
+                                       BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         this.component = owner;
+        this.toolProvider = toolProvider;
         this.namingScheme = namingScheme;
         this.flavor = flavor;
         this.toolChain = toolChain;
@@ -64,7 +67,6 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
                 sourceSets.add(sourceSet);
             }
         });
-
     }
 
     @Override
@@ -88,7 +90,7 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         return flavor;
     }
 
-    public ToolChainInternal getToolChain() {
+    public ToolChain getToolChain() {
         return toolChain;
     }
 
@@ -148,6 +150,10 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         NativeBinaryResolveResult resolution = new NativeBinaryResolveResult(this, allLibs);
         resolver.resolve(resolution);
         return resolution;
+    }
+
+    public PlatformToolProvider getPlatformToolProvider() {
+        return toolProvider;
     }
 
     public boolean isBuildable() {

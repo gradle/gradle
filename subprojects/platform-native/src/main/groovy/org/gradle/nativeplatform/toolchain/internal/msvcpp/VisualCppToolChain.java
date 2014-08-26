@@ -104,7 +104,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
         }
         if (!result.isAvailable()) {
-            return new UnavailablePlatformToolProvider(result);
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
@@ -155,24 +155,8 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         return String.format("%s-%s", getName(), operatingSystem.getName());
     }
 
-    public String getExecutableName(String executablePath) {
-        return operatingSystem.getExecutableName(executablePath);
-    }
-
-    public String getSharedLibraryName(String libraryName) {
-        return operatingSystem.getSharedLibraryName(libraryName);
-    }
-
-    public String getStaticLibraryName(String libraryName) {
-        return operatingSystem.getStaticLibraryName(libraryName);
-    }
-
     protected File resolve(Object path) {
         return fileResolver.resolve(path);
-    }
-
-    public String getSharedLibraryLinkFileName(String libraryName) {
-        return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
     public static class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolChain {
@@ -237,6 +221,26 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         }
 
         public void explain(TreeVisitor<? super String> visitor) {
+        }
+
+        public String getObjectFileExtension() {
+            return "obj";
+        }
+
+        public String getExecutableName(String executablePath) {
+            return operatingSystem.getExecutableName(executablePath);
+        }
+
+        public String getSharedLibraryName(String libraryName) {
+            return operatingSystem.getSharedLibraryName(libraryName);
+        }
+
+        public String getStaticLibraryName(String libraryName) {
+            return operatingSystem.getStaticLibraryName(libraryName);
+        }
+
+        public String getSharedLibraryLinkFileName(String libraryName) {
+            return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
         }
 
         public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {

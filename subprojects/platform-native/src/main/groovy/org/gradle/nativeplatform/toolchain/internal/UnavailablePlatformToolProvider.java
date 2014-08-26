@@ -20,12 +20,15 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.util.TreeVisitor;
 
 public class UnavailablePlatformToolProvider implements PlatformToolProvider {
+    private final OperatingSystemInternal operatingSystem;
     private final ToolSearchResult failure;
 
-    public UnavailablePlatformToolProvider(ToolSearchResult failure) {
+    public UnavailablePlatformToolProvider(OperatingSystemInternal operatingSystem, ToolSearchResult failure) {
+        this.operatingSystem = operatingSystem;
         this.failure = failure;
     }
 
@@ -41,6 +44,26 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
         TreeFormatter formatter = new TreeFormatter();
         this.explain(formatter);
         return new GradleException(formatter.toString());
+    }
+
+    public String getObjectFileExtension() {
+        throw failure();
+    }
+
+    public String getExecutableName(String executablePath) {
+        return operatingSystem.getInternalOs().getExecutableName(executablePath);
+    }
+
+    public String getSharedLibraryName(String libraryPath) {
+        return operatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
+    }
+
+    public String getSharedLibraryLinkFileName(String libraryPath) {
+        return operatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
+    }
+
+    public String getStaticLibraryName(String libraryPath) {
+        return operatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
     }
 
     public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {

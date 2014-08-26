@@ -35,11 +35,6 @@ class GccToolChainTest extends Specification {
 
     final toolChain = new GccToolChain(instantiator , "gcc", OperatingSystem.current(), fileResolver, Stub(ExecActionFactory))
 
-    def "uses shared library binary at link time"() {
-        expect:
-        toolChain.getSharedLibraryLinkFileName("test") == toolChain.getSharedLibraryName("test")
-    }
-
     def "provides default tools"() {
         def action = Mock(Action)
 

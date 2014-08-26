@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.platform.internal.PlatformInternal;
@@ -63,7 +62,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
     }
 
-    public ToolChain getForPlatform(PlatformInternal targetPlatform) {
+    public ToolChainInternal getForPlatform(PlatformInternal targetPlatform) {
         for (ToolChainInternal toolChain : searchOrder) {
             if (toolChain.select(targetPlatform).isAvailable()) {
                 return toolChain;
@@ -109,7 +108,6 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
     }
 
     private static class UnavailableToolChain implements ToolChainInternal {
-        private final OperatingSystem operatingSystem = OperatingSystem.current();
         private final ToolSearchResult failure;
 
         UnavailableToolChain(ToolSearchResult failure) {
@@ -125,23 +123,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
 
         public PlatformToolProvider select(PlatformInternal targetPlatform) {
-            return new UnavailablePlatformToolProvider(failure);
-        }
-
-        public String getExecutableName(String executablePath) {
-            return operatingSystem.getExecutableName(executablePath);
-        }
-
-        public String getSharedLibraryName(String libraryName) {
-            return operatingSystem.getSharedLibraryName(libraryName);
-        }
-
-        public String getSharedLibraryLinkFileName(String libraryName) {
-            return getSharedLibraryName(libraryName);
-        }
-
-        public String getStaticLibraryName(String libraryName) {
-            return operatingSystem.getStaticLibraryName(libraryName);
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), failure);
         }
 
         public String getOutputType() {

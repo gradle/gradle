@@ -25,14 +25,6 @@ public interface ToolChainInternal extends ToolChain {
      */
     PlatformToolProvider select(PlatformInternal targetPlatform);
 
-    String getExecutableName(String executablePath);
-
-    String getSharedLibraryName(String libraryPath);
-
-    String getSharedLibraryLinkFileName(String libraryPath);
-
-    String getStaticLibraryName(String libraryPath);
-
     /**
      * Returns a unique identifier for the output produced by this toolchain on the current platform.
      */

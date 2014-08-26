@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.internal.PlatformInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
@@ -33,6 +34,7 @@ import spock.lang.Specification
 class NativeComponentSpecInitializerTest extends Specification {
     def toolChains = Mock(ToolChainRegistryInternal)
     def toolChain = Mock(ToolChainInternal)
+    def toolProvider = Mock(PlatformToolProvider)
     def nativeBinariesFactory = Mock(NativeBinariesFactory)
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
 
@@ -51,8 +53,9 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         then:
         1 * toolChains.getForPlatform(platform) >> toolChain
+        1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
-        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * namingSchemeBuilder._
     }
 
@@ -67,8 +70,9 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         then:
         1 * toolChains.getForPlatform(platform) >> toolChain
+        1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
-        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * namingSchemeBuilder._
     }
 
@@ -81,16 +85,18 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         then:
         1 * toolChains.getForPlatform(platform) >> toolChain
+        1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("platform1") >> namingSchemeBuilder
-        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * _
 
         then:
         1 * toolChains.getForPlatform(platform2) >> toolChain
+        1 * toolChain.select(platform2) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("platform2") >> namingSchemeBuilder
-        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform2, buildType, flavor)
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform2, buildType, flavor)
         0 * _
     }
 
@@ -103,17 +109,18 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         then:
         1 * toolChains.getForPlatform(platform) >> toolChain
+        1 * toolChain.select(platform) >> toolProvider
 
         then:
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("buildType1") >> namingSchemeBuilder
-        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * _
 
         then:
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("buildType2") >> namingSchemeBuilder
-        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType2, flavor)
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType2, flavor)
         0 * _
     }
 
@@ -126,17 +133,18 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         then:
         1 * toolChains.getForPlatform(platform) >> toolChain
+        1 * toolChain.select(platform) >> toolProvider
 
         then:
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("flavor1") >> namingSchemeBuilder
-        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * _
 
         then:
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("flavor2") >> namingSchemeBuilder
-        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor2)
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor2)
         0 * _
     }
 
