@@ -20,16 +20,21 @@ import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
+import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultGccPlatformToolChain implements GccPlatformToolChain {
+public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRegistry {
     private final Platform platform;
     private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
     public DefaultGccPlatformToolChain(Platform platform) {
         this.platform = platform;
+    }
+
+    public GccCommandLineToolConfigurationInternal getTool(ToolType toolType) {
+        return tools.get(toolType);
     }
 
     public Map<ToolType, GccCommandLineToolConfigurationInternal> getTools() {

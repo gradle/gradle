@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.toolchain.PlatformToolChain;
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 
 /**
  * A target platform configuration specifies whether a toolchain supports a specific target platform.
@@ -41,15 +41,13 @@ import org.gradle.nativeplatform.toolchain.PlatformToolChain;
  */
 @Incubating
 public interface TargetPlatformConfiguration {
-
     /**
      * Returns whether a platform is supported or not.
      */
     boolean supportsPlatform(Platform targetPlatform);
 
-
     /**
      *  applies a platform specific toolchain configuration
      */
-    PlatformToolChain apply(PlatformToolChain platformToolChain);
+    void apply(GccPlatformToolChain platformToolChain);
 }

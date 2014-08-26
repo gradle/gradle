@@ -171,47 +171,55 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
 
     def "supplies no additional arguments to target native binary for tool chain default"() {
-        when:
+        def action = Mock(Action)
+
+        given:
         toolSearchPath.locate(_, _) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+        toolChain.eachPlatform(action)
 
-        PlatformToolChain configurableToolChain = newConfigurableToolChain()
+        when:
+        toolChain.select(platform)
+
         then:
-
-        with(toolChain.getPlatformConfiguration(platform).apply(configurableToolChain)) {
-            argsFor(linker) == []
-            argsFor(cCompiler) == []
-            argsFor(cppCompiler) == []
-            argsFor(assembler) == []
-            argsFor(staticLibArchiver) == []
-            argsFor(objcCompiler) == []
-            argsFor(objcppCompiler) == []
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.linker) == []
+            argsFor(platformToolChain.cCompiler) == []
+            argsFor(platformToolChain.cppCompiler) == []
+            argsFor(platformToolChain.assembler) == []
+            argsFor(platformToolChain.staticLibArchiver) == []
+            argsFor(platformToolChain.objcCompiler) == []
+            argsFor(platformToolChain.objcppCompiler) == []
         }
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "supplies args for supported architecture"() {
-        when:
+        def action = Mock(Action)
+
+        given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
+        toolChain.eachPlatform(action)
+
+        when:
+        toolChain.select(platform)
 
         then:
-        toolChain.select(platform).available
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.linker) == [linkerArg]
 
-        with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(linker) == [linkerArg]
-
-            argsFor(cppCompiler) == [compilerArg]
-            argsFor(cCompiler) == [compilerArg]
+            argsFor(platformToolChain.cppCompiler) == [compilerArg]
+            argsFor(platformToolChain.cCompiler) == [compilerArg]
 
             if (OperatingSystem.current().isMacOsX()) {
-                argsFor(assembler) == osxAssemblerArgs
+                argsFor(platformToolChain.assembler) == osxAssemblerArgs
             } else {
-                argsFor(assembler) == [assemblerArg]
+                argsFor(platformToolChain.assembler) == [assemblerArg]
             }
-            argsFor(staticLibArchiver) == []
+            argsFor(platformToolChain.staticLibArchiver) == []
         }
 
         where:
@@ -222,20 +230,24 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     @Requires(TestPrecondition.WINDOWS)
     def "supplies args for supported architecture for i386 architecture on windows"() {
-        when:
+        def action = Mock(Action)
+
+        given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.architecture >> new DefaultArchitecture("i386", X86, 32)
+        toolChain.eachPlatform(action)
+
+        when:
+        toolChain.select(platform)
 
         then:
-        toolChain.select(platform).available
-
-        with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(cppCompiler) == ["-m32"]
-            argsFor(cCompiler) == ["-m32"]
-            argsFor(linker) == ["-m32"]
-            argsFor(assembler) == ["--32"]
-            argsFor(staticLibArchiver) == []
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.cppCompiler) == ["-m32"]
+            argsFor(platformToolChain.cCompiler) == ["-m32"]
+            argsFor(platformToolChain.linker) == ["-m32"]
+            argsFor(platformToolChain.assembler) == ["--32"]
+            argsFor(platformToolChain.staticLibArchiver) == []
         }
     }
 
@@ -345,21 +357,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         protected String getTypeName() {
             return "Test"
         }
-    }
-
-    PlatformToolChain newConfigurableToolChain() {
-        PlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(Stub(Platform)
-        )
-
-        configurableToolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.ASSEMBLER, ""))
-        configurableToolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.C_COMPILER, ""))
-        configurableToolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.CPP_COMPILER, ""))
-        configurableToolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.OBJECTIVEC_COMPILER, ""))
-        configurableToolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.OBJECTIVECPP_COMPILER, ""))
-        configurableToolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.LINKER, ""))
-        configurableToolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.STATIC_LIB_ARCHIVER, ""))
-
-        return configurableToolChain;
     }
 
     def argsFor(GccCommandLineToolConfigurationInternal tool) {
