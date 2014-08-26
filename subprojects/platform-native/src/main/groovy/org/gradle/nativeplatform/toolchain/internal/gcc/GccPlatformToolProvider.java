@@ -36,7 +36,7 @@ class GccPlatformToolProvider implements PlatformToolProvider {
     private final boolean useCommandFile;
     private final String outputFileSuffix;
 
-    GccPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, String outputFileSuffix, boolean useCommandFile) {
+    GccPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, boolean useCommandFile) {
         this.targetOperatingSystem = targetOperatingSystem;
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
