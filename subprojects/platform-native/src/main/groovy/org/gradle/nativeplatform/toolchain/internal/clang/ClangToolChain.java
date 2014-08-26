@@ -38,13 +38,13 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
 
     @Override
     protected void addDefaultTools(DefaultGccPlatformToolChain toolChain) {
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "linker", ToolType.LINKER, "clang++"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "cCompiler", ToolType.C_COMPILER, "clang"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "cppCompiler", ToolType.CPP_COMPILER, "clang++"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "objcCompiler", ToolType.OBJECTIVEC_COMPILER, "clang"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "clang++"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, "assembler", ToolType.ASSEMBLER, "as"));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.LINKER, "clang++"));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.STATIC_LIB_ARCHIVER, "ar"));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.C_COMPILER, "clang"));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.CPP_COMPILER, "clang++"));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.OBJECTIVEC_COMPILER, "clang"));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.OBJECTIVECPP_COMPILER, "clang++"));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.ASSEMBLER, "as"));
     }
 
     @Override

@@ -18,18 +18,11 @@ package org.gradle.nativeplatform.toolchain.internal.tools;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 
 public class DefaultGccCommandLineToolConfiguration extends DefaultCommandLineToolConfiguration implements GccCommandLineToolConfigurationInternal {
-    private final ToolType toolType;
     private String executable;
 
-
-    public DefaultGccCommandLineToolConfiguration(String name, ToolType toolType, String defaultExecutable) {
-        super(name);
-        this.toolType = toolType;
+    public DefaultGccCommandLineToolConfiguration(ToolType toolType, String defaultExecutable) {
+        super(toolType);
         this.executable = defaultExecutable;
-    }
-
-    public ToolType getToolType() {
-        return toolType;
     }
 
     public String getExecutable() {
@@ -39,6 +32,4 @@ public class DefaultGccCommandLineToolConfiguration extends DefaultCommandLineTo
     public void setExecutable(String file) {
         executable = file;
     }
-
-
 }

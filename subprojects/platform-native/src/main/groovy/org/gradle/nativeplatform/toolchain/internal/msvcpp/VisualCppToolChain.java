@@ -181,12 +181,12 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         public DefaultVisualCppPlatformToolChain(Platform platform, Instantiator instantiator) {
             this.platform = platform;
             tools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
-            tools.put(ToolType.C_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cCompiler"));
-            tools.put(ToolType.CPP_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "cppCompiler"));
-            tools.put(ToolType.LINKER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "linker"));
-            tools.put(ToolType.STATIC_LIB_ARCHIVER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "staticLibArchiver"));
-            tools.put(ToolType.ASSEMBLER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "assembler"));
-            tools.put(ToolType.WINDOW_RESOURCES_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, "rcCompiler"));
+            tools.put(ToolType.C_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.C_COMPILER));
+            tools.put(ToolType.CPP_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.CPP_COMPILER));
+            tools.put(ToolType.LINKER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
+            tools.put(ToolType.STATIC_LIB_ARCHIVER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STATIC_LIB_ARCHIVER));
+            tools.put(ToolType.ASSEMBLER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.ASSEMBLER));
+            tools.put(ToolType.WINDOW_RESOURCES_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.WINDOW_RESOURCES_COMPILER));
         }
 
         public CommandLineToolConfiguration getcCompiler() {
