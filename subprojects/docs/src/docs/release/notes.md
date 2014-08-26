@@ -43,6 +43,7 @@ See the [userguide section](userguide/dependency_management.html#version_selecti
 ### Native language cross-compilation improvements
 
 - Uses the file naming scheme of the target platform, rather than then host platform.
+- Uses linker arguments based on the target platform, rather than the host platform.
 - Added `eachPlatform()` method to each `ToolChain` type, to allow fine-grained customization of a particular tool chain on a per-platform basis.
 - Added `TargetedPlatformToolChain.getPlatform()` to allow tool chain customization logic access to the target platform.
 
