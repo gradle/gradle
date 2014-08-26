@@ -40,10 +40,11 @@ strategies to be applied.  This allows Gradle to customize version selection wit
 
 See the [userguide section](userguide/dependency_management.html#version_selection_rules) on version selection rules for further information.
 
-### Native language support improvements
+### Native language cross-compilation improvements
 
+- Uses the file naming scheme of the target platform, rather than then host platform.
 - Added `eachPlatform()` method to each `ToolChain` type, to allow fine-grained customization of a particular tool chain on a per-platform basis.
-- Added `TargetedPlatformToolChain.getPlatform()` to allow tool chain customization logic access to the platform the tool chain is to be used for.
+- Added `TargetedPlatformToolChain.getPlatform()` to allow tool chain customization logic access to the target platform.
 
 ## Promoted features
 
@@ -102,6 +103,7 @@ We would like to thank the following community members for making contributions 
 * [Baron Roberts](https://github.com/baron1405) - fixes to JDepend plugin
 * [Dinio Dinev](https://github.com/diniodinev) - various spelling corrections
 * [Alex Selesse](https://github.com/selesse) - documentation improvements
+* [Raymond Chiu](https://github.com/rschiu) - improve handling of install name in GCC tool chain
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
