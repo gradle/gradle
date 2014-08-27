@@ -24,6 +24,8 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class JarTestFixture extends ZipTestFixture {
+    final int CLASS_FILE_DESCRIPTOR = 0xCAFEBABE
+
     File file
 
     /**
@@ -71,15 +73,16 @@ class JarTestFixture extends ZipTestFixture {
         JarFile jarFile = new JarFile(file)
         //take the first class file
         JarEntry classEntry = jarFile.entries().find { entry -> entry.name.endsWith(".class")}
-        if (classEntry == null) throw new Exception("Could not find a class entry for: " + file)
+        if (classEntry == null) {
+            throw new Exception("Could not find a class entry for: " + file)
+        }
         InputStream is = jarFile.getInputStream(classEntry)
         try {
             DataInputStream data = new DataInputStream(is)
             try {
                 int header =  data.readInt()
-                int CLASS_HEADER = 0xCAFEBABE
 
-                if (CLASS_HEADER != header) {
+                if (CLASS_FILE_DESCRIPTOR != header) {
                     throw new Exception("Invalid entry (class): " + classEntry.name + ":" + file)
                 } else {
                     data.readUnsignedShort(); //minor
@@ -89,7 +92,6 @@ class JarTestFixture extends ZipTestFixture {
             } finally {
                 IOUtils.closeQuietly(data)
             }
-
         } finally {
             IOUtils.closeQuietly(is)
         }
