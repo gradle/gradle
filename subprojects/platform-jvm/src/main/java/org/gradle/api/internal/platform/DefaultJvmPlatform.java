@@ -28,7 +28,6 @@ public class DefaultJvmPlatform implements JvmPlatform {
     }
 
     public String getSourceTarget() {
-
         return target; //TODO: Source target should be configurable separably from compatibility target
        }
 
