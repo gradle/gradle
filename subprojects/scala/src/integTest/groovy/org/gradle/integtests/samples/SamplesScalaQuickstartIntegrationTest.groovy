@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
@@ -60,6 +61,11 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canBuildScalaDoc() {
+        if (GradleContextualExecuter.isDaemon()) {
+            // don't load scala into the daemon as it exhausts permgen
+            return
+        }
+
         executer.inDirectory(projectDir).withTasks('clean', 'scaladoc').run()
 
         projectDir.file('build/docs/scaladoc/index.html').assertExists()

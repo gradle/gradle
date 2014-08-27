@@ -37,6 +37,11 @@ allprojects {
         scalaCompileOptions.fork = true
         scalaCompileOptions.useAnt = false
     }
+    tasks.withType(ScalaDoc) {
+        doFirst {
+            throw new GradleException("Can't execute scaladoc while testing with the daemon due to permgen exhaustion")
+        }
+    }
 }
 """
     }

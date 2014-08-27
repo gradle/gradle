@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.devel;
+package org.gradle.devel.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;

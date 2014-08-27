@@ -67,6 +67,9 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
 httpPort = ${httpPort}
 stopPort = ${stopPort}
 
+println "httpPort: \$httpPort"
+println "stopPort: \$stopPort"
+
 task runTest << {
     URL url = new URL("http://localhost:\$httpPort/quickstart")
     println url.text
@@ -83,14 +86,14 @@ task sayHearthyGoodbye << {
 
         //starting jetty
         sample sample
-        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").start()
+        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").withArgument("-i").start()
 
         //jetty is started
         available("http://localhost:$httpPort/quickstart")
 
         //running web test then stopping jetty
         sample sample
-        def jettyStop = executer.withTasks('runTest', 'jettyStop').run()
+        def jettyStop = executer.withTasks('runTest', 'jettyStop').withArgument("-i").run()
 
         //test has completed
         assert jettyStop.output.contains('hello Gradle')
