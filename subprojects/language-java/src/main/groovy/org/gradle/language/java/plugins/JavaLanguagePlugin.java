@@ -17,7 +17,6 @@
 package org.gradle.language.java.plugins;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
