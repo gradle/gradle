@@ -123,11 +123,13 @@ class IdeaProject {
 
     /**
      * The vcs for the project.
-     * * <p>
+     * <p>
+     * Values are the same as used in IDEA's “Version Control” preference window (e.g. 'Git', 'Subversion').
+     * <p>
      * See the examples in the docs for {@link IdeaProject}.
      */
     @Incubating
-    String vcs = ''
+    String vcs
 
     /**
      * The wildcard resource patterns.
