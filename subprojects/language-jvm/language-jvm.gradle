@@ -7,5 +7,5 @@ dependencies {
 }
 
 // TODO:DAZ Review this post-merge
-useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**", "org/gradle/external/javadoc/internal/**"])
+useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**"])
 useTestFixtures()
