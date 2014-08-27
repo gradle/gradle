@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.platform;
 
+import org.gradle.api.Incubating;
+
+@Incubating
 public class DefaultJvmPlatform implements JvmPlatform {
     private final String target;
 
@@ -23,12 +26,12 @@ public class DefaultJvmPlatform implements JvmPlatform {
         this.target = target;
     }
 
-    public String getCompatibilityTarget() {
-        return target;
+    public String getSourceCompatibility() {
+        return target; //TODO: Source target should be configurable separably from compatibility target
     }
 
-    public String getSourceTarget() {
-        return target; //TODO: Source target should be configurable separably from compatibility target
+    public String getTargetCompatilibity() {
+        return target;
        }
 
     public String toString() {

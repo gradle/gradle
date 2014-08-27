@@ -93,8 +93,8 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
 
                     compile.setSource(javaSourceSet.getSource());
                     compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
-                    compile.setSourceCompatibility(binary.getLibrary().getPlatform().getSourceTarget());
-                    compile.setTargetCompatibility(binary.getLibrary().getPlatform().getCompatibilityTarget());
+                    compile.setSourceCompatibility(binary.getLibrary().getPlatform().getSourceCompatibility());
+                    compile.setTargetCompatibility(binary.getLibrary().getPlatform().getTargetCompatilibity());
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);

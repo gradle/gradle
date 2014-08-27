@@ -18,8 +18,23 @@ package org.gradle.api.internal.platform;
 
 import org.gradle.api.Incubating;
 
+/**
+ * Defines and configures a JVM platform.
+ *
+ * <pre>
+ * apply plugin: 'java-lang'
+ *
+ * jvm {
+ *   libraries {
+ *     myLib {
+ *       target java("1.6")
+ *     }
+ *   }
+ * }
+ * </pre>
+ */
 @Incubating
 public interface JvmPlatform {
-    String getCompatibilityTarget();
-    String getSourceTarget();
+    String getSourceCompatibility();
+    String getTargetCompatilibity();
 }
