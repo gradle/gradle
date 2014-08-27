@@ -40,7 +40,7 @@ class ProjectTest extends Specification {
 
         when:
         project.load(customProjectReader)
-        project.configure(modules, "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'], [])
+        project.configure(modules, "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'], [], '')
 
         then:
         project.modulePaths as Set == (customModules + modules) as Set
@@ -53,10 +53,19 @@ class ProjectTest extends Specification {
 
         when:
         project.load(customProjectReader)
-        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), [], libraries)
+        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), [], libraries, '')
 
         then:
         project.projectLibraries as List == libraries
+    }
+
+    def "project vcs is set"() {
+        when:
+        project.load(customProjectReader)
+        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), [], [], 'Git')
+
+        then:
+        project.vcs == 'Git'
     }
 
     def loadDefaults() {
@@ -73,7 +82,7 @@ class ProjectTest extends Specification {
     def toXml_shouldContainCustomValues() {
         when:
         project.loadDefaults()
-        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'], [])
+        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'], [], '')
         def xml = toXmlReader
         def other = new Project(new XmlTransformer(), pathFactory)
         other.load(xml)
