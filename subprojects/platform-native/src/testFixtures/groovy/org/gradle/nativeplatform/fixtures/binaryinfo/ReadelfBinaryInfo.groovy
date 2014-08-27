@@ -29,24 +29,27 @@ class ReadelfBinaryInfo implements BinaryInfo {
         this.binaryFile = binaryFile
     }
 
-    public static String readHeaderValue(List<String> lines, String header) {
-        String matchingLine = lines.find {
-            it.trim().startsWith(header)
+    public static String readFirstHeaderValue(List<String> lines, String... headers) {
+        def matchingLines = headers.collect { header ->
+            String matchingLine = lines.find {
+                it.trim().startsWith(header)
+            }
+            matchingLine = matchingLine?.replaceFirst(header, "")?.trim()
         }
-        return matchingLine != null ? matchingLine.replaceFirst(header, "").trim() : null
+        return matchingLines.find { it != null }
     }
 
     ArchitectureInternal getArch() {
         def process = ['readelf', '-h', binaryFile.absolutePath].execute()
         List<String> lines = process.inputStream.readLines()
-        def archString = readHeaderValue(lines, "Machine:")
+        def archString = readFirstHeaderValue(lines, "Machine:", "Maschine:")
         switch (archString) {
             case "Intel 80386":
                 return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
             case "Advanced Micro Devices X86-64":
                 return new DefaultArchitecture("x86_64", ArchitectureInternal.InstructionSet.X86, 64)
             default:
-                throw new RuntimeException("Cannot determine architecture for ${archString}")
+                throw new RuntimeException("Cannot determine architecture for ${archString}\nreadelf output:\n${lines}")
         }
     }
 
@@ -68,7 +71,7 @@ class ReadelfBinaryInfo implements BinaryInfo {
     }
 
     static String readSoName(List<String> lines) {
-        final Pattern pattern = ~/^.*\(SONAME\)\s+Library soname\: \[(.*)\]$/
+        final Pattern pattern = ~/^.*\(SONAME\)\s+.*soname.*\: \[(.*)\]$/
         String matchingLine = lines.find {
             pattern.matcher(it).matches()
         }
