@@ -25,8 +25,6 @@ import static org.hamcrest.Matchers.containsString
 
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
-
     def setup() {
         buildFile << """
                 repositories {
@@ -83,10 +81,10 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     def "can resolve artifacts from local m2 with custom local repository defined by system-property"() {
         given:
         def artifactRepo = mavenLocal("artifactrepo")
-        System.setProperty("maven.repo.local", artifactRepo.rootDir.getAbsolutePath())
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
         when:
+        args "-Dmaven.repo.local=${artifactRepo.rootDir.getAbsolutePath()}"
         run 'retrieve'
 
         then:
@@ -113,11 +111,11 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         def userRepo = mavenLocal("userArtifactRepo")
         m2Installation.generateUserSettingsFile(userRepo)
         def sysPropRepo = mavenLocal("artifactrepo")
-        System.setProperty("maven.repo.local", sysPropRepo.rootDir.getAbsolutePath())
         def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
         userRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
         when:
+        args "-Dmaven.repo.local=${sysPropRepo.rootDir.getAbsolutePath()}"
         run 'retrieve'
 
         then:

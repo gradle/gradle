@@ -64,6 +64,15 @@ It is not respected when the project is imported into IDEA using IDEA's import f
 
 This feature was contributed by [Kallin Nagelberg](https://github.com/Kallin).
 
+### Specify location of local maven repository independently
+
+The location of the local Maven repository can now be controlled by setting the system property `maven.repo.local` to the absolute path to the repo.
+This has been added for parity with Maven itself.
+This can be used to isolate the maven local repository for a particular build, without changing the location of the `~/.m2/settings.xml` which may 
+contain information to be shared by all builds.
+
+This feature was contributed by [Christoph Gritschenberger](https://github.com/ChristophGr).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -123,6 +132,7 @@ We would like to thank the following community members for making contributions 
 * [Alex Selesse](https://github.com/selesse) - documentation improvements
 * [Raymond Chiu](https://github.com/rschiu) - improve handling of install name in GCC tool chain
 * [Kallin Nagelberg](https://github.com/Kallin) - support for specifying VCS with IDEA plugin
+* [Christoph Gritschenberger](https://github.com/ChristophGr) - support for `maven.repo.local` system property
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
