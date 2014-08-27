@@ -473,33 +473,6 @@ The development/testing tooling can support loading non-declarative plugins in t
 
 This milestone enables plugin authors to start making their plugins (relatively as is) usable via `plugins {}`, and allows users to start using `plugins {}` (with some limitations)
 
-## ~~Story: User uses non-declarative plugin from `plugins.gradle.org` of static version with dependency on core plugin~~
-
-The plugin portal resolver returns a payload indicating that this plugin is non-declarative and should be loaded as such.
-
-Much of the error handling is shared with handling of declarative plugins.
-
-Note: the class loading/visibility required by this story does not reflect the final goal. See the first story of the next milestone.
-
-### Test Coverage
-
-- ~~Plugin implementation can use `project.apply()` to apply core Gradle plugin~~
-- ~~Plugin implementation can access Gradle Core Plugin API~~
-- ~~Plugin implementation cannot access Gradle Core implementation~~
-- ~~Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods~~
-- ~~Other classes from plugin implementation jar are visible to build script~~
-- ~~Classes from plugin implementation dependencies are visible to build script~~
-- ~~Plugin dependencies influence conflict resolution in `buildscript.configurations.classpath`~~
-    - Add a `buildscript {}` dependency on java library A @ version 1.0
-    - Add a `plugins {}` dependency on a non-declarative plugin that depends on A @ version 2.0
-    - Assert that _only_ version 2.0 was resolved
-- ~~Plugin can access classes from Gradle API~~
-- ~~Plugin can access classes from Gradle core plugins~~
-- ~~Plugin cannot access Gradle internal implementation classes~~
-- ~~Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message~~
-- ~~Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message~~
-- ~~Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message~~
-
 ## ~~Story: Plugin resolution is cached between builds~~
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
