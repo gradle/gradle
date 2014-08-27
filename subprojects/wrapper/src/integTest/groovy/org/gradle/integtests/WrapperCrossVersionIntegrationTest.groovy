@@ -17,8 +17,12 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
+    IntegrationTestBuildContext integrationTestBuildContext = new IntegrationTestBuildContext()
+
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         expect:
         checkWrapperWorksWith(previous, current)
@@ -60,8 +64,18 @@ task hello {
 }
 """
         version(wrapperGenVersion).withTasks('wrapper').run()
-        def result = version(wrapperGenVersion).usingExecutable('gradlew').withDeprecationChecksDisabled().withTasks('hello').run()
+        def result = version(wrapperGenVersion).usingExecutable('gradlew').withArgument(customGradleUserHomeSystemProperty())withDeprecationChecksDisabled().withTasks('hello').run()
         assert result.output.contains("hello from $executionVersion.version.version")
+    }
+
+    def customGradleUserHomeSystemProperty() {
+        return "-Dgradle.user.home=${integrationTestBuildContext.getGradleUserHomeDir().absolutePath}"
+    }
+
+    GradleExecuter version(GradleDistribution dist) {
+        def executer = dist.executer(temporaryFolder)
+        executer.withDeprecationChecksDisabled()
+        executer.inDirectory(testDirectory)
     }
 }
 
