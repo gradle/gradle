@@ -737,6 +737,7 @@ TODO
 - Move `Platform` and `ToolChain` out of the native packages into base packages.
 - Use a consistent DSL for declaring the target platforms of all platform aware component types.
 - Replace or reuse `platforms` container.
+- Add factory methods for common platforms to match those used for the Java runtime.
 - Mention breaking change in release notes.
 
 #### Open issues
@@ -1191,7 +1192,6 @@ attach to those language source sets that have an appropriate output type.
 
 - Plugin should be able to declare the file types that a custom binary can be assembled from
     - Infrastructure would take care of linking up the appropriate source languages based on this.
-- Plugin should to be able to declare custom language implementations.
 - custom sourceSets declared via 'sources' DSL must always be declared with their type (even its type is obvious) e.g:
 
     apply plugin:'cpp'

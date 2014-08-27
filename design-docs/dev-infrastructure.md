@@ -25,6 +25,13 @@ Currently, coverage builds are triggered for each commit. We might change this s
 - Adjust Commit configurations such that concurrent commits by different developers lead to multiple builds with the commits grouped by developer
 - Configure TC to automatically restart a coverage build if it has failed
 
+# Increase build bandwidth
+
+- Add 2 linux vms to replace the agents on dev1.
+- Add 2 windows vms
+- Move windows vm to a more highly specced machine and add an additional agent
+- Disk usage monitoring
+
 # Reduce memory consumption of daemon processes started by test suite
 
 - Verify that daemon processes are started with relatively small heap and permgen limits, rather than the defaults for the daemon, and fix if not.
