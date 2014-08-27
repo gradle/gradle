@@ -644,6 +644,19 @@ To diagnose this they would have to have knowledge of each plugin's dependencies
 
 # Milestone 4 - declarative plugins
 
+## Story: Full plugin resolution context is reused for duration of build
+
+This story involves improving the plugin resolution process to cache/reuse more for the duration of the build:
+
+1. Reuse plugin portal responses
+1. Reuse dependency resolution details
+1. Reuse implementation classpath
+1. Reuse effective classloader network
+
+The implementation may not require reuse at each of the above levels, as reuse at outer levels may effectively provide reuse at lower levels.
+In large builds it is common for plugins to be used in many projects.
+The goal is to only do the work to prepare a plugin for use (e.g. resolve its implementation) once.
+
 ## Story: Script plugins are able to use `plugins {}`
 
 ## Story: Plugin author uses plugin development plugin to build a plugin
