@@ -34,6 +34,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     File repo2 = tmpDir.file("repo2")
 
     def setup() {
+        systemProperties = ["sys.prop": "sys/prop/value"]
         locations = new SimpleMavenFileLocations()
         locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), systemProperties, environmentVariables)
     }
@@ -42,6 +43,13 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         expect:
         // this default comes from DefaultMavenSettingsBuilder which uses System.getProperty() directly
         locator.localMavenRepository == new File("${System.getProperty("user.home")}/.m2/repository")
+    }
+
+    def "returns value of system property if it is specified"() {
+        given:
+        systemProperties.put("maven.repo.local", repo1.absolutePath)
+        expect:
+        locator.localMavenRepository == repo1
     }
 
     def "throws exception on broken global settings file with decent error message"() {
