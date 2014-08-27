@@ -525,7 +525,6 @@ task test << {
         inTestDirectory().withTasks('test').run()
     }
 
-    //TODO SF spockify and reduce duplication
     @Test
     @Issue("GRADLE-3124")
     public void "typo in configuration excludes is detected"() {
