@@ -266,33 +266,86 @@ For this story, it is not necessary for the failure message to fully indicate wh
   - Error message includes names of X tasks with names closest to given name (incl. where these tasks were defined)
 - User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)
 
-## Story: Model DSL rule uses a model as input
+## Story: Model DSL rule uses an untyped model element as input via name
 
-A mock up:
+This story adds the capability for rules declared in scripts to take inputs.
 
+    // note: DSL doesn't support registration at this time, so elements below have been registered by plugin
+    
     model {
-        someThing {
-            prop = model.otherThing.value
+        theThing { // registered by plugin
+          value = "foo"
         }
-        tasks {
-            someTask {
-                prop = model.someThing.prop
-            }
+        otherThing {
+            value = $("theThing").value + "-bar"
+            assert value == "foo-bar"
+        }
+        otherOtherThing {
+            value = $("otherOtherThing").value
+            assert value == "foo-bar"
+        }
+        
+        // Can address nested registered elements, but not arbitrary properties of registered elements
+        tasks.theTask {
+          dependsOn $("tasks.otherTask")
         }
     }
 
+### Implementation plan
+
+- Add a compile time transform to “lift” up `$(String)` method invocations in a manner that can be extracted from the closure object
+- When registering model closure actions, inspect this information in order to register rules with necessary inputs
+- Add notion of 'default' read only type to model registrations (which is what is returned here, given that there is no type information)
+- Transform closure implementation in some way to make model element available as result of $() method call (possibly transform in $() implementation, or rewrite statement)
+
+### Transform notes
+
+- Only support string literal arguments to `$()` (anything else is a compile time error)
+
+Transforming closures is difficult due to the implementation of the Groovy compiler.
+There's no transform time hook for transforming closure _classes_.
+It is easy to get a hold of the closure expression though, which is later converted to a Class.
+To transform the closure class, you need to inject a custom verifier (see example [here](https://github.com/ratpack/ratpack/blob/master/ratpack-groovy/src/main/java/ratpack/groovy/script/internal/ScriptEngine.java#L90)).
+
+To make the input information available it should be attached to the class.
+This can be done by attaching an annotation at transform time.
+Some scheme will have to be devised to communicate this information from the ClosureExpression stage to the verifier stage where the class object is available.
+One potential option will be to insert a fake statement as the first statement of the closure body during the transform stage, which is extracted at the class generation stage.
+
 ### Test cases
 
-- Reasonable error message when configuration closure fails.
-- Reasonable error message when unknown model element is requested as input.
+- Compile time failure
+  - Non string literal given to $() method
+  - No arguments given to $()
+  - More than one argument given
+- Input binding failure
+  - Unbound input (i.e. incorrect path) produces error message with line number of input declaration, and suggestions on alternatives (e.g. assume user mistyped name)
+- Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error
+- Success
+  - Existing inputs can be used
+  - Inputs are finalized when used
+  - Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)
 
-### Open issues
+## Story: Model DSL rule uses a typed model element as input via name
 
-- Build script declares model object.
-- Change closure resolution strategy to delegate-only.
-- Move `Project.afterEvaluate()` to fire after the build script has been executed.
-- Include rule execution time in the profile report.
+    model {
+      thing {
+        value = $("theThing", SomeType).value // convenience for non parameterised types
+      }  
+      otherType {
+        List<String> var = $("theThing")  // view as List<String>
+      }
+    }
 
+## Story: Model DSL rule uses an anonymous typed model element
+
+    model {
+      thing { List<String> strings ->
+        value = strings*.toUpperCase()
+      }  
+    }
+
+## Story: Model element is available fully configured during afterEvaluate()
 
 ## Story: Internal Gradle plugin defines lazily created task that is visible during configuration phase
 
@@ -329,6 +382,8 @@ This story is about helping plugin developers understand why a rule defined by t
 ## Story: Build user views report that shows information about the available model
 
 Add some command-line report to show basic details of the model space.
+
+## Story: Profile report contains information about execution time of model rules
 
 ## Story: Build user applies rule source class in similar manner to applying a plugin
 
@@ -374,6 +429,8 @@ Later stories cover making something like this public and documenting when/where
 - Replacement for current use of `RuleSource` to allow `Plugin` impl to include rules
 - Need a story to allow these rule source plugins to be applied to any `PluginAware`, and for the `plugins { }` DSL to work for settings and init scripts.
 
+## Story: Build author declares model element in build script
+
 ## Story: Plugin provides unmanaged object as model element
 
 For example, an extension.
@@ -391,6 +448,7 @@ For example, an extension or some ad hoc model object.
 - Provide some canned model objects, e.g. the project layout (project dir, build dir, file() method, etc).
 
 ## Story: Only declared inputs are visible to DSL model rule
+
 
 ## Story: Make public the Model DSL
 
