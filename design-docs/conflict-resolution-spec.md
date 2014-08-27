@@ -128,6 +128,8 @@ This states that 'org.springframework:spring' was replaced by both 'org.springfr
 - B-api, B-impl replaced by B
 - A replaced by A-api, A-impl starting from version 2.0
 - A replaced by B (rule1) and C (rule2). A,B,C in graph
+uhappy paths:
+- cycle between come of the modules
 
 # Open issues
 
