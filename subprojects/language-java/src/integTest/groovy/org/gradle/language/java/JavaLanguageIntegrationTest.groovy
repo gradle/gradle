@@ -303,7 +303,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     jvm {
         libraries {
             myLib {
-                target java("1.7")
+                target java("1.6")
             }
         }
     }
