@@ -17,8 +17,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
@@ -218,7 +216,7 @@ Searched in the following locations:
 
         then:
         def buildDir = file('build')
-        buildDir.assertHasDescendants("projectA-1.2.jar","projectB-1.2.jar")
+        buildDir.assertHasDescendants("projectA-1.2.jar", "projectB-1.2.jar")
     }
 
     def "mavenLocal ignores missing jar for module with packaging 'pom'"() {
