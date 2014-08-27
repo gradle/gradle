@@ -24,7 +24,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class JarTestFixture extends ZipTestFixture {
-    final int CLASS_FILE_DESCRIPTOR = 0xCAFEBABE
+    final int classFileDescriptor = 0xCAFEBABE
 
     File file
 
@@ -82,7 +82,7 @@ class JarTestFixture extends ZipTestFixture {
             try {
                 int header =  data.readInt()
 
-                if (CLASS_FILE_DESCRIPTOR != header) {
+                if (classFileDescriptor != header) {
                     throw new Exception("Invalid entry (class): " + classEntry.name + ":" + file)
                 } else {
                     data.readUnsignedShort(); //minor
