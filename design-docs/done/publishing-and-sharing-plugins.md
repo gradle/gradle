@@ -32,6 +32,31 @@ Adds the `plugins {}` DSL to build scripts (settings, init or arbitrary script n
 - ~~Plugin id cannot be empty string~~
 - ~~Plugin version cannot be empty string~~
 
+## ~~Story: Can use plugins {} in build script to use core plugin~~
+
+This story makes it possible for the user to use the new application mechanism to apply core plugins.
+At this point, there's no real advantage to the user or us in this, other than fleshing out the mechanics
+
+1. Add an internal service that advertises the core plugins of Gradle runtime (at this stage, all plugins shipped with the distribution)
+1. Change the implementation/use of `PluginSpecDsl` to make the specified plugins available
+1. After the execution of the plugins {} block, but before the “body” of the script, iterate through the specified plugins
+1. For each plugin specified, resolve the specification against the plugin resolvers - only the core plugin resolver at this stage
+1. If the plugin spec can't be satisfied (i.e. has a version constraint, or is not the _name_ of a core plugin), the build should fail indicating that the plugin spec could not be satisfied by the available resolvers (future stories will address providing more information to users, e.g. a list of available core plugins)
+
+At this stage, applying a core plugin with this mechanism effectively has the same semantics as having `apply plugin: "«name»"` as the first line of the build script.
+
+Note: plugins from buildSrc are not core plugins.
+
+### Test cases
+
+- ~~`plugins { id "java" }` applies the java plugin to the project when used in a _build_ script (equally for any core plugin)~~
+- ~~`plugins { id "java" version "«anything»" }` produces error stating that core plugins cannot have version constraints~~
+- ~~`plugins { id "java"; id "java" }` produces error stating that the same plugin was specified twice~~
+- ~~`plugins { id "org.gradle.java" }` is equivalent to `plugins { id "java" }`~~
+- ~~plugins already on the classpath (buildscript, buildSrc) are not considered core, and cannot be applied using `plugins {}`~~
+- ~~`plugins { id "«non core plugin»" }` produces suitable 'not found' type error message~~
+- ~~Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)~~
+
 ## ~~Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes~~
 
 > This story doesn't strictly deal with the milestone goal, but is included in this milestone for historical reasons.
@@ -105,6 +130,24 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 - ~~Plugin id and version numbers can contain URL meta chars and unicode chars (regardless of valid plugin ids not being allowed to contain non ascii alphanum or -) - request URLs should be well formed~~
 - ~~Reasonable error message on network failure talking to plugin portal~~
 - ~~Reasonable error message on network failure talking to repository containing plugin implementation~~
+
+## ~~Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”~~
+
+The plugin portal has a standardised JSON payload for errors.
+This story adds understanding of this to Gradle's interactions with the portal, by way of extracting the error information and presenting it to the user instead of a generic failure message.
+
+Any request to the plugin portal may return a “structured error response”.
+In some cases this may be part of the standard protocol for that endpoint.
+For example, a request for plugin metadata that targets the plugin metadata endpoint but resolves to a non existent plugin will yield a structured error response.
+The detail of the error response differentiates the response from a generic 404.
+
+### Test coverage
+
+- ~~4xx..5xx response that is not specifically handled (e.g. PLUGIN\_NOT_FOUND) is forwarded to user~~
+- ~~4xx..500 response that isn't a structured error response (e.g. HTML) is handled~~
+- ~~Response advertised as structured error response is of incompatible schema~~
+- ~~Response advertised as structured error response is malformed JSON~~
+- ~~Response advertised as structured error response is of compatible schema, but has extra unexpected elements~~
 
 ## Story: ~~Error message for unknown plugin or plugin version includes link to relevant human search interfaces~~
 
