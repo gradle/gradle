@@ -115,8 +115,10 @@ This states that 'org.springframework:spring' was replaced by both 'org.springfr
 - Every version of 'org.springframework:spring' and every version of 'org.springframework:spring-aop' conflict with each other.
 - Every version of 'org.springframework:spring-core' is newer than every version of 'org.springframework:spring'.
 - Every version of 'org.springframework:spring-aop' is newer than every version of 'org.springframework:spring'.
-- When replacing a version of 'org.springframework:spring' due to a conflict, include both 'org.springframework:spring-core' and 'org.springframework:spring-aop'
-in the result.
+- When graph contains:
+    - all 3 modules, include only 'org.springframework:spring-core' and 'org.springframework:spring-aop'
+    - 'spring' and 'spring-core', include only 'spring-core'
+    - 'spring' and 'spring-aop', include only 'spring-aop'
 
 ### Test coverage:
 
