@@ -135,3 +135,23 @@ This would include new releases of 6, 7, 8 and 9.
 # Enable TC's performance monitors
 
 See: http://blog.jetbrains.com/teamcity/2013/02/teamcity-performance-monitor/
+
+# Prevent accumulation of junk in /tmp
+
+Executing Gradle (to build and test Gradle) accumulates junk in the OS tmp dir.
+A `tmpreaper` job should be executed regularly to keep this clean.
+
+This would be obsolete if we completely rebuilt agent machines periodically. 
+
+# Prevent accumulation of old wrappers
+
+We are accumulating the wrappers for the versions of Gradle that we use to build Gradle itself.
+
+This would be obsolete if we completely rebuilt agent machines periodically. 
+
+# Prevent accumulation of junk in ~/.m2/repository 
+
+Certain integration tests write to `~/.m2/repository which collects junk.
+
+This would be obsolete if we completely rebuilt agent machines periodically. 
+
