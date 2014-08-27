@@ -195,7 +195,7 @@ plugins {
 
 model {
     platforms {
-        solaris { operatingSystem 'solaris' }
+        windows { operatingSystem 'windows'; architecture 'sparc' }
     }
     toolChains {
         ${toolChain.buildScriptConfig}
@@ -227,18 +227,18 @@ Source sets
 Binaries
     Shared library 'someLib:sharedLibrary' (not buildable)
         build using task: :someLibSharedLibrary
-        platform: solaris
+        platform: windows
         build type: debug
         flavor: default
         tool chain: unavailable
-        shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
+        shared library file: build/binaries/someLibSharedLibrary/someLib.dll
     Static library 'someLib:staticLibrary' (not buildable)
         build using task: :someLibStaticLibrary
-        platform: solaris
+        platform: windows
         build type: debug
         flavor: default
         tool chain: unavailable
-        static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
+        static library file: build/binaries/someLibStaticLibrary/someLib.lib
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
