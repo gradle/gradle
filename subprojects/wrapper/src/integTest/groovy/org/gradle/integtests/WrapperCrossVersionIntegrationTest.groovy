@@ -64,10 +64,16 @@ task hello {
 }
 """
         version(wrapperGenVersion).withTasks('wrapper').run()
-        def result = version(wrapperGenVersion).usingExecutable('gradlew').withArgument(customGradleUserHomeSystemProperty())withDeprecationChecksDisabled().withTasks('hello').run()
+        def result = version(wrapperGenVersion).usingExecutable('gradlew').withArgument(customGradleUserHomeSystemProperty()).withDeprecationChecksDisabled().withTasks('hello').run()
         assert result.output.contains("hello from $executionVersion.version.version")
     }
 
+
+    /**
+     * We additionally pass the gradle user home as a system property.
+     * Early gradle wrapper (< 1.7 don't honor --gradle-user-home command line option correctly
+     * and leaking gradle dist under test into ~/.gradle/wrapper.
+     * */
     def customGradleUserHomeSystemProperty() {
         return "-Dgradle.user.home=${integrationTestBuildContext.getGradleUserHomeDir().absolutePath}"
     }
