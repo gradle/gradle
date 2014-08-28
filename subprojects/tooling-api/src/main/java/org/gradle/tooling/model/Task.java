@@ -54,9 +54,8 @@ public interface Task extends Launchable {
      * Returns the element which this task belongs to.
      *
      * @deprecated Do not use this method. It is assumed that the caller already has a reference to owning project.
-     * @return The element which this task belongs to. Since 1.12 some implementations can return {@code null}.
-     * @throws org.gradle.tooling.model.UnsupportedMethodException thrown from implementation like
-     * {@link org.gradle.tooling.model.gradle.BuildInvocations}.
+     * @return The element which this task belongs to.
+     * @throws org.gradle.tooling.model.UnsupportedMethodException From 1.12 for implementations that do not also implement {@link org.gradle.tooling.model.GradleTask}.
      * @since 1.0-milestone-3
      */
     @Deprecated
