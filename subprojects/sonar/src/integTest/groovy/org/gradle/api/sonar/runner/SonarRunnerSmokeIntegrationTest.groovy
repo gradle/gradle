@@ -115,8 +115,22 @@ class SonarServerRule implements TestRule {
         )
 
         sonarProcess = processBuilder.start()
+
+        // ProcessBuilder#inheritIO() is java >= 7 only
+        inheritIO(sonarProcess.getInputStream(), System.out);
         available(serverUrl, "sonar")
         assert apiRequest('webservices/list').statusLine.statusCode < 400
+    }
+
+    private static void inheritIO(final InputStream src, final PrintStream dest) {
+        new Thread(new Runnable() {
+            public void run() {
+                Scanner sc = new Scanner(src);
+                while (sc.hasNextLine()) {
+                    dest.println(sc.nextLine());
+                }
+            }
+        }).start();
     }
 
     private TestFile prepareSonarHomeFolder() {
