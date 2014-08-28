@@ -33,16 +33,11 @@ import org.junit.Rule
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import spock.lang.Shared
 
 import static org.gradle.integtests.fixtures.UrlValidator.available
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
-
-    @Shared
-    AvailablePortFinder portFinder = AvailablePortFinder.createPrivate()
-
     @Rule
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
@@ -50,7 +45,7 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
     TestResources testResources = new TestResources(temporaryFolder)
 
     @Rule
-    SonarServerRule sonarServerRule = new SonarServerRule(tempDir, portFinder)
+    SonarServerRule sonarServerRule = new SonarServerRule(tempDir)
 
     def "execute 'sonarRunner' task"() {
         when:
@@ -64,7 +59,7 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
     private ExecutionResult runSonarRunnerTask() {
         executer
                 .withArgument("-i")
-                .withArgument("-Dsonar.host.url=http://localhost:9000")
+                .withArgument("-Dsonar.host.url=http://localhost:${sonarServerRule.httpPort}")
                 .withArgument("-Dsonar.jdbc.url=jdbc:h2:tcp://localhost:${sonarServerRule.databasePort}/sonar")
                 .withArgument("-Dsonar.jdbc.username=sonar")
                 .withArgument("-Dsonar.jdbc.password=sonar")
@@ -81,13 +76,13 @@ class SonarServerRule implements TestRule {
     private AvailablePortFinder portFinder
 
     private int databasePort
+    private int httpPort
+
     private Process sonarProcess
 
-    String serverUrl = 'http://localhost:9000'
-
-    SonarServerRule(TestNameTestDirectoryProvider provider, AvailablePortFinder portFinder) {
+    SonarServerRule(TestNameTestDirectoryProvider provider) {
         this.provider = provider
-        this.portFinder = portFinder
+        this.portFinder = AvailablePortFinder.createPrivate()
     }
 
     int getDatabasePort() {
@@ -128,7 +123,7 @@ class SonarServerRule implements TestRule {
 
     private TestFile prepareSonarHomeFolder() {
         databasePort = portFinder.nextAvailable
-
+        httpPort = portFinder.nextAvailable
         def classpath = ClasspathUtil.getClasspath(getClass().classLoader).collect() { new File(it.toURI()) }
         def zipFile = classpath.find { it.name ==~ "sonarqube.*\\.zip" }
         assert zipFile
@@ -137,6 +132,7 @@ class SonarServerRule implements TestRule {
         TestFile sonarHome = provider.testDirectory.file(zipFile.name - '.zip')
 
         sonarHome.file("conf/sonar.properties") << """\n
+            sonar.web.port=$httpPort
             sonar.jdbc.username=sonar
             sonar.jdbc.password=sonar
             sonar.jdbc.url=jdbc:h2:tcp://localhost:$databasePort/sonar
@@ -157,6 +153,10 @@ class SonarServerRule implements TestRule {
 
     void assertDbIsEmpty() {
         assert getResources().empty
+    }
+
+    String getServerUrl(){
+        "http://localhost:$httpPort"
     }
 
     def getResources() {
