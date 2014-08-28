@@ -665,6 +665,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType);
             Type serviceType = Type.getType(property.getType());
+            String propFieldName = propFieldName(property);
 
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getterName, methodDescriptor, signature(getter), new String[0]);
             methodVisitor.visitCode();
@@ -673,7 +674,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // this.field
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), propFieldName(property), serviceType.getDescriptor());
+            methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), propFieldName, serviceType.getDescriptor());
 
             Label alreadyLoaded = new Label();
             methodVisitor.visitJumpInsn(Opcodes.IFNONNULL, alreadyLoaded);
@@ -702,15 +703,35 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // this.field = (<type>)<service>
             methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, serviceType.getInternalName());
-            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), propFieldName(property), serviceType.getDescriptor());
+            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), propFieldName, serviceType.getDescriptor());
 
             // this.field
             methodVisitor.visitLabel(alreadyLoaded);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), propFieldName(property), serviceType.getDescriptor());
+            methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), propFieldName, serviceType.getDescriptor());
 
             // return
             methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        public void applyServiceInjectionToSetter(PropertyMetaData property, Method setter) throws Exception {
+            // GENERATE public void <setter>(<type> value) { <field> == value }
+            String methodDescriptor = Type.getMethodDescriptor(setter);
+            Type serviceType = Type.getType(property.getType());
+            String propFieldName = propFieldName(property);
+
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, setter.getName(), methodDescriptor, signature(setter), new String[0]);
+            methodVisitor.visitCode();
+
+            // this.field = value
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), propFieldName, serviceType.getDescriptor());
+
+            // return
+            methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }
@@ -726,7 +747,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void applyConventionMappingToGetter(PropertyMetaData property, Method getter) throws Exception {
-            // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', <prop>Set); }
+            // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__); }
             String flagName = propFieldName(property);
             String getterName = getter.getName();
 
@@ -780,7 +801,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void applyConventionMappingToSetter(PropertyMetaData property, Method setter) throws Exception {
-            // GENERATE public <return-type> <setter>(<type> v) { <return-type> v = super.<setter>(v); <prop>Set = true; return v; }
+            // GENERATE public <return-type> <setter>(<type> v) { <return-type> v = super.<setter>(v); __<prop>__ = true; return v; }
 
             Type paramType = Type.getType(setter.getParameterTypes()[0]);
             Type returnType = Type.getType(setter.getReturnType());
@@ -797,7 +818,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // END
 
-            // GENERATE <prop>Set = true
+            // GENERATE __<prop>__ = true
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitLdcInsn(true);
@@ -839,7 +860,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type returnType = Type.getType(method.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType, paramType);
 
-            // GENERATE public <returnType> <propName>(<type> v) { val = super.<propName>(v); <prop>Set = true; return val; }
+            // GENERATE public <returnType> <propName>(<type> v) { val = super.<propName>(v); __<prop>__ = true; return val; }
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
 
@@ -850,7 +871,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), method.getName(), methodDescriptor);
 
-            // GENERATE <prop>Set = true
+            // GENERATE __<prop>__ = true
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitLdcInsn(true);

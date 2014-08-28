@@ -290,6 +290,24 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         obj.getProperty("thing") == service
     }
 
+    def "can optionally set injected service using a service setter method"() {
+        given:
+        def services = Mock(ServiceRegistry)
+        def service = Mock(Runnable)
+
+        when:
+        def obj = create(BeanWithMutableServices, services)
+        obj.thing = service
+
+        then:
+        obj.thing == service
+        obj.getThing() == service
+        obj.getProperty("thing") == service
+
+        and:
+        0 * services._
+    }
+
     def "service lookup is lazy and the result is cached"() {
         given:
         def services = Mock(ServiceRegistry)
@@ -414,10 +432,13 @@ class ActionsTester {
 class CallsMethodDuringConstruction {
 
     Class setAtFieldInit = getClass()
+    Map<String, String> someMap = [:]
     Class setDuringConstructor
 
     CallsMethodDuringConstruction() {
-        setDuringConstructor = getClass()
+        setDuringConstructor = setAtFieldInit
+        someMap['a'] = 'b'
+        assert setDuringConstructor
     }
 }
 
@@ -478,4 +499,12 @@ class BeanWithServices {
 
     @Inject
     Runnable getThing() { throw new UnsupportedOperationException() }
+}
+
+class BeanWithMutableServices extends BeanWithServices {
+    BeanWithMutableServices(ServiceRegistry services) {
+        super(services)
+    }
+
+    void setThing(Runnable runnnable) { throw new UnsupportedOperationException() }
 }
