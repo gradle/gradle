@@ -106,7 +106,7 @@ class SonarServerRule implements TestRule {
 
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .directory(sonarHome)
-                .inheritIO()
+                .redirectErrorStream(true)
                 .command(
                     Jvm.current().getJavaExecutable().absolutePath,
                     '-XX:MaxPermSize=160m', '-Xmx512m', '-Djava.awt.headless=true',
