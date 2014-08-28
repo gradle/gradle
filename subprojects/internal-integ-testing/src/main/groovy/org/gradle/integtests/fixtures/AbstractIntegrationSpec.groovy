@@ -101,7 +101,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected GradleExecuter withDebugLogging() {
-        executer.withArguments("-d")
+        executer.withArgument("-d")
     }
 
     protected ExecutionResult succeeds(String... tasks) {
