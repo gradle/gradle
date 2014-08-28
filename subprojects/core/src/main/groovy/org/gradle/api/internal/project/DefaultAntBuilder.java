@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableMap;
@@ -23,10 +24,8 @@ import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Target;
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
+import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.ant.AntTarget;
@@ -34,7 +33,10 @@ import org.gradle.api.tasks.ant.AntTarget;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
@@ -86,6 +88,16 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
     }
 
     public void importBuild(Object antBuildFile) {
+        importBuild(antBuildFile, new ChainingTransformer<String>(String.class));
+    }
+
+    public void importBuild(Object antBuildFile, Closure closure) {
+        ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
+        transformer.add(closure);
+        importBuild(antBuildFile, transformer);
+    }
+
+    private void importBuild(Object antBuildFile, Transformer<String, String> transformer) {
         File file = gradleProject.file(antBuildFile);
         final File baseDir = file.getParentFile();
 
@@ -109,17 +121,20 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         newAntTargets.removeAll(existingAntTargets);
         for (String name : newAntTargets) {
             Target target = getAntProject().getTargets().get(name);
-            AntTarget task = gradleProject.getTasks().create(target.getName(), AntTarget.class);
+            final AntTarget task = gradleProject.getTasks().create(transformer.transform(target.getName()), AntTarget.class);
             task.setTarget(target);
             task.setBaseDir(baseDir);
-            addDependencyOrdering(target.getDependencies());
+            task.setTaskDelegateTransformer(transformer);
+            task.importAntTargetDependencies();
+
+            addDependencyOrdering(task.getAntTargetDependencyTaskNames());
         }
     }
 
-    private void addDependencyOrdering(Enumeration<String> dependencies) {
+    private void addDependencyOrdering(List<String> dependencies) {
         TaskContainer tasks = gradleProject.getTasks();
         String previous = null;
-        for (final String dependency : Collections.list(dependencies)) {
+        for (final String dependency : dependencies) {
             if (previous != null) {
                 final String finalPrevious = previous;
                 tasks.all(new Action<Task>() {

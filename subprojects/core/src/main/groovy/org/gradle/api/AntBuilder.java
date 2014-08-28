@@ -15,6 +15,8 @@
  */
 package org.gradle.api;
 
+import groovy.lang.Closure;
+
 import java.util.Map;
 
 /**
@@ -43,6 +45,15 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      * @param antBuildFile The build file. This is resolved as per {@link Project#file(Object)}.
      */
     public abstract void importBuild(Object antBuildFile);
+
+    /**
+     * Imports an Ant build into the associated Gradle project with the option of passing a closure which accepts the name
+     * of each Ant task in turn returns the name of the delegating Gradle task. Useful for avoiding namespace clashes.
+     *
+     * @param antBuildFile The build file. This is resolved as per {@link Project#file(Object)}.
+     * @param taskRenameClosure A closure which returns a delegate gradle task name for each Ant task in turn.
+     */
+    public abstract void importBuild(Object antBuildFile, Closure<String> taskRenameClosure);
 
     /**
      * Returns this AntBuilder. Useful when you need to pass this builder to methods from within closures.
