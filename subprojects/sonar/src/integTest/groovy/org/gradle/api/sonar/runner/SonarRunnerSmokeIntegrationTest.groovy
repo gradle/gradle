@@ -58,7 +58,6 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
 
     private ExecutionResult runSonarRunnerTask() {
         executer
-                .withArgument("-i")
                 .withArgument("-Dsonar.host.url=http://localhost:${sonarServerRule.httpPort}")
                 .withArgument("-Dsonar.jdbc.url=jdbc:h2:tcp://localhost:${sonarServerRule.databasePort}/sonar")
                 .withArgument("-Dsonar.jdbc.username=sonar")
