@@ -81,6 +81,24 @@ Support has been added for this environment which now makes it possible to use G
   
 This feature was contributed by [Colin Findlay](https://github.com/silver2k).
 
+### Support for renaming imported Ant targets
+
+When [importing an Ant build](userguide/ant.html#N11485) it is now possible to specify an alternative name for tasks that corresponds to the targets of the imported Ant build.
+This can be used to resolve naming collisions between Ant targets and existing Gradle tasks (GRADLE-771).
+
+To do so, supply a transformer to the [`ant.importBuild()`] method that supplies the alternative name.
+
+    apply plugin: "java" // adds 'clean' task
+    
+    ant.importBuild("build.xml") {
+        it == "clean" ? "ant-clean" : it
+    }
+
+The above example avoids a name collision with the clean task.
+See the [section on importing Ant builds in the Gradle Userguide](userguide/ant.html#N11485) for more information.
+
+This feature was contributed by [Paul Watson](https://github.com/w4tson).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -130,6 +148,18 @@ executing the first block.
 - Renamed `PlatformConfigurableToolChain` to `GccCompatibleToolChain`.
 - Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
 
+### Manually added AntTarget tasks no longer respect target dependencies
+
+The `org.gradle.api.tasks.ant.AntTarget` task implementation adapts a target from an Ant build to a Gradle task 
+and is used when Gradle [imports an Ant build](userguide/ant.html#N11485).
+
+In previous Gradle versions, it was somewhat possible to manually add tasks of this type and wire them to Ant targets manually.
+However, this was not recommended and can produce surprising and incorrect behaviour.
+Instead, the `ant.importBuild()` method should be used to import Ant build and to run Ant targets.
+
+As of Gradle 2.2, manually added `AntTarget` tasks no longer honor target dependencies.
+Tasks created as a result of `ant.importBuild()` (i.e. the recommended practice) are unaffected and will continue to work.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -142,6 +172,7 @@ We would like to thank the following community members for making contributions 
 * [Kallin Nagelberg](https://github.com/Kallin) - support for specifying VCS with IDEA plugin
 * [Christoph Gritschenberger](https://github.com/ChristophGr) - support for `maven.repo.local` system property
 * [Colin Findlay](https://github.com/silver2k) - OpenShift compatibility [GRADLE-2871]
+* [Paul Watson](https://github.com/w4tson) - Support for renaming Ant targets on import [GRADLE-771]
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

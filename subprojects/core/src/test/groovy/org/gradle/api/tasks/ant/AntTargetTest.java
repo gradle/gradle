@@ -19,7 +19,9 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.DefaultAntBuilder;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.internal.Transformers;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.junit.Before;
@@ -53,9 +55,7 @@ public class AntTargetTest {
         testTask.setProject(antTarget.getProject());
         antTarget.addTask(testTask);
 
-        task.setTarget(antTarget);
-        task.setBaseDir(baseDir);
-        task.importAntTargetDependencies();
+        DefaultAntBuilder.configureTask(antTarget, task, baseDir, Transformers.<String>passthru());
         task.executeAntTarget();
 
         assertTrue(testTask.executed);
@@ -66,7 +66,7 @@ public class AntTargetTest {
         Task a = project.getTasks().create("a");
         Task b = project.getTasks().create("b");
         antTarget.setDepends("a, b");
-        task.importAntTargetDependencies();
+        DefaultAntBuilder.configureTask(antTarget, task, baseDir, Transformers.<String>passthru());
 
         task.setTarget(antTarget);
         Set dependencies = task.getTaskDependencies().getDependencies(task);

@@ -38,6 +38,9 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         if (name.equals("GRADLE_CORE")) {
             return moduleRegistry.getModule("gradle-core").getImplementationClasspath();
         }
+        if (name.equals("GRADLE_BASE_SERVICES")) {
+            return moduleRegistry.getModule("gradle-base-services").getImplementationClasspath();
+        }
         if (name.equals("COMMONS_CLI")) {
             return moduleRegistry.getExternalModule("commons-cli").getClasspath();
         }

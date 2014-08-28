@@ -160,4 +160,14 @@ public abstract class Transformers {
         };
     }
 
+    private static class PassthruTransformer<T> implements Transformer<T, T> {
+        public T transform(T original) {
+            return original;
+        }
+    }
+
+    public static <T> Transformer<T, T> passthru() {
+        return new PassthruTransformer<T>();
+    }
+
 }

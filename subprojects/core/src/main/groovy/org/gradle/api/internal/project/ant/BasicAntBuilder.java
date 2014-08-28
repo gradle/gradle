@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.project.ant;
 
-import groovy.lang.Closure;
 import groovy.util.AntBuilder;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.ant.AntFileResource;
 import org.gradle.api.internal.file.ant.BaseDirSelector;
 
@@ -65,7 +65,7 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         throw new UnsupportedOperationException();
     }
 
-    public void importBuild(Object antBuildFile, Closure<String> c) {
+    public void importBuild(Object antBuildFile, Transformer<String, String> taskNamer) {
         throw new UnsupportedOperationException();
     }
 
