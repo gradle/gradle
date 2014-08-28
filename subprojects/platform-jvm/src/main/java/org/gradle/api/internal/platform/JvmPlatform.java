@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
  * Defines and configures a JVM platform.
  *
  * <pre>
+ * apply plugin: 'jvm-component'
  * apply plugin: 'java-lang'
  *
  * jvm {
