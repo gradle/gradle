@@ -34,9 +34,9 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -59,19 +59,16 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
-    private JavaToolChain toolChain;
 
     /**
      * Returns the tool chain that will be used to compile the Java source.
      *
      * @return The tool chain.
      */
-    @Incubating
+    @Incubating @Inject
     public JavaToolChain getToolChain() {
-        if (toolChain == null) {
-            toolChain = getServices().get(JavaToolChain.class);
-        }
-        return toolChain;
+        // Implementation is generated
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -81,7 +78,8 @@ public class JavaCompile extends AbstractCompile {
      */
     @Incubating
     public void setToolChain(JavaToolChain toolChain) {
-        this.toolChain = toolChain;
+        // Implementation is generated
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction

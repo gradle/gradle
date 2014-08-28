@@ -23,11 +23,12 @@ import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -82,8 +83,6 @@ public class Javadoc extends SourceTask {
     private FileCollection classpath = getProject().files();
 
     private String executable;
-
-    private JavaToolChain toolChain;
 
     @TaskAction
     protected void generate() {
@@ -144,12 +143,10 @@ public class Javadoc extends SourceTask {
     /**
      * Returns the tool chain that will be used to generate the Javadoc.
      */
-    @Incubating
+    @Incubating @Inject
     public JavaToolChain getToolChain() {
-        if (toolChain == null) {
-            toolChain = getServices().get(JavaToolChain.class);
-        }
-        return toolChain;
+        // Implementation is generated
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -157,7 +154,8 @@ public class Javadoc extends SourceTask {
      */
     @Incubating
     public void setToolChain(JavaToolChain toolChain) {
-        this.toolChain = toolChain;
+        // Implementation is generated
+        throw new UnsupportedOperationException();
     }
 
     /**
