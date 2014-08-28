@@ -160,6 +160,28 @@ Instead, the `ant.importBuild()` method should be used to import Ant build and t
 As of Gradle 2.2, manually added `AntTarget` tasks no longer honor target dependencies.
 Tasks created as a result of `ant.importBuild()` (i.e. the recommended practice) are unaffected and will continue to work.
 
+### Sonar Runner Plugin
+
+The sonar runner plugin now forks a new jvm to analyze the project. 
+Projects using the `sonar runner plugin` should double check their memory settings for the Gradle build. 
+Some large projects increased the memory settings for Gradle just to successfully run the sonar runner and avoid 
+OutOfMemoryExceptions in the according task. The memory used for the sonar runner can now be set explicitly.
+ 
+    sonarRunner {
+         forkOptions {
+             maxHeapSize = '1024m'
+             jvmArgs '-XX:MaxPermSize=128m'
+         }
+    }
+    
+The default sonar runner version was updated to 2.3 which might cause trouble. The version is also configurable from now on.
+    
+    sonarRunner {
+        toolVersion = '2.4'
+    }
+
+This feature was contributed by [Andrea Panattoni](https://github.com/zeeke).
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -173,6 +195,7 @@ We would like to thank the following community members for making contributions 
 * [Christoph Gritschenberger](https://github.com/ChristophGr) - support for `maven.repo.local` system property
 * [Colin Findlay](https://github.com/silver2k) - OpenShift compatibility [GRADLE-2871]
 * [Paul Watson](https://github.com/w4tson) - Support for renaming Ant targets on import [GRADLE-771]
+* [Andrea Panattoni](https://github.com/zeeke) - Provide option to fork Sonar analysis [GRADLE-2587]
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

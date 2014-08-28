@@ -116,7 +116,6 @@ class SonarServerRule implements TestRule {
         )
 
         sonarProcess = processBuilder.start()
-        // Can't find another way to be sure the server is up
         available(serverUrl, "sonar")
         assert apiRequest('webservices/list').statusLine.statusCode < 400
     }

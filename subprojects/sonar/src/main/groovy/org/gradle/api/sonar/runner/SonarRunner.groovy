@@ -82,10 +82,7 @@ class SonarRunner extends DefaultTask {
         )
 
         javaExec.setMain('org.sonar.runner.Main')
-
-        properties.each { key, value -> javaExec.systemProperty(key.toString(), value) }
-
-        javaExec
+        javaExec.systemProperties(properties)
     }
 
     @Inject
