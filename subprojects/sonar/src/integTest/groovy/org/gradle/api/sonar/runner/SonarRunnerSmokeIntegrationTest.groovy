@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.sonar.runner
-
 import groovy.json.JsonSlurper
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
@@ -35,6 +34,8 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import spock.lang.Shared
+
+import static org.gradle.integtests.fixtures.UrlValidator.available
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
@@ -120,9 +121,8 @@ class SonarServerRule implements TestRule {
         )
 
         sonarProcess = processBuilder.start()
-
         // Can't find another way to be sure the server is up
-        Thread.sleep(2000)
+        available(serverUrl, "sonar")
         assert apiRequest('webservices/list').statusLine.statusCode < 400
     }
 
