@@ -294,12 +294,11 @@
         <title>Executing Sonar Runner in a separate process</title>
         <para>
             Depending on project size, the Sonar Runner may require a lot of memory. For this and other (mainly isolation) reasons,
-            it is desirable to execute the Sonar Runner in a separate process. The <apilink class="org.gradle.api.sonar.runner.SonarRunner" />
-            task offers the boolean <literal>fork</literal> property to enable this behavior and the <literal>forkOptions</literal> property
-            to customize it.
+            the Sonar Runner is running in a separate process. The <literal>forkOptions</literal> property can be used
+            to customize this process.
         </para>
-        <sample id="advanced" dir="sonarRunner/advanced" title="Executing Sonar Runner in a separate process">
-            <sourcefile file="build.gradle" snippet="fork"/>
+        <sample id="advanced" dir="sonarRunner/advanced" title="setting custom Sonar Runner fork options">
+            <sourcefile file="build.gradle" snippet="forkoptions"/>
         </sample>
         <para>
             For a complete reference about the available options, see <apilink class="org.gradle.process.JavaForkOptions" />.

@@ -207,7 +207,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
         project.plugins.withType(JavaPlugin) {
             SourceSet main = project.sourceSets.main
             SourceSet test = project.sourceSets.test
-
+            println "configuring JavaPlugin"
             properties["sonar.sources"] = main.allSource.srcDirs.findAll { it.exists() } ?: null
             properties["sonar.tests"] = test.allSource.srcDirs.findAll { it.exists() } ?: null
             properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
@@ -224,9 +224,12 @@ class SonarRunnerPlugin implements Plugin<Project> {
         }
 
         if (properties["sonar.sources"] == null) {
+            println "sonar.sources == null"
+
             // Should be able to remove this after upgrading to Sonar Runner 2.1 (issue is already marked as fixed),
             // if we can live with the fact that leaf projects w/o source dirs will still cause a failure.
             properties["sonar.sources"] = ""
+            properties["sonar.tests"] = ""
         }
     }
 
