@@ -139,6 +139,15 @@ class PersistentCachingPluginResolutionServiceClientTest extends Specification {
         0 * delegate._
     }
 
+    def "closes cache and delegate"() {
+        when:
+        createClient().close()
+
+        then:
+        caches.closed
+        1 * delegate.close()
+    }
+
     static PluginRequest request(String id, String version = "1") {
         new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
     }

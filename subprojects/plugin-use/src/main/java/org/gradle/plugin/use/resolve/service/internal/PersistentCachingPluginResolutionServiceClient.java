@@ -121,7 +121,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
     }
 
     public void close() throws IOException {
-        CompositeStoppable.stoppable(delegate, cacheAccess);
+        CompositeStoppable.stoppable(delegate, cacheAccess).stop();
     }
 
     private static class ResponseSerializer<T> implements Serializer<Response<T>> {
