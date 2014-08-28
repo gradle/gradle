@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -30,8 +29,6 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 
 /**
  * Compiler adapter for GCC.
@@ -42,7 +39,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     public static final String DEFAULT_NAME = "gcc";
 
-    private final Transformer<GccVersionResult, File> versionDeterminer;
+    private final GccVersionDeterminer versionDeterminer;
     private final Instantiator instantiator;
 
     private GccVersionResult versionResult;
@@ -50,7 +47,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     public GccToolChain(Instantiator instantiator, String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
         super(name, operatingSystem, fileResolver, execActionFactory, new GccToolSearchPath(operatingSystem), instantiator);
         this.instantiator = instantiator;
-        this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
+        this.versionDeterminer = GccVersionDeterminer.forGcc(execActionFactory);
     }
 
     @Override
@@ -80,7 +77,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
             if (!compiler.isAvailable()) {
                 return;
             }
-            versionResult = versionDeterminer.transform(compiler.getTool());
+            versionResult = versionDeterminer.getGccMetaData(compiler.getTool());
             LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
         }
         availability.mustBeAvailable(versionResult);
