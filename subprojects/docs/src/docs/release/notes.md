@@ -73,6 +73,14 @@ contain information to be shared by all builds.
 
 This feature was contributed by [Christoph Gritschenberger](https://github.com/ChristophGr).
 
+### Compatibility with OpenShift
+
+The [OpenShift PaaS](https://www.openshift.com) environment uses a proprietary mechanism for discovering the binding address of the network interface.
+Gradle requires this information for inter process communication.
+Support has been added for this environment which now makes it possible to use Gradle with OpenShift.
+  
+This feature was contributed by [Colin Findlay](https://github.com/silver2k).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -133,6 +141,7 @@ We would like to thank the following community members for making contributions 
 * [Raymond Chiu](https://github.com/rschiu) - improve handling of install name in GCC tool chain
 * [Kallin Nagelberg](https://github.com/Kallin) - support for specifying VCS with IDEA plugin
 * [Christoph Gritschenberger](https://github.com/ChristophGr) - support for `maven.repo.local` system property
+* [Colin Findlay](https://github.com/silver2k) - OpenShift compatibility [GRADLE-2871]
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
