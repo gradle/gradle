@@ -31,7 +31,6 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
         DefaultSettingsBuilder defaultSettingsBuilder = factory.newInstance();
         DefaultSettingsBuildingRequest settingsBuildingRequest = new DefaultSettingsBuildingRequest();
         settingsBuildingRequest.setSystemProperties(System.getProperties());
-        settingsBuildingRequest.setUserSettingsFile(mavenFileLocations.getUserMavenDir());
         settingsBuildingRequest.setUserSettingsFile(mavenFileLocations.getUserSettingsFile());
         settingsBuildingRequest.setGlobalSettingsFile(mavenFileLocations.getGlobalSettingsFile());
         SettingsBuildingResult settingsBuildingResult = defaultSettingsBuilder.build(settingsBuildingRequest);
