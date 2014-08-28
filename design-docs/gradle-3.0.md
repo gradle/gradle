@@ -96,6 +96,8 @@ types and to offer a more consistent DSL.
 * Remove all methods that accept a `String` or `Object` when a enum overload is available. Add missing overloads where appropriate.
 * Remove CharSequence -> Enum conversion code in `DefaultTaskLogging`.
 * Remove all set methods that contain no custom logic.
+* Formally document the Closure → Action coercion mechanism
+    - Needs to be prominent enough that casual DSL ref readers understand this (perhaps such Action args are annotated in DSL ref)
 
 ## Tooling API clean ups
 
