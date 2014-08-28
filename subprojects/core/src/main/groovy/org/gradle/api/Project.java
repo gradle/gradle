@@ -833,7 +833,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ExecResult javaexec(Closure closure);
 
     /**
-     * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.
+     * Executes a Java main class. The action configures a {@link org.gradle.process.JavaExecSpec}.
      *
      * @param action The action for configuring the execution.
      * @return the result of the execution
@@ -849,7 +849,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ExecResult exec(Closure closure);
 
     /**
-     * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
+     * Executes an external command. The action configures a {@link org.gradle.process.ExecSpec}.
      *
      * @param action The action for configuring the execution.
      * @return the result of the execution
