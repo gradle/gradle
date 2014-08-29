@@ -23,6 +23,7 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelPath> {
@@ -34,9 +35,20 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
     }
 
     public List<ModelPath> transform(final ModelPath original) {
-        return CollectionUtils.filter(availablePaths, new ArrayList<ModelPath>(), new Spec<ModelPath>() {
+        List<ModelPath> suggestions = CollectionUtils.filter(availablePaths, new ArrayList<ModelPath>(), new Spec<ModelPath>() {
             public boolean isSatisfiedBy(ModelPath element) {
                 return StringUtils.getLevenshteinDistance(original.toString(), element.toString()) <= Math.min(3, original.toString().length() / 2);
+            }
+        });
+        return CollectionUtils.sort(suggestions, new Comparator<ModelPath>() {
+            public int compare(ModelPath firstPath, ModelPath secondPath) {
+                String first = firstPath.toString();
+                String second = secondPath.toString();
+                int result = first.length() - second.length();
+                if (result == 0) {
+                    result = first.compareTo(second);
+                }
+                return result;
             }
         });
     }
