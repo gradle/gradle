@@ -19,7 +19,7 @@ package org.gradle.model.internal.report.unbound
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
-class UnboundRulesReporterSpec extends Specification {
+class UnboundRulesReporterTest extends Specification {
 
     def output = new StringWriter()
     def reporter = new UnboundRulesReporter(new PrintWriter(output), "> ")
