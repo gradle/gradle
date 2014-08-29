@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -41,7 +40,7 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
         args.addAll(spec.getAllArgs());
         args.add("-c");
         if (spec.isPositionIndependentCode()) {
-            if (!OperatingSystem.current().isWindows()) {
+            if (!spec.getTargetPlatform().getOperatingSystem().isWindows()) {
                 args.add("-fPIC");
             }
         }

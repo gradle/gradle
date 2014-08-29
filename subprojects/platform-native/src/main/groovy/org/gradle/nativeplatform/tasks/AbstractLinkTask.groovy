@@ -105,6 +105,7 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
         }
 
         def spec = createLinkerSpec()
+        spec.targetPlatform = getTargetPlatform()
         spec.tempDir = getTemporaryDir()
         spec.outputFile = getOutputFile()
 

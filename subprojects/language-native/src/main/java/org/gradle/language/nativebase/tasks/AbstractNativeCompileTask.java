@@ -62,6 +62,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public void compile(IncrementalTaskInputs inputs) {
 
         NativeCompileSpec spec = createCompileSpec();
+        spec.setTargetPlatform(targetPlatform);
         spec.setTempDir(getTemporaryDir());
         spec.setObjectFileDir(getObjectFileDir());
         spec.include(getIncludes());

@@ -16,14 +16,8 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.platform.Platform;
-
 public interface SharedLibraryLinkerSpec extends LinkerSpec {
     String getInstallName();
 
     void setInstallName(String path);
-
-    Platform getTargetPlatform();
-
-    void setTargetPlatform(Platform platform);
 }
