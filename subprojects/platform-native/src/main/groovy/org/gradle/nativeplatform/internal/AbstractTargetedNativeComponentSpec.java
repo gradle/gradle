@@ -21,7 +21,7 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.ComponentSpecIdentifier;
 
 import java.util.Collections;
 import java.util.HashSet;

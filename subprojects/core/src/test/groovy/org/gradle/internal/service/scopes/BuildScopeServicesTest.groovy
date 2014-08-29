@@ -175,7 +175,6 @@ public class BuildScopeServicesTest extends Specification {
 
     def providesAnInitScriptHandler() {
         setup:
-        allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
         allowGetGradleDistributionLocator()
 
@@ -186,7 +185,6 @@ public class BuildScopeServicesTest extends Specification {
 
     def providesAScriptObjectConfigurerFactory() {
         setup:
-        allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
         expect:
         assertThat(registry.get(ScriptPluginFactory), instanceOf(DefaultScriptPluginFactory))
@@ -195,7 +193,6 @@ public class BuildScopeServicesTest extends Specification {
 
     def providesASettingsProcessor() {
         setup:
-        allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
         expect:
         assertThat(registry.get(SettingsProcessor), instanceOf(PropertiesLoadingSettingsProcessor))
@@ -215,7 +212,6 @@ public class BuildScopeServicesTest extends Specification {
     def providesAWorkerProcessFactory() {
         setup:
         expectParentServiceLocated(MessagingServer)
-        allowGetCoreImplClassLoader()
 
         expect:
         assertThat(registry.getFactory(WorkerProcessBuilder), instanceOf(DefaultWorkerProcessFactory))
@@ -224,7 +220,6 @@ public class BuildScopeServicesTest extends Specification {
     def providesAnIsolatedAntBuilder() {
         setup:
         expectParentServiceLocated(ClassLoaderFactory)
-        allowGetCoreImplClassLoader()
         expect:
 
         assertThat(registry.get(IsolatedAntBuilder), instanceOf(DefaultIsolatedAntBuilder))
@@ -292,10 +287,6 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(ListenerManager) >> listenerManagerParent
         1 * listenerManagerParent.createChild() >> listenerManager
         listenerManager
-    }
-
-    private void allowGetCoreImplClassLoader() {
-        classLoaderRegistry.getCoreImplClassLoader() >> new ClassLoader() {}
     }
 
     private void allowGetGradleDistributionLocator() {

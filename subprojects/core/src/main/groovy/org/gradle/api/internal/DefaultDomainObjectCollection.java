@@ -146,8 +146,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     /**
      * Adds an action which is executed before this collection is mutated. Any exception thrown by the action will veto the mutation.
      */
-    public void beforeChange(Runnable action) {
+    public DefaultDomainObjectCollection<T> beforeChange(Runnable action) {
         mutateActions.add(action);
+        return this;
     }
 
     private Action<? super T> toAction(final Closure action) {

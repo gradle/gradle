@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.scala;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
-import org.gradle.language.jvm.internal.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJavaJointCompileSpec>
         implements Compiler<ScalaJavaJointCompileSpec> {

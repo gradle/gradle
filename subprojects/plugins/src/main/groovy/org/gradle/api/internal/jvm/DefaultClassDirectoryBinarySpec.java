@@ -19,10 +19,10 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.jvm.JvmBinaryTasks;
-import org.gradle.runtime.jvm.internal.DefaultJvmBinaryTasks;
-import org.gradle.runtime.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.jvm.JvmBinaryTasks;
+import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
+import org.gradle.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
 

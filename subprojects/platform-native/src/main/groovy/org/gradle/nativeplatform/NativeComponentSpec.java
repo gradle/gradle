@@ -17,7 +17,7 @@ package org.gradle.nativeplatform;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpec;
 
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.

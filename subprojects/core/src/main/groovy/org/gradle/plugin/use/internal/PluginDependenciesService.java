@@ -16,11 +16,14 @@
 
 package org.gradle.plugin.use.internal;
 
+import com.google.common.collect.ListMultimap;
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.PluginDependencySpec;
+import org.gradle.util.CollectionUtils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -68,11 +71,31 @@ public class PluginDependenciesService {
     }
 
     public List<PluginRequest> getRequests() {
-        return collect(specs, new Transformer<PluginRequest, DependencySpecImpl>() {
+        List<PluginRequest> pluginRequests = collect(specs, new Transformer<PluginRequest, DependencySpecImpl>() {
             public PluginRequest transform(DependencySpecImpl original) {
                 return new DefaultPluginRequest(original.id, original.version, original.lineNumber, scriptSource);
             }
         });
+
+        ListMultimap<PluginId, PluginRequest> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequest>() {
+            public PluginId transform(PluginRequest pluginRequest) {
+                return pluginRequest.getId();
+            }
+        });
+
+        // Check for duplicates
+        for (PluginId key : groupedById.keySet()) {
+            List<PluginRequest> pluginRequestsForId = groupedById.get(key);
+            if (pluginRequestsForId.size() > 1) {
+                PluginRequest first = pluginRequests.get(0);
+                PluginRequest second = pluginRequests.get(1);
+
+                InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
+                throw new LocationAwareException(exception, second.getScriptSource(), second.getLineNumber());
+            }
+        }
+
+        return pluginRequests;
     }
 
 }

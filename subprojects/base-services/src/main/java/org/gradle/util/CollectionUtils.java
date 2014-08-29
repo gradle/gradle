@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 
 import java.lang.reflect.Array;
@@ -541,6 +542,28 @@ public abstract class CollectionUtils {
         }
 
         return builder.build();
+    }
+
+    public static <T> Iterable<? extends T> unpack(final Iterable<? extends Factory<? extends T>> factories) {
+        return new Iterable<T>() {
+            private final Iterator<? extends Factory<? extends T>> delegate = factories.iterator();
+
+            public Iterator<T> iterator() {
+                return new Iterator<T>() {
+                    public boolean hasNext() {
+                        return delegate.hasNext();
+                    }
+
+                    public T next() {
+                        return delegate.next().create();
+                    }
+
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+        };
     }
 
 }

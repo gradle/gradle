@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.runtime.base.LibraryBinarySpec;
+import org.gradle.platform.base.LibraryBinarySpec;
 
 /**
  * Represents a binary artifact that is the result of building a native library component.

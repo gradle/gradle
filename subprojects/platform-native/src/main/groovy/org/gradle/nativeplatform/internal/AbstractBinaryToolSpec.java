@@ -15,6 +15,8 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.nativeplatform.platform.Platform;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,15 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
     private List<String> args = new ArrayList<String>();
     private List<String> systemArgs = new ArrayList<String>();
     private File tempDir;
+    private Platform platform;
+
+    public Platform getTargetPlatform() {
+        return platform;
+    }
+
+    public void setTargetPlatform(Platform platform) {
+        this.platform = platform;
+    }
 
     public File getTempDir() {
         return tempDir;

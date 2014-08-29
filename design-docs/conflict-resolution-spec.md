@@ -21,11 +21,7 @@ There are two things we need to be able to do when traversing the graph:
 DSL mock up:
 
     dependencies {
-        components {
-            modules('com.google.collections:google-collections') {
-                replacedBy 'com.google.guava:guava'
-            }
-        }
+        components.module('com.google.collections:google-collections').replacedBy('com.google.guava:guava')
     }
 
 This states that module 'com.google.collections:google-collections' was replaced/superseded/deprecated by 'com.google.guava:guava' at some point. This implies
@@ -108,7 +104,7 @@ DSL mock-up:
 
     dependencies {
         components {
-            module('org.springframework:spring') { ComponentMetaData details ->
+            module('org.springframework:spring') { ModuleMetadataDetails details ->
                 details.replacedBy 'org.springframework:spring-core'
                 details.replacedBy 'org.springframework:spring-aop'
             }
@@ -121,6 +117,22 @@ This states that 'org.springframework:spring' was replaced by both 'org.springfr
 - Every version of 'org.springframework:spring-aop' is newer than every version of 'org.springframework:spring'.
 - When replacing a version of 'org.springframework:spring' due to a conflict, include both 'org.springframework:spring-core' and 'org.springframework:spring-aop'
 in the result.
+
+### Test coverage:
+
+- A replaced by A-api, A-impl
+    - When dependencies on A and A-api:1.2 are present in the graph, the result should contain A-api:1.2 and A-impl:1.2
+    - When dependencies on A and A-api:1.2 and A-impl:1.3 are present in the graph, the result should contain A-api:1.3 and A-impl:1.3
+- B-api, B-impl replaced by B
+- A replaced by A-api, A-impl starting from version 2.0
+- A replaced by B (rule1) and C (rule2). A,B,C in graph
+
+# Open issues
+
+- need to use the same version of A-api and A-impl regardless of whether A is in the graph or not. The DSL above doesn't capture this
+- what do we do if 2 replacement rules match given component? Which rule should be chosen?
+
+# DSL brainstorming
 
 DSL brainstorming, other ideas:
 
@@ -162,28 +174,6 @@ DSL brainstorming, other ideas:
                 releasableUnit() //ensures 'groovy-core' and 'groovy-xml' will have consistent version
             }
 
-More brainstorming, based on the dependency resolve rules:
-
-configurations.all {
-    resolutionStrategy.eachDependency { details ->
-        if (details.target.name == 'google-collections') {
-            details.prefer "com.google.guava:guava"
-        }
-        if (details.target.name == 'spring') {
-            details.prefer "org.springframework:spring-*"
-        }
-        if (details.target.name == 'spring') {
-            details.prefer { it.group = "org.springframework" && it.name.startsWith("spring-") }
-        }
-        if (details.target.group == 'foo' && details.target.name == 'foo-impl') {
-            details.useSameVersionAs('foo:foo-api')
-        }
-        if (details.target.group.startsWith('com.linkedin')) {
-            details.useSameVersionAs(group: details.target.group, name: details.target.name)
-        }
-    }
-}
-
 More brainstorming, based on an existing API for configuring module metadata:
 
     dependencies {
@@ -224,17 +214,3 @@ More brainstorming, based on an existing API for configuring module metadata:
             }
         }
     }
-
-### Test coverage:
-
-- A replaced by A-api, A-impl
-    - When dependencies on A and A-api:1.2 are present in the graph, the result should contain A-api:1.2 and A-impl:1.2
-    - When dependencies on A and A-api:1.2 and A-impl:1.3 are present in the graph, the result should contain A-api:1.3 and A-impl:1.3
-- B-api, B-impl replaced by B
-- A replaced by A-api, A-impl starting from version 2.0
-- A replaced by B (rule1) and C (rule2). A,B,C in graph
-
-# Open issues
-
-- need to use the same version of A-api and A-impl regardless of whether A is in the graph or not. The DSL above doesn't capture this
-- what do we do if 2 replacement rules match given component? Which rule should be chosen?

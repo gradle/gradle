@@ -13,7 +13,7 @@
     <section>
         <title>Usage</title>
         <para>To use the Java library distribution plugin, include the following in your build script:</para>
-        <sample id="usejavaLibraryPlugin" dir="userguide/javaLibraryDistribution" title="Using the java library distribution plugin">
+        <sample id="usejavaLibraryPlugin" dir="userguide/javaLibraryDistribution" title="Using the Java library distribution plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>To define the name for the distribution you have to set the <literal>baseName</literal> property as shown below:

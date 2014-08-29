@@ -22,11 +22,13 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
 import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
-import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
 import spock.lang.Specification
 
 class DefaultNativeBinariesFactoryTest extends Specification {
@@ -34,6 +36,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
     Action<NativeBinarySpec> configAction = Mock(Action)
 
     def toolChain = Mock(ToolChainInternal)
+    def toolProvider = Mock(PlatformToolProvider)
     def platform = Mock(Platform)
     def buildType = Mock(BuildType)
     def flavor = Mock(Flavor)
@@ -53,13 +56,14 @@ class DefaultNativeBinariesFactoryTest extends Specification {
         1 * configAction.execute(_)
 
         and:
-        factory.createNativeBinaries(executable, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        factory.createNativeBinaries(executable, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
 
         then:
         executable.binaries.size() == 1
-        def binary = (executable.binaries as List)[0] as NativeBinarySpec
+        def binary = (executable.binaries as List)[0] as NativeBinarySpecInternal
         binary.name == "testExecutable"
         binary.toolChain == toolChain
+        binary.platformToolProvider == toolProvider
         binary.targetPlatform == platform
         binary.buildType == buildType
         binary.flavor == flavor
@@ -73,20 +77,22 @@ class DefaultNativeBinariesFactoryTest extends Specification {
         2 * configAction.execute(_)
 
         and:
-        factory.createNativeBinaries(library, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        factory.createNativeBinaries(library, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
 
         then:
         library.binaries.size() == 2
-        def sharedLibrary = (library.binaries.withType(SharedLibraryBinarySpec) as List)[0] as NativeBinarySpec
+        def sharedLibrary = (library.binaries.withType(SharedLibraryBinarySpec) as List)[0] as NativeBinarySpecInternal
         sharedLibrary.name == "testSharedLibrary"
         sharedLibrary.toolChain == toolChain
+        sharedLibrary.platformToolProvider == toolProvider
         sharedLibrary.targetPlatform == platform
         sharedLibrary.buildType == buildType
         sharedLibrary.flavor == flavor
 
-        def staticLibrary = (library.binaries.withType(SharedLibraryBinarySpec) as List)[0] as NativeBinarySpec
+        def staticLibrary = (library.binaries.withType(SharedLibraryBinarySpec) as List)[0] as NativeBinarySpecInternal
         staticLibrary.name == "testSharedLibrary"
         staticLibrary.toolChain == toolChain
+        staticLibrary.platformToolProvider == toolProvider
         staticLibrary.targetPlatform == platform
         staticLibrary.buildType == buildType
         staticLibrary.flavor == flavor

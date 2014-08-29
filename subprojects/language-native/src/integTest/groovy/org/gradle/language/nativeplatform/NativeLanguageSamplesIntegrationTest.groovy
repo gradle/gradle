@@ -1,0 +1,226 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.language.nativeplatform
+
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.test.cunit.CUnitTestResults
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.junit.Rule
+
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+
+@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
+    @Rule public final Sample assembler = sample(testDirProvider, 'assembler')
+    @Rule public final Sample c = sample(testDirProvider, 'c')
+    @Rule public final Sample cpp = sample(testDirProvider, 'cpp')
+    @Rule public final Sample objectiveC = sample(testDirProvider, 'objective-c')
+    @Rule public final Sample objectiveCpp = sample(testDirProvider, 'objective-cpp')
+    @Rule public final Sample customLayout = sample(testDirProvider, 'custom-layout')
+    @Rule public final Sample windowsResources = sample(testDirProvider, 'windows-resources')
+    @Rule public final Sample idl = sample(testDirProvider, 'idl')
+    @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
+
+    private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
+        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
+    }
+
+    def "assembler"() {
+        given:
+        sample assembler
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        nonSkippedTasks.count { it.startsWith(":assembleMainExecutable") } == 1
+        executedAndNotSkipped ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation(assembler.dir.file("build/install/mainExecutable")).exec().out == "5 + 7 = 12\n"
+    }
+
+    def "c"() {
+        given:
+        sample c
+        
+        when:
+        run "installMainExecutable"
+        
+        then:
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloC", ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation(c.dir.file("build/install/mainExecutable")).exec().out == "Hello world!"
+    }
+
+    def "cpp"() {
+        given:
+        sample cpp
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation(cpp.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "objectiveC"() {
+        given:
+        sample objectiveC
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileMainExecutableMainObjc", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        executable(objectiveC.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello world!\n"
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "objectiveCpp"() {
+        given:
+        sample objectiveCpp
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileMainExecutableMainObjcpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        executable(objectiveCpp.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello world!\n"
+    }
+
+    @RequiresInstalledToolChain(VisualCpp)
+    def "win rc"() {
+        given:
+        sample windowsResources
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":compileHelloSharedLibraryHelloRc",
+                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation(windowsResources.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
+
+        when:
+        executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
+        run "helloResSharedLibrary"
+
+        then:
+        file(windowsResources.dir.file("build/binaries/helloResSharedLibrary/helloRes.dll")).assertExists()
+    }
+
+    def "custom layout"() {
+        given:
+        sample customLayout
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileHelloStaticLibraryHelloC", ":createHelloStaticLibrary", ":helloStaticLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation(customLayout.dir.file("build/install/mainExecutable")).exec().out == "Hello world!"
+    }
+
+    def "idl"() {
+        given:
+        sample idl
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":idl", ":compileMainExecutableMainC", ":compileMainExecutableMainIdlOutput",
+                              ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation(idl.dir.file("build/install/mainExecutable")).exec().out == "Hello from generated source!!\n"
+    }
+
+    def "cunit"() {
+        given:
+        // CUnit prebuilt library only works for VS2010 on windows
+        if (OperatingSystem.current().windows && !isVisualCpp2010()) {
+            return
+        }
+
+        when:
+        sample cunit
+        succeeds "runPassing"
+
+        then:
+        executedAndNotSkipped ":operatorsTestCUnitLauncher",
+                              ":compilePassingOperatorsTestCUnitExeOperatorsTestC", ":compilePassingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
+                              ":linkPassingOperatorsTestCUnitExe", ":passingOperatorsTestCUnitExe",
+                              ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
+
+        and:
+        def passingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTestCUnitExe/passing/CUnitAutomated-Results.xml"))
+        passingResults.suiteNames == ['operator tests']
+        passingResults.suites['operator tests'].passingTests == ['test_plus', 'test_minus']
+        passingResults.suites['operator tests'].failingTests == []
+        passingResults.checkTestCases(2, 2, 0)
+        passingResults.checkAssertions(6, 6, 0)
+
+        when:
+        sample cunit
+        fails "runFailing"
+
+        then:
+        skipped ":operatorsTestCUnitLauncher"
+        executedAndNotSkipped ":compileFailingOperatorsTestCUnitExeOperatorsTestC", ":compileFailingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
+                              ":linkFailingOperatorsTestCUnitExe", ":failingOperatorsTestCUnitExe",
+                              ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
+
+        and:
+        def failingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTestCUnitExe/failing/CUnitAutomated-Results.xml"))
+        failingResults.suiteNames == ['operator tests']
+        failingResults.suites['operator tests'].passingTests == ['test_minus']
+        failingResults.suites['operator tests'].failingTests == ['test_plus']
+        failingResults.checkTestCases(2, 1, 1)
+        failingResults.checkAssertions(6, 4, 2)
+    }
+
+    private static boolean isVisualCpp2010() {
+        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "10")
+    }
+
+}

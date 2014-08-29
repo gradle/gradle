@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 import java.io.File;
@@ -44,4 +45,9 @@ public interface VisualCpp extends ToolChain {
      * The directory where Windows SDK is installed.
      */
     void setWindowsSdkDir(Object installDir);
+
+    /**
+     * Adds an action that can fine-tune the tool configuration for each platform supported by this tool chain.
+     */
+    public void eachPlatform(Action<? super VisualCppPlatformToolChain> action);
 }

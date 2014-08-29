@@ -91,10 +91,10 @@ ext {
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageBase',
-        'platformJvm', 'languageJvm',
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
+        'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy',
         'platformNative', 'languageNative', 'ideNative',
-        'plugin-development', 'pluginUse'
+        'pluginDevelopment', 'pluginUse'
     ].collect {
         project(it)
     }

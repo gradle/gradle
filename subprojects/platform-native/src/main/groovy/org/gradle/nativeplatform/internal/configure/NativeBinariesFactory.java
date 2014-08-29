@@ -16,12 +16,13 @@
 package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 
 public interface NativeBinariesFactory {
-    void createNativeBinaries(NativeComponentSpec component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor);
+    void createNativeBinaries(NativeComponentSpec component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, PlatformToolProvider toolProvider, Platform platform, BuildType buildType, Flavor flavor);
 }

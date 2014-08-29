@@ -16,22 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 
 public interface ToolChainInternal extends ToolChain {
     /**
      * Locates the tools that can target the given platform.
      */
-    PlatformToolChain select(Platform targetPlatform);
-
-    String getExecutableName(String executablePath);
-
-    String getSharedLibraryName(String libraryPath);
-
-    String getSharedLibraryLinkFileName(String libraryPath);
-
-    String getStaticLibraryName(String libraryPath);
+    PlatformToolProvider select(PlatformInternal targetPlatform);
 
     /**
      * Returns a unique identifier for the output produced by this toolchain on the current platform.

@@ -20,7 +20,9 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginAware;
 
+import java.util.Collection;
+
 // Implementation is provided by 'plugin-use' module
 public interface PluginRequestApplicator {
-    void applyPlugins(Iterable<? extends PluginRequest> requests, ScriptHandler scriptHandler, PluginAware target, ClassLoaderScope classLoaderScope);
+    void applyPlugins(Collection<? extends PluginRequest> requests, ScriptHandler scriptHandler, PluginAware target, ClassLoaderScope classLoaderScope);
 }

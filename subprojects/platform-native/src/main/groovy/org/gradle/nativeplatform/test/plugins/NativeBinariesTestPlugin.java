@@ -35,8 +35,8 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.TestSuiteContainer;
 import org.gradle.nativeplatform.test.internal.DefaultTestSuiteContainer;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 

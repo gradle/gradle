@@ -22,8 +22,9 @@ import org.gradle.nativeplatform.sourceset.NativeResourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 import java.util.Collections;
@@ -33,9 +34,9 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public DefaultSharedLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public DefaultSharedLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, PlatformToolProvider toolProvider, Platform platform, BuildType buildType,
                                           BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
+        super(library, flavor, toolChain, toolProvider, platform, buildType, namingScheme, resolver);
     }
 
     public File getSharedLibraryFile() {

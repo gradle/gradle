@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -35,16 +34,16 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleVersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflict;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,19 +53,19 @@ public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private final DependencyToModuleVersionIdResolver dependencyResolver;
     private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
-    private final ModuleConflictResolver conflictResolver;
+    private final ConflictHandler conflictHandler;
     private final ModuleToModuleVersionResolver moduleResolver;
     private final ArtifactResolver artifactResolver;
 
     public DependencyGraphBuilder(DependencyToModuleVersionIdResolver dependencyResolver,
                                   ModuleToModuleVersionResolver moduleResolver,
                                   ArtifactResolver artifactResolver,
-                                  ModuleConflictResolver conflictResolver,
+                                  ConflictHandler conflictHandler,
                                   DependencyToConfigurationResolver dependencyToConfigurationResolver) {
         this.dependencyResolver = dependencyResolver;
         this.moduleResolver = moduleResolver;
         this.artifactResolver = artifactResolver;
-        this.conflictResolver = conflictResolver;
+        this.conflictHandler = conflictHandler;
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
     }
 
@@ -85,7 +84,7 @@ public class DependencyGraphBuilder {
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver);
-        ConflictHandler conflictHandler = new ConflictHandler(new DirectDependencyForcingResolver(conflictResolver, resolveState.root.moduleRevision));
+        conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
 
@@ -124,8 +123,8 @@ public class DependencyGraphBuilder {
                         ModuleResolveState module = resolveState.getModule(moduleId);
 
                         // A new module revision. Check for conflict
-                        ModuleConflict c = conflictHandler.registerModule(module, moduleRevision.preferredTarget);
-                        if (c == null) {
+                        PotentialConflict c = conflictHandler.registerModule(module);
+                        if (!c.conflictExists()) {
                             // No conflict. Select it for now
                             LOGGER.debug("Selecting new module version {}", moduleRevision);
                             module.select(moduleRevision);
@@ -136,7 +135,7 @@ public class DependencyGraphBuilder {
                             // Deselect the currently selected version, and remove all outgoing edges from the version
                             // This will propagate through the graph and prune configurations that are no longer required
                             // For each module participating in the conflict (many times there is only one participating module that has multiple versions)
-                            c.withAffectedModules(new Action<ModuleIdentifier>() {
+                            c.withParticipatingModules(new Action<ModuleIdentifier>() {
                                 public void execute(ModuleIdentifier module) {
                                     ModuleVersionResolveState previouslySelected = resolveState.getModule(module).clearSelection();
                                     if (previouslySelected != null) {
@@ -155,7 +154,7 @@ public class DependencyGraphBuilder {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 conflictHandler.resolveNextConflict(new Action<ConflictResolutionResult>() {
                     public void execute(final ConflictResolutionResult result) {
-                        result.getConflict().withAffectedModules(new Action<ModuleIdentifier>() {
+                        result.getConflict().withParticipatingModules(new Action<ModuleIdentifier>() {
                             public void execute(ModuleIdentifier moduleIdentifier) {
                                 ModuleVersionResolveState selected = result.getSelected();
                                 // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
@@ -514,7 +513,6 @@ public class DependencyGraphBuilder {
         private ModuleVersionIdResolveResult idResolveResult;
         private ComponentResolveResult resolveResult;
         private ModuleVersionResolveException failure;
-        @Nullable private ModuleIdentifier preferredTarget;
 
         private ModuleVersionResolveState(ModuleResolveState module, ModuleVersionIdentifier id) {
             this.module = module;
@@ -851,7 +849,6 @@ public class DependencyGraphBuilder {
             targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             targetModuleRevision.addResolver(this);
             targetModuleRevision.selectionReason = idResolveResult.getSelectionReason();
-            targetModuleRevision.preferredTarget = idResolveResult.getPreferredTarget();
             targetModule = targetModuleRevision.module;
             targetModule.addSelector(this);
 
@@ -865,11 +862,9 @@ public class DependencyGraphBuilder {
     }
 
     private static class DirectDependencyForcingResolver implements ModuleConflictResolver {
-        private final ModuleConflictResolver resolver;
         private final ModuleVersionResolveState root;
 
-        private DirectDependencyForcingResolver(ModuleConflictResolver resolver, ModuleVersionResolveState root) {
-            this.resolver = resolver;
+        private DirectDependencyForcingResolver(ModuleVersionResolveState root) {
             this.root = root;
         }
 
@@ -882,7 +877,7 @@ public class DependencyGraphBuilder {
                     }
                 }
             }
-            return resolver.select(candidates);
+            return null;
         }
     }
 }

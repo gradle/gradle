@@ -15,16 +15,16 @@
  */
 package org.gradle.nativeplatform.platform.internal;
 
-import org.gradle.nativeplatform.platform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 
-public class DefaultOperatingSystem implements OperatingSystem {
-    private static final org.gradle.internal.os.OperatingSystem CURRENT_OS = org.gradle.internal.os.OperatingSystem.current();
-    public static final OperatingSystem TOOL_CHAIN_DEFAULT = new DefaultOperatingSystem("default", CURRENT_OS);
+public class DefaultOperatingSystem implements OperatingSystemInternal {
+    private static final OperatingSystem CURRENT_OS = OperatingSystem.current();
+    public static final OperatingSystemInternal TOOL_CHAIN_DEFAULT = new DefaultOperatingSystem("default", CURRENT_OS);
 
     private final String name;
-    private final org.gradle.internal.os.OperatingSystem internalOs;
+    private final OperatingSystem internalOs;
 
-    public DefaultOperatingSystem(String name, org.gradle.internal.os.OperatingSystem internalOs) {
+    public DefaultOperatingSystem(String name, OperatingSystem internalOs) {
         this.name = name;
         this.internalOs = internalOs;
     }
@@ -40,6 +40,10 @@ public class DefaultOperatingSystem implements OperatingSystem {
     @Override
     public String toString() {
         return getDisplayName();
+    }
+
+    public OperatingSystem getInternalOs() {
+        return internalOs;
     }
 
     public boolean isCurrent() {
@@ -59,10 +63,10 @@ public class DefaultOperatingSystem implements OperatingSystem {
     }
 
     public boolean isSolaris() {
-        return internalOs == org.gradle.internal.os.OperatingSystem.SOLARIS;
+        return internalOs == OperatingSystem.SOLARIS;
     }
 
     public boolean isFreeBSD() {
-        return internalOs == org.gradle.internal.os.OperatingSystem.FREE_BSD;
+        return internalOs == OperatingSystem.FREE_BSD;
     }
 }

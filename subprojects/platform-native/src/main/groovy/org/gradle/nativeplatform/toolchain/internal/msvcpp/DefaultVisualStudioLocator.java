@@ -22,6 +22,7 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativeplatform.platform.Architecture;
+import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.ArchitectureNotationParser;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.TreeVisitor;
@@ -180,7 +181,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         Map<Architecture, File> includePaths = new HashMap<Architecture, File>();
         Map<Architecture, String> assemblerFilenames = new HashMap<Architecture, String>();
         Map<Architecture, Map<String, String>> definitions = new HashMap<Architecture, Map<String, String>>();
-        NotationParser<Object, Architecture> architectureParser = ArchitectureNotationParser.parser();
+        NotationParser<Object, ArchitectureInternal> architectureParser = ArchitectureNotationParser.parser();
         Architecture amd64 = architectureParser.parseNotation(ARCHITECTURE_AMD64);
         Architecture x86 = architectureParser.parseNotation(ARCHITECTURE_X86);
         Architecture arm = architectureParser.parseNotation(ARCHITECTURE_ARM);

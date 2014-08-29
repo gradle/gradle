@@ -50,7 +50,7 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
         expect:
         fails("verify")
         failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
-        failure.assertHasCause("Plugin cannot be resolved from $portal.http.address because Gradle is running in offline mode")
+        failure.assertHasCause("Plugin cannot be resolved from $portal.apiAddress because Gradle is running in offline mode")
     }
 
     def "cannot resolve plugin with snapshot version"() {

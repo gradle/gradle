@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 public interface ModelProducer {
-    <T> T produceModel(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters);
+    <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters);
 }

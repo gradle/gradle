@@ -19,7 +19,8 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet
-import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
@@ -46,7 +47,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     }
 
     def getStaticLibrary() {
-        new DefaultStaticLibraryBinarySpec(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
+        new DefaultStaticLibraryBinarySpec(library, new DefaultFlavor("flavorOne"), toolChain, Stub(PlatformToolProvider), platform, buildType, namingScheme, resolver)
     }
 
     def "can set output file"() {

@@ -19,8 +19,18 @@ package org.gradle.plugin.use.resolve.service.internal;
 import org.gradle.api.GradleException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
+import java.io.IOException;
+
 public class OfflinePluginResolutionServiceClient implements PluginResolutionServiceClient {
-    public Response<PluginUseMetaData> queryPluginMetadata(PluginRequest pluginRequest, String portalUrl) {
+    public Response<PluginUseMetaData> queryPluginMetadata(String portalUrl, boolean shouldValidate, PluginRequest pluginRequest) {
         throw new GradleException(String.format("Plugin cannot be resolved from %s because Gradle is running in offline mode", portalUrl));
+    }
+
+    public Response<ClientStatus> queryClientStatus(String portalUrl, boolean shouldValidate, String checksum) {
+        throw new GradleException(String.format("Client status cannot be resolved from %s because Gradle is running in offline mode", portalUrl));
+    }
+
+    public void close() throws IOException {
+
     }
 }

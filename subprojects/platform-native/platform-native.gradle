@@ -16,11 +16,12 @@
 
 dependencies {
     compile libraries.groovy
-    compile project(':core')
-    compile project(":ide")
     compile libraries.commons_io
+    compile project(':core')
+    compile project(":platformBase")
 
     integTestRuntime project(":maven")
+    // Required to test visual studio project file generation for generated sources
     integTestRuntime project(":ideNative")
 
     testFixturesCompile project(":internalIntegTesting")
@@ -29,6 +30,9 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ":messaging")
 useTestFixtures(sourceSet: "testFixtures")
-useTestFixtures(project: ":languageBase")
+useTestFixtures(project: ":platformBase")
 
-//useClassycle()
+useClassycle(exclude: ["org/gradle/nativeplatform/plugins/**",
+                       "org/gradle/nativeplatform/tasks/**",
+                       "org/gradle/nativeplatform/internal/resolve/**",
+                       "org/gradle/nativeplatform/toolchain/internal/**"])

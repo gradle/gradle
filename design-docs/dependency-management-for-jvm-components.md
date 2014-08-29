@@ -225,7 +225,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Can combine old and new JVM plugins in the same project
     - `gradle assemble` builds both jars
 
-## Feature: Custom plugin defines a custom library type
+## Feature: Plugin defines a custom library type
 
 This features allows the development of a custom plugin that can contribute Library, Binary and Task instances to the language domain.
 
@@ -312,7 +312,7 @@ A custom library implementation:
 - ~~Friendly error message when attempting to register the same library type with different implementations~~
 - ~~Custom libraries show up in components report~~
 
-### Story: Custom plugin uses rule to declare custom component type
+### Story: Plugin uses rule to declare custom component type
 
 To avoid a future explosion of nested annotations, this story switches the mechanism for declaring a custom library type to use an
 annotated method, rather than a type annotation.
@@ -359,8 +359,8 @@ Add a binary type to the sample plugin:
     }
 
     // Define implementations for the binary types - these will go away at some point
-    class DefaultSampleBinary extends DefaultBinarySpec implements SampleBinary {}
-    class DefaultOtherSampleBinary extends DefaultBinarySpec implements OtherSampleBinary {}
+    class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
+    class DefaultOtherSampleBinary extends BaseBinarySpec implements OtherSampleBinary {}
 
     class MySamplePlugin implements Plugin<Project> {
         @RuleSource
@@ -385,14 +385,14 @@ A custom binary type:
 
 A custom binary implementation:
 - Implements the custom binary type.
-- Extends `DefaultBinarySpec`.
+- Extends `BaseBinarySpec`.
 - Has a public no-arg constructor.
 
 #### Implementation Plan
 
-- Add a `DefaultBinarySpec` implementation or `BinarySpec` that has a no-arg constructor.
+- Add a `BaseBinarySpec` implementation or `BinarySpec` that has a no-arg constructor.
 - Introduce a `@BinaryType` rule type for registering a binary type and implementation
-    - Assert that the implementation class extends `DefaultBinarySpec`, has a no-arg constructor and implements the type.
+    - Assert that the implementation class extends `BaseBinarySpec`, has a no-arg constructor and implements the type.
     - Register a factory for the type with the `BinaryContainer`.
 - Generify DefaultSampleLibrary so that the `getBinaries()` method can return a set of binary subtypes.
 - Introduce `LibraryBinarySpec` to represent binaries for produced from a `LibrarySpec`.
@@ -411,10 +411,16 @@ A custom binary implementation:
 - Friendly error message when supplied binary implementation:
     - Does not have a public no-arg constructor
     - Does not implement binary type
-    - Does not extend `DefaultBinarySpec`
+    - Does not extend `BaseBinarySpec`
 - Friendly error message when attempting to register the same binary type with different implementations
 
-### Story: Custom plugin defines binaries for each custom component
+#### Open issues
+
+- `BaseBinarySpec` leaks `BinarySpecInternal`
+- Existing JVM and native binary implementations should extend `BaseBinarySpec`
+
+
+### Story: Plugin defines binaries for each custom component
 
 This story introduces a mechanism by this a developer can define the binaries that should be built for a custom library.
 
@@ -493,7 +499,7 @@ Running `gradle assemble` will execute lifecycle task for each binary.
     - Need to attach source sets to components.
 - Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
 
-### Story: Custom plugin defines tasks from binaries
+### Story: Plugin defines tasks from binaries
 
 Add a rule to the sample plugin:
 
@@ -612,14 +618,25 @@ can provide a convention that applies to all components, and the exceptions can 
 - This code should only run when the particular binary needs to be closed.
 - Add the equivalent for source sets.
 
+### Story: Running `gradle assemble` informs user when no binaries are buildable
+
+Currently, running `gradle assemble` does nothing when nothing is buildable
+
+### Story: Validate the input source sets for a binary
+
+1. Fail when an unsupported language is used as input to a binary. eg Can't use a Java source set as input to a native binary.
+2. Fail when a binary has no inputs.
+
+This story should introduce a general validation step in the model object lifecycle and make use of this.
+
+### Story: Plugin declares transformations to produce a binary from intermediate files
+
+Allow a plugin to declare the transformation tasks from some intermediate file type to the binary output.
+For example, class files to Jar binary or object files to a executable binary.
+
+Infrastructure automatically wires up the correct transformation rule for each binary.
+
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
-
-### Story: Custom binary is built from Java sources
-
-Change the sample plugin so that it compiles Java source to produce its binaries
-
-- Uses same conventions as a Java library.
-- No dependencies.
 
 ### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
 
@@ -632,23 +649,243 @@ Change the sample plugin so that it compiles Java source to produce its binaries
     - ~~Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeplatform.*`~~
     - ~~Move integration tests into `platform-native`, breaking into a better package structure~~
 - ~~Move runtime-specific classes (`org.gradle.runtime.*`) out of `language-jvm` into new subproject `platform-jvm`~~
-- Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes
-    - `language-jvm` should be for common base infrastructure
-- Miscellaneous
-    - `platform` subprojects should not depend on `language` subprojects
-    - Split NativeSamplesIntegrationTest for subprojects
-    - Reorganise samples?
-    - verify that auto-tested samples are working for ide-native and language-native
-    - Switch on strict compile for new subprojects
-    - Remove all cycles for subprojects
-    - Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
+- ~~Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes~~
+    - ~~`language-jvm` should be for common base infrastructure~~
+- ~~Miscellaneous~~
+    - ~~Enable classycle for all projects~~
+    - ~~Split NativeSamplesIntegrationTest for subprojects~~
 
 #### Open issues
 
-- `language-native` integration tests require `ide-native` (testing visual studio project generation for particular cases)
+- `language-native` and `plugin-native` integration tests require `ide-native` (testing visual studio project generation for particular cases)
 - where should `cunit` support live?
-    - production code and unit tests
-    - `cunit` test fixtures
+- Reorganise samples?
+
+## Feature: Plugin implements custom language support
+
+### Story: Build author declares target Java version for a Java library
+
+For example:
+
+    plugins {
+        id 'java-lang'
+    }
+
+    jvm {
+        libraries {
+            myLib {
+                target java("7")
+            }
+        }
+    }
+
+This declares that the bytecode for the binary should be generated for Java 7, and should be compiled against the Java 7 API.
+Assume that the source also uses Java 7 language features.
+
+For this story, only the current JDK will be considered as a candidate to perform the compilation. Later stories could add support for JDK discovery
+(the test fixtures do this). When not specified, default to whichever target JVM the current JDK defaults to.
+
+Target platform should be reachable from the `JvmBinarySpec`.
+
+#### Implementation plan
+
+- Add `org.gradle.language.java.JavaPlatform` interface and default implementation.
+- Update samples to include a Java version declaration.
+
+#### Test cases
+
+- Running `gradle assemble` will build for Java 6 and the resulting bytecode will use the Java 6 bytecode version.
+- Reasonable error message when the current JDK cannot build for the target Java version.
+- Target JVM runtime appears in the output of the components report.
+
+#### Open issues/considerations
+
+- Strict vs lenient: If I declare I want to build for Java 6 and I'm running on Java 8, is that ok or a problem? (Lenient)
+- DSL should (later) allow declaration of a Java platform with a custom bootstrap classpath (for cross compilation, Android, etc). (Later)
+- DSL should (later) allow a customised JVM-based platform to be declared, for example, to build things that are to run in some Web container. (Later)
+- DSL should (later) allow platforms to be composed, for example, Scala 2.11.0 on Java 1.8 vs Scala 2.11.0 on Java 1.6.
+    - A Java platform is really a composite made up of Java-the-language + JVM-the-platform. (Later)
+- Plugin declares a custom Java platform. (Later)
+- Plugin declares a custom platform. (Later)
+- Target platform should be visible in the dependencies reports (Later)
+- Split out configurable 'platform spec' out from consumable 'platform' definition. (Later)
+
+### Story: Build author declares that JVM library should be built for multiple JVM versions
+
+For example:
+
+    plugins {
+        id 'java-lang'
+    }
+
+    jvm {
+        libraries {
+            myLib {
+                target java("6")
+                target java("8")
+            }
+        }
+    }
+
+This will result in 2 Jar binaries being defined for the `myLib` library. Running `gradle assemble` will build both these binaries. Reuse BinaryNamingScheme for now.
+
+Add a sample to show a JVM library built for multiple Java versions.
+
+#### Test cases
+
+- A Jar binary is defined for each target platform.
+- Running `gradle assemble` will build the Jars, and the bytecode in each Jar uses the correct bytecode version.
+- Binaries with correct target JVM runtime appear in the output of the components report.
+
+#### Open issues
+
+- Discover or configure the JDK installations (Later)
+- Need some convention or mechanism for source that is conditionally included based on the target platform. (Later)
+
+### Story: Build author can describe the "language level" for the source
+
+TODO
+
+### Story: Use a consistent approach for native and JVM platforms
+
+- Extract `NativePlatform` out of `Platform` (it's really a 'hosted C environment' as per the ISO C spec)
+- Extract `NativeToolChain` out of `ToolChain` and change `JavaToolChain` to extend `ToolChain`.
+- Move `Platform` and `ToolChain` out of the native packages into base packages.
+- Use a consistent DSL for declaring the target platforms of all platform aware component types.
+- Replace or reuse `platforms` container.
+- Add factory methods for common platforms to match those used for the Java runtime.
+- Mention breaking change in release notes.
+
+#### Open issues
+
+- Add infrastructure to coerce string to platform, architecture or operating system types.
+- Turn what is `ToolChain` into a tool chain locator or factory.
+- Turn what is `PlatformToolChain` into an immutable tool chain. Resolve the tool chain during configuration, and use this as input for incremental build.
+- Treat Java tool chain as input for incremental build.
+- Link using `g++` or `clang++` only when a c++ runtime is required.
+- Link with correct flags for a windows resource only binary (ie when neither c nor c++ runtime is required).
+- Provide the correct flags to compile and link against Foundation framework when using objective-c
+- Use mingw under cygwin when target is windows, gcc under cygwin when target is posix
+
+### Story: Plugin declares custom language source set
+
+For example:
+
+    interface CustomLanguageSourceSet extends LanguageSourceSet {
+        String someProperty
+    }
+    class DefaultCustomLanguageSourceSet extends DefaultLanguageSourceSet implements CustomLanguageSourceSet {
+        ...
+    }
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @LanguageType
+            void defineMyLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
+                builder.setLanguageName("custom")
+                builder.setDefaultImplementation(DefaultCustomLanguageSourceSet)
+            }
+        }
+    }
+
+Given this, can now define source sets of type `CustomLanguageSourceSet` in a `FunctionalSourceSet` or `ComponentSourceSet`:
+
+    sources {
+        main {
+            custom(CustomLanguageSourceSet) { ... }
+        }
+    }
+
+The source set is configured with conventional source directories based on the source set name.
+
+For this story, the language is not included as input to any component. It is simply possible to define source sets for the custom
+language.
+
+#### Test cases
+
+- Source set uses the conventional source directory.
+
+#### Open issues
+
+- Detangle 'the things I need to compile a language of this type' (a set of files, some settings) from
+ 'a way to configure an arbitrary set of source files of this language` (the source set). The plugin should only have to declare the things it
+ needs to compile. A plugin might still be able to additionally declare a source set type, when some custom implementation is required.
+- Platform should be attached to source set as well.
+
+### Story: Plugin declares custom language implementation
+
+For example:
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @LanguageTransform
+            void compileMyLanguage(CollectionBuilder<Task> taskBuilder, CustomLanguageSourceSet source, SampleBinary binary) {
+            }
+        }
+    }
+
+Given this, a source set of the appropriate type is added when a component may include a binary of the type declared in the transform rule. A source
+set is not added for components where the language cannot be transformed.
+
+For this story, the source is not actually compiled or included in a binary, or tasks defined. This is added later.
+
+#### Test cases
+
+- Source set is added to components for which a transform is registered.
+    - Source set uses the conventional source directory.
+    - Source set is visible in the component reports
+- Source set is not added to components for which a transform is not registered.
+
+### Story: Plugin provides custom language implementation
+
+For example:
+
+    class MySamplePlugin implements Plugin<Project> {
+        @RuleSource
+        static class ComponentModel {
+            @LanguageTransform
+            void compileMyLanguage(CollectionBuilder<Task> taskBuilder, CustomLanguageSourceSet source, SampleBinary binary) {
+                ... uses the builder to define some tasks ...
+            }
+        }
+    }
+
+Running `gradle assemble` will invoke the compilation tasks defined by the transform rule, and the output included in the target binary.
+
+The tasks are not defined if the language source set is empty or buildable by some other task.
+
+Add a sample to show how to add a custom language for a JVM library. Add a sample to show how to implement a custom component type from some
+custom language.
+
+#### Test cases
+
+- Can build a JVM library from a custom language.
+    - Running `gradle assemble` compiles the custom language and includes the output in the JAR.
+- Can build a custom binary from a custom language.
+    - Running `gradle assemble` compiles the custom language and include the output in the
+- Source set is not added to components for which a transform is not registered.
+- Compile tasks are not defined if the source set is empty.
+
+#### Open issues
+
+- Need to be able to apply a naming scheme for tasks, and some way to inject an output location for each transformation.
+
+### Story: Core plugins declare language implementations
+
+Change the native, Java and classpath resource language plugins to replace usages of `LanguageRegistration` with the declarative approach above.
+
+#### Open issues
+
+- Probably don't need `TransformationFileType` any more.
+
+## Feature: Custom binary is built from Java sources
+
+Change the sample plugin so that it compiles Java source to produce its binaries
+
+- Uses same conventions as a Java library.
+- No dependencies.
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
@@ -657,6 +894,7 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 - Rework the existing `SoftwareComponent` implementations so that they are `Component` implementations instead.
 - Expose all native and jvm components through `project.components`.
 - Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
+- The target JVM for a legacy Java library is the lowest of `sourceCompatibility` and `targetCompatibility`.
 
 ```
 apply plugin: 'java'
@@ -850,33 +1088,10 @@ For example:
 
 - Add this to native libraries
 
-## Feature: Build author declares the target JVM for a Java library
-
-For example:
-
-    apply plugin: 'new-java'
-
-    platforms {
-        // Java versions are visible here
-    }
-
-    libraries {
-        myLib {
-            buildFor platforms.java7
-        }
-    }
-
-This declares that the bytecode for the binary should be generated for Java 7, and should be compiled against the Java 7 API.
-Assume that the source also uses Java 7 language features.
+## Feature: JVM platform aware dependency resolution
 
 When a library `a` depends on another library `b`, assert that the target JVM for `b` is compatible with the target JVM for `a` - that is
-JVM for `a` is same or newer than the JVM for `b`.
-
-The target JVM for a legacy Java library is the lowest of `sourceCompatibility` and `targetCompatibility`.
-
-### Open issues
-
-- Need to discover or configure the JDK installations.
+JVM for `a` is same or newer than the JVM for `b`, or select the appropriate variant for `b`.
 
 ## Feature: Build author declares a custom target platform for a Java library
 
@@ -976,34 +1191,6 @@ This story moves definition and configuration of the source sets for a component
     - This means that source sets will not be created eagerly, which means that access to sources {} will need to be in a model block, or via ComponentSpec.sources()
     - In order for this to work, we need to be able to reference other model elements in a DSL model rule
 
-### Story: Only attach source sets of relevant languages to component
-
-- Don't attach Java source sets to native components.
-- Don't attach native language source sets to jvm components.
-
-This story will involve defining 'input-type' for each component type: e.g. JvmByteCode for a JvmLibraryBinary and ObjectFile for NativeBinary.
-A language plugin will need to register the compiled output type for each source set. Then it will be possible for a component to only
-attach to those language source sets that have an appropriate output type.
-
-#### Test cases
-
-- Fail when an unsupported language is used as input to a binary. eg Can't use a JavaSourceSet as input to a native binary.
-
-#### Open issues
-
-- Plugin should be able to declare the file types that a custom binary can be assembled from
-    - Infrastructure would take care of linking up the appropriate source languages based on this.
-- Plugin should to be able to declare custom language implementations.
-- custom sourceSets declared via 'sources' DSL must always be declared with their type (even its type is obvious) e.g:
-
-    apply plugin:'cpp'
-    
-    sources {
-        lib {
-            cpp(CppSourceSet)
-        }
-    }
-        
 ## Feature: Build author declares dependencies for custom library
 
 Change the sample plugin so that it allows Java and custom libraries to be used as dependencies:
@@ -1097,22 +1284,6 @@ Change the sample plugin to allow a target JVM based platform to be declared:
         }
     }
 
-## Feature: Java library produces multiple variants
-
-For example:
-
-    apply plugin: 'new-java'
-
-    libraries {
-        myLib {
-            buildFor platforms.java6, platforms.java8
-        }
-    }
-
-Builds a binary for Java 6 and Java 8.
-
-Dependency resolution selects the best binary from each dependency for the target platform.
-
 ## Feature: Dependency resolution for native components
 
 ## Feature: Build user views the dependencies for the native components of a project
@@ -1180,6 +1351,16 @@ for each component, define a source set for each supported language that we can 
 
 This essentially means two 'containers' - one that holds the main components, and another that contains all components.
 
+## Feature: Build user runs unit tests for JVM library
+
+Apply a convention to define test suites for JVM components. Should be able to run the unit tests for each variant.
+
+Test suites should be visible in the components report.
+
+Should be possible to declare functional test suites for components.
+
+Should be possible to declare stand-alone test suite with custom variants.
+
 # Open issues and Later work
 
 ## Component model
@@ -1190,7 +1371,6 @@ This essentially means two 'containers' - one that holds the main components, an
     - Source and javadoc artifacts.
 - Test suites.
 - Libraries declare an API that is used at compile time.
-- Java component plugins support variants.
 - Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
 - The `application` plugin should also declare a jvm application.
 - The `war` plugin should also declare a j2ee web application.
@@ -1207,7 +1387,7 @@ This essentially means two 'containers' - one that holds the main components, an
 - Need a better name for `TransformationFileType`.
 - Support multiple input source sets for a component and binary.
     - Apply conflict resolution across all inputs source sets.
-- Support for custom language implementations.
+- Generate API documentation from source.
 - Java language support
     - Java language level.
     - Source encoding.
@@ -1217,6 +1397,15 @@ This essentially means two 'containers' - one that holds the main components, an
 - ANTLR language support.
     - Improve the generated source support from the native plugins
     - ANTLR runs on the JVM, but can target other platforms.
+- custom sourceSets declared via 'sources' DSL must always be declared with their type (even its type is obvious) e.g:
+
+    apply plugin:'cpp'
+
+    sources {
+        lib {
+            cpp(CppSourceSet)
+        }
+    }
 
 ## Misc
 
@@ -1238,3 +1427,10 @@ This essentially means two 'containers' - one that holds the main components, an
 - Deprecate and remove support for resolution via configurations.
 - Add a report that shows the details for the components and binaries produced by a project.
 - Bust up the 'plugins' project.
+
+## Tech debt for 'platform-*' and 'language-*' subprojects
+
+- Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
+- Switch on strict compile
+- Remove all classycle exclusions
+

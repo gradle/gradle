@@ -15,42 +15,65 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain;
-import org.gradle.nativeplatform.toolchain.GccCommandLineToolConfiguration;
-import org.gradle.nativeplatform.toolchain.internal.tools.*;
+import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
+import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
+import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultGccPlatformToolChain<T extends GccCommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements TargetedPlatformToolChain<T> {
-    private final String name;
-    private final String displayName;
+public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRegistry {
+    private final Platform platform;
+    private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
-    public DefaultGccPlatformToolChain(Class<? extends T> type, Map<String, T> asMap, Instantiator instantiator, String name, String displayName) {
-        super(type, instantiator);
-        this.name = name;
-        this.displayName = displayName;
-        for (T tool : asMap.values()) {
-            add(newConfiguredGccTool(tool));
-        }
+    public DefaultGccPlatformToolChain(Platform platform) {
+        this.platform = platform;
     }
 
-    private T newConfiguredGccTool(T defaultTool) {
-        GccCommandLineToolConfigurationInternal gccToolInternal = (GccCommandLineToolConfigurationInternal) defaultTool;
-        DefaultGccCommandLineToolConfiguration platformTool = getInstantiator().newInstance(DefaultGccCommandLineToolConfiguration.class, defaultTool.getName(), gccToolInternal.getToolType(), defaultTool.getExecutable());
-        Action<List<String>> argAction = gccToolInternal.getArgAction();
-        platformTool.withArguments(argAction);
-        return (T) platformTool;
+    public GccCommandLineToolConfigurationInternal getTool(ToolType toolType) {
+        return tools.get(toolType);
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public Map<ToolType, GccCommandLineToolConfigurationInternal> getTools() {
+        return tools;
     }
 
-    public String getName() {
-        return name;
+    public void add(DefaultGccCommandLineToolConfiguration tool) {
+        tools.put(tool.getToolType(), tool);
+    }
+
+    public Platform getPlatform() {
+        return platform;
+    }
+
+    public GccCommandLineToolConfigurationInternal getcCompiler() {
+        return tools.get(ToolType.C_COMPILER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getCppCompiler() {
+        return tools.get(ToolType.CPP_COMPILER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getObjcCompiler() {
+        return tools.get(ToolType.OBJECTIVEC_COMPILER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getObjcppCompiler() {
+        return tools.get(ToolType.OBJECTIVECPP_COMPILER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getAssembler() {
+        return tools.get(ToolType.ASSEMBLER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getLinker() {
+        return tools.get(ToolType.LINKER);
+    }
+
+    public GccCommandLineToolConfigurationInternal getStaticLibArchiver() {
+        return tools.get(ToolType.STATIC_LIB_ARCHIVER);
     }
 }

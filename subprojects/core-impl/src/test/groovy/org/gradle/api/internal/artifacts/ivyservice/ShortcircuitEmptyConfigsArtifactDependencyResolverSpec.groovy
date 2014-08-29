@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+import org.gradle.api.internal.artifacts.ModuleMetadataHandler
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -31,7 +31,7 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
     def delegate = Mock(ArtifactDependencyResolver)
     def configuration = Stub(ConfigurationInternal)
     def repositories = [Stub(ResolutionAwareRepository)]
-    def metadataProcessor = Stub(ModuleMetadataProcessor)
+    def metadataHandler = Stub(ModuleMetadataHandler)
     def dependencies = Stub(DependencySet)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def results = new ResolverResults()
@@ -43,7 +43,7 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
         configuration.getAllDependencies() >> dependencies
 
         when:
-        dependencyResolver.resolve(configuration, repositories, metadataProcessor, results)
+        dependencyResolver.resolve(configuration, repositories, metadataHandler, results)
 
         then:
         def resolvedConfig = results.resolvedConfiguration
@@ -69,9 +69,9 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
         configuration.getAllDependencies() >> dependencies
 
         when:
-        dependencyResolver.resolve(configuration, repositories, metadataProcessor, results)
+        dependencyResolver.resolve(configuration, repositories, metadataHandler, results)
 
         then:
-        1 * delegate.resolve(configuration, repositories, metadataProcessor, results)
+        1 * delegate.resolve(configuration, repositories, metadataHandler, results)
     }
 }

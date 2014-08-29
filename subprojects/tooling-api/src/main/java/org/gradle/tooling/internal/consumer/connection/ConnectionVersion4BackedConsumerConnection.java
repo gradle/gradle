@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
@@ -47,7 +46,7 @@ public class ConnectionVersion4BackedConsumerConnection implements ConsumerConne
         return distribution.getDisplayName();
     }
 
-    public <T> T run(Class<T> type, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         if (type.equals(BuildEnvironment.class)) {
             return adapter.adapt(type, doGetBuildEnvironment());
         }
@@ -58,7 +57,7 @@ public class ConnectionVersion4BackedConsumerConnection implements ConsumerConne
         return new VersionOnlyBuildEnvironment(version);
     }
 
-    public <T> T run(BuildAction<T> action, CancellationToken cancellationToken, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw fail();
     }
 

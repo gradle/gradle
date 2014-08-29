@@ -16,9 +16,7 @@
 
 package org.gradle.messaging.serialize
 
-import spock.lang.Specification
-
-class BaseSerializerFactoryTest extends Specification {
+class BaseSerializerFactoryTest extends SerializerSpec {
     def factory = new BaseSerializerFactory()
 
     def "uses efficient serialization for Strings"() {
@@ -70,16 +68,16 @@ class BaseSerializerFactoryTest extends Specification {
         s.write(new OutputStreamBackedEncoder(os), new byte[5])
 
         expect:
-        s.read(new InputStreamBackedDecoder(new ByteArrayInputStream(os.toByteArray()))).length == 5
+        def result = serialize(new byte[5], s)
+        result instanceof byte[]
+        result.length == 5
     }
 
     def "can serialize string maps"() {
         def s = BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER
-        def os = new ByteArrayOutputStream()
-        s.write(new OutputStreamBackedEncoder(os), map)
 
         expect:
-        s.read(new InputStreamBackedDecoder(new ByteArrayInputStream(os.toByteArray()))) == map
+        serialize(map, s) == map
 
         where:
         map << [

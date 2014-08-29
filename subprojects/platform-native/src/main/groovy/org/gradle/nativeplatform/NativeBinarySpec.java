@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativeplatform.platform.Platform;
 import org.gradle.nativeplatform.toolchain.ToolChain;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.BinarySpec;
 
 import java.util.Collection;
 

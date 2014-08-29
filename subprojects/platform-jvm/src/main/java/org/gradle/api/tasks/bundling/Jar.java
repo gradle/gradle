@@ -98,7 +98,7 @@ public class Jar extends Zip {
      * @param configureClosure The closure.
      * @return This.
      */
-    public Jar manifest(Closure configureClosure) {
+    public Jar manifest(Closure<?> configureClosure) {
         if (getManifest() == null) {
             manifest = new DefaultManifest(((ProjectInternal) getProject()).getFileResolver());
         }
@@ -119,7 +119,7 @@ public class Jar extends Zip {
      * @param configureClosure The closure.
      * @return The created {@code CopySpec}
      */
-    public CopySpec metaInf(Closure configureClosure) {
+    public CopySpec metaInf(Closure<?> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf());
     }
 }

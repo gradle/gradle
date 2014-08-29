@@ -24,6 +24,7 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":platformNative")
-useTestFixtures(project: ":languageBase")
+useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":messaging")
-//useClassycle()
+
+useClassycle()

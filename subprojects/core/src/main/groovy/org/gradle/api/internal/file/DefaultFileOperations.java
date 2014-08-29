@@ -37,6 +37,8 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.*;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
@@ -79,7 +81,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     public URI uri(Object path) {
         return fileResolver.resolveUri(path);
     }
-    
+
     public ConfigurableFileCollection files(Object... paths) {
         return new DefaultConfigurableFileCollection(fileResolver, taskResolver, paths);
     }
@@ -154,13 +156,15 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
         return fileResolver;
     }
 
-    public ExecResult javaexec(Closure cl) {
-        JavaExecAction javaExecAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultJavaExecAction.class, fileResolver));
+    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
+        JavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, fileResolver);
+        action.execute(javaExecAction);
         return javaExecAction.execute();
     }
 
-    public ExecResult exec(Closure cl) {
-        ExecAction execAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultExecAction.class, fileResolver));
+    public ExecResult exec(Action<? super ExecSpec> action) {
+        ExecAction execAction = instantiator.newInstance(DefaultExecAction.class, fileResolver);
+        action.execute(execAction);
         return execAction.execute();
     }
 

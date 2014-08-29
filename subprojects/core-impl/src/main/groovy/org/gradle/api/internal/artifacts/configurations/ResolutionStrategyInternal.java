@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
-import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
@@ -53,7 +53,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * @return the version selection rules object
      */
-    VersionSelectionRulesInternal getVersionSelection();
+    ComponentSelectionRulesInternal getComponentSelection();
 
     /**
      * @return copy of this resolution strategy. See the contract of {@link org.gradle.api.artifacts.Configuration#copy()}.

@@ -15,15 +15,15 @@
  */
 package org.gradle.tooling.internal.consumer.loader
 
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.CancellationToken
+import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.*
-import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException
 import org.gradle.util.GradleVersion
@@ -40,7 +40,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         getVerboseLogging() >> true
     }
     File userHomeDir = Mock()
-    final CancellationToken cancellationToken = Mock()
+    final BuildCancellationToken cancellationToken = Mock()
     final loader = new DefaultToolingImplementationLoader()
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {

@@ -28,16 +28,16 @@ class DefaultLocalArtifactIdentifierTest extends Specification {
 
         expect:
         def noClassifier = new DefaultLocalArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", [:])
-        noClassifier.displayName == "<comp>:name.ext"
-        noClassifier.toString() == "<comp>:name.ext"
+        noClassifier.displayName == "name.ext (<comp>)"
+        noClassifier.toString() == "name.ext (<comp>)"
 
         def withClassifier = new DefaultLocalArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", ['classifier': 'classifier'])
-        withClassifier.displayName == "<comp>:name-classifier.ext"
-        withClassifier.toString() == "<comp>:name-classifier.ext"
+        withClassifier.displayName == "name-classifier.ext (<comp>)"
+        withClassifier.toString() == "name-classifier.ext (<comp>)"
 
         def noExtension = new DefaultLocalArtifactIdentifier(componentId, "<comp>", "name", "type", null, ['classifier': 'classifier'])
-        noExtension.displayName == "<comp>:name-classifier"
-        noExtension.toString() == "<comp>:name-classifier"
+        noExtension.displayName == "name-classifier (<comp>)"
+        noExtension.toString() == "name-classifier (<comp>)"
     }
 
     def "is equal when all attributes and module version are the same"() {

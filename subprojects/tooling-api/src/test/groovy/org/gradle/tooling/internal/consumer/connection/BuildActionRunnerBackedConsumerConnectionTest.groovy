@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
@@ -83,10 +82,9 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     def "builds model using connection's run() method"() {
         BuildResult<String> result = Stub()
         GradleProject adapted = Stub()
-        CancellationToken cancellationToken = Mock()
 
         when:
-        def model = connection.run(GradleProject.class, cancellationToken, parameters)
+        def model = connection.run(GradleProject.class, parameters)
 
         then:
         model == adapted
@@ -103,10 +101,9 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         BuildResult<GradleProject> result = Stub()
         GradleProject adapted = Stub()
         GradleBuild adaptedGradleBuild = Stub()
-        CancellationToken cancellationToken = Mock()
 
         when:
-        def model = connection.run(GradleBuild.class, cancellationToken, parameters)
+        def model = connection.run(GradleBuild.class, parameters)
         then:
         model == adaptedGradleBuild
 
@@ -120,10 +117,8 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     }
 
     def "fails when unknown model is requested"() {
-        CancellationToken cancellationToken = Mock()
-
         when:
-        connection.run(CustomModel.class, cancellationToken, parameters)
+        connection.run(CustomModel.class, parameters)
 
         then:
         UnknownModelException e = thrown()
@@ -132,11 +127,10 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
 
     def "fails when build action requested"() {
         given:
-        CancellationToken cancellationToken = Mock()
         parameters.tasks >> ['a']
 
         when:
-        connection.run(Stub(BuildAction), cancellationToken, parameters)
+        connection.run(Stub(BuildAction), parameters)
 
         then:
         UnsupportedVersionException e = thrown()

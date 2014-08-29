@@ -41,6 +41,9 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     }
 
     public File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException{
+        if (systemProperties.containsKey("maven.repo.local")) {
+            return new File(systemProperties.get("maven.repo.local"));
+        }
         try {
             Settings settings = settingsProvider.buildSettings();
             String repoPath = settings.getLocalRepository();

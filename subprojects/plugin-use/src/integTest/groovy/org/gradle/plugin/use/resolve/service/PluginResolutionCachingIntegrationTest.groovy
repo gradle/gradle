@@ -139,12 +139,6 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
         build()
     }
 
-    def "--offline cannot be used if response is not cached"() {
-        expect:
-        args "--offline"
-        failError()
-    }
-
     void reset() {
         service.http.resetExpectations()
     }

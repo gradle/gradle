@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class VisualStudioPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "visual-studio"
     }
 }

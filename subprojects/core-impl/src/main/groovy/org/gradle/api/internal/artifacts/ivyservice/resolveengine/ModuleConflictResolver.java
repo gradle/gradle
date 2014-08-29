@@ -15,8 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.Nullable;
+
 import java.util.Collection;
 
 public interface ModuleConflictResolver {
-    <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates);
+    /**
+     * Selects matching candidate. Returns null if this implementation of the resolver is not able to select a candidate.
+     *
+     * @param candidates
+     * @param <T>
+     */
+    @Nullable <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates);
 }

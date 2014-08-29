@@ -19,14 +19,30 @@ package org.gradle.tooling.internal.consumer
 import spock.lang.Specification
 
 class DefaultCancellationTokenSourceTest extends Specification {
-    def 'token operation idempotent'() {
-        def source = new DefaultCancellationTokenSource()
+    def source = new DefaultCancellationTokenSource()
 
+    def 'token operation idempotent'() {
         when:
         def token1 = source.token()
         def token2 = source.token()
 
         then:
         token1 == token2
+    }
+
+    def 'can unpack token'() {
+        expect:
+        source.token().token != null
+    }
+
+    def 'can cancel'() {
+        expect:
+        !source.token().cancellationRequested
+
+        when:
+        source.cancel()
+
+        then:
+        source.token().cancellationRequested
     }
 }

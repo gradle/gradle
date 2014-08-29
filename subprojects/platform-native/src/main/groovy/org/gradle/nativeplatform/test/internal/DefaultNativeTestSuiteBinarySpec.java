@@ -18,9 +18,9 @@ package org.gradle.nativeplatform.test.internal;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
@@ -28,8 +28,8 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
     private final NativeBinarySpec testedBinary;
     private File executableFile;
 
-    public DefaultNativeTestSuiteBinarySpec(NativeComponentSpec owner, NativeBinarySpec testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(owner, testedBinary.getFlavor(), (ToolChainInternal) testedBinary.getToolChain(), testedBinary.getTargetPlatform(), testedBinary.getBuildType(), namingScheme, resolver);
+    public DefaultNativeTestSuiteBinarySpec(NativeComponentSpec owner, NativeBinarySpecInternal testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(owner, testedBinary.getFlavor(), testedBinary.getToolChain(), testedBinary.getPlatformToolProvider(), testedBinary.getTargetPlatform(), testedBinary.getBuildType(), namingScheme, resolver);
         this.testedBinary = testedBinary;
     }
 

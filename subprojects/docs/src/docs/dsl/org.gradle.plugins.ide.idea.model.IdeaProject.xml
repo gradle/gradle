@@ -15,6 +15,11 @@
                 <td/>
             </tr>
             <tr>
+                <td>vcs</td>
+                <td/>
+                <td/>
+            </tr>
+            <tr>
                 <td>jdkName</td>
                 <td>Java version used to run Gradle, for example <literal>'1.6'</literal></td>
                 <td>Java version used to run Gradle, for example <literal>'1.6'</literal></td>

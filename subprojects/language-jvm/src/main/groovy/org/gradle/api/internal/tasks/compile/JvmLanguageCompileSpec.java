@@ -33,7 +33,6 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
     File getDestinationDir();
 
     void setDestinationDir(File destinationDir);
-
     FileCollection getSource();
 
     void setSource(FileCollection source);

@@ -16,45 +16,18 @@
 package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * A task which executes an Ant target.
  */
 public class AntTarget extends ConventionTask {
+
     private Target target;
     private File baseDir;
-
-    public AntTarget() {
-        dependsOn(new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                return getAntTargetDependencies();
-            }
-        });
-    }
-
-    private Set<Task> getAntTargetDependencies() {
-        Set<Task> tasks = new LinkedHashSet<Task>();
-        Enumeration dependencies = target.getDependencies();
-        while (dependencies.hasMoreElements()) {
-            String name = (String) dependencies.nextElement();
-            Task dependency = getProject().getTasks().findByName(name);
-            if (dependency == null) {
-                throw new UnknownTaskException(String.format("Imported Ant target '%s' depends on target or task '%s' which does not exist", getName(), name));
-            }
-            tasks.add(dependency);
-        }
-        return tasks;
-    }
 
     @TaskAction
     protected void executeAntTarget() {
@@ -112,4 +85,5 @@ public class AntTarget extends ConventionTask {
             target.setDescription(description);
         }
     }
+
 }

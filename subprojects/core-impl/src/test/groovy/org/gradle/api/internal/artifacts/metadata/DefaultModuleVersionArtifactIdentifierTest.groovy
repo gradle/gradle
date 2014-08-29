@@ -26,16 +26,16 @@ class DefaultModuleVersionArtifactIdentifierTest extends Specification {
 
         expect:
         def noClassifier = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", "ext", [:])
-        noClassifier.displayName == "group:module:version:name.ext"
-        noClassifier.toString() == "group:module:version:name.ext"
+        noClassifier.displayName == "name.ext (group:module:version)"
+        noClassifier.toString() == "name.ext (group:module:version)"
 
         def withClassifier = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", "ext", ['classifier': 'classifier'])
-        withClassifier.displayName == "group:module:version:name-classifier.ext"
-        withClassifier.toString() == "group:module:version:name-classifier.ext"
+        withClassifier.displayName == "name-classifier.ext (group:module:version)"
+        withClassifier.toString() == "name-classifier.ext (group:module:version)"
 
         def noExtension = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", null, ['classifier': 'classifier'])
-        noExtension.displayName == "group:module:version:name-classifier"
-        noExtension.toString() == "group:module:version:name-classifier"
+        noExtension.displayName == "name-classifier (group:module:version)"
+        noExtension.toString() == "name-classifier (group:module:version)"
     }
 
     def "is equal when all attributes and module version are the same"() {

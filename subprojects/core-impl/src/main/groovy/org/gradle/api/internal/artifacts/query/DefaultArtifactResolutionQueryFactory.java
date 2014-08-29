@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.query;
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -27,22 +27,22 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
     private final ConfigurationContainerInternal configurationContainer;
     private final RepositoryHandler repositoryHandler;
     private final ResolveIvyFactory ivyFactory;
-    private final ModuleMetadataProcessor metadataProcessor;
+    private final ModuleMetadataHandler metadataHandler;
     private final CacheLockingManager cacheLockingManager;
     private final ComponentTypeRegistry componentTypeRegistry;
 
     public DefaultArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
-                                                 ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor,
+                                                 ResolveIvyFactory ivyFactory, ModuleMetadataHandler metadataHandler,
                                                  CacheLockingManager cacheLockingManager, ComponentTypeRegistry componentTypeRegistry) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
-        this.metadataProcessor = metadataProcessor;
+        this.metadataHandler = metadataHandler;
         this.cacheLockingManager = cacheLockingManager;
         this.componentTypeRegistry = componentTypeRegistry;
     }
 
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataProcessor, cacheLockingManager, componentTypeRegistry);
+        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, cacheLockingManager, componentTypeRegistry);
     }
 }

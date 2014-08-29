@@ -23,7 +23,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>path</td></tr>
         </table>
     </section>
     <section>
@@ -34,7 +33,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>path</td></tr>
         </table>
     </section>
 </section>

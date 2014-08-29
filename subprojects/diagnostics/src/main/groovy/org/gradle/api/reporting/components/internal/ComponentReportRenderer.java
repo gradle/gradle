@@ -20,8 +20,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.runtime.base.ComponentSpec;
-import org.gradle.runtime.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.BinarySpec;
 
 import java.util.Collection;
 import java.util.HashSet;

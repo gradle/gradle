@@ -98,7 +98,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     private void addAttributesToAnt(Manifest antManifest) {
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
             try {
-                antManifest.addConfiguredAttribute(new Attribute(entry.getKey().toString(), entry.getValue().toString()));
+                antManifest.addConfiguredAttribute(new Attribute(entry.getKey(), entry.getValue().toString()));
             } catch (ManifestException e) {
                 throw new org.gradle.api.java.archives.ManifestException(e.getMessage(), e);
             }
@@ -112,7 +112,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
             try {
                 antManifest.addConfiguredSection(section);
                 for (Map.Entry<String, Object> attributeEntry : entry.getValue().entrySet()) {
-                    section.addConfiguredAttribute(new Attribute(attributeEntry.getKey().toString(), attributeEntry.getValue().toString()));
+                    section.addConfiguredAttribute(new Attribute(attributeEntry.getKey(), attributeEntry.getValue().toString()));
                 }
             } catch (ManifestException e) {
                 throw new org.gradle.api.java.archives.ManifestException(e.getMessage(), e);
@@ -125,7 +125,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return this;
     }
 
-    public DefaultManifest from(Object mergePaths, Closure closure) {
+    public DefaultManifest from(Object mergePaths, Closure<?> closure) {
         DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec();
         mergeSpec.from(mergePaths);
         manifestMergeSpecs.add(mergeSpec);
@@ -211,9 +211,9 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     }
 
     private void addAntManifestToAttributes(Manifest antManifest) {
-        Enumeration attributeKeys = antManifest.getMainSection().getAttributeKeys();
+        Enumeration<String> attributeKeys = antManifest.getMainSection().getAttributeKeys();
         while (attributeKeys.hasMoreElements()) {
-            String key = (String) attributeKeys.nextElement();
+            String key = attributeKeys.nextElement();
             String attributeKey = antManifest.getMainSection().getAttribute(key).getName();
             attributes.put(attributeKey, antManifest.getMainSection().getAttributeValue(key));
         }
@@ -221,9 +221,9 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     }
 
     private void addAntManifestToSections(Manifest antManifest) {
-        Enumeration sectionNames = antManifest.getSectionNames();
+        Enumeration<String> sectionNames = antManifest.getSectionNames();
         while (sectionNames.hasMoreElements()) {
-            String sectionName = (String) sectionNames.nextElement();
+            String sectionName = sectionNames.nextElement();
             addAntManifestToSection(antManifest, sectionName);
         }
     }
@@ -231,9 +231,9 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     private void addAntManifestToSection(Manifest antManifest, String sectionName) {
         DefaultAttributes attributes = new DefaultAttributes();
         sections.put(sectionName, attributes);
-        Enumeration attributeKeys = antManifest.getSection(sectionName).getAttributeKeys();
+        Enumeration<String> attributeKeys = antManifest.getSection(sectionName).getAttributeKeys();
         while (attributeKeys.hasMoreElements()) {
-            String key = (String) attributeKeys.nextElement();
+            String key = attributeKeys.nextElement();
             String attributeKey = antManifest.getSection(sectionName).getAttribute(key).getName();
             attributes.put(attributeKey, antManifest.getSection(sectionName).getAttributeValue(key));
         }

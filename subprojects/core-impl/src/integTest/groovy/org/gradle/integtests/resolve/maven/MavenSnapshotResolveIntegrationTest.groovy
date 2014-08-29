@@ -704,7 +704,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Artifact 'group:projectA:1.0-SNAPSHOT:projectA.jar' not found.
+        failure.assertHasCause("""Artifact 'projectA.jar (group:projectA:1.0-SNAPSHOT)' not found.
 Searched in the following locations:
     ${projectA.artifact.uri}""")
 
@@ -715,7 +715,7 @@ Searched in the following locations:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("Artifact 'group:projectA:1.0-SNAPSHOT:projectA.jar' not found.")
+        failure.assertHasCause("Artifact 'projectA.jar (group:projectA:1.0-SNAPSHOT)' not found.")
     }
 
     def "reports and recovers from broken maven-metadata.xml"() {

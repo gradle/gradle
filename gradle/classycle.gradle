@@ -1,6 +1,6 @@
 allprojects {
     ext.useClassycle = { params = [:] ->
-        def excludePattern = params.exclude ?: ""
+        def excludePatterns = params.exclude ?: []
 
         configurations {
             classycle
@@ -32,7 +32,9 @@ allprojects {
                     """
                         ) {
                             fileset(dir: sourceSet.output.classesDir) {
-                                exclude(name: excludePattern)
+                                excludePatterns.each { excludePattern ->
+                                    exclude(name: excludePattern)
+                                }
                             }
                         }
                     } catch(Exception e) {

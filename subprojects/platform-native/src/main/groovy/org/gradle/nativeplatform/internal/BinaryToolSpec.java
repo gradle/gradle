@@ -17,11 +17,16 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.nativeplatform.platform.Platform;
 
 import java.io.File;
 import java.util.List;
 
 public interface BinaryToolSpec extends CompileSpec {
+    Platform getTargetPlatform();
+
+    void setTargetPlatform(Platform platform);
+
     File getTempDir();
 
     void setTempDir(File tempDir);

@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.platform.base.internal.toolchain.ArgWriter;
 import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsTransformer;
 
 import java.io.File;

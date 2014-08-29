@@ -42,10 +42,24 @@ to use this same mechanism is one step in this direction.
 
 # Implementation plan
 
-## Story: Expose the compile details of a build script
+## Feature: Expose the compile details of a build script
 
-This story exposes some information about how a build script will be compiled. This information can be used by an
+This feature exposes some information about how a build script will be compiled. This information can be used by an
 IDE to provide some basic content assistance for a build script.
+
+## Story: Expose the Groovy version used for a build script
+
+Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
+
+### Test coverage
+
+## Story: Expose the default imports used for a build script
+
+Add a `defaultImports` property to `GradleScript` to expose the default imports applied to the script.
+
+### Test coverage
+
+## Story: Expose the classpath used for a build script
 
 1. Introduce a new hierarchy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
     - Should expose a set of files, a set of source archives and a set of API docs.
@@ -55,12 +69,6 @@ IDE to provide some basic content assistance for a build script.
 4. Script classpath includes the libraries declared in the `buildscript { }` block.
 5. Script classpath includes the plugins declared in the `plugins { }` block.
 6. Script classpath includes the libraries inherited from parent project.
-7. Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
-
-### Open issues
-
-- Need to flesh out the classpath types.
-- Will need to use Eclipse and IDEA specific classpath models
 
 ### Test coverage
 
@@ -71,6 +79,17 @@ IDE to provide some basic content assistance for a build script.
     - Classpath declared in script of ancestor project is included in the classpath.
     - Source and Javadoc artifacts for the above are included in the classpath.
 - Verify that a decent error message is received when using a Gradle version that does not expose the build script classpath.
+
+### Open issues
+
+- Need to flesh out the classpath types.
+- Will need to use Eclipse and IDEA specific classpath models
+
+## Story: Tooling API client requests build script details for a given file
+
+Add a way to take a file path and request a `BuildScript` model for it.
+
+## Feature: Custom tooling models
 
 ## Story: Gradle plugin provides a custom tooling model to the tooling API client
 

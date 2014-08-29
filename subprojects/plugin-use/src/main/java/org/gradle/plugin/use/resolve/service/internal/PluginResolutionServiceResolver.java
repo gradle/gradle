@@ -26,12 +26,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.SubVersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeMatcher;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factories;
@@ -50,14 +45,11 @@ import java.util.Set;
 public class PluginResolutionServiceResolver implements PluginResolver {
 
     public static final String OVERRIDE_URL_PROPERTY = PluginResolutionServiceResolver.class.getName() + ".repo.override";
-    private static final String DEFAULT_API_URL = "http://plugins.gradle.org";
-
-    private static final VersionMatcher RANGE_MATCHER = new VersionRangeMatcher(null);
-    private static final VersionMatcher SUB_MATCHER = new SubVersionMatcher(null);
-    private static final VersionMatcher LATEST_MATCHER = new LatestVersionMatcher();
+    private static final String DEFAULT_API_URL = "https://plugins.gradle.org/api/gradle";
 
     private final PluginResolutionServiceClient portalClient;
     private final Instantiator instantiator;
+    private final VersionMatcher versionMatcher;
     private final StartParameter startParameter;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private final ClassLoaderScope parentScope;
@@ -65,11 +57,12 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     public PluginResolutionServiceResolver(
             PluginResolutionServiceClient portalClient,
             Instantiator instantiator,
-            StartParameter startParameter,
+            VersionMatcher versionMatcher, StartParameter startParameter,
             ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
     ) {
         this.portalClient = portalClient;
         this.instantiator = instantiator;
+        this.versionMatcher = versionMatcher;
         this.startParameter = startParameter;
         this.parentScope = parentScope;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
@@ -88,7 +81,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             } else if (isDynamicVersion(pluginRequest.getVersion())) {
                 result.notFound(getDescription(), "dynamic plugin versions are not supported");
             } else {
-                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
+                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(getUrl(), startParameter.isRefreshDependencies(), pluginRequest);
                 if (response.isError()) {
                     ErrorResponse errorResponse = response.getErrorResponse();
                     if (response.getStatusCode() == 404) {
@@ -119,7 +112,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     private boolean isDynamicVersion(String version) {
-        return RANGE_MATCHER.canHandle(version) || SUB_MATCHER.canHandle(version) || LATEST_MATCHER.canHandle(version);
+        return versionMatcher.isDynamic(version);
     }
 
     private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata) {
@@ -137,10 +130,6 @@ public class PluginResolutionServiceResolver implements PluginResolver {
 
         ConfigurationContainerInternal configurations = resolution.getConfigurationContainer();
         ConfigurationInternal configuration = configurations.detachedConfiguration(dependency);
-
-        // honor start parameters when resolving plugin dependencies
-        StartParameterResolutionOverride resolutionOverride = new StartParameterResolutionOverride(startParameter);
-        resolutionOverride.addResolutionRules(((ResolutionStrategyInternal)configuration.getResolutionStrategy()).getResolutionRules());
 
         try {
             Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());

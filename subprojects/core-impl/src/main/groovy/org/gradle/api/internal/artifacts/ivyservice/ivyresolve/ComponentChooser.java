@@ -24,4 +24,5 @@ public interface ComponentChooser {
     boolean canSelectMultipleComponents(ModuleVersionSelector selector);
     ExternalComponentMetaData choose(ExternalComponentMetaData one, ExternalComponentMetaData two);
     ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess);
+    boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess);
 }

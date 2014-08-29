@@ -22,3 +22,11 @@ sonarRunner {
     }
 }
 // END SNIPPET languages
+
+// START SNIPPET forkoptions
+sonarRunner {
+    forkOptions {
+        maxHeapSize = '512m'
+    }
+}
+// END SNIPPET forkoptions

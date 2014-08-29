@@ -33,27 +33,25 @@ class ForkScalaCompileInDaemonModeFixture extends InitScriptExecuterFixture {
     String initScriptContent() {
         return """
 allprojects {
-    tasks.withType(ScalaCompile){
+    tasks.withType(ScalaCompile) {
         scalaCompileOptions.fork = true
         scalaCompileOptions.useAnt = false
+    }
+    tasks.withType(ScalaDoc) {
+        doFirst {
+            throw new GradleException("Can't execute scaladoc while testing with the daemon due to permgen exhaustion")
+        }
     }
 }
 """
     }
 
     @Override
-    void afterBuild() {}
-
-    @Override
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         if (GradleContextualExecuter.isDaemon()) {
             return super.apply(base, method, target)
         } else {
-            return new Statement() {
-                public void evaluate() throws Throwable {
-                    base.evaluate();
-                }
-            }
+            return base;
         }
     }
 }

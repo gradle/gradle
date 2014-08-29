@@ -30,6 +30,10 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 * Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
 * Replace usages of `guava-jdk5`.
 
+## Remove Ant <depend> based incremental compilation backend
+
+Now we have real incremental Java compilation, remove the `CompileOptions.useDepend` property and related options.
+
 ## Remove the Gradle Open API stubs
 
 * Remove the remaining Open API interfaces and stubs.
@@ -92,6 +96,8 @@ types and to offer a more consistent DSL.
 * Remove all methods that accept a `String` or `Object` when a enum overload is available. Add missing overloads where appropriate.
 * Remove CharSequence -> Enum conversion code in `DefaultTaskLogging`.
 * Remove all set methods that contain no custom logic.
+* Formally document the Closure → Action coercion mechanism
+    - Needs to be prominent enough that casual DSL ref readers understand this (perhaps such Action args are annotated in DSL ref)
 
 ## Tooling API clean ups
 

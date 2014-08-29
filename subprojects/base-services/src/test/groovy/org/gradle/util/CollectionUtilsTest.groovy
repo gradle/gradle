@@ -342,6 +342,12 @@ class CollectionUtilsTest extends Specification {
         groupBy([], transformer { throw new AssertionError("shouldn't be called") }).isEmpty()
     }
 
+    def unpack() {
+        expect:
+        unpack([{ 1 } as org.gradle.internal.Factory, { 2 } as org.gradle.internal.Factory, { 3 } as org.gradle.internal.Factory]).toList() == [1, 2, 3]
+        unpack([]).toList().isEmpty()
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.platform.internal
+
 import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.nativeplatform.platform.OperatingSystem
 import spock.lang.Specification
 
 class DefaultPlatformTest extends Specification {
@@ -48,7 +48,7 @@ class DefaultPlatformTest extends Specification {
     }
 
     def "can configure operating system"() {
-        def os = Mock(OperatingSystem)
+        def os = Mock(OperatingSystemInternal)
         when:
         platform.operatingSystem "the-os"
 

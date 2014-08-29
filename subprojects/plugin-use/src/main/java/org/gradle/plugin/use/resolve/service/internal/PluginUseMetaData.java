@@ -16,6 +16,10 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
+import org.gradle.messaging.serialize.BaseSerializerFactory;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+
 import java.util.Map;
 
 /**
@@ -77,5 +81,25 @@ public class PluginUseMetaData {
         result = 31 * result + implementationType.hashCode();
         result = 31 * result + (legacy ? 1 : 0);
         return result;
+    }
+
+    public static class Serializer implements org.gradle.messaging.serialize.Serializer<PluginUseMetaData> {
+        public PluginUseMetaData read(Decoder decoder) throws Exception {
+            return new PluginUseMetaData(
+                    decoder.readString(),
+                    decoder.readString(),
+                    BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.read(decoder),
+                    decoder.readString(),
+                    decoder.readBoolean()
+            );
+        }
+
+        public void write(Encoder encoder, PluginUseMetaData value) throws Exception {
+            encoder.writeString(value.id);
+            encoder.writeString(value.version);
+            BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.write(encoder, value.implementation);
+            encoder.writeString(value.implementationType);
+            encoder.writeBoolean(value.legacy);
+        }
     }
 }

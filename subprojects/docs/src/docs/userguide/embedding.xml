@@ -35,7 +35,7 @@
             <itemizedlist>
                 <listitem>You can query Gradle for the details of a build,
                     including the project hierarchy and the project dependencies,
-                    external dependencies (including source and javadoc jars),
+                    external dependencies (including source and Javadoc jars),
                     source directories and tasks of each project.
                 </listitem>
                 <listitem>You can execute a build and listen to stdout and stderr logging and progress

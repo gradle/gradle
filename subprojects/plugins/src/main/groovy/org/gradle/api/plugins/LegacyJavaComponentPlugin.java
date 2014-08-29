@@ -30,9 +30,9 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.jvm.toolchain.JavaToolChain;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -42,7 +42,7 @@ import java.util.concurrent.Callable;
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  *
  * Base plugin for Java language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
+ * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.platform.base.BinaryContainer}.
  * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
  * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
  */

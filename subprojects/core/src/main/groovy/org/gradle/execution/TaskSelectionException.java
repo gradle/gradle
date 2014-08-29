@@ -15,9 +15,9 @@
  */
 package org.gradle.execution;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutput;
 
@@ -34,7 +34,7 @@ public class TaskSelectionException extends InvalidUserDataException implements 
 
     public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
         output.text("Run ");
-        clientMetaData.describeCommand(output.withStyle(UserInput), ImplicitTasksConfigurer.TASKS_TASK);
+        clientMetaData.describeCommand(output.withStyle(UserInput), ProjectInternal.TASKS_TASK);
         output.text(" to get a list of available tasks.");
     }
 }

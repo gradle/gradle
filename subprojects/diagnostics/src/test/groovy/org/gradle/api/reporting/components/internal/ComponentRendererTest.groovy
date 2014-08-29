@@ -24,8 +24,8 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
-import org.gradle.runtime.base.BinarySpec
-import org.gradle.runtime.base.ComponentSpec
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.ComponentSpec
 import spock.lang.Specification
 
 class ComponentRendererTest extends Specification {

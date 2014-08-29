@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.platform.internal;
 
 import org.gradle.internal.typeconversion.*;
-import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -35,22 +34,23 @@ public class ArchitectureNotationParser {
     private static final List<String> SPARC_64_ALIASES = Arrays.asList("sparc64", "ultrasparc", "sparc-v9");
     private static final List<String> ARM_ALIASES = Arrays.asList("arm");
 
-    public static NotationParser<Object, Architecture> parser() {
+    public static NotationParser<Object, ArchitectureInternal> parser() {
         return NotationParserBuilder
-                .toType(Architecture.class)
+                .toType(ArchitectureInternal.class)
+                .typeDisplayName("an object of type Architecture")
                 .fromCharSequence(new Parser())
                 .toComposite();
     }
 
-    private static final class Parser implements NotationConverter<String, Architecture> {
-        public void convert(String notation, NotationConvertResult<? super Architecture> result) throws TypeConversionException {
-            Architecture architecture = parseType(notation);
+    private static final class Parser implements NotationConverter<String, ArchitectureInternal> {
+        public void convert(String notation, NotationConvertResult<? super ArchitectureInternal> result) throws TypeConversionException {
+            ArchitectureInternal architecture = parseType(notation);
             if (architecture != null) {
                 result.converted(architecture);
             }
         }
 
-        protected Architecture parseType(String notation) {
+        protected ArchitectureInternal parseType(String notation) {
             if (X86_ALIASES.contains(notation.toLowerCase())) {
                 return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.X86, 32);
             }

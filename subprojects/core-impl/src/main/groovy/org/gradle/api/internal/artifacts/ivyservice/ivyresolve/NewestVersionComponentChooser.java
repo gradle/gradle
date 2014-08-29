@@ -15,34 +15,39 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.RuleAction;
+import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultVersionSelection;
-import org.gradle.api.internal.artifacts.VersionSelectionInternal;
-import org.gradle.api.internal.artifacts.VersionSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.DefaultComponentSelection;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 class NewestVersionComponentChooser implements ComponentChooser {
+    private final ComponentSelectionRulesProcessor rulesProcessor = new ComponentSelectionRulesProcessor();
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
-    private final VersionSelectionRulesInternal versionSelectionRules;
+    private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    NewestVersionComponentChooser(LatestStrategy latestStrategy, VersionMatcher versionMatcher, VersionSelectionRulesInternal versionSelectionRules) {
+    NewestVersionComponentChooser(LatestStrategy latestStrategy, VersionMatcher versionMatcher, ComponentSelectionRulesInternal componentSelectionRules) {
         this.latestStrategy = latestStrategy;
         this.versionMatcher = versionMatcher;
-        this.versionSelectionRules = versionSelectionRules;
+        this.componentSelectionRules = componentSelectionRules;
     }
 
     public boolean canSelectMultipleComponents(ModuleVersionSelector selector) {
-        return versionMatcher.isDynamic(selector.getVersion()) || versionSelectionRules.hasRules();
+        return versionMatcher.isDynamic(selector.getVersion());
     }
 
     public ExternalComponentMetaData choose(ExternalComponentMetaData one, ExternalComponentMetaData two) {
@@ -67,78 +72,70 @@ class NewestVersionComponentChooser implements ComponentChooser {
     }
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
-        if (versionMatcher.needModuleMetadata(dependency.getRequested().getVersion())) {
-            return chooseBestMatchingDependencyWithMetaData(versions, dependency, moduleAccess);
-        } else {
-            return chooseBestMatchingDependency(versions, dependency, moduleAccess);
-        }
-    }
-
-    private ModuleComponentIdentifier chooseBestMatchingDependency(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
         ModuleVersionSelector requested = dependency.getRequested();
+        List<RuleAction<? super ComponentSelection>> rules = buildRulesForSelector(requested);
+
         for (Versioned candidate : sortLatestFirst(versions)) {
-            // Apply version selection rules
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
 
-            VersionSelectionInternal selection = new DefaultVersionSelection(dependency, candidateIdentifier);
-            versionSelectionRules.apply(selection, moduleAccess);
-
-            switch(selection.getState()) {
-                case ACCEPTED:
-                    return candidateIdentifier;
-                case REJECTED:
-                    continue;
-                default:
-                    break;
+            if (isRejectedByRules(candidateIdentifier, rules, dependency, moduleAccess)) {
+                continue;
             }
 
-            // Invoke version matcher
-            if (versionMatcher.accept(requested.getVersion(), candidate.getVersion())) {
-                return candidateIdentifier;
-            }
+            return candidateIdentifier;
         }
         return null;
     }
 
-    private ModuleComponentIdentifier chooseBestMatchingDependencyWithMetaData(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
-        for (Versioned candidate : sortLatestFirst(versions)) {
-            MutableModuleVersionMetaData metaData = resolveComponentMetaData(dependency, candidate, moduleAccess);
-            ModuleComponentIdentifier candidateIdentifier = metaData.getComponentId();
-
-            // Apply version selection rules
-            VersionSelectionInternal selection = new DefaultVersionSelection(dependency, candidateIdentifier);
-            versionSelectionRules.apply(selection, moduleAccess);
-
-            switch(selection.getState()) {
-                case ACCEPTED:
-                    return candidateIdentifier;
-                case REJECTED:
-                    continue;
-                default:
-                    break;
-            }
-
-            // Invoke version matcher
-            if (versionMatcher.accept(dependency.getRequested().getVersion(), metaData)) {
-                // We already resolved the correct module.
-                return candidateIdentifier;
-            }
+    private List<RuleAction<? super ComponentSelection>> buildRulesForSelector(ModuleVersionSelector requested) {
+        List<RuleAction<? super ComponentSelection>> rules = Lists.newArrayList();
+        if (versionMatcher.needModuleMetadata(requested.getVersion())) {
+            rules.add(new MetadataVersionMatchingRule());
+        } else {
+            rules.add(new SimpleVersionMatchingRule());
         }
-        return null;
+        rules.addAll(componentSelectionRules.getRules());
+        return rules;
     }
 
-    private MutableModuleVersionMetaData resolveComponentMetaData(DependencyMetaData dependency, Versioned candidate, ModuleComponentRepositoryAccess moduleAccess) {
-        ModuleVersionSelector selector = dependency.getRequested();
-        ModuleComponentIdentifier candidateId = DefaultModuleComponentIdentifier.newId(selector.getGroup(), selector.getName(), candidate.getVersion());
-        DependencyMetaData moduleVersionDependency = dependency.withRequestedVersion(candidate.getVersion());
-        BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
-        moduleAccess.resolveComponentMetaData(moduleVersionDependency, candidateId, descriptorResult);
-        return descriptorResult.getMetaData();
+    public boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
+        return isRejectedByRules(candidateIdentifier, componentSelectionRules.getRules(), dependency, moduleAccess);
+    }
+
+    private boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Collection<RuleAction<? super ComponentSelection>> rules, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
+        ComponentSelectionInternal selection = new DefaultComponentSelection(dependency, candidateIdentifier);
+        rulesProcessor.apply(selection, rules, moduleAccess);
+        return selection.isRejected();
     }
 
     private List<Versioned> sortLatestFirst(ModuleVersionListing listing) {
         List<Versioned> sorted = latestStrategy.sort(listing.getVersions());
         Collections.reverse(sorted);
         return sorted;
+    }
+
+    private final class SimpleVersionMatchingRule implements RuleAction<ComponentSelection> {
+        public List<Class<?>> getInputTypes() {
+            return Collections.emptyList();
+        }
+
+        public void execute(ComponentSelection selection, List<?> inputs) {
+            if (!versionMatcher.accept(selection.getRequested().getVersion(), selection.getCandidate().getVersion())) {
+                selection.reject("Incorrect version");
+            }
+        }
+    }
+
+    private final class MetadataVersionMatchingRule implements RuleAction<ComponentSelection> {
+        public List<Class<?>> getInputTypes() {
+            return Collections.<Class<?>>singletonList(ModuleVersionMetaData.class);
+        }
+
+        public void execute(ComponentSelection selection, List<?> inputs) {
+            ModuleVersionMetaData metadata = (ModuleVersionMetaData) inputs.get(0);
+            if (!versionMatcher.accept(selection.getRequested().getVersion(), metadata)) {
+                selection.reject("Incorrect version or status");
+            }
+        }
     }
 }

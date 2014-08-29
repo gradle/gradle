@@ -29,9 +29,9 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.test.TestSuiteContainer;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ComponentSpec;
-import org.gradle.runtime.base.ComponentSpecContainer;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecContainer;
 
 import javax.inject.Inject;
 import java.util.ArrayList;

@@ -18,7 +18,7 @@ package org.gradle.language.cpp.tasks
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativeplatform.platform.internal.PlatformInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,7 +30,7 @@ class CppCompileTest extends Specification {
     CppCompile cppCompile = TestUtil.createTask(CppCompile)
     def toolChain = Mock(ToolChainInternal)
     def platform = Mock(PlatformInternal)
-    def platformToolChain = Mock(PlatformToolChain)
+    def platformToolChain = Mock(PlatformToolProvider)
     Compiler<CppCompileSpec> cppCompiler = Mock(Compiler)
 
     def "executes using the CppCompiler"() {

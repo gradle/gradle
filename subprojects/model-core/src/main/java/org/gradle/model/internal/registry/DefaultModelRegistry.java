@@ -19,9 +19,11 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Function;
 import com.google.common.collect.*;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Transformers;
 import org.gradle.model.InvalidModelRuleException;
@@ -30,6 +32,8 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.AmbiguousBindingReporter;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
+import org.gradle.model.internal.report.unbound.UnboundRule;
+import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
@@ -237,7 +241,11 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public void validate() throws UnboundModelRulesException {
         if (!binders.isEmpty()) {
-            throw new UnboundModelRulesException(binders);
+            List<ModelPath> availablePaths = CollectionUtils.toList(store.keySet());
+            availablePaths.addAll(creations.keySet());
+            ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(availablePaths);
+            List<UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
+            throw new UnboundModelRulesException(unboundRules);
         }
     }
 
@@ -460,6 +468,23 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         private boolean isTypeCompatible(ModelPromise promise) {
             return writable ? promise.asWritable(reference.getType()) : promise.asReadOnly(reference.getType());
+        }
+    }
+
+    private class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelPath> {
+
+        private final List<ModelPath> availablePaths;
+
+        public ModelPathSuggestionProvider(List<ModelPath> availablePaths) {
+            this.availablePaths = availablePaths;
+        }
+
+        public List<ModelPath> transform(final ModelPath original) {
+            return CollectionUtils.filter(availablePaths, new Spec<ModelPath>() {
+                public boolean isSatisfiedBy(ModelPath element) {
+                    return StringUtils.getLevenshteinDistance(original.toString(), element.toString()) <= Math.min(3, original.toString().length() / 2);
+                }
+            });
         }
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 class IvyPublishPluginIntegTest extends WellBehavedPluginTest {
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "ivy-publish"
     }
 

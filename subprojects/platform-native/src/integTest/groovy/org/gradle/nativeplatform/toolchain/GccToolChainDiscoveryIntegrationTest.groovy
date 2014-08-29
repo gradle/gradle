@@ -34,7 +34,7 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
 
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.buildScriptConfig}
+                    ${toolChain.buildScriptConfig}
                 }
             }
 
@@ -59,8 +59,10 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        cppCompiler.executable = 'does-not-exist'
+                    ${toolChain.id} {
+                        eachPlatform {
+                            cppCompiler.executable = 'does-not-exist'
+                        }
                     }
                 }
             }
@@ -76,9 +78,11 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        all {
-                            executable = 'does-not-exist'
+                    ${toolChain.id} {
+                        eachPlatform {
+                            cCompiler.executable = 'does-not-exist'
+                            cppCompiler.executable = 'does-not-exist'
+                            linker.executable = 'does-not-exist'
                         }
                     }
                 }
@@ -94,9 +98,15 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        all {
-                            executable = 'does-not-exist'
+                    ${toolChain.id} {
+                        eachPlatform {
+                            assembler.executable = 'does-not-exist'
+                            cCompiler.executable = 'does-not-exist'
+                            cppCompiler.executable = 'does-not-exist'
+                            linker.executable = 'does-not-exist'
+                            staticLibArchiver.executable = 'does-not-exist'
+                            objcCompiler.executable = 'does-not-exist'
+                            objcppCompiler.executable = 'does-not-exist'
                         }
                     }
                 }
@@ -107,7 +117,7 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
         failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform 'current'"))
-        failure.assertThatCause(Matchers.containsString("- ${AbstractInstalledToolChainIntegrationSpec.toolChain.instanceDisplayName}: Could not find ${AbstractInstalledToolChainIntegrationSpec.toolChain.meets(ToolChainRequirement.Gcc) ? 'C++' : 'C'} compiler 'does-not-exist'"))
+        failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: Could not find ${toolChain.meets(ToolChainRequirement.Gcc) ? 'C++' : 'C'} compiler 'does-not-exist'"))
     }
 
     def "fails when required language tool is not available but other language tools are available"() {
@@ -115,8 +125,10 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        cCompiler.executable = 'does-not-exist'
+                    ${toolChain.id} {
+                        eachPlatform {
+                            cCompiler.executable = 'does-not-exist'
+                        }
                     }
                 }
             }
@@ -133,8 +145,10 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        linker.executable = 'does-not-exist'
+                    ${toolChain.id} {
+                        eachPlatform {
+                            linker.executable = 'does-not-exist'
+                        }
                     }
                 }
             }

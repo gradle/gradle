@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.containsString
 class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "java-library-distribution"
     }
 

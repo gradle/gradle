@@ -227,16 +227,16 @@ public interface ResolutionStrategy {
      * @since 2.2
      */
     @Incubating
-    VersionSelectionRules getVersionSelection();
+    ComponentSelectionRules getComponentSelection();
 
     /**
-     * The versionSelection block provides rules for how versions should be selected.  This is useful for defining
+     * The componentSelection block provides rules for how versions should be selected.  This is useful for defining
      * your own version scheme.
      *
-     * @param closure Action to be applied to the {@link org.gradle.api.artifacts.VersionSelectionRules}
+     * @param action Action to be applied to the {@link ComponentSelectionRules}
      * @return this ResolutionStrategy instance
      * @since 2.2
      */
     @Incubating
-    ResolutionStrategy versionSelection(Action<VersionSelectionRules> closure);
+    ResolutionStrategy componentSelection(Action<ComponentSelectionRules> action);
 }

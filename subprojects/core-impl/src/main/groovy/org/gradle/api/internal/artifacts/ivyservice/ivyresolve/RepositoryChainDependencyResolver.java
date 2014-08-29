@@ -107,7 +107,7 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
 
     private RepositoryResolveState createRepositoryResolveState(ModuleComponentRepository repository, boolean isDynamicSelector) {
         if (isDynamicSelector) {
-            return new DynamicVersionRepositoryResolveState(repository, componentChooser);
+            return new DynamicVersionRepositoryResolveState(repository);
         }
         return new StaticVersionRepositoryResolveState(repository);
     }
@@ -196,23 +196,26 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
     }
 
     private class StaticVersionRepositoryResolveState extends RepositoryResolveState {
-
         public StaticVersionRepositoryResolveState(ModuleComponentRepository repository) {
             super(repository);
         }
 
         protected void process(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleVersionMetaDataResolveResult resolveResult) {
-            moduleAccess.resolveComponentMetaData(dependency, DefaultModuleComponentIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion()), resolveResult);
+            ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion());
+            moduleAccess.resolveComponentMetaData(dependency, moduleComponentIdentifier, resolveResult);
+            if (resolveResult.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+                if (componentChooser.isRejectedByRules(moduleComponentIdentifier, dependency, moduleAccess)) {
+                    resolveResult.missing();
+                }
+            }
         }
     }
 
-    private static class DynamicVersionRepositoryResolveState extends RepositoryResolveState {
+    private class DynamicVersionRepositoryResolveState extends RepositoryResolveState {
         final DefaultBuildableModuleVersionSelectionResolveResult selectionResult = new DefaultBuildableModuleVersionSelectionResolveResult();
-        private final ComponentChooser versionSelector;
 
-        public DynamicVersionRepositoryResolveState(ModuleComponentRepository repository, ComponentChooser versionSelector) {
+        public DynamicVersionRepositoryResolveState(ModuleComponentRepository repository) {
             super(repository);
-            this.versionSelector = versionSelector;
         }
 
         protected void process(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleVersionMetaDataResolveResult resolveResult) {
@@ -240,7 +243,7 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
         }
 
         private boolean resolveDependency(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleVersionMetaDataResolveResult resolveResult) {
-            ModuleComponentIdentifier componentIdentifier = versionSelector.choose(selectionResult.getVersions(), dependency, moduleAccess);
+            ModuleComponentIdentifier componentIdentifier = componentChooser.choose(selectionResult.getVersions(), dependency, moduleAccess);
             if (componentIdentifier == null) {
                 return false;
             }

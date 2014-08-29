@@ -21,16 +21,15 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
-import org.gradle.nativeplatform.platform.Platform
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
-import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
-import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration
-import org.gradle.nativeplatform.toolchain.TargetedPlatformToolChain
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain
+import org.gradle.nativeplatform.platform.internal.*
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
+import org.gradle.nativeplatform.toolchain.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.ToolType
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
+import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
@@ -50,7 +49,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def instantiator = new DirectInstantiator()
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolSearchPath, instantiator)
-    def platform = Stub(Platform)
+    def platform = Stub(PlatformInternal)
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
@@ -112,8 +111,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def "selected toolChain applies platform configuration action"() {
-        Platform platform1 = Mock(Platform)
-        Platform platform2 = Mock(Platform)
+        def platform1 = Mock(PlatformInternal)
+        def platform2 = Mock(PlatformInternal)
         platform1.getName() >> "platform1"
 
         platform1.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
@@ -123,12 +122,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolSearchPath.locate(_, _) >> tool
 
         int platformActionApplied = 0
-        toolChain.target([platform1.getName(), platform2.getName()], new Action<TargetedPlatformToolChain>() {
-            void execute(TargetedPlatformToolChain configurableToolChain) {
+        toolChain.target([platform1.getName(), platform2.getName()], new Action<PlatformToolChain>() {
+            void execute(PlatformToolChain configurableToolChain) {
                 platformActionApplied++;
             }
         });
-        PlatformToolChain selected = toolChain.select(platform1)
+        PlatformToolProvider selected = toolChain.select(platform1)
         then:
         selected.isAvailable();
         assert platformActionApplied == 1
@@ -142,12 +141,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
 
     def "selected toolChain uses objectfile suffix based on targetplatform"() {
-        Platform platform1 = Mock(Platform)
-        Platform platform2 = Mock(Platform)
+        def platform1 = Mock(PlatformInternal)
+        def platform2 = Mock(PlatformInternal)
         platform1.getName() >> "platform1"
-        def  platformOSWin = Mock(org.gradle.nativeplatform.platform.OperatingSystem)
+        def  platformOSWin = Mock(OperatingSystemInternal)
         platformOSWin.isWindows() >> true
-        def  platformOSNonWin = Mock(org.gradle.nativeplatform.platform.OperatingSystem)
+        def  platformOSNonWin = Mock(OperatingSystemInternal)
         platformOSNonWin.isWindows() >> false
         platform1.getOperatingSystem() >> platformOSWin
         platform2.getOperatingSystem() >> platformOSNonWin
@@ -157,7 +156,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         toolChain.target(platform1.getName())
         toolChain.target(platform2.getName())
-        PlatformToolChain selected = toolChain.select(platform1)
+        PlatformToolProvider selected = toolChain.select(platform1)
         then:
         selected.outputFileSuffix == ".obj"
         when:
@@ -169,54 +168,55 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
 
     def "supplies no additional arguments to target native binary for tool chain default"() {
-        when:
+        def action = Mock(Action)
+
+        given:
         toolSearchPath.locate(_, _) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+        toolChain.eachPlatform(action)
 
-        TargetedPlatformToolChain configurableToolChain = newConfigurableToolChain()
+        when:
+        toolChain.select(platform)
+
         then:
-
-        with(toolChain.getPlatformConfiguration(platform).apply(configurableToolChain)) {
-            def args = []
-            configurableToolChain.getByName("linker").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("cppCompiler").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("cCompiler").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("assembler").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("staticLibArchiver").getArgAction().execute(args)
-            args == []
-            configurableToolChain.getByName("objcCompiler").getArgAction().execute(args)
-            args == []
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.linker) == []
+            argsFor(platformToolChain.cCompiler) == []
+            argsFor(platformToolChain.cppCompiler) == []
+            argsFor(platformToolChain.assembler) == []
+            argsFor(platformToolChain.staticLibArchiver) == []
+            argsFor(platformToolChain.objcCompiler) == []
+            argsFor(platformToolChain.objcppCompiler) == []
         }
     }
 
-
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "supplies args for supported architecture"() {
-        when:
+        def action = Mock(Action)
+
+        given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
+        toolChain.eachPlatform(action)
+
+        when:
+        toolChain.select(platform)
 
         then:
-        toolChain.select(platform).available
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.linker) == [linkerArg]
 
-        with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(getByName("linker")) == [linkerArg]
-
-            argsFor(getByName("cppCompiler")) == [compilerArg]
-            argsFor(getByName("cCompiler")) == [compilerArg]
+            argsFor(platformToolChain.cppCompiler) == [compilerArg]
+            argsFor(platformToolChain.cCompiler) == [compilerArg]
 
             if (OperatingSystem.current().isMacOsX()) {
-                argsFor(getByName("assembler")) == osxAssemblerArgs
+                argsFor(platformToolChain.assembler) == osxAssemblerArgs
             } else {
-                argsFor(getByName("assembler")) == [assemblerArg]
+                argsFor(platformToolChain.assembler) == [assemblerArg]
             }
-            argsFor(getByName("staticLibArchiver")) == []
+            argsFor(platformToolChain.staticLibArchiver) == []
         }
 
         where:
@@ -227,39 +227,25 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     @Requires(TestPrecondition.WINDOWS)
     def "supplies args for supported architecture for i386 architecture on windows"() {
-        when:
+        def action = Mock(Action)
+
+        given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.architecture >> new DefaultArchitecture("i386", X86, 32)
-
-        then:
-        toolChain.select(platform).available
-
-        with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(getByName("cppCompiler")) == ["-m32"]
-            argsFor(getByName("cCompiler")) == ["-m32"]
-            argsFor(getByName("linker")) == ["-m32"]
-            argsFor(getByName("assembler")) == ["--32"]
-            argsFor(getByName("staticLibArchiver")) == []
-        }
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "cannot target x86_64 architecture on windows"() {
-        given:
-        toolSearchPath.locate(_, _) >> tool
-
-        and:
-        platform.getName() >> "x64"
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.architecture >> new DefaultArchitecture("x64", X86, 64)
+        toolChain.eachPlatform(action)
 
         when:
-        def platformToolChain = toolChain.select(platform)
+        toolChain.select(platform)
 
         then:
-        !platformToolChain.available
-        getMessage(platformToolChain) == "Don't know how to build for platform 'x64'."
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            argsFor(platformToolChain.cppCompiler) == ["-m32"]
+            argsFor(platformToolChain.cCompiler) == ["-m32"]
+            argsFor(platformToolChain.linker) == ["-m32"]
+            argsFor(platformToolChain.assembler) == ["--32"]
+            argsFor(platformToolChain.staticLibArchiver) == []
+        }
     }
 
     def "uses supplied platform configurations in order to target binary"() {
@@ -274,7 +260,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.target("platform1", platformConfig1)
         toolChain.target("platform2", platformConfig2)
 
-        PlatformToolChain platformToolChain = toolChain.select(platform)
+        PlatformToolProvider platformToolChain = toolChain.select(platform)
 
         then:
         platformToolChain.available
@@ -292,8 +278,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
-        toolChain.target(platform.getName(), new Action<TargetedPlatformToolChain>() {
-            void execute(TargetedPlatformToolChain configurableToolChain) {
+        toolChain.target(platform.getName(), new Action<PlatformToolChain>() {
+            void execute(PlatformToolChain configurableToolChain) {
                 configurationApplied = true;
             }
         })
@@ -301,6 +287,27 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         then:
         toolChain.select(platform).available
         configurationApplied
+    }
+
+    def "provided action can configure platform tool chain"() {
+        given:
+        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+
+        def action = Mock(Action)
+        toolChain.eachPlatform(action)
+
+        when:
+        toolChain.select(platform)
+
+        then:
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            assert platformToolChain.platform == platform
+            assert platformToolChain.cCompiler
+            assert platformToolChain.cppCompiler
+            assert platformToolChain.linker
+            assert platformToolChain.staticLibArchiver
+        }
     }
 
     def getMessage(ToolSearchResult result) {
@@ -312,13 +319,17 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     static class TestToolChain extends AbstractGccCompatibleToolChain {
         TestToolChain(String name, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, Instantiator instantiator) {
             super(name, org.gradle.internal.os.OperatingSystem.current(), fileResolver, execActionFactory, tools, instantiator)
-            add(new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "gcc"));
-            add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
-            add(new DefaultGccCommandLineToolConfiguration("objcCompiler", ToolType.OBJECTIVEC_COMPILER, "gcc"));
-            add(new DefaultGccCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "g++"));
-            add(new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
-            add(new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, "ld"));
-            add(new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
+        }
+
+        @Override
+        protected void addDefaultTools(DefaultGccPlatformToolChain toolChain) {
+            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.C_COMPILER, "gcc"));
+            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.CPP_COMPILER, "g++"));
+            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.OBJECTIVEC_COMPILER, "gcc"));
+            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.OBJECTIVECPP_COMPILER, "g++"));
+            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.ASSEMBLER, "as"));
+            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.LINKER, "ld"));
+            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.STATIC_LIB_ARCHIVER, "ar"));
         }
 
         @Override
@@ -327,27 +338,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
     }
 
-
-    TargetedPlatformToolChain newConfigurableToolChain() {
-        def tools = [:]
-        tools.put("assembler", new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, ""))
-        tools.put("cCompiler", new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, ""))
-        tools.put("cppCompiler", new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, ""))
-        tools.put("objcCompiler", new DefaultGccCommandLineToolConfiguration("objcCompiler", ToolType.OBJECTIVEC_COMPILER, ""))
-        tools.put("objcppCompiler", new DefaultGccCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, ""))
-        tools.put("linker", new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, ""))
-        tools.put("staticLibArchiver", new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, ""))
-
-        TargetedPlatformToolChain configurableToolChain = new DefaultGccPlatformToolChain(CommandLineToolConfiguration.class,
-                tools,
-                instantiator,
-                "PlatformTestToolChain",
-                "Platform specific toolchain")
-
-        return configurableToolChain;
-    }
-
-    def argsFor(def tool) {
+    def argsFor(GccCommandLineToolConfigurationInternal tool) {
         def args = []
         tool.getArgAction().execute(args)
         args

@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.consumer;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.classpath.EffectiveClassPath;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.UncheckedException;
@@ -24,33 +25,20 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.BuildCancelledException;
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
-import org.gradle.wrapper.Download;
-import org.gradle.wrapper.GradleUserHomeLookup;
-import org.gradle.wrapper.IDownload;
-import org.gradle.wrapper.Install;
-import org.gradle.wrapper.PathAssembler;
-import org.gradle.wrapper.WrapperConfiguration;
-import org.gradle.wrapper.WrapperExecutor;
+import org.gradle.wrapper.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class DistributionFactory {
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
     private final ExecutorServiceFactory executorFactory;
 
     public DistributionFactory(ExecutorServiceFactory executorFactory) {
@@ -119,7 +107,7 @@ public class DistributionFactory {
             return String.format("Gradle distribution '%s'", wrapperConfiguration.getDistribution());
         }
 
-        public ClassPath getToolingImplementationClasspath(final ProgressLoggerFactory progressLoggerFactory, final File userHomeDir, CancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(final ProgressLoggerFactory progressLoggerFactory, final File userHomeDir, BuildCancellationToken cancellationToken) {
             if (installedDistribution == null) {
                 Callable<File> installDistroTask = new Callable<File>() {
                     public File call() throws Exception {
@@ -204,7 +192,7 @@ public class DistributionFactory {
             return displayName;
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir, CancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir, BuildCancellationToken cancellationToken) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
             progressLogger.setDescription("Validate distribution");
             progressLogger.started();
@@ -241,7 +229,7 @@ public class DistributionFactory {
             return "Gradle classpath distribution";
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir, CancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir, BuildCancellationToken cancellationToken) {
             return new EffectiveClassPath(getClass().getClassLoader());
         }
     }

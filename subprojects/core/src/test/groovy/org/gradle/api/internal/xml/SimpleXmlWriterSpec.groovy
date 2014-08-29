@@ -28,7 +28,6 @@ class SimpleXmlWriterSpec extends Specification {
 
     String getXml() {
         def text = sw.toString("UTF-8")
-        println "TEXT {$text}"
         def document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(sw.toByteArray()))
         assert document
         return text

@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.NativeLibraryRequirement
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement
-import org.gradle.runtime.base.ComponentSpecContainer
+import org.gradle.platform.base.ComponentSpecContainer
 import spock.lang.Specification
 
 // TODO:DAZ Improve test names, at the very least

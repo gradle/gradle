@@ -551,7 +551,7 @@
                 The dependency reports (see the previous paragraph) are using this API under the covers.
                 The API lets you walk the resolved dependency graph and provides information about the dependencies.
                 In future releases the API will grow to provide more information about the resolution result.
-                For more information about the API please refer to the javadocs on
+                For more information about the API please refer to the Javadocs on
                 <apilink class="org.gradle.api.artifacts.ResolvableDependencies" method="getResolutionResult"/>.
                 Potential usages of the <apilink class="org.gradle.api.artifacts.result.ResolutionResult"/> API:
                 <itemizedlist>
@@ -1128,24 +1128,34 @@ someroot/[artifact]-[revision].[ext]
                 is not known in advance.
             </para>
             <para>
-                Rules are configured via the <apilink class="org.gradle.api.artifacts.VersionSelectionRules"/> object.  Each rule configured
-                will be called with a <apilink class="org.gradle.api.artifacts.VersionSelection"/> object as an argument which contains information
-                about the version being requested and the candidate version being considered.  Calling <apilink class="org.gradle.api.artifacts.VersionSelection" method="accept"/>
-                or <apilink class="org.gradle.api.artifacts.VersionSelection" method="reject"/> causes the given candidate version to
-                be explicitly accepted or rejected.  If a given version is neither accepted nor rejected, it will be subject to the default
-                version matching strategies.
+                Rules are configured via the <apilink class="org.gradle.api.artifacts.ComponentSelectionRules"/> object.  Each rule configured
+                will be called with a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> object as an argument which contains information
+                about the version being requested and the candidate version being considered.
+                Calling <apilink class="org.gradle.api.artifacts.ComponentSelection" method="reject"/> causes the given candidate version to be explicitly rejected,
+                in which case the candidate will not be considered for the selector.
             </para>
             <para>
                 The following example shows a rule that disallows a particular version of a module but allows the default version selection rules to
                 choose the next best candidate.  If the version requested was <literal>1.+</literal>, and versions 1.1, 1.0.1 and 1.0 were
                 available, it would reject 1.1 and select the next newest version available (1.0.1).
             </para>
-            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version Selection Rule">
+            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version selection rule">
                 <sourcefile file="build.gradle" snippet="reject-version-1.1" />
             </sample>
             <para>
                 Note that version selection is applied to <emphasis>all</emphasis> versions available, not just versions that match the requested version.  This allows
                 available versions that do not match the requested version to be explicitly substituted if desired.
+            </para>
+            <para>
+                Version selection rules can also consider component metadata when selecting a version.  Possible metadata arguments that can be considered are
+                <apilink class="org.gradle.api.artifacts.ComponentMetadata"/> and <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor"/>.
+            </para>
+            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version selection rule with metadata">
+                <sourcefile file="build.gradle" snippet="version-selection-with-metadata" />
+            </sample>
+            <para>
+                Note that a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> argument is <emphasis>always</emphasis> required when
+                declaring a version selection rule but the metadata arguments are optional.
             </para>
         </section>
     </section>
@@ -1332,7 +1342,7 @@ someroot/[artifact]-[revision].[ext]
             This is changing with new services like <ulink url='http://bintray.com'>Bintray</ulink> that let developers host and
             distribute their release binaries using a self-service repository platform. Bintray also supports sharing approved artifacts
             though the <ulink url='http://jcenter.bintray.com'>JCenter</ulink> public repository to provide a single resolution address for
-            all popular OSS java artifacts (see <xref linkend="sub:maven_jcenter"/>).
+            all popular OSS Java artifacts (see <xref linkend="sub:maven_jcenter"/>).
         </para>
         <para>This is a common reason why many projects prefer to store their libraries in their version control system. This
             approach is fully supported by Gradle. The libraries can be stored in a flat directory without any XML module

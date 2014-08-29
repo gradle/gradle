@@ -21,8 +21,8 @@ import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.nativeplatform.NativeLibrarySpec;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class NativeLibrarySpecFactory implements NamedDomainObjectFactory<NativeLibrarySpec> {
     private final Instantiator instantiator;

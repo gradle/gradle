@@ -71,7 +71,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         }
         if(factories.containsKey(type)){
             throw new GradleException(String.format("Cannot register a factory for type %s because "
-                    + "a factory for this type already registered.", type.getSimpleName()));
+                    + "a factory for this type is already registered.", type.getSimpleName()));
         }
         factories.put(type, factory);
     }

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class WindowsResourcesPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "windows-resources"
     }
 }

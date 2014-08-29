@@ -34,14 +34,7 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
     }
 
     public ClassPath findClassPath(String name) {
-        if (name.equals("GRADLE_PLUGINS")) {
-            ClassPath classpath = new DefaultClassPath();
-            for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
-                classpath = classpath.plus(pluginModule.getClasspath());
-            }
-            return classpath;
-        }
-        if (name.equals("GRADLE_CORE_IMPL")) {
+        if (name.equals("GRADLE_EXTENSIONS")) {
             Set<Module> coreModules = moduleRegistry.getModule("gradle-core").getAllRequiredModules();
             ClassPath classpath = new DefaultClassPath();
             for (String moduleName : Arrays.asList("gradle-core-impl", "gradle-plugin-use")) {
@@ -50,6 +43,9 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
                         classpath = classpath.plus(module.getClasspath());
                     }
                 }
+            }
+            for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
+                classpath = classpath.plus(pluginModule.getClasspath());
             }
             return classpath;
         }

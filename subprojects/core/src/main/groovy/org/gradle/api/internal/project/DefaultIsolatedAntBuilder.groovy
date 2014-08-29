@@ -22,9 +22,9 @@ import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.MutableURLClassLoader
-import org.gradle.util.*
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.jvm.Jvm
+import org.gradle.util.ConfigureUtil
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private final Map<List<File>, ClassLoader> baseClassloaders = [:]
@@ -87,6 +87,9 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             // Need gradle core to pick up ant logging adapter, AntBuilder and such
             def gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE")
 
+            // Need Transformer (part of AntBuilder API) from base services
+            gradleCoreUrls += classPathRegistry.getClassPath("GRADLE_BASE_SERVICES")
+
             FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().classLoader)
             loggingLoader.allowPackage('org.slf4j')
             loggingLoader.allowPackage('org.apache.commons.logging')
@@ -132,17 +135,17 @@ class AntBuilderDelegate extends BuilderSupport {
     def getAnt() {
         return this
     }
-    
+
     def taskdef(Map<String, ?> args) {
         if (args.keySet() == ['name', 'classname'] as Set) {
-            builder.project.addTaskDefinition(args.name, antlibClassLoader.loadClass(args.classname))            
+            builder.project.addTaskDefinition(args.name, antlibClassLoader.loadClass(args.classname))
         } else if (args.keySet() == ['resource'] as Set) {
             antlibClassLoader.getResource(args.resource).withInputStream { instr ->
                 def xml = new XmlParser().parse(instr)
                 xml.taskdef.each {
                     builder.project.addTaskDefinition(it.@name, antlibClassLoader.loadClass(it.@classname))
                 }
-            }            
+            }
         } else {
             throw new RuntimeException("Unsupported parameters for taskdef().")
         }

@@ -33,14 +33,18 @@ import java.util.Map;
 public class DefaultPluginRegistry implements PluginRegistry {
     private final Map<String, Class<? extends Plugin<?>>> idMappings = new HashMap<String, Class<? extends Plugin<?>>>();
     private final DefaultPluginRegistry parent;
-    private final Factory<ClassLoader> classLoaderFactory;
+    private final Factory<? extends ClassLoader> classLoaderFactory;
     private final Instantiator instantiator;
 
     public DefaultPluginRegistry(ClassLoader classLoader, Instantiator instantiator) {
-        this(null, Factories.constant(classLoader), instantiator);
+        this(Factories.constant(classLoader), instantiator);
     }
 
-    private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<ClassLoader> classLoaderFactory, Instantiator instantiator) {
+    public DefaultPluginRegistry(Factory<? extends ClassLoader> classLoaderFactory, Instantiator instantiator) {
+        this(null, classLoaderFactory, instantiator);
+    }
+
+    private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<? extends ClassLoader> classLoaderFactory, Instantiator instantiator) {
         this.parent = parent;
         this.classLoaderFactory = classLoaderFactory;
         this.instantiator = instantiator;
@@ -85,8 +89,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
         ClassLoader classLoader = this.classLoaderFactory.create();
 
-        PluginDescriptorLocator pluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
-        PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId);
+        PluginDescriptor pluginDescriptor = findPluginDescriptor(pluginId, classLoader);
         if (pluginDescriptor == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
@@ -113,5 +116,10 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
         idMappings.put(pluginId, implClass);
         return implClass;
+    }
+
+    protected PluginDescriptor findPluginDescriptor(String pluginId, ClassLoader classLoader) {
+        PluginDescriptorLocator pluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
+        return pluginDescriptorLocator.findPluginDescriptor(pluginId);
     }
 }

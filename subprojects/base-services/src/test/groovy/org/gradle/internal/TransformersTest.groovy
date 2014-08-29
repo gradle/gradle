@@ -21,7 +21,7 @@ import org.gradle.api.Named
 import org.gradle.api.Namer
 import spock.lang.Specification
 
-import static Transformers.*
+import static org.gradle.internal.Transformers.*
 
 class TransformersTest extends Specification {
 
@@ -86,6 +86,12 @@ class TransformersTest extends Specification {
 
         and:
         result == null
+    }
+
+    def constants() {
+        def foo = "foo"
+        expect:
+        constant(foo).transform(null).is(foo)
     }
 
     Named named(String name) {

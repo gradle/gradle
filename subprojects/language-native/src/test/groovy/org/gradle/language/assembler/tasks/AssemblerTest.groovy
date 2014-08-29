@@ -18,7 +18,7 @@ package org.gradle.language.assembler.tasks
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativeplatform.platform.internal.PlatformInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,7 +30,7 @@ class AssemblerTest extends Specification {
     Assemble assembleTask = TestUtil.createTask(Assemble)
     def toolChain = Mock(ToolChainInternal)
     def platform = Mock(PlatformInternal)
-    def platformToolChain = Mock(PlatformToolChain)
+    def platformToolChain = Mock(PlatformToolProvider)
     Compiler<AssembleSpec> assembler = Mock(Compiler)
 
     def "executes using the Assembler"() {

@@ -21,13 +21,14 @@ import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.resource.transport.http.HttpResponseResource;
 import org.gradle.plugin.use.internal.PluginRequest;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,11 +38,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class HttpPluginResolutionServiceClient implements PluginResolutionServiceClient {
+    private static final Escaper PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpPluginResolutionServiceClient.class);
-    private static final String REQUEST_URL = "/api/gradle/%s/plugin/use/%s/%s";
+    private static final String CLIENT_REQUEST_BASE = String.format("%s", PATH_SEGMENT_ESCAPER.escape(GradleVersion.current().getVersion()));
+    private static final String PLUGIN_USE_REQUEST_URL = "/plugin/use/%s/%s";
     private static final String JSON = "application/json";
 
-    public static final String DEPRECATION_MESSAGE_HEADER = "X-Client-Deprecation-Message";
+    public static final String CLIENT_STATUS_CHECKSUM_HEADER = "X-Gradle-Client-Status-Checksum";
 
     private final HttpResourceAccessor resourceAccessor;
 
@@ -50,13 +53,27 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     }
 
     @Nullable
-    public Response<PluginUseMetaData> queryPluginMetadata(final PluginRequest pluginRequest, String portalUrl) {
-        Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
-        String escapedId = escaper.escape(pluginRequest.getId().toString());
-        String escapedPluginVersion = escaper.escape(pluginRequest.getVersion());
-        String escapedGradleVersion = escaper.escape(GradleVersion.current().getVersion());
+    public Response<PluginUseMetaData>  queryPluginMetadata(String portalUrl, boolean shouldValidate, final PluginRequest pluginRequest) {
+        String escapedId = PATH_SEGMENT_ESCAPER.escape(pluginRequest.getId().toString());
+        String escapedPluginVersion = PATH_SEGMENT_ESCAPER.escape(pluginRequest.getVersion());
+        final String requestUrl = toRequestUrl(portalUrl, String.format(PLUGIN_USE_REQUEST_URL, escapedId, escapedPluginVersion));
+        return request(requestUrl, PluginUseMetaData.class, new Action<PluginUseMetaData>() {
+            public void execute(PluginUseMetaData pluginUseMetaData) {
+                validate(requestUrl, pluginUseMetaData);
+            }
+        });
+    }
 
-        final String requestUrl = String.format(portalUrl + REQUEST_URL, escapedGradleVersion, escapedId, escapedPluginVersion);
+    public Response<ClientStatus> queryClientStatus(String portalUrl, boolean shouldValidate, String checksum) {
+        final String requestUrl = toRequestUrl(portalUrl, "");
+        return request(requestUrl, ClientStatus.class, Actions.doNothing());
+    }
+
+    private String toRequestUrl(String portalUrl, String path) {
+        return String.format("%s/%s%s", portalUrl, CLIENT_REQUEST_BASE, path);
+    }
+
+    private <T> Response<T> request(final String requestUrl, final Class<T> type, final Action<? super T> validator) {
         final URI requestUri = toUri(requestUrl, "plugin request");
 
         HttpResponseResource response = null;
@@ -69,23 +86,25 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
                 throw new OutOfProtocolException(requestUrl, message);
             }
 
-            checkForDeprecationMessageHeader(response);
+            final String clientStatusChecksum = response.getHeaderValue(CLIENT_STATUS_CHECKSUM_HEADER);
 
-            return response.withContent(new Transformer<Response<PluginUseMetaData>, InputStream>() {
-                public Response<PluginUseMetaData> transform(InputStream inputStream) {
+            return response.withContent(new Transformer<Response<T>, InputStream>() {
+                public Response<T> transform(InputStream inputStream) {
                     Reader reader;
                     try {
                         reader = new InputStreamReader(inputStream, "utf-8");
                     } catch (UnsupportedEncodingException e) {
                         throw new AssertionError(e);
                     }
+
                     try {
                         if (statusCode == 200) {
-                            PluginUseMetaData metadata = validate(requestUrl, new Gson().fromJson(reader, PluginUseMetaData.class));
-                            return new SuccessResponse<PluginUseMetaData>(metadata, statusCode, requestUrl);
+                            T payload = new Gson().fromJson(reader, type);
+                            validator.execute(payload);
+                            return new SuccessResponse<T>(payload, statusCode, requestUrl, clientStatusChecksum);
                         } else if (statusCode >= 400 && statusCode < 600) {
                             ErrorResponse errorResponse = validate(requestUrl, new Gson().fromJson(reader, ErrorResponse.class));
-                            return new ErrorResponseResponse<PluginUseMetaData>(errorResponse, statusCode, requestUrl);
+                            return new ErrorResponseResponse<T>(errorResponse, statusCode, requestUrl, clientStatusChecksum);
                         } else {
                             throw new OutOfProtocolException(requestUrl, "unexpected HTTP response status " + statusCode);
                         }
@@ -109,11 +128,8 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
         }
     }
 
-    private void checkForDeprecationMessageHeader(HttpResponseResource response) {
-        String message = response.getHeaderValue(DEPRECATION_MESSAGE_HEADER);
-        if (message != null) {
-            DeprecationLogger.nagUserWith(message);
-        }
+    public void close() throws IOException {
+
     }
 
     private PluginUseMetaData validate(String url, PluginUseMetaData pluginUseMetaData) {

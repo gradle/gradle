@@ -108,5 +108,5 @@ public interface Manifest {
      * @param closure
      * @return this
      */
-    Manifest from(Object mergePath, Closure closure);
+    Manifest from(Object mergePath, Closure<?> closure);
 }

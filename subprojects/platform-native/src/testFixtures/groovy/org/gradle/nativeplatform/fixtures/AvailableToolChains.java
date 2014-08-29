@@ -139,7 +139,7 @@ public class AvailableToolChains {
     }
 
     static private ToolChainCandidate findGcc() {
-        GccVersionDeterminer versionDeterminer = new GccVersionDeterminer(new ExecActionFactory() {
+        GccVersionDeterminer versionDeterminer = GccVersionDeterminer.forGcc(new ExecActionFactory() {
             public ExecAction newExecAction() {
                 return new DefaultExecAction(TestFiles.resolver());
             }
@@ -148,7 +148,7 @@ public class AvailableToolChains {
         List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
         for (int i = 0; i < gppCandidates.size(); i++) {
             File candidate = gppCandidates.get(i);
-            GccVersionResult version = versionDeterminer.transform(candidate);
+            GccVersionResult version = versionDeterminer.getGccMetaData(candidate);
             if (version.isAvailable()) {
                 InstalledGcc gcc = new InstalledGcc("gcc");
                 if (i > 0) {

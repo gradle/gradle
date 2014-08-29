@@ -16,13 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
@@ -44,7 +43,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         if (details.isUpdated()) {
             DependencyMetaData substitutedDependency = dependency.withRequestedVersion(details.getTarget());
             ModuleVersionIdResolveResult result = resolver.resolve(substitutedDependency);
-            return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason(), details.getPreferredTarget());
+            return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason());
         }
         return resolver.resolve(dependency);
     }
@@ -71,10 +70,6 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
 
         public ComponentSelectionReason getSelectionReason() {
             return VersionSelectionReasons.REQUESTED;
-        }
-
-        public ModuleIdentifier getPreferredTarget() {
-            return null;
         }
     }
 }

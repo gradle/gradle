@@ -211,7 +211,7 @@ task retrieve(type: Sync) {
         then:
         fails "retrieve"
 
-        failure.assertHasCause("""Artifact 'group:projectA:1.2:projectA.jar' not found.
+        failure.assertHasCause("""Artifact 'projectA.jar (group:projectA:1.2)' not found.
 Searched in the following locations:
     ${module.jar.uri}""")
 
@@ -221,7 +221,7 @@ Searched in the following locations:
         then:
         fails "retrieve"
         // TODO - report on the locations when cached
-        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2:projectA.jar' not found"))
+        failure.assertThatCause(containsString("Artifact 'projectA.jar (group:projectA:1.2)' not found."))
     }
 
     public void "reports and recovers from failed artifact download"() {
@@ -251,7 +251,7 @@ task retrieve(type: Sync) {
 
         then:
         fails "retrieve"
-        failure.assertHasCause("Could not download artifact 'group:projectA:1.2:projectA.jar'")
+        failure.assertHasCause("Could not download artifact 'projectA.jar (group:projectA:1.2)'")
         failure.assertHasCause("Could not GET '${module.jar.uri}'. Received status code 500 from server: broken")
 
         when:

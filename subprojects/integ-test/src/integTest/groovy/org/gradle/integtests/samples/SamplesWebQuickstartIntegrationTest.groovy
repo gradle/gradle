@@ -15,13 +15,14 @@
  */
 
 package org.gradle.integtests.samples
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import spock.lang.Timeout
 import spock.lang.Unroll
+
+import static org.gradle.integtests.fixtures.UrlValidator.available
 
 class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart')
@@ -67,6 +68,9 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
 httpPort = ${httpPort}
 stopPort = ${stopPort}
 
+println "httpPort: \$httpPort"
+println "stopPort: \$stopPort"
+
 task runTest << {
     URL url = new URL("http://localhost:\$httpPort/quickstart")
     println url.text
@@ -83,14 +87,14 @@ task sayHearthyGoodbye << {
 
         //starting jetty
         sample sample
-        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").start()
+        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").withArgument("-i").start()
 
         //jetty is started
-        available("http://localhost:$httpPort/quickstart")
+        available("http://localhost:$httpPort/quickstart", "jetty")
 
         //running web test then stopping jetty
         sample sample
-        def jettyStop = executer.withTasks('runTest', 'jettyStop').run()
+        def jettyStop = executer.withTasks('runTest', 'jettyStop').withArgument("-i").run()
 
         //test has completed
         assert jettyStop.output.contains('hello Gradle')
@@ -98,20 +102,5 @@ task sayHearthyGoodbye << {
         //jetty completed gracefully
         runJetty.waitForFinish()
         assert runJetty.standardOutput.contains("Jetty will miss you!")
-    }
-
-    void available(String theUrl) {
-        URL url = new URL(theUrl)
-        long expiry = System.currentTimeMillis() + 30000
-        while (System.currentTimeMillis() <= expiry) {
-            try {
-                url.text
-                return
-            } catch (IOException e) {
-                // continue
-            }
-            Thread.sleep(200)
-        }
-        throw new RuntimeException("Timeout waiting for jetty to become available.")
     }
 }

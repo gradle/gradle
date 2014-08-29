@@ -16,16 +16,19 @@
 package org.gradle.api.internal.project
 
 import groovy.xml.MarkupBuilder
-import org.junit.Test
-import org.gradle.api.Project
-import org.gradle.util.TestUtil
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import org.gradle.api.tasks.ant.AntTarget
-import java.lang.reflect.Field
 import org.apache.tools.ant.Target
 import org.apache.tools.ant.Task
+import org.gradle.api.Project
+import org.gradle.api.tasks.ant.AntTarget
+import org.gradle.util.TestUtil
+import org.junit.Test
+
+import java.lang.reflect.Field
+
+import static org.gradle.util.Matchers.isEmpty
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 class DefaultAntBuilderTest {
     private final Project project = TestUtil.createRootProject()
@@ -71,7 +74,7 @@ class DefaultAntBuilderTest {
     @Test
     public void importAddsTaskForEachAntTarget() {
         File buildFile = new File(project.projectDir, 'build.xml')
-        buildFile.withWriter {Writer writer ->
+        buildFile.withWriter { Writer writer ->
             def xml = new MarkupBuilder(writer)
             xml.project {
                 target(name: 'target1', depends: 'target2, target3')
@@ -118,7 +121,7 @@ class DefaultAntBuilderTest {
         ant.test()
         Thread.currentThread().setContextClassLoader(original)
     }
-    
+
     @Test
     public void discardsTasksAfterExecution() {
         ant.echo(message: 'message')
@@ -135,6 +138,30 @@ class DefaultAntBuilderTest {
         List children = field.get(target)
         assertThat(children, isEmpty())
     }
+
+    @Test
+    public void testTaskRename() {
+        File buildFile = new File(project.projectDir, 'build.xml')
+        buildFile.withWriter { Writer writer ->
+            def xml = new MarkupBuilder(writer)
+            xml.project {
+                target(name: 'target1', depends: 'target2, target3')
+                target(name: 'target2')
+                target(name: 'target3')
+            }
+        }
+
+        ant.importBuild(buildFile) { taskName ->
+            'a-' + taskName
+        }
+
+        def task = project.tasks.'a-target1'
+        assertThat(task, instanceOf(AntTarget))
+        assertThat(task.target.name, equalTo('target1'))
+        assert task.taskDependencies.getDependencies(task).name.sort() == ["a-target2", "a-target3"]
+    }
+
+
 }
 
 public class TestTask extends Task {

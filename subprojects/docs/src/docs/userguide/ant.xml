@@ -151,6 +151,19 @@
             <sourcefile file="build.xml"/>
             <output args="hello"/>
         </sample>
+        <para>
+            Sometimes it may be necessary to “rename” the task generated for an Ant target to avoid a naming collision with existing Gradle tasks.
+            To do this, use the <apilink class="org.gradle.api.AntBuilder" method="importBuild(java.lang.Object, org.gradle.api.Transformer)" /> method.
+        </para>
+        <sample id="renameAntDelegate" dir="userguide/ant/renameTask" title="Renaming imported Ant targets">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="build.xml"/>
+            <output args="a-hello"/>
+        </sample>
+        <para>
+            Note that while the second argument to this method should be a <apilink class="org.gradle.api.Transformer"/>, when programming in Groovy we can simply
+            use a closure instead of an anonymous inner class (or similar) due to <ulink url="http://mrhaki.blogspot.ie/2013/11/groovy-goodness-implicit-closure.html">Groovy's support for automatically coercing closures to single-abstract-method types</ulink>.
+        </para>
     </section>
 
     <section>

@@ -70,7 +70,7 @@
 <title>Running and testing your installation</title>
 
 <para>You run Gradle via the <command>gradle</command> command. To check if Gradle is properly installed just type
-<command>gradle -v</command>. The output shows the Gradle version and also the local environment configuration (groovy and JVM version, etc.).
+<command>gradle -v</command>. The output shows the Gradle version and also the local environment configuration (Groovy, JVM version, OS, etc.).
     The displayed Gradle version should match the distribution you have downloaded.
 </para>
 

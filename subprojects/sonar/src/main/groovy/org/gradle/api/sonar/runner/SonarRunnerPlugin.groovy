@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.sonar.runner
 
+
+package org.gradle.api.sonar.runner
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
-
 /**
  * A plugin for analyzing projects with the
  * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
@@ -98,25 +99,52 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin
  */
 @Incubating
 class SonarRunnerPlugin implements Plugin<Project> {
-    // the project to which the plugin was applied
+
+    static final String SONAR_RUNNER_CONFIGURATION_NAME = 'sonarRunner'
+    static final String SONAR_RUNNER_EXTENSION_NAME = 'sonarRunner'
+    static final String SONAR_RUNNER_TASK_NAME = 'sonarRunner'
+
     Project targetProject
 
     void apply(Project project) {
         targetProject = project
-        def sonarRunnerTask = project.tasks.create("sonarRunner", SonarRunner)
+
+        SonarRunner sonarRunnerTask = createTask(project)
+
+        addExtensions(project, sonarRunnerTask)
+
+        addTaskDependencies(sonarRunnerTask, project)
+
+        addConfiguration()
+    }
+
+    private void addExtensions(Project project, SonarRunner sonarRunnerTask) {
+        def rootExtension = project.extensions.create(
+                SONAR_RUNNER_EXTENSION_NAME,
+                SonarRunnerRootExtension
+        )
+        rootExtension.forkOptions = sonarRunnerTask.forkOptions
+        project.subprojects {
+            extensions.create(SONAR_RUNNER_EXTENSION_NAME, SonarRunnerExtension)
+        }
+    }
+
+    private SonarRunner createTask(Project project) {
+        def sonarRunnerTask = project.tasks.create(SONAR_RUNNER_TASK_NAME, SonarRunner)
         sonarRunnerTask.with {
             description = "Analyzes $project and its subprojects with Sonar Runner."
-        }
-        sonarRunnerTask.conventionMapping.with {
-            sonarProperties = {
+
+            conventionMapping.sonarProperties = {
                 def properties = new Properties()
                 computeSonarProperties(project, properties)
                 properties
             }
         }
-        project.allprojects {
-            extensions.create("sonarRunner", SonarRunnerExtension)
-        }
+
+        sonarRunnerTask
+    }
+
+    private Task addTaskDependencies(SonarRunner sonarRunnerTask, Project project) {
         sonarRunnerTask.dependsOn {
             project.allprojects.findAll { prj ->
                 prj.plugins.hasPlugin(JavaPlugin) && !prj.sonarRunner.skipProject
@@ -179,7 +207,6 @@ class SonarRunnerPlugin implements Plugin<Project> {
         project.plugins.withType(JavaPlugin) {
             SourceSet main = project.sourceSets.main
             SourceSet test = project.sourceSets.test
-
             properties["sonar.sources"] = main.allSource.srcDirs.findAll { it.exists() } ?: null
             properties["sonar.tests"] = test.allSource.srcDirs.findAll { it.exists() } ?: null
             properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
@@ -238,6 +265,23 @@ class SonarRunnerPlugin implements Plugin<Project> {
 
     private String convertValue(Object value) {
         value instanceof Iterable ? value.collect { convertValue(it) }.join(",") : value.toString()
+    }
+
+    private void addConfiguration() {
+        this.targetProject.configurations.create(SONAR_RUNNER_CONFIGURATION_NAME).with {
+            visible = false
+            transitive = false
+            description = 'The SonarRunner configuration to use to run analysis'
+
+            incoming.beforeResolve {
+                if (dependencies.empty) {
+                    def toolVersion = targetProject.extensions.sonarRunner.toolVersion
+                    dependencies.add(targetProject.dependencies.create(
+                            "org.codehaus.sonar.runner:sonar-runner-dist:$toolVersion"
+                    ))
+                }
+            }
+        }
     }
 
 }

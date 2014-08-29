@@ -18,7 +18,6 @@ package org.gradle.execution;
 import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +45,7 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
         ProjectInternal project = context.getGradle().getDefaultProject();
         List<String> defaultTasks = project.getDefaultTasks();
         if (defaultTasks.size() == 0) {
-            defaultTasks = Arrays.asList(ImplicitTasksConfigurer.HELP_TASK);
+            defaultTasks = Arrays.asList(ProjectInternal.HELP_TASK);
             LOGGER.info("No tasks specified. Using default task {}", GUtil.toString(defaultTasks));
         } else {
             LOGGER.info("No tasks specified. Using project default tasks {}", GUtil.toString(defaultTasks));

@@ -34,7 +34,7 @@ public class DefaultLocalArtifactIdentifier implements ComponentArtifactIdentifi
     }
 
     public String getDisplayName() {
-        return String.format("%s:%s", componentDisplayName, name);
+        return String.format("%s (%s)", name, componentDisplayName);
     }
 
     public IvyArtifactName getName() {

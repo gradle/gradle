@@ -39,7 +39,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.process(metadata)
+        handler.processMetadata(metadata)
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -58,7 +58,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.process(metadata)
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
@@ -84,7 +84,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.process(metadata)
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
@@ -114,7 +114,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.process(metadata)
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
@@ -139,7 +139,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.process(metadata)
+        handler.processMetadata(metadata)
 
         then:
         !invoked
@@ -149,7 +149,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.eachComponent { -> }
 
         when:
-        handler.process(Stub(MutableModuleVersionMetaData))
+        handler.processMetadata(Stub(MutableModuleVersionMetaData))
 
         then:
         InvalidUserCodeException e = thrown()
@@ -160,7 +160,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.eachComponent { String s -> }
 
         when:
-        handler.process(Stub(MutableModuleVersionMetaData))
+        handler.processMetadata(Stub(MutableModuleVersionMetaData))
 
         then:
         InvalidUserCodeException e = thrown()
@@ -180,7 +180,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.process(metadata)
+        handler.processMetadata(metadata)
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -209,7 +209,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.process(metadata)
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()

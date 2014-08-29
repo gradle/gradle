@@ -17,7 +17,7 @@ package org.gradle.nativeplatform.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.runtime.base.test.TestSuiteSpec;
+import org.gradle.platform.base.test.TestSuiteSpec;
 
 /**
  * A component representing a suite of tests that will be executed together.

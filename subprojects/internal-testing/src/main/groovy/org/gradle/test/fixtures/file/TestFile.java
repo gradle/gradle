@@ -342,6 +342,13 @@ public class TestFile extends File {
         return this;
     }
 
+    public TestFile assertIsDifferentFrom(TestFile other) {
+        assertIsFile();
+        other.assertIsFile();
+        assertHasChangedSince(other.snapshot());
+        return this;
+    }
+
     private byte[] getHash(String algorithm) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance(algorithm);

@@ -20,7 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
-import org.gradle.model.internal.report.UnboundRuleReportOutputBuilder
+import org.gradle.model.internal.report.unbound.UnboundRule
+import org.gradle.model.internal.report.unbound.UnboundRuleInput
+import org.gradle.model.internal.report.unbound.UnboundRulesReporter
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -62,13 +64,13 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause(unbound {
-            rule(new SimpleModelRuleDescriptor('MyPlugin$Rules#thing1(MyPlugin$MyThing2)'))
-                    .immutableUnbound(null, 'MyPlugin$MyThing2')
-            rule(new SimpleModelRuleDescriptor('MyPlugin$Rules#mutateThing2(MyPlugin$MyThing2, MyPlugin$MyThing3)'))
-                    .mutableUnbound(null, 'MyPlugin$MyThing2')
-                    .immutableUnbound(null, 'MyPlugin$MyThing3')
-        })
+        failure.assertHasCause(unbound(
+                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor('MyPlugin$Rules#thing1(MyPlugin$MyThing2)'))
+                        .immutableInput(UnboundRuleInput.builder().type('MyPlugin$MyThing2')),
+                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor('MyPlugin$Rules#mutateThing2(MyPlugin$MyThing2, MyPlugin$MyThing3)'))
+                        .mutableInput(UnboundRuleInput.builder().type('MyPlugin$MyThing2'))
+                        .immutableInput(UnboundRuleInput.builder().type('MyPlugin$MyThing3'))
+        ))
     }
 
     def "unbound dsl rules are reported"() {
@@ -86,18 +88,56 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause(unbound {
-            rule(new SimpleModelRuleDescriptor('model.foo.bar'))
-                    .mutableUnbound("foo.bar", 'java.lang.Object')
-        })
+        failure.assertHasCause(unbound(
+                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor('model.foo.bar'))
+                        .mutableInput(UnboundRuleInput.builder().path('foo.bar').type('java.lang.Object'))
+        ))
     }
 
-    String unbound(@DelegatesTo(UnboundRuleReportOutputBuilder) Closure<?> closure) {
+    def "suggestions are provided for unbound rules"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(CollectionBuilder<Task> tasks) {
+                        tasks.create("foobar")
+                        tasks.create("raboof")
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks.foonar {
+                }
+            }
+        """
+
+        when:
+        fails "tasks"
+
+
+        then:
+        failure.assertHasCause(unbound(
+                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor("model.tasks.foonar"))
+                    .mutableInput(UnboundRuleInput.builder().path("tasks.foonar").type("java.lang.Object").suggestion("tasks.foobar"))
+        ))
+    }
+
+    String unbound(UnboundRule.Builder... rules) {
         def string = new StringWriter()
         def writer = new PrintWriter(string)
         writer.println("The following model rules are unbound:")
-        def builder = new UnboundRuleReportOutputBuilder(writer, "  ")
-        builder.with(closure)
+        def reporter = new UnboundRulesReporter(writer, "  ")
+        reporter.reportOn(rules.toList()*.build())
         normaliseLineSeparators(string.toString())
     }
 

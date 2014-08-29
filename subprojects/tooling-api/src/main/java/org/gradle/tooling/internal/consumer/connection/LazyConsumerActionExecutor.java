@@ -15,8 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
@@ -80,17 +80,18 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
 
     public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         try {
-            if (action.getCancellationToken().isCancellationRequested()) {
+            BuildCancellationToken cancellationToken = action.getParameters().getCancellationToken();
+            if (cancellationToken.isCancellationRequested()) {
                 throw new BuildCancelledException("Build cancelled");
             }
-            ConsumerConnection connection = onStartAction(action.getCancellationToken());
+            ConsumerConnection connection = onStartAction(cancellationToken);
             return action.run(connection);
         } finally {
             onEndAction();
         }
     }
 
-    private ConsumerConnection onStartAction(CancellationToken cancellationToken) {
+    private ConsumerConnection onStartAction(BuildCancellationToken cancellationToken) {
         lock.lock();
         try {
             if (stopped) {

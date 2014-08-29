@@ -99,7 +99,7 @@ public class ModelRuleInspector {
 
         for (Method method : methods) {
             validate(method);
-            MethodRuleDefinition ruleDefinition = new DefaultMethodRuleDefinition(method);
+            MethodRuleDefinition<?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
                 // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
@@ -112,10 +112,10 @@ public class ModelRuleInspector {
         }
     }
 
-    private MethodRuleDefinitionHandler getMethodHandler(MethodRuleDefinition ruleDefinition) {
+    private MethodRuleDefinitionHandler getMethodHandler(MethodRuleDefinition<?> ruleDefinition) {
         MethodRuleDefinitionHandler handler = null;
         for (MethodRuleDefinitionHandler candidateHandler : handlers) {
-            if (candidateHandler.isSatisfiedBy(ruleDefinition)) {
+            if (candidateHandler.getSpec().isSatisfiedBy(ruleDefinition)) {
                 if (handler == null) {
                     handler = candidateHandler;
                 } else {

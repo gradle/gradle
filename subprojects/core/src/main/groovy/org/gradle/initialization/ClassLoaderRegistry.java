@@ -27,11 +27,6 @@ public interface ClassLoaderRegistry {
     ClassLoader getRuntimeClassLoader();
 
     /**
-     * Returns the class loader for the coreImpl project.
-     */
-    ClassLoader getCoreImplClassLoader();
-
-    /**
      * Returns the class loader for the plugins.
      */
     ClassLoader getPluginsClassLoader();

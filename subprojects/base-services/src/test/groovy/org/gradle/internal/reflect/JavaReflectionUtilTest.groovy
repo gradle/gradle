@@ -225,6 +225,27 @@ class JavaReflectionUtilTest extends Specification {
         getAnnotation(InheritsInterface, NotInheritedAnnotation) == null
     }
 
+    static class Thing {
+        final String name
+
+        Thing(String name) {
+            this.name = name
+        }
+
+        Thing() {
+            this(null)
+        }
+    }
+
+    def "new instance"() {
+        def instantiator = new DirectInstantiator()
+
+        expect:
+        factory(instantiator, Thing).create().name == null
+        factory(instantiator, Thing, "foo").create().name == "foo"
+        !factory(instantiator, Thing).create().is(factory(instantiator, Thing).create())
+    }
+
 }
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -251,14 +272,18 @@ interface RootInterface {}
 interface SubInterface extends RootInterface {}
 
 class ImplementsRootInterface implements RootInterface {}
+
 class ImplementsSubInterface implements SubInterface {}
+
 class ImplementsBoth implements RootInterface, SubInterface {}
 
 @InheritedAnnotation(value = "HasAnnotations")
 interface HasAnnotations {}
 
 class OverrideFirst implements HasAnnotations, RootInterface, SubInterface {}
+
 class OverrideLast implements RootInterface, SubInterface, HasAnnotations {}
 
 class SuperWithInterface implements RootInterface {}
+
 class InheritsInterface extends SuperWithInterface {}

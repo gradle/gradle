@@ -29,6 +29,10 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
         this.name = name;
     }
 
+    public static ModuleIdentifier newId(String group, String name) {
+        return new DefaultModuleIdentifier(group, name);
+    }
+
     public String getGroup() {
         return group;
     }

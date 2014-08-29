@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.internal.ArchitectureNotationParser
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
-import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.internal.BinaryNamingScheme
 import spock.lang.Specification
 
 class VisualStudioProjectMapperTest extends Specification {

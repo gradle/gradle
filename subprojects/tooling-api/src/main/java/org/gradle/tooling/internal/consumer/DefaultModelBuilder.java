@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
@@ -51,18 +50,13 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-        final CancellationToken operationCancellationToken = cancellationToken;
         connection.run(new ConsumerAction<T>() {
-            public CancellationToken getCancellationToken() {
-                return operationCancellationToken;
-            }
-
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
 
             public T run(ConsumerConnection connection) {
-                return connection.run(modelType, operationCancellationToken, operationParameters);
+                return connection.run(modelType, operationParameters);
             }
         }, new ResultHandlerAdapter<T>(handler));
     }

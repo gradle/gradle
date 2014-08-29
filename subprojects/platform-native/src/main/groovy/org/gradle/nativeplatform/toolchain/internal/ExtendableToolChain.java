@@ -16,21 +16,21 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
+import org.gradle.listener.ActionBroadcast;
+import org.gradle.nativeplatform.toolchain.PlatformToolChain;
 
 import java.io.File;
 
-public abstract class ExtendableToolChain<T extends CommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements ToolChainInternal {
+public abstract class ExtendableToolChain<T extends PlatformToolChain> implements ToolChainInternal {
     private final String name;
     protected final OperatingSystem operatingSystem;
     private final FileResolver fileResolver;
+    protected final ActionBroadcast<T> configureActions = new ActionBroadcast<T>();
 
-    protected ExtendableToolChain(Class<? extends T> type, String name, OperatingSystem operatingSystem, FileResolver fileResolver, Instantiator instantiator) {
-        super(type, instantiator);
+    protected ExtendableToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver) {
         this.name = name;
         this.operatingSystem = operatingSystem;
         this.fileResolver = fileResolver;
@@ -55,20 +55,8 @@ public abstract class ExtendableToolChain<T extends CommandLineToolConfiguration
         return String.format("%s-%s", getName(), operatingSystem.getName());
     }
 
-    public String getExecutableName(String executablePath) {
-        return operatingSystem.getExecutableName(executablePath);
-    }
-
-    public String getSharedLibraryName(String libraryName) {
-        return operatingSystem.getSharedLibraryName(libraryName);
-    }
-
-    public String getSharedLibraryLinkFileName(String libraryName) {
-        return getSharedLibraryName(libraryName);
-    }
-
-    public String getStaticLibraryName(String libraryName) {
-        return operatingSystem.getStaticLibraryName(libraryName);
+    public void eachPlatform(Action<? super T> action) {
+        configureActions.add(action);
     }
 
     protected File resolve(Object path) {

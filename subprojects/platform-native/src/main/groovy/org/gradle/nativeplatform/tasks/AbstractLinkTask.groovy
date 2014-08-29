@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
+import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner
 import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.toolchain.ToolChain
 import org.gradle.nativeplatform.internal.LinkerSpec
@@ -105,6 +105,7 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
         }
 
         def spec = createLinkerSpec()
+        spec.targetPlatform = getTargetPlatform()
         spec.tempDir = getTemporaryDir()
         spec.outputFile = getOutputFile()
 

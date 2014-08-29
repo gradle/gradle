@@ -18,7 +18,7 @@
     <title>The Java Gradle Plugin Development Plugin</title>
     <note>
         <para>
-            The java gradle plugin development plugin is currently <link linkend="feature_lifecycle">incubating</link>.
+            The Java Gradle plugin development plugin is currently <link linkend="feature_lifecycle">incubating</link>.
             Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>

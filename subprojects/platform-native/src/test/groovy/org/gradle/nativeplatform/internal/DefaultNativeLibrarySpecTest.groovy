@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeLibrarySpecTest extends Specification {

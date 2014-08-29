@@ -18,6 +18,7 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
@@ -283,6 +284,10 @@ public class JavaReflectionUtil {
         }
     }
 
+    public static <T> Factory<T> factory(final Instantiator instantiator, final Class<? extends T> type, final Object... args) {
+        return new InstantiatingFactory<T>(instantiator, type, args);
+    }
+
     private static class GetterMethodBackedPropertyAccessor implements PropertyAccessor {
         private final String property;
         private final Method method;
@@ -346,6 +351,22 @@ public class JavaReflectionUtil {
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
+        }
+    }
+
+    private static class InstantiatingFactory<T> implements Factory<T> {
+        private final Instantiator instantiator;
+        private final Class<? extends T> type;
+        private final Object[] args;
+
+        public InstantiatingFactory(Instantiator instantiator, Class<? extends T> type, Object... args) {
+            this.instantiator = instantiator;
+            this.type = type;
+            this.args = args;
+        }
+
+        public T create() {
+            return instantiator.newInstance(type, args);
         }
     }
 }

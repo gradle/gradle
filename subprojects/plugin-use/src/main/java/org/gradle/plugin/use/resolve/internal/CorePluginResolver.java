@@ -18,6 +18,7 @@ package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.plugins.CorePluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.plugin.internal.PluginId;
@@ -25,8 +26,6 @@ import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 public class CorePluginResolver implements PluginResolver {
-
-    public static final String CORE_PLUGIN_NAMESPACE = "org.gradle";
 
     private final DocumentationRegistry documentationRegistry;
     private final PluginRegistry pluginRegistry;
@@ -39,7 +38,7 @@ public class CorePluginResolver implements PluginResolver {
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
         PluginId id = pluginRequest.getId();
 
-        if (!id.isQualified() || id.inNamespace(CORE_PLUGIN_NAMESPACE)) {
+        if (!id.isQualified() || id.inNamespace(CorePluginRegistry.CORE_PLUGIN_NAMESPACE)) {
             try {
                 Class<? extends Plugin> typeForId = pluginRegistry.getTypeForId(id.getName());
                 if (pluginRequest.getVersion() != null) {
@@ -53,7 +52,7 @@ public class CorePluginResolver implements PluginResolver {
                 result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
             }
         } else {
-            result.notFound(getDescription(), String.format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
+            result.notFound(getDescription(), String.format("plugin is not in '%s' namespace", CorePluginRegistry.CORE_PLUGIN_NAMESPACE));
         }
     }
 

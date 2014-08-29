@@ -16,8 +16,8 @@
 package org.gradle.language.jvm.tasks;
 
 import org.gradle.api.tasks.Copy;
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
-import org.gradle.language.jvm.internal.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 /**
  * Copies resources from their source to their target directory, potentially processing them.

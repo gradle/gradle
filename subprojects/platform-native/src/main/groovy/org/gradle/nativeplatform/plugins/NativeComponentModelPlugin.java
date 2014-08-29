@@ -23,6 +23,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
@@ -39,10 +40,10 @@ import org.gradle.nativeplatform.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ComponentSpecContainer;
-import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -218,7 +219,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     private static class MarkBinariesBuildable implements Action<NativeBinarySpec> {
         public void execute(NativeBinarySpec nativeBinarySpec) {
             ToolChainInternal toolChainInternal = (ToolChainInternal) nativeBinarySpec.getToolChain();
-            boolean canBuild = toolChainInternal.select(nativeBinarySpec.getTargetPlatform()).isAvailable();
+            boolean canBuild = toolChainInternal.select((PlatformInternal) nativeBinarySpec.getTargetPlatform()).isAvailable();
             ((NativeBinarySpecInternal) nativeBinarySpec).setBuildable(canBuild);
         }
     }

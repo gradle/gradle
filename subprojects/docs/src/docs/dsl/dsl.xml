@@ -143,7 +143,7 @@
                 <td>org.gradle.api.Script</td>
             </tr>
             <tr>
-                <td>org.gradle.runtime.jvm.toolchain.JavaToolChain</td>
+                <td>org.gradle.jvm.toolchain.JavaToolChain</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.SourceSet</td>
@@ -164,7 +164,7 @@
                 <td>org.gradle.api.artifacts.query.ArtifactResolutionQuery</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.VersionSelectionRules</td>
+                <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
             </tr>
             <tr>
                 <td>org.gradle.api.dsl.ConventionProperty</td>

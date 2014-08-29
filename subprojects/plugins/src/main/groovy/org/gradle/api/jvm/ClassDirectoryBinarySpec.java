@@ -17,7 +17,7 @@ package org.gradle.api.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.runtime.jvm.JvmLibraryBinarySpec;
+import org.gradle.jvm.JvmLibraryBinarySpec;
 
 /**
  * An exploded binary containing resources and compiled class files.

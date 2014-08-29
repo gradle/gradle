@@ -11,7 +11,7 @@
                 <td>forcedModules</td>
             </tr>
             <tr>
-                <td>versionSelection</td>
+                <td>componentSelection</td>
             </tr>
         </table>
     </section>
@@ -39,7 +39,7 @@
                 <td>eachDependency</td>
             </tr>
             <tr>
-                <td>versionSelection</td>
+                <td>componentSelection</td>
             </tr>
         </table>
     </section>

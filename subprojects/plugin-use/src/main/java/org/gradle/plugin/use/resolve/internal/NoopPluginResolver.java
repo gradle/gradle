@@ -17,16 +17,18 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.configuration.DefaultScriptPluginFactory;
+import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 // Used for testing the plugins DSL
 public class NoopPluginResolver implements PluginResolver {
 
+    public static final PluginId NOOP_PLUGIN_ID = PluginId.of("noop");
+
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        if (pluginRequest.getId().equals(DefaultScriptPluginFactory.NOOP_PLUGIN_ID)) {
-            result.found("noop resolver", new SimplePluginResolution(DefaultScriptPluginFactory.NOOP_PLUGIN_ID, NoopPlugin.class));
+        if (pluginRequest.getId().equals(NOOP_PLUGIN_ID)) {
+            result.found("noop resolver", new SimplePluginResolution(NOOP_PLUGIN_ID, NoopPlugin.class));
         }
     }
 

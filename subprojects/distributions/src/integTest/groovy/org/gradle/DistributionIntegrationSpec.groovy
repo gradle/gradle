@@ -100,6 +100,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-platform-native-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ide-native-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-native-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-platform-jvm-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-jvm-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-java-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-groovy-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()

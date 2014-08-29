@@ -25,8 +25,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.internal.PluginId;
 
-import java.net.URLClassLoader;
-
 public class ClassPathPluginResolution implements PluginResolution {
 
     private final PluginId pluginId;
@@ -47,8 +45,8 @@ public class ClassPathPluginResolution implements PluginResolution {
 
     public Class<? extends Plugin> resolve() {
         ClassPath classPath = classPathFactory.create();
-        ClassLoader classLoader = new URLClassLoader(classPath.getAsURLArray(), parent.getExportClassLoader());
-        PluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator);
+        Factory<? extends ClassLoader> loader = parent.loader(classPath);
+        PluginRegistry pluginRegistry = new DefaultPluginRegistry(loader, instantiator);
         return pluginRegistry.getTypeForId(pluginId.toString());
     }
 }

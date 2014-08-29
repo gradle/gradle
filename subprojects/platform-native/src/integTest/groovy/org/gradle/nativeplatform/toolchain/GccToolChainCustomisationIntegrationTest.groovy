@@ -36,7 +36,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
 
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.buildScriptConfig}
+                    ${toolChain.buildScriptConfig}
                 }
             }
 
@@ -61,7 +61,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
+                    ${toolChain.id} {
                         target("arm"){
                             cCompiler.withArguments { args ->
                                 args << "-m32"
@@ -101,55 +101,24 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         executable("build/binaries/mainExecutable/sparc/main").exec().out == helloWorldApp.englishOutput
     }
 
-    def "can add action to tool chain that modifies tool arguments prior to execution"() {
-        when:
-        buildFile << """
-            model {
-                toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        cCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
-                        }
-                        linker.withArguments { args ->
-                            args.remove "CUSTOM"
-                        }
-                        staticLibArchiver.withArguments { args ->
-                            args.remove "CUSTOM"
-                        }
-                    }
-                }
-            }
-            binaries.all {
-                cCompiler.args "CUSTOM"
-                linker.args "CUSTOM"
-            }
-            binaries.withType(StaticLibraryBinarySpec) {
-                staticLibArchiver.args "CUSTOM"
-            }
-"""
-        then:
-        succeeds "mainExecutable"
-
-        then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
-    }
-
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "can configure tool executables"() {
         def binDir = testDirectory.createDir("bin")
-        wrapperTool(binDir, "c-compiler", AbstractInstalledToolChainIntegrationSpec.toolChain.CCompiler, "-DFRENCH")
-        wrapperTool(binDir, "static-lib", AbstractInstalledToolChainIntegrationSpec.toolChain.staticLibArchiver)
-        wrapperTool(binDir, "linker", AbstractInstalledToolChainIntegrationSpec.toolChain.linker)
+        wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
+        wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
+        wrapperTool(binDir, "linker", toolChain.linker)
 
         when:
         buildFile << """
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
+                    ${toolChain.id} {
                         path file('${binDir.toURI()}')
-                        cCompiler.executable = 'c-compiler'
-                        staticLibArchiver.executable = 'static-lib'
-                        linker.executable = 'linker'
+                        eachPlatform {
+                            cCompiler.executable = 'c-compiler'
+                            staticLibArchiver.executable = 'static-lib'
+                            linker.executable = 'linker'
+                        }
                     }
                 }
             }
@@ -163,9 +132,9 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "can configure platform specific executables"() {
         def binDir = testDirectory.createDir("bin")
-        wrapperTool(binDir, "french-c-compiler", AbstractInstalledToolChainIntegrationSpec.toolChain.CCompiler, "-DFRENCH")
-        wrapperTool(binDir, "static-lib", AbstractInstalledToolChainIntegrationSpec.toolChain.staticLibArchiver)
-        wrapperTool(binDir, "linker", AbstractInstalledToolChainIntegrationSpec.toolChain.linker)
+        wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")
+        wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
+        wrapperTool(binDir, "linker", toolChain.linker)
 
         when:
         file("src/execTest/c/execTest.c") <<"""
@@ -187,7 +156,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
             }
             model {
                 toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
+                    ${toolChain.id} {
                         target("alwaysFrench"){
                             cCompiler.executable = '${binDir.absolutePath}/french-c-compiler'
                             staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'

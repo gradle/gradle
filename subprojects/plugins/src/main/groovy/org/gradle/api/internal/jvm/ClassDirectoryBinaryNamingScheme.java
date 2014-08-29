@@ -17,7 +17,7 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.api.Nullable;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;

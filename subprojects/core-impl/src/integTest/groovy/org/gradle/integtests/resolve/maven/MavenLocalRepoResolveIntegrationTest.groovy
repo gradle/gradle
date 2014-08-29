@@ -17,15 +17,11 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
     def setup() {
         buildFile << """
@@ -69,11 +65,24 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
+        def sysPropRepo = mavenLocal("artifactrepo")
+        m2Installation.generateGlobalSettingsFile(sysPropRepo)
+        def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
+
+        when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(moduleA)
+    }
+
+    def "can resolve artifacts from local m2 with custom local repository defined by system-property"() {
+        given:
         def artifactRepo = mavenLocal("artifactrepo")
-        m2Installation.generateGlobalSettingsFile(artifactRepo)
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
         when:
+        args "-Dmaven.repo.local=${artifactRepo.rootDir.getAbsolutePath()}"
         run 'retrieve'
 
         then:
@@ -89,6 +98,22 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         globalRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
         when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(moduleA)
+    }
+
+    def "local repository in System Property take precedence over the local repository user settings"() {
+        given:
+        def userRepo = mavenLocal("userArtifactRepo")
+        m2Installation.generateUserSettingsFile(userRepo)
+        def sysPropRepo = mavenLocal("artifactrepo")
+        def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
+        userRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
+
+        when:
+        args "-Dmaven.repo.local=${sysPropRepo.rootDir.getAbsolutePath()}"
         run 'retrieve'
 
         then:
@@ -191,7 +216,7 @@ Searched in the following locations:
 
         then:
         def buildDir = file('build')
-        buildDir.assertHasDescendants("projectA-1.2.jar","projectB-1.2.jar")
+        buildDir.assertHasDescendants("projectA-1.2.jar", "projectB-1.2.jar")
     }
 
     def "mavenLocal ignores missing jar for module with packaging 'pom'"() {

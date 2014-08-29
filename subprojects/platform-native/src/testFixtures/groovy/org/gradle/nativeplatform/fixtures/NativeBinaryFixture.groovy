@@ -82,7 +82,7 @@ class NativeBinaryFixture {
             return new OtoolBinaryInfo(file);
         }
         if (OperatingSystem.current().isWindows()) {
-            return new DumpbinBinaryInfo(file, toolChain);
+            return new DumpbinBinaryInfo(file);
         }
         return new ReadelfBinaryInfo(file);
     }

@@ -42,7 +42,14 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
  *
- * <p>By default, for each property, a convention mapping is applied. If {@code @Inject} is attached to a getter, the appropriate service instance will be injected instead.</p>
+ * <ul>
+ *     <li>For each property, a convention mapping is applied. These properties may have a setter method.</li>
+ *     <li>For each property whose getter is annotated with {@code Inject}, a service instance will be injected instead. These properties may have a setter method.</li>
+ *     <li>For each mutable property as set method is generated.</li>
+ *     <li>For each method whose last parameter is an {@link org.gradle.api.Action}, an override is generated that accepts a {@link groovy.lang.Closure} instead.</li>
+ *     <li>Coercion from string to enum property is mixed in.</li>
+ *     <li>{@link groovy.lang.GroovyObject} is mixed in to the class.</li>
+ * </ul>
  */
 public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class<?>, Map<Class<?>, Class<?>>> GENERATED_CLASSES = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
@@ -126,6 +133,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     builder.addInjectorProperty(property);
                     for (Method getter : property.getters) {
                         builder.applyServiceInjectionToGetter(property, getter);
+                    }
+                    for (Method setter : property.setters) {
+                        builder.applyServiceInjectionToSetter(property, setter);
                     }
                     continue;
                 }
@@ -471,6 +481,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void addInjectorProperty(PropertyMetaData property);
 
         void applyServiceInjectionToGetter(PropertyMetaData property, Method getter) throws Exception;
+
+        void applyServiceInjectionToSetter(PropertyMetaData property, Method setter) throws Exception;
 
         void addConventionProperty(PropertyMetaData property) throws Exception;
 

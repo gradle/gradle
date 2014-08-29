@@ -150,7 +150,7 @@ class DefaultToolChainRegistryTest extends Specification {
     }
 
     def availableToolChain(String name) {
-        PlatformToolChain platformToolChain = Stub(PlatformToolChain) {
+        PlatformToolProvider platformToolChain = Stub(PlatformToolProvider) {
             _ * isAvailable() >> true
         }
         TestToolChain testToolChain = Mock(TestToolChain) {
@@ -162,7 +162,7 @@ class DefaultToolChainRegistryTest extends Specification {
     }
 
     def unavailableToolChain(String name, String message = "Not available") {
-        PlatformToolChain platformToolChain = Stub(PlatformToolChain) {
+        PlatformToolProvider platformToolChain = Stub(PlatformToolProvider) {
             _ * isAvailable() >> false
             _ * explain(_) >> { it[0].node(message) }
         }

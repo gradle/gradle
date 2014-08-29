@@ -16,9 +16,17 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
+import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult;
 import org.gradle.util.VersionNumber;
 
 public interface GccVersionResult extends ToolSearchResult {
+    /**
+     * Returns true if the implementation is Clang, false if GCC.
+     */
+    boolean isClang();
+
+    ArchitectureInternal getDefaultArchitecture();
+
     VersionNumber getVersion();
 }

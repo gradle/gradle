@@ -29,28 +29,28 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
+import org.gradle.language.nativebase.internal.DefaultPreprocessingTool;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.language.internal.nativelang.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.test.TestSuiteContainer;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
-import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
+import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.ComponentSpecIdentifier;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.base.internal.ComponentSpecInternal;
-import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.runtime.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
 
@@ -153,11 +153,11 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
 
         private void configure(CUnitTestSuiteBinarySpec testBinary, File buildDir) {
             BinaryNamingScheme namingScheme = ((NativeBinarySpecInternal) testBinary).getNamingScheme();
+            PlatformToolProvider toolProvider = ((NativeBinarySpecInternal) testBinary).getPlatformToolProvider();
             File binaryOutputDir = new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
             String baseName = testBinary.getComponent().getBaseName();
 
-            ToolChainInternal tc = (ToolChainInternal) testBinary.getToolChain();
-            testBinary.setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
+            testBinary.setExecutableFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
 
             ((ExtensionAware) testBinary).getExtensions().create("cCompiler", DefaultPreprocessingTool.class);
         }

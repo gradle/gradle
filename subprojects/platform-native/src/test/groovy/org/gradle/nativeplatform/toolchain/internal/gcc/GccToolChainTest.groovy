@@ -16,15 +16,17 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
+import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.nativeplatform.platform.internal.PlatformInternal
+import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class GccToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
@@ -33,28 +35,23 @@ class GccToolChainTest extends Specification {
 
     final toolChain = new GccToolChain(instantiator , "gcc", OperatingSystem.current(), fileResolver, Stub(ExecActionFactory))
 
-    def "uses shared library binary at link time"() {
-        expect:
-        toolChain.getSharedLibraryLinkFileName("test") == toolChain.getSharedLibraryName("test")
-    }
+    def "provides default tools"() {
+        def action = Mock(Action)
 
-    @Unroll
-    def "has default #tool registered"() {
-        expect:
-        toolChain.getByName(tool).executable == executable
-        where:
-        tool                | executable
-        "cCompiler"         | "gcc"
-        "cppCompiler"       | "g++"
-        "linker"            | "g++"
-        "staticLibArchiver" | "ar"
-    }
-
-    def "can update tool names"() {
         when:
-        toolChain.getByName("cCompiler").executable = "foo"
+        toolChain.target("platform", action)
+        toolChain.select(Stub(PlatformInternal) { getName() >> "platform" })
+
         then:
-        toolChain.getByName("cCompiler").executable == "foo"
+        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
+            assert platformToolChain.assembler.executable == 'as'
+            assert platformToolChain.cCompiler.executable == 'gcc'
+            assert platformToolChain.cppCompiler.executable == 'g++'
+            assert platformToolChain.objcCompiler.executable == 'gcc'
+            assert platformToolChain.objcppCompiler.executable == 'g++'
+            assert platformToolChain.linker.executable == 'g++'
+            assert platformToolChain.staticLibArchiver.executable == 'ar'
+        }
     }
 
     def "resolves path entries"() {

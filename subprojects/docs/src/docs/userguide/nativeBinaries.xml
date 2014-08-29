@@ -32,9 +32,9 @@
     <section id="native-binaries:tool-chain-support">
         <title>Tool chain support</title>
         <para>
-            Gradle offers the ability to execute the same build using different tool chains. You can control which tool chain will be used to build
-            by changing the operating system PATH to include the desired tool chain compiler. Alternatively, you can configure the tool chains directly,
-            as described in <xref linkend="native_binaries:tool_chain"/>.
+            Gradle offers the ability to execute the same build using different tool chains. When you build a native binary, Gradle will attempt to locate a
+            tool chain installed on your machine that can build the binary. You can fine tune exactly how this works,
+            see <xref linkend="native_binaries:tool_chain"/> for details.
         </para>
         <para>
             The following tool chains are supported:
@@ -53,26 +53,71 @@
                 <td>Mac OS X</td><td>XCode</td><td>Uses the Clang tool chain bundled with XCode.</td>
             </tr>
             <tr>
-                <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
-            </tr>
-            <tr>
-                <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td></td>
-            </tr>
-            <tr>
                 <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 32</ulink></td><td>Windows XP and later. Cygwin 64 is currently not supported.</td>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 32</ulink></td><td>Windows XP and later.</td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later. <ulink url="http://mingw-w64.sourceforge.net">Mingw-w64</ulink> is currently not supported.</td>
             </tr>
         </table>
         <para>
-            The native plugins should generally work on other UNIX-like platforms, but are currently officially supported on the above platforms only.
+            The following tool chains are unofficially supported. They generally work fine, but are not tested continuously:
         </para>
+        <table>
+            <thead>
+                <tr><td>Operating System</td><td>Tool Chain</td><td>Notes</td></tr>
+            </thead>
+            <tr>
+                <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> from Macports</td><td></td>
+            </tr>
+            <tr>
+                <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink> from Macports</td><td></td>
+            </tr>
+            <tr>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 64</ulink></td><td>Windows XP and later.</td>
+            </tr>
+            <tr>
+                <td>UNIX-like</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
+            </tr>
+            <tr>
+                <td>UNIX-like</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td></td>
+            </tr>
+        </table>
     </section>
-
+    <section>
+        <title>Tool chain installation</title>
+        <note>
+            <para>
+                Note that if you are using GCC then you currently need to install support for C++, even if you are not building from C++ source. This caveat will be removed in a future Gradle version.
+            </para>
+        </note>
+        <para>To build native binaries, you will need to have a compatible tool chain installed:
+        </para>
+        <section>
+            <title>Windows</title>
+            <para>To build on Windows, install a compatible version of Visual Studio. The native plugins will discover the Visual Studio installations
+                and select the latest version. There is no need to mess around with environment variables or batch scripts. This works fine from a Cygwin shell
+                or the Windows command-line.
+            </para>
+            <para>Alternatively, you can install Cygwin with GCC or MinGW. Clang is currently not supported.</para>
+        </section>
+        <section>
+            <title>OS X</title>
+            <para>To build on OS X, you should install XCode. The native plugins will discover the XCode installation using the system PATH.
+            </para>
+            <para>
+                The native plugins also work with GCC and Clang bundled with Macports. To use one of the Macports tool chains,
+                you will need to make the tool chain the default using the <userinput>port select</userinput> command and add Macports to the system PATH.
+            </para>
+        </section>
+        <section>
+            <title>Linux</title>
+            <para>To build on Linux, install a compatible version of GCC or Clang. The native plugins will discover GCC or Clang using the system PATH.
+            </para>
+        </section>
+    </section>
     <section>
         <title>Component model</title>
         <para>
@@ -637,7 +682,7 @@
             <para>
                 Cross-compiling is possible with the <apilink class="org.gradle.nativeplatform.toolchain.Gcc"/> and <apilink class="org.gradle.nativeplatform.toolchain.Clang"/> tool chains,
                 by adding support for additional target platforms.
-                This is done by specifying a target platform for a toolchain. For each targetted platform a custom configuration can be specified.
+                This is done by specifying a target platform for a toolchain. For each target platform a custom configuration can be specified.
             </para>
             <sample id="targetPlatforms" dir="native-binaries/target-platforms" title="Defining target platforms">
                 <sourcefile file="build.gradle" snippet="targetplatforms"/>
@@ -727,7 +772,7 @@
             </para>
             <itemizedlist>
                 <listitem>
-                    <para>Allow tests to be declared with javadoc-style annotations.</para>
+                    <para>Allow tests to be declared with Javadoc-style annotations.</para>
                 </listitem>
                 <listitem>
                     <para>Improved HTML reporting, similar to that available for JUnit.</para>

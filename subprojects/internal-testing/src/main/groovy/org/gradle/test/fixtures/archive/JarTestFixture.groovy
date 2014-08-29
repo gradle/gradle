@@ -18,11 +18,14 @@ package org.gradle.test.fixtures.archive
 
 import org.apache.commons.io.IOUtils
 
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class JarTestFixture extends ZipTestFixture {
+    final int classFileDescriptor = 0xCAFEBABE
+
     File file
 
     /**
@@ -64,5 +67,34 @@ class JarTestFixture extends ZipTestFixture {
     def hasDescendants(String... relativePaths) {
         String[] allDescendants = relativePaths + JarFile.MANIFEST_NAME
         return super.hasDescendants(allDescendants)
+    }
+
+    def jvmMajorVersion() {
+        JarFile jarFile = new JarFile(file)
+        //take the first class file
+        JarEntry classEntry = jarFile.entries().find { entry -> entry.name.endsWith(".class")}
+        if (classEntry == null) {
+            throw new Exception("Could not find a class entry for: " + file)
+        }
+        InputStream is = jarFile.getInputStream(classEntry)
+        try {
+            DataInputStream data = new DataInputStream(is)
+            try {
+                int header =  data.readInt()
+
+                if (classFileDescriptor != header) {
+                    throw new Exception("Invalid entry (class): " + classEntry.name + ":" + file)
+                } else {
+                    data.readUnsignedShort(); //minor
+                    int major = data.readUnsignedShort();
+                    return major
+                }
+            } finally {
+                IOUtils.closeQuietly(data)
+            }
+        } finally {
+            IOUtils.closeQuietly(is)
+        }
+
     }
 }

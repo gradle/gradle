@@ -48,20 +48,8 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     @Inject
     public DefaultDeploymentDescriptor(FileResolver fileResolver, Instantiator instantiator) {
-        this(new File("META-INF", "application.xml"), fileResolver, instantiator)
-    }
-
-    @Inject
-    public DefaultDeploymentDescriptor(Object descriptorPath, FileResolver fileResolver, Instantiator instantiator) {
         this.instantiator = instantiator
         this.fileResolver = fileResolver
-        if (fileResolver) {
-            File descriptorFile = fileResolver.resolve(descriptorPath)
-            if (descriptorFile) {
-                fileName = descriptorFile.name
-                readFrom descriptorFile
-            }
-        }
     }
 
     public String getFileName() {

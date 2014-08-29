@@ -27,7 +27,7 @@
                         Gradle pushes declarative builds to the next level by providing declarative language elements
                         that you can assemble as you like. Those elements also provide build-by-convention support for
                         Java, Groovy, OSGi, Web and Scala projects. Even more, this declarative language is extensible.
-                        Add your own new language elements or enhance the existing ones. Thus providing concise,
+                        Add your own new language elements or enhance the existing ones, thus providing concise,
                         maintainable and comprehensible builds.
                     </para>
                 </listitem>
@@ -46,7 +46,7 @@
                     <para>The suppleness and richness of Gradle finally allows you to apply common design principles to your build.
                         For example, it is very easy to compose your build from reusable
                         pieces of build logic. Inline stuff where unnecessary indirections would be inappropriate. Don't be
-                        forced to tear apart what belongs together (e.g. in your project hierarchy). Thus avoiding smells
+                        forced to tear apart what belongs together (e.g. in your project hierarchy). Avoid smells
                         like shotgun changes or divergent change that turn your build into a maintenance nightmare.
                         At last you can create a well structured, easily maintained, comprehensible build.</para>
                 </listitem>
@@ -89,7 +89,7 @@
                 <listitem>
                     <para>Different teams prefer different ways to manage their external dependencies.
                         Gradle provides convenient support for any strategy. From transitive dependency 
-                        management with remote Maven and Ivy repositories to jars or dirs on the local file system.</para>
+                        management with remote Maven and Ivy repositories to jars or directories on the local file system.</para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -125,7 +125,7 @@
                         the abstractions Gradle (or you) provide. Gradle provides some standard stories but they are not
                         privileged in any form. This is for us a major distinguishing feature compared to other declarative
                         build systems. Our Groovy support is not just sugar coating. The whole Gradle API
-                        is fully groovyized. Adding Groovy results in an enjoyable and productive experience.
+                        is fully Groovy-ized. Adding Groovy results in an enjoyable and productive experience.
                     </para>
                 </listitem>
             </varlistentry>

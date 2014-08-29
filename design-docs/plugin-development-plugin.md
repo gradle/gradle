@@ -42,11 +42,13 @@ This story adds the necessary bits to our build to include a new core plugin.
 1. `gradle jar` produces usable plugin jar (assuming `src/main/java` contains valid plugin impl)
 1. `gradle jar` issues warning if built jar does not contain any plugin descriptors
 
-### Open questions
+## Story: Add a `gradle-plugin` plugin that defines a Gradle plugin component
 
-- Need to detangle the implementation language from the kind of thing being produced (a plugin). Should use the same scheme as the native and
-new jvm plugins to do this.
-- Should be able to implement a plugin using Groovy and no Java.
+Replace the `java-gradle-plugin` with a `gradle-plugin` that works with the new component model.
+
+### Open issues
+
+- Need to add a `groovy-lang` plugin.
 
 ## Story: Plugin author declares plugin implementations in build
 

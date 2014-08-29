@@ -43,7 +43,7 @@ import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.resolve.ProjectLocator;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
-import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.platform.base.BinaryContainer;
 
 
 /**

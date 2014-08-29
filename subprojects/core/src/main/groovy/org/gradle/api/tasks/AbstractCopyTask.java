@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;

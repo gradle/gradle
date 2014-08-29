@@ -20,9 +20,9 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
@@ -34,10 +34,13 @@ import org.gradle.listener.ActionBroadcast;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataProcessor {
+public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataHandler {
     private final Instantiator instantiator;
     private final ActionBroadcast<ComponentMetadataDetails> ruleActions = new ActionBroadcast<ComponentMetadataDetails>();
     private final List<Closure<?>> ruleClosures = Lists.newArrayList();
+
+    //TODO SF merge with ComponentMetadataDetails / ruleActions ?
+    private final ModuleReplacements moduleReplacements = new ModuleReplacements();
 
     public DefaultComponentMetadataHandler(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -51,7 +54,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         ruleClosures.add(closure);
     }
 
-    public void process(ModuleVersionMetaData metadata) {
+    public void processMetadata(ModuleVersionMetaData metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         ruleActions.execute(details);
         executeRuleClosures(metadata, details);
@@ -94,5 +97,13 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
             }
         }
         closure.call(args.toArray());
+    }
+
+    public ComponentModuleDetails module(final String sourceModule) {
+        return moduleReplacements.module(sourceModule);
+    }
+
+    public ModuleReplacementsData getModuleReplacements() {
+        return moduleReplacements;
     }
 }

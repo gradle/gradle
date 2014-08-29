@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.internal
 
+import org.gradle.util.Matchers
 import spock.lang.Specification
 
 import static org.gradle.plugin.internal.PluginId.validate
@@ -65,9 +66,11 @@ class PluginIdTest extends Specification {
 
     def "equality"() {
         expect:
-        new PluginId("foo") == new PluginId("foo")
-        new PluginId("foo.bar") == new PluginId("foo.bar")
-        new PluginId("foo").maybeQualify("some.org") == new PluginId("some.org.foo")
+        new PluginId("foo") Matchers.strictlyEqual(new PluginId("foo"))
+        new PluginId("foo.bar") Matchers.strictlyEqual(new PluginId("foo.bar"))
+        def qualified = new PluginId("foo").maybeQualify("some.org")
+        qualified Matchers.strictlyEqual(new PluginId("some.org.foo"))
+        new PluginId("foo") != new PluginId("foo.bar")
     }
 
 }

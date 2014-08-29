@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -100,7 +101,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected GradleExecuter withDebugLogging() {
-        executer.withArguments("-d")
+        executer.withArgument("-d")
     }
 
     protected ExecutionResult succeeds(String... tasks) {
@@ -158,6 +159,14 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
 
     protected void failureHasCause(String cause) {
         failure.assertHasCause(cause)
+    }
+
+    protected void failureDescriptionStartsWith(String description) {
+        failure.assertThatDescription(CoreMatchers.startsWith(description))
+    }
+
+    protected void failureDescriptionContains(String description) {
+        failure.assertThatDescription(CoreMatchers.containsString(description))
     }
     
     private assertHasResult() {

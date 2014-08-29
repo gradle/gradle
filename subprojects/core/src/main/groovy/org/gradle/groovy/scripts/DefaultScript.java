@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
@@ -42,6 +43,8 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -179,11 +182,19 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ExecResult javaexec(Closure closure) {
-        return processOperations.javaexec(closure);
+        return processOperations.javaexec(new ClosureBackedAction<JavaExecSpec>(closure));
+    }
+
+    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
+        return processOperations.javaexec(action);
     }
 
     public ExecResult exec(Closure closure) {
-        return processOperations.exec(closure);
+        return processOperations.exec(new ClosureBackedAction<ExecSpec>(closure));
+    }
+
+    public ExecResult exec(Action<? super ExecSpec> action) {
+        return processOperations.exec(action);
     }
 
     public LoggingManager getLogging() {

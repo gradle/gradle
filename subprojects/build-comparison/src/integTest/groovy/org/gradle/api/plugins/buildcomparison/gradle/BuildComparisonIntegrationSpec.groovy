@@ -29,7 +29,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "compare-gradle-builds"
     }
 

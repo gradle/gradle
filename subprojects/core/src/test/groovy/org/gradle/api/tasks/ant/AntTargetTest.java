@@ -18,7 +18,6 @@ package org.gradle.api.tasks.ant;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
-import org.gradle.api.Task;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
@@ -27,9 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Set;
 
-import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -52,23 +49,10 @@ public class AntTargetTest {
         TestTask testTask = new TestTask();
         testTask.setProject(antTarget.getProject());
         antTarget.addTask(testTask);
-
         task.setTarget(antTarget);
         task.setBaseDir(baseDir);
         task.executeAntTarget();
-
         assertTrue(testTask.executed);
-    }
-
-    @Test
-    public void dependsOnTargetDependencies() {
-        Task a = project.getTasks().create("a");
-        Task b = project.getTasks().create("b");
-        antTarget.setDepends("a, b");
-
-        task.setTarget(antTarget);
-        Set dependencies = task.getTaskDependencies().getDependencies(task);
-        assertThat(dependencies, equalTo((Set) toSet(a, b)));
     }
 
     @Test

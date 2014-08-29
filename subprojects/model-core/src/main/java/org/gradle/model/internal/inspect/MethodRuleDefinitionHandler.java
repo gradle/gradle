@@ -22,12 +22,14 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
-public interface MethodRuleDefinitionHandler extends Spec<MethodRuleDefinition> {
-    List<MethodRuleDefinitionHandler> CORE_HANDLERS = ImmutableList.of(
+public interface MethodRuleDefinitionHandler {
+    List<MethodRuleDefinitionHandler> CORE_HANDLERS = ImmutableList.<MethodRuleDefinitionHandler>of(
             new ModelCreationRuleDefinitionHandler(), new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler()
     );
 
+    Spec<MethodRuleDefinition<?>> getSpec();
+
     String getDescription();
 
-    void register(MethodRuleDefinition ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies);
+    <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies);
 }

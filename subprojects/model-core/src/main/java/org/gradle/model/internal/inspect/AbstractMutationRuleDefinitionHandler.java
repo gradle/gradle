@@ -24,36 +24,25 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public abstract class AbstractMutationRuleDefinitionHandler implements MethodRuleDefinitionHandler {
-    public String getDescription() {
-       return String.format("annotated with @%s", getMarkerAnnotation().getSimpleName());
-   }
+public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
 
-   public boolean isSatisfiedBy(MethodRuleDefinition ruleDefinition) {
-       return ruleDefinition.getAnnotation(getMarkerAnnotation()) != null;
-   }
-
-    protected abstract Class<? extends Annotation> getMarkerAnnotation();
-
-    protected void mutationMethod(ModelRegistry modelRegistry, final MethodRuleDefinition ruleDefinition, boolean finalize) {
-        rule(modelRegistry, ruleDefinition, finalize);
-    }
-
-    public static void rule(final ModelRegistry modelRegistry, final MethodRuleDefinition ruleDefinition, final boolean isFinalizer) {
+    public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
 
         ModelReference<?> subject = bindings.get(0);
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         MethodModelMutator<?> mutator = toMutator(ruleDefinition, subject, inputs);
 
-        if (isFinalizer) {
+        if (isFinalize()) {
             modelRegistry.finalize(mutator);
         } else {
             modelRegistry.mutate(mutator);
         }
     }
 
-    private static <T> MethodModelMutator<T> toMutator(MethodRuleDefinition ruleDefinition, ModelReference<T> first, List<ModelReference<?>> tail) {
+    protected abstract boolean isFinalize();
+
+    private static <T> MethodModelMutator<T> toMutator(MethodRuleDefinition<?> ruleDefinition, ModelReference<T> first, List<ModelReference<?>> tail) {
         return new MethodModelMutator<T>(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), first, tail);
     }
 
@@ -61,9 +50,9 @@ public abstract class AbstractMutationRuleDefinitionHandler implements MethodRul
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<T> subject;
         private final List<ModelReference<?>> inputs;
-        private final ModelRuleInvoker ruleInvoker;
+        private final ModelRuleInvoker<?> ruleInvoker;
 
-        public MethodModelMutator(ModelRuleInvoker ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
+        public MethodModelMutator(ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
             this.ruleInvoker = ruleInvoker;
             this.subject = subject;
             this.inputs = inputs;

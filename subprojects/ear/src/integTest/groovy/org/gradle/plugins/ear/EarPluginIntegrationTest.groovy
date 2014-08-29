@@ -109,6 +109,28 @@ dependencies {
     }
 
     @Test
+    void "uses content from application xml located in root folder"() {
+        def applicationXml = """<?xml version="1.0"?>
+<application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
+  <application-name>customear</application-name>
+</application>
+"""
+
+        file('META-INF/application.xml').createFile().write(applicationXml)
+        file("build.gradle").write("""
+apply plugin: 'ear'
+""")
+
+        //when
+        executer.withTasks('assemble').run()
+
+        //then
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/application.xml")
+        ear.assertFileContent("META-INF/application.xml", Matchers.containsString("<application-name>customear</application-name>"))
+    }
+
+    @Test
     void "uses content found in specified app folder"() {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
@@ -190,7 +212,8 @@ apply plugin: 'ear'
         ear.assertFileContent("META-INF/application.xml", applicationXml)
     }
 
-    @Test @Ignore
+    @Test
+    @Ignore
     void "exclude duplicates: deploymentDescriptor has priority over metaInf"() {
         file('bad-meta-inf/application.xml').createFile().write('bad descriptor')
         file('build.gradle').write('''

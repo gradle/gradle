@@ -15,7 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.nativeplatform.toolchain.ToolChainRegistry;
 
@@ -30,5 +30,5 @@ public interface ToolChainRegistryInternal extends ToolChainRegistry {
      */
     void addDefaultToolChains();
 
-    ToolChain getForPlatform(Platform targetPlatform);
+    ToolChainInternal getForPlatform(PlatformInternal targetPlatform);
 }

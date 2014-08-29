@@ -18,9 +18,9 @@ package org.gradle.nativeplatform.toolchain.internal;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.util.TreeVisitor;
 
@@ -62,7 +62,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
     }
 
-    public ToolChain getForPlatform(Platform targetPlatform) {
+    public ToolChainInternal getForPlatform(PlatformInternal targetPlatform) {
         for (ToolChainInternal toolChain : searchOrder) {
             if (toolChain.select(targetPlatform).isAvailable()) {
                 return toolChain;
@@ -70,7 +70,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
 
         // No tool chains can build for this platform. Assemble a description of why
-        Map<String, PlatformToolChain> candidates = new LinkedHashMap<String, PlatformToolChain>();
+        Map<String, PlatformToolProvider> candidates = new LinkedHashMap<String, PlatformToolProvider>();
         for (ToolChainInternal toolChain : searchOrder) {
             candidates.put(toolChain.getDisplayName(), toolChain.select(targetPlatform));
         }
@@ -80,9 +80,9 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
 
     private static class UnavailableToolChainDescription implements ToolSearchResult {
         private final Platform targetPlatform;
-        private final Map<String, PlatformToolChain> candidates;
+        private final Map<String, PlatformToolProvider> candidates;
 
-        private UnavailableToolChainDescription(Platform targetPlatform, Map<String, PlatformToolChain> candidates) {
+        private UnavailableToolChainDescription(Platform targetPlatform, Map<String, PlatformToolProvider> candidates) {
             this.targetPlatform = targetPlatform;
             this.candidates = candidates;
         }
@@ -94,7 +94,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(String.format("No tool chain is available to build for platform '%s'", targetPlatform.getName()));
             visitor.startChildren();
-            for (Map.Entry<String, PlatformToolChain> entry : candidates.entrySet()) {
+            for (Map.Entry<String, PlatformToolProvider> entry : candidates.entrySet()) {
                 visitor.node(entry.getKey());
                 visitor.startChildren();
                 entry.getValue().explain(visitor);
@@ -108,7 +108,6 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
     }
 
     private static class UnavailableToolChain implements ToolChainInternal {
-        private final OperatingSystem operatingSystem = OperatingSystem.current();
         private final ToolSearchResult failure;
 
         UnavailableToolChain(ToolSearchResult failure) {
@@ -123,24 +122,8 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             return "unavailable";
         }
 
-        public PlatformToolChain select(Platform targetPlatform) {
-            return new UnavailablePlatformToolChain(failure);
-        }
-
-        public String getExecutableName(String executablePath) {
-            return operatingSystem.getExecutableName(executablePath);
-        }
-
-        public String getSharedLibraryName(String libraryName) {
-            return operatingSystem.getSharedLibraryName(libraryName);
-        }
-
-        public String getSharedLibraryLinkFileName(String libraryName) {
-            return getSharedLibraryName(libraryName);
-        }
-
-        public String getStaticLibraryName(String libraryName) {
-            return operatingSystem.getStaticLibraryName(libraryName);
+        public PlatformToolProvider select(PlatformInternal targetPlatform) {
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), failure);
         }
 
         public String getOutputType() {

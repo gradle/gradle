@@ -15,6 +15,7 @@
  */
 package org.gradle.testfixtures.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.CacheFactory;
@@ -45,29 +46,54 @@ public class InMemoryCacheFactory implements CacheFactory {
         return new InMemoryIndexedCache<K, V>(serializer);
     }
 
-    private static class InMemoryCache implements PersistentCache {
+    public static class InMemoryCache implements PersistentCache {
+
+        final Map<String, PersistentIndexedCache<?, ?>> caches = Maps.newLinkedHashMap();
+
         private final File cacheDir;
+        private boolean closed;
 
         public InMemoryCache(File cacheDir) {
             this.cacheDir = cacheDir;
         }
 
         public void close() {
+            closed = true;
+        }
+
+        public boolean isClosed() {
+            return closed;
         }
 
         public File getBaseDir() {
             return cacheDir;
         }
 
+        private void assertNotClosed() {
+            if (closed) {
+                throw new IllegalStateException("cache is closed");
+            }
+        }
+
         public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-            return new InMemoryIndexedCache<K, V>(valueSerializer);
+            assertNotClosed();
+            return createCache(name, valueSerializer);
         }
 
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
-            return new InMemoryIndexedCache<K, V>(parameters.getValueSerializer());
+            assertNotClosed();
+            return createCache(parameters.getCacheName(), parameters.getValueSerializer());
+        }
+
+        private <K, V> PersistentIndexedCache<K, V> createCache(String name, Serializer<V> valueSerializer) {
+            assertNotClosed();
+            InMemoryIndexedCache<K, V> cache = new InMemoryIndexedCache<K, V>(valueSerializer);
+            caches.put(name, cache);
+            return cache;
         }
 
         public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+            assertNotClosed();
             // The contract of useCache() means we have to provide some basic synchronization.
             synchronized (this) {
                 return action.create();
@@ -75,14 +101,17 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         public void useCache(String operationDisplayName, Runnable action) {
+            assertNotClosed();
             action.run();
         }
 
         public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+            assertNotClosed();
             return action.create();
         }
 
         public void longRunningOperation(String operationDisplayName, Runnable action) {
+            assertNotClosed();
             action.run();
         }
     }

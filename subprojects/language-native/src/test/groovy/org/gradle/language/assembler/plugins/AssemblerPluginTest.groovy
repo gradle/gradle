@@ -18,15 +18,12 @@ package org.gradle.language.assembler.plugins
 
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
+import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelType
 import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.SharedLibraryBinarySpec
 import org.gradle.nativeplatform.StaticLibraryBinarySpec
-import org.gradle.language.assembler.tasks.Assemble
-import org.gradle.nativeplatform.toolchain.ToolChainRegistry
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -181,24 +178,6 @@ class AssemblerPluginTest extends Specification {
         }
         def staticLibTask = staticLib.tasks.createStaticLib
         staticLibTask TaskDependencyMatchers.dependsOn("assembleTestStaticLibraryTestAnotherOne", "assembleTestStaticLibraryTestAsm")
-    }
-
-    def "registers assembler tool to toolchains"() {
-        when:
-        dsl {
-            apply plugin: AssemblerPlugin
-            executables {
-                exe {}
-            }
-            libraries {
-                lib {}
-            }
-        }
-        then:
-        ToolChainRegistry toolChains = project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry))
-        toolChains.each { def toolChain ->
-            toolChain.getByName("assembler") != null
-        }
     }
 
     def touch(String filePath) {

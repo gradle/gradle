@@ -56,6 +56,7 @@ I tried looking for a root folder here: $candidates
             sample = sample.replace('&lt;', '<')
             sample = sample.replace('&gt;', '>')
             sample = sample.replace('&amp;', '&')
+            sample = sample.replaceAll(/\{@literal ([^}]+)}/, '$1')
             try {
                 runner.call(file, sample)
             } catch (Exception e) {

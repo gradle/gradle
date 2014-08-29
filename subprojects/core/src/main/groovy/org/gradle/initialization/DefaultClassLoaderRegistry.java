@@ -28,20 +28,15 @@ import java.net.URLClassLoader;
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkToolsInitializer {
     private final ClassLoader apiOnlyClassLoader;
     private final ClassLoader apiAndPluginsClassLoader;
-    private final ClassLoader coreImplClassLoader;
     private final ClassLoader pluginsClassLoader;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
 
-        ClassPath coreImplClassPath = classPathRegistry.getClassPath("GRADLE_CORE_IMPL");
-        coreImplClassLoader = new MutableURLClassLoader(runtimeClassLoader, coreImplClassPath);
+        apiOnlyClassLoader = restrictToGradleApi(classLoaderFactory, runtimeClassLoader);
 
-        apiOnlyClassLoader = restrictToGradleApi(classLoaderFactory, coreImplClassLoader);
-
-        ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_PLUGINS");
-        ClassLoader pluginsImports = new CachingClassLoader(new MultiParentClassLoader(runtimeClassLoader, coreImplClassLoader));
-        pluginsClassLoader = new MutableURLClassLoader(pluginsImports, pluginsClassPath);
+        ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
+        pluginsClassLoader = new MutableURLClassLoader(runtimeClassLoader, pluginsClassPath);
 
         this.apiAndPluginsClassLoader = restrictToGradleApi(classLoaderFactory, pluginsClassLoader);
     }
@@ -76,10 +71,6 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
 
     public ClassLoader getGradleApiClassLoader() {
         return apiAndPluginsClassLoader;
-    }
-
-    public ClassLoader getCoreImplClassLoader() {
-        return coreImplClassLoader;
     }
 
     public ClassLoader getPluginsClassLoader() {

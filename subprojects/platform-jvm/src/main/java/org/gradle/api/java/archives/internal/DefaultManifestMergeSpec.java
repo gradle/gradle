@@ -43,7 +43,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         return this;
     }
 
-    public ManifestMergeSpec eachEntry(Closure mergeAction) {
+    public ManifestMergeSpec eachEntry(Closure<?> mergeAction) {
         return eachEntry(new ClosureBackedAction<ManifestMergeDetails>(mergeAction));
     }
 

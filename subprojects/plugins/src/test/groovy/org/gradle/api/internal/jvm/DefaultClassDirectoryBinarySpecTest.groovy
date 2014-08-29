@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.jvm
 
-import org.gradle.runtime.jvm.toolchain.JavaToolChain
+import org.gradle.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
 public class DefaultClassDirectoryBinarySpecTest extends Specification {

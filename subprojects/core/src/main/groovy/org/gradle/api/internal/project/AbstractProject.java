@@ -65,6 +65,8 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -790,11 +792,19 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public ExecResult javaexec(Closure closure) {
-        return getProcessOperations().javaexec(closure);
+        return javaexec(new ClosureBackedAction<JavaExecSpec>(closure));
+    }
+
+    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
+        return getProcessOperations().javaexec(action);
     }
 
     public ExecResult exec(Closure closure) {
-        return getProcessOperations().exec(closure);
+        return exec(new ClosureBackedAction<ExecSpec>(closure));
+    }
+
+    public ExecResult exec(Action<? super ExecSpec> action) {
+        return getProcessOperations().exec(action);
     }
 
     public ServiceRegistry getServices() {

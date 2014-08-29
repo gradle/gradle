@@ -17,29 +17,23 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.GradleException;
+import org.gradle.model.internal.report.unbound.UnboundRule;
+import org.gradle.model.internal.report.unbound.UnboundRulesReporter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class UnboundModelRulesException extends GradleException {
 
-    public UnboundModelRulesException(Iterable<RuleBinder<?>> bindings) {
-        super(toMessage(bindings));
+    public UnboundModelRulesException(Iterable<UnboundRule> rules) {
+        super(toMessage(rules));
     }
 
-    private static String toMessage(Iterable<RuleBinder<?>> bindings) {
+    private static String toMessage(Iterable<UnboundRule> rules) {
         StringWriter string = new StringWriter();
         PrintWriter writer = new PrintWriter(string);
         writer.println("The following model rules are unbound:");
-        boolean first = true;
-        for (RuleBinder<?> binding : bindings) {
-            if (!first) {
-                writer.println();
-            }
-            binding.describe(writer, "  ");
-            first = false;
-        }
+        new UnboundRulesReporter(writer, "  ").reportOn(rules);
         return string.toString();
     }
-
 }

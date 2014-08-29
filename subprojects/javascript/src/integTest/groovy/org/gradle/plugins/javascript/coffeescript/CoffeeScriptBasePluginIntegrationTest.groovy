@@ -26,7 +26,7 @@ import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptBasePluginT
 class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
 
     @Override
-    String getPluginId() {
+    String getPluginName() {
         "coffeescript-base"
     }
 

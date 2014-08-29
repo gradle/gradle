@@ -35,7 +35,7 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
         helloWorldApp.executable.writeSources(file("src/main"))
     }
 
-    def "can customize tool arguments"() {
+    def "can add action to tool chain that modifies tool arguments prior to execution"() {
         when:
         helloWorldApp.writeSources(file("src/main"))
         buildFile << """
@@ -43,11 +43,20 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
         model {
             toolChains {
                 ${toolChain.id} {
-                    cppCompiler.withArguments { args ->
-                            args << "-DFRENCH"
+                    eachPlatform {
+                        cppCompiler.withArguments { args ->
+                            Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
+                        }
+                        linker.withArguments { args ->
+                            args.remove "CUSTOM"
+                        }
                     }
                 }
             }
+        }
+        binaries.all {
+            cppCompiler.args "CUSTOM"
+            linker.args "CUSTOM"
         }
         """
         and:

@@ -15,8 +15,8 @@
  */
 package org.gradle.nativeplatform.platform.internal;
 
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.*;
-import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
@@ -32,36 +32,37 @@ public class OperatingSystemNotationParser {
     private static final List<String> SOLARIS_ALIASES = Arrays.asList("solaris", "sunos");
     private static final List<String> FREEBSD_ALIASES = Arrays.asList("freebsd");
 
-    public static NotationParser<Object, OperatingSystem> parser() {
+    public static NotationParser<Object, OperatingSystemInternal> parser() {
         return NotationParserBuilder
-                .toType(OperatingSystem.class)
+                .toType(OperatingSystemInternal.class)
+                .typeDisplayName("an object of type OperatingSystem")
                 .fromCharSequence(new Parser())
                 .toComposite();
     }
 
-    private static final class Parser implements NotationConverter<String, OperatingSystem> {
-        public void convert(String notation, NotationConvertResult<? super OperatingSystem> result) throws TypeConversionException {
-            OperatingSystem operatingSystem = parseType(notation);
+    private static final class Parser implements NotationConverter<String, OperatingSystemInternal> {
+        public void convert(String notation, NotationConvertResult<? super OperatingSystemInternal> result) throws TypeConversionException {
+            OperatingSystemInternal operatingSystem = parseType(notation);
             if (operatingSystem != null) {
                 result.converted(operatingSystem);
             }
         }
 
-        protected OperatingSystem parseType(String notation) {
+        protected OperatingSystemInternal parseType(String notation) {
             if (WINDOWS_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.WINDOWS);
+                return new DefaultOperatingSystem(notation, OperatingSystem.WINDOWS);
             }
             if (OSX_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.MAC_OS);
+                return new DefaultOperatingSystem(notation, OperatingSystem.MAC_OS);
             }
             if (LINUX_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.LINUX);
+                return new DefaultOperatingSystem(notation, OperatingSystem.LINUX);
             }
             if (SOLARIS_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.SOLARIS);
+                return new DefaultOperatingSystem(notation, OperatingSystem.SOLARIS);
             }
             if (FREEBSD_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.FREE_BSD);
+                return new DefaultOperatingSystem(notation, OperatingSystem.FREE_BSD);
             }
             return null;
         }

@@ -39,7 +39,7 @@
             directories, respectively.
         </para>
         <tip><title>Groovy web applications</title><para>You can combine multiple plugins in a single project, so you
-            can use the War and Groovy plugins together to build a Groovy based web application. The appropriate groovy
+            can use the War and Groovy plugins together to build a Groovy based web application. The appropriate Groovy
             libraries will be added to the WAR file for you.</para></tip>
     </section>
 
