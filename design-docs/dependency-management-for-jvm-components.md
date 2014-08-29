@@ -620,6 +620,22 @@ can provide a convention that applies to all components, and the exceptions can 
 
 ### Story: Running `gradle assemble` informs user when no binaries are buildable
 
+Currently, running `gradle assemble` does nothing when nothing is buildable
+
+### Story: Validate the input source sets for a binary
+
+1. Fail when an unsupported language is used as input to a binary. eg Can't use a Java source set as input to a native binary.
+2. Fail when a binary has no inputs.
+
+This story should introduce a general validation step in the model object lifecycle and make use of this.
+
+### Story: Plugin declares transformations to produce a binary from intermediate files
+
+Allow a plugin to declare the transformation tasks from some intermediate file type to the binary output.
+For example, class files to Jar binary or object files to a executable binary.
+
+Infrastructure automatically wires up the correct transformation rule for each binary.
+
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
 ### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
@@ -1184,24 +1200,6 @@ This story will involve defining 'input-type' for each component type: e.g. JvmB
 A language plugin will need to register the compiled output type for each source set. Then it will be possible for a component to only
 attach to those language source sets that have an appropriate output type.
 
-#### Test cases
-
-- Fail when an unsupported language is used as input to a binary. eg Can't use a JavaSourceSet as input to a native binary.
-
-#### Open issues
-
-- Plugin should be able to declare the file types that a custom binary can be assembled from
-    - Infrastructure would take care of linking up the appropriate source languages based on this.
-- custom sourceSets declared via 'sources' DSL must always be declared with their type (even its type is obvious) e.g:
-
-    apply plugin:'cpp'
-    
-    sources {
-        lib {
-            cpp(CppSourceSet)
-        }
-    }
-        
 ## Feature: Build author declares dependencies for custom library
 
 Change the sample plugin so that it allows Java and custom libraries to be used as dependencies:
@@ -1408,6 +1406,15 @@ Should be possible to declare stand-alone test suite with custom variants.
 - ANTLR language support.
     - Improve the generated source support from the native plugins
     - ANTLR runs on the JVM, but can target other platforms.
+- custom sourceSets declared via 'sources' DSL must always be declared with their type (even its type is obvious) e.g:
+
+    apply plugin:'cpp'
+
+    sources {
+        lib {
+            cpp(CppSourceSet)
+        }
+    }
 
 ## Misc
 
