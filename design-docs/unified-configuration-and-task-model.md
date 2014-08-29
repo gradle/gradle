@@ -318,6 +318,9 @@ One potential option will be to insert a fake statement as the first statement o
   - Non string literal given to $() method
   - No arguments given to $()
   - More than one argument given
+  - `null` given as string argument
+  - `""` (empty string) given as argument
+  - Invalid model path given as argument (see validation in `ModelPath`)
 - Input binding failure
   - Unbound input (i.e. incorrect path) produces error message with line number of input declaration, and suggestions on alternatives (e.g. assume user mistyped name)
 - Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error
@@ -325,6 +328,7 @@ One potential option will be to insert a fake statement as the first statement o
   - Existing inputs can be used
   - Inputs are finalized when used
   - Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)
+  - `$(String)` can be used anywhere in code body (e.g. `if` body)
 
 ## Story: Model DSL rule uses a typed model element as input via name
 
@@ -336,15 +340,74 @@ One potential option will be to insert a fake statement as the first statement o
         List<String> var = $("theThing")  // view as List<String>
       }
     }
+    
+- Only string literals are valid
+- Only class literals are valid
+- When inferring type from LHS of assignment, `$(String)` is the only RHS expression (i.e. anything else is not subject to inference and is untyped)
 
-## Story: Model DSL rule uses an anonymous typed model element
+### Test Coverage
+
+- Compile time failure
+  - Non string literal given to $(String, Class) method
+  - Non class literal given to $(String, Class) method
+  - `null` given as either argument
+  - `""` (empty string) given as argument
+  - Invalid model path given as argument (see validation in `ModelPath`)
+- Input binding failure
+  - Unbound input (i.e. incorrect path or type) produces error message with line number of input declaration, and suggestions on alternatives (e.g. assume user mistyped name)
+- Type is only inferred when RHS is JUST a `$()` call (i.e. is the default type if expression is more complex)
+- Success
+  - Existing inputs can be used
+  - Inputs are finalized when used
+  - Can use the same input more than once (e.g. `List<String> a = $("foo"); def b = $("foo", List); assert a == b`)
+  - `$(String, Class)` can be used anywhere in code body (e.g. `if` body)
+
+## Story: Model DSL rule uses an anonymous typed model element as input
 
     model {
-      thing { List<String> strings ->
+      thing {
+        List<String> strings = $()
         value = strings*.toUpperCase()
       }  
+      otherThing {
+        value = $(SomeService).value
+      }
     }
 
+- Compile time failure
+  - `$()` (no args) can ONLY be used as the sole RHS expression of an assignment
+    - Non class literal given to $(Class) method
+- Input binding failure
+  - Unbound input produces error message with line number of input declaration (no type match, more than one type match)
+- Success
+  - Existing inputs can be used
+  - Inputs are finalized when used
+  - Can use more than one anonymous input (e.g. `List<String> a = $(); List<Integer> b = $(); assert a == b`)
+  - `$(Class)` can be used anywhere in code body (e.g. `if` body)
+
+# Story: User configures model element as specific type 
+
+    model {
+      tasks { CollectionBuilder<Task> tasks ->
+        tasks.create("foo") {
+          it.dependsOn "bar"
+        }
+      }
+    }
+
+Note: Closure parameter generic types are not available via reflection. They will have to be hoisted up with a transform
+
+## Test coverage
+
+- Compile time failure
+  - Cannot declare more than one param to closure
+- binding failure
+  - Type mismatch produces error
+  - Attempt to use readable type that is not also writable produces error message explaining
+- Success
+  - Subject is in writable state
+  
+  
 ## Story: Model element is available fully configured during afterEvaluate()
 
 ## Story: Internal Gradle plugin defines lazily created task that is visible during configuration phase
