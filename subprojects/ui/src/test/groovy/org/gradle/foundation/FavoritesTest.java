@@ -471,7 +471,7 @@ public class FavoritesTest extends TestCase {
 
 
     /**
-     * This edits the favorite and expects an error. It makes sure the error was recieved and that the original task was
+     * This edits the favorite and expects an error. It makes sure the error was received and that the original task was
      * not altered.
      */
     private void editExpectingError(FavoritesEditor editor, FavoriteTask favoriteTaskToEdit, String newName,

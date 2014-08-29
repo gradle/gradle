@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.reporting.*;
 
 /**
- * The reporting configuration for the the {@link JacocoReport} task.
+ * The reporting configuration for the {@link JacocoReport} task.
  */
 @Incubating
 public interface JacocoReportsContainer extends ReportContainer<Report> {

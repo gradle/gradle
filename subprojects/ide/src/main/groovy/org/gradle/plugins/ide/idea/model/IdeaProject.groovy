@@ -44,7 +44,7 @@ import org.gradle.util.ConfigureUtil
  *     //you can configure the VCS used by the project
  *     vcs = 'Git'
  *
- *     //you can change the modules of the the *.ipr
+ *     //you can change the modules of the *.ipr
  *     //modules = project(':someProject').idea.module
  *
  *     //you can change the output file

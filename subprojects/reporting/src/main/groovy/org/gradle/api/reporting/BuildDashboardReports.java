@@ -19,7 +19,7 @@ package org.gradle.api.reporting;
 import org.gradle.api.Incubating;
 
 /**
- * The reporting configuration for the the {@link GenerateBuildDashboard} task.
+ * The reporting configuration for the {@link GenerateBuildDashboard} task.
  */
 @Incubating
 public interface BuildDashboardReports extends ReportContainer<Report> {

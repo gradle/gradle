@@ -56,7 +56,7 @@ class FileReferenceFactory {
     }
 
     /**
-     * Creates a reference to the given path. Returns null for for null path
+     * Creates a reference to the given path. Returns null for null path
      */
     FileReference fromPath(String path) {
         if (path == null) {
@@ -66,7 +66,7 @@ class FileReferenceFactory {
     }
 
     /**
-     * Creates a reference to the given path. Returns null for for null path
+     * Creates a reference to the given path. Returns null for null path
      */
     FileReference fromJarURI(String jarURI) {
         if (jarURI== null) {

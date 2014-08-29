@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Continuously consumes from on or more receivers, serialising to an in memory buffer for synchronous consumption.
  * <p>
  * Messages from the same receive instance are guaranteed to always be returned from {@link #receive()} in sequence. However, no
- * guarantee is made to deliver messages from different sources in chronological order when multiple multiple receive instances
+ * guarantee is made to deliver messages from different sources in chronological order when multiple receive instances
  * are being consumed from.
  * <p>
  * The buffer is bounded, the size of which is specified at construction or defaulting to {@value #DEFAULT_BUFFER_SIZE}.

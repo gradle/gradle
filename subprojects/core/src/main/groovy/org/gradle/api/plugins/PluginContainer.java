@@ -29,7 +29,7 @@ import org.gradle.api.Plugin;
  */
 public interface PluginContainer extends PluginCollection<Plugin> {
     /**
-     * Has the same behavior as {@link #apply(Class)} except that the the plugin is specified via its id. Not all
+     * Has the same behavior as {@link #apply(Class)} except that the plugin is specified via its id. Not all
      * plugins have an id.
      *
      * @param id The id of the plugin to be applied.

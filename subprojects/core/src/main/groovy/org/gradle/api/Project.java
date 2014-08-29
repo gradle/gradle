@@ -345,7 +345,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Returns the direct children of this project.</p>
      *
-     * @return A map from child project name to child project. Returns an empty map if this this project does not have
+     * @return A map from child project name to child project. Returns an empty map if this project does not have
      *         any children.
      */
     Map<String, Project> getChildProjects();

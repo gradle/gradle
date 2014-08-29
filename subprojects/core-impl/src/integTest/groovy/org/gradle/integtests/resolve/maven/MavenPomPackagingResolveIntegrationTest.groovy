@@ -104,7 +104,7 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
         file('libs').assertIsEmptyDir()
     }
 
-    def "for a snapshot module with with packaging of type 'pom', will check for jar artifact that was previously missing on cache expiry"() {
+    def "for a snapshot module with packaging of type 'pom', will check for jar artifact that was previously missing on cache expiry"() {
         when:
         def snapshotA = repo1.module('group', 'projectA', '1.1-SNAPSHOT')
         snapshotA.hasPackaging("pom").publish()

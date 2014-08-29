@@ -30,7 +30,7 @@ import java.awt.event.*;
 public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavoriteInteraction {
 
     public enum SynchronizeType {
-        OnlyIfAlreadySynchronized,   //the the display name in synch with the command only if they are already synchronized (and it can be overridden by the user if they change the display name manually)
+        OnlyIfAlreadySynchronized,   //the display name in synch with the command only if they are already synchronized (and it can be overridden by the user if they change the display name manually)
         Never                        //Do not attempt to keep them in synch
     };
 

@@ -69,7 +69,7 @@ class PathKeyFileStoreTest extends Specification {
         fsBase.file("b").text == "def"
     }
 
-    def "add throws GradleException if exception in action occured"() {
+    def "add throws GradleException if exception in action occurred"() {
         when:
         store.add("a", { File f -> throw new Exception("TestException")} as Action<File>)
         then:

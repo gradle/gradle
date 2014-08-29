@@ -92,7 +92,7 @@ public class TaskListServerProtocol extends AbstractGradleServerProtocol {
     }
 
     /**
-     * This is called when when the client exits. This does not mean it succeeded. This is probably the only way you'll get ALL of the client's output as it continues to output things like error
+     * This is called when the client exits. This does not mean it succeeded. This is probably the only way you'll get ALL of the client's output as it continues to output things like error
      * messages after it sends us an executionFinished message.
      *
      * @param returnCode the return code of the application

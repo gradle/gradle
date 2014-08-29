@@ -495,7 +495,7 @@ class StartAsyncAction extends AbstractAsyncAction {
     }
 
     /**
-     * Runs the given action, and then waits until another another thread calls {@link #done()}.  Asserts that the start action does not block waiting for
+     * Runs the given action, and then waits until another thread calls {@link #done()}.  Asserts that the start action does not block waiting for
      * the async action to complete.
      *
      * @param action The start action
