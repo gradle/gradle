@@ -170,6 +170,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             gccToolChain.getLinker().withArguments(m32args);
             gccToolChain.getAssembler().withArguments(new Action<List<String>>() {
                 public void execute(List<String> args) {
+                    // TODO - this should be 'if toolchain is XCode'
                     if (OperatingSystem.current().isMacOsX()) {
                         args.addAll(asList("-arch", "i386"));
                     } else {
@@ -183,7 +184,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private static class Intel64Architecture implements TargetPlatformConfiguration {
         public boolean supportsPlatform(PlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
-                    && !OperatingSystem.current().isWindows() // Currently don't support building 64-bit binaries on GCC/Windows
                     && targetPlatform.getArchitecture().isAmd64();
         }
 
@@ -200,6 +200,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             gccToolChain.getLinker().withArguments(m64args);
             gccToolChain.getAssembler().withArguments(new Action<List<String>>() {
                 public void execute(List<String> args) {
+                    // TODO - this should be 'if toolchain is XCode'
                     if (OperatingSystem.current().isMacOsX()) {
                         args.addAll(asList("-arch", "x86_64"));
                     } else {
