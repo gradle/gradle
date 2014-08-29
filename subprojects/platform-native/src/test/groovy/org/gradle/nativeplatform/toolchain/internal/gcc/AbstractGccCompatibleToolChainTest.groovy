@@ -21,11 +21,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
-import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
-import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
-import org.gradle.nativeplatform.platform.internal.PlatformInternal
+import org.gradle.nativeplatform.platform.internal.*
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.PlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
@@ -250,24 +246,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
             argsFor(platformToolChain.assembler) == ["--32"]
             argsFor(platformToolChain.staticLibArchiver) == []
         }
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "cannot target x86_64 architecture on windows"() {
-        given:
-        toolSearchPath.locate(_, _) >> tool
-
-        and:
-        platform.getName() >> "x64"
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.architecture >> new DefaultArchitecture("x64", X86, 64)
-
-        when:
-        def platformToolChain = toolChain.select(platform)
-
-        then:
-        !platformToolChain.available
-        getMessage(platformToolChain) == "Don't know how to build for platform 'x64'."
     }
 
     def "uses supplied platform configurations in order to target binary"() {
