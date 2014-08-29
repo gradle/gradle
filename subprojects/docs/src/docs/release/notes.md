@@ -40,12 +40,17 @@ strategies to be applied.  This allows Gradle to customize version selection wit
 
 See the [userguide section](userguide/dependency_management.html#version_selection_rules) on version selection rules for further information.
 
-### Native language cross-compilation improvements
+### Native language cross-compilation improvements (i)
 
 - Uses the file naming scheme of the target platform, rather than then host platform.
-- Uses linker arguments based on the target platform, rather than the host platform.
+- Uses compiler and linker arguments based on the target platform, rather than the host platform.
 - Added `eachPlatform()` method to each `ToolChain` type, to allow fine-grained customization of a particular tool chain on a per-platform basis.
 - Added `TargetedPlatformToolChain.getPlatform()` to allow tool chain customization logic access to the target platform.
+
+### Support for building x64 binaries on Windows using GCC (i)
+
+Previous versions of Gradle have supported building x86 binaries using GCC on Windows. This Gradle release adds initial support for building
+x64 binaries using GCC on Windows.
 
 ### Specify VCS integration with IDEA support
 
