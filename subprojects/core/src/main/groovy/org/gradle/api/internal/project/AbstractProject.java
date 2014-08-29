@@ -792,7 +792,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public ExecResult javaexec(Closure closure) {
-        return getProcessOperations().javaexec(closure);
+        return javaexec(new ClosureBackedAction<JavaExecSpec>(closure));
     }
 
     public ExecResult javaexec(Action<JavaExecSpec> action) {
@@ -800,7 +800,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public ExecResult exec(Closure closure) {
-        return getProcessOperations().exec(closure);
+        return exec(new ClosureBackedAction<ExecSpec>(closure));
     }
 
     public ExecResult exec(Action<ExecSpec> action) {

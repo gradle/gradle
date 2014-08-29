@@ -44,7 +44,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
 
         when:
         conf(thing) {
-            m1(1,2,3)
+            m1(1, 2, 3)
             p1 = 1
             p1 = p1 + 1
         }
@@ -142,6 +142,20 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         tester.lastArgs.size() == 2
         tester.lastArgs.first() == "1"
         tester.lastArgs.last().is(closure)
+
+        expect: // can return values
+        tester.oneActionReturnsString({}) == "string"
+        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.twoArgsReturnsString("foo", {}) == "string"
+        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.oneActionReturnsInt({}) == 1
+        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.twoArgsReturnsInt("foo", {}) == 1
+        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.oneActionReturnsArray({}) == [] as Object[]
+        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.twoArgsReturnsArray("foo", {}) == [] as Object[]
+        tester.lastArgs.last() instanceof ClosureBackedAction
     }
 
     def "can coerce enum values"() {
@@ -258,7 +272,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2863")
     def "checked exceptions from private methods are thrown"() {
-            when:
+        when:
         create(CallsPrivateMethods).callsPrivateThatThrowsCheckedException("1")
 
         then:
@@ -427,6 +441,49 @@ class ActionsTester {
         lastMethod = "hasClosure"
         lastArgs = [s, closure]
     }
+
+    String oneActionReturnsString(Action action) {
+        lastMethod = "oneAction"
+        lastArgs = [action]
+        action.execute(subject)
+        "string"
+    }
+
+    String twoArgsReturnsString(String first, Action action) {
+        lastMethod = "twoArgs"
+        lastArgs = [first, action]
+        action.execute(subject)
+        "string"
+    }
+
+    int oneActionReturnsInt(Action action) {
+        lastMethod = "oneAction"
+        lastArgs = [action]
+        action.execute(subject)
+        1
+    }
+
+    int twoArgsReturnsInt(String first, Action action) {
+        lastMethod = "twoArgs"
+        lastArgs = [first, action]
+        action.execute(subject)
+        1
+    }
+
+    Object[] oneActionReturnsArray(Action action) {
+        lastMethod = "oneAction"
+        lastArgs = [action]
+        action.execute(subject)
+        [] as Object[]
+    }
+
+    Object[] twoArgsReturnsArray(String first, Action action) {
+        lastMethod = "twoArgs"
+        lastArgs = [first, action]
+        action.execute(subject)
+        [] as Object[]
+    }
+
 }
 
 class CallsMethodDuringConstruction {

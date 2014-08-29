@@ -81,7 +81,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     public URI uri(Object path) {
         return fileResolver.resolveUri(path);
     }
-    
+
     public ConfigurableFileCollection files(Object... paths) {
         return new DefaultConfigurableFileCollection(fileResolver, taskResolver, paths);
     }
@@ -156,18 +156,10 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
         return fileResolver;
     }
 
-    public ExecResult javaexec(Closure cl) {
-        return javaexec(new ClosureBackedAction<JavaExecSpec>(cl));
-    }
-
     public ExecResult javaexec(Action<JavaExecSpec> action) {
         JavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, fileResolver);
         action.execute(javaExecAction);
         return javaExecAction.execute();
-    }
-
-    public ExecResult exec(Closure cl) {
-        return exec(new ClosureBackedAction<ExecSpec>(cl));
     }
 
     public ExecResult exec(Action<ExecSpec> action) {

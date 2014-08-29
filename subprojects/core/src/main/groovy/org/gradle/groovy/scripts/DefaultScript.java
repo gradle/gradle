@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
@@ -181,7 +182,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ExecResult javaexec(Closure closure) {
-        return processOperations.javaexec(closure);
+        return processOperations.javaexec(new ClosureBackedAction<JavaExecSpec>(closure));
     }
 
     public ExecResult javaexec(Action<JavaExecSpec> action) {
@@ -189,7 +190,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ExecResult exec(Closure closure) {
-        return processOperations.exec(closure);
+        return processOperations.exec(new ClosureBackedAction<ExecSpec>(closure));
     }
 
     public ExecResult exec(Action<ExecSpec> action) {

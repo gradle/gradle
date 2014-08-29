@@ -15,18 +15,15 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
 public interface ProcessOperations {
-    ExecResult javaexec(Closure cl);
 
     ExecResult javaexec(Action<JavaExecSpec> action);
 
-    ExecResult exec(Closure cl);
-
     ExecResult exec(Action<ExecSpec> action);
+
 }

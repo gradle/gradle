@@ -887,6 +887,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void addActionMethod(Method method) throws Exception {
             Type actionImplType = Type.getType(ClosureBackedAction.class);
             Type closureType = Type.getType(Closure.class);
+            Type returnType = Type.getType(method.getReturnType());
 
             Type[] originalParameterTypes = CollectionUtils.collectArray(method.getParameterTypes(), Type.class, new Transformer<Type, Class>() {
                 public Type transform(Class clazz) {
@@ -898,9 +899,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             System.arraycopy(originalParameterTypes, 0, closurisedParameterTypes, 0, numParams);
             closurisedParameterTypes[numParams - 1] = closureType;
 
-            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, closurisedParameterTypes);
+            String methodDescriptor = Type.getMethodDescriptor(returnType, closurisedParameterTypes);
 
-            // GENERATE public void <method>(Closure v) { <method>(…, new ClosureBackedAction(v)); }
+            // GENERATE public <return type> <method>(Closure v) { return <method>(…, new ClosureBackedAction(v)); }
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
 
@@ -922,7 +923,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodDescriptor = Type.getMethodDescriptor(Type.getType(method.getReturnType()), originalParameterTypes);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), method.getName(), methodDescriptor);
 
-            methodVisitor.visitInsn(Opcodes.RETURN);
+            methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }
