@@ -61,13 +61,18 @@ public class UnboundRulesProcessor {
 
     private UnboundRuleInput.Builder toInputBuilder(ModelBinding<?> binding, ModelReference<?> reference) {
         UnboundRuleInput.Builder builder = UnboundRuleInput.type(reference.getType().toString());
+        ModelPath path;
         if (binding != null) {
             builder.bound();
+            path = binding.getPath();
+        } else {
+            path = reference.getPath();
+            if (path != null) {
+                builder.suggestions(CollectionUtils.stringize(suggestionsProvider.transform(path)));
+            }
         }
-        ModelPath path = reference.getPath();
         if (path != null) {
-            builder.path(path.toString())
-                    .suggestions(CollectionUtils.stringize(suggestionsProvider.transform(path)));
+            builder.path(path.toString());
         }
         return builder;
     }
