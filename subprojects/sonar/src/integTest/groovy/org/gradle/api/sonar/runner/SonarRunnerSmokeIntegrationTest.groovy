@@ -19,6 +19,7 @@ import groovy.json.JsonSlurper
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.tools.ant.taskdefs.Expand
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -26,6 +27,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AntUtil
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -103,7 +105,6 @@ class SonarServerRule implements TestRule {
 
     void startServer() {
         TestFile sonarHome = prepareSonarHomeFolder()
-
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .directory(sonarHome)
                 .redirectErrorStream(true)
@@ -111,7 +112,7 @@ class SonarServerRule implements TestRule {
                     Jvm.current().getJavaExecutable().absolutePath,
                     '-XX:MaxPermSize=160m', '-Xmx512m', '-Djava.awt.headless=true',
                     '-Dfile.encoding=UTF-8', '-Djruby.management.enabled=false',
-                    '-cp', 'lib/*:conf', 'org.sonar.application.StartServer'
+                    '-cp', "lib/*${File.pathSeparator}conf", 'org.sonar.application.StartServer'
         )
 
         sonarProcess = processBuilder.start()
@@ -140,7 +141,11 @@ class SonarServerRule implements TestRule {
         def zipFile = classpath.find { it.name ==~ "sonarqube.*\\.zip" }
         assert zipFile
 
-        new AntBuilder().unzip(src: zipFile, dest: provider.testDirectory, overwrite: true)
+
+        Expand unpack = new Expand()
+        unpack.src = zipFile
+        unpack.dest = provider.testDirectory
+        AntUtil.execute(unpack)
         TestFile sonarHome = provider.testDirectory.file(zipFile.name - '.zip')
 
         sonarHome.file("conf/sonar.properties") << """\n
