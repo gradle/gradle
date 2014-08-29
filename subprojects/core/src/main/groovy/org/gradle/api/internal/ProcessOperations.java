@@ -22,8 +22,8 @@ import org.gradle.process.JavaExecSpec;
 
 public interface ProcessOperations {
 
-    ExecResult javaexec(Action<JavaExecSpec> action);
+    ExecResult javaexec(Action<? super JavaExecSpec> action);
 
-    ExecResult exec(Action<ExecSpec> action);
+    ExecResult exec(Action<? super ExecSpec> action);
 
 }

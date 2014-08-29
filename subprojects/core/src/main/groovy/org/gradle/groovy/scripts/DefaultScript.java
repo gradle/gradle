@@ -185,7 +185,7 @@ public abstract class DefaultScript extends BasicScript {
         return processOperations.javaexec(new ClosureBackedAction<JavaExecSpec>(closure));
     }
 
-    public ExecResult javaexec(Action<JavaExecSpec> action) {
+    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
         return processOperations.javaexec(action);
     }
 
@@ -193,7 +193,7 @@ public abstract class DefaultScript extends BasicScript {
         return processOperations.exec(new ClosureBackedAction<ExecSpec>(closure));
     }
 
-    public ExecResult exec(Action<ExecSpec> action) {
+    public ExecResult exec(Action<? super ExecSpec> action) {
         return processOperations.exec(action);
     }
 

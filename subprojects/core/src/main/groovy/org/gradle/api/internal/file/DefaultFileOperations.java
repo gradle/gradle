@@ -156,13 +156,13 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
         return fileResolver;
     }
 
-    public ExecResult javaexec(Action<JavaExecSpec> action) {
+    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
         JavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, fileResolver);
         action.execute(javaExecAction);
         return javaExecAction.execute();
     }
 
-    public ExecResult exec(Action<ExecSpec> action) {
+    public ExecResult exec(Action<? super ExecSpec> action) {
         ExecAction execAction = instantiator.newInstance(DefaultExecAction.class, fileResolver);
         action.execute(execAction);
         return execAction.execute();

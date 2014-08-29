@@ -841,7 +841,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param action The action for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult javaexec(Action<JavaExecSpec> action);
+    ExecResult javaexec(Action<? super JavaExecSpec> action);
 
     /**
      * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
@@ -860,7 +860,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param action The action for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult exec(Action<ExecSpec> action);
+    ExecResult exec(Action<? super ExecSpec> action);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
