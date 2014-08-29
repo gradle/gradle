@@ -43,7 +43,6 @@ public class InetAddressFactory {
     private List<NetworkInterface> multicastInterfaces;
     private InetAddress localBindingAddress;
 
-
     /**
      * Determines the name of the local machine.
      */
@@ -139,12 +138,12 @@ public class InetAddressFactory {
     private InetAddress findOpenshiftAddresses() {
         for (String key : System.getenv().keySet()) {
             if (key.startsWith("OPENSHIFT_") && key.endsWith("_IP")) {
-                LOGGER.info("OPENSHIFT IP environment variable detected.");
+                String ipAddress = System.getenv(key);
+                LOGGER.debug("OPENSHIFT IP environment variable {} detected. Using IP address {}.", key, ipAddress);
                 try {
-                    return InetAddress.getByName(System.getenv(key));
+                    return InetAddress.getByName(ipAddress);
                 } catch (Exception e) {
-                    LOGGER.debug("Unable to use OPENSHIFT IP - invalid IP");
-                    //ignore and default to local
+                    throw new RuntimeException(String.format("Unable to use OPENSHIFT IP - invalid IP address '%s' specified in environment variable %s.", ipAddress, key), e);
                 }
             }
         }
@@ -205,14 +204,6 @@ public class InetAddressFactory {
                     }
                 }
 
-                //Detect Openshift IP environment variable.
-                InetAddress openshiftEnvironment = findOpenshiftAddresses();
-                if (openshiftEnvironment != null) {
-                   localBindingAddress = openshiftEnvironment;
-                } else {
-                    localBindingAddress = InetAddress.getByName("0.0.0.0");
-                }
-
                 if (!Boolean.FALSE.equals(isMulticast)) {
                     // Prefer remotely reachable interfaces over loopback interfaces for multicast
                     if (isRemote) {
@@ -226,6 +217,14 @@ public class InetAddressFactory {
             } catch (Throwable e) {
                 throw new RuntimeException(String.format("Could not determine the IP addresses for network interface %s", networkInterface.getName()), e);
             }
+        }
+
+        //Detect Openshift IP environment variable.
+        InetAddress openshiftEnvironment = findOpenshiftAddresses();
+        if (openshiftEnvironment != null) {
+           localBindingAddress = openshiftEnvironment;
+        } else {
+            localBindingAddress = InetAddress.getByName("0.0.0.0");
         }
     }
 
