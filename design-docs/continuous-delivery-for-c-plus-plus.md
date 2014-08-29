@@ -1032,6 +1032,12 @@ from the same sources that link against different implementation libraries.
 - XCode on OS X
 - Macports GCC and Clang on OS X
     - Cross compilation for Linux and Windows
+- Cygwin64
+    - x86 and x64 binaries
+    - mingw under cygwin
+- Cygwin32
+    - x86 and x64 binaries
+    - mingw under cygwin
 
 ## Feature: Improved native source sets
 
