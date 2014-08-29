@@ -50,8 +50,8 @@ public class UnboundRuleInput {
         this.suggestedPaths = suggestedPaths;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static Builder type(String type) {
+        return new Builder(type);
     }
 
     public static class Builder {
@@ -61,13 +61,12 @@ public class UnboundRuleInput {
         private boolean bound;
         private List<String> suggestedPaths = new ArrayList<String>();
 
-        public Builder path(String path) {
-            this.path = path;
-            return this;
+        public Builder(String type) {
+            this.type = type;
         }
 
-        public Builder type(String type) {
-            this.type = type;
+        public Builder path(String path) {
+            this.path = path;
             return this;
         }
 

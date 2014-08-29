@@ -60,22 +60,15 @@ public class UnboundRulesProcessor {
     }
 
     private UnboundRuleInput.Builder toInputBuilder(ModelBinding<?> binding, ModelReference<?> reference) {
-        UnboundRuleInput.Builder builder = UnboundRuleInput.builder();
-        ModelPath path;
-        if (binding == null) {
-            path = reference.getPath();
-        } else {
-            path = binding.getPath();
+        UnboundRuleInput.Builder builder = UnboundRuleInput.type(reference.getType().toString());
+        if (binding != null) {
             builder.bound();
         }
+        ModelPath path = reference.getPath();
         if (path != null) {
             builder.path(path.toString())
-                    .suggestions(CollectionUtils.collect(suggestionsProvider.transform(path), new Transformer<String, ModelPath>() {
-                        public String transform(ModelPath original) {
-                            return original.toString();
-                        }
-                    }));
+                    .suggestions(CollectionUtils.stringize(suggestionsProvider.transform(path)));
         }
-        return builder.type(reference.getType().toString());
+        return builder;
     }
 }
