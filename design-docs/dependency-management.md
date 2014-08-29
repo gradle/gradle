@@ -466,6 +466,7 @@ Handle the following reasons why no matching component cannot be found for a sel
 - Typo in repository configuration:
     - Inform which URLs were used to locate the module and versions
     - Inform about a missing meta-data artifact
+- No repositories declared
 
 Handle the following reasons why a given artifact cannot be found:
 
