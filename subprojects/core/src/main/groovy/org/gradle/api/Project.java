@@ -37,6 +37,8 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 
 import java.io.File;
 import java.net.URI;
@@ -831,12 +833,28 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ExecResult javaexec(Closure closure);
 
     /**
+     * Executes a Java main class. The action configures a {@link org.gradle.process.JavaExecSpec}.
+     *
+     * @param action The action for configuring the execution.
+     * @return the result of the execution
+     */
+    ExecResult javaexec(Action<JavaExecSpec> action);
+
+    /**
      * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
     ExecResult exec(Closure closure);
+
+    /**
+     * Executes an external command. The action configures a {@link org.gradle.process.ExecSpec}.
+     *
+     * @param action The action for configuring the execution.
+     * @return the result of the execution
+     */
+    ExecResult exec(Action<ExecSpec> action);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>

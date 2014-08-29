@@ -42,6 +42,8 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -182,8 +184,16 @@ public abstract class DefaultScript extends BasicScript {
         return processOperations.javaexec(closure);
     }
 
+    public ExecResult javaexec(Action<JavaExecSpec> action) {
+        return processOperations.javaexec(action);
+    }
+
     public ExecResult exec(Closure closure) {
         return processOperations.exec(closure);
+    }
+
+    public ExecResult exec(Action<ExecSpec> action) {
+        return processOperations.exec(action);
     }
 
     public LoggingManager getLogging() {

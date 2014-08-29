@@ -37,6 +37,8 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.*;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
@@ -155,12 +157,22 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     }
 
     public ExecResult javaexec(Closure cl) {
-        JavaExecAction javaExecAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultJavaExecAction.class, fileResolver));
+        return javaexec(new ClosureBackedAction<JavaExecSpec>(cl));
+    }
+
+    public ExecResult javaexec(Action<JavaExecSpec> action) {
+        JavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, fileResolver);
+        action.execute(javaExecAction);
         return javaExecAction.execute();
     }
 
     public ExecResult exec(Closure cl) {
-        ExecAction execAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultExecAction.class, fileResolver));
+        return exec(new ClosureBackedAction<ExecSpec>(cl));
+    }
+
+    public ExecResult exec(Action<ExecSpec> action) {
+        ExecAction execAction = instantiator.newInstance(DefaultExecAction.class, fileResolver);
+        action.execute(execAction);
         return execAction.execute();
     }
 
