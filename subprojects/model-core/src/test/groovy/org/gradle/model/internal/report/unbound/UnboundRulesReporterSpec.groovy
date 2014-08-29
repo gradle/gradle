@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.report.unbound
 
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -28,7 +27,7 @@ class UnboundRulesReporterSpec extends Specification {
     def "reports on unbound rules"() {
         when:
         reporter.reportOn([
-                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor("r1"))
+                UnboundRule.descriptor("r1")
                         .mutableInput(UnboundRuleInput.builder().path("parent.p1").type(String.name))
                         .mutableInput(UnboundRuleInput.builder().bound().path("parent.p2").type(Integer.name))
                         .immutableInput(UnboundRuleInput.builder().path("parent.p3").type(Number.name).suggestions(["parent.p31", "parent.p32"]))

@@ -42,7 +42,7 @@ public class UnboundRulesReporter {
 
             writer.print(prefix);
 
-            rule.getDescriptor().describeTo(writer);
+            writer.print(rule.getDescriptor());
             if (rule.getMutableInputs().size() > 0) {
                 heading("Mutable:");
                 reportInputs(rule.getMutableInputs());

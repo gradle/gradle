@@ -16,25 +16,24 @@
 
 package org.gradle.model.internal.report.unbound;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class UnboundRule {
 
-    private final ModelRuleDescriptor descriptor;
+    private final String descriptor;
 
     private final List<UnboundRuleInput> immutableInputs;
     private final List<UnboundRuleInput> mutableInputs;
 
-    public UnboundRule(ModelRuleDescriptor descriptor, List<UnboundRuleInput> immutableInputs, List<UnboundRuleInput> mutableInputs) {
+    public UnboundRule(String descriptor, List<UnboundRuleInput> immutableInputs, List<UnboundRuleInput> mutableInputs) {
         this.descriptor = descriptor;
         this.immutableInputs = immutableInputs;
         this.mutableInputs = mutableInputs;
     }
 
-    public ModelRuleDescriptor getDescriptor() {
+    public String getDescriptor() {
         return descriptor;
     }
 
@@ -46,19 +45,18 @@ public class UnboundRule {
         return mutableInputs;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static Builder descriptor(String descriptor) {
+        return new Builder(descriptor);
     }
 
     public static class Builder {
 
-        private ModelRuleDescriptor descriptor;
-        private final List<UnboundRuleInput> immutableInputs = new ArrayList<UnboundRuleInput>();
-        private final List<UnboundRuleInput> mutableInputs = new ArrayList<UnboundRuleInput>();
+        private String descriptor;
+        private final List<UnboundRuleInput> immutableInputs = Lists.newArrayList();
+        private final List<UnboundRuleInput> mutableInputs = Lists.newArrayList();
 
-        public Builder descriptor(ModelRuleDescriptor descriptor) {
+        public Builder(String descriptor) {
             this.descriptor = descriptor;
-            return this;
         }
 
         public Builder immutableInput(UnboundRuleInput.Builder inputBuilder) {

@@ -40,7 +40,7 @@ public class UnboundRulesProcessor {
     public List<UnboundRule> process() {
         List<UnboundRule> unboundRules = new ArrayList<UnboundRule>();
         for (RuleBinder<?> binder : binders) {
-            UnboundRule.Builder builder = UnboundRule.builder().descriptor(binder.getDescriptor());
+            UnboundRule.Builder builder = UnboundRule.descriptor(binder.getDescriptor().toString());
 
             if (binder.getSubjectReference() != null) {
                 ModelBinding<?> binding = binder.getSubjectBinding();

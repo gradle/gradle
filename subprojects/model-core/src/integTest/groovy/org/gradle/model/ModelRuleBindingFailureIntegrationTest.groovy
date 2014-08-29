@@ -17,7 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
 import org.gradle.model.internal.report.unbound.UnboundRule
@@ -65,9 +64,9 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause(unbound(
-                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor('MyPlugin$Rules#thing1(MyPlugin$MyThing2)'))
+                UnboundRule.descriptor('MyPlugin$Rules#thing1(MyPlugin$MyThing2)')
                         .immutableInput(UnboundRuleInput.builder().type('MyPlugin$MyThing2')),
-                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor('MyPlugin$Rules#mutateThing2(MyPlugin$MyThing2, MyPlugin$MyThing3)'))
+                UnboundRule.descriptor('MyPlugin$Rules#mutateThing2(MyPlugin$MyThing2, MyPlugin$MyThing3)')
                         .mutableInput(UnboundRuleInput.builder().type('MyPlugin$MyThing2'))
                         .immutableInput(UnboundRuleInput.builder().type('MyPlugin$MyThing3'))
         ))
@@ -89,7 +88,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause(unbound(
-                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor('model.foo.bar'))
+                UnboundRule.descriptor('model.foo.bar')
                         .mutableInput(UnboundRuleInput.builder().path('foo.bar').type('java.lang.Object'))
         ))
     }
@@ -127,7 +126,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause(unbound(
-                UnboundRule.builder().descriptor(new SimpleModelRuleDescriptor("model.tasks.foonar"))
+                UnboundRule.descriptor("model.tasks.foonar")
                     .mutableInput(UnboundRuleInput.builder().path("tasks.foonar").type("java.lang.Object").suggestion("tasks.foobar"))
         ))
     }
