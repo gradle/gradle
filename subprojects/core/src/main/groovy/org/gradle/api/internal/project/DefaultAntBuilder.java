@@ -90,7 +90,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         importBuild(antBuildFile, Transformers.<String>passthru());
     }
 
-    public void importBuild(Object antBuildFile, Transformer<String, String> taskNamer) {
+    public void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer) {
         File file = gradleProject.file(antBuildFile);
         final File baseDir = file.getParentFile();
 
@@ -120,7 +120,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         }
     }
 
-    public static void configureTask(Target target, AntTarget task, File baseDir, Transformer<String, String> taskNamer) {
+    public static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
         task.setTarget(target);
         task.setBaseDir(baseDir);
 
@@ -129,7 +129,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         addDependencyOrdering(taskDependencyNames, task.getProject().getTasks());
     }
 
-    private static List<String> getTaskDependencyNames(Target target, Transformer<String, String> taskNamer) {
+    private static List<String> getTaskDependencyNames(Target target, Transformer<? extends String, ? super String> taskNamer) {
         Enumeration<String> dependencies = target.getDependencies();
         List<String> taskDependencyNames = Lists.newLinkedList();
         while (dependencies.hasMoreElements()) {

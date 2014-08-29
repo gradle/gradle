@@ -65,7 +65,7 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         throw new UnsupportedOperationException();
     }
 
-    public void importBuild(Object antBuildFile, Transformer<String, String> taskNamer) {
+    public void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer) {
         throw new UnsupportedOperationException();
     }
 

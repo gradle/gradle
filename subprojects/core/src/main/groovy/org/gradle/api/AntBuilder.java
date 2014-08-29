@@ -52,11 +52,10 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      * The transformer may be called multiple times with the same input.
      * Implementations should ensure uniqueness of the return value for a distinct input.
      * That is, no two inputs should yield the same return value.
-     *
-     * @param antBuildFile The build file. This is resolved as per {@link Project#file(Object)}.
+     *  @param antBuildFile The build file. This is resolved as per {@link org.gradle.api.Project#file(Object)}.
      * @param taskNamer A transformer that calculates the name of the Gradle task for a corresponding Ant target.
      */
-    public abstract void importBuild(Object antBuildFile, Transformer<String, String> taskNamer);
+    public abstract void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer);
 
     /**
      * Returns this AntBuilder. Useful when you need to pass this builder to methods from within closures.
