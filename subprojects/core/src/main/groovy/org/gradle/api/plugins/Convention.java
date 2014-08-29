@@ -49,7 +49,7 @@ public interface Convention extends ExtensionContainer {
      *
      * @param type The convention object type.
      * @return The object. Returns null if there is no such object.
-     * @throws IllegalStateException When there there are multiple matching objects.
+     * @throws IllegalStateException When there are multiple matching objects.
      */
     <T> T findPlugin(Class<T> type) throws IllegalStateException;
 

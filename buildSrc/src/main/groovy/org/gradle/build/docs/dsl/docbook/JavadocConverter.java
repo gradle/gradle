@@ -613,7 +613,7 @@ public class JavadocConverter {
             }
             if (elementName.equals("dd")) {
                 if (currentItem == null) {
-                    throw new IllegalStateException("No <dt> element preceeding <dd> element.");
+                    throw new IllegalStateException("No <dt> element preceding <dd> element.");
                 }
                 nodes.push(document.createElement("listitem"));
                 return true;

@@ -48,7 +48,7 @@ public interface Conf2ScopeMappingContainer {
     /**
      * Returns a scope that corresponds to the given configurations. Dependencies of different configurations can
      * be equal. But only one of those equals dependencies (which might differ in content) can be mapped to a POM
-     * (due to the the nature of a Maven POM).
+     * (due to the nature of a Maven POM).
      *
      * <p>Which scope is returned depends on the existing mappings. See {@link #addMapping(int, Configuration, String)}. If
      * only one configuration is mapped, this mapping is used to choose the scope. If more than one configuration of a

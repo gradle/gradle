@@ -147,7 +147,7 @@ class SignOperation implements SignatureSpec {
     }
     
     /**
-     * Returns the the single registered signature.
+     * Returns the single registered signature.
      *
      * @return The signature.
      * @throws IllegalStateException if there is not exactly one registered signature.

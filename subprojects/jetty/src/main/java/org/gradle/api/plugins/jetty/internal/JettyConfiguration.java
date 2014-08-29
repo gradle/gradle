@@ -100,7 +100,7 @@ public class JettyConfiguration extends Configuration {
             //TODO it would be nice to be able to re-use the parseAnnotations() method on 
             //the org.mortbay.jetty.annotations.Configuration class, but it's too difficult?
 
-            //able to use annotations on on jdk1.5 and above
+            //able to use annotations on jdk1.5 and above
             Class<?> annotationParserClass = Thread.currentThread().getContextClassLoader().loadClass(
                     "org.mortbay.jetty.annotations.AnnotationParser");
             Method parseAnnotationsMethod = annotationParserClass.getMethod("parseAnnotations", WebAppContext.class,

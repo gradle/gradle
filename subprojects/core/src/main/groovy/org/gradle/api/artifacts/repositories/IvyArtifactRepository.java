@@ -64,7 +64,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * ivy pattern is supplied via {@link #ivyPattern(String)}.
      *
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
-     * It is not interpreted relative the the URL specified in {@link #setUrl(Object)}.
+     * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
      * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
      *
@@ -76,7 +76,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * Adds an independent pattern that will be used to locate ivy files in this repository.
      *
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
-     * It is not interpreted relative the the URL specified in {@link #setUrl(Object)}.
+     * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
      * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
      *

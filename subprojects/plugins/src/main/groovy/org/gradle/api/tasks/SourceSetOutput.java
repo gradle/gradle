@@ -136,7 +136,7 @@ public interface SourceSetOutput extends FileCollection {
     void dir(Object dir);
 
     /**
-     * Returns all dirs registered with with #dir method.
+     * Returns all dirs registered with #dir method.
      * Each file is resolved as {@link org.gradle.api.Project#file(Object)}
      * <p>
      * See example at {@link SourceSetOutput}

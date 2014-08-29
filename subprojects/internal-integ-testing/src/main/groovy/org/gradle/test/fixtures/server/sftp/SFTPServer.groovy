@@ -362,7 +362,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
         SftpExpectOne(int type, String notMetMessage, boolean failing = false, boolean missing = false) {
             this.expectedType = type
-            this.notMetMessage = "Expected SFTP command not recieved: $notMetMessage"
+            this.notMetMessage = "Expected SFTP command not received: $notMetMessage"
             this.matcher = matcher
             this.failing = failing
             this.missing = missing

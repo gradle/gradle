@@ -117,7 +117,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
     }
 
     /**
-     * Notification that a message has been received. If we just connected, we'll do a quick handshake to verify the client, then we just pass the rest on our our output panel.
+     * Notification that a message has been received. If we just connected, we'll do a quick handshake to verify the client, then we just pass the rest on our output panel.
      *
      * @param message the message that was received.
      */

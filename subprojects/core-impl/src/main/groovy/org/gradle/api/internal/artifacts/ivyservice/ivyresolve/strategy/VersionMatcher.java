@@ -50,7 +50,7 @@ public interface VersionMatcher extends Comparator<String> {
     public boolean accept(String selector, String candidate);
 
     /**
-     * Indicates if the given version selector matches the given given candidate version
+     * Indicates if the given version selector matches the given candidate version
      * (whose metadata is provided). May also be called if {@link #isDynamic} returned
      * {@code false} for the given selector, in which case it should return the same result as
      * {@code accept(selector, candidate.getId().getVersion()}.
