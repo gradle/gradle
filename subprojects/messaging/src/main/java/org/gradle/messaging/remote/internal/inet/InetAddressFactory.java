@@ -17,7 +17,6 @@ package org.gradle.messaging.remote.internal.inet;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +27,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -75,12 +73,7 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                if (!localAddresses.isEmpty()) {
-                    return localAddresses;
-                }
-                InetAddress fallback = InetAddress.getByName(null);
-                LOGGER.debug("No loopback addresses, using fallback {}", fallback);
-                return Collections.singletonList(fallback);
+                return localAddresses;
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not determine the local IP addresses for this machine.", e);
@@ -94,12 +87,7 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                if (!remoteAddresses.isEmpty()) {
-                    return remoteAddresses;
-                }
-                InetAddress fallback = InetAddress.getLocalHost();
-                LOGGER.debug("No remote addresses, using fallback {}", fallback);
-                return Collections.singletonList(fallback);
+                return remoteAddresses;
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not determine the remote IP addresses for this machine.", e);
@@ -113,10 +101,6 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                if (multicastInterfaces.isEmpty()) {
-                    LOGGER.debug("No multicast interfaces, using fallback");
-                    return CollectionUtils.toList(NetworkInterface.getNetworkInterfaces());
-                }
                 return multicastInterfaces;
             }
         } catch (Exception e) {
@@ -219,7 +203,25 @@ public class InetAddressFactory {
             }
         }
 
-        //Detect Openshift IP environment variable.
+        if (localAddresses.isEmpty()) {
+            InetAddress fallback = InetAddress.getByName(null);
+            LOGGER.debug("No loopback addresses, using fallback {}", fallback);
+            localAddresses.add(fallback);
+        }
+        if (remoteAddresses.isEmpty()) {
+            InetAddress fallback = InetAddress.getLocalHost();
+            LOGGER.debug("No remote addresses, using fallback {}", fallback);
+            remoteAddresses.add(fallback);
+        }
+        if (multicastInterfaces.isEmpty()) {
+            LOGGER.debug("No multicast interfaces, using fallbacks");
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                multicastInterfaces.add(networkInterfaces.nextElement());
+            }
+        }
+
+        // Detect Openshift IP environment variable.
         InetAddress openshiftEnvironment = findOpenshiftAddresses();
         if (openshiftEnvironment != null) {
            localBindingAddress = openshiftEnvironment;
