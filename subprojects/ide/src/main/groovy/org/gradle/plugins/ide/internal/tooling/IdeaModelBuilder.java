@@ -111,6 +111,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
+            .setGeneratedSourceDirectories(srcDirs(ideaModule.getGeneratedSourceDirs()))
             .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
             .setExcludeDirectories(ideaModule.getExcludeDirs());
 

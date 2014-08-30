@@ -50,6 +50,9 @@ import org.gradle.util.ConfigureUtil
  *     //if for some reason you want to add an extra sourceDirs
  *     sourceDirs += file('some-extra-source-folder')
  *
+ *     //and some generated source
+ *     generatedSourceDirs += file('some-extra-generated-source-folder')
+ *
  *     //and some extra test source dirs
  *     testSourceDirs += file('some-extra-test-dir')
  *
@@ -157,6 +160,13 @@ class IdeaModule {
      * For example see docs for {@link IdeaModule}
      */
     Set<File> sourceDirs
+
+    /**
+     * The directories containing the generated sources.
+     * <p>
+     * For example see docs for {@link IdeaModule}
+     */
+    Set<File> generatedSourceDirs = []
 
     /**
      * The keys of this map are the IDEA scopes. Each key points to another map that has two keys, plus and minus.
@@ -329,13 +339,14 @@ class IdeaModule {
         def path = { getPathFactory().path(it) }
         def contentRoot = path(getContentRoot())
         Set sourceFolders = getSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set generatedSourceFolders = getGeneratedSourceDirs().findAll { it.exists() }.collect { path(it) }
         Set testSourceFolders = getTestSourceDirs().findAll { it.exists() }.collect { path(it) }
         Set excludeFolders = getExcludeDirs().collect { path(it) }
         def outputDir = getOutputDir() ? path(getOutputDir()) : null
         def testOutputDir = getTestOutputDir() ? path(getTestOutputDir()) : null
         Set dependencies = resolveDependencies()
 
-        xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, excludeFolders,
+        xmlModule.configure(contentRoot, sourceFolders, generatedSourceFolders, testSourceFolders, excludeFolders,
                 getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName())
 
         iml.whenMerged.execute(xmlModule)
