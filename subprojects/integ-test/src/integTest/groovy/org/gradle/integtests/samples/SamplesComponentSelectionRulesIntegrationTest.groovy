@@ -24,10 +24,10 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    @UsesSample("versionSelectionRules")
+    @UsesSample("componentSelectionRules")
     def "version selection rules are applied"() {
         given:
-        inDirectory "versionSelectionRules"
+        inDirectory "componentSelectionRules"
 
         when:
         run "resolveConfiguration"

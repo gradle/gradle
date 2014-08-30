@@ -134,7 +134,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         public void execute(ComponentSelection selection, List<?> inputs) {
             ModuleVersionMetaData metadata = (ModuleVersionMetaData) inputs.get(0);
             if (!versionMatcher.accept(selection.getRequested().getVersion(), metadata)) {
-                selection.reject("Incorrect version or status");
+                selection.reject("Does not match requested version or status");
             }
         }
     }

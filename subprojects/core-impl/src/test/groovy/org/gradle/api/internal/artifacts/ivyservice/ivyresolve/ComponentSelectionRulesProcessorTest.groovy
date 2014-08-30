@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.DefaultMavenModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import spock.lang.Specification
 
 class ComponentSelectionRulesProcessorTest extends Specification {
@@ -58,15 +59,18 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs -> closureCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2}
-        rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 3 }
-        rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 4 }
+        rule { ComponentSelection cs, ModuleVersionMetaData mvm -> closureCalled << 3}
+        rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
+        rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
+        rule { ComponentSelection cs, ComponentMetadata cm, ModuleVersionMetaData mvm -> closureCalled << 6 }
+        rule { ComponentSelection cs, ModuleVersionMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
 
         and:
         apply(moduleAccess)
 
         then:
         !componentSelection.rejected
-        closureCalled == [0, 1, 2, 3, 4]
+        closureCalled == [0, 1, 2, 3, 4, 5, 6, 7]
     }
 
     def "short-circuits evaluate when rule rejects candidate" () {
@@ -101,7 +105,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs -> closuresCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 2}
-        rule { ComponentSelection cs -> closuresCalled << 3 }
+        rule { ComponentSelection cs, ModuleVersionMetaData mvm -> closuresCalled << 3}
+        rule { ComponentSelection cs -> closuresCalled << 4 }
         rule { ComponentSelection cs -> cs.reject("rejected") }
 
         and:
@@ -112,7 +117,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         componentSelection.rejectionReason == "rejected"
 
         and:
-        closuresCalled == [0, 3]
+        closuresCalled == [0, 4]
     }
 
     def "metadata is not requested for rules that don't require it"() {

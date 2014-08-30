@@ -39,7 +39,7 @@ configurations {
 }
 // END SNIPPET reject-version-1.1
 
-// START SNIPPET version-selection-with-metadata
+// START SNIPPET component-selection-with-metadata
 configurations {
     rejectConfig {
         resolutionStrategy {
@@ -52,11 +52,11 @@ configurations {
                         selection.reject("don't consider experimental candidates")
                     }
                 }
-                // Accept the highest version with a branch of 'testing' and a status of 'milestone'
+                // Accept the highest version with a branch of 'testing' or a status of 'milestone'
                 all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
                     if (selection.requested.group == 'org.sample' && selection.requested.name == 'api') {
-                        if (descriptor.branch != 'testing' || metadata.status != 'milestone') {
-                            selection.reject("only consider testing branch with milestone status")
+                        if (descriptor.branch != 'testing' && metadata.status != 'milestone') {
+                            selection.reject("does not match branch or status")
                         }
                     }
                 }
@@ -64,7 +64,7 @@ configurations {
         }
     }
 }
-// END SNIPPET version-selection-with-metadata
+// END SNIPPET component-selection-with-metadata
 
 configurations {
     sampleConfig {

@@ -1119,13 +1119,12 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule" />
             </sample>
         </section>
-        <section id="version_selection_rules">
-            <title>Version Selection Rules</title>
+        <section id="component_selection_rules">
+            <title>Component Selection Rules</title>
             <para>
-                Version selection rules define how versions should be selected when multiple versions are available that match a given set of
-                coordinates.  Rules are applied against every available version and allow the version to be explicitly accepted, explicitly rejected,
-                or have the default version matching rules applied.  This allows Gradle to select alternate versions when the alternate version
-                is not known in advance.
+                Component selection rules define how versions should be selected when multiple versions are available that match a given set of
+                coordinates.  Rules are applied against every available version and allow the version to be explicitly rejected by rule.  This
+                allows Gradle to select alternate versions when the alternate version is not known in advance.
             </para>
             <para>
                 Rules are configured via the <apilink class="org.gradle.api.artifacts.ComponentSelectionRules"/> object.  Each rule configured
@@ -1139,23 +1138,23 @@ someroot/[artifact]-[revision].[ext]
                 choose the next best candidate.  If the version requested was <literal>1.+</literal>, and versions 1.1, 1.0.1 and 1.0 were
                 available, it would reject 1.1 and select the next newest version available (1.0.1).
             </para>
-            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version selection rule">
+            <sample id="componentSelectionRule" dir="componentSelectionRules" title="Component selection rule">
                 <sourcefile file="build.gradle" snippet="reject-version-1.1" />
             </sample>
             <para>
-                Note that version selection is applied to <emphasis>all</emphasis> versions available, not just versions that match the requested version.  This allows
-                available versions that do not match the requested version to be explicitly substituted if desired.
+                Note that version selection is applied starting with the highest version first.  The version selected will be the first version
+                found that all component selection rules accept.  A version is considered accepted if a rule does not explicitly reject it.
             </para>
             <para>
-                Version selection rules can also consider component metadata when selecting a version.  Possible metadata arguments that can be considered are
+                Component selection rules can also consider component metadata when selecting a version.  Possible metadata arguments that can be considered are
                 <apilink class="org.gradle.api.artifacts.ComponentMetadata"/> and <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor"/>.
             </para>
-            <sample id="versionSelectionRule" dir="versionSelectionRules" title="Version selection rule with metadata">
-                <sourcefile file="build.gradle" snippet="version-selection-with-metadata" />
+            <sample id="componentSelectionRuleMetadata" dir="componentSelectionRules" title="Component selection rule with metadata">
+                <sourcefile file="build.gradle" snippet="component-selection-with-metadata" />
             </sample>
             <para>
                 Note that a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> argument is <emphasis>always</emphasis> required when
-                declaring a version selection rule but the metadata arguments are optional.
+                declaring a component selection rule but the metadata arguments are optional.
             </para>
         </section>
     </section>

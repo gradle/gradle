@@ -2,10 +2,10 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Version Selection Rules (i)
-Fine tuning the dependency resolution process is even more powerful now with the use of version selection rules.  These allow custom rules to be applied whenever
-multiple versions of a module are being evaluated.  Using such rules, one can explicitly accept or reject a version or allow the default version matching
-strategies to be applied.  This allows Gradle to customize version selection without knowing what versions might be available at build time.
+### Component Selection Rules (i)
+Fine tuning the dependency resolution process is even more powerful now with the use of component selection rules.  These allow custom rules to be applied whenever
+multiple versions of a component are being evaluated.  Using such rules, one can explicitly reject a version that might otherwise be accepted by the default version matching
+strategy.  This allows Gradle to customize component selection without knowing what versions might be available at build time.
 
     configurations {
         conf {
@@ -17,7 +17,7 @@ strategies to be applied.  This allows Gradle to customize version selection wit
                         if (selection.requested.group == 'org.sample'
                                 && selection.requested.name == 'api'
                                 && selection.candidate.version.endsWith('-experimental')) {
-                            selection.reject()
+                            selection.reject("rejecting 1.1")
                         }
                     }
 
@@ -26,8 +26,8 @@ strategies to be applied.  This allows Gradle to customize version selection wit
                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
                         if (selection.requested.group == 'org.sample'
                                 && selection.requested.name == 'api'
-                                && (descriptor.branch == 'testing' || metadata.status == 'milestone')) {
-                            selection.accept()
+                                && (descriptor.branch != 'testing' && metadata.status != 'milestone')) {
+                            selection.reject("does not match branch or status")
                         }
                     }
                 }
@@ -38,7 +38,7 @@ strategies to be applied.  This allows Gradle to customize version selection wit
         conf "org.sample:api:1.+"
     }
 
-See the [userguide section](userguide/dependency_management.html#version_selection_rules) on version selection rules for further information.
+See the [userguide section](userguide/dependency_management.html#component_selection_rules) on component selection rules for further information.
 
 ### Native language cross-compilation improvements (i)
 
