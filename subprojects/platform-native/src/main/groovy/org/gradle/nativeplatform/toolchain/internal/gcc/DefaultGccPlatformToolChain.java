@@ -27,10 +27,19 @@ import java.util.Map;
 
 public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRegistry {
     private final Platform platform;
+    private boolean canUseCommandFile = true;
     private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
     public DefaultGccPlatformToolChain(Platform platform) {
         this.platform = platform;
+    }
+
+    public boolean isCanUseCommandFile() {
+        return canUseCommandFile;
+    }
+
+    public void setCanUseCommandFile(boolean canUseCommandFile) {
+        this.canUseCommandFile = canUseCommandFile;
     }
 
     public GccCommandLineToolConfigurationInternal getTool(ToolType toolType) {

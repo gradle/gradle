@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaData
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
-import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +41,8 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     private final CompilerMetaDataProvider versionDeterminer;
 
-    private GccVersionResult versionResult;
-
     public GccToolChain(Instantiator instantiator, String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerMetaDataProviderFactory metaDataProviderFactory) {
-        super(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), instantiator);
+        super(name, operatingSystem, fileResolver, execActionFactory, instantiator);
         this.versionDeterminer = metaDataProviderFactory.gcc();
     }
 
@@ -56,22 +53,21 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     @Override
     protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
-        if (versionResult == null) {
-            CommandLineToolSearchResult compiler = locate(platformToolChain.getcCompiler());
-            if (!compiler.isAvailable()) {
-                compiler = locate(platformToolChain.getCppCompiler());
-            }
-            availability.mustBeAvailable(compiler);
-            if (!compiler.isAvailable()) {
-                return;
-            }
-            versionResult = versionDeterminer.getGccMetaData(compiler.getTool());
-            LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
+        CommandLineToolSearchResult compiler = locate(platformToolChain.getcCompiler());
+        if (!compiler.isAvailable()) {
+            compiler = locate(platformToolChain.getCppCompiler());
         }
-        availability.mustBeAvailable(versionResult);
-    }
+        if (!compiler.isAvailable()) {
+            return;
+        }
 
-    protected boolean canUseCommandFile() {
-        return versionResult.getVersion().getMajor() >= 4;
+        GccVersionResult versionResult = versionDeterminer.getGccMetaData(compiler.getTool());
+        availability.mustBeAvailable(versionResult);
+        if (versionResult.isAvailable()) {
+            LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
+            platformToolChain.setCanUseCommandFile(versionResult.getVersion().getMajor() >= 4);
+        }
+
+        super.initTools(platformToolChain, availability);
     }
 }

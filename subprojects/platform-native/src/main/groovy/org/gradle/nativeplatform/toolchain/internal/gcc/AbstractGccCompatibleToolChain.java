@@ -50,11 +50,14 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private final Instantiator instantiator;
     private int configInsertLocation;
 
-    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath toolSearchPath,
-                                          Instantiator instantiator) {
+    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
+        this(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), instantiator);
+    }
+
+    AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, Instantiator instantiator) {
         super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
-        this.toolSearchPath = toolSearchPath;
+        this.toolSearchPath = tools;
         this.instantiator = instantiator;
 
         target(new ToolChainDefaultArchitecture());
@@ -125,7 +128,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
-        return new GccPlatformToolProvider(targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, canUseCommandFile());
+        return new GccPlatformToolProvider(targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, configurableToolChain.isCanUseCommandFile());
     }
 
     private void addDefaultTools(DefaultGccPlatformToolChain toolChain) {
@@ -148,10 +151,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             }
         }
         return null;
-    }
-
-    protected boolean canUseCommandFile() {
-        return true;
     }
 
     private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
