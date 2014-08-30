@@ -21,22 +21,47 @@ import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
 public class CompilerMetaDataProviderFactory {
-    private final ExecActionFactory factory;
+    private final CachingCompilerMetaDataProvider gcc;
+    private final CachingCompilerMetaDataProvider clang;
 
     public CompilerMetaDataProviderFactory(final FileLookup fileLookup) {
-        this.factory = new ExecActionFactory() {
+        ExecActionFactory factory = new ExecActionFactory() {
             public ExecAction newExecAction() {
                 return new DefaultExecAction(fileLookup.getFileResolver());
             }
         };
+        gcc = new CachingCompilerMetaDataProvider(GccVersionDeterminer.forGcc(factory));
+        clang = new CachingCompilerMetaDataProvider(GccVersionDeterminer.forClang(factory));
     }
 
     public CompilerMetaDataProvider gcc() {
-        return GccVersionDeterminer.forGcc(factory);
+        return gcc;
     }
 
     public CompilerMetaDataProvider clang() {
-        return GccVersionDeterminer.forClang(factory);
+        return clang;
+    }
+
+    private static class CachingCompilerMetaDataProvider implements CompilerMetaDataProvider {
+        private final CompilerMetaDataProvider delegate;
+        private final Map<File, GccVersionResult> resultMap = new HashMap<File, GccVersionResult>();
+
+        private CachingCompilerMetaDataProvider(CompilerMetaDataProvider delegate) {
+            this.delegate = delegate;
+        }
+
+        public GccVersionResult getGccMetaData(File gccBinary) {
+            GccVersionResult result = resultMap.get(gccBinary);
+            if (result == null) {
+                result = delegate.getGccMetaData(gccBinary);
+                resultMap.put(gccBinary, result);
+            }
+            return result;
+        }
     }
 }
