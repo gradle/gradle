@@ -28,7 +28,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
-import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
 import org.gradle.process.internal.ExecActionFactory
@@ -210,6 +209,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
             argsFor(platformToolChain.cppCompiler) == [compilerArg]
             argsFor(platformToolChain.cCompiler) == [compilerArg]
+            argsFor(platformToolChain.objcCompiler) == [compilerArg]
+            argsFor(platformToolChain.objcppCompiler) == [compilerArg]
 
             if (OperatingSystem.current().isMacOsX()) {
                 argsFor(platformToolChain.assembler) == osxAssemblerArgs
@@ -242,6 +243,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
             argsFor(platformToolChain.cppCompiler) == ["-m32"]
             argsFor(platformToolChain.cCompiler) == ["-m32"]
+            argsFor(platformToolChain.objcCompiler) == ["-m32"]
+            argsFor(platformToolChain.objcppCompiler) == ["-m32"]
             argsFor(platformToolChain.linker) == ["-m32"]
             argsFor(platformToolChain.assembler) == ["--32"]
             argsFor(platformToolChain.staticLibArchiver) == []
@@ -305,6 +308,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
             assert platformToolChain.platform == platform
             assert platformToolChain.cCompiler
             assert platformToolChain.cppCompiler
+            assert platformToolChain.objcCompiler
+            assert platformToolChain.objcppCompiler
             assert platformToolChain.linker
             assert platformToolChain.staticLibArchiver
         }
@@ -319,17 +324,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     static class TestToolChain extends AbstractGccCompatibleToolChain {
         TestToolChain(String name, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, Instantiator instantiator) {
             super(name, org.gradle.internal.os.OperatingSystem.current(), fileResolver, execActionFactory, tools, instantiator)
-        }
-
-        @Override
-        protected void addDefaultTools(DefaultGccPlatformToolChain toolChain) {
-            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.C_COMPILER, "gcc"));
-            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.CPP_COMPILER, "g++"));
-            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.OBJECTIVEC_COMPILER, "gcc"));
-            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.OBJECTIVECPP_COMPILER, "g++"));
-            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.ASSEMBLER, "as"));
-            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.LINKER, "ld"));
-            toolChain.add(new DefaultGccCommandLineToolConfiguration(ToolType.STATIC_LIB_ARCHIVER, "ar"));
         }
 
         @Override

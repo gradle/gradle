@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 /**
  * Given a File pointing to an (existing) gcc/g++/clang/clang++ binary, extracts the version number by running with -dM -E and scraping the output.
  */
-public class GccVersionDeterminer {
+public class GccVersionDeterminer implements CompilerMetaDataProvider {
     private static final Pattern DEFINE_PATTERN = Pattern.compile("\\s*#define\\s+(\\S+)\\s+(.*)");
 
     private final Transformer<String, File> outputProducer;
