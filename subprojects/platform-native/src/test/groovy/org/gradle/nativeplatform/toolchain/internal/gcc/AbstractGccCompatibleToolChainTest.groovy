@@ -60,7 +60,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         getMessage(platformToolChain) == "Don't know how to build for platform 'unknown'."
     }
 
-    def "is unavailable when no language tools can be found and building for default platform"() {
+    def "is unavailable when no language tools can be found"() {
         def missing = Stub(CommandLineToolSearchResult) {
             isAvailable() >> false
             explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c compiler not found") }
@@ -82,7 +82,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         getMessage(platformToolChain) == "c compiler not found"
     }
 
-    def "is available when any language tool can be found and building for default platform"() {
+    def "is available when any language tool can be found"() {
         def missing = Stub(CommandLineToolSearchResult) {
             isAvailable() >> false
         }
@@ -224,31 +224,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         arch     | instructionSet | registerSize | linkerArg | compilerArg | assemblerArg | osxAssemblerArgs
         "i386"   | X86            | 32           | "-m32"    | "-m32"      | "--32"       | ["-arch", "i386"]
         "x86_64" | X86            | 64           | "-m64"    | "-m64"      | "--64"       | ["-arch", "x86_64"]
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "supplies args for supported architecture for i386 architecture on windows"() {
-        def action = Mock(Action)
-
-        given:
-        toolSearchPath.locate(_, _) >> tool
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.architecture >> new DefaultArchitecture("i386", X86, 32)
-        toolChain.eachPlatform(action)
-
-        when:
-        toolChain.select(platform)
-
-        then:
-        1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            argsFor(platformToolChain.cppCompiler) == ["-m32"]
-            argsFor(platformToolChain.cCompiler) == ["-m32"]
-            argsFor(platformToolChain.objcCompiler) == ["-m32"]
-            argsFor(platformToolChain.objcppCompiler) == ["-m32"]
-            argsFor(platformToolChain.linker) == ["-m32"]
-            argsFor(platformToolChain.assembler) == ["--32"]
-            argsFor(platformToolChain.staticLibArchiver) == []
-        }
     }
 
     def "uses supplied platform configurations in order to target binary"() {
