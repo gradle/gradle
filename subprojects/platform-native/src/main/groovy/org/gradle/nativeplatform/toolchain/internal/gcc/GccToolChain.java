@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterm
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
+import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     private GccVersionResult versionResult;
 
     public GccToolChain(Instantiator instantiator, String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, fileResolver, execActionFactory, new GccToolSearchPath(operatingSystem), instantiator);
+        super(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), instantiator);
         this.instantiator = instantiator;
         this.versionDeterminer = GccVersionDeterminer.forGcc(execActionFactory);
     }

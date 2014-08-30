@@ -127,7 +127,7 @@ public abstract class OperatingSystem {
         return all;
     }
     
-    List<File> getPath() {
+    public List<File> getPath() {
         String path = System.getenv(getPathVar());
         if (path == null) {
             return Collections.emptyList();

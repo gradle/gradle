@@ -17,12 +17,13 @@
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.util.TreeVisitor;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,29 +56,76 @@ public class ToolSearchPath {
 
     public CommandLineToolSearchResult locate(ToolType key, String exeName) {
         File executable = executables.get(exeName);
-        if(executable == null){
+        if (executable == null) {
             executable = findExecutable(operatingSystem, exeName);
-            if(executable != null){
+            if (executable != null) {
                 executables.put(exeName, executable);
             }
         }
-        CommandLineToolSearchResult result = executable == null || !executable.isFile() ? new MissingTool(key, exeName, pathEntries) : new FoundTool(executable);
-        return result;
+        return executable == null || !executable.isFile() ? new MissingTool(key, exeName, pathEntries) : new FoundTool(executable);
     }
 
-    protected File findExecutable(OperatingSystem operatingSystem, String name) {
-        if (!pathEntries.isEmpty()) {
-            String exeName = operatingSystem.getExecutableName(name);
-            for (File pathEntry : pathEntries) {
-                File candidate = new File(pathEntry, exeName);
-                if (candidate.isFile()) {
-                    return candidate;
+    private File findExecutable(OperatingSystem operatingSystem, String name) {
+        List<File> path = pathEntries.isEmpty() ? operatingSystem.getPath() : pathEntries;
+        String exeName = operatingSystem.getExecutableName(name);
+        try {
+            if (name.contains(File.separator)) {
+                return maybeResolveFile(operatingSystem, new File(name), new File(exeName));
+            }
+            for (File pathEntry : path) {
+                File resolved = maybeResolveFile(operatingSystem, new File(pathEntry, name), new File(pathEntry, exeName));
+                if (resolved != null) {
+                    return resolved;
                 }
             }
-            return null;
-        } else {
-            return operatingSystem.findInPath(name);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
+
+        return null;
+    }
+
+    private File maybeResolveFile(OperatingSystem operatingSystem, File symlinkCandidate, File exeCandidate) throws IOException {
+        if (exeCandidate.isFile()) {
+            return exeCandidate.getCanonicalFile();
+        }
+        if (operatingSystem.isWindows()) {
+            File symlink = maybeResolveCygwinSymlink(symlinkCandidate);
+            if (symlink != null) {
+                return symlink;
+            }
+        }
+        return null;
+    }
+
+    private File maybeResolveCygwinSymlink(File symlink) throws IOException {
+        if (!symlink.isFile()) {
+            return null;
+        }
+        if (symlink.length() <= 11) {
+            return null;
+        }
+
+        String pathStr;
+        DataInputStream instr = new DataInputStream(new BufferedInputStream(new FileInputStream(symlink)));
+        try {
+            byte[] header = new byte[10];
+            instr.readFully(header);
+            if (!new String(header, "utf-8").equals("!<symlink>")) {
+                return null;
+            }
+            byte[] pathContent = new byte[(int) symlink.length() - 11];
+            instr.readFully(pathContent);
+            pathStr = new String(pathContent, "utf-8");
+        } finally {
+            instr.close();
+        }
+
+        symlink = new File(symlink.getParentFile(), pathStr);
+        if (symlink.isFile()) {
+            return symlink.getCanonicalFile();
+        }
+        return null;
     }
 
     private static class FoundTool implements CommandLineToolSearchResult {

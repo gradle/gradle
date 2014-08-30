@@ -33,7 +33,8 @@ class ToolSearchPathTest extends Specification {
         def file = tmpDir.createFile("cc.bin")
 
         given:
-        os.findInPath("cc") >> file
+        os.getExecutableName("cc") >> "cc.bin"
+        os.path >> [file.parentFile]
 
         when:
         def result = registry.locate(ToolType.C_COMPILER, "cc")
@@ -49,6 +50,79 @@ class ToolSearchPathTest extends Specification {
         given:
         os.getExecutableName("cc") >> "cc.bin"
         registry.setPath([file.parentFile])
+
+        when:
+        def result = registry.locate(ToolType.C_COMPILER, "cc")
+
+        then:
+        result.available
+        result.tool == file
+    }
+
+    def "does not use path when executable name contains a file separator"() {
+        def file = tmpDir.createFile("cc.bin")
+        def base = tmpDir.createFile("cc")
+
+        given:
+        os.getExecutableName(base.absolutePath) >> file.absolutePath
+
+        when:
+        def result = registry.locate(ToolType.C_COMPILER, base.absolutePath)
+
+        then:
+        result.available
+        result.tool == file
+    }
+
+    def "resolves cygwin symlinks on Windows"() {
+        def file = tmpDir.createFile("cc.bin")
+        def symlink = tmpDir.file("cc")
+
+        given:
+        symlink.setText("!<symlink>cc.bin\u0000", "utf-8")
+        os.path >> [symlink.parentFile]
+        os.windows >> true
+
+        when:
+        def result = registry.locate(ToolType.C_COMPILER, "cc")
+
+        then:
+        result.available
+        result.tool == file
+    }
+
+    def "ignores files that do not look like cygwin symlinks"() {
+        def candidate1 = tmpDir.createFile("dir1/cc")
+        def candidate2 = tmpDir.createFile("dir2/cc")
+        def candidate3 = tmpDir.createFile("dir3/cc")
+        def file = tmpDir.createFile("dir4/cc.bin")
+
+        given:
+        candidate1.setText("!<symlink>", "utf-8")
+        candidate2.setText("!<symlink:abcd.bin", "utf-8")
+        candidate3.setText("")
+        os.getExecutableName("cc") >> "cc.bin"
+        os.path >> [candidate1.parentFile, candidate2.parentFile, candidate3.parentFile, file.parentFile]
+        os.windows >> true
+
+        when:
+        def result = registry.locate(ToolType.C_COMPILER, "cc")
+
+        then:
+        result.available
+        result.tool == file
+    }
+
+    def "returns first match found in path"() {
+        def symlink = tmpDir.createFile("dir1/cc")
+        def file = tmpDir.createFile("dir2/cc.bin")
+        def ignored = tmpDir.createFile("dir3/cc.bin")
+
+        given:
+        symlink.setText("!<symlink>../dir2/cc.bin\u0000", "utf-8")
+        os.getExecutableName("cc") >> "cc.bin"
+        os.path >> [symlink.parentFile, ignored.parentFile]
+        os.windows >> true
 
         when:
         def result = registry.locate(ToolType.C_COMPILER, "cc")
@@ -89,7 +163,8 @@ class ToolSearchPathTest extends Specification {
         def visitor = Mock(TreeVisitor)
 
         given:
-        os.findInPath("cc") >> null
+        os.getExecutableName("cc") >> "cc.bin"
+        os.path >> []
 
         when:
         def result = registry.locate(ToolType.C_COMPILER, "cc")
