@@ -111,7 +111,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
-            .setGeneratedSourceDirectories(srcDirs(ideaModule.getGeneratedSourceDirs()))
+            .setGeneratedSourceDirectories(generatedSrcDirs(ideaModule.getGeneratedSourceDirs()))
             .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
             .setExcludeDirectories(ideaModule.getExcludeDirs());
 
@@ -133,6 +133,14 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         Set<IdeaSourceDirectory> out = new LinkedHashSet<IdeaSourceDirectory>();
         for (File s : sourceDirs) {
             out.add(new DefaultIdeaSourceDirectory().setDirectory(s));
+        }
+        return out;
+    }
+
+    private Set<IdeaSourceDirectory> generatedSrcDirs(Set<File> generatedSourceDirs) {
+        Set<IdeaSourceDirectory> out = new LinkedHashSet<IdeaSourceDirectory>();
+        for (File s : generatedSourceDirs) {
+            out.add(new DefaultIdeaSourceDirectory().setDirectory(s).setGenerated(true));
         }
         return out;
     }
