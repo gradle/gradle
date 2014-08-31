@@ -87,7 +87,7 @@ public class ToolSearchPath {
 
     private File maybeResolveFile(OperatingSystem operatingSystem, File symlinkCandidate, File exeCandidate) throws IOException {
         if (exeCandidate.isFile()) {
-            return exeCandidate.getCanonicalFile();
+            return exeCandidate;
         }
         if (operatingSystem.isWindows()) {
             File symlink = maybeResolveCygwinSymlink(symlinkCandidate);
