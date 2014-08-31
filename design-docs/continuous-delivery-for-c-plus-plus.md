@@ -1029,7 +1029,7 @@ from the same sources that link against different implementation libraries.
 
 When using GCC to build for a platform that is not the GCC default, different executable names should be used:
 
-Host windows + cygwin32/cygwin64:
+Host windows + cygwin32/cygwin64 + mingw64:
 
 - x86 windows target should use:
     - i686-w64-mingw32-gcc
@@ -1038,6 +1038,14 @@ Host windows + cygwin32/cygwin64:
     - i686-w64-mingw32-as
     - i686-w64-mingw32-ld
     - i686-w64-mingw32-windres
+    - Locations of libs:
+        - std c headers: /usr/include
+        - std c lib: /usr/i686-w64-mingw32/<version>/
+        - std c++ headers: /usr/i686-w64-mingw32/<version>/include/c++
+        - std c++ lib: /usr/i686-w64-mingw32/<version>/
+        - win sdk headers: /usr/i686-w64-mingw32/sysroot/mingw/include
+        - win sdk lib: /usr/i686-w64-mingw32/sysroot/mingw/lib
+
 - amd64 windows target should use:
     - x86_64-w64-mingw32-gcc
     - x86_64-w64-mingw32-g++
@@ -1045,6 +1053,22 @@ Host windows + cygwin32/cygwin64:
     - x86_64-w64-mingw32-as
     - x86_64-w64-mingw32-ld
     - x86_64-w64-mingw32-windres
+    - Locations of libs:
+        - As above
+
+Host windows + cygwin32/cygwin64 + mingw32:
+
+- x86 windows target should use:
+    - i686-pc-mingw32-gcc
+    - i686-pc-mingw32-g++
+    - i686-pc-mingw32-ar
+    - i686-pc-mingw32-as
+    - i686-pc-mingw32-ld
+    - i686-pc-mingw32-windres
+    - Locations of libs:
+        - As above
+
+- amd64 targets not supported.
 
 Host windows + cygwin32:
 
@@ -1055,6 +1079,7 @@ Host windows + cygwin32:
     - as
     - ld
     - windres
+
 - amd64 cygwin target should use:
     - x86_64-pc-cygwin-gcc
     - x86_64-pc-cygwin-g++
@@ -1072,6 +1097,12 @@ Host windows + cygwin64:
     - i686-pc-cygwin-as
     - i686-pc-cygwin-ld
     - i686-pc-cygwin-windres
+    - Location of libs:
+        - std c headers: /usr/include
+        - std c libs: /lib/gcc/i686-pc-cygwin/<version>/
+        - std c++ headers: /lib/gcc/i686-pc-cygwin/<version>/include/c++
+        - std c++ libs: /lib/gcc/i686-pc-cygwin/<version>/
+
 - amd64 cygwin target should use:
     - x86_64-pc-cygwin-gcc
     - x86_64-pc-cygwin-g++
@@ -1079,6 +1110,11 @@ Host windows + cygwin64:
     - as
     - ld
     - windres
+    - Location of libs:
+        - std c headers: /usr/include
+        - std c libs: /lib/gcc/x86_64-pc-cygwin/<version>/
+        - std c++ headers: /lib/gcc/x86_64-pc-cygwin/<version>/include/c++
+        - std c++ libs: /lib/gcc/x86_64-pc-cygwin/<version>/
 
 Host windows + mingw32:
 
@@ -1089,6 +1125,8 @@ Host windows + mingw32:
     - mingw32-as
     - mingw32-ld
     - mingw32-windres
+
+- amd64 targets not supported.
 
 Host linux x86:
 
