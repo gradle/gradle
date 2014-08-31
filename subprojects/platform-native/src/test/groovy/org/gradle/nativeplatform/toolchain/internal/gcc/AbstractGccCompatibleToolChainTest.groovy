@@ -102,7 +102,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         and:
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getGccMetaData(_) >> wrongCompiler
+        metaDataProvider.getGccMetaData(_, _) >> wrongCompiler
 
         expect:
         def platformToolChain = toolChain.select(platform)
@@ -118,7 +118,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         and:
         toolSearchPath.locate(ToolType.C_COMPILER, "gcc") >> missing
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getGccMetaData(_) >> correctCompiler
+        metaDataProvider.getGccMetaData(_, _) >> correctCompiler
 
         and:
 
@@ -133,7 +133,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         and:
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getGccMetaData(_) >> correctCompiler
+        metaDataProvider.getGccMetaData(_, _) >> correctCompiler
 
         expect:
         toolChain.select(platform).available
@@ -149,7 +149,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform2.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
 
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getGccMetaData(_) >> correctCompiler
+        metaDataProvider.getGccMetaData(_, _) >> correctCompiler
 
         given:
         int platformActionApplied = 0
@@ -187,7 +187,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform2.getOperatingSystem() >> platformOSNonWin
         platform2.getName() >> "platform2"
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getGccMetaData(_) >> correctCompiler
+        metaDataProvider.getGccMetaData(_, _) >> correctCompiler
 
         toolChain.target(platform1.getName())
         toolChain.target(platform2.getName())
@@ -295,7 +295,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         def platformConfig2 = Mock(Action)
 
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getGccMetaData(_) >> correctCompiler
+        metaDataProvider.getGccMetaData(_, _) >> correctCompiler
 
         toolChain.target("platform1", platformConfig1)
         toolChain.target("platform2", platformConfig2)
@@ -317,7 +317,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         when:
         toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getGccMetaData(_) >> correctCompiler
+        metaDataProvider.getGccMetaData(_, _) >> correctCompiler
 
         and:
         toolChain.target(platform.getName(), new Action<PlatformToolChain>() {

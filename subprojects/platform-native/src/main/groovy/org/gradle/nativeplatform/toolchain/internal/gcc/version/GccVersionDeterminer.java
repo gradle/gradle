@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
-import org.gradle.api.Transformer;
+import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture;
@@ -27,18 +27,16 @@ import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Given a File pointing to an (existing) gcc/g++/clang/clang++ binary, extracts the version number by running with -dM -E and scraping the output.
+ * Given a File pointing to an (existing) gcc/g++/clang/clang++ binary, extracts the version number and default architecture by running with -dM -E and scraping the output.
  */
 public class GccVersionDeterminer implements CompilerMetaDataProvider {
     private static final Pattern DEFINE_PATTERN = Pattern.compile("\\s*#define\\s+(\\S+)\\s+(.*)");
-
-    private final Transformer<String, File> outputProducer;
+    private final ExecActionFactory execActionFactory;
     private final boolean clang;
 
     public static GccVersionDeterminer forGcc(ExecActionFactory execActionFactory) {
@@ -50,20 +48,43 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
     }
 
     GccVersionDeterminer(ExecActionFactory execActionFactory, boolean expectClang) {
+        this.execActionFactory = execActionFactory;
         this.clang = expectClang;
-        this.outputProducer = new GccVersionOutputProducer(execActionFactory);
     }
 
-    public GccVersionResult getGccMetaData(File gccBinary) {
-        String output = outputProducer.transform(gccBinary);
+    public GccVersionResult getGccMetaData(File gccBinary, List<String> args) {
+        List<String> allArgs = new ArrayList<String>(args);
+        allArgs.add("-dM");
+        allArgs.add("-E");
+        allArgs.add("-");
+        String output = transform(gccBinary, allArgs);
         if (output == null) {
-            return new BrokenResult(String.format("Could not determine %s version: failed to execute %s -v.", getDescription(), gccBinary.getName()));
+            return new BrokenResult(String.format("Could not determine %s version: failed to execute %s %s.", getDescription(), gccBinary.getName(), Joiner.on(' ').join(allArgs)));
         }
         return transform(output, gccBinary);
     }
 
     private String getDescription() {
         return clang ? "Clang" : "GCC";
+    }
+
+    private String transform(File gccBinary, List<String> args) {
+        ExecAction exec = execActionFactory.newExecAction();
+        exec.executable(gccBinary.getAbsolutePath());
+        exec.setWorkingDir(gccBinary.getParentFile());
+        exec.args(args);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        exec.setStandardOutput(baos);
+        exec.setErrorOutput(new ByteArrayOutputStream());
+        exec.setIgnoreExitValue(true);
+        ExecResult result = exec.execute();
+
+        int exitValue = result.getExitValue();
+        if (exitValue == 0) {
+            return new String(baos.toByteArray());
+        } else {
+            return null;
+        }
     }
 
     private GccVersionResult transform(String output, File gccBinary) {
@@ -150,33 +171,6 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         }
 
         public void explain(TreeVisitor<? super String> visitor) {
-        }
-    }
-
-    static class GccVersionOutputProducer implements Transformer<String, File> {
-        
-        private final ExecActionFactory execActionFactory;
-
-        GccVersionOutputProducer(ExecActionFactory execActionFactory) {
-            this.execActionFactory = execActionFactory;
-        }
-
-        public String transform(File gccBinary) {
-            ExecAction exec = execActionFactory.newExecAction();
-            exec.executable(gccBinary.getAbsolutePath());
-            exec.setWorkingDir(gccBinary.getParentFile());
-            exec.args("-dM", "-E", "-");
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            exec.setStandardOutput(baos);
-            exec.setIgnoreExitValue(true);
-            ExecResult result = exec.execute();
-
-            int exitValue = result.getExitValue();
-            if (exitValue == 0) {
-                return new String(baos.toByteArray());
-            } else {
-                return null;
-            }
         }
     }
 

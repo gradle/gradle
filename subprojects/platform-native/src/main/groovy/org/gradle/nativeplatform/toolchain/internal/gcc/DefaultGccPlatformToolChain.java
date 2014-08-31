@@ -22,14 +22,12 @@ import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineT
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRegistry {
     private final Platform platform;
     private boolean canUseCommandFile = true;
+    private List<String> compilerProbeArgs = new ArrayList<String>();
     private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
     public DefaultGccPlatformToolChain(Platform platform) {
@@ -42,6 +40,14 @@ public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRe
 
     public void setCanUseCommandFile(boolean canUseCommandFile) {
         this.canUseCommandFile = canUseCommandFile;
+    }
+
+    public List<String> getCompilerProbeArgs() {
+        return compilerProbeArgs;
+    }
+
+    public void compilerProbeArgs(String... args) {
+        this.compilerProbeArgs.addAll(Arrays.asList(args));
     }
 
     public GccCommandLineToolConfigurationInternal getTool(ToolType toolType) {

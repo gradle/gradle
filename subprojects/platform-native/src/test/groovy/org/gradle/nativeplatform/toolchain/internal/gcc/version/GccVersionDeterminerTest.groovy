@@ -123,7 +123,7 @@ class GccVersionDeterminerTest extends Specification {
         def binary = new File("g++")
 
         when:
-        def result = determiner.getGccMetaData(binary)
+        def result = determiner.getGccMetaData(binary, [])
 
         then:
         1 * execActionFactory.newExecAction() >> action
@@ -137,7 +137,7 @@ class GccVersionDeterminerTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not determine GCC version: failed to execute g++ -v.")
+        1 * visitor.node("Could not determine GCC version: failed to execute g++ -dM -E -.")
     }
 
     def "can scrape ok output for clang"() {
@@ -182,7 +182,7 @@ class GccVersionDeterminerTest extends Specification {
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.execute() >> result
-        new GccVersionDeterminer(execActionFactory, clang).getGccMetaData(new File("g++"))
+        new GccVersionDeterminer(execActionFactory, clang).getGccMetaData(new File("g++"), [])
     }
 
     Transformer transformer(constant) {

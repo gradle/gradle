@@ -135,7 +135,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
             CommandLineToolSearchResult compiler = locate(tool);
             if (compiler.isAvailable()) {
-                GccVersionResult versionResult = getMetaDataProvider().getGccMetaData(compiler.getTool());
+                GccVersionResult versionResult = getMetaDataProvider().getGccMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs());
                 availability.mustBeAvailable(versionResult);
                 if (!versionResult.isAvailable()) {
                     return;
@@ -191,7 +191,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                     && targetPlatform.getArchitecture() == ArchitectureInternal.TOOL_CHAIN_DEFAULT;
         }
 
-        public void apply(GccPlatformToolChain platformToolChain) {
+        public void apply(DefaultGccPlatformToolChain platformToolChain) {
         }
     }
 
@@ -201,7 +201,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return targetPlatform.getOperatingSystem().isCurrent() && targetPlatform.getArchitecture().isI386();
         }
 
-        public void apply(GccPlatformToolChain gccToolChain) {
+        public void apply(DefaultGccPlatformToolChain gccToolChain) {
+            gccToolChain.compilerProbeArgs("-m32");
             Action<List<String>> m32args = new Action<List<String>>() {
                 public void execute(List<String> args) {
                     args.add("-m32");
@@ -231,7 +232,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                     && targetPlatform.getArchitecture().isAmd64();
         }
 
-        public void apply(GccPlatformToolChain gccToolChain) {
+        public void apply(DefaultGccPlatformToolChain gccToolChain) {
+            gccToolChain.compilerProbeArgs("-m64");
             Action<List<String>> m64args = new Action<List<String>>() {
                 public void execute(List<String> args) {
                     args.add("-m64");
@@ -256,7 +258,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     private static class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {
-
         //TODO this should be a container of platforms
         private final Collection<String> platformNames;
         private Action<? super GccPlatformToolChain> configurationAction;
@@ -270,7 +271,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return platformNames.contains(targetPlatform.getName());
         }
 
-        public void apply(GccPlatformToolChain platformToolChain) {
+        public void apply(DefaultGccPlatformToolChain platformToolChain) {
             configurationAction.execute(platformToolChain);
         }
     }

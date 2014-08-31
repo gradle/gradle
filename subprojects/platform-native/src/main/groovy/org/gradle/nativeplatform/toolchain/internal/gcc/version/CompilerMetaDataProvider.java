@@ -17,7 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
 import java.io.File;
+import java.util.List;
 
 public interface CompilerMetaDataProvider {
-    public GccVersionResult getGccMetaData(File gccBinary);
+    public GccVersionResult getGccMetaData(File gccBinary, List<String> additionalArgs);
 }

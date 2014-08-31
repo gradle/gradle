@@ -16,30 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.platform.internal.PlatformInternal;
-import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 
-/**
- * A target platform configuration specifies whether a toolchain supports a specific target platform.
- * Furthermore it allows the target platform specific configuration of a toolchain.
- *
- * <pre>
- *     model {
- *          toolChains {
- *               gcc {
- *                   target("arm"){
- *                       cCompiler.withArguments { args ->
- *                          args << "-m32"
- *                          args << "-DFRENCH"
- *                       }
- *                   }
- *               }
- *           }
- *      }
- * </pre>
- */
-@Incubating
 public interface TargetPlatformConfiguration {
     /**
      * Returns whether a platform is supported or not.
@@ -49,5 +27,5 @@ public interface TargetPlatformConfiguration {
     /**
      *  applies a platform specific toolchain configuration
      */
-    void apply(GccPlatformToolChain platformToolChain);
+    void apply(DefaultGccPlatformToolChain platformToolChain);
 }

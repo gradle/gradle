@@ -23,6 +23,7 @@ import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CompilerMetaDataProviderFactory {
@@ -49,19 +50,41 @@ public class CompilerMetaDataProviderFactory {
 
     private static class CachingCompilerMetaDataProvider implements CompilerMetaDataProvider {
         private final CompilerMetaDataProvider delegate;
-        private final Map<File, GccVersionResult> resultMap = new HashMap<File, GccVersionResult>();
+        private final Map<Key, GccVersionResult> resultMap = new HashMap<Key, GccVersionResult>();
 
         private CachingCompilerMetaDataProvider(CompilerMetaDataProvider delegate) {
             this.delegate = delegate;
         }
 
-        public GccVersionResult getGccMetaData(File gccBinary) {
-            GccVersionResult result = resultMap.get(gccBinary);
+        public GccVersionResult getGccMetaData(File gccBinary, List<String> additionalArgs) {
+            Key key = new Key(gccBinary, additionalArgs);
+            GccVersionResult result = resultMap.get(key);
             if (result == null) {
-                result = delegate.getGccMetaData(gccBinary);
-                resultMap.put(gccBinary, result);
+                result = delegate.getGccMetaData(gccBinary, additionalArgs);
+                resultMap.put(key, result);
             }
             return result;
+        }
+    }
+
+    private static class Key {
+        final File gccBinary;
+        final List<String> args;
+
+        private Key(File gccBinary, List<String> args) {
+            this.gccBinary = gccBinary;
+            this.args = args;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            Key other = (Key) obj;
+            return other.gccBinary.equals(gccBinary) && other.args.equals(args);
+        }
+
+        @Override
+        public int hashCode() {
+            return gccBinary.hashCode() ^ args.hashCode();
         }
     }
 }
