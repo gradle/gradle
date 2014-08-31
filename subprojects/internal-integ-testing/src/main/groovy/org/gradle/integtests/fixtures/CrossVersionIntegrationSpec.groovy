@@ -32,6 +32,11 @@ abstract class CrossVersionIntegrationSpec extends Specification implements Test
     final GradleDistribution current = new UnderDevelopmentGradleDistribution()
     static GradleDistribution previous
     private MavenFileRepository mavenRepo
+    private TestFile gradleUserHomeDir
+
+    void requireOwnGradleUserHomeDir() {
+        gradleUserHomeDir = file("user-home-dir")
+    }
 
     GradleDistribution getPrevious() {
         return previous
@@ -62,6 +67,9 @@ abstract class CrossVersionIntegrationSpec extends Specification implements Test
 
     GradleExecuter version(GradleDistribution dist) {
         def executer = dist.executer(temporaryFolder)
+        if (gradleUserHomeDir) {
+            executer.withGradleUserHomeDir(gradleUserHomeDir)
+        }
         executer.withDeprecationChecksDisabled()
         executer.inDirectory(testDirectory)
     }
