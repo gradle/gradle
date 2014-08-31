@@ -1025,6 +1025,129 @@ from the same sources that link against different implementation libraries.
 
 # Milestone 4
 
+## Story: Improved GCC platform targeting
+
+When using GCC to build for a platform that is not the GCC default, different executable names should be used:
+
+Host windows + cygwin32/cygwin64:
+    - x86 windows target should use:
+        - i686-w64-mingw32-gcc
+        - i686-w64-mingw32-g++
+        - i686-w64-mingw32-gcc-ar
+        - i686-w64-mingw32-as
+        - i686-w64-mingw32-ld
+        - i686-w64-mingw32-windres
+    - amd64 windows target should use:
+        - x86_64-w64-mingw32-gcc
+        - x86_64-w64-mingw32-g++
+        - x86_64-w64-mingw32-gcc-ar
+        - x86_64-w64-mingw32-as
+        - x86_64-w64-mingw32-ld
+        - x86_64-w64-mingw32-windres
+
+Host windows + cygwin32:
+    - x86 cygwin target should use:
+        - i686-pc-cygwin-gcc
+        - i686-pc-cygwin-g++
+        - i686-pc-cygwin-gcc-ar
+        - as
+        - ld
+        - windres
+    - amd64 cygwin target should use:
+        - x86_64-pc-cygwin-gcc
+        - x86_64-pc-cygwin-g++
+        - x86_64-pc-cygwin-gcc-ar
+        - x86_64-pc-cygwin-as
+        - x86_64-pc-cygwin-ld
+        - x86_64-pc-cygwin-windres
+
+Host windows + cygwin64:
+    - x86 cygwin target should use:
+        - i686-pc-cygwin-gcc
+        - i686-pc-cygwin-g++
+        - i686-pc-cygwin-gcc-ar
+        - i686-pc-cygwin-as
+        - i686-pc-cygwin-ld
+        - i686-pc-cygwin-windres
+    - amd64 cygwin target should use:
+        - x86_64-pc-cygwin-gcc
+        - x86_64-pc-cygwin-g++
+        - x86_64-pc-cygwin-gcc-ar
+        - as
+        - ld
+        - windres
+
+Host windows + mingw32:
+    - x86 windows target should use:
+        - mingw32-gcc
+        - mingw32-g++
+        - mingw32-gcc-ar
+        - mingw32-as
+        - mingw32-ld
+        - mingw32-windres
+
+Host linux x86:
+    - x86 linux target should use:
+        - i486-linux-gnu-gcc
+        - i486-linux-gnu-g++
+        - ar
+        - as
+        - ld
+    - amd64 linux target should use:
+        ??
+
+Host linux amd64:
+    - amd64 linux target should use:
+        - x86_64-linux-gnu-gcc
+        - x86_64-linux-gnu-g++
+        - ar
+        - as
+        - ld
+    - x86 linux target should use:
+        - as above, need to detect platform libs
+
+Host linux + mingw32
+    - x86 windows target should use:
+        - i586-mingw32msvc-gcc
+        - i586-mingw32msvc-g++
+        - i586-mingw32msvc-gcc-ar
+        - i586-mingw32msvc-as
+        - i586-mingw32msvc-ld
+        - i586-mingw32msvc-windres
+
+Host linux + mingw64
+    - x86 windows target should use:
+        - i686-w64-mingw32-gcc
+        - i686-w64-mingw32-g++
+        - i686-w64-mingw32-as
+        - i686-w64-mingw32-ar
+        - i686-w64-mingw32-ld
+        - i686-w64-mingw32-windres
+    - amd64 windows target should use:
+        - x86_64-w64-mingw32-gcc
+        - x86_64-w64-mingw32-g++
+        - x86_64-w64-mingw32-as
+        - x86_64-w64-mingw32-ar
+        - x86_64-w64-mingw32-ld
+        - x86_64-w64-mingw32-windres
+
+Host OS X + Macports with mingw32:
+    - x86 windows target should use:
+        - i386-mingw32-gcc
+        - i386-mingw32-g++
+        - i386-mingw32-as
+        - i386-mingw32-ar
+        - i386-mingw32-ld
+        - i386-mingw32-windres
+
+Host OS X + Macports with x86_64 elf:
+    - amd64 linux target should use:
+        - x86_64-elf-gcc
+        - x86_64-elf-g++
+        - x86_64-elf-as
+        - x86_64-elf-ar
+        - x86_64-elf-ld
+
 ## Story: CI coverage for more tool chains
 
 - Visual Studio 2013
