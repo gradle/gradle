@@ -27,6 +27,10 @@ class M3CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
     @Rule public final HttpServer server = new HttpServer()
     final MavenHttpRepository remoteRepo = new MavenHttpRepository(server, mavenRepo)
 
+    void setup() {
+        requireOwnGradleUserHomeDir()
+    }
+
     def "uses cached artifacts from previous Gradle version"() {
         given:
         def projectB = remoteRepo.module('org.name', 'projectB').publish()

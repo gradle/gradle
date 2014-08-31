@@ -31,6 +31,11 @@ class SameCacheUsageCrossVersionIntegrationTest extends AbstractCacheReuseCrossV
     @Rule public final HttpServer server = new HttpServer()
     final MavenHttpRepository httpRepo = new MavenHttpRepository(server, new MavenFileRepository(file("maven-repo")))
 
+    @Override
+    void setup() {
+        requireOwnGradleUserHomeDir()
+    }
+
     def "incurs zero remote requests when cache version not upgraded"() {
         given:
         def projectB = httpRepo.module('org.name', 'projectB', '1.0').publish()
