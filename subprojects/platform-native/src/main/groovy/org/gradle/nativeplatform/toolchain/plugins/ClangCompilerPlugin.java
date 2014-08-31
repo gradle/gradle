@@ -30,6 +30,7 @@ import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain;
+import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
 /**
@@ -52,10 +53,11 @@ public class ClangCompilerPlugin implements Plugin<Project> {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final ExecActionFactory execActionFactory = serviceRegistry.get(ExecActionFactory.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            final CompilerMetaDataProviderFactory metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProviderFactory.class);
 
             toolChainRegistry.registerFactory(Clang.class, new NamedDomainObjectFactory<Clang>() {
                 public Clang create(String name) {
-                    return instantiator.newInstance(ClangToolChain.class, name, OperatingSystem.current(), fileResolver, execActionFactory, instantiator);
+                    return instantiator.newInstance(ClangToolChain.class, name, OperatingSystem.current(), fileResolver, execActionFactory, metaDataProviderFactory, instantiator);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang.class);

@@ -146,19 +146,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
     }
 
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    public String getOutputType() {
-        return String.format("%s-%s", getName(), operatingSystem.getName());
-    }
-
-    protected File resolve(Object path) {
-        return fileResolver.resolve(path);
-    }
-
     public static class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolChain {
         private final Platform platform;
         private final Map<ToolType, CommandLineToolConfigurationInternal> tools;

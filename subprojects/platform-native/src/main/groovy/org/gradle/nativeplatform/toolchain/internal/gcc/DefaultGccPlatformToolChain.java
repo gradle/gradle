@@ -22,6 +22,8 @@ import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineT
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,8 +48,12 @@ public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRe
         return tools.get(toolType);
     }
 
-    public Map<ToolType, GccCommandLineToolConfigurationInternal> getTools() {
-        return tools;
+    public Collection<GccCommandLineToolConfigurationInternal> getTools() {
+        return tools.values();
+    }
+
+    public Collection<GccCommandLineToolConfigurationInternal> getCompilers() {
+        return Arrays.asList(tools.get(ToolType.C_COMPILER), tools.get(ToolType.CPP_COMPILER), tools.get(ToolType.OBJECTIVEC_COMPILER), tools.get(ToolType.OBJECTIVECPP_COMPILER));
     }
 
     public void add(DefaultGccCommandLineToolConfiguration tool) {

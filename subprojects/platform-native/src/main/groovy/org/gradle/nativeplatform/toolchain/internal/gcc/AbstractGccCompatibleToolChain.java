@@ -26,17 +26,20 @@ import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.PlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Arrays.asList;
 
@@ -44,20 +47,23 @@ import static java.util.Arrays.asList;
  * A tool chain that has GCC semantics.
  */
 public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain<GccPlatformToolChain> implements GccCompatibleToolChain {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGccCompatibleToolChain.class);
     private final ExecActionFactory execActionFactory;
     private final ToolSearchPath toolSearchPath;
     private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
+    private final CompilerMetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
     private int configInsertLocation;
 
-    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
-        this(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), instantiator);
+    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
+        this(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), metaDataProvider, instantiator);
     }
 
-    AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, Instantiator instantiator) {
+    AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
         super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.toolSearchPath = tools;
+        this.metaDataProvider = metaDataProvider;
         this.instantiator = instantiator;
 
         target(new ToolChainDefaultArchitecture());
@@ -80,16 +86,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
-        Map<ToolType, GccCommandLineToolConfigurationInternal> allTools = platformToolChain.getTools();
-        boolean found = false;
-        for (GccCommandLineToolConfigurationInternal tool : allTools.values()) {
-            found |= toolSearchPath.locate(tool.getToolType(), tool.getExecutable()).isAvailable();
-        }
-        if (!found) {
-            GccCommandLineToolConfigurationInternal cCompiler = allTools.get(ToolType.C_COMPILER);
-            availability.mustBeAvailable(locate(cCompiler));
-        }
+    protected CompilerMetaDataProvider getMetaDataProvider() {
+        return metaDataProvider;
     }
 
     public void target(String platformName) {
@@ -131,6 +129,40 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         return new GccPlatformToolProvider(targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, configurableToolChain.isCanUseCommandFile());
     }
 
+    protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
+        // Attempt to determine whether the compiler is the correct implementation
+        boolean found = false;
+        for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
+            CommandLineToolSearchResult compiler = locate(tool);
+            if (compiler.isAvailable()) {
+                GccVersionResult versionResult = getMetaDataProvider().getGccMetaData(compiler.getTool());
+                availability.mustBeAvailable(versionResult);
+                if (!versionResult.isAvailable()) {
+                    return;
+                }
+                // Assume all the other compilers are ok, if they happen to be installed
+                LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
+                found = true;
+                initForImplementation(platformToolChain, versionResult);
+                break;
+            }
+        }
+
+        // Attempt to locate each tool
+        for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getTools()) {
+            found |= toolSearchPath.locate(tool.getToolType(), tool.getExecutable()).isAvailable();
+        }
+        if (!found) {
+            // No tools found - report just the C compiler as missing
+            // TODO - report whichever tool is actually required, eg if there's only assembler source, complain about the assembler
+            GccCommandLineToolConfigurationInternal cCompiler = platformToolChain.getcCompiler();
+            availability.mustBeAvailable(locate(cCompiler));
+        }
+    }
+
+    protected void initForImplementation(DefaultGccPlatformToolChain platformToolChain, GccVersionResult versionResult) {
+    }
+
     private void addDefaultTools(DefaultGccPlatformToolChain toolChain) {
         toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.C_COMPILER, "gcc"));
         toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.CPP_COMPILER, "g++"));
@@ -163,7 +195,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    private static class Intel32Architecture implements TargetPlatformConfiguration {
+    private class Intel32Architecture implements TargetPlatformConfiguration {
 
         public boolean supportsPlatform(PlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent() && targetPlatform.getArchitecture().isI386();
@@ -183,7 +215,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             gccToolChain.getAssembler().withArguments(new Action<List<String>>() {
                 public void execute(List<String> args) {
                     // TODO - this should be 'if toolchain is XCode'
-                    if (OperatingSystem.current().isMacOsX()) {
+                    if (operatingSystem.isMacOsX()) {
                         args.addAll(asList("-arch", "i386"));
                     } else {
                         args.add("--32");
@@ -193,7 +225,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    private static class Intel64Architecture implements TargetPlatformConfiguration {
+    private class Intel64Architecture implements TargetPlatformConfiguration {
         public boolean supportsPlatform(PlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && targetPlatform.getArchitecture().isAmd64();
@@ -213,7 +245,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             gccToolChain.getAssembler().withArguments(new Action<List<String>>() {
                 public void execute(List<String> args) {
                     // TODO - this should be 'if toolchain is XCode'
-                    if (OperatingSystem.current().isMacOsX()) {
+                    if (operatingSystem.isMacOsX()) {
                         args.addAll(asList("-arch", "x86_64"));
                     } else {
                         args.add("--64");
