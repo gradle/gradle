@@ -45,7 +45,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     def "exe"() {
         given:
         // Need to PATH to be set to find the 'strip' executable
-        AbstractInstalledToolChainIntegrationSpec.toolChain.initialiseEnvironment()
+        toolChain.initialiseEnvironment()
 
         and:
         sample cppExe
@@ -61,7 +61,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(cppExe.dir.file("build/install/mainExecutable")).exec().out == "Hello, World!\n"
 
         cleanup:
-        AbstractInstalledToolChainIntegrationSpec.toolChain.resetEnvironment()
+        toolChain.resetEnvironment()
     }
 
     def "lib"() {
@@ -142,7 +142,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         releaseX86.exec().out == "Hello world!\n"
 
         // x86_64 binaries not supported on MinGW or cygwin
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.id == "mingw" || AbstractInstalledToolChainIntegrationSpec.toolChain.id == "gcccygwin") {
+        if (toolChain.id == "mingw" || toolChain.id == "gcccygwin") {
             debugX64.assertDoesNotExist()
             releaseX64.assertDoesNotExist()
         } else {
@@ -155,7 +155,6 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         releaseIA64.assertDoesNotExist()
     }
 
-
     def "tool chains"() {
         given:
         sample toolChains
@@ -164,7 +163,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         run "installMainExecutable"
 
         then:
-        executable(toolChains.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello from ${AbstractInstalledToolChainIntegrationSpec.toolChain.typeDisplayName}!\n"
+        executable(toolChains.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
     def multiProject() {
@@ -210,10 +209,10 @@ model {
         run "installArmMainExecutable", "installSparcMainExecutable"
 
         then:
-        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/arm/main")).exec().out == "Hello from ${AbstractInstalledToolChainIntegrationSpec.toolChain.typeDisplayName}!\n"
+        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/arm/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
         executable(targetPlatforms.dir.file("build/binaries/mainExecutable/arm/main")).binaryInfo.arch.isI386()
 
-        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/sparc/main")).exec().out == "Hello from ${AbstractInstalledToolChainIntegrationSpec.toolChain.typeDisplayName}!\n"
+        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/sparc/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
     def prebuilt() {

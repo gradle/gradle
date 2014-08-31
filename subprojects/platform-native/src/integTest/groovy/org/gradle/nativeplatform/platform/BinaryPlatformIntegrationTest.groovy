@@ -159,7 +159,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/x86/mainCpp")).arch.name == "x86"
 
         // x86_64 binaries not supported on MinGW or cygwin
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.id == "mingw" || AbstractInstalledToolChainIntegrationSpec.toolChain.id == "gcccygwin") {
+        if (toolChain.id == "mingw" || toolChain.id == "gcccygwin") {
             executable("build/binaries/mainExecutable/x86_64/main").assertDoesNotExist()
         } else {
             executable("build/binaries/mainExecutable/x86_64/main").binaryInfo.arch.name == "x86_64"
@@ -168,7 +168,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         }
 
         // Itanium only supported on visualCpp
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
+        if (toolChain.visualCpp) {
             executable("build/binaries/mainExecutable/itanium/main").binaryInfo.arch.name == "ia-64"
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"),"build/objs/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
         } else {
@@ -176,7 +176,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         }
 
         // ARM only supported on visualCpp 2013
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.meets(ToolChainRequirement.VisualCpp2013)) {
+        if (toolChain.meets(ToolChainRequirement.VisualCpp2013)) {
             executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "arm"
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/arm/mainCpp")).arch.name == "arm"
         } else {
@@ -240,7 +240,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
         failure.assertHasCause("""No tool chain is available to build for platform 'unavailable':
-  - ${AbstractInstalledToolChainIntegrationSpec.toolChain.instanceDisplayName}: Don't know how to build for platform 'unavailable'.""")
+  - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'unavailable'.""")
 
         where:
         type               | config
