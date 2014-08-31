@@ -148,7 +148,7 @@ public class AvailableToolChains {
         List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
         for (int i = 0; i < gppCandidates.size(); i++) {
             File candidate = gppCandidates.get(i);
-            GccVersionResult version = versionDeterminer.getGccMetaData(candidate);
+            GccVersionResult version = versionDeterminer.getGccMetaData(candidate, Collections.<String>emptyList());
             if (version.isAvailable()) {
                 InstalledGcc gcc = new InstalledGcc("gcc");
                 if (i > 0) {
