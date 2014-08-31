@@ -16,29 +16,40 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
+import spock.lang.Issue
 
 class ResolveCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
-    @Rule HttpServer server = new HttpServer()
+    @Rule
+    HttpServer server = new HttpServer()
+    def mavenHttpRepo = new MavenHttpRepository(server, mavenRepo)
+    def ivyHttpRepo = new IvyHttpRepository(server, new IvyFileRepository(file("ivy-repo")))
+
+    def setup() {
+        requireOwnGradleUserHomeDir()
+        server.start()
+    }
 
     def "can upgrade and downgrade Gradle version"() {
         given:
-        mavenRepo.module("test", "io", "1.4").publish()
-        mavenRepo.module("test", "lang", "2.4").publish()
-        mavenRepo.module("test", "lang", "2.6").publish()
+        mavenHttpRepo.module("test", "io", "1.4").publish()
+        mavenHttpRepo.module("test", "lang", "2.4").publish()
+        mavenHttpRepo.module("test", "lang", "2.6").publish()
 
         and:
-        server.start()
         server.allowGetOrHead("/repo", mavenRepo.rootDir)
 
         and:
         buildFile << """
 repositories {
     if (repositories.metaClass.respondsTo(repositories, 'maven')) {
-        maven { url "http://localhost:${server.port}/repo" }
+        maven { url "${mavenHttpRepo.uri}" }
     } else {
-        mavenRepo urls: "http://localhost:${server.port}/repo"
+        mavenRepo urls: "${mavenHttpRepo.uri}"
     }
 }
 
@@ -60,5 +71,55 @@ task check << {
         version previous withTasks 'check' run()
         version current withTasks 'check' run()
         version previous withTasks 'check' run()
+    }
+
+    @Issue("GRADLE-3153")
+    def "can upgrade when ivy.xml contains namespaced extra info elements"() {
+        given:
+        def module = ivyHttpRepo.module("test", "io", "1.4").publish()
+        module.ivyFile.text = """
+<ivy-module version="1.0">
+    <info module="io" organisation="test" publication="20080831111344" revision="1.4" status="release">
+        <description homepage="http://some-thing/" />
+        <ns0:properties__organization.logo xmlns:ns0="http://ant.apache.org/ivy/maven">http://www.apache.org/images/asf_logo_wide.gif</ns0:properties__organization.logo>
+    </info>
+    <configurations>
+        <conf name="default" visibility="public"/>
+    </configurations>
+    <publications>
+        <artifact conf="*" ext="jar" name="io" type="jar"/>
+    </publications>
+</ivy-module>"""
+
+        and:
+        module.allowAll()
+
+        and:
+        buildFile << """
+repositories {
+    if (repositories.metaClass.respondsTo(repositories, 'maven')) {
+        ivy { url "${ivyHttpRepo.uri}" }
+    } else {
+        ivy urls: "${ivyHttpRepo.uri}"
+    }
+}
+
+configurations {
+    compile
+}
+
+dependencies {
+    compile 'test:io:1.4'
+}
+
+task check << {
+    assert configurations.compile*.name as Set == ['io-1.4.jar'] as Set
+}
+"""
+
+        expect:
+        version previous withTasks 'check' run()
+        version current withTasks 'check' run()
+        version current withTasks 'check' run()
     }
 }
