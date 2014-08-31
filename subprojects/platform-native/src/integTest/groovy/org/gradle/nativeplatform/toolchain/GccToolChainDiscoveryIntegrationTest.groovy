@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.hamcrest.Matchers
 
@@ -117,7 +116,7 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
         failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform 'current'"))
-        failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: Could not find ${toolChain.meets(ToolChainRequirement.Gcc) ? 'C++' : 'C'} compiler 'does-not-exist'"))
+        failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: Could not find C compiler 'does-not-exist' in system path"))
     }
 
     def "fails when required language tool is not available but other language tools are available"() {
