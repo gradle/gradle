@@ -49,7 +49,32 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         resolverStrategy.getPatternMatcher("regexp") >> RegexpPatternMatcher.INSTANCE
     }
 
-    def "parses Ivy descriptor with empty dependencies section"() throws Exception {
+    def "parses minimal Ivy descriptor"() throws Exception {
+        when:
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="mymodule"
+          revision="myrev"
+    />
+</ivy-module>
+"""
+        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
+
+        then:
+        md != null
+        md.moduleRevisionId.organisation == "myorg"
+        md.moduleRevisionId.name == "mymodule"
+        md.moduleRevisionId.revision == "myrev"
+        md.moduleRevisionId.branch == null
+        md.status == "integration"
+        md.configurations*.name == ["default"]
+        md.getArtifacts("default").length == 1
+        md.dependencies.length == 0
+        md.inheritedDescriptors.length == 0
+    }
+
+    def "adds implicit configurations"() throws Exception {
         when:
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
@@ -206,6 +231,24 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         e.cause.message.contains('unknown tag not-an-ivy-file')
     }
 
+    public void "fails when descriptor does declare module version id"() {
+        def file = temporaryFolder.file("ivy.xml") << xml
+        when:
+        parser.parseMetaData(parseContext, file, true)
+
+        then:
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.cause.message.contains('null name not allowed')
+
+        where:
+        xml << [
+            """<ivy-module version="1.0">
+                <info>
+            </ivy-module>"""
+        ]
+    }
+
     public void "parses a full Ivy descriptor"() throws Exception {
         def file = temporaryFolder.file("ivy.xml")
         file.text = resources.getResource("test-full.xml").text
@@ -218,6 +261,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertEquals("myorg", md.getModuleRevisionId().getOrganisation())
         assertEquals("mymodule", md.getModuleRevisionId().getName())
         assertEquals("myrev", md.getModuleRevisionId().getRevision())
+        assertEquals("branch", md.getModuleRevisionId().getBranch())
         assertEquals("integration", md.getStatus())
         Date pubdate = new GregorianCalendar(2004, 10, 1, 11, 0, 0).getTime()
         assertEquals(pubdate, md.getPublicationDate())
