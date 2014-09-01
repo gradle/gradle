@@ -24,7 +24,7 @@ import java.util.Collection;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId;
 
-public class ModuleIdentiferNotationParser extends TypedNotationParser<String,ModuleIdentifier> {
+public class ModuleIdentiferNotationParser extends TypedNotationParser<String, ModuleIdentifier> {
 
     public ModuleIdentiferNotationParser() {
         super(String.class);
