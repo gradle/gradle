@@ -72,7 +72,7 @@ public class UnboundRulesProcessor {
             }
         }
         if (path != null) {
-            builder.path(path.toString());
+            builder.path(path);
         }
         return builder;
     }

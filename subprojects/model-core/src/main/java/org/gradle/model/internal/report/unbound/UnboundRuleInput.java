@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.report.unbound;
 
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelType;
 
 import java.util.ArrayList;
@@ -78,6 +79,10 @@ public class UnboundRuleInput {
         public Builder path(String path) {
             this.path = path;
             return this;
+        }
+
+        public Builder path(ModelPath path) {
+            return path(path.toString());
         }
 
         public Builder bound() {
