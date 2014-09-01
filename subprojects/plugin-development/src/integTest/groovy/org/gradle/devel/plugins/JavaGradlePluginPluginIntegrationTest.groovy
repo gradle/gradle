@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.devel
+package org.gradle.devel.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture

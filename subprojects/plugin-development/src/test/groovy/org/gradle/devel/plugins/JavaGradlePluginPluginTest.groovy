@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.devel
+package org.gradle.devel.plugins
 
 import ch.qos.logback.classic.spi.LoggingEvent
 import ch.qos.logback.core.AppenderBase
