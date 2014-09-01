@@ -266,7 +266,7 @@ For this story, it is not necessary for the failure message to fully indicate wh
   - ~~Error message includes names of X tasks with names closest to given name~~
 - ~~User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)~~
 
-## Story: Model DSL rule uses an untyped model element as input via name
+## Story: Model DSL rule uses an implicitly typed model element as input via name
 
 This story adds the capability for rules declared in scripts to take inputs.
 
