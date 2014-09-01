@@ -17,6 +17,7 @@
 package org.gradle.api.internal.platform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 
 /**
  * Defines and configures a JVM platform.
@@ -36,6 +37,6 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface JvmPlatform {
-    String getSourceCompatibility();
-    String getTargetCompatilibity();
+    JavaVersion getTargetCompatibility();
+    //TODO: Set<File> getBootclasspath();
 }

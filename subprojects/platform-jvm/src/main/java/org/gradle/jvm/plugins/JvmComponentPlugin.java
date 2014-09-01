@@ -16,6 +16,8 @@
 package org.gradle.jvm.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.platform.DefaultJvmPlatform;
+import org.gradle.api.internal.platform.JvmPlatform;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.service.ServiceRegistry;
@@ -86,15 +88,19 @@ public class JvmComponentPlugin implements Plugin<Project> {
         public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
             for (JvmLibrarySpec jvmLibrary : libraries) {
-                BinaryNamingScheme namingScheme = namingSchemeBuilder
-                        .withComponentName(jvmLibrary.getName())
-                        .withTypeString("jar")
-                        .build();
-                JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain);
-                jarBinary.source(jvmLibrary.getSource());
-                configureBinaryOutputLocations(jarBinary, buildDir);
-                jvmLibrary.getBinaries().add(jarBinary);
-                binaries.add(jarBinary);
+                for (JavaVersion target : jvmLibrary.getTargets()) {
+                    BinaryNamingScheme namingScheme = namingSchemeBuilder
+                            .withComponentName(jvmLibrary.getName())
+                            .withTypeString("jar")
+                            .withVariantDimension("jdk"+target)
+                            .build();
+                    JvmPlatform platform = new DefaultJvmPlatform(target);
+                    JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain, platform);
+                    jarBinary.source(jvmLibrary.getSource());
+                    configureBinaryOutputLocations(jarBinary, buildDir);
+                    jvmLibrary.getBinaries().add(jarBinary);
+                    binaries.add(jarBinary);
+                }
             }
         }
 
@@ -106,9 +112,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
             File outputDir = new File(classesDir, outputBaseName);
             jarBinary.setClassesDir(outputDir);
             jarBinary.setResourcesDir(outputDir);
-            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName())));
+            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName()))); //TODO: add target to jar here?
         }
-
 
         @Mutate
         public void createTasks(TaskContainer tasks, BinaryContainer binaries) {

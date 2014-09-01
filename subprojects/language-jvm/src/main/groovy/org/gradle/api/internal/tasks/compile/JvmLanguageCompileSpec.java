@@ -33,6 +33,7 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
     File getDestinationDir();
 
     void setDestinationDir(File destinationDir);
+
     FileCollection getSource();
 
     void setSource(FileCollection source);
@@ -40,8 +41,4 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
     Iterable<File> getClasspath();
 
     void setClasspath(Iterable<File> classpath);
-
-    String getTargetCompatibility();
-
-    void setTargetCompatibility(String version);
 }

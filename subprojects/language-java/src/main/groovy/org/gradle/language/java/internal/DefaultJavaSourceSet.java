@@ -21,6 +21,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.platform.JvmPlatform;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.FunctionalSourceSet;

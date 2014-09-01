@@ -82,11 +82,14 @@ enum TestPrecondition {
     NOT_UNKNOWN_OS({
         !UNKNOWN_OS.fulfilled
     }),
-    JDK7_OR_LATER({
-        JavaVersion.current() >= JavaVersion.VERSION_1_7
-    }),
     JDK6({
         JavaVersion.current() == JavaVersion.VERSION_1_6
+    }),
+    JDK6_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_1_6
+    }),
+    JDK7_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_1_7
     }),
     JDK7_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_7

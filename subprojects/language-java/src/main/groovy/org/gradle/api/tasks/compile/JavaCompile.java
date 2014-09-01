@@ -20,6 +20,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.platform.JvmPlatform;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -59,6 +60,7 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
+    private JvmPlatform platform;
 
     /**
      * Returns the tool chain that will be used to compile the Java source.
@@ -80,6 +82,11 @@ public class JavaCompile extends AbstractCompile {
     public void setToolChain(JavaToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();
+    }
+
+    @Incubating
+    public void setTargetPlatform(JvmPlatform platform) { //TODO: inject as with toolchain? Cannot really see how come toolchains should be injected though?
+        this.platform = platform;
     }
 
     @TaskAction
@@ -134,8 +141,8 @@ public class JavaCompile extends AbstractCompile {
         spec.setTempDir(getTemporaryDir());
         spec.setClasspath(getClasspath());
         spec.setDependencyCacheDir(getDependencyCacheDir());
-        spec.setSourceCompatibility(getSourceCompatibility());
-        spec.setTargetCompatibility(getTargetCompatibility());
+        spec.setTargetCompatibility(platform.getTargetCompatibility().toString());
+        spec.setSourceCompatibility(platform.getTargetCompatibility().toString()); //TODO: Source compatibility should be possible to configure separately
         spec.setCompileOptions(compileOptions);
         return spec;
     }

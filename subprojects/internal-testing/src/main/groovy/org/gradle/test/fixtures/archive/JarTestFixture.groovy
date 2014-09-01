@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.archive
 
 import org.apache.commons.io.IOUtils
+import org.gradle.api.JavaVersion
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -69,10 +70,10 @@ class JarTestFixture extends ZipTestFixture {
         return super.hasDescendants(allDescendants)
     }
 
-    def jvmMajorVersion() {
+    def getJvmMajorVersion() {
         JarFile jarFile = new JarFile(file)
         //take the first class file
-        JarEntry classEntry = jarFile.entries().find { entry -> entry.name.endsWith(".class")}
+        JarEntry classEntry = jarFile.entries().find { entry -> entry.name.endsWith(".class") }
         if (classEntry == null) {
             throw new Exception("Could not find a class entry for: " + file)
         }
@@ -87,7 +88,7 @@ class JarTestFixture extends ZipTestFixture {
                 } else {
                     data.readUnsignedShort(); //minor
                     int major = data.readUnsignedShort();
-                    return major
+                    return JavaVersion.toVersion(major);
                 }
             } finally {
                 IOUtils.closeQuietly(data)
@@ -95,6 +96,5 @@ class JarTestFixture extends ZipTestFixture {
         } finally {
             IOUtils.closeQuietly(is)
         }
-
     }
 }

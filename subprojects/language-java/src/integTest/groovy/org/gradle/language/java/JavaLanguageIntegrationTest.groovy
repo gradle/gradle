@@ -15,6 +15,8 @@
  */
 
 package org.gradle.language.java
+
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.BadJavaLibrary
 import org.gradle.language.fixtures.TestJavaLibrary
@@ -289,8 +291,9 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "target with Java 6 should produce in Java 6 bytecode"() {
+    @Requires(TestPrecondition.JDK6_OR_LATER)
+    def "target should produce in the correct bytecode"() {
+        JavaVersion target = JavaVersion.VERSION_1_6
         when:
         def java6App = new TestJavaLibrary()
         java6App.sources*.writeToDir(file("src/myLib/java"))
@@ -303,7 +306,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     jvm {
         libraries {
             myLib {
-                target java("1.6")
+                target java("$target")
             }
         }
     }
@@ -312,7 +315,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/myLib.jar").jvmMajorVersion() == 50 //50 == Java 6, 51 == Java 7, ...
+        jarFile("build/jars/myLibJar/myLib.jar").getJvmMajorVersion() == target
     }
 
     private JarTestFixture jarFile(String s) {

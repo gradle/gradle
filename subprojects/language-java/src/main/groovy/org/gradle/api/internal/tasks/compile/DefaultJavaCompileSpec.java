@@ -21,9 +21,11 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import java.io.File;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
-    private String sourceCompatibility;
-    private File dependencyCacheDir;
     private CompileOptions compileOptions;
+    private File dependencyCacheDir;
+    private File destinationDir;
+    private String sourceCompatibility;
+    private String targetCompatibility;
 
     public CompileOptions getCompileOptions() {
         return compileOptions;
@@ -41,11 +43,27 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
         this.dependencyCacheDir = dependencyCacheDir;
     }
 
+    public File getDestinationDir() {
+        return destinationDir;
+    }
+
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
+    }
+
     public String getSourceCompatibility() {
         return sourceCompatibility;
     }
 
     public void setSourceCompatibility(String sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;
+    }
+
+    public String getTargetCompatibility() {
+        return targetCompatibility;
+    }
+
+    public void setTargetCompatibility(String targetCompatibility) {
+        this.targetCompatibility = targetCompatibility;
     }
 }

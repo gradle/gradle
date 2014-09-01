@@ -84,7 +84,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
                     JavaCompile compile = (JavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    JarBinarySpec binary = (JarBinarySpec) binarySpec;
+                    JvmLibraryBinarySpec binary = (JvmLibraryBinarySpec) binarySpec;
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
@@ -92,8 +92,8 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
 
                     compile.setSource(javaSourceSet.getSource());
                     compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
-                    compile.setSourceCompatibility(binary.getLibrary().getPlatform().getSourceCompatibility());
-                    compile.setTargetCompatibility(binary.getLibrary().getPlatform().getTargetCompatilibity());
+                    compile.setTargetPlatform(binary.getTargetPlatform());
+
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);

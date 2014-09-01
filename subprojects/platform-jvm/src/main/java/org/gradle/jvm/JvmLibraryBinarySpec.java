@@ -17,10 +17,12 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.platform.JvmPlatform;
 
 /**
  * Definition of a JVM binary build for a {@link org.gradle.jvm.JvmLibrary}.
  */
 @Incubating
 public interface JvmLibraryBinarySpec extends JvmBinarySpec {
+    JvmPlatform getTargetPlatform();
 }

@@ -17,24 +17,21 @@
 package org.gradle.api.internal.platform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 
 @Incubating
 public class DefaultJvmPlatform implements JvmPlatform {
-    private final String target;
+    private final JavaVersion targetCompatibility;
 
-    public DefaultJvmPlatform(String target) {
-        this.target = target;
+    public DefaultJvmPlatform(JavaVersion targetCompatibility) {
+        this.targetCompatibility = targetCompatibility;
     }
 
-    public String getSourceCompatibility() {
-        return target; //TODO: Source target should be configurable separably from compatibility target
-    }
-
-    public String getTargetCompatilibity() {
-        return target;
+    public JavaVersion getTargetCompatibility() {
+        return targetCompatibility;
        }
 
     public String toString() {
-        return String.format("Compatibility target: %s", target);
+        return String.format("%s", targetCompatibility);
     }
 }
