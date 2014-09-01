@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.devel.plugins;
+package org.gradle.plugin.devel;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -48,7 +48,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String CLASSES_PATTERN = "**/*.class";
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
-    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + ".";
+    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
 
     public void apply(Project project) {
         project.getPlugins().apply(JavaPlugin.class);
