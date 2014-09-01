@@ -263,7 +263,7 @@ For this story, it is not necessary for the failure message to fully indicate wh
   - ~~Can add dependency on other task using task name~~
   - ~~Can change configuration property of specific task type (e.g. something not defined by `Task`)~~
 - ~~User receives useful error message when specified task (i.e using name) is not found~~
-  - ~~Error message includes names of X tasks with names closest to given name~~ (incl. where these tasks were defined)
+  - ~~Error message includes names of X tasks with names closest to given name~~
 - ~~User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)~~
 
 ## Story: Model DSL rule uses an untyped model element as input via name
