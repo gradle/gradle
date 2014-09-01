@@ -60,7 +60,7 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
         public int compareTo(Suggestion o) {
             int distanceDifference = distance - o.distance;
             if (distanceDifference == 0) {
-                return path.toString().compareTo(o.toString());
+                return path.toString().compareTo(o.path.toString());
             } else {
                 return distanceDifference;
             }

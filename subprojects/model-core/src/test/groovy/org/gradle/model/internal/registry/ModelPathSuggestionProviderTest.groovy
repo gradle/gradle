@@ -40,7 +40,7 @@ class ModelPathSuggestionProviderTest extends Specification {
         availablePaths = ["fo", "bor", "for", "of", "foob"]
 
         then:
-        suggestionsFor("foo") == ["foob", "for", "fo"]
+        suggestionsFor("foo") == ["fo", "foob", "for"]
         suggestionsFor("foor") == ["foob", "for", "bor", "fo"]
         suggestionsFor("foora") == ["foob", "for"]
     }
