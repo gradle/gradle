@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry
 
 import org.gradle.api.Transformer
+import org.gradle.internal.Transformers
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelType
@@ -25,6 +26,7 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.unbound.UnboundRule
 import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import org.gradle.model.internal.report.unbound.UnboundRulesReporter
+import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -33,18 +35,14 @@ class UnboundRulesProcessorTest extends Specification {
 
     List<RuleBinder<?>> binders = []
 
-    Closure suggestionProvider = { [] }
+    Transformer<List<ModelPath>, ModelPath> suggestionProvider = Transformers.constant([])
 
     String getReportForProcessedBinders() {
-        reportFor(new UnboundRulesProcessor(binders, suggestionProvider as Transformer<List<ModelPath>, ModelPath>).process())
+        reportFor(new UnboundRulesProcessor(binders, suggestionProvider).process())
     }
 
     void binder(@DelegatesTo(RuleBinderTestBuilder) Closure config) {
-        def builder = new RuleBinderTestBuilder()
-        config.setDelegate(builder)
-        config.setResolveStrategy(Closure.DELEGATE_FIRST)
-        config.call()
-        binders << builder.build()
+        binders << ConfigureUtil.configure(config, new RuleBinderTestBuilder()).build()
     }
 
     String reportFor(UnboundRule.Builder... rules) {
@@ -151,7 +149,7 @@ class UnboundRulesProcessorTest extends Specification {
             bindInputReference(2, "input.third")
         }
 
-        suggestionProvider = { [it] }
+        setSuggestionProvider { [it] }
 
         expect:
         reportForProcessedBinders == reportFor(
