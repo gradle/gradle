@@ -47,13 +47,15 @@ public enum JavaVersion {
 
         String name = value.toString();
         if (name.matches("\\d")) {
-            int number = Integer.parseInt(name);
-            int index = number - 1;
-            int classMajorVersionIndex = number - 45; //class file versions: 1.1 == 45, 1.2 == 46, ...
-            if (classMajorVersionIndex > 0 && index < values().length && values()[index].hasMajorVersion) {
+            int index = Integer.parseInt(name) - 1;
+            if (index < values().length && values()[index].hasMajorVersion) {
                 return values()[index];
-            } else if (classMajorVersionIndex < values().length && values()[classMajorVersionIndex].hasMajorVersion) {
-                return values()[classMajorVersionIndex ];
+            }
+        } else if (name.matches("\\d{2}")) {
+            int number = Integer.parseInt(name);
+            int index = number - 45; //class file versions: 1.1 == 45, 1.2 == 46, ...
+            if (index < values().length && values()[index].hasMajorVersion) {
+                return values()[index];
             }
         }
 
