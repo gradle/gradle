@@ -60,7 +60,7 @@ public class UnboundRulesProcessor {
     }
 
     private UnboundRuleInput.Builder toInputBuilder(ModelBinding<?> binding, ModelReference<?> reference) {
-        UnboundRuleInput.Builder builder = UnboundRuleInput.type(reference.getType().toString());
+        UnboundRuleInput.Builder builder = UnboundRuleInput.type(reference.getType());
         ModelPath path;
         if (binding != null) {
             builder.bound();

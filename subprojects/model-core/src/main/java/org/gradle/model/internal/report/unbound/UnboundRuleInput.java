@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.report.unbound;
 
+import org.gradle.model.internal.core.ModelType;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,6 +54,14 @@ public class UnboundRuleInput {
 
     public static Builder type(String type) {
         return new Builder(type);
+    }
+
+    public static Builder type(Class<?> type) {
+        return type(type.getName());
+    }
+
+    public static Builder type(ModelType<?> type) {
+        return type(type.toString());
     }
 
     public static class Builder {

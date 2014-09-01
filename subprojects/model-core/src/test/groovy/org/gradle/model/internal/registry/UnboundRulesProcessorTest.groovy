@@ -66,7 +66,7 @@ class UnboundRulesProcessorTest extends Specification {
         expect:
         reportForProcessedBinders == reportFor(
                 UnboundRule.descriptor("ruleWithUnboundSubjectReference")
-                        .mutableInput(UnboundRuleInput.type(String.name).path("path.subject"))
+                        .mutableInput(UnboundRuleInput.type(String).path("path.subject"))
         )
     }
 
@@ -83,9 +83,9 @@ class UnboundRulesProcessorTest extends Specification {
         expect:
         reportForProcessedBinders == reportFor(
                 UnboundRule.descriptor("firstRule")
-                        .mutableInput(UnboundRuleInput.type(String.name).path("path.subject.first")),
+                        .mutableInput(UnboundRuleInput.type(String).path("path.subject.first")),
                 UnboundRule.descriptor("secondRule")
-                        .mutableInput(UnboundRuleInput.type(Number.name).path("path.subject.second"))
+                        .mutableInput(UnboundRuleInput.type(Number).path("path.subject.second"))
         )
     }
 
@@ -99,8 +99,8 @@ class UnboundRulesProcessorTest extends Specification {
         expect:
         reportForProcessedBinders == reportFor(
                 UnboundRule.descriptor("ruleWithUnboundInputReferences")
-                        .immutableInput(UnboundRuleInput.type(String.name).path("reference.first"))
-                        .immutableInput(UnboundRuleInput.type(Number.name).path("reference.second"))
+                        .immutableInput(UnboundRuleInput.type(String).path("reference.first"))
+                        .immutableInput(UnboundRuleInput.type(Number).path("reference.second"))
         )
     }
 
@@ -114,8 +114,8 @@ class UnboundRulesProcessorTest extends Specification {
         expect:
         reportForProcessedBinders == reportFor(
                 UnboundRule.descriptor("ruleWithUnboundPathlessReferences")
-                        .mutableInput(UnboundRuleInput.type(Number.name))
-                        .immutableInput(UnboundRuleInput.type(String.name))
+                        .mutableInput(UnboundRuleInput.type(Number))
+                        .immutableInput(UnboundRuleInput.type(String))
         )
     }
 
@@ -134,10 +134,10 @@ class UnboundRulesProcessorTest extends Specification {
         expect:
         reportForProcessedBinders == reportFor(
                 UnboundRule.descriptor("partiallyBoundRule")
-                        .mutableInput(UnboundRuleInput.type(Number.name).path("subject").bound())
-                        .immutableInput(UnboundRuleInput.type(Number.name).path("reference.first").bound())
-                        .immutableInput(UnboundRuleInput.type(String.name).path("reference.second").bound())
-                        .immutableInput(UnboundRuleInput.type(Boolean.name).path("reference.third"))
+                        .mutableInput(UnboundRuleInput.type(Number).path("subject").bound())
+                        .immutableInput(UnboundRuleInput.type(Number).path("reference.first").bound())
+                        .immutableInput(UnboundRuleInput.type(String).path("reference.second").bound())
+                        .immutableInput(UnboundRuleInput.type(Boolean).path("reference.third"))
         )
     }
 
@@ -156,10 +156,10 @@ class UnboundRulesProcessorTest extends Specification {
         expect:
         reportForProcessedBinders == reportFor(
                 UnboundRule.descriptor("ruleWithSuggestions")
-                        .mutableInput(UnboundRuleInput.type(Number.name).path("subject").suggestion("subject"))
-                        .immutableInput(UnboundRuleInput.type(String.name))
-                        .immutableInput(UnboundRuleInput.type(Boolean.name).path("input.second").suggestion("input.second"))
-                        .immutableInput(UnboundRuleInput.type(Long.name).path("input.third").bound())
+                        .mutableInput(UnboundRuleInput.type(Number).path("subject").suggestion("subject"))
+                        .immutableInput(UnboundRuleInput.type(String))
+                        .immutableInput(UnboundRuleInput.type(Boolean).path("input.second").suggestion("input.second"))
+                        .immutableInput(UnboundRuleInput.type(Long).path("input.third").bound())
         )
     }
 

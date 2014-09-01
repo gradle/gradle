@@ -89,7 +89,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause(unbound(
                 UnboundRule.descriptor('model.foo.bar')
-                        .mutableInput(UnboundRuleInput.type('java.lang.Object').path('foo.bar'))
+                        .mutableInput(UnboundRuleInput.type(Object).path('foo.bar'))
         ))
     }
 
@@ -127,7 +127,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause(unbound(
                 UnboundRule.descriptor("model.tasks.foonar")
-                    .mutableInput(UnboundRuleInput.type("java.lang.Object").path("tasks.foonar").suggestion("tasks.foobar"))
+                    .mutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestion("tasks.foobar"))
         ))
     }
 

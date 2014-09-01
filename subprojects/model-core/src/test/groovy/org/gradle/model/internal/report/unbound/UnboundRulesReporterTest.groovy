@@ -28,11 +28,11 @@ class UnboundRulesReporterTest extends Specification {
         when:
         reporter.reportOn([
                 UnboundRule.descriptor("r1")
-                        .mutableInput(UnboundRuleInput.type(String.name).path("parent.p1"))
-                        .mutableInput(UnboundRuleInput.type(Integer.name).bound().path("parent.p2"))
-                        .immutableInput(UnboundRuleInput.type(Number.name).path("parent.p3").suggestions(["parent.p31", "parent.p32"]))
-                        .immutableInput(UnboundRuleInput.type(Number.name))
-                        .immutableInput(UnboundRuleInput.type(Number.name).bound().path("parent.p5")).build()
+                        .mutableInput(UnboundRuleInput.type(String).path("parent.p1"))
+                        .mutableInput(UnboundRuleInput.type(Integer).bound().path("parent.p2"))
+                        .immutableInput(UnboundRuleInput.type(Number).path("parent.p3").suggestions(["parent.p31", "parent.p32"]))
+                        .immutableInput(UnboundRuleInput.type(Number))
+                        .immutableInput(UnboundRuleInput.type(Number).bound().path("parent.p5")).build()
         ])
 
         then:
