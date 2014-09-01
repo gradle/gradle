@@ -313,7 +313,7 @@ public abstract class CollectionUtils {
         return collect(source, destination, Transformers.asString());
     }
 
-    public static List<String> stringize(List<?> source) {
+    public static List<String> stringize(Collection<?> source) {
         return stringize(source, new ArrayList<String>(source.size()));
     }
 

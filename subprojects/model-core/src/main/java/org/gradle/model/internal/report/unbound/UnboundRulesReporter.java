@@ -32,7 +32,7 @@ public class UnboundRulesReporter {
         this.prefix = prefix;
     }
 
-    public void reportOn(Iterable<UnboundRule> rules) {
+    public void reportOn(Iterable<? extends UnboundRule> rules) {
         boolean first = true;
         for (UnboundRule rule : rules) {
             if (!first) {

@@ -25,19 +25,20 @@ import org.gradle.model.internal.report.unbound.UnboundRuleInput;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class UnboundRulesProcessor {
 
-    private final Iterable<RuleBinder<?>> binders;
-    private final Transformer<List<ModelPath>, ModelPath> suggestionsProvider;
+    private final Iterable<? extends RuleBinder<?>> binders;
+    private final Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider;
 
-    public UnboundRulesProcessor(Iterable<RuleBinder<?>> binders, Transformer<List<ModelPath>, ModelPath> suggestionsProvider) {
+    public UnboundRulesProcessor(Iterable<? extends RuleBinder<?>> binders, Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider) {
         this.binders = binders;
         this.suggestionsProvider = suggestionsProvider;
     }
 
-    public List<UnboundRule> process() {
+    public List<? extends UnboundRule> process() {
         List<UnboundRule> unboundRules = new ArrayList<UnboundRule>();
         for (RuleBinder<?> binder : binders) {
             UnboundRule.Builder builder = UnboundRule.descriptor(binder.getDescriptor().toString());

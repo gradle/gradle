@@ -25,11 +25,11 @@ import java.io.StringWriter;
 
 public class UnboundModelRulesException extends GradleException {
 
-    public UnboundModelRulesException(Iterable<UnboundRule> rules) {
+    public UnboundModelRulesException(Iterable<? extends UnboundRule> rules) {
         super(toMessage(rules));
     }
 
-    private static String toMessage(Iterable<UnboundRule> rules) {
+    private static String toMessage(Iterable<? extends UnboundRule> rules) {
         StringWriter string = new StringWriter();
         PrintWriter writer = new PrintWriter(string);
         writer.println("The following model rules are unbound:");

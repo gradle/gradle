@@ -239,7 +239,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     public void validate() throws UnboundModelRulesException {
         if (!binders.isEmpty()) {
             ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(store.keySet(), creations.keySet()));
-            List<UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
+            List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
             throw new UnboundModelRulesException(unboundRules);
         }
     }
