@@ -32,7 +32,7 @@ class ModelPathSuggestionProviderTest extends Specification {
         availablePaths = ["task.afoobar", "tasks.boofar", "tasks.foobar", "tasks.f", "fooba"]
 
         then:
-        suggestionsFor("tasks.fooba") == ["task.afoobar", "tasks.boofar", "tasks.foobar"]
+        suggestionsFor("tasks.fooba") == ["tasks.foobar", "task.afoobar", "tasks.boofar"]
     }
 
     def "suggests model paths with Levenshtein distance lower than half it's length for strings shorter than 6 characters"() {
@@ -40,16 +40,16 @@ class ModelPathSuggestionProviderTest extends Specification {
         availablePaths = ["fo", "bor", "for", "of", "foob"]
 
         then:
-        suggestionsFor("foo") == ["fo", "for", "foob"]
-        suggestionsFor("foor") == ["fo", "bor", "for", "foob"]
-        suggestionsFor("foora") == ["for", "foob"]
+        suggestionsFor("foo") == ["foob", "for", "fo"]
+        suggestionsFor("foor") == ["foob", "for", "bor", "fo"]
+        suggestionsFor("foora") == ["foob", "for"]
     }
 
-    def "suggestions are returned in a deterministic order (sorted by length then alphabetically)"() {
+    def "suggestions are ordered by distance then alphabetical"() {
         when:
         availablePaths = ["tasks.foobar", "task.afoobar", "tasks.f", "tasks.boofar", "fooba", "tasks.foo"]
 
         then:
-        suggestionsFor("tasks.fooba") == ["tasks.foo", "task.afoobar", "tasks.boofar", "tasks.foobar"]
+        suggestionsFor("tasks.fooba") == ["tasks.foobar", "tasks.foo", "task.afoobar", "tasks.boofar"]
     }
 }
