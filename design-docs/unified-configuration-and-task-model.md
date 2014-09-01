@@ -330,6 +330,18 @@ One potential option will be to insert a fake statement as the first statement o
   - Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)
   - `$(String)` can be used anywhere in code body (e.g. `if` body)
 
+  
+## Story: Configuration performed to “bridged” model element made in afterEvaluate() is visible to creation rule
+
+This story adds coverage to ensure that model rules are fired **AFTER** afterEvaluate().
+
+### Test Coverage
+
+1. Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()
+1. Task created during afterEvaluate() is visible to rule task `tasks` as input
+ 
+# Milestone 2 - Build author uses public rule DSL to configure model and tasks
+
 ## Story: Model DSL rule uses a typed model element as input via name
 
     model {
@@ -406,16 +418,6 @@ Note: Closure parameter generic types are not available via reflection. They wil
   - Attempt to use readable type that is not also writable produces error message explaining
 - Success
   - Subject is in writable state
-  
-  
-## Story: Configuration performed to “bridged” model element made in afterEvaluate() is visible to creation rule
-
-This story adds coverage to ensure that model rules are fired **AFTER** afterEvaluate().
-
-### Test Coverage
-
-1. Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()
-1. Task created during afterEvaluate() is visible to rule task `tasks` as input
 
 ## Story: Internal Gradle plugin defines lazily created task that is visible during configuration phase
 
@@ -427,8 +429,6 @@ This story particularly deals with the backwards compatibility requirements of m
 
 This story makes it viable for a build author to create a task based on managed model.
 This requires a DSL for creating model elements.
- 
-# Milestone 2 - Build author uses public rule DSL to configure model and tasks
 
 ## Story: Build user receives useful error message when a plugin they are using has a rule that does not fully bind
 
