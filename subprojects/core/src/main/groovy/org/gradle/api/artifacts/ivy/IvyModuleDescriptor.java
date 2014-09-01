@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.ivy;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
  * The metadata about an Ivy module that acts as an input to a component metadata rule.
@@ -25,8 +26,9 @@ public interface IvyModuleDescriptor {
     /***
      * Returns the branch attribute of the info element in this descriptor.
      *
-     * @return the branch for this descriptor
+     * @return the branch for this descriptor, or null if no branch was declared in the descriptor.
      */
+    @Nullable
     String getBranch();
 
     /**
