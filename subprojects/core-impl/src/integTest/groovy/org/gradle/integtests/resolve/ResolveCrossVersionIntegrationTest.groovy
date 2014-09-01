@@ -97,10 +97,16 @@ task check << {
         and:
         buildFile << """
 repositories {
-    if (repositories.metaClass.respondsTo(repositories, 'maven')) {
+    if (repositories.metaClass.respondsTo(repositories, 'ivy')) {
         ivy { url "${ivyHttpRepo.uri}" }
     } else {
-        ivy urls: "${ivyHttpRepo.uri}"
+        add(Class.forName('org.apache.ivy.plugins.resolver.URLResolver').newInstance()) {
+            name = 'repo'
+            addIvyPattern("${ivyHttpRepo.uri}/[organisation]/[module]/[revision]/ivy-[revision].xml")
+            addArtifactPattern("${ivyHttpRepo.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+            descriptor = 'required'
+            checkmodified = true
+        }
     }
 }
 

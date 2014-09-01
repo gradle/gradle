@@ -86,33 +86,24 @@ publishing {
     def consumePublicationWithPreviousVersion() {
         settingsFile.text = "rootProject.name = 'consumer'"
 
-        def repositoryDefinition
-        if (previous.fullySupportsIvyRepository) {
-            repositoryDefinition = """
-                ivy {
-                    url "${repo.uri}"
-                }
-"""
-        } else {
-            def repoPath = TextUtil.normaliseFileSeparators(repoDir.absolutePath)
-            repositoryDefinition = """
-                println "Adding resolver directly due to no 'ivy' repository support"
-                add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-                    name = 'repo'
-                    addIvyPattern("${repoPath}/[organisation]/[module]/[revision]/ivy-[revision].xml")
-                    addArtifactPattern("${repoPath}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
-                    descriptor = 'required'
-                    checkmodified = true
-                }
-"""
-        }
+        def repoPath = TextUtil.normaliseFileSeparators(repoDir.absolutePath)
 
         buildFile.text = """
 configurations {
     lib
 }
 repositories {
-    $repositoryDefinition
+    if (repositories.metaClass.respondsTo(repositories, 'ivy')) {
+        ivy { url "${repo.uri}" }
+    } else {
+        add(Class.forName('org.apache.ivy.plugins.resolver.FileSystemResolver').newInstance()) {
+            name = 'repo'
+            addIvyPattern("${repoPath}/[organisation]/[module]/[revision]/ivy-[revision].xml")
+            addArtifactPattern("${repoPath}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+            descriptor = 'required'
+            checkmodified = true
+        }
+    }
 }
 dependencies {
     lib 'org.gradle.crossversion:published:1.9'
