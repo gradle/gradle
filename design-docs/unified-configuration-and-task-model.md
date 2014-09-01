@@ -408,7 +408,14 @@ Note: Closure parameter generic types are not available via reflection. They wil
   - Subject is in writable state
   
   
-## Story: Model element is available fully configured during afterEvaluate()
+## Story: Configuration performed to “bridged” model element made in afterEvaluate() is visible to creation rule
+
+This story adds coverage to ensure that model rules are fired **AFTER** afterEvaluate().
+
+### Test Coverage
+
+1. Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()
+1. Task created during afterEvaluate() is visible to rule task `tasks` as input
 
 ## Story: Internal Gradle plugin defines lazily created task that is visible during configuration phase
 
