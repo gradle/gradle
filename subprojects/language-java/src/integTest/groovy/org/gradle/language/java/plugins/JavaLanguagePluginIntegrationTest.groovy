@@ -16,6 +16,7 @@
 
 package org.gradle.language.java.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
@@ -161,13 +162,13 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         when:
-        succeeds "myLibJar"
+        succeeds "jdk1.8MyLibJar"
 
         then:
-        executed ":createMyLibJar", ":myLibJar"
+        executed ":createJdk1.8MyLibJar", ":jdk1.8MyLibJar"
 
         and:
-        def jar = new JarTestFixture(file("build/jars/myLibJar/myLib.jar"))
+        def jar = new JarTestFixture(file("build/jars/myLibJar/jdk${JavaVersion.current()}/myLib.jar"))
         jar.hasDescendants()
     }
 }
