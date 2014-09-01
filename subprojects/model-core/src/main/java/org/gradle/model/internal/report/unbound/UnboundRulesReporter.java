@@ -19,7 +19,6 @@ package org.gradle.model.internal.report.unbound;
 import com.google.common.base.Joiner;
 
 import java.io.PrintWriter;
-import java.util.List;
 
 public class UnboundRulesReporter {
 
@@ -54,7 +53,7 @@ public class UnboundRulesReporter {
         }
     }
 
-    private void reportInputs(List<UnboundRuleInput> inputs) {
+    private void reportInputs(Iterable<? extends UnboundRuleInput> inputs) {
         for (UnboundRuleInput input : inputs) {
             item();
             writer.print(input.isBound() ? "+ " : "- ");

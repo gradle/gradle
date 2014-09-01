@@ -30,7 +30,7 @@ class UnboundRulesReporterTest extends Specification {
                 UnboundRule.descriptor("r1")
                         .mutableInput(UnboundRuleInput.type(String).path("parent.p1"))
                         .mutableInput(UnboundRuleInput.type(Integer).bound().path("parent.p2"))
-                        .immutableInput(UnboundRuleInput.type(Number).path("parent.p3").suggestions(["parent.p31", "parent.p32"]))
+                        .immutableInput(UnboundRuleInput.type(Number).path("parent.p3").suggestions("parent.p31", "parent.p32"))
                         .immutableInput(UnboundRuleInput.type(Number))
                         .immutableInput(UnboundRuleInput.type(Number).bound().path("parent.p5")).build()
         ])

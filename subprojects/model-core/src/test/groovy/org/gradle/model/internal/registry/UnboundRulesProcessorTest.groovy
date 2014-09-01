@@ -156,9 +156,9 @@ class UnboundRulesProcessorTest extends Specification {
         expect:
         reportForProcessedBinders == reportFor(
                 UnboundRule.descriptor("ruleWithSuggestions")
-                        .mutableInput(UnboundRuleInput.type(Number).path("subject").suggestion("subject"))
+                        .mutableInput(UnboundRuleInput.type(Number).path("subject").suggestions("subject"))
                         .immutableInput(UnboundRuleInput.type(String))
-                        .immutableInput(UnboundRuleInput.type(Boolean).path("input.second").suggestion("input.second"))
+                        .immutableInput(UnboundRuleInput.type(Boolean).path("input.second").suggestions("input.second"))
                         .immutableInput(UnboundRuleInput.type(Long).path("input.third").bound())
         )
     }

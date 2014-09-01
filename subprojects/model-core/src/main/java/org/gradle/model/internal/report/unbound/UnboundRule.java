@@ -27,7 +27,7 @@ public class UnboundRule {
     private final List<UnboundRuleInput> immutableInputs;
     private final List<UnboundRuleInput> mutableInputs;
 
-    public UnboundRule(String descriptor, List<UnboundRuleInput> immutableInputs, List<UnboundRuleInput> mutableInputs) {
+    private UnboundRule(String descriptor, List<UnboundRuleInput> immutableInputs, List<UnboundRuleInput> mutableInputs) {
         this.descriptor = descriptor;
         this.immutableInputs = immutableInputs;
         this.mutableInputs = mutableInputs;
@@ -37,11 +37,11 @@ public class UnboundRule {
         return descriptor;
     }
 
-    public List<UnboundRuleInput> getImmutableInputs() {
+    public List<? extends UnboundRuleInput> getImmutableInputs() {
         return immutableInputs;
     }
 
-    public List<UnboundRuleInput> getMutableInputs() {
+    public List<? extends UnboundRuleInput> getMutableInputs() {
         return mutableInputs;
     }
 
@@ -52,10 +52,10 @@ public class UnboundRule {
     public static class Builder {
 
         private String descriptor;
-        private final List<UnboundRuleInput> immutableInputs = Lists.newArrayList();
-        private final List<UnboundRuleInput> mutableInputs = Lists.newArrayList();
+        private final List<UnboundRuleInput> immutableInputs = Lists.newLinkedList();
+        private final List<UnboundRuleInput> mutableInputs = Lists.newLinkedList();
 
-        public Builder(String descriptor) {
+        private Builder(String descriptor) {
             this.descriptor = descriptor;
         }
 

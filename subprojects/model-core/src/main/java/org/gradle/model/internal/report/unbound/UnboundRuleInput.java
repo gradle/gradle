@@ -20,6 +20,7 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class UnboundRuleInput {
     private final String path;
     private final String type;
     private final boolean bound;
-    private final List<String> suggestedPaths;
+    private final Collection<String> suggestedPaths;
 
     public String getPath() {
         return path;
@@ -42,11 +43,11 @@ public class UnboundRuleInput {
         return bound;
     }
 
-    public Collection<String> getSuggestedPaths() {
+    public Collection<? extends String> getSuggestedPaths() {
         return suggestedPaths;
     }
 
-    public UnboundRuleInput(String path, String type, boolean bound, List<String> suggestedPaths) {
+    private UnboundRuleInput(String path, String type, boolean bound, List<String> suggestedPaths) {
         this.path = path;
         this.type = type;
         this.bound = bound;
@@ -72,7 +73,7 @@ public class UnboundRuleInput {
         private boolean bound;
         private List<String> suggestedPaths = new ArrayList<String>();
 
-        public Builder(String type) {
+        private Builder(String type) {
             this.type = type;
         }
 
@@ -90,14 +91,13 @@ public class UnboundRuleInput {
             return this;
         }
 
-        public Builder suggestions(Collection<String> suggestedPaths) {
+        public Builder suggestions(Collection<? extends String> suggestedPaths) {
             this.suggestedPaths.addAll(suggestedPaths);
             return this;
         }
 
-        public Builder suggestion(String suggestedPath) {
-            suggestedPaths.add(suggestedPath);
-            return this;
+        public Builder suggestions(String... suggestedPath) {
+            return suggestions(Arrays.asList(suggestedPath));
         }
 
         public UnboundRuleInput build() {
