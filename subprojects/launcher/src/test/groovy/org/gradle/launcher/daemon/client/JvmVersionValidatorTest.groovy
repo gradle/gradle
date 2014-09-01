@@ -35,6 +35,17 @@ class JvmVersionValidatorTest extends Specification {
         ]
     }
 
+    def "can parse version number for Java 8 "() {
+        expect:
+        JvmVersionValidator.parseJavaVersionCommandOutput(new BufferedReader(new StringReader(output))) == JavaVersion.toVersion("1.8")
+
+        where:
+        output << [
+                'java version "1.8.0_11"',
+                'openjdk version "1.8.0-internal"',
+        ]
+    }
+
     def "fails to parse version number"() {
         when:
         JvmVersionValidator.parseJavaVersionCommandOutput(new BufferedReader(new StringReader(output)))
