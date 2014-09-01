@@ -93,7 +93,7 @@ configurations {
     lib
 }
 repositories {
-    if (repositories.metaClass.respondsTo(repositories, 'ivy')) {
+    if (${previous.fullySupportsIvyRepository}) {
         ivy { url "${repo.uri}" }
     } else {
         add(Class.forName('org.apache.ivy.plugins.resolver.FileSystemResolver').newInstance()) {

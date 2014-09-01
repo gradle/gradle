@@ -97,7 +97,7 @@ task check << {
         and:
         buildFile << """
 repositories {
-    if (repositories.metaClass.respondsTo(repositories, 'ivy')) {
+    if (gradle.gradleVersion == '${current.version.version}' || ${previous.fullySupportsIvyRepository}) {
         ivy { url "${ivyHttpRepo.uri}" }
     } else {
         add(Class.forName('org.apache.ivy.plugins.resolver.URLResolver').newInstance()) {
