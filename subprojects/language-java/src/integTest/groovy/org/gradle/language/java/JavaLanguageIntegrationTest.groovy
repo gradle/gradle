@@ -318,6 +318,95 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         jarFile("build/jars/myLibJar/jdk$target/myLib.jar").getJvmMajorVersion() == target
     }
 
+
+    @Requires(TestPrecondition.JDK6_OR_LATER)
+    def "multiple targets should produce in the correct bytecode"() {
+        JavaVersion target1 = JavaVersion.VERSION_1_6
+        JavaVersion target2 = JavaVersion.VERSION_1_7
+        JavaVersion target3 = JavaVersion.VERSION_1_8
+        when:
+        def java6App = new TestJavaLibrary()
+        java6App.sources*.writeToDir(file("src/myLib/java"))
+
+        and:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib {
+                target java("$target1")
+                target java("$target2")
+                target java("$target3")
+            }
+        }
+    }
+"""
+        then:
+        succeeds "assemble"
+
+        and:
+        jarFile("build/jars/myLibJar/jdk$target1/myLib.jar").getJvmMajorVersion() == target1
+        and:
+        jarFile("build/jars/myLibJar/jdk$target2/myLib.jar").getJvmMajorVersion() == target2
+        and:
+        jarFile("build/jars/myLibJar/jdk$target3/myLib.jar").getJvmMajorVersion() == target3
+    }
+
+    def "erroneous target should produce reasonable error message"() {
+        String badTarget = "200";
+        when:
+        def badApp = new BadJavaLibrary()
+        badApp.sources*.writeToDir(file("src/myLib/java"))
+
+        and:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib {
+                target java("$badTarget")
+            }
+        }
+    }
+"""
+        then:
+        fails "assemble"
+
+        and:
+        assert errorOutput.contains("Could not determine java version from '$badTarget'")
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "too high JDK target should produce reasonable error message"() {
+        String badTarget = "1.9";
+        when:
+        def badApp = new BadJavaLibrary()
+        badApp.sources*.writeToDir(file("src/myLib/java"))
+
+        and:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib {
+                target java("$badTarget")
+            }
+        }
+    }
+"""
+        then:
+        fails "assemble"
+
+        and:
+        assert errorOutput.contains("Could not use target JVM platform: '$badTarget' when using JDK: '${JavaVersion.current()}'. Change to a lower target.")
+    }
+
     private JarTestFixture jarFile(String s) {
         new JarTestFixture(file(s))
     }
