@@ -17,12 +17,17 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule
+    public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider)
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
@@ -123,11 +128,20 @@ sourceSets.each {
                 'org/gradle/ScalaClass2.class'
         )
 
-        executer.withTasks('javadoc', 'groovydoc', 'scaladoc').run()
+        def runScalaDoc = !GradleContextualExecuter.daemon
+        def tasks = ['javadoc', 'groovydoc']
+        if (runScalaDoc) {
+            tasks << "scaladoc"
+        }
+
+        executer.withTasks(tasks).run()
 
         buildDir.file('docs/javadoc/index.html').assertIsFile()
         buildDir.file('docs/groovydoc/index.html').assertIsFile()
-        buildDir.file('docs/scaladoc/index.html').assertIsFile()
+
+        if (runScalaDoc) {
+            buildDir.file('docs/scaladoc/index.html').assertIsFile()
+        }
     }
 
     @Test
