@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -212,7 +213,7 @@ public interface GradleExecuter {
     /**
      * Adds an action to be called immediately before execution, to allow extra configuration to be injected.
      */
-    void beforeExecute(Closure action);
+    void beforeExecute(@DelegatesTo(GradleExecuter.class) Closure action);
 
     /**
      * Adds an action to be called immediately after execution
@@ -222,7 +223,7 @@ public interface GradleExecuter {
     /**
      * Adds an action to be called immediately after execution
      */
-    void afterExecute(Closure action);
+    void afterExecute(@DelegatesTo(GradleExecuter.class) Closure action);
 
     /**
      * The directory that the executer will use for any test specific storage.
