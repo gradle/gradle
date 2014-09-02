@@ -16,10 +16,11 @@
 
 package org.gradle.jvm.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.platform.JvmPlatform;
+import org.gradle.api.internal.platform.JvmPlatformFactory;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
@@ -40,8 +41,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
-    private final Set<JavaVersion> targets = new HashSet<JavaVersion>();
-    protected final JavaVersion defaultTarget = JavaVersion.current();
+    private JvmPlatform platform = JvmPlatformFactory.create(JavaVersion.current().toString());
 
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
@@ -49,7 +49,6 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
         sourceSets.addMainSources(mainSourceSet);
         this.languageOutputs.add(JvmResources.class);
         this.languageOutputs.add(JvmByteCode.class);
-
     }
 
     public String getName() {
@@ -89,19 +88,15 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
         return languageOutputs;
     }
 
-    public Set<JavaVersion> getTargets() {
-        if (targets.isEmpty()) {
-            return Sets.newHashSet(defaultTarget);
-        } else {
-            return targets;
-        }
+    public JvmPlatform getPlatform() {
+        return this.platform;
     }
 
-    public void target(JavaVersion target) {
-        targets.add(target);
+    public void target(JvmPlatform platform) {
+        this.platform = platform;
     }
 
-    public static JavaVersion java(String target) {
-        return JavaVersion.toVersion(target);
+    public static JvmPlatform java(String... versions) {
+        return JvmPlatformFactory.create(versions);
     }
 }

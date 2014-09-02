@@ -20,7 +20,6 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.platform.JvmPlatform;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -83,17 +82,6 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    @Incubating @Inject
-    public JvmPlatform getTargetPlatform() {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
-    }
-
-    public void setTargetPlatform(JvmPlatform platform) {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
-    }
-
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
         if (!compileOptions.isIncremental()) {
@@ -146,8 +134,8 @@ public class JavaCompile extends AbstractCompile {
         spec.setTempDir(getTemporaryDir());
         spec.setClasspath(getClasspath());
         spec.setDependencyCacheDir(getDependencyCacheDir());
-        spec.setTargetCompatibility(getTargetPlatform().getTargetCompatibility().toString());
-        spec.setSourceCompatibility(getTargetPlatform().getTargetCompatibility().toString()); //TODO: Source compatibility should be possible to configure separately
+        spec.setSourceCompatibility(getSourceCompatibility());
+        spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(compileOptions);
         return spec;
     }

@@ -30,16 +30,14 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 public class DefaultJavaToolChain implements JavaToolChainInternal {
     private final JavaCompilerFactory compilerFactory;
     private final ExecActionFactory execActionFactory;
-    private final JavaVersion javaVersion;
 
     public DefaultJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
         this.compilerFactory = compilerFactory;
         this.execActionFactory = execActionFactory;
-        this.javaVersion = JavaVersion.current(); //TODO: verify that this is true in all cases (if the java compiler is forked for example?)
     }
 
     public String getDisplayName() {
-        return String.format("current JDK (%s)", javaVersion);
+        return String.format("current JDK (%s)", JavaVersion.current());
     }
 
     @Override
@@ -57,9 +55,5 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         }
 
         throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", spec.getClass().getSimpleName()));
-    }
-
-    public JavaVersion getJavaVersion() {
-        return javaVersion;
     }
 }

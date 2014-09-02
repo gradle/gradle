@@ -27,9 +27,11 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     void setDependencyCacheDir(File dependencyCacheDir);
 
-    File getDestinationDir();
-
     String getSourceCompatibility();
 
+    void setSourceCompatibility(String sourceCompatibility);
+
     String getTargetCompatibility();
+
+    void setTargetCompatibility(String targetCompatibility);
 }

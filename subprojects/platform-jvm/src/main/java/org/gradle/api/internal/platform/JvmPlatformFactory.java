@@ -16,25 +16,18 @@
 
 package org.gradle.api.internal.platform;
 
-import org.gradle.api.Incubating;
+import java.util.Arrays;
 
-/**
- * Defines and configures a JVM platform.
- *
- * <pre>
- * apply plugin: 'java-lang'
- *
- * jvm {
- *   libraries {
- *     myLib {
- *       target java("1.6")
- *     }
- *   }
- * }
- * </pre>
- */
-@Incubating
-public interface JvmPlatform {
-    String getSourceCompatibility();
-    String getTargetCompatilibity();
+public class JvmPlatformFactory {
+    public static JvmPlatform create(String... versions) {
+        final String version;
+        if (versions == null) {
+            throw new PlatformTargetException("Could not find a valid JVM Platform target version.");
+        } else if (versions.length != 1) {
+            throw new PlatformTargetException("Could not find exactly one JVM Platform target version. Found: " + versions);
+        } else {
+            version = Arrays.asList(versions).get(0);
+        }
+        return new DefaultJvmPlatform(version);
+    }
 }

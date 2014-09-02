@@ -74,7 +74,7 @@ public abstract class AbstractCompile extends SourceTask {
      *
      * @return The source language level.
      */
-    @Input @Optional
+    @Input
     public String getSourceCompatibility() {
         return sourceCompatibility;
     }
@@ -93,7 +93,7 @@ public abstract class AbstractCompile extends SourceTask {
      *
      * @return The target JVM.
      */
-    @Input @Optional
+    @Input
     public String getTargetCompatibility() {
         return targetCompatibility;
     }

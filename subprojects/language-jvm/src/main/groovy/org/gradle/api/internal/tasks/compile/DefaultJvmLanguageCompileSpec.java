@@ -27,6 +27,7 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     private Iterable<File> classpath;
     private File destinationDir;
     private FileCollection source;
+    private String targetCompatibility;
 
     public File getWorkingDir() {
         return workingDir;
@@ -36,19 +37,20 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
         this.workingDir = workingDir;
     }
 
-    public File getDestinationDir() {
-        return destinationDir;
-    }
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
-
     public File getTempDir() {
         return tempDir;
     }
 
     public void setTempDir(File tempDir) {
         this.tempDir = tempDir;
+    }
+
+    public File getDestinationDir() {
+        return destinationDir;
+    }
+
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
     }
 
     public FileCollection getSource() {
@@ -65,5 +67,13 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
 
     public void setClasspath(Iterable<File> classpath) {
         this.classpath = classpath;
+    }
+
+    public String getTargetCompatibility() {
+        return targetCompatibility;
+    }
+
+    public void setTargetCompatibility(String targetCompatibility) {
+        this.targetCompatibility = targetCompatibility;
     }
 }

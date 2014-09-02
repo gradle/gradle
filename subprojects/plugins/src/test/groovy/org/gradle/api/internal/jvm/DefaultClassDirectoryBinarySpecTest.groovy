@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.jvm
 
-import org.gradle.api.JavaVersion
-import org.gradle.api.internal.platform.DefaultJvmPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
@@ -83,6 +81,6 @@ public class DefaultClassDirectoryBinarySpecTest extends Specification {
     }
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
-        new DefaultClassDirectoryBinarySpec(name, toolChain, new DefaultJvmPlatform(JavaVersion.current()))
+        new DefaultClassDirectoryBinarySpec(name, toolChain)
     }
 }

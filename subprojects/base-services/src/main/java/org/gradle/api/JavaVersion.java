@@ -51,12 +51,6 @@ public enum JavaVersion {
             if (index < values().length && values()[index].hasMajorVersion) {
                 return values()[index];
             }
-        } else if (name.matches("\\d{2}")) {
-            int number = Integer.parseInt(name);
-            int index = number - 45; //class file versions: 1.1 == 45, 1.2 == 46, ...
-            if (index < values().length && values()[index].hasMajorVersion) {
-                return values()[index];
-            }
         }
 
         Matcher matcher = Pattern.compile("1\\.(\\d)(\\D.*)?").matcher(name);

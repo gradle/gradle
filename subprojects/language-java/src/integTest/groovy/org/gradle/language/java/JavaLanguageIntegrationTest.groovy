@@ -15,8 +15,6 @@
  */
 
 package org.gradle.language.java
-
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.BadJavaLibrary
 import org.gradle.language.fixtures.TestJavaLibrary
@@ -291,9 +289,8 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Requires(TestPrecondition.JDK6_OR_LATER)
-    def "target should produce in the correct bytecode"() {
-        JavaVersion target = JavaVersion.VERSION_1_6
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "target with Java 6 should produce in Java 6 bytecode"() {
         when:
         def java6App = new TestJavaLibrary()
         java6App.sources*.writeToDir(file("src/myLib/java"))
@@ -306,7 +303,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     jvm {
         libraries {
             myLib {
-                target java("$target")
+                target java("1.6")
             }
         }
     }
@@ -315,96 +312,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/jdk$target/myLib.jar").getJavaVersion() == target
-    }
-
-
-    @Requires(TestPrecondition.JDK6_OR_LATER)
-    def "multiple targets should produce in the correct bytecode"() {
-        JavaVersion target1 = JavaVersion.VERSION_1_6
-        JavaVersion target2 = JavaVersion.VERSION_1_7
-        JavaVersion target3 = JavaVersion.VERSION_1_8
-        when:
-        def java6App = new TestJavaLibrary()
-        java6App.sources*.writeToDir(file("src/myLib/java"))
-
-        and:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
-                target java("$target1")
-                target java("$target2")
-                target java("$target3")
-            }
-        }
-    }
-"""
-        then:
-        succeeds "assemble"
-
-        and:
-        jarFile("build/jars/myLibJar/jdk$target1/myLib.jar").getJavaVersion() == target1
-        and:
-        jarFile("build/jars/myLibJar/jdk$target2/myLib.jar").getJavaVersion() == target2
-        and:
-        jarFile("build/jars/myLibJar/jdk$target3/myLib.jar").getJavaVersion() == target3
-    }
-
-    def "erroneous target should produce reasonable error message"() {
-        String badTarget = "200";
-        when:
-        def badApp = new BadJavaLibrary()
-        badApp.sources*.writeToDir(file("src/myLib/java"))
-
-        and:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
-                target java("$badTarget")
-            }
-        }
-    }
-"""
-        then:
-        fails "assemble"
-
-        and:
-        assert errorOutput.contains("Could not determine java version from '$badTarget'")
-    }
-
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "too high JDK target should produce reasonable error message"() {
-        String badTarget = "1.9";
-        when:
-        def badApp = new BadJavaLibrary()
-        badApp.sources*.writeToDir(file("src/myLib/java"))
-
-        and:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
-                target java("$badTarget")
-            }
-        }
-    }
-"""
-        then:
-        fails "assemble"
-
-        and:
-        assert errorOutput.contains("Could not use target JVM platform: '$badTarget' when using JDK: '${JavaVersion.current()}'. Change to a lower target.")
+        jarFile("build/jars/myLibJar/myLib.jar").jvmMajorVersion() == 50 //50 == Java 6, 51 == Java 7, ...
     }
 
     private JarTestFixture jarFile(String s) {
