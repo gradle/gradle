@@ -221,6 +221,7 @@ We would like to thank the following community members for making contributions 
 * [Andrea Panattoni](https://github.com/zeeke) - Provide option to fork Sonar analysis [GRADLE-2587]
 * [Lóránt Pintér](https://github.com/lptr) - `Action` overloads project `project.exec()` and `project.javaexec()`
 * [Clark Brewer](https://github.com/brewerc) - spelling corrections
+* [Guilherme Espada](https://github.com/GUIpsp) - allow to use OpenJDK with Gradle
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
