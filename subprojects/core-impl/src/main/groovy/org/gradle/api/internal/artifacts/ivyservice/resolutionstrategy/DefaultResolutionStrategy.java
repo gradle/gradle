@@ -130,6 +130,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
             out.failOnVersionConflict();
         }
         out.setForcedModules(getForcedModules());
+        out.getComponentSelection().getRules().addAll(componentSelectionRules.getRules());
         return out;
     }
 }
