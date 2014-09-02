@@ -51,7 +51,7 @@ public class JvmVersionValidator {
         try {
             String versionStr = reader.readLine();
             while (versionStr != null) {
-                Matcher matcher = Pattern.compile("java version \"(.+?)\"").matcher(versionStr);
+                Matcher matcher = Pattern.compile("[a-z]+ version \"(.+?)\"").matcher(versionStr);
                 if (matcher.matches()) {
                     return JavaVersion.toVersion(matcher.group(1));
                 }
