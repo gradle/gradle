@@ -16,9 +16,10 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.internal.ClosureBackedAction;
 
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupported {
     private final PasswordCredentials passwordCredentials;
@@ -32,6 +33,10 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     public void credentials(Closure closure) {
-        ConfigureUtil.configure(closure, passwordCredentials);
+        credentials(new ClosureBackedAction<PasswordCredentials>(closure));
+    }
+
+    public void credentials(Action<? super PasswordCredentials> action) {
+        action.execute(passwordCredentials);
     }
 }

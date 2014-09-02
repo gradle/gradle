@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 
 /**
  * An artifact repository which supports username/password authentication.
@@ -23,13 +24,13 @@ import groovy.lang.Closure;
 public interface AuthenticationSupported {
 
     /**
-     * Provides the Credentials used to authenticate to this repository.
+     * Returns the credentials used to authenticate to this repository.
      * @return The credentials
      */
     PasswordCredentials getCredentials();
 
     /**
-     * Configure the Credentials for this repository using the supplied Closure.
+     * Configure the credentials for this repository using the supplied Closure.
      *
      * <pre autoTested=''>
      * repositories {
@@ -43,4 +44,20 @@ public interface AuthenticationSupported {
      * </pre>
      */
     void credentials(Closure closure);
+
+    /**
+     * Configure the credentials for this repository using the supplied action.
+     *
+     * <pre autoTested=''>
+     * repositories {
+     *     maven {
+     *         credentials {
+     *             username = 'joe'
+     *             password = 'secret'
+     *         }
+     *     }
+     * }
+     * </pre>
+     */
+    void credentials(Action<? super PasswordCredentials> action);
 }
