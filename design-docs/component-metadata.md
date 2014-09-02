@@ -112,12 +112,6 @@ This rule is fired any time a candidate version is compared to see if it matches
 - Resolve '1.0' against ['2.0', '1.1', '1.0']: rules are fired for ['2.0', '1.1', '1.0']
 - Each of multiple declared rules are fired.
 
-### Open issues
-
-- Rules should be fired after the built in version matching rules are executed
-- Need some way to fall back to some other version if preferred version is not available, eg use something from 'master' branch if none from 'feature' branch is available.
-Could do this using two rules, if there were some guarantee to the order of rule executions.
-
 ## Story: Build logic selects the module that matches an external dependency
 
 This story allows the build script to provide logic that can specify if a particular module version satisfies a particular version
