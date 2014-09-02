@@ -31,13 +31,14 @@ import org.gradle.process.internal.JavaExecHandleBuilder
 import javax.inject.Inject
 
 /**
- * Analyses one or more projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
- * Sonar Runner</a>. Can be used with or without the {@code sonar-runner} plugin. If used together with the plugin,
- * {@code sonarProperties} will be populated with defaults based on Gradle's object model and user-defined
- * values configured via {@link SonarRunnerExtension} and {@link SonarRunnerRootExtension}. If used without the plugin,
- * all properties have to be configured manually.
- *
- * <p>For more information on how to configure the Sonar Runner, and on which properties are available, see the
+ * Analyses one or more projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
+ * <p>
+ * Can be used with or without the {@code sonar-runner} plugin.
+ * If used together with the plugin, {@code sonarProperties} will be populated with defaults based on Gradle's object model and user-defined
+ * values configured via {@link SonarRunnerExtension} and {@link SonarRunnerRootExtension}.
+ * If used without the plugin, all properties have to be configured manually.
+ * <p>
+ * For more information on how to configure the Sonar Runner, and on which properties are available, see the
  * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner documentation</a>.
  */
 @Incubating
