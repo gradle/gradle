@@ -16,23 +16,23 @@
 
 package org.gradle.api.sonar.runner
 
+import org.gradle.api.Action
 import org.gradle.process.JavaForkOptions
-import org.gradle.util.ConfigureUtil
 
 /**
- * An extension for configuring the analysis process options. The extension is added
- * to the plugin's target project,
- *
- * <p> Example usage:
- *
+ * An extension for configuring the analysis process options.
+ * <p>
+ * The extension is added to the plugin's target project.
+ * <p>
+ * Example usage:
  * <pre>
  * sonarRunner {
- *      toolVersion = '2.3' // default
+ *   toolVersion = '2.3' // default
  *
- *      forkOptions {
- *          maxHeapSize = '1024m'
- *          jvmArgs '-XX:MaxPermSize=128m'
- *      }
+ *   forkOptions {
+ *     maxHeapSize = '1024m'
+ *     jvmArgs '-XX:MaxPermSize=128m'
+ *   }
  * }
  * </pre>
  */
@@ -49,10 +49,12 @@ class SonarRunnerRootExtension extends SonarRunnerExtension {
     JavaForkOptions forkOptions
 
     /**
-     * Configure the {@link SonarRunnerRootExtension#forkOptions}
-     * @param configClosure the closure to use to configure {@link SonarRunnerRootExtension#forkOptions}
+     * Configure the {@link #forkOptions}
+     *
+     * @param action the action to use to configure {@link #forkOptions}
      */
-    void forkOptions(Closure configClosure) {
-        ConfigureUtil.configure(configClosure, forkOptions)
+    void forkOptions(Action<? super JavaForkOptions> action) {
+        action.execute(forkOptions);
     }
+
 }
