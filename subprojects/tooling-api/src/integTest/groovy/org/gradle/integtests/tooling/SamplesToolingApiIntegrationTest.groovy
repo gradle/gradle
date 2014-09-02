@@ -139,6 +139,7 @@ repositories {
     private ExecutionResult run(String task = 'run', File dir = sample.dir) {
         try {
             return new GradleContextualExecuter(distribution, temporaryFolder)
+                    .requireGradleHome()
                     .inDirectory(dir)
                     .withTasks(task)
                     .run()
