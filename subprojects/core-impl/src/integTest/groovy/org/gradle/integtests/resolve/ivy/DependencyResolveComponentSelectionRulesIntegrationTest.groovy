@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
 
-class DependencyResolveComponentSelectionRulesTest extends AbstractHttpDependencyResolutionTest {
+class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     Map<String, IvyHttpModule> modules = [:]
 
     def setup() {
