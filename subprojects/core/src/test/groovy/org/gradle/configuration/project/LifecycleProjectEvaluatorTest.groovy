@@ -16,10 +16,12 @@
 
 package org.gradle.configuration.project
 
+import com.google.common.collect.Iterators
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
+import org.gradle.api.internal.tasks.TaskContainerInternal
 import spock.lang.Specification
 
 public class LifecycleProjectEvaluatorTest extends Specification {
@@ -32,6 +34,9 @@ public class LifecycleProjectEvaluatorTest extends Specification {
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
         project.toString() >> "project1"
+        project.tasks >> Mock(TaskContainerInternal) {
+            iterator() >> Iterators.emptyIterator()
+        }
     }
 
     void "nothing happens if project was already configured"() {
@@ -86,6 +91,9 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         })
         1 * state.setExecuting(false)
         1 * listener.afterEvaluate(project, state)
+
+        and:
+        _ * state.hasFailure() >> true
     }
 
     void "updates state and does not delegate when beforeEvaluate action fails"() {
@@ -121,6 +129,9 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * state.executed({
             assertIsConfigurationFailure(it, failure)
         })
+
+        and:
+        state.hasFailure() >>> [false, true]
     }
 
     def assertIsConfigurationFailure(def it, def cause) {
@@ -146,7 +157,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
 
         then:
         1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate") }
-        1 * state.hasFailure() >> true
+        _ * state.hasFailure() >> true
         0 * state.executed(_)
     }
 }
