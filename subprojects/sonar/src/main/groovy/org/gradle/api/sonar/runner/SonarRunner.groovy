@@ -21,6 +21,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.JavaForkOptions
@@ -45,7 +46,7 @@ class SonarRunner extends DefaultTask {
     /**
      * The String key/value pairs to be passed to the Sonar Runner. {@code null} values are not permitted.
      */
-    @InputFiles
+    @Input
     Properties sonarProperties
 
     /**
