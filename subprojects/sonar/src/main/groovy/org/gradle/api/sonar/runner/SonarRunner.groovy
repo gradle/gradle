@@ -17,6 +17,7 @@
 
 package org.gradle.api.sonar.runner
 
+import groovy.transform.PackageScope
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.internal.file.FileResolver
@@ -73,7 +74,8 @@ class SonarRunner extends DefaultTask {
                 .assertNormalExitValue()
     }
 
-    private JavaExecHandleBuilder prepareExec() {
+    @PackageScope
+    JavaExecHandleBuilder prepareExec() {
         def properties = getSonarProperties()
 
         if (LOGGER.infoEnabled) {
