@@ -128,8 +128,13 @@ task retrieve(type: Sync) {
 
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
         given:
-        def module = mavenHttpRepo.module('group', 'projectA', '1.2')
-        module.publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA', '1.2')
+        projectA.dependsOn('group', 'projectC', '1.2')
+        projectA.publish()
+        def projectB = mavenHttpRepo.module('group', 'projectB', '1.2')
+        projectB.artifact(classifier: 'classy')
+        projectB.dependsOn('group', 'projectC', '1.2')
+        projectB.publish()
 
         and:
         buildFile << """
@@ -141,16 +146,20 @@ configurations {
         resolutionStrategy.cacheChangingModulesFor(0, "seconds")
     }
 }
-dependencies { compile 'group:projectA:1.2@jar' }
+dependencies {
+    compile 'group:projectA:1.2@jar'
+    compile 'group:projectB:1.2:classy@jar'
+}
 task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.2-classy.jar']
 }
 """
 
         when:
-        // TODO: Should meta-data be fetched for an artifact-only dependency?
-        module.pom.expectGet()
-        module.artifact.expectGet()
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+        projectB.pom.expectGet()
+        projectB.artifact(classifier: 'classy').expectGet()
 
         then:
         succeeds('listJars')
@@ -165,8 +174,13 @@ task listJars << {
 
     def "can resolve and cache artifact-only dependencies with no pom from an HTTP Maven repository"() {
         given:
-        def module = mavenHttpRepo.module('group', 'projectA', '1.2')
-        module.publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA', '1.2')
+        projectA.dependsOn('group', 'projectC', '1.2')
+        projectA.publish()
+        def projectB = mavenHttpRepo.module('group', 'projectB', '1.2')
+        projectB.artifact(classifier: 'classy')
+        projectB.dependsOn('group', 'projectC', '1.2')
+        projectB.publish()
 
         and:
         buildFile << """
@@ -178,17 +192,22 @@ configurations {
         resolutionStrategy.cacheChangingModulesFor(0, "seconds")
     }
 }
-dependencies { compile 'group:projectA:1.2@jar' }
+dependencies {
+    compile 'group:projectA:1.2@jar'
+    compile 'group:projectB:1.2:classy@jar'
+}
 task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.2-classy.jar']
 }
 """
 
         when:
-        // TODO: Should meta-data be fetched for an artifact-only dependency?
-        module.pom.expectGetMissing()
-        module.artifact.expectHead()
-        module.artifact.expectGet()
+        projectA.pom.expectGetMissing()
+        projectA.artifact.expectHead()
+        projectA.artifact.expectGet()
+        projectB.pom.expectGetMissing()
+        projectB.artifact(classifier: 'classy').expectHead()
+        projectB.artifact(classifier: 'classy').expectGet()
 
         then:
         succeeds('listJars')
