@@ -25,6 +25,9 @@ Currently, coverage builds are triggered for each commit. We might change this s
 - Adjust Commit configurations such that concurrent commits by different developers lead to multiple builds with the commits grouped by developer
 - Configure TC to automatically restart a coverage build if it has failed
 
+# Checkout source on agents
+
+
 # Increase build bandwidth
 
 - Add 2 linux vms to replace the agents on dev1.
