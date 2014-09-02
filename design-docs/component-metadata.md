@@ -280,6 +280,12 @@ A few options:
 
 Option 1 can turn into option 2 later.
 
+## Story: Add Java API for component metadata rules
+
+The approach from the previous story and apply it to `ComponentMetadataHandler` and component metadata rules.
+
+Generate closure-based methods for any methods that take a `RuleAction` parameter, and remove the existing Closure-accepting duplicates.
+
 ## Story: Build script targets component selection rule to particular module
 
 This story adds some convenience DSL to target a selection rule a particular group or module:
@@ -334,12 +340,6 @@ that matched the specified version selector, together with the reason each was r
 ### Open issues
 
 - Dependency reports should indicate reasons for candidate selection (why other candidates were rejected).
-
-## Story: Add Java API for component metadata rules
-
-Use `RuleAction` to provide a Java API for component metadata rules: `ComponentMetadataHandler.eachComponent(RuleAction<ComponentMetadataDetails>)`
-
-Generate closure-based methods for any methods that take a `RuleAction` parameter, and remove the existing Closure-accepting duplicates.
 
 # Later milestones
 
