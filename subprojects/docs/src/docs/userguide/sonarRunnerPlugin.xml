@@ -186,7 +186,15 @@
             </tr>
         </table>
     </section>
-
+    <section>
+        <title>Specifying the Sonar Runner version</title>
+        <para>
+            By default, version 2.3 of the Sonar Runner is used.
+            To specify an alternative version, set the <apilink class="org.gradle.api.sonar.runner.SonarRunnerRootExtension" method="getToolVersion()"/> property
+            of the <literal>sonarRunner</literal> extension of the project the plugin was applied to to the desired version.
+            This will result in the Sonar Runner dependency <literal>org.codehaus.sonar.runner:sonar-runner-dist:«toolVersion»</literal> being used as the Sonar Runner.
+        </para>
+    </section>
     <section>
         <title>Analyzing Multi-Project Builds</title>
         <para>The Sonar Runner is capable of analyzing whole project hierarchies at once. This yields a hierarchical view in the
