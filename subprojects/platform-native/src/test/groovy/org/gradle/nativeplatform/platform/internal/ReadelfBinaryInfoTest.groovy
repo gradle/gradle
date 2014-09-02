@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.binaryinfo
+package org.gradle.nativeplatform.platform.internal
+
+import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 
 import spock.lang.Specification
 import spock.lang.Unroll
