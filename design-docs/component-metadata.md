@@ -242,6 +242,44 @@ The primary changes are:
 - ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~
 - ~~Test cases from earlier stories will be modified or replaced by the test cases here~~
 
+## Story: Java API for component selection rules
+
+A few options:
+
+### Option 1
+
+    interface ComponentMetaDataAction<T> {
+        void execute(T target, ComponentMetadata metadata);
+    }
+
+    interface IvyComponentMetaDataAction<T> {
+        void execute(T target, ComponentMetadata metadata, IvyModuleDescriptor descriptor);
+    }
+
+    interface ComponentSelectionRules {
+        void all(Action<? super ComponentSelection> action);
+        void all(ComponentMetaDataAction<? super ComponentSelection> action);
+        void all(IvyComponentMetaDataAction<? super ComponentSelection> action);
+    }
+
+### Option 2
+
+    class MyCustomRule {
+        @Mutate
+        void whatever(ComponentSelection selection, ComponentMetadata metadata) { ... }
+    }
+
+    class MyIvyCustomRule {
+        @Mutate
+        void whatever(ComponentSelection selection, ComponentMetadata metadata, IvyModuleDescriptor descriptor) { ... }
+    }
+
+    interface ComponentSelectionRules {
+        void all(Object rule);
+    }
+
+Option 1 can turn into option 2 later.
+
 ## Story: Build script targets component selection rule to particular module
 
 This story adds some convenience DSL to target a selection rule a particular group or module:
