@@ -73,7 +73,7 @@ class SonarRunner extends DefaultTask {
                 .assertNormalExitValue()
     }
 
-    JavaExecHandleBuilder prepareExec() {
+    private JavaExecHandleBuilder prepareExec() {
         def properties = getSonarProperties()
 
         if (LOGGER.infoEnabled) {
