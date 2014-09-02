@@ -65,7 +65,7 @@ model {
     toolChains {
         ${toolChain.id} {
             target('custom') {
-                if (${OperatingSystem.current().isLinux()}) {
+                if (${!OperatingSystem.current().windows}) {
                     cCompiler.withArguments { it << '-fPIC' }
                 }
             }
