@@ -230,6 +230,27 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             }
         });
 
+        taskContainer.all(new Action<Task>() {
+            public void execute(final Task task) {
+                final String name = task.getName();
+                final ModelPath modelPath = TaskContainerInternal.MODEL_PATH.child(name);
+
+                if (modelRegistry.state(modelPath) == null) {
+                    modelRegistry.create(InstanceBackedModelCreator.of(
+                            ModelReference.of(modelPath, ModelType.of(Task.class)),
+                            new SimpleModelRuleDescriptor("Project.<init>.tasks." + name + "()"),
+                            task
+                    ));
+                }
+            }
+        });
+
+        taskContainer.whenObjectRemoved(new Action<Task>() {
+            public void execute(Task task) {
+                modelRegistry.remove(TaskContainerInternal.MODEL_PATH.child(task.getName()));
+            }
+        });
+
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
             extensibleDynamicObject.setParent(parent.getInheritedScope());

@@ -357,49 +357,4 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         output.contains "value: [foo]"
     }
 
-    def "configuration made to a project extension during afterEvaluate() is visible to rule sources"() {
-        when:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.internal.core.*
-
-            class MyExtension {
-                String value = "original"
-            }
-
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.extensions.create("myExtension", MyExtension)
-                }
-
-                @RuleSource
-                static class Rules {
-                    @Model
-                    MyExtension myExtension(ExtensionContainer extensions) {
-                        extensions.getByType(MyExtension)
-                    }
-
-                    @Model
-                    String value(MyExtension myExtension) {
-                        myExtension.value
-                    }
-                }
-            }
-
-            apply plugin: MyPlugin
-
-            project.afterEvaluate {
-                project.myExtension.value = "configured"
-            }
-
-            // internal API here
-            task value {
-                doFirst { assert modelRegistry.get(ModelPath.path("value"), ModelType.of(String)) == "configured" }
-            }
-        """
-
-        then:
-        succeeds "value"
-    }
-
 }

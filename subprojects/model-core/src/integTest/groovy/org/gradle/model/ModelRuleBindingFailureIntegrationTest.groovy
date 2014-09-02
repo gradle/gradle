@@ -21,8 +21,8 @@ import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
 import org.gradle.model.internal.report.unbound.UnboundRule
 import org.gradle.model.internal.report.unbound.UnboundRuleInput
+import org.gradle.model.internal.report.unbound.UnboundRulesReporter
 
-import static org.gradle.model.report.unbound.UnboundRulesReportMatchers.unbound
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
@@ -63,7 +63,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertThatCause(unbound(
+        failure.assertHasCause(unbound(
                 UnboundRule.descriptor('MyPlugin$Rules#thing1(MyPlugin$MyThing2)')
                         .immutableInput(UnboundRuleInput.type('MyPlugin$MyThing2')),
                 UnboundRule.descriptor('MyPlugin$Rules#mutateThing2(MyPlugin$MyThing2, MyPlugin$MyThing3)')
@@ -87,7 +87,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertThatCause(unbound(
+        failure.assertHasCause(unbound(
                 UnboundRule.descriptor('model.foo.bar')
                         .mutableInput(UnboundRuleInput.type(Object).path('foo.bar'))
         ))
@@ -125,10 +125,19 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
 
         then:
-        failure.assertThatCause(unbound(
+        failure.assertHasCause(unbound(
                 UnboundRule.descriptor("model.tasks.foonar")
                     .mutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar"))
         ))
+    }
+
+    String unbound(UnboundRule.Builder... rules) {
+        def string = new StringWriter()
+        def writer = new PrintWriter(string)
+        writer.println("The following model rules are unbound:")
+        def reporter = new UnboundRulesReporter(writer, "  ")
+        reporter.reportOn(rules.toList()*.build())
+        normaliseLineSeparators(string.toString())
     }
 
     def "ambiguous binding integration test"() {

@@ -17,16 +17,8 @@ package org.gradle.configuration.project;
 
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.model.internal.core.InstanceBackedModelCreator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,36 +59,6 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             state.setExecuting(false);
             state.executed();
             notifyAfterEvaluate(listener, project, state);
-        }
-
-        if (!state.hasFailure()) {
-            addTasksToModel(project);
-            realizeTaskModel(project, state);
-        }
-    }
-
-    private void realizeTaskModel(ProjectInternal project, ProjectStateInternal state) {
-        try {
-            ModelRegistry modelRegistry = project.getModelRegistry();
-            modelRegistry.get(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED);
-            modelRegistry.validate();
-        } catch (Exception e) {
-            addConfigurationFailure(project, state, e);
-        }
-    }
-
-    private void addTasksToModel(ProjectInternal project) {
-        for (Task task : project.getTasks()) {
-            final String name = task.getName();
-            final ModelPath modelPath = TaskContainerInternal.MODEL_PATH.child(name);
-
-            if (project.getModelRegistry().state(modelPath) == null) {
-                project.getModelRegistry().create(InstanceBackedModelCreator.of(
-                        ModelReference.of(modelPath, ModelType.of(Task.class)),
-                        new SimpleModelRuleDescriptor("Project.<init>.tasks." + name + "()"),
-                        task
-                ));
-            }
         }
     }
 
