@@ -26,34 +26,28 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 /**
- * A plugin for analyzing projects with the
- * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
- * When applied to a project, both the project itself and its subprojects
- * will be analyzed (in a single run). Therefore, it's common to apply the
- * plugin only to the root project. To exclude selected subprojects from
- * being analyzed, set {@code sonarRunner.skipProject = true}.
- *
- * <p>The plugin is configured via {@link SonarRunnerExtension}. Here is a
- * small example:
- *
+ * A plugin for analyzing projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
+ * <p>
+ * When applied to a project, both the project itself and its subprojects will be analyzed (in a single run). Therefore, it's common to apply the plugin only to the root project.
+ * To exclude selected subprojects from being analyzed, set {@code sonarRunner.skipProject = true}.
+ * <p>
+ * The plugin is configured via {@link SonarRunnerExtension}.
+ * Here is a small example:
  * <pre autoTested=''>
  * sonarRunner {
- *     skipProject = false // this is the default
+ *   skipProject = false // this is the default
  *
- *     sonarProperties {
- *         property "sonar.host.url", "http://my.sonar.server" // adding a single property
- *         properties mapOfProperties // adding multiple properties at once
- *         properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
- *     }
+ *   sonarProperties {
+ *     property "sonar.host.url", "http://my.sonar.server" // adding a single property
+ *     properties mapOfProperties // adding multiple properties at once
+ *     properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
+ *   }
  * }
  * </pre>
- *
- * The Sonar Runner already comes with defaults for some of the most important
- * Sonar properties (server URL, database settings, etc.). For details see
- * <a href="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Analysis Parameters</a>
- * in the Sonar documentation. The {@code sonar-runner} plugin provides the following additional
- * defaults:
- *
+ * <p>
+ * The Sonar Runner already comes with defaults for some of the most important Sonar properties (server URL, database settings, etc.).
+ * For details see <a href="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Analysis Parameters</a> in the Sonar documentation.
+ * The {@code sonar-runner} plugin provides the following additional defaults:
  * <dl>
  *     <dt>sonar.projectKey
  *     <dd>"$project.group:$project.name"
@@ -70,18 +64,16 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin
  *     <dt>sonar.dynamicAnalysis
  *     <dd>"reuseReports"
  * </dl>
- *
+ * <p>
  * For project that have the {@code java-base} plugin applied, additionally the following defaults are provided:
- *
  * <dl>
  *     <dt>sonar.java.source
  *     <dd>project.sourceCompatibility
  *     <dt>sonar.java.target
  *     <dd>project.targetCompatibility
  * </dl>
- *
+ * <p>
  * For project that have the {@code java} plugin applied, additionally the following defaults are provided:
- *
  * <dl>
  *     <dt>sonar.sources
  *     <dd>sourceSets.main.allSource.srcDirs (filtered to only include existing directories)
@@ -108,13 +100,9 @@ class SonarRunnerPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         targetProject = project
-
-        SonarRunner sonarRunnerTask = createTask(project)
-
+        def sonarRunnerTask = createTask(project)
         addExtensions(project, sonarRunnerTask)
-
         addTaskDependencies(sonarRunnerTask, project)
-
         addConfiguration()
     }
 

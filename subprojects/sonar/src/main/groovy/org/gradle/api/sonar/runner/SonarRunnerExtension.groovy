@@ -22,26 +22,26 @@ import org.gradle.api.Incubating
 import org.gradle.listener.ActionBroadcast
 
 /**
- * An extension for configuring the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
- * Sonar Runner</a>. The extension is added to all projects that have the {@code sonar-runner}
- * plugin applied, and all of their subprojects.
- *
- * <p>Example usage:
- *
+ * An extension for configuring the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner"> Sonar Runner</a>.
+ * <p>
+ * The extension is added to all projects that have the {@code sonar-runner} plugin applied, and all of their subprojects.
+ * <p>
+ * Example usage:
  * <pre autoTested=''>
  * sonarRunner {
- *     skipProject = false // this is the default
+ *   skipProject = false // this is the default
  *
- *     sonarProperties {
- *         property "sonar.host.url", "http://my.sonar.server" // adding a single property
- *         properties mapOfProperties // adding multiple properties at once
- *         properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
- *     }
+ *   sonarProperties {
+ *     property "sonar.host.url", "http://my.sonar.server" // adding a single property
+ *     properties mapOfProperties // adding multiple properties at once
+ *     properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
+ *   }
  * }
  * </pre>
  */
 @Incubating
 class SonarRunnerExtension {
+
     /**
      * Tells if the project will be excluded from analysis. Defaults to {@code false}.
      */
