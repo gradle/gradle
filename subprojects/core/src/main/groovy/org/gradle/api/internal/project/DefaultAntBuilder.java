@@ -120,7 +120,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         }
     }
 
-    public static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
+    private static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
         task.setTarget(target);
         task.setBaseDir(baseDir);
 
