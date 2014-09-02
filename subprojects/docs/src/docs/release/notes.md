@@ -40,6 +40,29 @@ strategy.  This allows Gradle to customize component selection without knowing w
 
 See the [userguide section](userguide/dependency_management.html#component_selection_rules) on component selection rules for further information.
 
+### Sonar Runner plugin improvements
+
+The [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) has been improved to fork the Sonar Runner process.
+In previous Gradle versions the runner was executed within the build process.
+This was problematic is it made controlling the environment (e.g. JVM memory settings) for the runner difficult and mean the runner could destabilize the build process.
+Importantly, because the Sonar Runner process is now forked, the version of Sonar Runner to use can now be configured in the build.
+
+The `sonar-runner` plugin defaults to using version 2.3 of the runner.
+Upgrading to a later version is now simple:
+
+    apply plugin: "sonar-runner"
+    
+    sonarRunner {
+      toolVerison = "2.4"
+      
+      // Fine grained control over the runner process
+      forkOptions {
+        maxHeapSize = '1024m'
+      }
+    }
+
+This feature was contributed by [Andrea Panattoni](https://github.com/zeeke).
+
 ### Native language cross-compilation improvements (i)
 
 - Uses the file naming scheme of the target platform, rather than then host platform.
@@ -165,27 +188,22 @@ Instead, the `ant.importBuild()` method should be used to import Ant build and t
 As of Gradle 2.2, manually added `AntTarget` tasks no longer honor target dependencies.
 Tasks created as a result of `ant.importBuild()` (i.e. the recommended practice) are unaffected and will continue to work.
 
-### Sonar Runner Plugin
+### Sonar Runner Plugin changes
 
 The sonar runner plugin now forks a new jvm to analyze the project. 
-Projects using the `sonar runner plugin` should double check their memory settings for the Gradle build. 
-Some large projects increased the memory settings for Gradle just to successfully run the sonar runner and avoid 
-OutOfMemoryExceptions in the according task. The memory used for the sonar runner can now be set explicitly.
- 
-    sonarRunner {
-         forkOptions {
-             maxHeapSize = '1024m'
-             jvmArgs '-XX:MaxPermSize=128m'
-         }
-    }
-    
-The default sonar runner version was updated to 2.3 which might cause trouble. The version is also configurable from now on.
-    
-    sonarRunner {
-        toolVersion = '2.4'
-    }
+Projects using the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) should consider setting explicitly the memory settings for the runner process. 
 
-This feature was contributed by [Andrea Panattoni](https://github.com/zeeke).
+Existing users of the `sonar-runner` plugin may have increased the memory allocation to the Gradle process to facilitate the Sonar Runner.
+This can now be reduced.
+    
+The Sonar Runner version is now configurable.
+Previously the plugin enforced the use of version 2.0.
+The default version is now 2.3.
+If you require the previous default of 2.0, you can specify this version via the project extension.
+    
+    sonarRunner {
+      toolVersion = '2.0'
+    }
 
 ## External contributions
 
