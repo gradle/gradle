@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -72,22 +73,24 @@ public interface IvyModuleDescriptorSpec {
     /**
      * Returns the status for this publication.
      */
+    @Nullable
     String getStatus();
 
     /**
      * Sets the status for this publication.
      */
-    void setStatus(String status);
+    void setStatus(@Nullable String status);
 
     /**
      * Returns the branch for this publication
      */
+    @Nullable
     String getBranch();
 
     /**
      * Sets the branch for this publication
      */
-    void setBranch(String branch);
+    void setBranch(@Nullable String branch);
 
     /**
      * Returns the extra info element spec for this publication

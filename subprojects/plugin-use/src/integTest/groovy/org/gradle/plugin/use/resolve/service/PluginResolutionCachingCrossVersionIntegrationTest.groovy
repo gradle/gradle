@@ -34,6 +34,10 @@ class PluginResolutionCachingCrossVersionIntegrationTest extends CrossVersionInt
     PluginResolutionServiceTestServer service = new PluginResolutionServiceTestServer(version(current), mavenRepo)
     private MavenHttpModule module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
 
+    void setup() {
+        requireOwnGradleUserHomeDir()
+    }
+
     def "cached resolution by previous version is not used by this version"() {
         when:
         def gradleUserHome = file("gradle-home")

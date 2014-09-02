@@ -30,6 +30,11 @@ class CacheReuseCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersi
     @Rule public final HttpServer server = new HttpServer()
     final MavenHttpRepository httpRepo = new MavenHttpRepository(server, new MavenFileRepository(file("maven-repo")))
 
+    @Override
+    void setup() {
+        requireOwnGradleUserHomeDir()
+    }
+
     def "uses cached artifacts from previous Gradle version when no sha1 header"() {
         given:
         def projectB = httpRepo.module('org.name', 'projectB', '1.0').publish()

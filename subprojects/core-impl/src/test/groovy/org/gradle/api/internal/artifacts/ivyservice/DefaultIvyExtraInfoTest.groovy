@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import javax.xml.namespace.QName
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
+
+import javax.xml.namespace.QName
 
 class DefaultIvyExtraInfoTest extends Specification {
     def "can get value by name only" () {
@@ -27,6 +28,7 @@ class DefaultIvyExtraInfoTest extends Specification {
 
         expect:
         extraInfo.get('foo') == 'fooValue'
+        extraInfo.get('goo') == null
     }
 
     def "throws exception when name matches multiple keys" () {
@@ -45,7 +47,7 @@ class DefaultIvyExtraInfoTest extends Specification {
         e.message.equals('Cannot get extra info element named \'foo\' by name since elements with this name were found from multiple namespaces (http://my.extra.info, http://some.extra.info).  Use get(String namespace, String name) instead.')
     }
 
-    def "can get name by name and namespace" () {
+    def "can get by name and namespace" () {
         given:
         def extraInfo = new DefaultIvyExtraInfo([
                 (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue',
@@ -54,6 +56,8 @@ class DefaultIvyExtraInfoTest extends Specification {
 
         expect:
         extraInfo.get('http://my.extra.info', 'foo') == 'fooValue'
+        extraInfo.get('http://my.extra.info', 'goo') == null
+        extraInfo.get('http://other', 'foo') == null
     }
 
     def "can get extra info values as map" () {
