@@ -162,13 +162,13 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         when:
-        succeeds "jdk1.8MyLibJar"
+        succeeds "myLibJar"
 
         then:
-        executed ":createJdk1.8MyLibJar", ":jdk1.8MyLibJar"
+        executed ":createMyLibJar", ":myLibJar"
 
         and:
-        def jar = new JarTestFixture(file("build/jars/myLibJar/jdk${JavaVersion.current()}/myLib.jar"))
+        def jar = new JarTestFixture(file("build/jars/myLibJar/myLib.jar"))
         jar.hasDescendants()
     }
 }

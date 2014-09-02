@@ -91,11 +91,20 @@ public class JvmComponentPlugin implements Plugin<Project> {
             JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
             for (JvmLibrarySpec jvmLibrary : libraries) {
                 for (JavaVersion target : jvmLibrary.getTargets()) {
-                    BinaryNamingScheme namingScheme = namingSchemeBuilder
+                    BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
                             .withComponentName(jvmLibrary.getName())
-                            .withTypeString("jar")
-                            .withVariantDimension("jdk"+target)
-                            .build();
+                            .withTypeString("jar");
+                    final BinaryNamingScheme namingScheme;
+
+                    if (jvmLibrary.getTargets().size() <= 1) {
+                        namingScheme = componentBuilder //keep the existing task&jar naming schemes when we only have one target
+                                .build();
+                    } else {
+                        namingScheme = componentBuilder
+                                .withVariantDimension("jdk"+target)
+                                .build();
+                    }
+
                     JvmPlatform platform = new DefaultJvmPlatform(target);
                     List<String> errors = platform.getErrors(toolChain);
                     if (!errors.isEmpty()) {
