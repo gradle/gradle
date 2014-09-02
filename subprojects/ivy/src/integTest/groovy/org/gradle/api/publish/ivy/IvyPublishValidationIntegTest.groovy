@@ -105,11 +105,6 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
             group = '${sq(organisation)}'
             version = '${sq(version)}'
 
-            println "test build vm: file.encoding=" + System.getProperty("file.encoding")
-            println "test build vm: LANG=" + System.getenv("LANG")
-            println "test build vm: LC_ALL=" + System.getenv("LC_ALL")
-            println "test build vm: LC_CTYPE=" + System.getenv("LC_CTYPE")
-
             publishing {
                 repositories {
                     ivy { url "${ivyRepo.uri}" }
