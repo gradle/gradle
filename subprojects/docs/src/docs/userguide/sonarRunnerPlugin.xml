@@ -291,11 +291,12 @@
     </section>
 
     <section>
-        <title>Executing Sonar Runner in a separate process</title>
+        <title>Controlling the Sonar Runner process</title>
         <para>
-            Depending on project size, the Sonar Runner may require a lot of memory. For this and other (mainly isolation) reasons,
-            the Sonar Runner is running in a separate process. The <literal>forkOptions</literal> property can be used
-            to customize this process.
+            The Sonar Runner is executed via a forked process.
+            This allows fine grained control over memory settings, system properties etc. just for the Sonar Runner process.
+            The <literal>forkOptions</literal> property of the <literal>sonarRunner</literal> extension of the project that applies the <literal>sonar-runner</literal> plugin
+            (this property is not available via the extension of child projects) allows the process configuration to be specified.
         </para>
         <sample id="advanced" dir="sonarRunner/advanced" title="setting custom Sonar Runner fork options">
             <sourcefile file="build.gradle" snippet="forkoptions"/>
