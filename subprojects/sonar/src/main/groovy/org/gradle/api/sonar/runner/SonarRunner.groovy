@@ -16,19 +16,20 @@
 
 
 package org.gradle.api.sonar.runner
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.process.internal.JavaExecHandleBuilder
 
 import javax.inject.Inject
+
 /**
  * Analyses one or more projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
  * Sonar Runner</a>. Can be used with or without the {@code sonar-runner} plugin. If used together with the plugin,
@@ -43,6 +44,8 @@ import javax.inject.Inject
 class SonarRunner extends DefaultTask {
     private static final Logger LOGGER = Logging.getLogger(SonarRunner)
 
+    private JavaForkOptions forkOptions
+
     /**
      * The String key/value pairs to be passed to the Sonar Runner. {@code null} values are not permitted.
      */
@@ -52,10 +55,12 @@ class SonarRunner extends DefaultTask {
     /**
      * Options for the analysis process. Configured via {@link SonarRunnerRootExtension#forkOptions}.
      */
-    JavaForkOptions forkOptions
+    JavaForkOptions getForkOptions() {
+        if (forkOptions == null) {
+            forkOptions = new DefaultJavaForkOptions(getFileResolver())
+        }
 
-    SonarRunner() {
-        forkOptions = new DefaultJavaForkOptions(getFileResolver())
+        forkOptions
     }
 
     @TaskAction
@@ -64,7 +69,7 @@ class SonarRunner extends DefaultTask {
                 .build()
                 .start()
                 .waitForFinish()
-                .assertNormalExitValue();
+                .assertNormalExitValue()
     }
 
     JavaExecHandleBuilder prepareExec() {
@@ -76,7 +81,7 @@ class SonarRunner extends DefaultTask {
         }
 
         def javaExec = new JavaExecHandleBuilder(getFileResolver())
-        forkOptions.copyTo(javaExec)
+        getForkOptions().copyTo(javaExec)
 
         javaExec.setClasspath(
                 project.configurations[SonarRunnerPlugin.SONAR_RUNNER_CONFIGURATION_NAME]
@@ -88,6 +93,6 @@ class SonarRunner extends DefaultTask {
 
     @Inject
     protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException()
     }
 }
