@@ -238,5 +238,5 @@ public interface ResolutionStrategy {
      * @since 2.2
      */
     @Incubating
-    ResolutionStrategy componentSelection(Action<ComponentSelectionRules> action);
+    ResolutionStrategy componentSelection(Action<? super ComponentSelectionRules> action);
 }

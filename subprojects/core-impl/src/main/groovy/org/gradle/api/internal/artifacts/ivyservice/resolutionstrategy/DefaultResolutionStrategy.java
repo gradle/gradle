@@ -117,7 +117,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return componentSelectionRules;
     }
 
-    public ResolutionStrategy componentSelection(Action<ComponentSelectionRules> action) {
+    public ResolutionStrategy componentSelection(Action<? super ComponentSelectionRules> action) {
         action.execute(componentSelectionRules);
         return this;
     }
