@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class NamespaceIdTest extends Specification {
@@ -34,8 +35,7 @@ class NamespaceIdTest extends Specification {
         NamespaceId id2 = new NamespaceId("some-namespace", "some-name")
 
         expect:
-        id1.equals(id2)
-        id1.hashCode() == id2.hashCode()
+        id1 Matchers.strictlyEqual(id2)
     }
 
     def "hashCode and equals determine inequality" () {
