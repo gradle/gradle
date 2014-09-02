@@ -16,7 +16,6 @@
 
 package org.gradle.language.java.plugins
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
