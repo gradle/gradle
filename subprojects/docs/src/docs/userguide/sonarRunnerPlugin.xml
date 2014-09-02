@@ -21,7 +21,7 @@
         </para>
     </note>
     <para>The Sonar Runner plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
-        a web-based platform for monitoring code quality. It is based on the <ulink url="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</ulink>,
+        a web-based platform for monitoring code quality. It is based on the <ulink url="http://docs.codehaus.org/display/SONAR/Analyzing+with+SonarQube+Runner">Sonar Runner</ulink>,
         a Sonar client component that analyzes source code and build outputs, and stores all collected information in the Sonar database.
         Compared to using the standalone Sonar Runner, the Sonar Runner plugin offers the following benefits:
     </para>
@@ -30,7 +30,7 @@
             <term>Automatic provisioning of Sonar Runner</term>
             <listitem>
                 <para>The ability to execute the Sonar Runner via a regular Gradle task makes it available anywhere Gradle is available
-                    (developer build, CI server, etc.), without the need to download, setup, and maintain a Sonar Runner installation.</para>
+                    (developer build, CI server, etc.), without the need to manually download, setup, and maintain a Sonar Runner installation.</para>
             </listitem>
         </varlistentry>
         <varlistentry>
@@ -52,8 +52,9 @@
         <title>Plugin Status and Compatibility</title>
         <para>
             The Sonar Runner plugin is the successor to the <link linkend="sonar_plugin">Sonar Plugin</link>. It is currently
-            <link linkend="sec:incubating_state">incubating</link>. The plugin is based on Sonar Runner 2.0, which makes it compatible
-            with Sonar 2.11 and higher. Unlike the Sonar plugin, the Sonar Runner plugin works fine with Sonar 3.4 and higher.
+            <link linkend="sec:incubating_state">incubating</link>. The default version of the Sonar Runner used by the plugin is 2.3, which makes it compatible
+            with Sonar 3.0 and higher. For compliance with Sonar versions lower than 3.0, you can configure Gradle to use an earlier sonar runner version.
+            Unlike the Sonar plugin, the Sonar Runner plugin works fine with Sonar 3.4 and higher.
         </para>
     </section>
 
@@ -78,12 +79,19 @@
 
     <section>
         <title>Configuring the Sonar Runner</title>
-        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.sonar.runner.SonarRunner" /> extension to the project,
+        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.sonar.runner.SonarRunnerRootExtension" /> extension to the project and a
+            <apilink class="org.gradle.api.sonar.runner.SonarRunnerExtension" /> extension to its subprojects,
             which allows you to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration
             includes connection settings for the Sonar server and database.
         </para>
         <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
+        </sample>
+        <para>In addition to set Sonar properties, the <apilink class="org.gradle.api.sonar.runner.SonarRunnerRootExtension" /> extension allows the configuration of the Sonar Runner version and
+            the <apilink class="org.gradle.process.JavaForkOptions" /> of the forked Sonar Runner process.
+        </para>
+        <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar runner version">
+            <sourcefile file="build.gradle" snippet="version-settings"/>
         </sample>
         <para>
             For a complete list of standard Sonar properties, consult the <ulink url="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Sonar documentation</ulink>.

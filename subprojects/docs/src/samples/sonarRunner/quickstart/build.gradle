@@ -20,6 +20,12 @@ repositories {
     mavenCentral()
 }
 
+// START SNIPPET version-settings
+sonarRunner {
+    toolVersion = '2.3' // default
+}
+// END SNIPPET version-settings
+
 dependencies {
     compile "commons-collections:commons-collections:3.2"
     testCompile "junit:junit:4.+"
