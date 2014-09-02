@@ -62,8 +62,9 @@ public class SonarProperties {
         return properties;
     }
 
-    public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
+    public void setProperties(Map<String, ?> properties) {
+        @SuppressWarnings("unchecked") Map<String, Object> cast = (Map<String, Object>) properties;
+        this.properties = cast;
     }
 
 }
