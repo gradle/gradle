@@ -70,7 +70,7 @@ class JarTestFixture extends ZipTestFixture {
         return super.hasDescendants(allDescendants)
     }
 
-    def getJvmMajorVersion() {
+    def getJavaVersion() {
         JarFile jarFile = new JarFile(file)
         //take the first class file
         JarEntry classEntry = jarFile.entries().find { entry -> entry.name.endsWith(".class") }

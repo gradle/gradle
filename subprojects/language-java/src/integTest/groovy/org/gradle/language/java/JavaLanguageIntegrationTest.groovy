@@ -315,7 +315,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/jdk$target/myLib.jar").getJvmMajorVersion() == target
+        jarFile("build/jars/myLibJar/jdk$target/myLib.jar").getJavaVersion() == target
     }
 
 
@@ -347,11 +347,11 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/jdk$target1/myLib.jar").getJvmMajorVersion() == target1
+        jarFile("build/jars/myLibJar/jdk$target1/myLib.jar").getJavaVersion() == target1
         and:
-        jarFile("build/jars/myLibJar/jdk$target2/myLib.jar").getJvmMajorVersion() == target2
+        jarFile("build/jars/myLibJar/jdk$target2/myLib.jar").getJavaVersion() == target2
         and:
-        jarFile("build/jars/myLibJar/jdk$target3/myLib.jar").getJvmMajorVersion() == target3
+        jarFile("build/jars/myLibJar/jdk$target3/myLib.jar").getJavaVersion() == target3
     }
 
     def "erroneous target should produce reasonable error message"() {
