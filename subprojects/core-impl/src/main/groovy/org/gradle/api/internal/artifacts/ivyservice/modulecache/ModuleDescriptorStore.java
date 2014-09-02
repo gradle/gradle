@@ -66,7 +66,7 @@ public class ModuleDescriptorStore {
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
         DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext();
-        return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile).getDescriptor();
+        return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
     }
 
     private String getFilePath(ModuleComponentRepository repository, ModuleRevisionId moduleRevisionId) {
