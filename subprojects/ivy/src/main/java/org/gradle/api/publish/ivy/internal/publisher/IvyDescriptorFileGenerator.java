@@ -120,14 +120,10 @@ public class IvyDescriptorFileGenerator {
         if (extraInfo != null) {
             for (Map.Entry<QName, String> entry : extraInfo.entrySet()) {
                 if (entry.getKey() != null) {
-                    try {
-                        xmlWriter.startElement(String.format("ns:%s", entry.getKey().getLocalPart()))
-                                .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
-                                .characters(entry.getValue())
-                                .endElement();
-                    } catch (Exception e) {
-                        throw new InvalidUserCodeException(String.format("Failed to add extra info element '%s'", entry.getKey().getLocalPart()), e);
-                    }
+                    xmlWriter.startElement(String.format("ns:%s", entry.getKey().getLocalPart()))
+                            .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
+                            .characters(entry.getValue())
+                            .endElement();
                 }
             }
         }

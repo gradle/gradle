@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.internal.publication;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyExtraInfo;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
+import org.gradle.util.XmlUtil;
 
 public class DefaultIvyExtraInfoSpec extends DefaultIvyExtraInfo implements IvyExtraInfoSpec {
     public DefaultIvyExtraInfoSpec() {
@@ -26,6 +27,10 @@ public class DefaultIvyExtraInfoSpec extends DefaultIvyExtraInfo implements IvyE
     }
 
     public void add(String namespace, String name, String value) {
-        extraInfo.put(new NamespaceId(namespace, name), value);
+        if (XmlUtil.isValidXmlName(name)) {
+            extraInfo.put(new NamespaceId(namespace, name), value);
+        } else {
+            throw new IllegalArgumentException(String.format("Invalid ivy extra info element name: '%s'", name));
+        }
     }
 }

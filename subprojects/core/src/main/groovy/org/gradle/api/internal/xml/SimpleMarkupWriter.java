@@ -17,6 +17,7 @@
 package org.gradle.api.internal.xml;
 
 import org.gradle.internal.SystemProperties;
+import org.gradle.util.XmlUtil;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -103,7 +104,7 @@ public class SimpleMarkupWriter extends Writer {
     }
 
     public SimpleMarkupWriter startElement(String name) throws IOException {
-        if (!isValidXmlName(name)) {
+        if (!XmlUtil.isValidXmlName(name)) {
             throw new IllegalArgumentException(String.format("Invalid element name: '%s'", name));
         }
         if (context == Context.CData) {
@@ -173,9 +174,9 @@ public class SimpleMarkupWriter extends Writer {
     private void writeCDATA(char ch) throws IOException {
         if (needsCDATAEscaping(ch)) {
             writeRaw("]]><![CDATA[>");
-        } else if (!isLegalCharacter(ch)) {
+        } else if (!XmlUtil.isLegalCharacter(ch)) {
             writeRaw('?');
-        } else if (isRestrictedCharacter(ch)) {
+        } else if (XmlUtil.isRestrictedCharacter(ch)) {
             writeRaw("]]>");
             writeCharacterReference(ch);
             writeRaw("<![CDATA[");
@@ -228,7 +229,7 @@ public class SimpleMarkupWriter extends Writer {
     }
 
     public SimpleMarkupWriter attribute(String name, String value) throws IOException {
-        if (!isValidXmlName(name)) {
+        if (!XmlUtil.isValidXmlName(name)) {
             throw new IllegalArgumentException(String.format("Invalid attribute name: '%s'", name));
         }
         if (context != Context.StartTag) {
@@ -243,135 +244,8 @@ public class SimpleMarkupWriter extends Writer {
         return this;
     }
 
-    private static boolean isValidXmlName(String name) {
-        // element names can only contain 0 or 1 colon
-        // See http://www.w3.org/TR/2004/REC-xml-names11-20040204/#Conformance
-        if (name.indexOf(':') != name.lastIndexOf(':')) {
-            return false;
-        }
-
-        // If the name has a prefix, evaluate both prefix and name
-        if (name.indexOf(':') != -1 && name.charAt(0) != ':') {
-            return isValidXmlName(name.substring(0, name.indexOf(':')))
-                    && isValidXmlName(name.substring(name.indexOf(':')+1));
-        }
-
-        int length = name.length();
-        if (length == 0) {
-            return false;
-        }
-        char ch = name.charAt(0);
-        if (!isValidNameStartChar(ch)) {
-            return false;
-        }
-        for (int i = 1; i < length; i++) {
-            ch = name.charAt(i);
-            if (!isValidNameChar(ch)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean isValidNameChar(char ch) {
-        if (isValidNameStartChar(ch)) {
-            return true;
-        }
-        if (ch >= '0' && ch <= '9') {
-            return true;
-        }
-        if (ch == '-' || ch == '.' || ch == '\u00b7') {
-            return true;
-        }
-        if (ch >= '\u0300' && ch <= '\u036f') {
-            return true;
-        }
-        if (ch >= '\u203f' && ch <= '\u2040') {
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean isValidNameStartChar(char ch) {
-        if (ch >= 'A' && ch <= 'Z') {
-            return true;
-        }
-        if (ch >= 'a' && ch <= 'z') {
-            return true;
-        }
-        if (ch == ':' || ch == '_') {
-            return true;
-        }
-        if (ch >= '\u00c0' && ch <= '\u00d6') {
-            return true;
-        }
-        if (ch >= '\u00d8' && ch <= '\u00f6') {
-            return true;
-        }
-        if (ch >= '\u00f8' && ch <= '\u02ff') {
-            return true;
-        }
-        if (ch >= '\u0370' && ch <= '\u037d') {
-            return true;
-        }
-        if (ch >= '\u037f' && ch <= '\u1fff') {
-            return true;
-        }
-        if (ch >= '\u200c' && ch <= '\u200d') {
-            return true;
-        }
-        if (ch >= '\u2070' && ch <= '\u218f') {
-            return true;
-        }
-        if (ch >= '\u2c00' && ch <= '\u2fef') {
-            return true;
-        }
-        if (ch >= '\u3001' && ch <= '\ud7ff') {
-            return true;
-        }
-        if (ch >= '\uf900' && ch <= '\ufdcf') {
-            return true;
-        }
-        if (ch >= '\ufdf0' && ch <= '\ufffd') {
-            return true;
-        }
-        return false;
-    }
-
     private void writeRaw(char c) throws IOException {
         output.write(c);
-    }
-
-    private boolean isLegalCharacter(final char c) {
-        if (c == 0x9 || c == 0xA || c == 0xD) {
-            return true;
-        } else if (c < 0x20) {
-            return false;
-        } else if (c <= 0xD7FF) {
-            return true;
-        } else if (c < 0xE000) {
-            return false;
-        } else if (c <= 0xFFFD) {
-            return true;
-        } else if (c < 0x10000) {
-            return false;
-        } else if (c <= 0x10FFFF) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isRestrictedCharacter(char c) {
-        if (c == 0x9 || c == 0xA || c == 0xD || c == 0x85) {
-            return false;
-        } else if (c <= 0x1F) {
-            return true;
-        } else if (c < 0x7F) {
-            return false;
-        } else if (c <= 0x9F) {
-            return true;
-        }
-        return false;
     }
 
     protected void writeRaw(String message) throws IOException {
@@ -422,9 +296,9 @@ public class SimpleMarkupWriter extends Writer {
             writeRaw("&amp;");
         } else if (ch == '"') {
             writeRaw("&quot;");
-        } else if (!isLegalCharacter(ch)) {
+        } else if (!XmlUtil.isLegalCharacter(ch)) {
             writeRaw('?');
-        } else if (isRestrictedCharacter(ch)) {
+        } else if (XmlUtil.isRestrictedCharacter(ch)) {
             writeCharacterReference(ch);
         } else {
             writeRaw(ch);

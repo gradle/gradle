@@ -173,36 +173,16 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':generateDescriptorFileForIvyPublication'.")
-        failure.assertHasCause("Failed to add extra info element '${name}'")
-        failure.assertHasCause("Invalid element name: 'ns:${name}'")
+        failure.assertHasDescription("A problem occurred configuring root project 'publish'.")
+        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.api.publish.plugins.PublishingPlugin\$Rules#publishing(org.gradle.api.plugins.ExtensionContainer)")
+        failure.assertHasCause("Invalid ivy extra info element name: '${name}'")
 
         where:
         name        | _
         ''          | _
-        'foo\t'     | _
         'foo\\n'    | _
-        'foo/'      | _
-        'foo\\'     | _
         'foo<'      | _
-        'foo>'      | _
-        'foo='      | _
-        'foo;'      | _
-        'foo⿰'     | _
-        'foo÷'      | _
-        'foo`'      | _
-        'foo\u2000' | _
-        'foo\u200e' | _
-        'foo\u2190' | _
-        'foo\u2ff0' | _
-        'foo\uf8ff' | _
-        'foo\ufdd0' | _
-        'foo\ufffe' | _
-        '-foo'      | _
         '1foo'      | _
-        '.foo'      | _
-        '\u0300foo' | _
-        '\u203ffoo' | _
      }
 
     def "produces sensible error with extra info containing null values" () {
