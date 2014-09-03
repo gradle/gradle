@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.components
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
@@ -120,7 +121,8 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        tool chain: current JDK (1.7)
+        platform: target JDK ${JavaVersion.current()}
+        tool chain: current JDK (${JavaVersion.current()})
         Jar file: build/jars/someLibJar/someLib.jar
 
 Note: currently not all plugins register their components, so some components may not be visible here.
@@ -477,7 +479,8 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        tool chain: current JDK (1.7)
+        platform: target JDK ${JavaVersion.current()}
+        tool chain: current JDK (${JavaVersion.current()})
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 
 Native library 'nativeLib'

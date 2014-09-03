@@ -151,6 +151,13 @@ public class JavaCompile extends AbstractCompile {
         } else if (getTargetCompatibility() == null && getSourceCompatibility() == null) {
             spec.setTargetCompatibility(platform.getTargetCompatibility().toString());
             spec.setSourceCompatibility(platform.getTargetCompatibility().toString()); //TODO: Source compatibility should be possible to configure separately
+        } else if (platform != null && getTargetCompatibility() != null && getSourceCompatibility() != null) {
+            if (getTargetCompatibility().equals(platform.getTargetCompatibility().toString())) {
+                spec.setTargetCompatibility(getTargetCompatibility());
+                spec.setSourceCompatibility(getSourceCompatibility());
+            } else {
+                throw new RuntimeException("Cannot create Java Compile spec because platform target compatibility is different from Java Compile target compatibility");
+            }
         } else {
             throw new RuntimeException("Cannot create Java Compile spec because either platform or source and target compatibility have not been set");
         }
