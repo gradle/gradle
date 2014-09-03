@@ -330,3 +330,195 @@ To define custom source sets and components:
 - Assemble a binary from a functional source set.
 - Assemble a binary from a cpp source set.
 - Attempt to build a binary from a Java source set or a resource set.
+
+## Story: Allow library binaries to be used as input to executable binaries
+
+This story adds support for using another library component or binary as input to compile and/or link a given binary. Adding a library component or binary as input
+implies that the library's header files will be available at compilation time, and the appropriate binaries available at link and runtime.
+
+Some support will be added for expressing shared dependencies at the component level as well at the binary level.
+
+Later stories will build on this to unify the library dependency DSL, so that a consistent approach is used to consume libraries built by the same project, or another
+project in the same build, or from a binary repository.
+
+- Rename `NativeDependencySet.files` to `runtimeFiles`.
+- Add `NativeDependencySet.linkFiles`. Default implementation should return the runtime files. This will be improved in later stories.
+- Change `DefaultStaticLibrary` so that the output file is called `lib${library.baseName}.a` when building with GCC on Windows.
+- Add `LibraryBinary.getAsNativeDependencySet()`. The implementation depends on toolchain and binary type:
+
+<table>
+    <tr>
+        <th>Binary type</th>
+        <th>Toolchain</th>
+        <th>linkFiles</th>
+        <th>runtimeFiles</th>
+    </tr>
+    <tr><td>Shared</td><td>Visual C++</td><td>the `.lib` file</td><td>the `.dll` file</td></tr>
+    <tr><td>Static</td><td>Visual C++</td><td>the `.lib` file</td><td>empty collection</td></tr>
+    <tr><td>Shared</td><td>GCC</td><td>the `.so` or `.dll` file</td><td>the `.so` or `.dll` file</td></tr>
+    <tr><td>Static</td><td>GCC</td><td>the `.a` file</td><td>empty collection</td></tr>
+</table>
+
+- The `includeRoots` property of the `NativeDependencySet` implementation for a binary should return the set of header directories exported by the library.
+- Add `NativeBinary.libraries` property of type `DomainObjectCollection<NativeDependencySet>`.
+- Change the C++ plugin to add the dependencies of each C++ source set to this collection.
+- Change the C++ plugin to wire the inputs of the binary's compile and link tasks based on the contents of the `NativeBinary.libraries` collection.
+- Add `Library.getShared()` and `getStatic()` methods which return `NativeDependencySet` implementations for the shared and static variants of the library.
+- Add `NativeBinary.lib(Object)` method which accepts anything that can be converted to a `NativeDependencySet`:
+    - A `NativeBinary` is converted by calling its `getAsNativeDependencySet()` method.
+    - A `NativeDependencySet` can be used as is.
+    - A `Library` is converted by calling its `getShared().getAsNativeDependencySet()` method.
+- Add `CppSourceSet.lib(Object)` method which accepts the above types.
+
+Note that this story does not include support for including the transitive dependencies of a library at link time and runtime.
+
+### User visible changes
+
+    binaries {
+        mainExecutable {
+            // Include the static variant of the given library in the executable
+            lib libraries.main.static
+            // Include the default variant of the given library in the executable
+            lib libraries.utils
+            // Include the given binary in the executable
+            lib binaries.someSharedLibrary
+        }
+    }
+
+    cpp {
+        sourceSets {
+            main {
+                lib libraries.main
+                lib libraries.util.shared
+                lib binaries.someSharedLibrary
+            }
+        }
+    }
+
+### Test cases
+
+- Install and run an executable that:
+    - Uses a mix of static and shared libraries.
+    - Uses a mix of libraries from the same project, same build and from different builds.
+    - In each case, verify that only shared libraries are included in the install image.
+    - In each case, remove the original binaries before running the install image.
+- A dependency on a binary overrides a dependency on the library that produced the binary.
+
+## Story: Simplify configuration of component source sets
+
+In the majority of cases, it makes sense to have a single named functional source set for each component, with
+the source set name and source directory names matching the component name. This story ensures that such a source set
+are created automatically for each component.
+
+- Add a rule to the 'native-binaries' plugin that for each native component:
+    - Creates a functional source set named with the component name, if such a source set does not yet exist.
+    - Configures the functional source set to be a source input for the component.
+- Remove explicit configuration and wiring of functional source sets for each component from tests and samples.
+
+### Test cases
+
+- Programmatically create the functional source set prior to adding the matching component.
+
+## Story: Build different variants of a native component
+
+This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
+
+- Add a `flavors` container to `NativeComponent`
+- If no flavors are defined, then implicitly define a `default` flavor.
+- Variants will be built for all available flavors:
+    - With a single flavor, the binary task names and output directories will NOT contain the flavor name.
+    - With multiple flavors, task names and output directories for each variant will include the flavor name.
+- Add a property to `NativeBinary` to allow navigation to the flavor for this binary.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - If `l` has multiple flavors defined, select the binary with the same flavor as `b`. Fail if no binary with matching flavor. Match flavors based on their name.
+    - If `l` has a single flavor (default or defined), select the binary with that flavor.
+
+### User visible changes
+
+    libraries {
+        main {
+            flavors {
+                main {}
+                withOptionalFeature {}
+            }
+            binaries.matching { flavor == flavors.main } {
+                cppCompiler.args '-DSOME_FEATURE
+            }
+        }
+    }
+
+This will define 4 binaries:
+
+- library: 'main', flavor: 'main', packaging: 'static'
+- library: 'main', flavor: 'main', packaging: 'shared'
+- library: 'main', flavor: 'withOptionalFeature', packaging: 'static'
+- library: 'main', flavor: 'withOptionalFeature', packaging: 'shared'
+
+### Test cases
+
+- Executable with flavors depends on a library with matching flavors.
+    - Verify that each flavor of the executable can be built and is linked against the correct flavor of the library
+- Executable with flavors depends on a library with no flavors
+- Executable with flavors depends on a library with a single non-default flavor
+- Executable depends on a library depends on another library. All have the same set of flavors
+    - Verify that each flavor of the executable can be built and is linked against the correct flavor of the libraries.
+- Executable with flavors depends on a library with a single flavor which depends on a library with flavors.
+- Reasonable error message when:
+    - Executable depends on a library with multiple flavors
+    - Executable with flavors depends on a library with multiple flavors that do not match the executable's flavors.
+
+## Story: Build a native component using multiple tool chains
+
+This story adds support for building a native component using multiple tool chains. Each variant will have a tool chain associated with it.
+
+- Build author can define a set of tool chain that may be used to build a component.
+- If no tool chain is defined, then a single default tool chain will be used.
+- From the set of defined tool chains, a set of available tool chains will be determined for building.
+- Variants will be built for all available tool chains.
+    - With a single defined tool chain, the binary task names and output directories will NOT contain the tool chain name.
+    - With multiple defined tool chains, task names and output directories for each variant will include the tool chain name.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - If `l` has multiple toolchains defined, select the binary with the same toolchain as `b`. Fail if no binary with matching toolchain. Match toolchains based on their name.
+    - If `l` has a single toolchain, select the binary with that toolchain.
+    - In both instances, assert that the toolchain for the selected binary is ABI compatible with the toolchain being used.
+- When building component, will attempt to build variants for all available tool chains.
+
+### User visible changes
+
+    // Global set of defined tool chains. A future story may allow this to be tweaked per-component
+    toolChains {
+        gcc(Gcc) {} // binaries with default names, found on Path
+        gcc3(Gcc) {
+            path "/opt/gcc/3.4.6/bin" // binaries with default names, found in supplied path
+        }
+        mingw(Gcc) {
+            path "C:/MinGW/bin"
+        }
+        gccCrossCompiler(Gcc) {
+            path "/opt/gcc/4.0/bin"
+
+            // Custom binary file paths and arguments
+            cCompiler.executable "gccCustom_gcc"
+            cppCompiler.executable project.file("/usr/bin/gccCustom_g++")
+            assembler.executable "/usr/bin/gccCustom_as"
+            linker.executable "gcc"
+            staticLibArchiver.executable "ar"
+        }
+
+        // Locate Visual Studio installation by path or in default locations
+        visualCpp(VisualCpp) {}
+
+        // Explicit configuration of Visual Studio installation directory
+        visualCpp(VisualCpp) {
+            installDir "D:/Programs/Microsoft Visual Studio 10.0"
+        }
+    }
+
+### Tests
+
+- With no toolchain defined, build on windows with Visual C++/MinGW/cygwin-gcc in path and on linux with gcc4/clang in path. (existing tests)
+- Build with clang & gcc4 on Linux in a single invocation, with neither tool chain in path.
+- Build with Visual C++, MinGW and GCC on Windows in a single invocation, with no tool chain in path.
+- Reasonable error message when no tool chain is defined and default is not available.
+- Reasonable error message any defined tool chain not available.
+- Build an executable with multiple toolchains that uses a library with a single toolchain that uses a library with multiple toolchains.
