@@ -121,7 +121,7 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        platform: target JDK ${JavaVersion.current()}
+        platform: current
         tool chain: current JDK (${JavaVersion.current()})
         Jar file: build/jars/someLibJar/someLib.jar
 
@@ -479,7 +479,7 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        platform: target JDK ${JavaVersion.current()}
+        platform: current
         tool chain: current JDK (${JavaVersion.current()})
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 

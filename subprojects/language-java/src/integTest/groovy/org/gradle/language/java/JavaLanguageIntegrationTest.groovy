@@ -410,7 +410,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.JDK6_OR_LATER)
     def "component report contains target data"() {
         String target1 = JavaVersion.VERSION_1_6;
-        String target2 = JavaVersion.VERSION_1_7;
+        String target2 = JavaVersion.current();
         when:
         def javaApp = new TestJavaLibrary()
         javaApp.sources*.writeToDir(file("src/myLib/java"))
@@ -435,7 +435,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         and:
         assert output.contains("platform: target JDK ${target1}")
         and:
-        assert output.contains("platform: target JDK ${target2}")
+        assert output.contains("platform: current")
     }
 
     private JarTestFixture jarFile(String s) {

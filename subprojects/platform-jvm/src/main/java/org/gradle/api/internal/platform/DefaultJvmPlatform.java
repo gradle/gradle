@@ -46,7 +46,11 @@ public class DefaultJvmPlatform implements JvmPlatform {
     }
 
     public String getName() {
+        if (JavaVersion.current() == targetCompatibility) {
+            return "current";
+        }
         return "target JDK " + targetCompatibility;
+
     }
 
     public String toString() {
