@@ -325,8 +325,8 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         JavaVersion target2 = JavaVersion.VERSION_1_7
         JavaVersion target3 = JavaVersion.VERSION_1_8
         when:
-        def java6App = new TestJavaLibrary()
-        java6App.sources*.writeToDir(file("src/myLib/java"))
+        def javaApp = new TestJavaLibrary()
+        javaApp.sources*.writeToDir(file("src/myLib/java"))
 
         and:
         buildFile << """
