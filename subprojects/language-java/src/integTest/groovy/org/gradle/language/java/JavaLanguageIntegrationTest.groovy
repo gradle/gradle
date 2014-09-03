@@ -319,7 +319,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "multiple targets should produce in the correct bytecode"() {
         JavaVersion target1 = JavaVersion.VERSION_1_6
         JavaVersion target2 = JavaVersion.VERSION_1_7
