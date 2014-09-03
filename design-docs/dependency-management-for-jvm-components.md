@@ -227,7 +227,33 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 #### Open issues
 
-- LanguageRegistration.applyToBinary() should be replaced, instead use the output file types for the language and input file types for the binary
+- `BinarySpec` hierarchy
+    - No general way to navigate to the owning component (if any).
+    - `BinarySpec` assumes binary is built from source.
+    - `NativeBinarySpec` assumes the binary belongs to a component.
+    - `StaticLibraryBinarySpec` has no way to read the additional link files.
+    - `SharedLibraryBinarySpec` declares separate link and runtime files for binaries that don't have separate files.
+    - Compiler tools for `NativeBinarySpec` are not statically typed.
+    - No general way to navigate to the component under test for a test suite (if any).
+    - `NativeTestSuiteBinarySpec` assumes a single binary under test. In the case of a library, this isn't the case.
+    - `JvmBinarySpec` assumes binary is built from intermediate classes and resources.
+    - `JarBinarySpec` assumes binary belongs to a library.
+    - `ClassDirectoryBinarySpec` assumes binary belongs to a library.
+    - `ClassDirectoryBinarySpec` is in package `org.gradle.api.jvm`.
+    - `JvmLibraryBinarySpec` has a mutable targetPlatform, should also be on `JvmBinarySpec`.
+- `ComponentSpec` hierarchy
+    - `ComponentSpec` assumes component is built from source.
+    - `ComponentSpec` assumes component produces binaries.
+    - `TestSuiteSpec` assumes a single component under test. In the case of an integration test, this may not be the case.
+    - Binaries of a component are not strongly typed.
+    - `TargetedNativeComponent` should have `spec` in its name
+    - `TargetedNativeComponent` provides write-only access to targets, and only as strings.
+    - `JvmLibrarySpec` models target platforms as `JavaVersion`.
+    - There's no JVM component type.
+- `Component` hierarchy
+    - `Component` is in `org.gradle.api.component` package.
+    - `PrebuiltLibrary` is actually a prebuilt native library.
+- `LanguageRegistration.applyToBinary()` should be replaced, instead use the output file types for the language and input file types for the binary.
 - Use this to handle windows resources:
     - For windows binaries, add window `res` files as a candidate input file type.
     - For windows resources source files, the output type is `res`.
