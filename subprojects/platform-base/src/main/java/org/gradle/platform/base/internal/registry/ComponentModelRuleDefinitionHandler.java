@@ -46,12 +46,12 @@ public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U exte
     private final Class<A> annotationClass;
     private final ModelType<T> baseInterface;
     private final ModelType<U> baseImplementation;
-    private final ModelType<? extends TypeBuilder> builderInterface;
+    private final ModelType<? extends TypeBuilder<T>> builderInterface;
     private final Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory;
     private final Action<? super RegistrationContext<T, U>> registerer;
 
     public ComponentModelRuleDefinitionHandler(String modelName, Class<A> annotationClass,
-                                               Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory, Action<? super RegistrationContext<T, U>> registerer) {
+                                               Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder<T>> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory, Action<? super RegistrationContext<T, U>> registerer) {
         this.modelName = modelName;
         this.annotationClass = annotationClass;
         this.typeBuilderFactory = typeBuilderFactory;

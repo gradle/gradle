@@ -16,16 +16,14 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
@@ -33,7 +31,13 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 public class BinaryTypeRuleDefinitionHandler extends ComponentModelRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
 
     public BinaryTypeRuleDefinitionHandler(final Instantiator instantiator) {
-        super("binary", BinaryType.class, BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultBinaryTypeBuilder.class), new RegistrationAction(instantiator));
+        super("binary", BinaryType.class, BinarySpec.class, BaseBinarySpec.class, getBuilderType(), JavaReflectionUtil.factory(new DirectInstantiator(), DefaultBinaryTypeBuilder.class), new RegistrationAction(instantiator));
+    }
+
+    private static Class<? extends TypeBuilder<BinarySpec>> getBuilderType() {
+        @SuppressWarnings("unchecked")
+        Class<? extends TypeBuilder<BinarySpec>> rawType = (Class<? extends TypeBuilder<BinarySpec>>) new TypeToken<TypeBuilder<BinarySpec>>() {}.getRawType();
+        return rawType;
     }
 
     public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {

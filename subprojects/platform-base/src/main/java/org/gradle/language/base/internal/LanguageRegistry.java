@@ -21,5 +21,5 @@ import org.gradle.api.DomainObjectSet;
 /**
  * A registry of domains.
  */
-public interface LanguageRegistry extends DomainObjectSet<LanguageRegistration> {
+public interface LanguageRegistry extends DomainObjectSet<LanguageRegistration<?>> {
 }

@@ -4,6 +4,7 @@ dependencies {
 }
 
 useClassycle()
+strictCompile()
 useTestFixtures()
 useTestFixtures(sourceSet: 'testFixtures')
 

@@ -16,10 +16,17 @@
 
 package org.gradle.language.base.internal;
 
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 
-public class DefaultLanguageRegistry extends DefaultDomainObjectSet<LanguageRegistration> implements LanguageRegistry {
+public class DefaultLanguageRegistry extends DefaultDomainObjectSet<LanguageRegistration<?>> implements LanguageRegistry {
     public DefaultLanguageRegistry() {
-        super(LanguageRegistration.class);
+        super(getLanguageRegistrationType());
+    }
+
+    private static Class<LanguageRegistration<?>> getLanguageRegistrationType() {
+        @SuppressWarnings("unchecked")
+        Class<LanguageRegistration<?>> rawType = (Class<LanguageRegistration<?>>) new TypeToken<LanguageRegistration<?>>() {}.getRawType();
+        return rawType;
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -33,7 +34,13 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 public class ComponentTypeRuleDefinitionHandler extends ComponentModelRuleDefinitionHandler<ComponentType, ComponentSpec, BaseComponentSpec> {
 
     public ComponentTypeRuleDefinitionHandler(final Instantiator instantiator) {
-        super("component", ComponentType.class, ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultComponentTypeBuilder.class), new RegistrationAction(instantiator));
+        super("component", ComponentType.class, ComponentSpec.class, BaseComponentSpec.class, getBuilderType(), JavaReflectionUtil.factory(new DirectInstantiator(), DefaultComponentTypeBuilder.class), new RegistrationAction(instantiator));
+    }
+
+    private static Class<? extends TypeBuilder<ComponentSpec>> getBuilderType() {
+        @SuppressWarnings("unchecked")
+        Class<? extends TypeBuilder<ComponentSpec>> rawType = (Class<? extends TypeBuilder<ComponentSpec>>) new TypeToken<TypeBuilder<ComponentSpec>>() {}.getRawType();
+        return rawType;
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {

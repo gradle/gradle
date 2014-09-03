@@ -107,15 +107,15 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void createLanguageSourceSets(final ProjectSourceSet sources, final ComponentSpecContainer components, final LanguageRegistry languageRegistry, final FileResolver fileResolver) {
-        languageRegistry.all(new Action<LanguageRegistration>() {
-            public void execute(final LanguageRegistration languageRegistration) {
+        languageRegistry.all(new Action<LanguageRegistration<?>>() {
+            public void execute(final LanguageRegistration<?> languageRegistration) {
                 registerLanguageSourceSetFactory(languageRegistration, sources, fileResolver);
                 createDefaultSourceSetForComponents(languageRegistration, components);
             }
         });
     }
 
-    private void createDefaultSourceSetForComponents(final LanguageRegistration languageRegistration, ComponentSpecContainer components) {
+    private <U extends LanguageSourceSet> void createDefaultSourceSetForComponents(final LanguageRegistration<U> languageRegistration, ComponentSpecContainer components) {
         components.withType(ComponentSpecInternal.class).all(new Action<ComponentSpecInternal>() {
             public void execute(final ComponentSpecInternal componentSpecInternal) {
                 final FunctionalSourceSet functionalSourceSet = componentSpecInternal.getMainSource();
@@ -126,12 +126,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void registerLanguageSourceSetFactory(final LanguageRegistration languageRegistration, ProjectSourceSet sources, final FileResolver fileResolver) {
+    private <U extends LanguageSourceSet> void registerLanguageSourceSetFactory(final LanguageRegistration<U> languageRegistration, ProjectSourceSet sources, final FileResolver fileResolver) {
         sources.all(new Action<FunctionalSourceSet>() {
             public void execute(final FunctionalSourceSet functionalSourceSet) {
-                NamedDomainObjectFactory<? extends LanguageSourceSet> namedDomainObjectFactory = new NamedDomainObjectFactory<LanguageSourceSet>() {
-                    public LanguageSourceSet create(String name) {
-                        Class<? extends LanguageSourceSet> sourceSetImplementation = languageRegistration.getSourceSetImplementation();
+                NamedDomainObjectFactory<U> namedDomainObjectFactory = new NamedDomainObjectFactory<U>() {
+                    public U create(String name) {
+                        Class<? extends U> sourceSetImplementation = languageRegistration.getSourceSetImplementation();
                         return instantiator.newInstance(sourceSetImplementation, name, functionalSourceSet, fileResolver);
                     }
                 };
@@ -159,7 +159,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageRegistry languageRegistry) {
-            for (LanguageRegistration language : languageRegistry) {
+            for (LanguageRegistration<?> language : languageRegistry) {
                 for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                     final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
                     createRule.createCompileTasksForBinary(tasks, binary);
