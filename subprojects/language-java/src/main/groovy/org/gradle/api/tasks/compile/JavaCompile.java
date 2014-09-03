@@ -60,6 +60,7 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
+    private JvmPlatform platform;
 
     /**
      * Returns the tool chain that will be used to compile the Java source.
@@ -83,15 +84,13 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    @Incubating @Inject
+    @Incubating
     public JvmPlatform getTargetPlatform() {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
+        return platform;
     }
 
     public void setTargetPlatform(JvmPlatform platform) {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
+        this.platform = platform;
     }
 
     @TaskAction
@@ -146,8 +145,15 @@ public class JavaCompile extends AbstractCompile {
         spec.setTempDir(getTemporaryDir());
         spec.setClasspath(getClasspath());
         spec.setDependencyCacheDir(getDependencyCacheDir());
-        spec.setTargetCompatibility(getTargetPlatform().getTargetCompatibility().toString());
-        spec.setSourceCompatibility(getTargetPlatform().getTargetCompatibility().toString()); //TODO: Source compatibility should be possible to configure separately
+        if (platform == null) { //legacy components
+            spec.setTargetCompatibility(getTargetCompatibility());
+            spec.setSourceCompatibility(getSourceCompatibility());
+        } else if (getTargetCompatibility() == null && getSourceCompatibility() == null) {
+            spec.setTargetCompatibility(platform.getTargetCompatibility().toString());
+            spec.setSourceCompatibility(platform.getTargetCompatibility().toString()); //TODO: Source compatibility should be possible to configure separately
+        } else {
+            throw new RuntimeException("Cannot create Java Compile spec because either platform or source and target compatibility have not been set");
+        }
         spec.setCompileOptions(compileOptions);
         return spec;
     }

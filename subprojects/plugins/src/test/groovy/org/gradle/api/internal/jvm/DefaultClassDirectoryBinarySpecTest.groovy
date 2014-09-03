@@ -83,6 +83,6 @@ public class DefaultClassDirectoryBinarySpecTest extends Specification {
     }
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
-        new DefaultClassDirectoryBinarySpec(name, toolChain, new DefaultJvmPlatform(JavaVersion.current()))
+        new DefaultClassDirectoryBinarySpec(name, toolChain)
     }
 }
