@@ -110,7 +110,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     if (!errors.isEmpty()) {
                         throw new PlatformSetupException(errors);
                     }
-                    JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain, platform);
+                    JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain);
+                    jarBinary.setTargetPlatform(platform);
                     jarBinary.source(jvmLibrary.getSource());
                     configureBinaryOutputLocations(jarBinary, buildDir);
                     jvmLibrary.getBinaries().add(jarBinary);

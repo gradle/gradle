@@ -25,4 +25,6 @@ import org.gradle.api.internal.platform.JvmPlatform;
 @Incubating
 public interface JvmLibraryBinarySpec extends JvmBinarySpec {
     JvmPlatform getTargetPlatform();
+
+    void setTargetPlatform(JvmPlatform platform);
 }
