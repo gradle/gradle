@@ -225,6 +225,14 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Can combine old and new JVM plugins in the same project
     - `gradle assemble` builds both jars
 
+#### Open issues
+
+- LanguageRegistration.applyToBinary() should be replaced, instead use the output file types for the language and input file types for the binary
+- Use this to handle windows resources:
+    - For windows binaries, add window `res` files as a candidate input file type.
+    - For windows resources source files, the output type is `res`.
+    - Fail if windows resources are input to a component for which there are no windows binaries.
+
 ## Feature: Plugin defines a custom library type
 
 This features allows the development of a custom plugin that can contribute Library, Binary and Task instances to the language domain.
