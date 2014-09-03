@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.internal;
+package org.gradle.language.java.internal;
 
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.JvmLibrary;
-import org.gradle.language.base.artifact.SourcesArtifact;
+import org.gradle.language.java.artifact.JavadocArtifact;
 
-public class JvmPluginServiceRegistry implements PluginServiceRegistry {
+public class JavaLanguagePluginServiceRegistry implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
@@ -39,7 +39,7 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
             // TODO There should be a more explicit way to execute an action against existing services
             // TODO:DAZ Dependency Management should be able to extract this from the plugin, without explicit registration
             componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
-                    .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
+                    .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
         }
     }
 }

@@ -17,4 +17,4 @@
 /**
  * Classes representing artifacts relevant to the Java language.
  */
-package org.gradle.language.jvm.artifact;
+package org.gradle.language.java.artifact;

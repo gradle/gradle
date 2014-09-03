@@ -33,21 +33,9 @@ class DefaultComponentTypeRegistryTest extends Specification {
         e.message == "Not a registered component type: ${MyComponentType.name}."
     }
 
-    def "cannot register same component type twice"() {
-        given:
-        registry.registerComponentType(MyComponentType)
-
-        when:
-        registry.registerComponentType(MyComponentType)
-
-        then:
-        def e = thrown IllegalStateException
-        e.message == "Component type ${MyComponentType.name} is already registered."
-    }
-
     def "fails getting type registration for unregistered type"() {
         given:
-        registry.registerComponentType(MyComponentType)
+        registry.maybeRegisterComponentType(MyComponentType)
 
         when:
         registry.getComponentRegistration(MyComponentType).getArtifactType(MyArtifactType)
@@ -59,7 +47,7 @@ class DefaultComponentTypeRegistryTest extends Specification {
 
     def "cannot register same artifact type twice"() {
         given:
-        def componentRegistration = registry.registerComponentType(MyComponentType)
+        def componentRegistration = registry.maybeRegisterComponentType(MyComponentType)
         componentRegistration.registerArtifactType(MyArtifactType, ArtifactType.SOURCES)
 
         when:
@@ -72,12 +60,24 @@ class DefaultComponentTypeRegistryTest extends Specification {
 
     def "returns registered type for component"() {
         when:
-        registry.registerComponentType(MyComponentType).registerArtifactType(MyArtifactType, ArtifactType.SOURCES)
+        registry.maybeRegisterComponentType(MyComponentType).registerArtifactType(MyArtifactType, ArtifactType.SOURCES)
 
         then:
         registry.getComponentRegistration(MyComponentType).getArtifactType(MyArtifactType) == ArtifactType.SOURCES
     }
 
+    def "can separately register multiple artifact types for component type"() {
+        when:
+        registry.maybeRegisterComponentType(MyComponentType).registerArtifactType(MyArtifactType, ArtifactType.IVY_DESCRIPTOR)
+        registry.maybeRegisterComponentType(MyComponentType).registerArtifactType(MyOtherArtifactType, ArtifactType.MAVEN_POM)
+
+        then:
+        def registration = registry.getComponentRegistration(MyComponentType)
+        registration.getArtifactType(MyArtifactType) == ArtifactType.IVY_DESCRIPTOR
+        registration.getArtifactType(MyOtherArtifactType) == ArtifactType.MAVEN_POM
+    }
+
     interface MyComponentType extends Component {}
     interface MyArtifactType extends Artifact {}
+    interface MyOtherArtifactType extends Artifact {}
 }

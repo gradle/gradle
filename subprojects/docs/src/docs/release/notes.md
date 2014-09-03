@@ -176,6 +176,10 @@ executing the first block.
 - Renamed `PlatformConfigurableToolChain` to `GccCompatibleToolChain`.
 - Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
 
+### JVM language support
+
+- Moved `org.gradle.language.jvm.artifact.JavadocArtifact` to `org.gradle.language.java.artifact.JavadocArtifact`.
+
 ### Manually added AntTarget tasks no longer respect target dependencies
 
 The `org.gradle.api.tasks.ant.AntTarget` task implementation adapts a target from an Ant build to a Gradle task 

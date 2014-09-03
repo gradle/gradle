@@ -25,12 +25,12 @@ import java.util.Map;
 public class DefaultComponentTypeRegistry implements ComponentTypeRegistry {
     private final Map<Class<? extends Component>, ComponentTypeRegistration> componentRegistrations = Maps.newHashMap();
 
-    public ComponentTypeRegistration registerComponentType(Class<? extends Component> componentType) {
-        if (componentRegistrations.containsKey(componentType)) {
-            throw new IllegalStateException(String.format("Component type %s is already registered.", componentType.getName()));
+    public ComponentTypeRegistration maybeRegisterComponentType(Class<? extends Component> componentType) {
+        ComponentTypeRegistration registration = componentRegistrations.get(componentType);
+        if (registration == null) {
+            registration = new DefaultComponentTypeRegistration(componentType);
+            componentRegistrations.put(componentType, registration);
         }
-        ComponentTypeRegistration registration = new DefaultComponentTypeRegistration(componentType);
-        componentRegistrations.put(componentType, registration);
         return registration;
     }
 
