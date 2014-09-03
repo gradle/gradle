@@ -6,6 +6,6 @@ dependencies {
     testRuntime project(":languageJava")
 }
 
-// TODO:DAZ Review this post-merge
-useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**"])
+useClassycle()
+strictCompile()
 useTestFixtures()
