@@ -29,16 +29,6 @@ class ReadelfBinaryInfo implements BinaryInfo {
         this.binaryFile = binaryFile
     }
 
-    public static String readFirstHeaderValue(List<String> lines, String... headers) {
-        def matchingLines = headers.collect { header ->
-            String matchingLine = lines.find {
-                it.trim().startsWith(header)
-            }
-            matchingLine = matchingLine?.replaceFirst(header, "")?.trim()
-        }
-        return matchingLines.find { it != null }
-    }
-
     ArchitectureInternal getArch() {
         def process = ['readelf', '-h', binaryFile.absolutePath].execute()
         List<String> lines = process.inputStream.readLines()
@@ -85,5 +75,15 @@ class ReadelfBinaryInfo implements BinaryInfo {
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}\nreadelf output:\n${lines}")
         }
+    }
+
+    private static String readFirstHeaderValue(List<String> lines, String... headers) {
+        def matchingLines = headers.collect { header ->
+            String matchingLine = lines.find {
+                it.trim().startsWith(header)
+            }
+            matchingLine?.replaceFirst(header, "")?.trim()
+        }
+        return matchingLines.find { it != null }
     }
 }
