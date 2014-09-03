@@ -522,3 +522,243 @@ This story adds support for building a native component using multiple tool chai
 - Reasonable error message when no tool chain is defined and default is not available.
 - Reasonable error message any defined tool chain not available.
 - Build an executable with multiple toolchains that uses a library with a single toolchain that uses a library with multiple toolchains.
+
+## Story: Build a native component for multiple architectures
+
+This story adds support for building a component for multiple architectures.
+Introduce the concept of a native platform, which may have an associated architecture and operating system.
+Each ToolChain can be asked if it can build for a particular platform.
+Each variant has a platform associated with it.
+
+- Native binaries plugin adds new types: `Architecture`, `Platform` and `PlatformContainer`.
+    - Add an extension to `project` of type `PlatformContainer` named `targetPlatforms`.
+- Add `architecture` property to `Platform`
+    - If a platform has no architecture defined, then the architecture of the build machine is used.
+    - If no target platform is defined and added to the PlatformContainer, then the a single default platform is added.
+- Add a `platform` property to `NativeBinary` to allow navigation from the binary to its corresponding platform.
+- Split `PlatformToolChain` out of `ToolChainInternal`, with `ToolChainInternal.target(Platform) -> PlatformToolChain`
+    - `PlatformToolChain` may contain built-in knowledge of arguments required to build for target platform.
+    - Additionally, platform-specific arguments may be supplied in the build script
+- For each tool chain, a variant will be built for each defined platform. Later stories will allow a tool chain to only target certain platforms.
+    - With a single defined platform, the binary task names and output directories will NOT contain the platform name.
+    - With multiple defined platforms, task names and output directories for each variant will include the platform name.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - If `l` has multiple platforms defined, select the binary with the same platform as `b`. Fail if no binary with matching platform. Match platforms based on their name.
+    - If `l` has a single platform, select the binary with that platform.
+    - In both instances, assert that the platform for the selected binary is compatible with the platform the binary is being built for
+- Change the GCC and Visual C++ toolchain adapters to invoke the assembler, compiler, linker and static lib bundler with the appropriate architecture flags.
+- Update the `c-with-assembler` sample to remove the command-line args and to use the DSL to select the appropriate source sets.
+
+### User visible changes
+
+    // Project definition of target platforms.
+    // Later stories may allow this to be separately configured per component.
+    targetPlatforms {
+        x86_standard {
+            architecture "x86" // Synonym for x86-32, IA-32
+        }
+        x86_optimised {
+            architecture "x86" // Synonym for x86-32, IA-32
+        }
+        x64 {
+            architecture "x64" // Synonym for x86-64, AMD64
+        }
+        itanium {
+            architecture "IA-64"
+        }
+    }
+
+    binaries.all {
+        if (binary.platform == platforms.x86_optimised) {
+            // Customize arguments for "x86_optimised" variants
+        }
+
+        if (binary.platform.architecture.name == "x86") {
+            // Customize arguments for all "x86_standard" and "x86_optimised" variants
+        }
+    }
+
+### Tests
+
+- For each supported toolchain, build a 32-bit binary on a 64-bit machine.
+- Verify that the correct output was produced
+    - On linux run `readelf` over the object files and binaries
+    - On OS X run `otool -hv` over the object files and binaries
+    - On Windows run `dumpbin` over the object files and binaries
+- Build an executable with multiple architectures that uses a library with a single architecture that uses a library with multiple architectures.
+
+## Story: Produce build type variants of a native component
+
+This story adds support for building variants of a native component based on 'build type'.
+The set of build types is user configurable, and for the purpose of this story, all build type customisations are specified in the build script.
+Standard build types (debug/release) and build type compatibility will be handled in a subsequent story.
+
+- NativeBinaries plugin adds a `buildTypes` container to the project.
+- `BuildType` is a simple type extending `Named` with no additional properties.
+- If no build types are configured, add a single default build type named `debug`
+- Build a variant Native Binary for each defined build type. Add a property to NativeBinary to allow navigation to the defined `buildType`.
+    - With a single defined (or default) build type, the binary task names and output directories will NOT contain the build type.
+    - With multiple defined build types, task names and output directories for each variant will include the build type.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - Select a binary for library `l` that has a build type with a matching name.
+
+## Story: Use GCC to cross-compile for custom target platforms
+
+This story adds support for cross-compilation with GCC. It adds the concept of a 'platform configuration' to be supplied to a tool chain,
+specifying arguments to use with GCC when targeting a particular platform.
+
+- Add `TargetPlatformConfiguration` that defines the set of tool arguments that should be provided to the tool chain
+  when building for a target platform.
+- Add `Gcc.addPlatformConfiguration(TargetPlatformConfiguration)` to add target platform support to a tool chain.
+- Add `ToolChainInternal.canTargetPlatform(Platform)` to determine if a particular tool chain supports building for a particular
+  target platform.
+  - For GCC 'i386' and 'x86_64' will have built-in support.
+  - For Visual C++, the supported platforms is not extensible. Support is limited to 'i386', 'x86_64' and 'ia64'.
+
+### User visible changes
+    toolChains {
+        crossCompiler(Gcc) {
+            addPlatformConfiguration(new ArmSupport())
+        }
+    }
+    targetPlatforms {
+        arm {
+            architecture "arm"
+
+        }
+        x64 {
+            architecture "x86_64"
+        }
+    }
+
+    class ArmSupport implements TargetPlatformConfiguration {
+        boolean supportsPlatform(Platform element) {
+            return element.getArchitecture().name == "arm"
+        }
+
+        List<String> getCppCompilerArgs() {
+            ["-mcpu=arm"]
+        }
+
+        List<String> getCCompilerArgs() {
+            ["-mcpu=arm"]
+        }
+
+        List<String> getAssemblerArgs() {
+            []
+        }
+
+        List<String> getLinkerArgs() {
+            ["-arch", "arm"]
+        }
+
+        List<String> getStaticLibraryArchiverArgs() {
+            []
+        }
+    }
+
+## Story: Build a native component for multiple operating systems
+
+This story adds the concept of an operating system to the platform. A tool chain may only be able to build for a particular
+target operating system, an for GCC additional support may be added to target an operating system.
+
+- Add `OperatingSystem` and simple type extending Named
+- Add `Platform.operatingSystem` property. Default is the default target operating system of the tool chain.
+    - Can configure the operating system with a string arg to `Platform.operatingSystem()`: a set of standard names will map to
+      windows, linux, osx and solaris.
+
+### User visible changes
+
+    targetPlatforms {
+        linux_x86 {
+            operatingSystem "linux"
+            architecture "x86"
+        }
+        linux_x64 {
+            operatingSystem "linux"
+            architecture "x64"
+        }
+        osx_64 {
+            operatingSystem "osx"
+            architecture "x64"
+        }
+        itanium {
+            architecture "IA-64"
+            // Use the tool chain default operating system
+        }
+    }
+
+## Story: Incremental compilation for C and C++
+
+### Implementation
+
+There are two approaches to extracting the dependency information from source files: parse the source files looking for `#include` directives, or
+use the toolchain's preprocessor.
+
+For Visual studio, can run with `/P` and parse the resulting `.i` file to extract `#line nnn "filename"` directives. In practise, this is pretty slow.
+For example, a simple source file that includes `Windows.h` generates 2.7Mb in text output.
+
+For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
+
+The implementation will also remove stale object files.
+
+### Test cases
+
+- Change a header file that is included by one source file, only that source file is recompiled.
+- Change a header file that is not included by any source files, no compilation or linking should happen.
+- Change a header file that is included by another header file, only the source files that include this header are recompiled.
+- Cyclic dependencies between headers.
+- Change a compiler setting, all source files are recompiled.
+- Remove a source file, the corresponding object file is removed.
+- Rename a source file, the corresponding object file is removed.
+- Remove all source files, all object files and binary files are removed.
+- Rename a header file, only source files that include this header file directly or indirectly are recompiled.
+- Remove a header file, source files that include this header directly or indirectly are recompiled and compilation fails.
+- Move a header file from one source directory to another.
+- Error handling:
+    - Change a source file so that it contains an error. Compilation fails.
+    - Change the source file to fix the error and change another source file. Compilation succeeds.
+
+### Open issues
+
+- Implementation currently locks the task artifact cache while compiling
+
+## Story: Modify command line arguments for binary tool prior to execution
+
+This story provides a 'hook' allowing the build author to control the exact set of arguments passed to a tool chain executable.
+This will allow a build author to work around any limitations in Gradle, or incorrect assumptions that Gradle makes.
+The arguments hook should be seen as a 'last-resort' mechanism, with preference given to truly modelling the underlying domain.
+
+### User visible changes
+
+    toolChains {
+        gcc(Gcc) {
+            cppCompiler.withArgs { List<String> args ->
+                Collections.replaceAll(args, "-m32", "-march=i386")
+            }
+            linker.withArgs { List<String> args ->
+                if (args.remove("-lstdc++")) {
+                    args << "-lstdc++"
+                }
+            }
+        }
+    }
+
+### Implementation
+
+- Change the mechanism for transforming a spec to arguments, so that first we create a list of arguments, then we apply
+  a series of transformations.
+- Add `GccTool.withArgs(Action<List<String>>)`, which adds a transformation early in the series (before writing option file).
+
+### Test cases
+
+- Test with custom placeholder argument that is replaced by a GCC argument via GccTool.withArgs(). Do this for each tool (cppCompiler, cCompiler, linker, assembler, archiver).
+- Test adds bad argument to args for binary: arg is removed by hook.
+
+## Story: Support Clang compiler
+
+### Test cases
+
+- Build all types of binaries from all supported languages using Clang.
+- Change test apps to detect which compiler is used to compile and assert that the correct compiler is being used.
+
