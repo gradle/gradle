@@ -762,3 +762,77 @@ The arguments hook should be seen as a 'last-resort' mechanism, with preference 
 - Build all types of binaries from all supported languages using Clang.
 - Change test apps to detect which compiler is used to compile and assert that the correct compiler is being used.
 
+## Files with identical names in C/C++ source tree are silently excluded from compilation (GRADLE-2923)
+
+### Implementation
+
+* Change language compiler implementations (GCC and VisualCpp) so that only a single sources file is compiled per execution:
+    * Create a single compiler options file to reuse for compiling all source files
+    * For each source file specify the source file name and the output file name on the command line
+* Ensure that the generated object files differentiate source files with the same name and different path
+    * Given a source file, calculate the hash of the path of the directory containing the source file
+    * Generate the object file into: <task-output-dir>/<hash-of-directory-that-contains-the-source-file>/<source-file-name>.<object-file-extension>
+* Update `OutputCleaningCompiler` with knowledge of the new source->object file mapping
+
+### Test cases
+
+* C source set includes files with the same name in different directories. (✓)
+* C++ source set includes files with the same name in different directories. (✓)
+* Objective-C source set includes files with the same name in different directories.(✓)
+* Objective-C++ source set includes files with the same name in different directories. (✓)
+* Assemble source set includes files with the same name in different directories. (✓)
+* Windows resource source set includes files with the same name in different directories. (✓)
+* C, C++, Objective-C and Objective-C++ source sets include files with the same base name (eg there's a `foo.c`, `foo.cpp`, `foo.m` and `foo.mm` in the same directory) (✓, apart from objc/cpp)
+* Removes stale outputs when source file is moved to a different directory (✓)
+
+## Story: Link Windows resource files into native binaries
+
+Allow resource files to be linked into a Windows binary.
+
+This story adds a new `windows-resources` plugin which adds support for compiling and linking resource files into a native binary. Windows resource will be treated
+as another native language, and the plugin will follow a similar pattern to the C and C++ language plugins.
+
+Here's an example:
+
+    apply plugin: `windows-resources`
+
+    sources {
+        myExe {
+            rc {
+                include '**/*.rc'
+            }
+        }
+    }
+
+    executables {
+        myExe
+    }
+
+1. Add a `windows-resources` plugin. This will follow a similar pattern as the `cpp` and `c` plugins (see `CppPlugin` for example). For now, this can do nothing.
+2. Add a `WindowsResourcesSet` which extends `LanguageSourceSet`.
+3. For each `FunctionalSourceSet`, the `windows-resources` plugin defines a `WindowsResourceSet` called `rc` (see `CppLangPlugin` for example).
+4. Add a `WindowsResourcesCompile` task type. For now, this can do nothing.
+5. For each `WindowsResourceSet` added as input to a `NativeBinary`, then the `windows-resources` plugin:
+    - If target platform is not Windows, ignores the source set.
+    - If target platform is Windows, adds a `WindowsResourceCompile` task which takes as input all of the resource files in the source set.
+      Naming scheme as per the other language plugins (see `CppNativeBinariesPlugin` for example).
+6. The `WindowsResourcesCompile` task compiles source resources to `.res` format:
+    - For the Visual C++ toolchain, should use [`rc`](http://msdn.microsoft.com/en-us/library/windows/desktop/aa381055.aspx) to compile each source file.
+    - Should implement this by adding a new tool method on `PlatformToolChain`.
+7. Include the resulting `.res` files as input to the link task  (see `CppNativeBinariesPlugin` for example).
+8. For each `NativeBinary`, the `windows-resources` plugin defines a `PreprocessingTool` extension called `rcCompiler` (see `CppNativeBinariesPlugin` for example).
+    - If the target platform is not Windows, do not add.
+    - Wire up the args and macros defined in this extension as defaults for the resource compile task.
+9. Add a sample.
+
+### Test cases
+
+- Can compile and link multiple resource files into an executable and a shared library.
+    - Possibly use a STRING resource and the `LoadString()` function to verify that the resources are included.
+    - Possibly find some tool that can query the resources linked into a binary and use this.
+- Can define preprocessor macros and provide command-line args to `rc` and `windres`.
+- Compilation and linking is incremental wrt resource source files and resource compiler args.
+- Stale `.res` files are removed when a resource source file is renamed.
+- User receives a reasonable error message when resource compilation fails.
+- Can create a resources-only executable and shared library.
+- Resource source files are ignored on non-Windows platforms.
