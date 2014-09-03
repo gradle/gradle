@@ -15,9 +15,10 @@
  */
 
 dependencies {
-    compile libraries.groovy
     compile project(':core')
     compile project(':platformNative')
+
+    testCompile libraries.groovy
 
     integTestRuntime project(":ideNative")
 }
