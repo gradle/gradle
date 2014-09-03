@@ -48,31 +48,6 @@ A native component that represents a library to be used in other native componen
 
 See [continuous-delivery-for-c-plus-plus.md](done/continuous-delivery-for-c-plus-plus.md) for completed stories.
 
-## Open issues
-
-- Change the GCC toolchain to use `gcc` to link when there is no C++ source included in a binary.
-- Change the Clang toolchain to use `clang` to link when there is no C++ source included in a binary.
-- Introduce `-lang` plugins for each native language.
-- Statically type the tools settings on native binaries, rather than using extensions.
-- A binary with no source should not be buildable.
-- Need to split `Platform` into some immutable definition and some mutable configuration types.
-- Should define standard platforms, architectures and operating systems, and allow these to be further specialized.
-- Should understand 'debug' and 'release' build types, and allow these to be further specialized.
-- May need some way to make toolchain a variant dimension?
-- Incremental compile should handle `#import` with Visual C++, which may reference a `.tld` file.
-- Incremental compile should not parse headers that we deem to be unchanging: 'system' libraries, unchanging repository libraries, etc.
-- Add support for Clang on Windows
-- Source set with srcdirs + patterns probably does not work for windows resource files
-- For a static library, the .res file forms part of the library outputs.
-- Add support for Windows resources with the GCC or Clang toolchains.
-- Toolchains should provide the correct command-line args for resources-only library. Update sample.
-- Generate and link a version resource by convention into every windows binary?
-- `TargetedNativeComponent` should accept instances of `Platform`, `BuildType` and `Flavor`. Should also be able to query these.
-- Cross-compilation for iOS.
-- Modelling of frameworks for objective-c and toolchains understand how to provide these frameworks.
-- Standard objective-c platform that provides the foundation framework.
-- GCC toolchains allow path to be provided per platform?
-
 # Milestone 3
 
 ## Story: Create functional Visual Studio solution for single-project build with multiple components (DONE)
@@ -338,7 +313,7 @@ from the same sources that link against different implementation libraries.
         }
     }
 
-# Milestone 4
+# Later milestones
 
 ## Story: Improved GCC platform targeting
 
@@ -702,8 +677,6 @@ This story introduces a set of headers that are visible to all source files in a
 - Language specific public headers. Eg include these headers when compiling C in a consuming component, and these additional headers when compiling C++.
 - Update the generated Visual Studio project so that different header sets are grouped within distinct "filters".
 
-# Later Milestones
-
 ## Story: Only use gcc/g++ front-ends for GCC tool chain
 
 * Use 'gcc -x assembler -c' for assembly sources
@@ -718,6 +691,16 @@ to define a custom Platform and build and publish binaries for that platform, th
 platform variants that would be published and shared publicly.
 
 This story also aggregates a bunch of review items that relate to Architecture and Operating System.
+
+There are 2 main parts to the architecture that we are interested in: The CPU instruction set that is being used, and the data model. Usually,
+but not always, a 32-bit processor instruction set is used with 32-bit data model, and a 64-bit processor instruction set is used with 64-bit
+data model.
+
+Usually, it is possible to combine different instruction sets in the same binary. So, when linking a binary targeting the amd64 CPU, it is fine to link
+against a library built for the x86 CPU. It is not possible to combine different data models in the same executable.
+
+There are two aspects of operating system that we are interested in: the operating system + version. The version is really a proxy for other attributes
+we don't model yet: system calling convention, ABI version, language runtime version, which system APIs are available, and so on.
 
 ### User visible changes
 
@@ -888,6 +871,24 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
     - Prefer a binary for library `l` that has a build type with a matching name.
     - Otherwise, select a library `l` that has a build type with a matching `debug` flag.
 
+Usually, it is fine to link a release build of a library into a debug binary, if the debug variant is not available. It is not fine to link a debug
+build of a library into a release binary. On Windows, it is not ok to link a release build of a library into a debug binary.
+
+On some platforms, additional artifacts are required to debug a binary. On gcc based platforms, the debug information is linked into the binary.
+On Windows, the debug information is contained in a separate program database file (`.pdb`).
+
+To generate the release binaries (default):
+
+* Enable conservative optimisations.
+* Compile with -DNDEBUG
+* Compile with -g0
+
+To generate the debug binaries (default):
+
+* Disable optimisation.
+* Compile with -g or /Zi
+* Link with /DEBUG
+
 ### Open issues
 
 - Need some way to probe for debug information in binaries
@@ -910,41 +911,6 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
     - Max optimise
 - Visual C++ debug
     - On or off
-
-## Story: Generate source from Microsoft IDL files
-
-- Add a `microsoft-idl` plugin
-- For each `FunctionalSourceSet` add an IDL source set.
-- Add the IDL source set as input to the C source set.
-- Add some way to declare what type of thing is being built: RPC client, RPC server, COM component, etc
-- For each IDL source set adds a generate task for each target architecture
-    - Not on Windows
-    - Fail if toolchain is not Visual C++
-    - Use `midl` to generate server, client and header source files.
-        - Invoke with `/env win32` or `/env amd64` according to target architecture.
-        - Invoke with `/nologo /out <output-dir>`
-- Add `midl` macros and args to each `NativeBinary` with Windows as the target platform
-- Add a sample
-
-### Test cases
-
-- Can build a client and server executable.
-- Can build a COM DLL.
-- Incremental
-- Removes stale `.c` and `.h` files
-
-### Open issues
-
-- Source set with srcdirs + patterns probably does not work for IDL files.
-- Include headers?
-- Need to make `LanguageSourceSet` extend `BuildableModelElement`.
-
-## Story: Use Windows linker def files
-
-### Implementation
-
-* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
-* Functions are imported from a DLL using `__declspec(dllimport)`.
 
 ## Story: Publish and resolve shared libraries
 
@@ -1005,100 +971,6 @@ To implement this:
 * Consumer project installs the executable and libraries into a location where they are executable.
 * Define some standard artifact types for executables.
 
-## Story: Binaries built for multiple Intel x86 architectures
-
-### Use cases
-
-A producer project compiles and links a shared library for multiple Intel x86 architectures, for a single operating system. The library has zero or
-more dependencies. The library is published to a repository.
-
-A consumer project links and runs an executable against the appropriate variant of the library, resolved from the repository.
-
-Out of scope for this work is support for other chipsets, or projects that build a library for multiple chipsets.
-
-### Implementation
-
-There are 2 main parts to the architecture that we are interested in: The CPU instruction set that is being used, and the data model. Usually,
-but not always, a 32-bit processor instruction set is used with 32-bit data model, and a 64-bit processor instruction set is used with 64-bit
-data model.
-
-Usually, it is possible to combine different instruction sets in the same binary. So, when linking a binary targeting the amd64 CPU, it is fine to link
-against a library built for the x86 CPU. It is not possible to combine different data models in the same executable.
-
-On OS X, a binary may target multiple architectures, as a universal binary. It should be noted that a universal binary simply supports more than one
-architectures, but not necessarily every architecture as the name suggests. For example, a universal binary might include x86 & amd64 support but no
-ppc or ppc64 support.
-
-File names are important here. Generally, architecture is not encoded in the binary file name. The build must be able to distinguish between binaries
-that have the same file name (and install path) but are built for different architectures.
-
-It is not always possible to build the binaries for more than one architecture on a given machine. On Linux machines, the system libraries for the
-target architecture must be installed and available for linking. On Windows machines, a separate compiler must be used for each architecture.
-
-To implement this:
-
-* Add appropriate tasks so that producer project can compile, link and publish the binaries for all available architectures in a single build invocation.
-* Add some mechanism for the developer to select the architectures they are interested in from the command-line and tooling API.
-* Include in the published meta-data information about which (CPU + data model) each binary was built for.
-* Consumer project selects the binaries with the appropriate (CPU + data model) when resolving the link and runtime dependencies for the executable.
-* Allow compiler and linker settings to be specified for each architecture.
-* Allow resolved binaries to have the same file name across architectures. For example, a shared library should be called `libsomething.so` regardless
-  of whether it happens to be built for the x86 or amd64 architectures.
-* Define some standard names for CPU instruction sets and architectures, plus mappings to platform specific names.
-* Define some default architectures for the x86 chipset. So, every C++ binary may be built for the x86 and amd64 architectures by default.
-
-To generate the binaries:
-
-* For windows, run the 'x86' or 'x86_amd64' compiler.
-* For linux + intel CPU, run with gcc with -m32 or -m64.
-* For OS X, run gcc with -arch i386, -arch x86_64, -arch ppc, -arch ppc64. Can include multiple times to generate a universal binary. Need to fix
-  GRADLE-2431.
-
-Native architecture names:
-
-* OS X: i386, x86_64, ppc, ppc64
-
-## Story: Binaries built for multiple operating systems
-
-### Use cases
-
-A producer project compiles, links and publishes a shared library for multiple combinations of operating system and architecture. The library depends
-on zero or more shared libraries. The library is published to a repository.
-
-A consumer project compiles, links and runs an executable against the library.
-
-Out of scope is cross compilation for other platforms, or building binaries for multiple versions of the same operating system.
-
-### Implementation
-
-Generally, a given machine will not be able to build the binaries for all target operating systems. This means that multiple coordinated builds will
-be involved.
-
-For the purposes of this story, this coordination will be manual. A human or CI server will trigger a number of builds, each of which builds a subset of
-the binaries and uploads them. Finally, a build that uploads the meta-data and other operating system independent binaries (header, jars, source and so on) will
-be triggered. See [this story](#single-build) for a description of how this will be improved.
-
-This multi-build approach will also be used to allow binaries for multiple chipsets, and for multiple operating system versions, to be built. There are
-currently no stories for these use cases.
-
-There are two aspects of operating system that we are interested in: the operating system + version. The version is really a proxy for other attributes
-we don't model yet: system calling convention, ABI version, language runtime version, which system APIs are available, and so on.
-
-File names are important here. Often, the platform is not encoded int the file name. The build must handle binaries that have the same name (and
-install path) but are built for different operating systems.
-
-To implement this:
-
-* Add appropriate tasks so that the producer project can compile, link and publish the binaries for the current machine's operating system.
-* Allow the binaries for a given version of the library to be built and published from multiple machines.
-* Include in the published meta-data information about which operating system + version each binary was built for.
-* Consumer project selects the binaries for the appropriate operating system when resolving link and runtime dependencies for the executable.
-* Allow compiler and linker settings to be specified for each operating system.
-* Allow dependencies to be declared for each operating system.
-* Allow the producer to declare a dependency on operating system version (or range, more likely).
-* Allow resolved binaries to have the same file name across operating system.
-* Define some standard operating system names.
-
 ## Story: Header-only libraries
 
 ### Use case
@@ -1112,48 +984,6 @@ Consumer project compiles an executable against this library.
 To implement this:
 
 * Allow zero or more binaries for a given library at link and runtime. Also allow for zero or more header files.
-
-## Story: Debug and release binaries
-
-### Use case
-
-Producer project publishes a shared library with both debug and release variants.
-
-Consumer project compiles, links and debugs an executable against this library.
-
-### Implementation
-
-Implementation-wise, this problem is similar in some respects to handling multiple architectures.
-
-Usually, it is fine to link a release build of a library into a debug binary, if the debug variant is not available. It is not fine to link a debug
-build of a library into a release binary. On Windows, it is not ok to link a release build of a library into a debug binary.
-
-On some platforms, additional artifacts are required to debug a binary. On gcc based platforms, the debug information is linked into the binary.
-On Windows, the debug information is contained in a separate program database file (`.pdb`).
-
-On all platforms, the source files for the binary are required.
-
-To implement this:
-
-* Producer project publishes the program database file (.pdb) for Windows binaries.
-* Producer project publishes the source files for the library.
-* Include in the published meta-data, information about whether the binary is a release or debug binary.
-* Separate out debug time dependencies from runtime.
-* Consumer project selects the appropriate release or debug library binaries when resolving link, execute and debug dependencies.
-* Consumer project installs the pdb and source files into the appropriate locations, so the debugger can find them.
-* Allow compiler and linker settings to be specified separately for release and debug binaries.
-* Define a set of default build types (debug and release, say).
-* Allow the producer and consumer projects to define custom build types.
-
-To generate the release binaries (default):
-* Enable conservative optimisations.
-* Compile with -DNDEBUG
-* Compile with -g0
-
-To generate the debug binaries (default):
-* Disable optimisation.
-* Compile with -g or /Zi
-* Link with /DEBUG
 
 ## Story: Publish and resolve static libraries
 
@@ -1179,6 +1009,31 @@ TBD
 ## Story: Build binaries for all operating systems in a single build
 
 TBD
+
+## Open issues
+
+- Change the GCC toolchain to use `gcc` to link when there is no C++ source included in a binary.
+- Change the Clang toolchain to use `clang` to link when there is no C++ source included in a binary.
+- Introduce `-lang` plugins for each native language.
+- Statically type the tools settings on native binaries, rather than using extensions.
+- A binary with no source should not be buildable.
+- Need to split `Platform` into some immutable definition and some mutable configuration types.
+- Should define standard platforms, architectures and operating systems, and allow these to be further specialized.
+- Should understand 'debug' and 'release' build types, and allow these to be further specialized.
+- May need some way to make toolchain a variant dimension?
+- Incremental compile should handle `#import` with Visual C++, which may reference a `.tld` file.
+- Incremental compile should not parse headers that we deem to be unchanging: 'system' libraries, unchanging repository libraries, etc.
+- Add support for Clang on Windows
+- Source set with srcdirs + patterns probably does not work for windows resource files
+- For a static library, the .res file forms part of the library outputs.
+- Add support for Windows resources with the GCC or Clang toolchains.
+- Toolchains should provide the correct command-line args for resources-only library. Update sample.
+- Generate and link a version resource by convention into every windows binary?
+- `TargetedNativeComponent` should accept instances of `Platform`, `BuildType` and `Flavor`. Should also be able to query these.
+- Cross-compilation for iOS.
+- Modelling of frameworks for objective-c and toolchains understand how to provide these frameworks.
+- Standard objective-c platform that provides the foundation framework.
+- GCC toolchains allow path to be provided per platform?
 
 ## DSL cleanups
 
