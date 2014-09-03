@@ -437,13 +437,8 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
 
         where:
         parameters                                                                        | message
-        ""                                                                                | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        "vs ->"                                                                           | "First parameter of rule action closure must be of type 'ComponentSelection'."
         "String vs ->"                                                                    | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        "ComponentSelection vs, o ->"                                                       | "Unsupported parameter type for component selection rule: java.lang.Object"
-        "ComponentSelection vs, String s ->"                                                | "Unsupported parameter type for component selection rule: java.lang.String"
-        "ComponentSelection vs, ComponentMetadata cm, String s ->"                          | "Unsupported parameter type for component selection rule: java.lang.String"
-        "ComponentSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm, String s ->" | "Unsupported parameter type for component selection rule: java.lang.String"
+        "ComponentSelection vs, String s ->"                                              | "Unsupported parameter type for component selection rule: java.lang.String"
     }
 
     def "produces sensible error when rule throws an exception" () {
@@ -457,7 +452,7 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all ${rule}
+                        all { ComponentSelection cs -> throw new Exception("From test") }
                     }
                 }
             }
