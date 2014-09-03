@@ -1,11 +1,5 @@
 This document describes a number of improvements to allow C++ projects to be built, tested, published are shared between teams.
 
-# Current state
-
-Currently, the Gradle C++ plugins can compile and link multiple executables and shared libraries. Dependency management is partially implemented, so
-that the binaries can be published and resolved in some basic form. There are various missing pieces. For example, dependency meta-data is not
-published, and resolved binaries have the incorrect names on some platforms.
-
 ## Some terminology
 
 Given a C++ library or executable, we have:
@@ -70,16 +64,9 @@ This story adds support for C source files as inputs to native binaries.
 - Change the GCC toolchain to:
     - Use `gcc` to compile all source files in a C source set. Should also use `-x c` to force source language to C.
     - Use `g++` to compile all source files in a C++ source set. Should also use `-x c++` to force source language to C++.
-- Rework the plugins so that there is something like:
-    - A `cpp-lang` plugin, which adds support for C++ source sets and compiling them to object files.
-    - A `c-lang` plugin, which adds support for C source sets and compiling them to object files
-    - An `assembler-lang` plugin, which adds support for assembler source sets and compiling them to object files.
-    - A `native-binaries` plugin, which adds the base support for native binaries and components.
-    - 'cpp', 'c' and 'assembler' plugins, which apply the language plugin + native binary support
 - Change `compilerArgs`, `define` and `macros` methods on NativeBinary so that they are language-specific
     - Replace existing methods with `cppCompiler.args`, `cppCompiler.define` and `cppCompiler.macros`.
     - Introduce `cCompiler` equivalents
-- Change the GCC toolchain to use `gcc` to link when there is no C++ source included in a binary.
 
 ### Test cases
 
@@ -175,6 +162,14 @@ To define custom source sets and components:
 - Assemble a binary from a functional source set.
 - Assemble a binary from a cpp source set.
 - Attempt to build a binary from a Java source set or a resource set.
+
+## Open issues
+
+- Change the GCC toolchain to use `gcc` to link when there is no C++ source included in a binary.
+- Change the Clang toolchain to use `clang` to link when there is no C++ source included in a binary.
+- Introduce `-lang` plugins for each native language.
+- Statically type the tools settings on native binaries, rather than using extensions.
+- A binary with no source should not be buildable.
 
 ## Story: Allow library binaries to be used as input to executable binaries
 
