@@ -836,3 +836,88 @@ Here's an example:
 - User receives a reasonable error message when resource compilation fails.
 - Can create a resources-only executable and shared library.
 - Resource source files are ignored on non-Windows platforms.
+
+## Story: Allow a component to choose from a set of defined Platform, BuildType and Flavor instances
+
+- Move `executables` and `libraries` collections into model DSL.
+
+### User visible changes
+
+    model {
+        platforms {
+            win32 {
+                architecture "i386"
+                operatingSystem "windows"
+            }
+            linux32 {
+                architecture "i386"
+                operatingSystem "linux"
+            }
+            linux64 {
+                architecture "amd64"
+                operatingSystem "linux"
+            }
+        }
+        buildTypes {
+            debug
+            release
+        }
+        flavors {
+            free
+            paid
+        }
+    }
+    executables {
+        main {
+            targetPlatforms "linux32", "linux64"
+            targetFlavors "paid"
+            targetBuildTypes "debug", "release" // same as default
+        }
+    }
+
+### Test cases
+
+- Target a particular platform, or target all platforms if not specified
+- Target a particular flavor, or target all flavors if not specified
+- Target a particular build type, or target all build types if not specified
+- Fails with reasonable exception when supplied name does not match any available element.
+
+### Open issues
+
+- Provide instance instead of name to selector DSL: `platforms.win32`. This will require that executables are created in a model rule.
+- Selector DSL to choose all platforms with a particular operating system or architecture.
+- Accept a collection of values to make it easy to use flavors.matching({}) or buildTypes.matching({})
+- Possibly use a single `target` method to accept a platform, buildType or flavor selector. Would require that selectors are typed.
+- Add conventional platforms, build types and flavor
+- When none targeted, choose a single default platform, build type and/or flavor to target.
+
+### Story: Compile Objective-C and ObjectiveC++ source files
+
+- Apply pull request: https://github.com/gradle/gradle/pull/222
+- Add integration test coverage, as below
+- Update documentation:
+    - Mention in the 'native binaries' user guide chapter.
+    - Add types and extensions to DSL reference.
+    - List the new plugins in the 'standard plugins'
+    - Add Objective-C and Objective-C++ samples.
+
+#### Test cases
+
+- Add `HelloWorldApp` implementation based on Objective-C and add `AbstractLanguageIntegrationTest` and `AbstractLanguageIncrementalBuildIntegrationTest` subclasses
+  that use this.
+- Add `HelloWorldApp` implementation based on Objective-C++ and add `AbstractLanguageIntegrationTest` and `AbstractLanguageIncrementalBuildIntegrationTest` subclasses
+  that use this.
+- Add `HelloWorldApp` implementation that uses a mix of C, C++, Objective-C and Objective-C++ as for `MixedLanguageIntegrationTest`.
+- Source layout for Objective-C and Objective-C++ can be customised.
+- Reasonable error message when attempting to build binary from Objective-C or Objective-C++ when using Visual Studio.
+
+### Story: Incremental compilation for Objective-C and Objective-C++
+
+- Change the Objective-C and Objective-C++ task implementations to apply incremental compilation, similar to the C and C++ tasks.
+- Source import parsing should understand `#import` directive.
+
+#### Test cases
+
+- Add an `AbstractLanguageIncrementalCompileIntegrationTest` subclass for each of Objective-C and Objective-C++
+- Source file uses `#include` to include a header file.
+- Source file uses `#import` to include a header file.

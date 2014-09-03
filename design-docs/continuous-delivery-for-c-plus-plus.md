@@ -56,7 +56,7 @@ See [continuous-delivery-for-c-plus-plus.md](done/continuous-delivery-for-c-plus
 - Statically type the tools settings on native binaries, rather than using extensions.
 - A binary with no source should not be buildable.
 - Need to split `Platform` into some immutable definition and some mutable configuration types.
-- Need to be able to specialize a platform or architecture or operating system.
+- Should define standard platforms, architectures and operating systems, and allow these to be further specialized.
 - Should understand 'debug' and 'release' build types, and allow these to be further specialized.
 - May need some way to make toolchain a variant dimension?
 - Incremental compile should handle `#import` with Visual C++, which may reference a `.tld` file.
@@ -67,10 +67,14 @@ See [continuous-delivery-for-c-plus-plus.md](done/continuous-delivery-for-c-plus
 - Add support for Windows resources with the GCC or Clang toolchains.
 - Toolchains should provide the correct command-line args for resources-only library. Update sample.
 - Generate and link a version resource by convention into every windows binary?
+- `TargetedNativeComponent` should accept instances of `Platform`, `BuildType` and `Flavor`. Should also be able to query these.
+- Cross-compilation for iOS.
+- Modelling of frameworks for objective-c and toolchains understand how to provide these frameworks.
+- Standard objective-c platform that provides the foundation framework.
 
 # Milestone 3
 
-## Story: Create functional Visual Studio solution for single-project build with multiple components
+## Story: Create functional Visual Studio solution for single-project build with multiple components (DONE)
 
 - For each available component choose a single binary variant that is the 'development binary'. Later stories will allow these to be specified.
 - Add a task to create a Visual Studio solution file for each 'development binary'.
@@ -102,61 +106,7 @@ See [continuous-delivery-for-c-plus-plus.md](done/continuous-delivery-for-c-plus
 - Transitive dependency on both shared and static linkage - :a:exe -> :b:lib1 -> :x:lib.static
                                                                    -> :x:lib.shared
 
-## Story: Allow a component to choose from a set of defined Platform, BuildType and Flavor instances
-
-- Move `executables` and `libraries` collections into model DSL.
-
-### User visible changes
-
-    model {
-        platforms {
-            win32 {
-                architecture "i386"
-                operatingSystem "windows"
-            }
-            linux32 {
-                architecture "i386"
-                operatingSystem "linux"
-            }
-            linux64 {
-                architecture "amd64"
-                operatingSystem "linux"
-            }
-        }
-        buildTypes {
-            debug
-            release
-        }
-        flavors {
-            free
-            paid
-        }
-    }
-    executables {
-        main {
-            targetPlatforms "linux32", "linux64"
-            targetFlavors "paid"
-            targetBuildTypes "debug", "release" // same as default
-        }
-    }
-
-### Test cases
-
-- Target a particular platform, or target all platforms if not specified
-- Target a particular flavor, or target all flavors if not specified
-- Target a particular build type, or target all build types if not specified
-- Fails with reasonable exception when supplied name does not match any available element.
-
-### Open issues
-
-- Provide instance instead of name to selector DSL: `platforms.win32`. This will require that executables are created in a model rule.
-- Selector DSL to choose all platforms with a particular operating system or architecture.
-- Accept a collection of values to make it easy to use flavors.matching({}) or buildTypes.matching({})
-- Possibly use a single `target` method to accept a platform, buildType or flavor selector. Would require that selectors are typed.
-- Add conventional platforms, build types and flavor
-- When none targeted, choose a single default platform, build type and/or flavor to target.
-
-## Story: Handle project cycles in component dependency graph
+## Story: Handle project cycles in component dependency graph (DONE)
 
 - Add `Map` as an alternative notation for `DependentSourceSet.lib` and `NativeBinary.lib`. All attributes are strings.
     - Required attributes are: `library` (the library name)
@@ -179,7 +129,7 @@ See [continuous-delivery-for-c-plus-plus.md](done/continuous-delivery-for-c-plus
 - Dependency on library in a different project using configuration-on-demand
 - Failure cases where: project does not exist, library does not exist, invalid linkage
 
-## Story: Create functional Visual Studio solution for multi-project build with multiple components
+## Story: Create functional Visual Studio solution for multi-project build with multiple components (DONE)
 
 - Change `VisualStudioProjectRegistry` so that it is responsible for locating a VisualStudioProjectConfiguration base on the NativeDependencySet,
   rather that the resolved LibraryBinary.
@@ -211,7 +161,7 @@ See [continuous-delivery-for-c-plus-plus.md](done/continuous-delivery-for-c-plus
 - Sync extensions in the filters file with those on the corresponding source sets.
 - Generate a project files for VS 2010, VS 2012 or VS 2013 as appropriate
 
-## Story: Customise generated Visual Studio files
+## Story: Customise generated Visual Studio files (DONE)
 
 ### Use case
 
@@ -253,7 +203,7 @@ project-specific configuration. Solution file needs to contain additional per-pr
 - Add solution-specific configuration to solution file
 - Add configuration per project to solution file
 
-## Story: Allow a library to depend on the headers of a component
+## Story: Allow a library to depend on the headers of a component (DONE)
 
 ### Use cases
 
@@ -304,7 +254,7 @@ from the same sources that link against different implementation libraries.
 
 - Better mapping to Visual Studio
 
-## Story: Component depends on a pre-built library
+## Story: Component depends on a pre-built library (DONE)
 
 ### User visible changes
 
@@ -370,7 +320,7 @@ from the same sources that link against different implementation libraries.
 - Fix paths in linker: don't link with absolute path
 - Make it easier to define a pattern for actual file locations
 
-## Story: Allow source sets to be generated
+## Story: Allow source sets to be generated (DONE)
 
 - `LanguageSourceSet` extends `BuildableModelElement`
     - `generatedBy()` method specifies task(s) that generate the source. Source files are inferred from the task outputs.
@@ -622,6 +572,7 @@ Host OS X + Macports with x86_64 elf:
 - Visual Studio 2013
 - GCC 3
 - XCode on OS X
+- Objective-c on Windows with GCC and Clang
 - Macports GCC and Clang on OS X
     - Cross compilation for Linux and Windows
 - Cygwin64
@@ -749,48 +700,6 @@ This story introduces a set of headers that are visible to all source files in a
 - Default location for public headers.
 - Language specific public headers. Eg include these headers when compiling C in a consuming component, and these additional headers when compiling C++.
 - Update the generated Visual Studio project so that different header sets are grouped within distinct "filters".
-
-## Feature: Objective-C support
-
-### Story: Compile Objective-C and ObjectiveC++ source files
-
-- Apply pull request: https://github.com/gradle/gradle/pull/222
-- Add integration test coverage, as below
-- Update documentation:
-    - Mention in the 'native binaries' user guide chapter.
-    - Add types and extensions to DSL reference.
-    - List the new plugins in the 'standard plugins'
-    - Add Objective-C and Objective-C++ samples.
-
-#### Test cases
-
-- Add `HelloWorldApp` implementation based on Objective-C and add `AbstractLanguageIntegrationTest` and `AbstractLanguageIncrementalBuildIntegrationTest` subclasses
-  that use this.
-- Add `HelloWorldApp` implementation based on Objective-C++ and add `AbstractLanguageIntegrationTest` and `AbstractLanguageIncrementalBuildIntegrationTest` subclasses
-  that use this.
-- Add `HelloWorldApp` implementation that uses a mix of C, C++, Objective-C and Objective-C++ as for `MixedLanguageIntegrationTest`.
-- Source layout for Objective-C and Objective-C++ can be customised.
-- Reasonable error message when attempting to build binary from Objective-C or Objective-C++ when using Visual Studio.
-
-#### Open issues
-
-- Cross-compilation for iPhone.
-- Make toolchain extensible so that not every toolchain implementation necessarily provides every tool, and may provide additional tools beyond the
-  built-in tools.
-- Fix `TargetPlatformConfiguration` and `PlatformToolChain` to make them extensible, so that not every configuration supports every tool.
-- Gcc and Clang tool chains need to provide the correct compile and link time arguments on OS X and Linux.
-- Add test coverage on Windows
-
-### Story: Incremental compilation for Objective-C and Objective-C++
-
-- Change the Objective-C and Objective-C++ task implementations to apply incremental compilation, similar to the C and C++ tasks.
-- Source import parsing should understand `#import` directive.
-
-#### Test cases
-
-- Add an `AbstractLanguageIncrementalCompileIntegrationTest` subclass for each of Objective-C and Objective-C++
-- Source file uses `#include` to include a header file.
-- Source file uses `#import` to include a header file.
 
 # Later Milestones
 
