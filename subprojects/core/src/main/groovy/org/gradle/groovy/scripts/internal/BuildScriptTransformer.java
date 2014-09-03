@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
 public class BuildScriptTransformer implements Transformer {
 
@@ -37,5 +38,6 @@ public class BuildScriptTransformer implements Transformer {
         new TaskDefinitionScriptTransformer().register(compilationUnit);
         new FixMainScriptTransformer().register(compilationUnit); // TODO - remove this
         new StatementLabelsScriptTransformer().register(compilationUnit);
+        new ModelBlockTransformer().register(compilationUnit);
     }
 }

@@ -28,6 +28,8 @@ import org.gradle.groovy.scripts.internal.ScriptBlock;
 import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.internal.PluginId;
 
+import static org.gradle.groovy.scripts.internal.AstUtils.isString;
+
 public class PluginUseScriptBlockTransformer {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
@@ -154,10 +156,6 @@ public class PluginUseScriptBlockTransformer {
                 }
 
                 return null;
-            }
-
-            private boolean isString(ConstantExpression constantExpression) {
-                return constantExpression.getType().getName().equals(String.class.getName());
             }
 
             @Override

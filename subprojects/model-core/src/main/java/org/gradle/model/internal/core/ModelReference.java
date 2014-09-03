@@ -79,6 +79,10 @@ public class ModelReference<T> {
         return type;
     }
 
+    public boolean isUntyped() {
+        return type.equals(ModelType.UNTYPED);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

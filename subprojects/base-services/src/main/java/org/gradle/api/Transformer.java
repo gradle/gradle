@@ -27,8 +27,8 @@ public interface Transformer<OUT, IN> {
     /**
      * Transforms the given object, and returns the transformed value.
      *
-     * @param original The object to transform.
+     * @param in The object to transform.
      * @return The transformed object.
      */
-    OUT transform(IN original);
+    OUT transform(IN in);
 }

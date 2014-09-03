@@ -16,6 +16,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
+import org.codehaus.groovy.classgen.Verifier;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 
@@ -29,11 +30,11 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
         this.scriptClassCompiler = scriptClassCompiler;
     }
 
-    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass) {
+    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Verifier verifier) {
         List<Object> key = Arrays.asList(source.getClassName(), classLoader, transformer.getId(), scriptBaseClass.getName());
         Class<?> c = cachedClasses.get(key);
         if (c == null) {
-            c = scriptClassCompiler.compile(source, classLoader, transformer, scriptBaseClass);
+            c = scriptClassCompiler.compile(source, classLoader, transformer, scriptBaseClass, verifier);
             cachedClasses.put(key, c);
         }
         return c.asSubclass(scriptBaseClass);

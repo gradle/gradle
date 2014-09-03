@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts.internal
 
+import org.codehaus.groovy.classgen.Verifier
 import spock.lang.Specification
 import org.gradle.internal.resource.Resource
 import org.gradle.groovy.scripts.ScriptSource
@@ -29,6 +30,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
     final Resource resource = Mock()
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
+    final verifier = Mock(Verifier)
     final ShortCircuitEmptyScriptCompiler compiler = new ShortCircuitEmptyScriptCompiler(target, emptyScriptGenerator)
 
     def setup() {
@@ -40,7 +42,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         _ * resource.text >> '  \n\t'
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script)
+        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
 
         then:
         result == TestScript
@@ -54,11 +56,11 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         _ * resource.text >> 'some script'
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script)
+        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
 
         then:
         result == TestScript
-        1 * target.compile(source, classLoader, transformer, Script) >> TestScript
+        1 * target.compile(source, classLoader, transformer, Script, verifier) >> TestScript
         0 * emptyScriptGenerator._
         0 * target._
     }

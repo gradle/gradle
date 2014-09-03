@@ -16,11 +16,6 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import org.codehaus.groovy.ast.expr.ArgumentListExpression;
-import org.codehaus.groovy.ast.expr.ClosureExpression;
-import org.codehaus.groovy.ast.expr.ConstantExpression;
-import org.codehaus.groovy.ast.expr.MethodCallExpression;
-import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
@@ -29,6 +24,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.plugin.use.internal.PluginDependenciesService;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class PluginsAndBuildscriptTransformer implements StatementTransformer {
 
@@ -40,15 +38,23 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
     private final PluginUseScriptBlockTransformer pluginBlockTransformer;
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
+    private final List<String> scriptBlockNames;
+    private final Spec<Statement> statementSpec = new Spec<Statement>() {
+        public boolean isSatisfiedBy(Statement statement) {
+            return AstUtils.detectScriptBlock(statement, scriptBlockNames) != null;
+        }
+    };
 
     public PluginsAndBuildscriptTransformer(String classpathBlockName, String pluginsBlockMessage, DocumentationRegistry documentationRegistry) {
         this.classpathBlockName = classpathBlockName;
+        this.scriptBlockNames = Arrays.asList(classpathBlockName, PLUGINS);
         this.pluginsBlockMessage = pluginsBlockMessage;
         this.pluginBlockTransformer = new PluginUseScriptBlockTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginDependenciesService.class, documentationRegistry);
     }
 
     public Statement transform(SourceUnit sourceUnit, Statement statement) {
-        ScriptBlock scriptBlock = detectScriptBlock(statement);
+        // TODO - detecting script block twice, wasteful
+        ScriptBlock scriptBlock = AstUtils.detectScriptBlock(statement, scriptBlockNames);
         if (scriptBlock == null) {
             seenNonClasspathStatement = true;
             return null;
@@ -96,49 +102,7 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
     }
 
     public Spec<Statement> getSpec() {
-        return new Spec<Statement>() {
-            public boolean isSatisfiedBy(Statement statement) {
-                return detectScriptBlock(statement) != null;
-            }
-        };
-    }
-
-    // returns null if the statement is not a script block
-    private ScriptBlock detectScriptBlock(Statement statement) {
-        if (!(statement instanceof ExpressionStatement)) {
-            return null;
-        }
-
-        ExpressionStatement expressionStatement = (ExpressionStatement) statement;
-        if (!(expressionStatement.getExpression() instanceof MethodCallExpression)) {
-            return null;
-        }
-
-        MethodCallExpression methodCall = (MethodCallExpression) expressionStatement.getExpression();
-        if (!AstUtils.targetIsThis(methodCall)) {
-            return null;
-        }
-
-        if (!(methodCall.getMethod() instanceof ConstantExpression)) {
-            return null;
-        }
-
-        String methodName = methodCall.getMethod().getText();
-
-        if (methodName.equals(PLUGINS) || methodName.equals(classpathBlockName)) {
-            if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
-                return null;
-            }
-
-            ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
-            if (args.getExpressions().size() == 1 && args.getExpression(0) instanceof ClosureExpression) {
-                return new ScriptBlock(methodName, (ClosureExpression) args.getExpression(0));
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
+        return statementSpec;
     }
 
 }

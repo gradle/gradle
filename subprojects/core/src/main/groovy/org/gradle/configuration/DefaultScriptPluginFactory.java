@@ -31,6 +31,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.plugin.use.internal.PluginDependenciesService;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -132,6 +133,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             compiler.setClassloader(targetScope.getLocalClassLoader());
 
             compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert()));
+
+            // TODO - find a less tangled way of getting this in here, see the verifier impl for why it's needed
+            compiler.setVerifier(new ClosureCreationInterceptingVerifier());
+
             ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
 
             BasicScript script = runner.getScript();

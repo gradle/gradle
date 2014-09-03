@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts.internal
 
+import org.codehaus.groovy.classgen.Verifier
 import org.gradle.api.Action
 import org.gradle.internal.resource.Resource
 import org.gradle.cache.CacheBuilder
@@ -39,6 +40,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final Transformer transformer = Mock()
     final File cacheDir = new File("base-dir")
     final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
+    private Verifier verifier = new Verifier()
 
     def setup() {
         Resource resource = Mock()
@@ -53,7 +55,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     def "loads classes from cache directory"() {
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script)
+        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
 
         then:
         result == Script
@@ -81,7 +83,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
 
         when:
-        compiler.compile(source, classLoader, transformer, Script)
+        compiler.compile(source, classLoader, transformer, Script, verifier)
 
         then:
         1 * cacheBuilder.withValidator(validator) >> cacheBuilder
@@ -93,7 +95,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         def initializer
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script)
+        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
 
         then:
         result == Script
@@ -103,7 +105,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> {args -> initializer = args[0]; return cacheBuilder}
         1 * cacheBuilder.open() >> {initializer.execute(cache); return cache}
-        1 * scriptCompilationHandler.compileToDir(source, classLoader, new File(cacheDir, "classes"), transformer, Script)
+        1 * scriptCompilationHandler.compileToDir(source, classLoader, new File(cacheDir, "classes"), transformer, Script, verifier)
         1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
         0 * scriptCompilationHandler._
     }

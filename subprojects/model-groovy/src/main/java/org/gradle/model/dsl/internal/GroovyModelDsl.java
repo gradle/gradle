@@ -20,15 +20,14 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.dsl.ModelDsl;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.dsl.internal.transform.ExtractedInputs;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -55,23 +54,18 @@ public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
-        modelRegistry.mutate(new ModelMutator<Object>() {
-            public ModelReference<Object> getSubject() {
-                return ModelReference.untyped(modelPath);
-            }
-
-            public void mutate(Object object, Inputs inputs) {
-                new ClosureBackedAction<Object>(action).execute(object);
-            }
-
-            public ModelRuleDescriptor getDescriptor() {
-                return new SimpleModelRuleDescriptor("model." + modelPath);
-            }
-
-            public List<ModelReference<?>> getInputs() {
-                return Collections.emptyList();
+        ExtractedInputs extractedInputs = action.getClass().getAnnotation(ExtractedInputs.class);
+        final List<ModelReference<?>> inputReferences = extractedInputs == null || extractedInputs.value().length == 0
+                ? Collections.<ModelReference<?>>emptyList()
+                : CollectionUtils.collect(extractedInputs.value(), new Transformer<ModelReference<?>, String>() {
+            public ModelReference<?> transform(String s) {
+                // path was validated at compile time
+                ModelPath path = ModelPath.path(s);
+                return ModelReference.untyped(path);
             }
         });
+
+        modelRegistry.mutate(new ClosureBackedModelMutator(action, inputReferences, modelPath));
     }
 
     public void configure(Closure<?> action) {

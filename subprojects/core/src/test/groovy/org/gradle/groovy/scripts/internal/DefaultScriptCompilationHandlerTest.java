@@ -23,6 +23,7 @@ import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ClassExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
@@ -67,6 +68,8 @@ public class DefaultScriptCompilationHandlerTest {
     private String scriptFileName;
 
     private ClassLoader classLoader;
+
+    private Verifier verifier = new Verifier();
 
     private Class<? extends Script> expectedScriptClass;
 
@@ -120,7 +123,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Test
     public void testCompileScriptToDir() throws Exception {
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
 
         checkScriptClassesInCache();
 
@@ -134,7 +137,7 @@ public class DefaultScriptCompilationHandlerTest {
         final ScriptSource scriptSource = scriptSource("package org.gradle.test\n" + scriptText);
 
         try {
-            scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+            scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
             fail();
         } catch (UnsupportedOperationException e) {
             assertThat(e.getMessage(), equalTo("Script-display-name should not contain a package statement."));
@@ -144,7 +147,7 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithWhitespaceOnly() throws Exception {
         final ScriptSource scriptSource = scriptSource("// ignore me\n");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
 
         checkEmptyScriptInCache();
 
@@ -156,7 +159,7 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithEmptyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
 
         checkEmptyScriptInCache();
 
@@ -168,7 +171,7 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithClassDefinitionOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("class SomeClass {}");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
 
         checkEmptyScriptInCache();
 
@@ -180,7 +183,7 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithMethodOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("def method() { println 'hi' }");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
 
         checkScriptClassesInCache();
 
@@ -192,7 +195,7 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithPropertiesOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("String a");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
 
         checkScriptClassesInCache();
 
@@ -203,7 +206,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Test
     public void testLoadFromDirWhenNotAssignableToBaseClass() {
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, Script.class);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, Script.class, verifier);
         try {
             scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
                     expectedScriptClass);
@@ -218,7 +221,7 @@ public class DefaultScriptCompilationHandlerTest {
     public void testCompileToDirWithSyntaxError() {
         ScriptSource source = new StringScriptSource("script.gradle", "\n\nnew HHHHJSJSJ jsj");
         try {
-            scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, null, expectedScriptClass);
+            scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
             fail();
         } catch (ScriptCompilationException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
@@ -256,7 +259,7 @@ public class DefaultScriptCompilationHandlerTest {
         };
 
         ScriptSource source = scriptSource("transformMe()");
-        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, visitor, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, visitor, expectedScriptClass, verifier);
         Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, expectedScriptClass).newInstance();
         evaluateScript(script);
     }

@@ -15,9 +15,10 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import org.codehaus.groovy.classgen.Verifier;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 
 public interface ScriptClassCompiler {
-    <T extends groovy.lang.Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass);
+    <T extends groovy.lang.Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Verifier verifier);
 }

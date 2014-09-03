@@ -15,10 +15,13 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.codehaus.groovy.classgen.Verifier;
+
 /**
  * Compiles a script into a {@code Script} object.
  */
 public interface ScriptCompiler {
+
     /**
      * Sets the parent classloader for the script. Can be null, defaults to the context classloader.
      */
@@ -29,6 +32,8 @@ public interface ScriptCompiler {
      * the script.
      */
     ScriptCompiler setTransformer(Transformer transformer);
+
+    ScriptCompiler setVerifier(Verifier verifier);
 
     /**
      * Compiles the script into a {@code Script} object of the given type. 

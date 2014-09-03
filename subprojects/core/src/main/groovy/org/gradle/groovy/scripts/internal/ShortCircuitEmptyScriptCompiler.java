@@ -16,6 +16,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
+import org.codehaus.groovy.classgen.Verifier;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 
@@ -28,10 +29,10 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
         this.emptyScriptGenerator = emptyScriptGenerator;
     }
 
-    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass) {
+    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Verifier verifier) {
         if (source.getResource().getText().matches("\\s*")) {
             return emptyScriptGenerator.generate(scriptBaseClass);
         }
-        return compiler.compile(source, classLoader, transformer, scriptBaseClass);
+        return compiler.compile(source, classLoader, transformer, scriptBaseClass, verifier);
     }
 }

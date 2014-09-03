@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts.internal
 
+import org.codehaus.groovy.classgen.Verifier
 import spock.lang.Specification
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
@@ -24,6 +25,8 @@ import org.gradle.groovy.scripts.TestScript
 class CachingScriptClassCompilerTest extends Specification {
     private final ScriptClassCompiler target = Mock()
     private final CachingScriptClassCompiler compiler = new CachingScriptClassCompiler(target)
+    final verifier = Mock(Verifier)
+
 
     def "caches the script class for a given script class and classloader and transformer and baseclass"() {
         ScriptSource script1 = scriptSource('script')
@@ -32,12 +35,12 @@ class CachingScriptClassCompilerTest extends Specification {
         Transformer transformer = transformer()
 
         when:
-        def c1 = compiler.compile(script1, parentClassLoader, transformer, Script.class)
-        def c2 = compiler.compile(script2, parentClassLoader, transformer, Script.class)
+        def c1 = compiler.compile(script1, parentClassLoader, transformer, Script.class, verifier)
+        def c2 = compiler.compile(script2, parentClassLoader, transformer, Script.class, verifier)
 
         then:
         c1 == c2
-        1 * target.compile(script1, parentClassLoader, transformer, Script.class) >> Script.class
+        1 * target.compile(script1, parentClassLoader, transformer, Script.class, verifier) >> Script.class
         0 * target._
     }
 
@@ -48,12 +51,12 @@ class CachingScriptClassCompilerTest extends Specification {
         Transformer transformer = transformer()
 
         when:
-        def c1 = compiler.compile(script1, parentClassLoader, transformer, Script.class)
-        def c2 = compiler.compile(script2, parentClassLoader, transformer, Script.class)
+        def c1 = compiler.compile(script1, parentClassLoader, transformer, Script.class, verifier)
+        def c2 = compiler.compile(script2, parentClassLoader, transformer, Script.class, verifier)
 
         then:
-        1 * target.compile(script1, parentClassLoader, transformer, Script.class) >> Script.class
-        1 * target.compile(script2, parentClassLoader, transformer, Script.class) >> Script.class
+        1 * target.compile(script1, parentClassLoader, transformer, Script.class, verifier) >> Script.class
+        1 * target.compile(script2, parentClassLoader, transformer, Script.class, verifier) >> Script.class
     }
 
     def "does not cache script class for different transformers"() {
@@ -64,12 +67,12 @@ class CachingScriptClassCompilerTest extends Specification {
         Transformer transformer2 = transformer('t2')
 
         when:
-        def c1 = compiler.compile(script1, parentClassLoader, transformer1, Script.class)
-        def c2 = compiler.compile(script2, parentClassLoader, transformer2, Script.class)
+        def c1 = compiler.compile(script1, parentClassLoader, transformer1, Script.class, verifier)
+        def c2 = compiler.compile(script2, parentClassLoader, transformer2, Script.class, verifier)
 
         then:
-        1 * target.compile(script1, parentClassLoader, transformer1, Script.class) >> Script.class
-        1 * target.compile(script2, parentClassLoader, transformer2, Script.class) >> Script.class
+        1 * target.compile(script1, parentClassLoader, transformer1, Script.class, verifier) >> Script.class
+        1 * target.compile(script2, parentClassLoader, transformer2, Script.class, verifier) >> Script.class
     }
 
     def "does not cache script class for different classloaders"() {
@@ -80,12 +83,12 @@ class CachingScriptClassCompilerTest extends Specification {
         Transformer transformer = transformer()
 
         when:
-        def c1 = compiler.compile(script1, parentClassLoader1, transformer, Script.class)
-        def c2 = compiler.compile(script2, parentClassLoader2, transformer, Script.class)
+        def c1 = compiler.compile(script1, parentClassLoader1, transformer, Script.class, verifier)
+        def c2 = compiler.compile(script2, parentClassLoader2, transformer, Script.class, verifier)
 
         then:
-        1 * target.compile(script1, parentClassLoader1, transformer, Script.class) >> Script.class
-        1 * target.compile(script2, parentClassLoader2, transformer, Script.class) >> Script.class
+        1 * target.compile(script1, parentClassLoader1, transformer, Script.class, verifier) >> Script.class
+        1 * target.compile(script2, parentClassLoader2, transformer, Script.class, verifier) >> Script.class
     }
 
     def "does not cache script class for different base classes"() {
@@ -95,12 +98,12 @@ class CachingScriptClassCompilerTest extends Specification {
         Transformer transformer = transformer()
 
         when:
-        def c1 = compiler.compile(script1, parentClassLoader, transformer, Script.class)
-        def c2 = compiler.compile(script2, parentClassLoader, transformer, TestScript.class)
+        def c1 = compiler.compile(script1, parentClassLoader, transformer, Script.class, verifier)
+        def c2 = compiler.compile(script2, parentClassLoader, transformer, TestScript.class, verifier)
 
         then:
-        1 * target.compile(script1, parentClassLoader, transformer, Script.class) >> Script.class
-        1 * target.compile(script2, parentClassLoader, transformer, TestScript.class) >> TestScript.class
+        1 * target.compile(script1, parentClassLoader, transformer, Script.class, verifier) >> Script.class
+        1 * target.compile(script2, parentClassLoader, transformer, TestScript.class, verifier) >> TestScript.class
     }
 
     def scriptSource(String className = 'script') {
