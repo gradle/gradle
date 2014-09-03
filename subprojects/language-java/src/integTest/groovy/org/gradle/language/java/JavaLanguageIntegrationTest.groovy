@@ -315,7 +315,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/jdk$target/myLib.jar").getJavaVersion() == target
+        jarFile("build/jars/myLibJar/myLib.jar").getJavaVersion() == target
     }
 
 
