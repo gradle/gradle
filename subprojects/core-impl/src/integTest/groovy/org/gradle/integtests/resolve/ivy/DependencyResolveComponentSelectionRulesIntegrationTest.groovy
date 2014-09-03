@@ -53,6 +53,40 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         """
     }
 
+    private static def rules = [
+            "reject all": """{ ComponentSelection selection ->
+                selection.reject("rejecting everything")
+                candidates << selection.candidate.version
+            }
+            """,
+            "reject all with metadata": """{ ComponentSelection selection, ComponentMetadata metadata ->
+                selection.reject("rejecting everything")
+                candidates << selection.candidate.version
+            }
+            """,
+            "select 1.1": """{ ComponentSelection selection ->
+                if (selection.candidate.version != '1.1') {
+                    selection.reject("not 1.1")
+                }
+                candidates << selection.candidate.version
+            }
+            """,
+            "select branch": """{ ComponentSelection selection, IvyModuleDescriptor ivy ->
+                if (ivy.branch != 'test') {
+                    selection.reject("not branch")
+                }
+                candidates << selection.candidate.version
+            }
+            """,
+            "select status": """{ ComponentSelection selection, ComponentMetadata metadata ->
+                if (metadata.status != 'milestone') {
+                    selection.reject("not milestone")
+                }
+                candidates << selection.candidate.version
+            }
+            """
+    ]
+
     @Unroll
     def "uses '#rule' rule to choose component for #selector" () {
 
@@ -212,40 +246,6 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         "1.0"                | "select branch" | '["1.0"]'                             | ['1.0']
         "1.1"                | "reject all"    | '["1.1"]'                             | ['1.1']
     }
-
-    private static def rules = [
-            "reject all": """{ ComponentSelection selection ->
-                selection.reject("rejecting everything")
-                candidates << selection.candidate.version
-            }
-            """,
-            "reject all with metadata": """{ ComponentSelection selection, ComponentMetadata metadata ->
-                selection.reject("rejecting everything")
-                candidates << selection.candidate.version
-            }
-            """,
-            "select 1.1": """{ ComponentSelection selection ->
-                if (selection.candidate.version != '1.1') {
-                    selection.reject("not 1.1")
-                }
-                candidates << selection.candidate.version
-            }
-            """,
-            "select branch": """{ ComponentSelection selection, IvyModuleDescriptor ivy ->
-                if (ivy.branch != 'test') {
-                    selection.reject("not branch")
-                }
-                candidates << selection.candidate.version
-            }
-            """,
-            "select status": """{ ComponentSelection selection, ComponentMetadata metadata ->
-                if (metadata.status != 'milestone') {
-                    selection.reject("not milestone")
-                }
-                candidates << selection.candidate.version
-            }
-            """
-    ]
 
     @Unroll
     def "can use component selection rule to choose component from different repository for #selector"() {
