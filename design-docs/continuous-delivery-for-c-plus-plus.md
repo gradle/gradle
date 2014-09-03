@@ -1029,6 +1029,8 @@ from the same sources that link against different implementation libraries.
 
 When using GCC to build for a platform that is not the GCC default, different executable names should be used:
 
+### Windows Host
+
 Host windows + cygwin32/cygwin64 + mingw64:
 
 - x86 windows target should use:
@@ -1054,7 +1056,7 @@ Host windows + cygwin32/cygwin64 + mingw64:
     - x86_64-w64-mingw32-ld
     - x86_64-w64-mingw32-windres
     - Locations of libs:
-        - As above
+        - Same scheme as above
 
 Host windows + cygwin32/cygwin64 + mingw32:
 
@@ -1066,7 +1068,7 @@ Host windows + cygwin32/cygwin64 + mingw32:
     - i686-pc-mingw32-ld
     - i686-pc-mingw32-windres
     - Locations of libs:
-        - As above
+        - Same scheme as above
 
 - amd64 targets not supported.
 
@@ -1128,18 +1130,21 @@ Host windows + mingw32:
 
 - amd64 targets not supported.
 
-Host linux x86:
+### Linux host
+
+Host Ubuntu x86:
 
 - x86 linux target should use:
-    - i486-linux-gnu-gcc
-    - i486-linux-gnu-g++
+    - i486-linux-gnu-gcc or i686-linux-gnu-gcc
+    - i486-linux-gnu-g++ or i686-linux-gnu-g++
     - ar
     - as
     - ld
+
 - amd64 linux target should use:
     ??
 
-Host linux amd64:
+Host Ubuntu amd64:
 
 - amd64 linux target should use:
     - x86_64-linux-gnu-gcc
@@ -1147,10 +1152,40 @@ Host linux amd64:
     - ar
     - as
     - ld
+    - library locations:
+        - std c headers: /usr/include
+        - std c libs: /usr/lib/gcc/x86_64-linux-gnu/<version>
+        - std c++ headers: /usr/include/c++/<version>
+        - std c++ libs: /usr/lib/gcc/x86_64-linux-gnu/<version>
+
 - x86 linux target should use:
     - as above, need to detect platform libs
+    - library locations:
+        - std c headers: /usr/include
+        - std c libs: /usr/lib/gcc/x86_64-linux-gnu/<version>/32
+        - std c++ headers: /usr/include/c++/<version>
+        - std c++ libs: /usr/lib/gcc/x86_64-linux-gnu/<version>/32
 
-Host linux + mingw32:
+Host OpenSUSE amd64:
+
+- amd64 target:
+    - library locations:
+        - std c headers: /usr/include
+        - std c libs /usr/lib64/gcc/x86_64-suse-linux/<version>
+        - std c++ headers: /usr/include/c++/<version>
+        - std c++ libs /usr/lib64/gcc/x86_64-suse-linux/<version>
+
+Host Fedora amd64:
+
+- amd64 target:
+    - x86_64-redhat-linux-gcc
+    - library locations:
+        - std c headers: /usr/include
+        - std c libs: /usr/lib/gcc/x86_64-redhat-linux/<version>
+        - std c++ headers: /usr/include/c++/<version>
+        - std c++ libs: /usr/lib/gcc/x86_64-redhat-linux/<version>
+
+Host Ubuntu + mingw32:
 
 - x86 windows target should use:
     - i586-mingw32msvc-gcc
@@ -1159,8 +1194,15 @@ Host linux + mingw32:
     - i586-mingw32msvc-as
     - i586-mingw32msvc-ld
     - i586-mingw32msvc-windres
+    - library locations:
+        - std c headers: /usr/include
+        - std c libs: /usr/lib/gcc/i586-mingw32msvc/<version>
+        - std c++ headers: /usr/lib/gcc/i586-mingw32msvc/<version>/include/c++
+        - std c++ libs: /usr/lib/gcc/i586-mingw32msvc/<version>
+        - win sdk headers: /usr/i586-mingw32msvc/include
+        - win sdk libs: /usr/i586-mingw32msvc/lib
 
-Host linux + mingw64:
+Host Ubuntu + mingw64:
 
 - x86 windows target should use:
     - i686-w64-mingw32-gcc
@@ -1169,6 +1211,14 @@ Host linux + mingw64:
     - i686-w64-mingw32-ar
     - i686-w64-mingw32-ld
     - i686-w64-mingw32-windres
+    - library locations:
+        - std c headers: /usr/include
+        - std c libs: /usr/lib/gcc/i686-w64-mingw32/<version>
+        - std c++ headers: /usr/include/c++/<version>
+        - std c++ libs: /usr/lib/gcc/i686-w64-mingw32/<version>
+        - win sdk headers: /usr/i686-w64-mingw32/include
+        - win sdk libs: /usr/i686-w64-mingw32/lib
+
 - amd64 windows target should use:
     - x86_64-w64-mingw32-gcc
     - x86_64-w64-mingw32-g++
@@ -1176,6 +1226,13 @@ Host linux + mingw64:
     - x86_64-w64-mingw32-ar
     - x86_64-w64-mingw32-ld
     - x86_64-w64-mingw32-windres
+    - library locations:
+        - Same scheme as above
+
+Can use `-print-search-dirs` to give some details about the above. Only partially supported by clang.
+Can use `-print-sysroot` to locate the directory containing system libraries. Not supported by clang and returns empty path in many environments.
+
+### OS X host
 
 Host OS X + Macports with mingw32:
 
