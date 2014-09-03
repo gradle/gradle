@@ -128,7 +128,7 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-encoding");
             args.add(compileOptions.getEncoding());
         }
-        if (compileOptions.getBootClasspath() != null) {
+        if (compileOptions.getBootClasspath() != null) { //TODO: move bootclasspath to platform
             args.add("-bootclasspath");
             args.add(compileOptions.getBootClasspath());
         }

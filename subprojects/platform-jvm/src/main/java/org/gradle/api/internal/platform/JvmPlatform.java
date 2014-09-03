@@ -17,11 +17,17 @@
 package org.gradle.api.internal.platform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.Named;
+import org.gradle.jvm.toolchain.JavaToolChain;
+
+import java.util.List;
 
 /**
  * Defines and configures a JVM platform.
  *
  * <pre>
+ * apply plugin: 'jvm-component'
  * apply plugin: 'java-lang'
  *
  * jvm {
@@ -34,7 +40,9 @@ import org.gradle.api.Incubating;
  * </pre>
  */
 @Incubating
-public interface JvmPlatform {
-    String getSourceCompatibility();
-    String getTargetCompatilibity();
+public interface JvmPlatform extends Named {
+    JavaVersion getTargetCompatibility();
+
+    List<String> getErrors(JavaToolChain toolChain);
+    //TODO: Set<File> getBootclasspath();
 }
