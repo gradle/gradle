@@ -16,7 +16,7 @@
 
 package org.gradle.util;
 
-public class XmlUtil {
+public class XmlValidation {
     public static boolean isValidXmlName(String name) {
         // element names can only contain 0 or 1 colon
         // See http://www.w3.org/TR/2004/REC-xml-names11-20040204/#Conformance

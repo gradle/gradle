@@ -18,10 +18,10 @@ package org.gradle.util
 
 import spock.lang.Specification
 
-class XmlUtilTest extends Specification {
+class XmlValidationTest extends Specification {
     def "catches poorly formed xml names" () {
         expect:
-        ! XmlUtil.isValidXmlName(name)
+        ! XmlValidation.isValidXmlName(name)
 
         where:
         name        | _
@@ -53,7 +53,7 @@ class XmlUtilTest extends Specification {
 
     def "allows well formed xml names" () {
         expect:
-        XmlUtil.isValidXmlName(name)
+        XmlValidation.isValidXmlName(name)
 
         where:
         name             | _
@@ -83,7 +83,7 @@ class XmlUtilTest extends Specification {
 
     def "identifies illegal character" () {
         expect:
-        ! XmlUtil.isLegalCharacter(character as char)
+        ! XmlValidation.isLegalCharacter(character as char)
 
         where:
         character | _
@@ -96,7 +96,7 @@ class XmlUtilTest extends Specification {
 
     def "identifies legal character" () {
         expect:
-        XmlUtil.isLegalCharacter(character as char)
+        XmlValidation.isLegalCharacter(character as char)
 
         where:
         character | _

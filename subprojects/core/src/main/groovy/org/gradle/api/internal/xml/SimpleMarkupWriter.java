@@ -17,7 +17,7 @@
 package org.gradle.api.internal.xml;
 
 import org.gradle.internal.SystemProperties;
-import org.gradle.util.XmlUtil;
+import org.gradle.util.XmlValidation;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -104,7 +104,7 @@ public class SimpleMarkupWriter extends Writer {
     }
 
     public SimpleMarkupWriter startElement(String name) throws IOException {
-        if (!XmlUtil.isValidXmlName(name)) {
+        if (!XmlValidation.isValidXmlName(name)) {
             throw new IllegalArgumentException(String.format("Invalid element name: '%s'", name));
         }
         if (context == Context.CData) {
@@ -174,9 +174,9 @@ public class SimpleMarkupWriter extends Writer {
     private void writeCDATA(char ch) throws IOException {
         if (needsCDATAEscaping(ch)) {
             writeRaw("]]><![CDATA[>");
-        } else if (!XmlUtil.isLegalCharacter(ch)) {
+        } else if (!XmlValidation.isLegalCharacter(ch)) {
             writeRaw('?');
-        } else if (XmlUtil.isRestrictedCharacter(ch)) {
+        } else if (XmlValidation.isRestrictedCharacter(ch)) {
             writeRaw("]]>");
             writeCharacterReference(ch);
             writeRaw("<![CDATA[");
@@ -229,7 +229,7 @@ public class SimpleMarkupWriter extends Writer {
     }
 
     public SimpleMarkupWriter attribute(String name, String value) throws IOException {
-        if (!XmlUtil.isValidXmlName(name)) {
+        if (!XmlValidation.isValidXmlName(name)) {
             throw new IllegalArgumentException(String.format("Invalid attribute name: '%s'", name));
         }
         if (context != Context.StartTag) {
@@ -296,9 +296,9 @@ public class SimpleMarkupWriter extends Writer {
             writeRaw("&amp;");
         } else if (ch == '"') {
             writeRaw("&quot;");
-        } else if (!XmlUtil.isLegalCharacter(ch)) {
+        } else if (!XmlValidation.isLegalCharacter(ch)) {
             writeRaw('?');
-        } else if (XmlUtil.isRestrictedCharacter(ch)) {
+        } else if (XmlValidation.isRestrictedCharacter(ch)) {
             writeCharacterReference(ch);
         } else {
             writeRaw(ch);
