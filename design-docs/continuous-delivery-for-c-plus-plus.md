@@ -546,6 +546,7 @@ Host OS X + Macports with x86_64 elf:
 ## Story: CI coverage for more tool chains
 
 - Visual Studio 2013
+- Visual Studio 2012
 - GCC 3
 - XCode on OS X
 - Objective-c on Windows with GCC and Clang
@@ -677,7 +678,7 @@ This story introduces a set of headers that are visible to all source files in a
 - Language specific public headers. Eg include these headers when compiling C in a consuming component, and these additional headers when compiling C++.
 - Update the generated Visual Studio project so that different header sets are grouped within distinct "filters".
 
-## Story: Only use gcc/g++ front-ends for GCC tool chain
+## Story: Only use gcc/g++ front-ends for GCC and Clang tool chains
 
 * Use 'gcc -x assembler -c' for assembly sources
 * Use 'gcc' to link instead of 'g++': add -lstdc++ to linker args for C++ sources. Similar for objective-C++.
@@ -1047,14 +1048,10 @@ TBD
     - Can use this to determine which source sets to include in a given binary.
 - Model ABI as part of platform. A tool chain can produce binaries for some set of ABIs.
 - Use the term 'Visual Studio' consistently instead of 'Visual C++'
-- Test coverage for Visual studio 2012, 2013
 - Tool chain represents an installation. Must be easy to configure the discovered tool chain, and configure extra installations.
-- Improve name spacing in the DSL, so that only the current thing (or no thing) is reachable without some kind of qualification.
 
 ## Source
 
-- Split headers source set out of HeaderExportingSourceSet subclasses.
-- Introduce a composite source set that groups source into api + impl.
 - Allow dependencies to be declared between source sets
     - native language source set A depends on header source set B makes the headers of B available when compiling A.
     - native language source set A depends on native language source B makes the object files of B available when linking A into a binary.
@@ -1064,15 +1061,9 @@ TBD
     - Can access as a set of directories, a set of files or a file tree
     - Allow individual files to be added
     - Allow custom file extensions to be specified
-- Source sets are children of components
-    - Only add source sets for supported languages to the children of native components
-- Language source sets should filter files with a given set of extensions: C/C++/windows-res/assembler/Objective-C/Objective-C++/header
 - A source set may have its own dependencies, visible only to the source set
-- A native component has a shared headers source set with its own dependencies, visible to all source sets of the component
-- A library component has an API, defaults to the shared headers
 - When compiling, only the API of dependencies should be visible
 - AssemblerSourceSet should implement DependentSourceSet (has source dependencies)
-- Add source sets only to a component, have some way to describe how to include/exclude a source set
 - Some conventional location for OS specific source for a component
 - Allow encoding to specified on a source set, with default values as per java sources
 
@@ -1080,7 +1071,6 @@ TBD
 
 - GRADLE-2943 - Fix escaping of compiler and linker args
 - Understand and/or model -I/-L/-l/-D/-U
-- GCC tool-chain uses gcc/g++ to link and gcc to assemble
 - Source set declares a target language runtime, use this to decide which driver to use to link
 - Don't fail if g++ is not installed when it is not required
 - Support preprocessor macros for assembler
@@ -1132,40 +1122,15 @@ TBD
 
 ## Toolchains
 
-- DSL to declare that a toolchain supports certain target platform, and how to invoke the tools to do so.
 - Introduce `XCode`, `Cygwin`, `MinGW` toolchains, to allow selection of specific gcc or clang implementations.
     - Use the `XCode` tool chain to determine mac-specific gcc args
     - Use the `Cygwin` and `MinGW` toolchains to provide additional path requirements for `InstallExecutable` task
-
-    toolchains {
-        gcc {
-            platform(...) {
-                ... configure platform implementation
-                cppCompiler { compileSpec ->
-                    ... compiler compiler invocation
-                }
-            }
-        }
-        visualStudio {
-            ...
-        }
-        gcc3(Gcc) {
-            installDir = 'someWhere'
-        }
-    }
-
 - Prevent configuration of tool chains after availability has been determined.
 
 ## Structure
 
 - Some common plugin that determines which tool-chains to apply
-- Determine naming scheme for the 'native' domain
-    - Fix package hierarchy
-    - Consistent pattern with 'jvm' domain
-    - Rename `subprojects/cpp`
-    - Probably make language superior to runtime, and have tasks and plugins live under language root
 - Enable package cycle checks
-
 
 ### Language plugins
 
@@ -1177,7 +1142,6 @@ TBD
     - Automatically add `/noentry` and `/machine` linker args when building resource-only DLL
     - Actually inspect the binary to determine if there are any exported symbols
     - Use a model rule to determine if library sources contain windows resources
-
 
 ### Performance
 
@@ -1221,13 +1185,10 @@ TBD
 * Support for install distributions, which may bundle some, all, or none of the runtime dependencies (including language runtime libraries).
 * Understand the various output file types: PE, ELF, Mach-O, COFF
 * Bare-bones tool chain using GNU binutils
-* Should be able to run the C preprocessor on assembler source file.
 * Add support for cygwin-64 (uses a different data model to windows) and mingw under cygwin.
 * Install task should generate a shell script as well as a batch script when running under cygwin.
 * GCC and Clang under cygwin target the cygwin runtime, not the windows runtime.
 * Add language level to C and C++ source sets.
-* The `gcc` provided by XCode on OS X is actually a repackaged `clang`. Should distinguish between building with the `gcc` provided by XCode, and building with a real `gcc`
-  install, eg via a ports toolkit.
 * Adding other languages as external plugins.
 * Consume dependencies from cocoapods repository.
 * Publish to cocoapods repository.
