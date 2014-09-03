@@ -407,7 +407,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         assert errorOutput.contains("Could not use target JVM platform: '$badTarget' when using JDK: '${JavaVersion.current()}'. Change to a lower target.")
     }
 
-    @Requires(TestPrecondition.JDK6_OR_LATER)
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "component report contains target data"() {
         String target1 = JavaVersion.VERSION_1_6;
         String target2 = JavaVersion.current();
