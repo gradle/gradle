@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -36,4 +37,5 @@ import org.gradle.internal.HasInternalProtocol;
 @HasInternalProtocol
 public interface JavaToolChain {
     String getDisplayName();
+    JavaVersion getJavaVersion();
 }
