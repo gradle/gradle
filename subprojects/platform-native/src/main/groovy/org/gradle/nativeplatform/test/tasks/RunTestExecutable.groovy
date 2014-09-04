@@ -26,7 +26,8 @@ import org.gradle.logging.ConsoleRenderer
  * Runs a compiled and installed test executable.
  */
 @Incubating
-public class RunTestExecutable extends AbstractExecTask {
+@SuppressWarnings("unchecked")
+public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
     public RunTestExecutable() {
         super(RunTestExecutable.class);
     }

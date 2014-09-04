@@ -25,6 +25,7 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
+@SuppressWarnings("deprecation")
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, ExecutableBinary, NativeExecutableBinarySpecInternal {
     private File executableFile;
 

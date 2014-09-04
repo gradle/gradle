@@ -232,10 +232,10 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
             if (spec instanceof CppCompileSpec) {
-                return (Compiler) createCppCompiler();
+                return castCompiler(createCppCompiler());
             }
             if (spec instanceof CCompileSpec) {
-                return (Compiler) createCCompiler();
+                return castCompiler(createCCompiler());
             }
             if (spec instanceof ObjectiveCppCompileSpec) {
                 throw new RuntimeException("Objective-C++ is not available on the Visual C++ toolchain");
@@ -244,18 +244,23 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
                 throw new RuntimeException("Objective-C is not available on the Visual C++ toolchain");
             }
             if (spec instanceof WindowsResourceCompileSpec) {
-                return (Compiler) createWindowsResourceCompiler();
+                return castCompiler(createWindowsResourceCompiler());
             }
             if (spec instanceof AssembleSpec) {
-                return (Compiler) createAssembler();
+                return castCompiler(createAssembler());
             }
             if (spec instanceof LinkerSpec) {
-                return (Compiler) createLinker();
+                return castCompiler(createLinker());
             }
             if (spec instanceof StaticLibraryArchiverSpec) {
-                return (Compiler) createStaticLibraryArchiver();
+                return castCompiler(createStaticLibraryArchiver());
             }
             throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
+        }
+
+        @SuppressWarnings("unchecked")
+        private <T extends CompileSpec> Compiler<T> castCompiler(Compiler<?> compiler) {
+            return (Compiler<T>) compiler;
         }
 
         public Compiler<CppCompileSpec> createCppCompiler() {

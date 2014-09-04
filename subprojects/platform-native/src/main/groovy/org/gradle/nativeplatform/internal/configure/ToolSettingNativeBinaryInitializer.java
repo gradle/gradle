@@ -32,7 +32,7 @@ public class ToolSettingNativeBinaryInitializer implements Action<NativeBinarySp
     }
 
     public void execute(NativeBinarySpec nativeBinary) {
-        for (LanguageRegistration language : languageRegistry) {
+        for (LanguageRegistration<?> language : languageRegistry) {
             Map<String, Class<?>> binaryTools = language.getBinaryTools();
             for (String toolName : binaryTools.keySet()) {
                 ((ExtensionAware) nativeBinary).getExtensions().create(toolName, binaryTools.get(toolName));
