@@ -22,7 +22,7 @@ public class SomeClass {
 
     List<Integer> field = new LinkedList<Integer>();
 
-    private Set<String> stuff(HashMap map) {
+    private Set<String> stuff(HashMap<String, String> map) {
         System.out.println(new Foo());
         return new HashSet<String>();
     }

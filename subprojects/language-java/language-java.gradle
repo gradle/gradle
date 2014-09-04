@@ -6,5 +6,6 @@ dependencies {
 }
 
 useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**", "org/gradle/external/javadoc/internal/**"])
+strictCompile()
 useTestFixtures()
 useTestFixtures(project:":platformBase")

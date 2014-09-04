@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class ClassDependentsAccumulator {
 
-    private final Map<String, DefaultDependentsSet> dependents = new HashMap<String, DefaultDependentsSet>();
+    private final Map<String, DependentsSet> dependents = new HashMap<String, DependentsSet>();
     private final String packagePrefix;
 
     public ClassDependentsAccumulator(String packagePrefix) {
@@ -43,15 +43,15 @@ public class ClassDependentsAccumulator {
     }
 
     private DefaultDependentsSet rememberClass(String className) {
-        DefaultDependentsSet d = dependents.get(className);
+        DependentsSet d = dependents.get(className);
         if (d == null) {
             d = new DefaultDependentsSet();
             dependents.put(className, d);
         }
-        return d;
+        return (DefaultDependentsSet) d;
     }
 
     public Map<String, DependentsSet> getDependentsMap() {
-        return (Map) dependents;
+        return dependents;
     }
 }

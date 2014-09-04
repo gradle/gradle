@@ -40,10 +40,10 @@ public class JavadocOptionFileWriter {
         IoActions.writeTextFile(outputFile, new ErroringAction<BufferedWriter>() {
             @Override
             protected void doExecute(BufferedWriter writer) throws Exception {
-                final Map<String, JavadocOptionFileOption> options = new TreeMap<String, JavadocOptionFileOption>(optionFile.getOptions());
+                final Map<String, JavadocOptionFileOption<?>> options = new TreeMap<String, JavadocOptionFileOption<?>>(optionFile.getOptions());
                 JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
 
-                JavadocOptionFileOption localeOption = options.remove("locale");
+                JavadocOptionFileOption<?> localeOption = options.remove("locale");
                 if (localeOption != null) {
                     localeOption.write(writerContext);
                 }

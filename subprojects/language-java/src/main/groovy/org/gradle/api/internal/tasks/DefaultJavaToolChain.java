@@ -50,10 +50,12 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
         if (spec instanceof JavaCompileSpec) {
             CompileOptions options = ((JavaCompileSpec) spec).getCompileOptions();
-            return (Compiler) compilerFactory.create(options);
+            @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) compilerFactory.create(options);
+            return compiler;
         }
         if (spec instanceof JavadocSpec) {
-            return (Compiler) new JavadocGenerator(execActionFactory);
+            @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) new JavadocGenerator(execActionFactory);
+            return compiler;
         }
 
         throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", spec.getClass().getSimpleName()));

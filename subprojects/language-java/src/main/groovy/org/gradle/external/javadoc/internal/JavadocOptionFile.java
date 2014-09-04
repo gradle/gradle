@@ -24,12 +24,12 @@ import java.io.IOException;
 import java.util.*;
 
 public class JavadocOptionFile {
-    private final Map<String, JavadocOptionFileOption> options;
+    private final Map<String, JavadocOptionFileOption<?>> options;
 
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
 
     public JavadocOptionFile() {
-        options = new HashMap<String, JavadocOptionFileOption>();
+        options = new HashMap<String, JavadocOptionFileOption<?>>();
         sourceNames = new OptionLessStringsJavadocOptionFileOption();
     }
 
@@ -37,7 +37,7 @@ public class JavadocOptionFile {
         return sourceNames;
     }
 
-    Map<String, JavadocOptionFileOption> getOptions() {
+    Map<String, JavadocOptionFileOption<?>> getOptions() {
         return Collections.unmodifiableMap(options);
     }
 

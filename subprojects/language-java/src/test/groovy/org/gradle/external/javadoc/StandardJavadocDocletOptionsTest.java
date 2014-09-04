@@ -511,12 +511,12 @@ public class StandardJavadocDocletOptionsTest {
         options = null;
     }
 
-    public static void assertEmpty(Collection shouldBeEmptyCollection) {
+    public static void assertEmpty(Collection<?> shouldBeEmptyCollection) {
         assertNotNull(shouldBeEmptyCollection);
         assertTrue(shouldBeEmptyCollection.isEmpty());
     }
 
-    public static void assertEmpty(Map shouldBeEmptyMap) {
+    public static void assertEmpty(Map<?,?> shouldBeEmptyMap) {
         assertNotNull(shouldBeEmptyMap);
         assertTrue(shouldBeEmptyMap.isEmpty());
     }

@@ -273,7 +273,7 @@ public class Javadoc extends SourceTask {
      *
      * @param block The configuration block for Javadoc generation options.
      */
-    public void options(Closure block) {
+    public void options(Closure<?> block) {
         getProject().configure(getOptions(), block);
     }
 

@@ -49,7 +49,8 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private final File srcDir = new File(testDir, "srcdir");
     private final Set<File> classpath = WrapUtil.toSet(new File("classpath"));
     private JavaToolChainInternal toolChain = context.mock(JavaToolChainInternal.class);
-    private Compiler<JavadocSpec> generator = context.mock(Compiler.class);
+    @SuppressWarnings("unchecked")
+    private Compiler<JavadocSpec> generator = (Compiler<JavadocSpec>) context.mock(Compiler.class);
     private Javadoc task;
     private FileCollection configurationMock = new SimpleFileCollection(classpath);
     private String executable = "somepath";
