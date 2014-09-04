@@ -283,7 +283,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Convenience method to set {@link GroovyForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
      */
-    public GroovyCompileOptions fork(Map forkArgs) {
+    public GroovyCompileOptions fork(Map<String, Object> forkArgs) {
         fork = true;
         forkOptions.define(forkArgs);
         return this;
