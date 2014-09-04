@@ -1,7 +1,8 @@
 dependencies {
-    compile libraries.groovy
     compile project(":platformJvm")
     compile project(":platformBase")
+
+    testCompile libraries.groovy
 
     testRuntime project(":languageJava")
 }
