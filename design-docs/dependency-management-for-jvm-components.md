@@ -562,7 +562,10 @@ Running `gradle assemble` will execute tasks for each library binary.
 
 - Needs to be easy to construct a task graph. The binary is 'builtBy' some assembling task, which then depend on a bunch of compile tasks.
 
-### Story: Plugin declares roles for the binaries of a component
+## Feature: Declare the roles of component model elements
+
+
+### Story: Plugin statically declares roles for the binaries of a component
 
     interface JarBinarySpec extends BinarySpec { }
 
@@ -595,7 +598,7 @@ Running `gradle assemble` should build all of these binaries.
 - Change NativeExecutableSpec to have `executables` property of the appropriate type.
 - Change component report to present this meta-data.
 
-### Story: Plugin declares roles for the source sets of a component
+### Story: Plugin statically declares roles for the source sets of a component
 
     interface HeaderLanguageSourceSet extends LanguageSourceSet { }
 
@@ -651,6 +654,8 @@ can provide a convention that applies to all components, and the exceptions can 
 - This code should only run when the particular binary needs to be closed.
 - Add the equivalent for source sets.
 
+## Feature: Component model improvements
+
 ### Story: Running `gradle assemble` informs user when no binaries are buildable
 
 Currently, running `gradle assemble` does nothing when nothing is buildable.
@@ -671,7 +676,7 @@ Infrastructure automatically wires up the correct transformation rule for each b
 
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
-### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project
+### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project (DONE)
 
 - ~~Move tasks/plugins/etc that are used to compile native languages for the native runtime into `org.gradle.language.*`~~
 - ~~Move Visual Studio and CDE related classes into new subproject `ide-native`~~
