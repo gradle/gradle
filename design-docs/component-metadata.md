@@ -288,17 +288,13 @@ Generate closure-based methods for any methods that take a `RuleAction` paramete
 
 ## Story: Build script targets component selection rule to particular module
 
-This story adds some convenience DSL to target a selection rule a particular group or module:
+This story adds some convenience DSL to target a selection rule to a particular module:
 
 ### User visible changes
 
     configurations.all {
         resolutionStrategy {
             componentSelection {
-                group("foo") { ComponentSelection selection ->
-                }
-                group("foo").module("bar") { ComponentSelection selection ->
-                }
                 module("foo:bar") { ComponentSelection selection ->
                 }
             }
@@ -307,15 +303,13 @@ This story adds some convenience DSL to target a selection rule a particular gro
 ### Test cases
 
 - Use rule to control selection of components within a specific module.
-- Multiple rules can target a particular module: combine a group and a module targeted rule
+- Multiple rules can target a particular module
 - Rules are not fired for components of non-targeted module.
 - If a rule requires metadata input, that rule does not trigger metadata download for non-targeted modules.
 - Useful error message when:
-    - 'group' value is empty or null
     - 'module' value is empty or null
-    - 'module' value that has preceding 'group' contains ':' character
-    - 'module' value that has no preceding group does not match `group:module` pattern
-    - 'group' or 'module' value contains invalid characters: '*', '+', ???
+    - 'module' value does not match `group:module` pattern
+    - 'module' value contains invalid characters: '*', '+', ???
 
 
 ## Open issues
