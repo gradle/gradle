@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.archive
 
 import org.apache.commons.io.IOUtils
 import org.gradle.api.JavaVersion
+import org.gradle.test.fixtures.file.ClassFile
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -77,24 +78,7 @@ class JarTestFixture extends ZipTestFixture {
         if (classEntry == null) {
             throw new Exception("Could not find a class entry for: " + file)
         }
-        InputStream is = jarFile.getInputStream(classEntry)
-        try {
-            DataInputStream data = new DataInputStream(is)
-            try {
-                int header =  data.readInt()
-
-                if (classFileDescriptor != header) {
-                    throw new Exception("Invalid entry (class): " + classEntry.name + ":" + file)
-                } else {
-                    data.readUnsignedShort(); //minor
-                    int major = data.readUnsignedShort();
-                    return JavaVersion.toVersion(major);
-                }
-            } finally {
-                IOUtils.closeQuietly(data)
-            }
-        } finally {
-            IOUtils.closeQuietly(is)
-        }
+        ClassFile classFile = new ClassFile(jarFile.getInputStream(classEntry))
+        return JavaVersion.toVersion(classFile.classFileVersion)
     }
 }

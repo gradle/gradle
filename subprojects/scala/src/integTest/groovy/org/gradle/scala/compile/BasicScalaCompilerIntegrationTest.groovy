@@ -16,8 +16,9 @@
 
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.ClassFile
+
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.VersionNumber
 
 abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {

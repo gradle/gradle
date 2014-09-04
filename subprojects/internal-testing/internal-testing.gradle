@@ -26,6 +26,7 @@ dependencies {
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ant
+    compile libraries.asm
     compile libraries.junit
     compile libraries.jmock
     compile libraries.spock

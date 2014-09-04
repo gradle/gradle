@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.test.fixtures.file
 
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.ClassReader
+import org.objectweb.asm.*
 
 class ClassFile {
-    final File file
     boolean hasSourceFile
     boolean hasLineNumbers
     boolean hasLocalVars
+    int classFileVersion
 
     ClassFile(File file) {
-        this.file = file
+        this(file.newInputStream())
+    }
+
+    ClassFile(InputStream inputStream) {
         def methodVisitor = new MethodVisitor(Opcodes.ASM4) {
             @Override
             void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
@@ -43,6 +42,11 @@ class ClassFile {
         }
         def visitor = new ClassVisitor(Opcodes.ASM4) {
             @Override
+            void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                classFileVersion = version
+            }
+
+            @Override
             MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                 return methodVisitor
             }
@@ -52,7 +56,7 @@ class ClassFile {
                 hasSourceFile = true
             }
         }
-        new ClassReader(file.bytes).accept(visitor, 0)
+        new ClassReader(inputStream).accept(visitor, 0)
     }
 
     boolean getDebugIncludesSourceFile() {
