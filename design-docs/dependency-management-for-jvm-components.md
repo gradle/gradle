@@ -904,15 +904,20 @@ Add a sample to show a JVM library built for multiple Java versions.
 
 ### Story: Use a consistent approach for native and JVM platforms
 
-- Extract `NativePlatform` out of `Platform` (it's really a 'hosted C environment' as per the ISO C spec)
-- Extract `NativeToolChain` out of `ToolChain` and change `JavaToolChain` to extend `ToolChain`.
-- Move `Platform` and `ToolChain` out of the native packages into base packages.
+- Replace `org.gradle.nativeplatform.platform.Platform` with:
+    - `org.gradle.nativeplatform.platform.NativePlatform` (it's really a 'hosted C environment' as per the ISO C spec)
+    - `org.gradle.platform.base.platform.Platform`
+- Replace `org.gradle.nativeplatform.toolchain.ToolChain` with:
+    - `org.gradle.nativeplatform.toolchain.NativeToolChain`
+    - `org.gradle.platform.base.toolchain.ToolChain`
+- Change `JavaToolChain` to extend `ToolChain`.
+- Change `JvmPlatform` to extend `Platform`.
 - Use a consistent DSL for declaring the target platforms of all platform aware component types.
-- Add factory methods for common platforms to match those used for the Java runtime.
 - Mention breaking change in release notes.
 
 #### Open issues
 
+- Add factory methods for common platforms to match those used for the Java runtime.
 - Replace or reuse `platforms` container.
 - Add infrastructure to coerce string to platform, architecture or operating system types.
 - Turn what is `ToolChain` into a tool chain locator or factory.
