@@ -1555,6 +1555,6 @@ Should be possible to declare stand-alone test suite with custom variants.
 ## Tech debt for 'platform-*' and 'language-*' subprojects
 
 - Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
-- Switch on strict compile
 - Remove all classycle exclusions
+- CUnit should not live in `language-native`
 

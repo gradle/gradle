@@ -1130,7 +1130,6 @@ TBD
 ## Structure
 
 - Some common plugin that determines which tool-chains to apply
-- Enable package cycle checks
 
 ### Language plugins
 
