@@ -564,22 +564,51 @@ Running `gradle assemble` will execute tasks for each library binary.
 
 ## Feature: Declare the roles of component model elements
 
+### Story: Build author defines top level source set using model DSL
+
+    model {
+        sources {
+            mysource {
+                java(JavaSourceSet) { ... }
+            }
+        }
+    }
+
+Conventional source directory locations are used for source sets declared this way.
+
+#### Test cases
+
+- Source sets are visible in component report with correct source directories
+
+### Story: Build author defines top level component using model DSL
+
+    model {
+        components {
+            mylib(JvmLibrarySpec) { ... }
+        }
+    }
+
+#### Test cases
+
+- `gradle assemble` builds the jar for this component. Could reuse an existing test for this.
+
 ### Story: Configure the source sets of a component in the component definition
 
 This story moves definition and configuration of the source sets for a component to live with the other component configuration.
 
 1. Allow a component's source sets to be defined as part of the component definition:
-    - Replace `ComponentSpec.getSource()` with a `getSources()` method return a `FunctionalSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
-    - Add a `ComponentSpec.source(Action<? super FunctionalSourceSet>)` method.
-    - Change `ComponentModelBasePlugin.createLanguageSourceSets` to add source sets via the component's source container rather than the project's source container.
-    - This step allows configuration via `component.source { ... }`.
+    - Add `ComponentSpec.getSources()` which returns a `FunctionalSourceSet`.
+    - Add a `ComponentSpec.sources(Action<? super FunctionalSourceSet>)` method.
+    - When a component is created, create and attach the source set.
+    - Add the component's `FunctionalSourceSet` to the `sources` container.
+    - Attach source sets for a given language only to those `FunctionalSourceSet` source sets instances owned by a component.
 1. Review samples to make use of this.
 
 #### Example DSL
 
-    nativeRuntime
-        libraries {
-            mylib {
+    model
+        components {
+            mylib(NativeLibrarySpec) {
                 sources {
                     c {
                         lib libraries.otherlib
@@ -592,10 +621,8 @@ This story moves definition and configuration of the source sets for a component
         }
     }
 
-    // Can also reach source sets via project.sources
-    sources {
-        mylib { ... }
-    }
+#### Test cases
+
 
 #### Open issues
 
@@ -604,6 +631,96 @@ This story moves definition and configuration of the source sets for a component
 - Change `ComponentModelBasePlugin.createLanguageSourceSets` to a model rule
     - This means that source sets will not be created eagerly, which means that access to sources {} will need to be in a model block, or via ComponentSpec.sources()
     - In order for this to work, we need to be able to reference other model elements in a DSL model rule
+
+### Story: Configure component model and source sets exclusively using model DSL
+
+Remove the `jvm`, `nativeRuntime` and `sources` extensions.
+
+### Story: Build author configures all language source sets using model DSL
+
+Add a container that contains all language source sets. When a functional source set is added to `sources` container or
+defined for a component, then all language source sets for that functional source set should be visible:
+
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    model {
+        sources {
+            custom {
+                java(JavaLanguageSourceSet)
+            }
+        }
+        components {
+            myLib(JvmExecutableSpec)
+        }
+        // needs a better name or DSL
+        allSource {
+            // sources.custom.java should be visible here
+            // components.myLib.sources.java should be visible here
+        }
+    }
+
+Change the component report to use this new language source set container.
+
+### Story: Build author configures all components using model DSL
+
+    apply plugin: 'native-component'
+    apply plugin: 'cunit'
+
+    model {
+        components {
+            myexe(NativeExecutableSpec)
+        }
+        // needs a better name or DSL
+        allComponents {
+            // components.myexe is visible here
+            // cunit test suite is visible here
+        }
+    }
+
+Change the component report to use this new component container.
+
+#### Open issues
+
+- Add a testSuites container
+- Add a way to navigate from component to test suite
+- Allow a test suite to be added as a top level component
+
+### Story: Build author configures all binaries using model DSL
+
+Adds capability for an object to appear in multiple locations in the model. Use the model DSL to configure for all components:
+
+- Binaries with type
+- All binaries
+
+This code should run between the configuration rules defined by the plugin, and the rules associated with each component. This way, a build script
+can provide a convention that applies to all components, and the exceptions can be associated with the individual components.
+
+#### Open issues
+
+- This code should only run when the particular binary needs to be closed.
+- Add the equivalent for source sets.
+- Allow top level binaries to be declared.
+
+### Story: Build author uses model DSL to configure binaries for a component
+
+Adds capability to configure a child object after the parent object has been configured. Use the model DSL to configure
+for a particular component:
+
+- Binary by name
+- Binaries with type
+- All binaries
+
+This code should run after the rules that defines the binaries for the component and the configuration rules defined by
+plugin.
+
+#### Open issues
+
+- This code should only run when the particular component needs to be closed.
+- Also needs to work for binaries declared for particular roles
+- Add the equivalent for source sets
+- Add the concept of 'convention' that rules can apply. The configure rules declared in the model DSL should run after the convention
+rules have been applied to each binary.
 
 ### Story: Plugin statically declares roles for the binaries of a component
 
@@ -658,41 +775,6 @@ Running `gradle assemble` should build all of these binaries.
 - Rename 'sources' to more general 'inputs'? This allows source sets to be produced as outputs.
 - Change NativeComponentSpec to have `api` property and remove HeaderExportingSourceSet.
 - Change component report to present this meta-data.
-
-### Story: Build author uses model DSL to configure binaries for a component
-
-Adds capability to configure a child object after the parent object has been configured. Use the model DSL to configure
-for a particular component:
-
-- Binary by name
-- Binaries with type
-- All binaries
-
-This code should run after the rules that defines the binaries for the component and the configuration rules defined by
-plugin.
-
-#### Open issues
-
-- This code should only run when the particular component needs to be closed.
-- Also needs to work for binaries declared for particular roles
-- Add the equivalent for source sets
-- Add the concept of 'convention' that rules can apply. The configure rules declared in the model DSL should run after the convention
-rules have been applied to each binary.
-
-### Story: Build author uses model DSL to configure binaries for all components
-
-Adds capability for an object to appear in multiple locations in the model. Use the model DSL to configure for all components:
-
-- Binaries with type
-- All binaries
-
-This code should run between the configuration rules defined by the plugin, and the rules associated with each component. This way, a build script
-can provide a convention that applies to all components, and the exceptions can be associated with the individual components.
-
-#### Open issues
-
-- This code should only run when the particular binary needs to be closed.
-- Add the equivalent for source sets.
 
 ## Feature: Component model improvements
 
