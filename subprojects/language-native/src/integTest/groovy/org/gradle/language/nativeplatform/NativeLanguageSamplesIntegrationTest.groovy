@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.language.nativeplatform
-
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.test.cunit.CUnitTestResults
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -174,53 +170,4 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         and:
         installation(idl.dir.file("build/install/mainExecutable")).exec().out == "Hello from generated source!!\n"
     }
-
-    def "cunit"() {
-        given:
-        // CUnit prebuilt library only works for VS2010 on windows
-        if (OperatingSystem.current().windows && !isVisualCpp2010()) {
-            return
-        }
-
-        when:
-        sample cunit
-        succeeds "runPassing"
-
-        then:
-        executedAndNotSkipped ":operatorsTestCUnitLauncher",
-                              ":compilePassingOperatorsTestCUnitExeOperatorsTestC", ":compilePassingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
-                              ":linkPassingOperatorsTestCUnitExe", ":passingOperatorsTestCUnitExe",
-                              ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
-
-        and:
-        def passingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTestCUnitExe/passing/CUnitAutomated-Results.xml"))
-        passingResults.suiteNames == ['operator tests']
-        passingResults.suites['operator tests'].passingTests == ['test_plus', 'test_minus']
-        passingResults.suites['operator tests'].failingTests == []
-        passingResults.checkTestCases(2, 2, 0)
-        passingResults.checkAssertions(6, 6, 0)
-
-        when:
-        sample cunit
-        fails "runFailing"
-
-        then:
-        skipped ":operatorsTestCUnitLauncher"
-        executedAndNotSkipped ":compileFailingOperatorsTestCUnitExeOperatorsTestC", ":compileFailingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
-                              ":linkFailingOperatorsTestCUnitExe", ":failingOperatorsTestCUnitExe",
-                              ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
-
-        and:
-        def failingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTestCUnitExe/failing/CUnitAutomated-Results.xml"))
-        failingResults.suiteNames == ['operator tests']
-        failingResults.suites['operator tests'].passingTests == ['test_minus']
-        failingResults.suites['operator tests'].failingTests == ['test_plus']
-        failingResults.checkTestCases(2, 1, 1)
-        failingResults.checkAssertions(6, 4, 2)
-    }
-
-    private static boolean isVisualCpp2010() {
-        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "10")
-    }
-
 }

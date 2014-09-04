@@ -815,12 +815,6 @@ Infrastructure automatically wires up the correct transformation rule for each b
     - ~~Enable classycle for all projects~~
     - ~~Split NativeSamplesIntegrationTest for subprojects~~
 
-#### Open issues
-
-- `language-native` and `plugin-native` integration tests require `ide-native` (testing visual studio project generation for particular cases)
-- where should `cunit` support live?
-- Reorganise samples?
-
 ## Feature: Plugin implements custom language support
 
 ### Story: Build author declares target Java version for a Java library
@@ -1556,5 +1550,4 @@ Should be possible to declare stand-alone test suite with custom variants.
 
 - Convert all production classes to java and use `src/main/java` instead of `src/main/groovy`
 - Remove all classycle exclusions
-- CUnit should not live in `language-native`
 

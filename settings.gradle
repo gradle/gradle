@@ -65,6 +65,7 @@ include 'pluginUse'
 include 'pluginDevelopment'
 include 'modelCore'
 include 'modelGroovy'
+include 'cunit'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
