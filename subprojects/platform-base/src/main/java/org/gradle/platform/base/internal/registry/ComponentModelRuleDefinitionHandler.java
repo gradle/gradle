@@ -34,7 +34,6 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.InvalidComponentModelException;
-import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.rules.RuleContext;
 
 import java.lang.annotation.Annotation;
@@ -46,12 +45,12 @@ public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U exte
     private final Class<A> annotationClass;
     private final ModelType<T> baseInterface;
     private final ModelType<U> baseImplementation;
-    private final ModelType<? extends TypeBuilder<T>> builderInterface;
+    private final ModelType<?> builderInterface;
     private final Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory;
     private final Action<? super RegistrationContext<T, U>> registerer;
 
     public ComponentModelRuleDefinitionHandler(String modelName, Class<A> annotationClass,
-                                               Class<T> baseInterface, Class<U> baseImplementation, Class<? extends TypeBuilder<T>> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory, Action<? super RegistrationContext<T, U>> registerer) {
+                                               Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory, Action<? super RegistrationContext<T, U>> registerer) {
         this.modelName = modelName;
         this.annotationClass = annotationClass;
         this.typeBuilderFactory = typeBuilderFactory;

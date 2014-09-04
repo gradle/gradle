@@ -25,10 +25,7 @@ import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.ComponentSpec
-import org.gradle.platform.base.ComponentType
-import org.gradle.platform.base.ComponentTypeBuilder
-import org.gradle.platform.base.InvalidComponentModelException
+import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.registry.ComponentTypeRuleDefinitionHandler
 import org.gradle.testfixtures.ProjectBuilder
@@ -108,6 +105,7 @@ class ComponentTypeRuleDefinitionHandlerTest extends Specification {
         where:
         methodName                         | expectedMessage                                                                                                         | descr
         "extraParameter"                   | "ComponentType method must have a single parameter of type '${ComponentTypeBuilder.name}'."                             | "additional rule parameter"
+        "binaryTypeBuilder"                | "ComponentType method must have a single parameter of type '${ComponentTypeBuilder.name}'."                             | "wrong builder type"
         "returnValue"                      | "ComponentType method must not have a return value."                                                                    | "method with return type"
         "implementationSetMultipleTimes"   | "ComponentType method cannot set default implementation multiple times."                                                | "implementation set multiple times"
         "noTypeParam"                      | "Parameter of type '${ComponentTypeBuilder.name}' must declare a type parameter."                                       | "missing type parameter"
@@ -190,6 +188,10 @@ class ComponentTypeRuleDefinitionHandlerTest extends Specification {
         static void implementationSetMultipleTimes(ComponentTypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.defaultImplementation(SomeComponentSpecOtherImpl)
+        }
+
+        @ComponentType
+        static void binaryTypeBuilder(BinaryTypeBuilder<BinarySpec> builder) {
         }
 
         @ComponentType
