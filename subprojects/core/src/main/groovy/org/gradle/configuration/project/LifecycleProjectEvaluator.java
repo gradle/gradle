@@ -32,8 +32,11 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
     private final ProjectEvaluator delegate;
 
+    private final ConfigureActionsProjectEvaluator postAfterEvaluateEvaluator;
+
     public LifecycleProjectEvaluator(ProjectEvaluator delegate) {
         this.delegate = delegate;
+        postAfterEvaluateEvaluator = new ConfigureActionsProjectEvaluator(new TaskModelPopulatingConfigurationAction(), new TaskModelRealizingConfigurationAction());
     }
 
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {
@@ -59,6 +62,14 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             state.setExecuting(false);
             state.executed();
             notifyAfterEvaluate(listener, project, state);
+        }
+
+        if (!state.hasFailure()) {
+            try {
+                postAfterEvaluateEvaluator.evaluate(project, state);
+            } catch (Exception e) {
+                addConfigurationFailure(project, state, e);
+            }
         }
     }
 

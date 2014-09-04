@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
@@ -29,8 +30,11 @@ import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
+import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 
@@ -47,13 +51,11 @@ public class PublishingPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final ArtifactPublicationServices publicationServices;
-    private final ProjectPublicationRegistry publicationRegistry;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ProjectPublicationRegistry publicationRegistry) {
+    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
-        this.publicationRegistry = publicationRegistry;
     }
 
     public void apply(final Project project) {
@@ -61,16 +63,7 @@ public class PublishingPlugin implements Plugin<Project> {
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
 
         // TODO Registering an extension should register it with the model registry as well
-        final PublishingExtension extension = project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
-
-        project.afterEvaluate(new Action<Project>() {
-            public void execute(Project project) {
-                for (Publication publication : extension.getPublications()) {
-                    PublicationInternal internalPublication = (PublicationInternal) publication;
-                    publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(internalPublication.getCoordinates()));
-                }
-            }
-        });
+        project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
         Task publishLifecycleTask = project.getTasks().create(PUBLISH_LIFECYCLE_TASK_NAME);
         publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
@@ -85,6 +78,24 @@ public class PublishingPlugin implements Plugin<Project> {
         @Model
         PublishingExtension publishing(ExtensionContainer extensions) {
             return extensions.getByType(PublishingExtension.class);
+        }
+
+        @Model
+        ProjectPublicationRegistry publicationRegistry(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ProjectPublicationRegistry.class);
+        }
+
+        @Mutate
+        void registerPublications(ProjectPublicationRegistry publicationRegistry, PublishingExtension extension, ProjectIdentifier projectIdentifier) {
+            for (Publication publication : extension.getPublications()) {
+                PublicationInternal internalPublication = (PublicationInternal) publication;
+                publicationRegistry.registerPublication(projectIdentifier.getPath(), new DefaultProjectPublication(internalPublication.getCoordinates()));
+            }
+        }
+
+        @Mutate
+        void tasksDependOnPublicationRegistry(CollectionBuilder<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
+            //do nothing, the rule is here to introduce a dependency on ProjectPublicationRegistry to TaskContainer
         }
     }
 

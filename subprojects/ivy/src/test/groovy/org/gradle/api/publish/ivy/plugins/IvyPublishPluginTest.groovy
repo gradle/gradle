@@ -17,13 +17,13 @@
 package org.gradle.api.publish.ivy.plugins
 
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
-import org.gradle.model.internal.core.ModelType
+import org.gradle.configuration.project.TaskModelPopulatingConfigurationAction
+import org.gradle.configuration.project.TaskModelRealizingConfigurationAction
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -51,11 +51,16 @@ class IvyPublishPluginTest extends Specification {
         publishing.publications.test instanceof DefaultIvyPublication
     }
 
+    void closeTaskContainer() {
+        new TaskModelPopulatingConfigurationAction().execute(project)
+        new TaskModelRealizingConfigurationAction().execute(project)
+    }
+
     def "creates publish task for publication and repository"() {
         when:
         publishing.publications.create("test", IvyPublication)
         publishing.repositories { ivy { url = "http://foo.com" } }
-        project.modelRegistry.get(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED)
+        closeTaskContainer()
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
         then:

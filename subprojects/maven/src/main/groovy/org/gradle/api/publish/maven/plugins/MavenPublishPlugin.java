@@ -41,7 +41,9 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Mutate;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
+import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -97,10 +99,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
-        public void realizePublishingTasks(TaskContainer tasks, PublishingExtension extension) {
-            final Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
-            final Task publishLocalLifecycleTask = tasks.getByName(MavenPublishPlugin.PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
-
+        public void realizePublishingTasks(CollectionBuilder<Task> tasks, @Path("tasks.publish") Task publishLifecycleTask, @Path("tasks.publishToMavenLocal") Task publishLocalLifecycleTask,
+                                           PublishingExtension extension) {
             // Create generatePom tasks for any Maven publication
             PublicationContainer publications = extension.getPublications();
 
@@ -113,49 +113,59 @@ public class MavenPublishPlugin implements Plugin<Project> {
             }
         }
 
-        private void createPublishTasksForEachMavenRepo(TaskContainer tasks, PublishingExtension extension, Task publishLifecycleTask, MavenPublicationInternal publication, String publicationName) {
-            for (MavenArtifactRepository repository : extension.getRepositories().withType(MavenArtifactRepository.class)) {
-                String repositoryName = repository.getName();
+        private void createPublishTasksForEachMavenRepo(CollectionBuilder<Task> tasks, PublishingExtension extension, final Task publishLifecycleTask, final MavenPublicationInternal publication,
+                                                        final String publicationName) {
+            for (final MavenArtifactRepository repository : extension.getRepositories().withType(MavenArtifactRepository.class)) {
+                final String repositoryName = repository.getName();
 
                 String publishTaskName = String.format("publish%sPublicationTo%sRepository", capitalize(publicationName), capitalize(repositoryName));
 
-                PublishToMavenRepository publishTask = tasks.create(publishTaskName, PublishToMavenRepository.class);
-                publishTask.setPublication(publication);
-                publishTask.setRepository(repository);
-                publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-                publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'.", publicationName, repositoryName));
+                tasks.create(publishTaskName, PublishToMavenRepository.class, new Action<PublishToMavenRepository>() {
+                    public void execute(PublishToMavenRepository publishTask) {
+                        publishTask.setPublication(publication);
+                        publishTask.setRepository(repository);
+                        publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+                        publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'.", publicationName, repositoryName));
 
-                publishLifecycleTask.dependsOn(publishTask);
+                        publishLifecycleTask.dependsOn(publishTask);
+                    }
+                });
             }
         }
 
-        private void createLocalInstallTask(TaskContainer tasks, Task publishLocalLifecycleTask, MavenPublicationInternal publication, String publicationName) {
-            String installTaskName = String.format("publish%sPublicationToMavenLocal", capitalize(publicationName));
+        private void createLocalInstallTask(CollectionBuilder<Task> tasks, final Task publishLocalLifecycleTask, final MavenPublicationInternal publication, final String publicationName) {
+            final String installTaskName = String.format("publish%sPublicationToMavenLocal", capitalize(publicationName));
 
-            PublishToMavenLocal publishLocalTask = tasks.create(installTaskName, PublishToMavenLocal.class);
-            publishLocalTask.setPublication(publication);
-            publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            publishLocalTask.setDescription(String.format("Publishes Maven publication '%s' to the local Maven repository.", publicationName));
+            tasks.create(installTaskName, PublishToMavenLocal.class, new Action<PublishToMavenLocal>() {
+                public void execute(PublishToMavenLocal publishLocalTask) {
+                    publishLocalTask.setPublication(publication);
+                    publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+                    publishLocalTask.setDescription(String.format("Publishes Maven publication '%s' to the local Maven repository.", publicationName));
 
-            publishLocalLifecycleTask.dependsOn(installTaskName);
-        }
-
-        private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, String publicationName) {
-            String descriptorTaskName = String.format("generatePomFileFor%sPublication", capitalize(publicationName));
-            final GenerateMavenPom generatePomTask = tasks.create(descriptorTaskName, GenerateMavenPom.class);
-            generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'.", publication.getName()));
-            generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            generatePomTask.setPom(publication.getPom());
-
-            ConventionMapping descriptorTaskConventionMapping = new DslObject(generatePomTask).getConventionMapping();
-            descriptorTaskConventionMapping.map("destination", new Callable<Object>() {
-                public Object call() throws Exception {
-                    return new File(generatePomTask.getProject().getBuildDir(), "publications/" + publication.getName() + "/pom-default.xml");
+                    publishLocalLifecycleTask.dependsOn(installTaskName);
                 }
             });
+        }
 
-            // Wire the generated pom into the publication.
-            publication.setPomFile(generatePomTask.getOutputs().getFiles());
+        private void createGeneratePomTask(CollectionBuilder<Task> tasks, final MavenPublicationInternal publication, String publicationName) {
+            String descriptorTaskName = String.format("generatePomFileFor%sPublication", capitalize(publicationName));
+            tasks.create(descriptorTaskName, GenerateMavenPom.class, new Action<GenerateMavenPom>() {
+                public void execute(final GenerateMavenPom generatePomTask) {
+                    generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'.", publication.getName()));
+                    generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+                    generatePomTask.setPom(publication.getPom());
+
+                    ConventionMapping descriptorTaskConventionMapping = new DslObject(generatePomTask).getConventionMapping();
+                    descriptorTaskConventionMapping.map("destination", new Callable<Object>() {
+                        public Object call() throws Exception {
+                            return new File(generatePomTask.getProject().getBuildDir(), "publications/" + publication.getName() + "/pom-default.xml");
+                        }
+                    });
+
+                    // Wire the generated pom into the publication.
+                    publication.setPomFile(generatePomTask.getOutputs().getFiles());
+                }
+            });
         }
     }
 

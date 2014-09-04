@@ -26,8 +26,8 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelType
+import org.gradle.configuration.project.TaskModelPopulatingConfigurationAction
+import org.gradle.configuration.project.TaskModelRealizingConfigurationAction
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -128,7 +128,8 @@ class MavenPublishPluginTest extends Specification {
     }
 
     void closeTaskContainer() {
-        project.modelRegistry.get(ModelPath.path("tasks"), ModelType.UNTYPED)
+        new TaskModelPopulatingConfigurationAction().execute(project)
+        new TaskModelRealizingConfigurationAction().execute(project)
     }
 
     List<PublishToMavenRepository> getPublishTasks() {
