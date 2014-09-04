@@ -902,10 +902,6 @@ Add a sample to show a JVM library built for multiple Java versions.
 - Discover or configure the JDK installations (Later)
 - Need some convention or mechanism for source that is conditionally included based on the target platform. (Later)
 
-### Story: Build author can describe the "language level" for the source
-
-TODO
-
 ### Story: Use a consistent approach for native and JVM platforms
 
 - Extract `NativePlatform` out of `Platform` (it's really a 'hosted C environment' as per the ISO C spec)
@@ -1039,6 +1035,10 @@ Change the native, Java and classpath resource language plugins to replace usage
 #### Open issues
 
 - Probably don't need `TransformationFileType` any more.
+
+### Feature: Build author describes target platform and language dialect for source set
+
+TODO
 
 ## Feature: Custom binary is built from Java sources
 
