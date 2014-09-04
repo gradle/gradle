@@ -24,6 +24,11 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
+    String getPluginName() {
+        return "findbugs"
+    }
+
+    @Override
     String getMainTask() {
         return "check"
     }
