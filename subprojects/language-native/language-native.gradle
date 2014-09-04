@@ -29,3 +29,4 @@ useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":messaging")
 
 useClassycle()
+strictCompile()
