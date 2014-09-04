@@ -68,7 +68,7 @@ known as a `component instance` or `variant`.
 
 ## Feature: Build author creates a JVM library with Java sources
 
-### Story: Build author defines JVM library
+### Story: Build author defines JVM library (DONE)
 
 #### DSL
 
@@ -150,7 +150,7 @@ Combining native and jvm libraries in single project
 - Can combine native and JVM libraries in the same project
   - `gradle assemble` executes lifecycle tasks for each native library and each jvm library
 
-### Story: Build author creates JVM library jar from Java sources
+### Story: Build author creates JVM library jar from Java sources (DONE)
 
 When a JVM library is defined with Java language support, then binary is built from conventional source set locations:
 
@@ -268,7 +268,7 @@ Development of this feature depends on the first 2 stories from the `unified-con
 - Story: Plugin declares a top level model to make available
 - Story: Plugin configures tasks using model as input
 
-### Story: plugin declares its own library type
+### Story: plugin declares its own library type (DONE)
 
 Define a sample plugin that declares a custom library type:
     
@@ -346,7 +346,7 @@ A custom library implementation:
 - ~~Friendly error message when attempting to register the same library type with different implementations~~
 - ~~Custom libraries show up in components report~~
 
-### Story: Plugin uses rule to declare custom component type
+### Story: Plugin uses rule to declare custom component type (DONE)
 
 To avoid a future explosion of nested annotations, this story switches the mechanism for declaring a custom library type to use an
 annotated method, rather than a type annotation.
@@ -377,7 +377,7 @@ register a factory with the `ComponentSpecContainer` when the default implementa
 - ~~Fails if `setDefaultImplementation` is called multiple times~~
 - ~~Empty @ComponentType method implementation is ok: no factory registered~~
 
-### Story: Plugin declares the binary types and default implementations for a custom component
+### Story: Plugin declares the binary types and default implementations for a custom component (DONE)
 
 This story provides a simple way for developers to specify the binary types that are relevant for a particular custom component.
 
@@ -452,7 +452,6 @@ A custom binary implementation:
 
 - `BaseBinarySpec` leaks `BinarySpecInternal`
 - Existing JVM and native binary implementations should extend `BaseBinarySpec`
-
 
 ### Story: Plugin defines binaries for each custom component
 
@@ -654,7 +653,7 @@ can provide a convention that applies to all components, and the exceptions can 
 
 ### Story: Running `gradle assemble` informs user when no binaries are buildable
 
-Currently, running `gradle assemble` does nothing when nothing is buildable
+Currently, running `gradle assemble` does nothing when nothing is buildable.
 
 ### Story: Validate the input source sets for a binary
 
@@ -723,7 +722,7 @@ Target platform should be reachable from the `JvmBinarySpec`.
 
 #### Implementation plan
 
-- Add `org.gradle.language.java.JavaPlatform` interface and default implementation.
+- Add `org.gradle.language.java.JvmPlatform` interface and default implementation.
 - Update samples to include a Java version declaration.
 
 #### Test cases
@@ -786,12 +785,12 @@ TODO
 - Extract `NativeToolChain` out of `ToolChain` and change `JavaToolChain` to extend `ToolChain`.
 - Move `Platform` and `ToolChain` out of the native packages into base packages.
 - Use a consistent DSL for declaring the target platforms of all platform aware component types.
-- Replace or reuse `platforms` container.
 - Add factory methods for common platforms to match those used for the Java runtime.
 - Mention breaking change in release notes.
 
 #### Open issues
 
+- Replace or reuse `platforms` container.
 - Add infrastructure to coerce string to platform, architecture or operating system types.
 - Turn what is `ToolChain` into a tool chain locator or factory.
 - Turn what is `PlatformToolChain` into an immutable tool chain. Resolve the tool chain during configuration, and use this as input for incremental build.
