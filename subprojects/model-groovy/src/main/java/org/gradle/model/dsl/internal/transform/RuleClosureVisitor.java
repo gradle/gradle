@@ -27,7 +27,8 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
 import org.gradle.groovy.scripts.internal.AstUtils;
-import org.gradle.model.dsl.internal.inputs.ContextualInputAccess;
+import org.gradle.model.dsl.RuleInputAccess;
+import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
 import org.gradle.model.internal.core.ModelPath;
 
 import java.util.Collections;
@@ -40,14 +41,13 @@ public class RuleClosureVisitor extends CodeVisitorSupport {
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
     public static final String AST_NODE_METADATA_KEY = ModelBlockTransformer.class.getName();
 
-    private static final String INPUT_PUBLIC_METHOD_NAME = "$";
-    private static final String INPUT_PRIVATE_METHOD_NAME = "input"; // has to match Access class
+    private static final String DOLLAR = "$";
     private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(ExtractedInputs.class);
-    private static final ClassNode CONTEXTUAL_INPUT_TYPE = new ClassNode(ContextualInputAccess.class);
-    private static final ClassNode ACCESS_TYPE = new ClassNode(ContextualInputAccess.Access.class);
+    private static final ClassNode CONTEXTUAL_INPUT_TYPE = new ClassNode(RuleInputAccessBacking.class);
+    private static final ClassNode ACCESS_API_TYPE = new ClassNode(RuleInputAccess.class);
     private static final String GET_ACCESS = "getAccess";
 
-    private static final String ACCESS_HOLDER_FIELD = "_" + ContextualInputAccess.Access.class.getName().replace(".", "_");
+    private static final String ACCESS_HOLDER_FIELD = "_" + RuleInputAccess.class.getName().replace(".", "_");
 
     private final SourceUnit sourceUnit;
     private ImmutableSet.Builder<String> inputs;
@@ -79,7 +79,7 @@ public class RuleClosureVisitor extends CodeVisitorSupport {
         if (inputs == null) {
             inputs = ImmutableSet.builder();
             try {
-                accessVariable = new VariableExpression(ACCESS_HOLDER_FIELD, ACCESS_TYPE);
+                accessVariable = new VariableExpression(ACCESS_HOLDER_FIELD, ACCESS_API_TYPE);
 
                 super.visitClosureExpression(expression);
 
@@ -102,7 +102,7 @@ public class RuleClosureVisitor extends CodeVisitorSupport {
     @Override
     public void visitMethodCallExpression(MethodCallExpression call) {
         String methodName = call.getMethodAsString();
-        if (call.isImplicitThis() && methodName != null && methodName.equals(INPUT_PUBLIC_METHOD_NAME)) {
+        if (call.isImplicitThis() && methodName != null && methodName.equals(DOLLAR)) {
             visitInputMethod(call);
         } else {
             // visit the method call, because one of the args may be an input method call
@@ -126,7 +126,6 @@ public class RuleClosureVisitor extends CodeVisitorSupport {
 
             inputs.add(modelPath);
             call.setObjectExpression(new VariableExpression(accessVariable));
-            call.setMethod(new ConstantExpression(INPUT_PRIVATE_METHOD_NAME));
         }
     }
 

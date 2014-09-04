@@ -18,7 +18,7 @@ package org.gradle.model.dsl.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.dsl.internal.inputs.ContextualInputAccess;
+import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelPath;
@@ -45,7 +45,7 @@ class ClosureBackedModelMutator implements ModelMutator<Object> {
     }
 
     public void mutate(final Object object, Inputs inputs) {
-        ContextualInputAccess.runWithContext(inputs, new Runnable() {
+        RuleInputAccessBacking.runWithContext(inputs, new Runnable() {
             public void run() {
                 new ClosureBackedAction<Object>(action).execute(object);
             }

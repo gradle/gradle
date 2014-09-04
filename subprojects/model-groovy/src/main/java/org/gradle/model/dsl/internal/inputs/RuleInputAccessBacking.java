@@ -17,12 +17,13 @@
 package org.gradle.model.dsl.internal.inputs;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.model.dsl.RuleInputAccess;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelRuleInput;
 
-public abstract class ContextualInputAccess {
+public abstract class RuleInputAccessBacking {
 
-    private ContextualInputAccess() {
+    private RuleInputAccessBacking() {
     }
 
     private static final ThreadLocal<ImmutableMap<String, Object>> INPUT = new ThreadLocal<ImmutableMap<String, Object>>();
@@ -43,20 +44,13 @@ public abstract class ContextualInputAccess {
         }
     }
 
-    public static Access getAccess() {
-        return new Access(INPUT.get());
-    }
-
-    public static class Access {
-        private final ImmutableMap<String, Object> inputs;
-
-        public Access(ImmutableMap<String, Object> inputs) {
-            this.inputs = inputs;
-        }
-
-        public Object input(String string) {
-            return inputs.get(string);
-        }
+    public static RuleInputAccess getAccess() {
+        final ImmutableMap<String, Object> inputs = INPUT.get();
+        return new RuleInputAccess() {
+            public Object $(String modelPath) {
+                return inputs.get(modelPath);
+            }
+        };
     }
 
 }
