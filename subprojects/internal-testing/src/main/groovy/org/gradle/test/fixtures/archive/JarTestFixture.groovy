@@ -33,7 +33,8 @@ class JarTestFixture extends ZipTestFixture {
     /**
      * Asserts that the Jar file is well-formed
      */
-     JarTestFixture(File file) {super(file)
+     JarTestFixture(File file) {
+         super(file)
          this.file = file
          isManifestPresentAndFirstEntry()
      }
