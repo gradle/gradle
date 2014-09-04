@@ -19,11 +19,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class AnnouncePluginIntegrationTest extends WellBehavedPluginTest {
     @Override
-    String getPluginName() {
-        return "announce"
-    }
-
-    @Override
     String getMainTask() {
         return "tasks"
     }

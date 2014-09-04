@@ -33,11 +33,6 @@ class LanguageBasePluginTest extends WellBehavedPluginTest {
         project.plugins.apply(LanguageBasePlugin)
     }
 
-    @Override
-    String getPluginName() {
-        return 'language-base'
-    }
-
     def "adds a 'binaries' container to the project"() {
         expect:
         project.extensions.findByName("binaries") instanceof BinaryContainer

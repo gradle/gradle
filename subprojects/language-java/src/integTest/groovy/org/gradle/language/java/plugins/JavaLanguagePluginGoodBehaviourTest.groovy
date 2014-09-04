@@ -19,11 +19,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class JavaLanguagePluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
-    String getMainTask() {
-        return "assemble"
-    }
-
-    @Override
     String getPluginName() {
         "java-lang"
     }

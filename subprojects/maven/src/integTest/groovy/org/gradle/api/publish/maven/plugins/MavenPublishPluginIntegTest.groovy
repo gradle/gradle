@@ -21,11 +21,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 class MavenPublishPluginIntegTest extends WellBehavedPluginTest {
 
     @Override
-    String getPluginName() {
-        "maven-publish"
-    }
-
-    @Override
     String getMainTask() {
         "publish"
     }

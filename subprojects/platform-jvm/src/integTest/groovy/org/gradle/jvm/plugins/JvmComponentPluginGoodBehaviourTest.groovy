@@ -18,13 +18,4 @@ package org.gradle.jvm.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class JvmComponentPluginGoodBehaviourTest extends WellBehavedPluginTest {
-    @Override
-    String getMainTask() {
-        return "assemble"
-    }
-
-    @Override
-    String getPluginName() {
-        "jvm-component"
-    }
 }

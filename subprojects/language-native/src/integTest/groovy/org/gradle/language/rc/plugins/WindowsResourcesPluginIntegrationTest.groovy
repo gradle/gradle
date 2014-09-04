@@ -19,8 +19,4 @@ package org.gradle.language.rc.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class WindowsResourcesPluginIntegrationTest extends WellBehavedPluginTest {
-    @Override
-    String getPluginName() {
-        "windows-resources"
-    }
 }

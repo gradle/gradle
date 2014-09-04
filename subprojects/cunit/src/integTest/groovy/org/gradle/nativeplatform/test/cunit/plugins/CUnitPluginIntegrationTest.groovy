@@ -19,4 +19,8 @@ package org.gradle.nativeplatform.test.cunit.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class CUnitPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getPluginName() {
+        return "cunit"
+    }
 }

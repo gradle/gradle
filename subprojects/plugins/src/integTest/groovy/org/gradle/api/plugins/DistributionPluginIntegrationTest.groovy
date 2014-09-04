@@ -21,12 +21,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import static org.hamcrest.Matchers.containsString
 
 class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
-
-    @Override
-    String getPluginName() {
-        "distribution"
-    }
-
     @Override
     String getMainTask() {
         return "distZip"

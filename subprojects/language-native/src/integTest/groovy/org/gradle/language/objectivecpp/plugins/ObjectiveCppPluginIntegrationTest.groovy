@@ -19,8 +19,4 @@ package org.gradle.language.objectivecpp.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class ObjectiveCppPluginIntegrationTest extends WellBehavedPluginTest {
-    @Override
-    String getPluginName() {
-        "objective-cpp"
-    }
 }

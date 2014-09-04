@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.plugins.CorePluginRegistry
+import org.gradle.util.GUtil
 
 import java.util.regex.Pattern
 
@@ -25,7 +26,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
     String getPluginName() {
         def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integ(ration)?)?Test").matcher(getClass().simpleName)
         if (matcher.matches()) {
-            return matcher.group(1).toLowerCase()
+            return GUtil.toWords(matcher.group(1), (char)'-')
         }
         throw new UnsupportedOperationException("Cannot determine plugin id from class name '${getClass().simpleName}.")
     }

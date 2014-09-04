@@ -19,8 +19,4 @@ package org.gradle.nativeplatform.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class NativeComponentPluginIntegrationTest extends WellBehavedPluginTest {
-    @Override
-    String getPluginName() {
-        "native-component"
-    }
 }

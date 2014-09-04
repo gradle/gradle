@@ -34,11 +34,6 @@ class BuildInitPluginIntegrationTest extends WellBehavedPluginTest {
         return "init"
     }
 
-    @Override
-    String getPluginName() {
-        "build-init"
-    }
-
     def "init shows up on tasks overview "() {
         when:
         run 'tasks'

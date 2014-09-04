@@ -18,8 +18,4 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class MavenPluginGoodBehaviourTest extends WellBehavedPluginTest {
-    @Override
-    String getMainTask() {
-        return "assemble"
-    }
 }
