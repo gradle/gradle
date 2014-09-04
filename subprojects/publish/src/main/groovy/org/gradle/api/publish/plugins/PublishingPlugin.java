@@ -81,20 +81,20 @@ public class PublishingPlugin implements Plugin<Project> {
         }
 
         @Model
-        ProjectPublicationRegistry publicationRegistry(ServiceRegistry serviceRegistry) {
+        ProjectPublicationRegistry projectPublicationRegistry(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ProjectPublicationRegistry.class);
         }
 
         @Mutate
-        void registerPublications(ProjectPublicationRegistry publicationRegistry, PublishingExtension extension, ProjectIdentifier projectIdentifier) {
+        void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension, ProjectIdentifier projectIdentifier) {
             for (Publication publication : extension.getPublications()) {
                 PublicationInternal internalPublication = (PublicationInternal) publication;
-                publicationRegistry.registerPublication(projectIdentifier.getPath(), new DefaultProjectPublication(internalPublication.getCoordinates()));
+                projectPublicationRegistry.registerPublication(projectIdentifier.getPath(), new DefaultProjectPublication(internalPublication.getCoordinates()));
             }
         }
 
         @Mutate
-        void tasksDependOnPublicationRegistry(CollectionBuilder<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
+        void tasksDependOnProjectPublicationRegistry(CollectionBuilder<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
             //do nothing, the rule is here to introduce a dependency on ProjectPublicationRegistry to TaskContainer
         }
     }
