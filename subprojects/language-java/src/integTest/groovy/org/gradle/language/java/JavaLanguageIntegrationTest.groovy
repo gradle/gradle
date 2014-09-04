@@ -55,46 +55,6 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
-    def "generated binary includes resources from all resource sets"() {
-        when:
-        def resource1 = app.resources[0]
-        def resource2 = app.resources[1]
-
-        resource1.writeToDir(file("src/myLib/resources"))
-        resource2.writeToDir(file("src/myLib/extraResources"))
-
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib
-        }
-    }
-
-    sources {
-        myLib {
-            extraResources(ResourceSet)
-        }
-    }
-"""
-        and:
-        succeeds "assemble"
-
-        then:
-        executedAndNotSkipped ":processMyLibJarMyLibResources", ":processMyLibJarMyLibExtraResources", ":createMyLibJar", ":myLibJar"
-
-        and:
-        file("build/classes/myLibJar").assertHasDescendants(resource1.fullPath, resource2.fullPath)
-
-        and:
-        def jar = jarFile("build/jars/myLibJar/myLib.jar")
-        jar.hasDescendants(resource1.fullPath, resource2.fullPath)
-        jar.assertFileContent(resource1.fullPath, resource1.content)
-        jar.assertFileContent(resource2.fullPath, resource2.content)
-    }
-
     def "generated binary includes compiled classes from all java source sets"() {
         when:
         def source1 = app.sources[0]
