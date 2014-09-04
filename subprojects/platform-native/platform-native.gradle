@@ -32,7 +32,7 @@ useTestFixtures(project: ":messaging")
 useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":platformBase")
 
-strictCompile()
+//strictCompile()
 useClassycle(exclude: ["org/gradle/nativeplatform/plugins/**",
                        "org/gradle/nativeplatform/tasks/**",
                        "org/gradle/nativeplatform/internal/resolve/**",
