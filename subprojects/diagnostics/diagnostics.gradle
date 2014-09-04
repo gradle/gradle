@@ -22,6 +22,8 @@ dependencies {
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':coreImpl')
+
+    integTestRuntime project(':cunit')
 }
 
 useTestFixtures()
