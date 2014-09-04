@@ -22,6 +22,10 @@ import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixture
 import groovy.json.JsonSlurper
 
 class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getPluginName() {
+        return "jshint"
+    }
 
     def setup() {
         applyPlugin()

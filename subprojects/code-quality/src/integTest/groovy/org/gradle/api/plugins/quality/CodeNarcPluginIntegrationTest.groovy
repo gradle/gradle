@@ -20,6 +20,11 @@ import static org.hamcrest.Matchers.startsWith
 
 class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
+    String getPluginName() {
+        return "codenarc"
+    }
+
+    @Override
     String getMainTask() {
         return "check"
     }

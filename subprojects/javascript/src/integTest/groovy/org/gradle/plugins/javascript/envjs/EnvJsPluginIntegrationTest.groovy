@@ -24,6 +24,10 @@ import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluate
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGoogleRepoScript
 
 class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getPluginName() {
+        return "envjs"
+    }
 
     def setup() {
         applyPlugin()

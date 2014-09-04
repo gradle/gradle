@@ -24,6 +24,11 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Override
+    String getPluginName() {
+        return "jdepend"
+    }
+
+    @Override
     String getMainTask() {
         return "check"
     }
