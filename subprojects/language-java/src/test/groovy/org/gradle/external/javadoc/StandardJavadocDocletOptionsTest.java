@@ -516,7 +516,7 @@ public class StandardJavadocDocletOptionsTest {
         assertTrue(shouldBeEmptyCollection.isEmpty());
     }
 
-    public static void assertEmpty(Map<?,?> shouldBeEmptyMap) {
+    public static void assertEmpty(Map<?, ?> shouldBeEmptyMap) {
         assertNotNull(shouldBeEmptyMap);
         assertTrue(shouldBeEmptyMap.isEmpty());
     }
