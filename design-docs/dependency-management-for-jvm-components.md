@@ -564,6 +564,46 @@ Running `gradle assemble` will execute tasks for each library binary.
 
 ## Feature: Declare the roles of component model elements
 
+### Story: Configure the source sets of a component in the component definition
+
+This story moves definition and configuration of the source sets for a component to live with the other component configuration.
+
+1. Allow a component's source sets to be defined as part of the component definition:
+    - Replace `ComponentSpec.getSource()` with a `getSources()` method return a `FunctionalSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
+    - Add a `ComponentSpec.source(Action<? super FunctionalSourceSet>)` method.
+    - Change `ComponentModelBasePlugin.createLanguageSourceSets` to add source sets via the component's source container rather than the project's source container.
+    - This step allows configuration via `component.source { ... }`.
+1. Review samples to make use of this.
+
+#### Example DSL
+
+    nativeRuntime
+        libraries {
+            mylib {
+                sources {
+                    c {
+                        lib libraries.otherlib
+                    }
+                    cpp {
+                        include '**/*.CC'
+                    }
+                }
+            }
+        }
+    }
+
+    // Can also reach source sets via project.sources
+    sources {
+        mylib { ... }
+    }
+
+#### Open issues
+
+- Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
+- Flatten out all source sets into `project.sources`. Would need to use something other than a named domain object container.
+- Change `ComponentModelBasePlugin.createLanguageSourceSets` to a model rule
+    - This means that source sets will not be created eagerly, which means that access to sources {} will need to be in a model block, or via ComponentSpec.sources()
+    - In order for this to work, we need to be able to reference other model elements in a DSL model rule
 
 ### Story: Plugin statically declares roles for the binaries of a component
 
@@ -1187,47 +1227,6 @@ For example:
         }
     }
 
-
-### Story: Configure the source sets of a component in the component definition
-
-This story moves definition and configuration of the source sets for a component to live with the other component configuration.
-
-1. Allow a component's source sets to be defined as part of the component definition:
-    - Replace `ComponentSpec.getSource()` with a `getSources()` method return a `FunctionalSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
-    - Add a `ComponentSpec.source(Action<? super FunctionalSourceSet>)` method.
-    - Change `ComponentModelBasePlugin.createLanguageSourceSets` to add source sets via the component's source container rather than the project's source container.
-    - This step allows configuration via `component.source { ... }`.
-1. Review samples to make use of this.
-
-#### Example DSL
-
-    nativeRuntime
-        libraries {
-            mylib {
-                sources {
-                    c {
-                        lib libraries.otherlib
-                    }
-                    cpp {
-                        include '**/*.CC'
-                    }
-                }
-            }
-        }
-    }
-
-    // Can also reach source sets via project.sources
-    sources {
-        mylib { ... }
-    }
-
-#### Open issues
-
-- Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
-- Flatten out all source sets into `project.sources`. Would need to use something other than a named domain object container.
-- Change `ComponentModelBasePlugin.createLanguageSourceSets` to a model rule
-    - This means that source sets will not be created eagerly, which means that access to sources {} will need to be in a model block, or via ComponentSpec.sources()
-    - In order for this to work, we need to be able to reference other model elements in a DSL model rule
 
 ## Feature: Build author declares dependencies for custom library
 
