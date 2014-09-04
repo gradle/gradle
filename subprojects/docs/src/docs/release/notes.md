@@ -223,7 +223,9 @@ We would like to thank the following community members for making contributions 
 * [Colin Findlay](https://github.com/silver2k) - OpenShift compatibility [GRADLE-2871]
 * [Paul Watson](https://github.com/w4tson) - Support for renaming Ant targets on import [GRADLE-771]
 * [Andrea Panattoni](https://github.com/zeeke) - Provide option to fork Sonar analysis [GRADLE-2587]
-* [Lóránt Pintér](https://github.com/lptr) - `Action` overloads project `project.exec()` and `project.javaexec()`
+* [Lóránt Pintér](https://github.com/lptr) 
+    - `Action` overloads project `project.exec()` and `project.javaexec()`
+    - DefaultResolutionStrategy.copy() should copy componentSelectionRules, too
 * [Clark Brewer](https://github.com/brewerc) - spelling corrections
 * [Guilherme Espada](https://github.com/GUIpsp) - allow to use OpenJDK with Gradle
 * [Harald Schmitt](https://github.com/surfing) - handle German-localised `readelf` when parsing output in integration tests.
