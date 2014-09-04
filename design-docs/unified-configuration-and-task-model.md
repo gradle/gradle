@@ -736,7 +736,7 @@ It should be possible to configure native components and binaries based on their
 
 - all binaries that use any version of visual C++, all binaries that use a toolchain other than visual C++, all binaries that use visual C++ 9 and later.
 - all unix platforms, all windows platforms, all windows platforms for windows 2000 and later.
-- all binaries that have linker settings (ExecutableBinary + SharedLibraryBinary).
+- all binaries that have linker settings (NativeExecutableBinary + SharedLibraryBinary).
 
 The implementation should be able to detect and report on typos and predicates that will never match anything.
 

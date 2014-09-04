@@ -135,7 +135,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         main.cpp.lib libraries.hello
     }
     task buildAllExecutables {
-        dependsOn binaries.withType(ExecutableBinary).matching {
+        dependsOn binaries.withType(NativeExecutableBinary).matching {
             it.buildable
         }
     }

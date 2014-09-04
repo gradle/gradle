@@ -175,6 +175,7 @@ executing the first block.
 - Replaced `TargetedPlatformToolChain` with `GccPlatformToolChain` and `VisualCppPlatformToolChain`.
 - Renamed `PlatformConfigurableToolChain` to `GccCompatibleToolChain`.
 - Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
+- Removed deprecated `ExecutableBinary`: use `NativeExecutableBinary` instead.
 
 ### JVM language support
 
