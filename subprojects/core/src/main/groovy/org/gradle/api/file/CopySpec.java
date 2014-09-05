@@ -51,19 +51,36 @@ import java.util.regex.Pattern;
  * CopySpecs may be nested by passing a closure to one of the from methods.  The closure creates a child CopySpec and
  * delegates methods in the closure to the child. Child CopySpecs inherit any values specified in the parent. This
  * allows constructs like:
- * <pre>
- * into('webroot')
- * exclude('**&#47;.svn/**')
- * from('src/main/webapp') {
- *    include '**&#47;*.jsp'
- * }
- * from('src/main/js') {
- *    include '**&#47;*.js'
+ * <pre autoTested=''>
+ * def myCopySpec = project.copySpec {
+ *   into('webroot')
+ *   exclude('**&#47;.data/**')
+ *   from('src/main/webapp') {
+ *     include '**&#47;*.jsp'
+ *   }
+ *   from('src/main/js') {
+ *     include '**&#47;*.js'
+ *   }
  * }
  * </pre>
  *
  * In this example, the <code>into</code> and <code>exclude</code> specifications at the root level are inherited by the
  * two child CopySpecs.
+ *
+ * Copy specs can be reused in other copy specs via {@link #with(CopySpec...)} method. This enables reuse of the copy spec instances.
+ *
+ * <pre autoTested=''>
+ * def contentSpec = copySpec {
+ *   from("content") {
+ *     include "**&#47;*.txt"
+ *   }
+ * }
+ *
+ * task copy(type: Copy) {
+ *   into "$buildDir/copy"
+ *   with contentSpec
+ * }
+ * </pre>
  *
  * @see org.gradle.api.tasks.Copy Copy Task
  * @see org.gradle.api.Project#copy(groovy.lang.Closure) Project.copy()
@@ -143,6 +160,19 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
 
     /**
      * Adds the given specs as a child of this spec.
+     *
+     * <pre autoTested=''>
+     * def contentSpec = copySpec {
+     *   from("content") {
+     *     include "**&#47;*.txt"
+     *   }
+     * }
+     *
+     * task copy(type: Copy) {
+     *   into "$buildDir/copy"
+     *   with contentSpec
+     * }
+     * </pre>
      *
      * @param sourceSpecs The specs to add
      * @return this
