@@ -36,7 +36,8 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
     public LifecycleProjectEvaluator(ProjectEvaluator delegate) {
         this.delegate = delegate;
-        postAfterEvaluateEvaluator = new ConfigureActionsProjectEvaluator(new TaskModelPopulatingConfigurationAction(), new TaskModelRealizingConfigurationAction());
+        postAfterEvaluateEvaluator = new ConfigureActionsProjectEvaluator(new TaskModelPopulatingConfigurationAction(), new TaskModelRealizingConfigurationAction(),
+                new ModelRegistryValidatingConfigurationAction());
     }
 
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {

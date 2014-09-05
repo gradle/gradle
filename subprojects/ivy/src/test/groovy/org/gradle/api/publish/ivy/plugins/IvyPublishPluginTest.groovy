@@ -22,6 +22,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
+import org.gradle.configuration.project.ModelRegistryValidatingConfigurationAction
 import org.gradle.configuration.project.TaskModelPopulatingConfigurationAction
 import org.gradle.configuration.project.TaskModelRealizingConfigurationAction
 import org.gradle.util.TestUtil
@@ -54,6 +55,7 @@ class IvyPublishPluginTest extends Specification {
     void closeTaskContainer() {
         new TaskModelPopulatingConfigurationAction().execute(project)
         new TaskModelRealizingConfigurationAction().execute(project)
+        new ModelRegistryValidatingConfigurationAction().execute(project)
     }
 
     def "creates publish task for publication and repository"() {

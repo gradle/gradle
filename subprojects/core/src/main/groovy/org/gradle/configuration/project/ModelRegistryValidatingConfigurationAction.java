@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,10 @@
 package org.gradle.configuration.project;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.model.internal.core.ModelType;
 
-/**
- * Realizes the project tasks by getting the closed task container from the model registry.
- */
-public class TaskModelRealizingConfigurationAction implements ProjectConfigureAction {
+public class ModelRegistryValidatingConfigurationAction implements ProjectConfigureAction {
 
     public void execute(ProjectInternal projectInternal) {
-        projectInternal.getModelRegistry().get(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED);
+        projectInternal.getModelRegistry().validate();
     }
-
 }
