@@ -309,7 +309,7 @@ This story adds some convenience DSL to target a selection rule to a particular 
 - Useful error message when:
     - 'module' value is empty or null
     - 'module' value does not match `group:module` pattern
-    - 'module' value contains invalid characters: '*', '+', ???
+    - 'module' value contains invalid characters: '*', '+', '[', ']', '(', ')', ',' (others?)
 
 
 ## Open issues

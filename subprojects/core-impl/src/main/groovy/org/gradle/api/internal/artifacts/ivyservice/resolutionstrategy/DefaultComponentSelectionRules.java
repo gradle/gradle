@@ -22,14 +22,17 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.ClosureBackedRuleAction;
+import org.gradle.api.internal.DelegatingTargetedRuleAction;
 import org.gradle.api.internal.NoInputsRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,8 +42,10 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     final Set<RuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
 
     private final static List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
+    private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',', '+');
 
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for component selection rule: %s";
+    private static final String UNSUPPORTED_SPEC_ERROR = "Unsupported format for module constraint: '%s'.  This should be in the format of 'group:module'.";
 
     public Collection<RuleAction<? super ComponentSelection>> getRules() {
         return rules;
@@ -58,6 +63,21 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     public ComponentSelectionRules all(Closure<?> closure) {
         addRule(createRuleActionFromClosure(closure));
+        return this;
+    }
+
+    public ComponentSelectionRules module(String id, Action<? super ComponentSelection> selectionAction) {
+        addRule(createTargetedRuleActionFromId(id, new NoInputsRuleAction<ComponentSelection>(selectionAction)));
+        return this;
+    }
+
+    public ComponentSelectionRules module(String id, RuleAction<? super ComponentSelection> ruleAction) {
+        addRule(createTargetedRuleActionFromId(id, validateInputTypes(ruleAction)));
+        return this;
+    }
+
+    public ComponentSelectionRules module(String id, Closure<?> closure) {
+        addRule(createTargetedRuleActionFromId(id, createRuleActionFromClosure(closure)));
         return this;
     }
 
@@ -80,5 +100,39 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
             }
         }
         return ruleAction;
+    }
+
+    private RuleAction<? super ComponentSelection> createTargetedRuleActionFromId(String id, RuleAction<? super ComponentSelection> ruleAction) {
+        if (id == null) {
+            throw new InvalidUserDataException(String.format(UNSUPPORTED_SPEC_ERROR, id));
+        }
+
+        int colon = id.indexOf(':');
+        if (colon == -1 || colon != id.lastIndexOf(':')) {
+            throw new InvalidUserDataException(String.format(UNSUPPORTED_SPEC_ERROR, id));
+        }
+
+        for (char c : INVALID_SPEC_CHARS) {
+            if (id.indexOf(c) != -1) {
+                throw new InvalidUserDataException(String.format(UNSUPPORTED_SPEC_ERROR, id));
+            }
+        }
+
+        Spec<ComponentSelection> spec = new ComponentSelectionMatchingSpec(id.substring(0, colon), id.substring(colon+1));
+        return new DelegatingTargetedRuleAction<ComponentSelection>(spec, ruleAction);
+    }
+
+    static class ComponentSelectionMatchingSpec implements Spec<ComponentSelection> {
+        final String group;
+        final String module;
+
+        private ComponentSelectionMatchingSpec(String group, String module) {
+            this.group = group;
+            this.module = module;
+        }
+
+        public boolean isSatisfiedBy(ComponentSelection selection) {
+            return selection.getCandidate().getGroup().equals(group) && selection.getCandidate().getModule().equals(module);
+        }
     }
 }

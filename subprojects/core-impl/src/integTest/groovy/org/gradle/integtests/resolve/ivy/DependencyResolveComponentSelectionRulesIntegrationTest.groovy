@@ -29,6 +29,8 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         modules['1.2'] = ivyHttpRepo.module("org.utils", "api", "1.2").publish()
         modules['2.0'] = ivyHttpRepo.module("org.utils", "api", "2.0").withBranch("test").withStatus("milestone").publish()
         modules['2.1'] = ivyHttpRepo.module("org.utils", "api", "2.1").publish()
+        modules['1.0-lib'] = ivyHttpRepo.module("org.utils", "lib", "1.0").publish()
+        modules['1.1-lib'] = ivyHttpRepo.module("org.utils", "lib", "1.1").withBranch("test").withStatus("milestone").publish()
     }
 
     String getBaseBuildFile() {
@@ -596,5 +598,87 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         then:
         args("--refresh-dependencies")
         succeeds 'resolveConf'
+    }
+
+    def "can control selection of components within a module" () {
+        buildFile << """
+            $httpBaseBuildFile
+
+            dependencies {
+                conf "org.utils:api:${selector}"
+                conf "org.utils:lib:1.+"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        module("org.utils:api") ${rules[rule]}
+                        module("org.utils:api") { ComponentSelection cs ->
+                            assert cs.candidate.group == "org.utils"
+                            assert cs.candidate.module == "api"
+                        }
+                    }
+                }
+            }
+
+            resolveConf.doLast {
+                def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
+                assert artifacts.size() == 2
+                assert artifacts[0].moduleVersion.id.version == '${chosen}'
+                assert candidates == ${candidates}
+            }
+        """
+
+        when:
+        if (selector != "1.1") {
+            ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        }
+        downloadedMetadata.each {
+            modules[it].ivy.expectGet()
+        }
+        modules[chosen].artifact.expectGet()
+
+        ivyHttpRepo.directoryList("org.utils", "lib").expectGet()
+        modules["1.1-lib"].ivy.expectGet()
+        modules["1.1-lib"].artifact.expectGet()
+
+        then:
+        succeeds 'resolveConf'
+
+        where:
+        selector             | rule            | chosen | candidates                            | downloadedMetadata
+        "1.+"                | "select 1.1"    | "1.1"  | '["1.2", "1.1"]'                      | ['1.1']
+        "latest.integration" | "select status" | "2.0"  | '["2.1", "2.0"]'                      | ['2.1', '2.0']
+        "1.1"                | "select branch" | "1.1"  | '["1.1"]'                             | ['1.1']
+    }
+
+    def "produces sensible error for invalid module target id" () {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.2"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        module("${id}") { ComponentSelection cs -> }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'resolveConf'
+        failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failureHasCause("Unsupported format for module constraint: '${id}'.  This should be in the format of 'group:module'")
+
+        where:
+        id                  | _
+        ""                  | _
+        "org.utils"         | _
+        "org.utils:api:1.2" | _
+        "org.utils:api*"    | _
     }
 }

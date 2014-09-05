@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules
+import org.gradle.api.internal.DelegatingTargetedRuleAction
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.DefaultMavenModuleVersionMetaData
@@ -58,19 +59,20 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         when:
         rule { ComponentSelection cs -> closureCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
-        rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2}
-        rule { ComponentSelection cs, ModuleVersionMetaData mvm -> closureCalled << 3}
+        rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
+        rule { ComponentSelection cs, ModuleVersionMetaData mvm -> closureCalled << 3 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
         rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
         rule { ComponentSelection cs, ComponentMetadata cm, ModuleVersionMetaData mvm -> closureCalled << 6 }
         rule { ComponentSelection cs, ModuleVersionMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
+        targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 8 }
 
         and:
         apply(moduleAccess)
 
         then:
         !componentSelection.rejected
-        closureCalled == [0, 1, 2, 3, 4, 5, 6, 7]
+        closureCalled == [0, 8, 1, 2, 3, 4, 5, 6, 7]
     }
 
     def "short-circuits evaluate when rule rejects candidate" () {
@@ -103,10 +105,12 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
         when:
         rule { ComponentSelection cs -> closuresCalled << 0 }
-        rule { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
-        rule { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 2}
-        rule { ComponentSelection cs, ModuleVersionMetaData mvm -> closuresCalled << 3}
-        rule { ComponentSelection cs -> closuresCalled << 4 }
+        targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 1 }
+        rule { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 2 }
+        rule { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 3}
+        rule { ComponentSelection cs, ModuleVersionMetaData mvm -> closuresCalled << 4}
+        targetedRule("group", "module") { ComponentSelection cs, ModuleVersionMetaData mvm -> closuresCalled << 5}
+        rule { ComponentSelection cs -> closuresCalled << 6 }
         rule { ComponentSelection cs -> cs.reject("rejected") }
 
         and:
@@ -117,7 +121,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         componentSelection.rejectionReason == "rejected"
 
         and:
-        closuresCalled == [0, 4]
+        closuresCalled == [0, 1, 6]
     }
 
     def "metadata is not requested for rules that don't require it"() {
@@ -125,16 +129,36 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         def moduleAccess = Mock(ModuleComponentRepositoryAccess) {
             0 * resolveComponentMetaData(_, _, _)
         }
-        def closureCalled = false
+        def closuresCalled = []
 
         when:
-        rule { ComponentSelection cs -> closureCalled = true }
+        rule { ComponentSelection cs -> closuresCalled << 0 }
+        targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 1 }
 
         apply(moduleAccess)
 
         then:
         !componentSelection.rejected
-        closureCalled
+        closuresCalled == [0, 1]
+    }
+
+    def "metadata is not requested for non-targeted components"() {
+        def ComponentSelectionRules rules = new DefaultComponentSelectionRules()
+        def moduleAccess = Mock(ModuleComponentRepositoryAccess) {
+            0 * resolveComponentMetaData(_, _, _)
+        }
+        def closuresCalled = []
+
+        when:
+        targetedRule("group", "module1") { ComponentSelection cs, IvyModuleDescriptor ivm -> closuresCalled << 0 }
+        targetedRule("group1", "module") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
+        targetedRule("group1", "module") { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closuresCalled << 2 }
+
+        apply(moduleAccess)
+
+        then:
+        !componentSelection.rejected
+        closuresCalled == []
     }
 
     def "produces sensible error when rule action throws exception" () {
@@ -163,18 +187,56 @@ class ComponentSelectionRulesProcessorTest extends Specification {
                 result.resolved(md, null)
             }
         }
-        def closureCalled = false
+        def closuresCalled = []
 
         when:
-        rule { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closureCalled = true }
+        rule { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closuresCalled << 0 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closuresCalled << 1 }
         apply(moduleAccess)
 
         then:
-        ! closureCalled
+        closuresCalled == []
+    }
+
+    def "only matching targeted rules get called" () {
+        def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
+            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
+                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
+                result.resolved(md, null)
+            }
+        }
+        def closuresCalled = []
+        when:
+        targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 0 }
+        targetedRule("group1", "module") { ComponentSelection cs -> closuresCalled << 1 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 2 }
+        targetedRule("group", "module1") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 3 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 4 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleVersionMetaData mvm -> closuresCalled << 5 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 6 }
+        targetedRule("group1", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 7 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closuresCalled << 8 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleVersionMetaData mvm -> closuresCalled << 9 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleVersionMetaData mvm, ComponentMetadata cm -> closuresCalled << 10 }
+        targetedRule("group", "module1") { ComponentSelection cs, ModuleVersionMetaData mvm, ComponentMetadata cm -> closuresCalled << 11 }
+
+        and:
+        apply(moduleAccess)
+
+        then:
+        !componentSelection.rejected
+        closuresCalled == [0, 2, 4, 5, 6, 8, 9, 10]
     }
 
     def rule(Closure<?> closure) {
         rules << new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure)
+    }
+
+    def targetedRule(String group, String module, Closure<?> closure) {
+        rules << new DelegatingTargetedRuleAction(
+                new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(group, module),
+                new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure)
+        )
     }
 
     def apply(def moduleAccess) {

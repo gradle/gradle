@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.RuleAction;
+import org.gradle.api.TargetedRuleAction;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
@@ -70,6 +71,11 @@ public class ComponentSelectionRulesProcessor {
     }
 
     private void processRule(ComponentSelection selection, MetadataProvider metadataProvider, RuleAction<? super ComponentSelection> rule) {
+        if (rule instanceof TargetedRuleAction
+                && !((TargetedRuleAction<? super ComponentSelection>)rule).isSatisfiedBy(selection)) {
+                return;
+        }
+
         List<Object> inputs = Lists.newArrayList();
         for (Class<?> inputType : rule.getInputTypes()) {
             if (inputType == ModuleVersionMetaData.class) {
