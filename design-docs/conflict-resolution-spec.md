@@ -59,8 +59,6 @@ two things:
 - unhappy paths
     - A replaces B, B replaces A (cycle) - reasonable error is emitted
     - A replaces A - reasonable error
-    - A:1->B:1->A:2, all in graph, A:2 and B:1 resolved
-    - A:2->B:1->A:1, all in graph, error (cycle) because A:1 is conflict-resolved into A:2.
     - incorrect inputs: nulls, malformed notation, unsupported types
 
 ## Story: component replacement coexists with exclude rules
