@@ -200,7 +200,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     MavenArtifactRepository mavenLocal();
 
     /**
-     * Adds and configures a Maven repository.
+     * Adds and configures a Maven repository. Newly created instance of {@code MavenArtifactRepository} is passed as an argument to the closure.
      *
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
@@ -216,7 +216,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action);
 
     /**
-     * Adds and configures an Ivy repository.
+     * Adds and configures an Ivy repository. Newly created instance of {@code IvyArtifactRepository} is passed as an argument to the closure.
      *
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
