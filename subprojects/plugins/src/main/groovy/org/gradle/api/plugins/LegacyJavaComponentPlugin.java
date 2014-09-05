@@ -57,6 +57,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         this.instantiator = instantiator;
         this.toolChain = toolChain;
     }
+
     public void apply(final Project target) {
 
         target.getPlugins().apply(LanguageBasePlugin.class);
