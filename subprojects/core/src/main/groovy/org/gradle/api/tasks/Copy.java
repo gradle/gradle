@@ -40,6 +40,12 @@ import java.io.File;
  * //for Ant filter
  * import org.apache.tools.ant.filters.ReplaceTokens
  *
+ * //for including in the copy task
+ * def dataContent = copySpec {
+ *     from 'src/data'
+ *     include '*.data'
+ * }
+ *
  * task initConfig(type: Copy) {
  *     from('src/main/config') {
  *         include '**&#47;*.properties'
@@ -56,6 +62,8 @@ import java.io.File;
  *     exclude '**&#47;*.bak'
  *
  *     includeEmptyDirs = false
+ *
+ *     with dataContent
  * }
  * </pre>
  */
