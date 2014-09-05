@@ -21,6 +21,7 @@ import org.gradle.model.internal.report.unbound.UnboundRulesReporter
 import org.hamcrest.Matcher
 
 import static org.gradle.util.Matchers.normalizedLineSeparators
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 import static org.hamcrest.Matchers.equalTo
 
 class UnboundRulesReportMatchers {
@@ -32,6 +33,6 @@ class UnboundRulesReportMatchers {
         def reporter = new UnboundRulesReporter(writer, "  ")
         reporter.reportOn(rules.toList()*.build())
 
-        normalizedLineSeparators(equalTo(string.toString()))
+        normalizedLineSeparators(equalTo(normaliseLineSeparators(string.toString())))
     }
 }

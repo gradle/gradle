@@ -29,6 +29,7 @@ dependencies {
     integTestCompile project(":core")
 
     testFixturesCompile project(":internalTesting")
+    testFixturesCompile project(":core")
 }
 
 useTestFixtures()
