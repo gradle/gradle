@@ -36,6 +36,7 @@ class ComponentReportOutputFormatter implements Transformer<String, String> {
     @Override
     String transform(String original) {
         return original
+                .replace("platform: target JDK 1.7", "platform: target JDK ${JavaVersion.current()}")
                 .replace("current JDK (1.7)", "current JDK (${JavaVersion.current()})")
                 .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
                 .replace("\n", SystemProperties.lineSeparator)

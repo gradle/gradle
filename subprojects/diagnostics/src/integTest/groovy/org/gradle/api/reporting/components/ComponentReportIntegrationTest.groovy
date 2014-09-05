@@ -121,8 +121,8 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        platform: current
-        tool chain: current JDK (${JavaVersion.current()})
+        platform: target JDK 1.7
+        tool chain: current JDK (1.7)
         Jar file: build/jars/someLibJar/someLib.jar
 
 Note: currently not all plugins register their components, so some components may not be visible here.
@@ -479,8 +479,8 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        platform: current
-        tool chain: current JDK (${JavaVersion.current()})
+        platform: target JDK 1.7
+        tool chain: current JDK (1.7)
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 
 Native library 'nativeLib'

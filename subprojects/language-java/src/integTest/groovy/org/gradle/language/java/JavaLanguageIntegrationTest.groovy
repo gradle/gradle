@@ -372,7 +372,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         and:
         assert output.contains("platform: target JDK ${target1}")
         and:
-        assert output.contains("platform: current")
+        assert output.contains("platform: target JDK ${target2}")
     }
 
     private JarTestFixture jarFile(String s) {
