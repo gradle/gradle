@@ -44,6 +44,8 @@ public interface ComponentSelection {
 
     /**
      * Rejects the candidate for the resolution.
+     *
+     * @param reason The reason the candidate was rejected.
      */
     void reject(String reason);
 }

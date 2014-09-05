@@ -164,6 +164,9 @@
                 <td>org.gradle.api.artifacts.query.ArtifactResolutionQuery</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.ComponentSelection</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
             </tr>
             <tr>

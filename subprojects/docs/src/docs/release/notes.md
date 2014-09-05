@@ -17,7 +17,7 @@ strategy.  This allows Gradle to customize component selection without knowing w
                         if (selection.requested.group == 'org.sample'
                                 && selection.requested.name == 'api'
                                 && selection.candidate.version.endsWith('-experimental')) {
-                            selection.reject("rejecting 1.1")
+                            selection.reject("rejecting experimental")
                         }
                     }
 

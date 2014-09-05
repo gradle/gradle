@@ -22,7 +22,7 @@ import org.junit.Rule
 
 class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(temporaryFolder)
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'componentSelectionRules')
 
     @UsesSample("componentSelectionRules")
     def "version selection rules are applied"() {

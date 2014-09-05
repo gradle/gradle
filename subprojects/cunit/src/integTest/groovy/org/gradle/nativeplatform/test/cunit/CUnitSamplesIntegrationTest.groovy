@@ -16,20 +16,19 @@
 
 
 package org.gradle.nativeplatform.test.cunit
+
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
-    @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
+    @Rule public final Sample cunit = sample(temporaryFolder, 'cunit')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)

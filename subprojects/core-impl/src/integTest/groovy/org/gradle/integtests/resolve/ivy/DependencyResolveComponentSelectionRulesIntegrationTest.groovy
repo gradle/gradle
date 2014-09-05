@@ -436,9 +436,9 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         failureHasCause(message)
 
         where:
-        parameters                                                                        | message
-        "String vs ->"                                                                    | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        "ComponentSelection vs, String s ->"                                              | "Unsupported parameter type for component selection rule: java.lang.String"
+        parameters                           | message
+        "String vs ->"                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
+        "ComponentSelection vs, String s ->" | "Unsupported parameter type for component selection rule: java.lang.String"
     }
 
     def "produces sensible error when rule throws an exception" () {
