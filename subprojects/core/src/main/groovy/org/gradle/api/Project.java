@@ -713,6 +713,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
+     * <pre autoTested=''>
+     * def myTree = fileTree("src")
+     * myTree.include "**&#47;*.java"
+     * myTree.builtBy "someTask"
+     *
+     * task copy(type: Copy) {
+     *    from myTree
+     * }
+     * </pre>
+     *
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @return the file tree. Never returns null.
      */
@@ -723,10 +733,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * as per {@link #file(Object)}. The closure will be used to configure the new file tree.
      * The file tree is passed to the closure as its delegate.  Example:</p>
      *
-     * <pre>
-     * fileTree('src') {
-     *    exclude '**&#47;.svn/**'
-     * }.copy { into 'dest'}
+     * <pre autoTested=''>
+     * def myTree = fileTree('src') {
+     *    exclude '**&#47;.data/**'
+     *    builtBy 'someTask'
+     * }
+     *
+     * task copy(type: Copy) {
+     *    from myTree
+     * }
      * </pre>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
@@ -743,8 +758,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
      * properties on the new file tree.  Example:</p>
      *
-     * <pre>
-     * fileTree(dir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
+     * <pre autoTested=''>
+     * def myTree = fileTree(dir:'src', excludes:['**&#47;ignore/**', '**&#47;.data/**'])
+     *
+     * task copy(type: Copy) {
+     *     from myTree
+     * }
      * </pre>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
