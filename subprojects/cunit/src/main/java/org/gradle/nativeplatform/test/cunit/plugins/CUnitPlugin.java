@@ -38,7 +38,6 @@ import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.TestSuiteContainer;
-import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
@@ -131,7 +130,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
             for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class)) {
                 for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries()) {
 
-                    CUnitTestSuiteBinarySpec testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary);
+                    DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary);
 
                     configure(testBinary, buildDir);
 
@@ -141,7 +140,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        private CUnitTestSuiteBinarySpec createTestBinary(ServiceRegistry serviceRegistry, CUnitTestSuiteSpec cUnitTestSuite, NativeBinarySpec testedBinary) {
+        private DefaultCUnitTestSuiteBinary createTestBinary(ServiceRegistry serviceRegistry, CUnitTestSuiteSpec cUnitTestSuite, NativeBinarySpec testedBinary) {
             BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
                     .withComponentName(cUnitTestSuite.getBaseName())
                     .withTypeString("CUnitExe").build();
@@ -151,9 +150,9 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
             return instantiator.newInstance(DefaultCUnitTestSuiteBinary.class, cUnitTestSuite, testedBinary, namingScheme, resolver);
         }
 
-        private void configure(CUnitTestSuiteBinarySpec testBinary, File buildDir) {
-            BinaryNamingScheme namingScheme = ((NativeBinarySpecInternal) testBinary).getNamingScheme();
-            PlatformToolProvider toolProvider = ((NativeBinarySpecInternal) testBinary).getPlatformToolProvider();
+        private void configure(DefaultCUnitTestSuiteBinary testBinary, File buildDir) {
+            BinaryNamingScheme namingScheme = testBinary.getNamingScheme();
+            PlatformToolProvider toolProvider = testBinary.getPlatformToolProvider();
             File binaryOutputDir = new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
             String baseName = testBinary.getComponent().getBaseName();
 
