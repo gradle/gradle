@@ -28,7 +28,7 @@ public class ClosureCreationInterceptingVerifier extends Verifier {
 
     public void visitClass(ClassNode node) {
         if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
-            RuleVisitor.visitGeneratedClosure(node);
+            RuleClosureVisitor.visitGeneratedClosure(node);
         }
 
         super.visitClass(node);

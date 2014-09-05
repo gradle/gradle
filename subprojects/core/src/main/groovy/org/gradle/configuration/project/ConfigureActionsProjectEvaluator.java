@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectStateInternal;
 import java.util.Arrays;
 import java.util.List;
 
-public class    ConfigureActionsProjectEvaluator implements ProjectEvaluator {
+public class ConfigureActionsProjectEvaluator implements ProjectEvaluator {
     private final List<ProjectConfigureAction> configureActions;
 
     public ConfigureActionsProjectEvaluator(ProjectConfigureAction... configureActions) {

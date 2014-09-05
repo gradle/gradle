@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 // This is explicitly not threadsafe
-public class RuleVisitor extends CodeVisitorSupport {
+public class RuleClosureVisitor extends CodeVisitorSupport {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
     public static final String AST_NODE_METADATA_KEY = ModelBlockTransformer.class.getName();
@@ -53,7 +53,7 @@ public class RuleVisitor extends CodeVisitorSupport {
     private ImmutableSet.Builder<String> inputs;
     private VariableExpression accessVariable;
 
-    public RuleVisitor(SourceUnit sourceUnit) {
+    public RuleClosureVisitor(SourceUnit sourceUnit) {
         this.sourceUnit = sourceUnit;
     }
 

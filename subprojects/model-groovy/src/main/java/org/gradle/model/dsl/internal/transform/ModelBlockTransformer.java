@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl.internal.transform;
 
+import org.codehaus.groovy.ast.GroovyCodeVisitor;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
@@ -42,13 +43,22 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
 
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
+        RuleClosureVisitor ruleVisitor = new RuleClosureVisitor(source);
         List<Statement> statements = source.getAST().getStatementBlock().getStatements();
         for (Statement statement : statements) {
             ScriptBlock scriptBlock = AstUtils.detectScriptBlock(statement, SCRIPT_BLOCK_NAMES);
             if (scriptBlock != null) {
-                RuleVisitor ruleVisitor = new RuleVisitor(source);
-                RulesVisitor rulesVisitor = new RulesVisitor(source, ruleVisitor);
-                scriptBlock.getClosureExpression().getCode().visit(rulesVisitor);
+                visitModelBlock(scriptBlock, ruleVisitor);
+            }
+        }
+    }
+
+    private void visitModelBlock(ScriptBlock scriptBlock, GroovyCodeVisitor ruleVisitor) {
+        Statement code = scriptBlock.getClosureExpression().getCode();
+        for (Statement statement : AstUtils.unpack(code)) {
+            ScriptBlock rule = AstUtils.detectScriptBlock(statement);
+            if (rule != null) {
+                rule.getClosureExpression().visit(ruleVisitor);
             }
         }
     }

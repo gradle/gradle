@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -60,8 +59,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.model.dsl.ModelDsl;
-import org.gradle.model.dsl.internal.DefaultModelDsl;
+import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -945,10 +943,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     // This is here temporarily as a quick way to expose it in the build script
     // Longer term it will not be available via Project, but be only available in a build script
-    public void model(@DelegatesTo(ModelDsl.class) Closure<?> modelRules) {
-        // TODO we should be verifying the the closure we are given here has been transformed
-        // TODO longer term, this method shouldn't be here, so there's no way for a user to call it with a general closure
-        new ClosureBackedAction<ModelDsl>(modelRules).execute(new DefaultModelDsl(getModelRegistry()));
+    public void model(Closure action) {
+        new GroovyModelDsl(getModelRegistry()).configure(action);
     }
 
 }
