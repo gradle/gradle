@@ -128,6 +128,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                             publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'.", publicationName, repositoryName));
 
+                            //Because dynamic rules are not yet implemented we have to violate input immutability here as an interim step
                             publishLifecycleTask.dependsOn(publishTask);
                         }
                     });

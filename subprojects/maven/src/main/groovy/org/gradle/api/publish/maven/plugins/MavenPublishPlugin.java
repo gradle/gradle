@@ -127,6 +127,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                         publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                         publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'.", publicationName, repositoryName));
 
+                        //Because dynamic rules are not yet implemented we have to violate input immutability here as an interim step
                         publishLifecycleTask.dependsOn(publishTask);
                     }
                 });
@@ -142,6 +143,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                     publishLocalTask.setDescription(String.format("Publishes Maven publication '%s' to the local Maven repository.", publicationName));
 
+                    //Because dynamic rules are not yet implemented we have to violate input immutability here as an interim step
                     publishLocalLifecycleTask.dependsOn(installTaskName);
                 }
             });
