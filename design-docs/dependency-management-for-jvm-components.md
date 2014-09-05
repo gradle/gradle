@@ -253,11 +253,15 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - `Component` hierarchy
     - `Component` is in `org.gradle.api.component` package.
     - `PrebuiltLibrary` is actually a prebuilt native library.
+- Should rename `ResourceSet` to `JvmResourceSet`
+- Java lang plugin is called `JavaLanguagePlugin`, other language plugins are called, for example, `CLangPlugin`.
+- Java compilation options per binary.
 - `LanguageRegistration.applyToBinary()` should be replaced, instead use the output file types for the language and input file types for the binary.
 - Use this to handle windows resources:
     - For windows binaries, add window `res` files as a candidate input file type.
     - For windows resources source files, the output type is `res`.
     - Fail if windows resources are input to a component for which there are no windows binaries.
+- `PolymorphicDomainObjectContainer.containerWithType()` should instead override `withType()`.
 
 ## Feature: Plugin defines a custom library type
 
@@ -603,6 +607,7 @@ This story moves definition and configuration of the source sets for a component
     - Add the component's `FunctionalSourceSet` to the `sources` container.
     - Attach source sets for a given language only to those `FunctionalSourceSet` source sets instances owned by a component.
 1. Review samples to make use of this.
+1. Simplify the naming scheme used for the transform tasks and output directories for the source sets owned by the component.
 
 #### Example DSL
 
@@ -623,7 +628,6 @@ This story moves definition and configuration of the source sets for a component
 
 #### Test cases
 
-
 #### Open issues
 
 - Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
@@ -634,7 +638,7 @@ This story moves definition and configuration of the source sets for a component
 
 ### Story: Configure component model and source sets exclusively using model DSL
 
-Remove the `jvm`, `nativeRuntime` and `sources` extensions.
+Remove the `jvm`, `nativeRuntime`, `binaries` and `sources` and other extensions.
 
 ### Story: Build author configures all language source sets using model DSL
 
