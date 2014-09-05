@@ -49,7 +49,7 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
-public class JavaBasePlugin implements Plugin<Project> {
+public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String CHECK_TASK_NAME = "check";
     public static final String BUILD_TASK_NAME = "build";
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
@@ -64,12 +64,12 @@ public class JavaBasePlugin implements Plugin<Project> {
         this.instantiator = instantiator;
     }
 
-    public void apply(Project project) {
+    public void apply(ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(ReportingBasePlugin.class);
         project.getPlugins().apply(LegacyJavaComponentPlugin.class);
 
-        JavaPluginConvention javaConvention = new JavaPluginConvention((ProjectInternal) project, instantiator);
+        JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
 
         configureCompileDefaults(project, javaConvention);
