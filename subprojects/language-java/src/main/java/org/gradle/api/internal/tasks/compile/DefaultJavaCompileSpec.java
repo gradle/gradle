@@ -23,8 +23,6 @@ import java.io.File;
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
     private CompileOptions compileOptions;
     private File dependencyCacheDir;
-    private String sourceCompatibility;
-    private String targetCompatibility;
 
     public CompileOptions getCompileOptions() {
         return compileOptions;
@@ -40,21 +38,5 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
 
     public void setDependencyCacheDir(File dependencyCacheDir) {
         this.dependencyCacheDir = dependencyCacheDir;
-    }
-
-    public String getSourceCompatibility() {
-        return sourceCompatibility;
-    }
-
-    public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
-    }
-
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
     }
 }
