@@ -30,6 +30,14 @@ strategy.  This allows Gradle to customize component selection without knowing w
                             selection.reject("does not match branch or status")
                         }
                     }
+
+                    // Rules can target specific modules
+                    // Reject the 1.1 version of org.sample:api
+                    module("org.sample:api") { ComponentSelection selection ->
+                        if (selection.candidate.version == "1.1") {
+                            selection.reject("known bad version")
+                        }
+                    }
                 }
             }
         }

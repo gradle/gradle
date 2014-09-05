@@ -36,6 +36,9 @@
             <tr>
                 <td>all</td>
             </tr>
+            <tr>
+                <td>module</td>
+            </tr>
         </table>
     </section>
 </section>

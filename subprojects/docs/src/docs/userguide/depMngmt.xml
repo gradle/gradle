@@ -1146,6 +1146,12 @@ someroot/[artifact]-[revision].[ext]
                 found that all component selection rules accept.  A version is considered accepted if a rule does not explicitly reject it.
             </para>
             <para>
+                Similarly, rules can be targeted at specific modules.  Modules must be specified in the form of "group:module".
+            </para>
+            <sample id="componentSelectionRuleMetadata" dir="componentSelectionRules" title="Component selection rule with module target">
+                <sourcefile file="build.gradle" snippet="targeted-component-selection" />
+            </sample>
+            <para>
                 Component selection rules can also consider component metadata when selecting a version.  Possible metadata arguments that can be considered are
                 <apilink class="org.gradle.api.artifacts.ComponentMetadata"/> and <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor"/>.
             </para>

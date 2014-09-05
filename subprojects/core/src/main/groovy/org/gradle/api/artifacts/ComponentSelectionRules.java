@@ -45,6 +45,11 @@ import org.gradle.internal.HasInternalProtocol;
  *                             }
  *                         }
  *                     }
+ *                     module("org.sample:api") { ComponentSelection selection ->
+ *                         if (selection.candidate.version == "1.1") {
+ *                             selection.reject("known bad version")
+ *                         }
+ *                     }
  *                 }
  *             }
  *         }

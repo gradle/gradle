@@ -66,6 +66,22 @@ configurations {
 }
 // END SNIPPET component-selection-with-metadata
 
+// START SNIPPET targeted-component-selection
+configurations {
+    targetConfig {
+        resolutionStrategy {
+            componentSelection {
+                module("org.sample:api") { ComponentSelection selection ->
+                    if (selection.candidate.version == "1.1") {
+                        selection.reject("known bad version")
+                    }
+                }
+            }
+        }
+    }
+}
+// END SNIPPET targeted-component-selection
+
 configurations {
     sampleConfig {
         resolutionStrategy {
