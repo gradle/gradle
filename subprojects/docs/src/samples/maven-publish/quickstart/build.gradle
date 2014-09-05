@@ -6,21 +6,23 @@ apply plugin: 'maven-publish'
 group = 'org.gradle.sample'
 version = '1.0'
 
-publishing {
 // START SNIPPET publish-component
+publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
         }
     }
+}
 // END SNIPPET publish-component
 // START SNIPPET repositories
+publishing {
     repositories {
         maven {
             // change to point to your repo, e.g. http://my.org/repo
             url "$buildDir/repo"
         }
     }
-// END SNIPPET repositories
 }
+// END SNIPPET repositories
 
