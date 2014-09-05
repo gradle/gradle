@@ -16,22 +16,20 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import org.codehaus.groovy.ast.ClassHelper;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.classgen.Verifier;
+import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 
-/**
- * The verifier is the only thing in the Groovy compiler chain that gets to visit the classes generated from closure expressions.
- * If we want to transform these classes, we have to do it with this *hack*.
- */
-public class ClosureCreationInterceptingVerifier extends Verifier {
+import java.util.List;
 
-    public void visitClass(ClassNode node) {
-        if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
-            RuleVisitor.visitGeneratedClosure(node);
-        }
+public class LiteralPropertyPathExtractionVisitor extends RestrictiveCodeVisitor {
 
-        super.visitClass(node);
+    private final List<String> propertyPath;
+
+    public LiteralPropertyPathExtractionVisitor(SourceUnit sourceUnit, String message, List<String> propertyPath) {
+        super(sourceUnit, message);
+        this.propertyPath = propertyPath;
     }
+
+
 
 }
