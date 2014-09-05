@@ -16,27 +16,24 @@
 
 package org.gradle.configuration.project
 
-import com.google.common.collect.Iterators
+import org.gradle.api.Action
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
-import org.gradle.api.internal.tasks.TaskContainerInternal
 import spock.lang.Specification
 
 public class LifecycleProjectEvaluatorTest extends Specification {
     private project = Mock(ProjectInternal)
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
+    private finalizer = Mock(Action)
+    private evaluator = new LifecycleProjectEvaluator(delegate, finalizer)
     private state = Mock(ProjectStateInternal)
-    private evaluator = new LifecycleProjectEvaluator(delegate)
 
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
         project.toString() >> "project1"
-        project.tasks >> Mock(TaskContainerInternal) {
-            iterator() >> Iterators.emptyIterator()
-        }
     }
 
     void "nothing happens if project was already configured"() {
@@ -47,6 +44,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
 
         then:
         0 * delegate._
+        0 * finalizer._
     }
 
     void "nothing happens if project is being configured now"() {
@@ -57,6 +55,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
 
         then:
         0 * delegate._
+        0 * finalizer._
     }
 
     void "evaluates the project firing all necessary listeners and updating the state"() {
@@ -74,6 +73,9 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * state.setExecuting(false)
         1 * state.executed()
         1 * listener.afterEvaluate(project, state)
+
+        then:
+        1 * finalizer.execute(project)
     }
 
     void "notifies listeners and updates state on evaluation failure"() {
@@ -94,6 +96,9 @@ public class LifecycleProjectEvaluatorTest extends Specification {
 
         and:
         _ * state.hasFailure() >> true
+
+        and:
+        0 * finalizer._
     }
 
     void "updates state and does not delegate when beforeEvaluate action fails"() {
@@ -109,6 +114,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         })
         0 * delegate._
         0 * listener._
+        0 * finalizer._
     }
 
     void "updates state when afterEvaluate action fails"() {
@@ -132,6 +138,9 @@ public class LifecycleProjectEvaluatorTest extends Specification {
 
         and:
         state.hasFailure() >>> [false, true]
+
+        and:
+        0 * finalizer._
     }
 
     def assertIsConfigurationFailure(def it, def cause) {
@@ -159,5 +168,33 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate") }
         _ * state.hasFailure() >> true
         0 * state.executed(_)
+
+        and:
+        0 * finalizer._
+    }
+
+    void "updates state with evaluation failure if projectFinalizer fails"() {
+        def failure = new RuntimeException("projectFinalizer")
+
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        1 * listener.beforeEvaluate(project)
+        1 * state.setExecuting(true)
+
+        then:
+        1 * delegate.evaluate(project, state)
+
+        then:
+        1 * state.setExecuting(false)
+        1 * state.executed()
+        1 * listener.afterEvaluate(project, state)
+
+        then:
+        1 * finalizer.execute(project) >> { throw failure }
+        1 * state.executed({
+            assertIsConfigurationFailure(it, failure)
+        })
     }
 }

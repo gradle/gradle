@@ -15,6 +15,7 @@
  */
 package org.gradle.configuration.project;
 
+import org.gradle.api.Action;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -32,12 +33,11 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
     private final ProjectEvaluator delegate;
 
-    private final ConfigureActionsProjectEvaluator postAfterEvaluateEvaluator;
+    private final Action<? super ProjectInternal> projectFinalizer;
 
-    public LifecycleProjectEvaluator(ProjectEvaluator delegate) {
+    public LifecycleProjectEvaluator(ProjectEvaluator delegate, Action<? super ProjectInternal> projectFinalizer) {
         this.delegate = delegate;
-        postAfterEvaluateEvaluator = new ConfigureActionsProjectEvaluator(new TaskModelPopulatingConfigurationAction(), new TaskModelRealizingConfigurationAction(),
-                new ModelRegistryValidatingConfigurationAction());
+        this.projectFinalizer = projectFinalizer;
     }
 
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {
@@ -67,7 +67,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         if (!state.hasFailure()) {
             try {
-                postAfterEvaluateEvaluator.evaluate(project, state);
+                projectFinalizer.execute(project);
             } catch (Exception e) {
                 addConfigurationFailure(project, state, e);
             }
