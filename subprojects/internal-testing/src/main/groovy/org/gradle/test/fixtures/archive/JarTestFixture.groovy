@@ -80,6 +80,6 @@ class JarTestFixture extends ZipTestFixture {
             throw new Exception("Could not find a class entry for: " + file)
         }
         ClassFile classFile = new ClassFile(jarFile.getInputStream(classEntry))
-        return JavaVersion.toVersion(classFile.classFileVersion)
+        return JavaVersion.forClassVersion(classFile.classFileVersion)
     }
 }

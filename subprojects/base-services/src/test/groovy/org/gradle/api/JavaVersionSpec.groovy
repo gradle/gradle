@@ -51,6 +51,15 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.toVersion("1.9.0-internal") == JavaVersion.VERSION_1_9
     }
 
+    def convertClassVersionToJavaVersion() {
+        expect:
+        JavaVersion.forClassVersion(49) == JavaVersion.VERSION_1_5
+        JavaVersion.forClassVersion(50) == JavaVersion.VERSION_1_6
+        JavaVersion.forClassVersion(51) == JavaVersion.VERSION_1_7
+        JavaVersion.forClassVersion(52) == JavaVersion.VERSION_1_8
+        JavaVersion.forClassVersion(53) == JavaVersion.VERSION_1_9
+    }
+
     def failsToConvertStringToVersionForUnknownVersion() {
         expect:
         conversionFails("1");
