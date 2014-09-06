@@ -163,6 +163,16 @@ libraries.bouncycastle_pgp = dependencies.module("org.bouncycastle:bcpg-jdk15on:
     dependency libraries.bouncycastle_provider
 }
 
+libraries.joda = 'joda-time:joda-time:2.4@jar'
+
+libraries.aws = [
+        'com.amazonaws:aws-java-sdk:1.7.13@jar',
+        'commons-logging:commons-logging:1.1.1@jar',
+        'com.fasterxml.jackson.core:jackson-core:2.1.1@jar',
+        'com.fasterxml.jackson.core:jackson-databind:2.1.1@jar',
+        'com.fasterxml.jackson.core:jackson-annotations:2.1.1@jar',
+] + libraries.commons_httpclient + libraries.joda
+
 allprojects {
     configurations.all {
         resolutionStrategy.eachDependency { details ->

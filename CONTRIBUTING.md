@@ -41,6 +41,7 @@ If you're not sure where to start, ask on the developer list. There's likely a n
 
 Try to ensure that your code & tests will run successfully on Java 6, and on both *nix and Windows platforms.
 The [Gradle CI](http://builds.gradle.org/) will verify this, but it helps if things work first time.
+Pull requests are verified on [Travis CI] (https://travis-ci.org/gradle/gradle/pull_requests).
 
 1. Avoid using features introduced in Java 1.7 or later
 2. Be careful to normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful utility functions for this purpose.

@@ -1,0 +1,94 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.resolve.aws.s3
+
+import com.amazonaws.services.s3.model.ObjectMetadata
+import com.amazonaws.services.s3.model.S3Object
+import org.apache.commons.io.IOUtils
+import org.gradle.internal.resource.transport.http.JavaSystemPropertiesSecureHttpProxySettings
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.server.s3.S3StubServer
+import org.gradle.test.fixtures.server.s3.S3StubSupport
+import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.internal.resource.transport.aws.s3.S3Client
+import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
+import org.junit.Rule
+import spock.lang.Specification
+
+class S3ClientIntegrationTest extends Specification {
+
+    public static final String FILE_NAME = "mavenTest.txt"
+    final String accessKey = 'gradle-access-key'
+    final String secret = 'gradle-secret-key'
+    final String bucketName = 'org.gradle.artifacts'
+    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    final DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
+
+    @Rule
+    public final S3StubServer server = new S3StubServer()
+    final S3StubSupport s3StubSupport = new S3StubSupport(server)
+
+    def setup() {
+        awsCredentials.setAccessKey(accessKey)
+        awsCredentials.setSecretKey(secret)
+    }
+
+    def "should perform put get and list on an S3 bucket"() {
+        setup:
+        def fileContents = 'This is only a test'
+        File file = temporaryFolder.createFile(FILE_NAME)
+        file << fileContents
+
+        s3StubSupport.with {
+            stubPutFile(file, "/${bucketName}/maven/release/$FILE_NAME")
+            stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
+            stubGetFile(file, "/${bucketName}/maven/release/$FILE_NAME")
+            stubListFile(file, bucketName)
+        }
+
+        S3ConnectionProperties s3SystemProperties = Mock {
+            getEndpoint() >> s3StubSupport.endpoint.toString()
+            getProxySettings() >> Mock(JavaSystemPropertiesSecureHttpProxySettings)
+        }
+
+        S3Client s3Client = new S3Client(awsCredentials, s3SystemProperties)
+
+        when:
+        def stream = new FileInputStream(file)
+        def uri = new URI("s3://${bucketName}/maven/release/$FILE_NAME")
+        s3Client.put(stream, file.length(), uri)
+
+        then:
+        ObjectMetadata data = s3Client.getMetaData(uri)
+        data.instanceLength == fileContents.length()
+        data.getETag() ==~ /\w{32}/
+
+        and:
+        S3Object object = s3Client.getResource(uri)
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream()
+        IOUtils.copyLarge(object.getObjectContent(), outStream);
+        outStream.toString() == fileContents
+
+        and:
+        def files = s3Client.list(new URI("s3://${bucketName}/maven/release/"))
+        !files.isEmpty()
+        files.each {
+            assert it.contains(".")
+        }
+    }
+}
