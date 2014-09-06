@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource.transport.http;
 
+package org.gradle.internal.resource.transport.http
 
 import spock.lang.Specification
 
-class JavaSystemPropertiesHttpProxySettingsTest extends Specification {
+class JavaSystemPropertiesSecureHttpProxySettingsTest extends Specification {
 
-    def "should use default HTTP prefix and port"() {
-        JavaSystemPropertiesProxySettings settings = new JavaSystemPropertiesHttpProxySettings()
+    def "should use default HTTPS prefix and port"() {
+        JavaSystemPropertiesProxySettings settings = new JavaSystemPropertiesSecureHttpProxySettings()
         expect:
-        settings.propertyPrefix == 'http'
-        settings.defaultPort == 80
+        settings.propertyPrefix == 'https'
+        settings.defaultPort == 443
     }
 }

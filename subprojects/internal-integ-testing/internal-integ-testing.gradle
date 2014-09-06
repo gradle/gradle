@@ -26,6 +26,7 @@ dependencies {
     }
     compile libraries.sshd
     compile libraries.gson
+    compile libraries.joda
     compile libraries.jsch
 }
 

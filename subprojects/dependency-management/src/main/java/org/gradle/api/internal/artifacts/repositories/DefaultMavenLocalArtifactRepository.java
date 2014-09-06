@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolve
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
@@ -31,9 +32,9 @@ import java.net.URI;
 
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
+                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder, Instantiator instantiator,
                                         FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser pomParser) {
-        super(fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, artifactFileStore, pomParser);
+        super(fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser);
     }
 
     protected MavenResolver createRealResolver() {
