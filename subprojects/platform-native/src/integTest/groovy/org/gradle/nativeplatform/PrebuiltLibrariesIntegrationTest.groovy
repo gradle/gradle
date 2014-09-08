@@ -198,14 +198,16 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
                 }
             }
-            project(':projectB') {
-                apply plugin: 'cpp'
-                model {
-                    repositories {
-                        libs(PrebuiltLibraries) {
-                            hello {
-                                headers.srcDir "../libs/src/hello/headers"
-                            }
+        """
+
+        file("projectB/build.gradle") << """
+            apply plugin: 'cpp'
+
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        hello {
+                            headers.srcDir "../libs/src/hello/headers"
                         }
                     }
                 }
@@ -313,35 +315,34 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
     def "produces reasonable error message when prebuilt library does not exist in a different project"() {
         given:
         settingsFile.text = "include ':projectA', ':projectB'"
-        buildFile << """
-            project(':projectA') {
-                apply plugin: 'cpp'
-                model {
-                    repositories {
-                        libs(PrebuiltLibraries) {
-                            hello {
-                                headers.srcDir "libs/src/hello/headers"
-                            }
+        file("projectA/build.gradle") << """
+            apply plugin: 'cpp'
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        hello {
+                            headers.srcDir "libs/src/hello/headers"
                         }
                     }
                 }
-                executables {
-                    main {}
-                }
-                sources {
-                    main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
-                }
             }
-            project(':projectB') {
-                apply plugin: 'cpp'
-                model {
-                    repositories {
-                        libs(PrebuiltLibraries) {
-                            hello1
-                        }
-                        libs2(PrebuiltLibraries) {
-                            hello2
-                        }
+            executables {
+                main {}
+            }
+            sources {
+                main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+            }
+        """
+
+        file("projectB/build.gradle") << """
+            apply plugin: 'cpp'
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        hello1
+                    }
+                    libs2(PrebuiltLibraries) {
+                        hello2
                     }
                 }
             }
