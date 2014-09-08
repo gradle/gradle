@@ -32,32 +32,18 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
 
     def setup() {
         initScript = file("init.gradle") << """
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.core.rule.describe.*
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 
 allprojects { p ->
     apply plugin: ${toolChain.pluginClass}
-    modelRegistry.mutate(new ModelMutator() {
-      ModelReference getSubject() {
-        ModelReference.of("toolChains")
-      }
 
-      void mutate(toolChains, Inputs inputs) {
-        p.configure(p) {
-          configure(toolChains) {
+    def helper = new ModelRegistryHelper(project)
+
+    helper.configure("toolChains") {
+          configure(it) {
             ${toolChain.buildScriptConfig}
           }
-        }
-      }
-
-      List<ModelReference<?>> getInputs() {
-        []
-      }
-
-      ModelRuleDescriptor getDescriptor() {
-        new SimpleModelRuleDescriptor("AbstractInstalledToolChainIntegrationSpec.initscript")
-      }
-    })
+    }
 }
 """
         executer.beforeExecute({

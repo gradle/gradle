@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.model.fixture.ModelRegistryHelper
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.toolchain.ToolChain
 import org.gradle.nativeplatform.toolchain.ToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal

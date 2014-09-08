@@ -28,24 +28,28 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
     def setup() {
         buildFile << """
-    subprojects {
-        apply plugin: 'cpp'
-        apply plugin: 'visual-studio'
+            import org.gradle.model.internal.fixture.ModelRegistryHelper
 
-        model {
-            platforms {
-                win32 {
-                    architecture "i386"
+            subprojects {
+                apply plugin: 'cpp'
+                apply plugin: 'visual-studio'
+
+                def modelRegistryHelper = new ModelRegistryHelper(project)
+
+                modelRegistryHelper.configure("platforms") {
+                    it.configure {
+                        win32 {
+                            architecture "i386"
+                        }
+                    }
+                }.configure("buildTypes") {
+                    it.configure {
+                        debug
+                        release
+                    }
                 }
             }
-            buildTypes {
-                debug
-                release
-            }
-        }
-    }
-
-"""
+        """
     }
 
     def "create visual studio solution for executable that depends on static library in another project"() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.fixture;
+package org.gradle.model.internal.fixture;
 
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.*;
@@ -34,6 +34,9 @@ import static org.gradle.model.internal.core.ModelPath.nonNullValidatedPath;
  * Allows unsafe use of the model registry by allow registering of rules that can close over external, unmanaged, state.
  */
 public class ModelRegistryHelper {
+
+    // TODO this is in main because it is used by some integ test and therefore needs to be in the distribution
+    //      once that's fixed this should go to testFixtures
 
     private final ModelRegistry modelRegistry;
 

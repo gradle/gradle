@@ -20,7 +20,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.model.fixture.ModelRegistryHelper
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
 import org.gradle.nativeplatform.*
