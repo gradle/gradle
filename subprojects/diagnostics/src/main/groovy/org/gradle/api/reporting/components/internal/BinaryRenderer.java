@@ -73,9 +73,7 @@ class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
 
         if (binary instanceof JvmLibraryBinarySpec) {
             JvmLibraryBinarySpec libraryBinary = (JvmLibraryBinarySpec) binary;
-            if (libraryBinary.getTargetPlatform() != null) {
-                textOutput.formatln("    platform: %s", libraryBinary.getTargetPlatform().getName());
-            }
+            textOutput.formatln("    platform: %s", libraryBinary.getTargetPlatform().getName());
             textOutput.formatln("    tool chain: %s", libraryBinary.getToolChain().toString());
             if (binary instanceof JarBinarySpec) {
                 JarBinarySpec jarBinary = (JarBinarySpec) binary;
