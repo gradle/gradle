@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
@@ -28,6 +29,7 @@ public class ModelPath {
 
     public static final String SEPARATOR = ".";
     public static final Splitter PATH_SPLITTER = Splitter.on('.');
+    public static final Joiner PATH_JOINER = Joiner.on('.');
 
     private final String path;
 
@@ -61,6 +63,14 @@ public class ModelPath {
 
     public static ModelPath path(String path) {
         return new ModelPath(path);
+    }
+
+    public static ModelPath path(Iterable<String> names) {
+        return path(PATH_JOINER.join(names));
+    }
+
+    public static String pathString(Iterable<String> names) {
+        return PATH_JOINER.join(names);
     }
 
     public ModelPath child(String child) {

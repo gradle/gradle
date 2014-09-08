@@ -114,13 +114,18 @@ public abstract class AstUtils {
 
         String methodName = methodCall.getMethod().getText();
 
+        ClosureExpression closureExpression = getSingleClosureArg(methodCall);
+        return closureExpression == null ? null : new ScriptBlock(methodName, closureExpression);
+    }
+
+    public static ClosureExpression getSingleClosureArg(MethodCall methodCall) {
         if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
             return null;
         }
 
         ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
         if (args.getExpressions().size() == 1 && args.getExpression(0) instanceof ClosureExpression) {
-            return new ScriptBlock(methodName, (ClosureExpression) args.getExpression(0));
+            return (ClosureExpression) args.getExpression(0);
         } else {
             return null;
         }

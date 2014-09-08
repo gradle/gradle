@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl;
 
+import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 
 /**
@@ -23,4 +24,10 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ModelDsl {
+
+    // TODO - document here the rules for … rules … and explain how `«property path» { }` statements are transformed into calls to this method
+    // TODO - allow direct calls to this method? (i.e. model { configure("foo.bar") {} })
+    // TODO - prevent rules from calling this method in their implementation - (i.e. model { foo.bar { configure("foo") { } } })
+    void configure(String modelPath, Closure<?> configuration);
+
 }
