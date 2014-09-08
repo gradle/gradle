@@ -203,29 +203,6 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
-    def "creates empty jar when library has no sources"() {
-        given:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib
-        }
-    }
-"""
-        when:
-        succeeds "myLibJar"
-
-        then:
-        executed ":createMyLibJar", ":myLibJar"
-
-        and:
-        def jar = new JarTestFixture(file("build/jars/myLibJar/myLib.jar"))
-        jar.hasDescendants()
-    }
-
     def "reports failure to compile bad java sources"() {
         when:
         def badApp = new BadJavaLibrary()

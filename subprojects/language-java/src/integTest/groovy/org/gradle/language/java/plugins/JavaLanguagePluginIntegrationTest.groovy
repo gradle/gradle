@@ -148,8 +148,11 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         !file("build").exists()
     }
 
-    def "creates empty jar when library has no sources"() {
+    def "creates empty jar when library has empty sources"() {
         given:
+        file('src/myLib/java').mkdirs()
+        file('src/myLib/resources').mkdirs()
+
         buildFile << """
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
