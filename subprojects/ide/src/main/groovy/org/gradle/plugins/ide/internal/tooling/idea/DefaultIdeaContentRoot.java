@@ -32,6 +32,7 @@ public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
     Set<IdeaSourceDirectory> sourceDirectories = new LinkedHashSet<IdeaSourceDirectory>();
     Set<IdeaSourceDirectory> generatedSourceDirectories = new LinkedHashSet<IdeaSourceDirectory>();
     Set<IdeaSourceDirectory> testDirectories = new LinkedHashSet<IdeaSourceDirectory>();
+    Set<IdeaSourceDirectory> generatedTestDirectories = new LinkedHashSet<IdeaSourceDirectory>();
     Set<File> excludeDirectories = new LinkedHashSet<File>();
 
     public File getRootDirectory() {
@@ -70,6 +71,15 @@ public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
         return this;
     }
 
+    public DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories() {
+        return new ImmutableDomainObjectSet<IdeaSourceDirectory>(generatedTestDirectories);
+    }
+
+    public DefaultIdeaContentRoot setGeneratedTestDirectories(Set<IdeaSourceDirectory> generatedTestDirectories) {
+        this.generatedTestDirectories = generatedTestDirectories;
+        return this;
+    }
+
     public Set<File> getExcludeDirectories() {
         return excludeDirectories;
     }
@@ -85,6 +95,7 @@ public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
                 + ", sourceDirectories count=" + sourceDirectories.size()
                 + ", generatedSourceDirectories count=" + generatedSourceDirectories.size()
                 + ", testDirectories count=" + testDirectories.size()
+                + ", generatedSourceDirectories count=" + generatedTestDirectories.size()
                 + ", excludeDirectories count=" + excludeDirectories.size()
                 + '}';
     }

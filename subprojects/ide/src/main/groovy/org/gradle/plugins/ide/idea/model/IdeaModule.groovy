@@ -56,6 +56,9 @@ import org.gradle.util.ConfigureUtil
  *     //and some extra test source dirs
  *     testSourceDirs += file('some-extra-test-dir')
  *
+ *     //and some generated test source
+ *     generatedTestDirs += file('some-extra-generated-test-source-folder')
+
  *     //and some extra dirs that should be excluded by IDEA
  *     excludeDirs += file('some-extra-exclude-dir')
  *
@@ -225,6 +228,13 @@ class IdeaModule {
     Set<File> testSourceDirs
 
     /**
+     * The directories containing the generated test sources.
+     * <p>
+     * For example see docs for {@link IdeaModule}
+     */
+    Set<File> generatedTestDirs = []
+
+    /**
      * {@link ConventionProperty} for the directories to be excluded.
      * <p>
      * For example see docs for {@link IdeaModule}
@@ -341,12 +351,13 @@ class IdeaModule {
         Set sourceFolders = getSourceDirs().findAll { it.exists() }.collect { path(it) }
         Set generatedSourceFolders = getGeneratedSourceDirs().findAll { it.exists() }.collect { path(it) }
         Set testSourceFolders = getTestSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set generatedTestFolders = getGeneratedTestDirs().findAll { it.exists() }.collect { path(it) }
         Set excludeFolders = getExcludeDirs().collect { path(it) }
         def outputDir = getOutputDir() ? path(getOutputDir()) : null
         def testOutputDir = getTestOutputDir() ? path(getTestOutputDir()) : null
         Set dependencies = resolveDependencies()
 
-        xmlModule.configure(contentRoot, sourceFolders, generatedSourceFolders, testSourceFolders, excludeFolders,
+        xmlModule.configure(contentRoot, sourceFolders, generatedSourceFolders, testSourceFolders, generatedTestFolders, excludeFolders,
                 getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName())
 
         iml.whenMerged.execute(xmlModule)

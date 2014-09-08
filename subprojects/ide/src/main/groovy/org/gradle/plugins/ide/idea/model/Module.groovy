@@ -36,7 +36,7 @@ class Module extends XmlPersistableConfigurationObject {
     Set<Path> sourceFolders = [] as LinkedHashSet
 
     /**
-     * The directories containing the production sources. Must not be null.
+     * The directories containing generated the production sources. Must not be null.
      */
     Set<Path> generatedSourceFolders = [] as LinkedHashSet
 
@@ -44,6 +44,11 @@ class Module extends XmlPersistableConfigurationObject {
      * The directories containing the test sources. Must not be null.
      */
     Set<Path> testSourceFolders = [] as LinkedHashSet
+
+    /**
+     * The directories containing the generated test sources. Must not be null.
+     */
+    Set<Path> testGeneratedSourceFolders = [] as LinkedHashSet
 
     /**
      * The directories to be excluded. Must not be null.
@@ -106,7 +111,11 @@ class Module extends XmlPersistableConfigurationObject {
                     sourceFolders.add(pathFactory.path(sourceFolder.@url))
                 }
             } else {
-                testSourceFolders.add(pathFactory.path(sourceFolder.@url))
+                if (sourceFolder.@generated == 'true') {
+                    testGeneratedSourceFolders.add(pathFactory.path(sourceFolder.@url))
+                } else {
+                    testSourceFolders.add(pathFactory.path(sourceFolder.@url))
+                }
             }
         }
         findExcludeFolder().each { excludeFolder ->
@@ -148,13 +157,14 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    protected def configure(Path contentPath, Set sourceFolders, Set generatedSourceFolders, Set testSourceFolders, Set excludeFolders,
+    protected def configure(Path contentPath, Set sourceFolders, Set generatedSourceFolders, Set testSourceFolders, Set testGeneratedTestFolders, Set excludeFolders,
                             Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies, String jdkName) {
         this.contentPath = contentPath
         this.sourceFolders.addAll(sourceFolders)
         this.generatedSourceFolders.addAll(generatedSourceFolders)
-        this.testSourceFolders.addAll(testSourceFolders)
         this.excludeFolders.addAll(excludeFolders)
+        this.testGeneratedSourceFolders.addAll(testGeneratedTestFolders)
+        this.testSourceFolders.addAll(testSourceFolders)
         if (inheritOutputDirs != null) {
             this.inheritOutputDirs = inheritOutputDirs
         }
@@ -249,6 +259,11 @@ class Module extends XmlPersistableConfigurationObject {
         testSourceFolders.each { Path path ->
             findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'true'])
         }
+
+        testGeneratedSourceFolders.each { Path path ->
+            findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'true', generated: 'true'])
+        }
+
         excludeFolders.each { Path path ->
             findContent().appendNode('excludeFolder', [url: path.url])
         }
@@ -317,6 +332,7 @@ class Module extends XmlPersistableConfigurationObject {
         if (sourceFolders != module.sourceFolders) { return false }
         if (generatedSourceFolders != module.generatedSourceFolders) { return false }
         if (testOutputDir != module.testOutputDir) { return false }
+        if (testGeneratedSourceFolders != module.testGeneratedSourceFolders) { return false }
         if (testSourceFolders != module.testSourceFolders) { return false }
 
         return true
@@ -329,6 +345,7 @@ class Module extends XmlPersistableConfigurationObject {
         result = 31 * result + (generatedSourceFolders != null ? generatedSourceFolders.hashCode() : 0)
         result = 31 * result + (testSourceFolders != null ? testSourceFolders.hashCode() : 0)
         result = 31 * result + (excludeFolders != null ? excludeFolders.hashCode() : 0)
+        result = 31 * result + (testGeneratedSourceFolders != null ? testGeneratedSourceFolders.hashCode() : 0)
         result = 31 * result + (inheritOutputDirs != null ? inheritOutputDirs.hashCode() : 0)
         result = 31 * result + outputDir.hashCode()
         result = 31 * result + testOutputDir.hashCode()
@@ -343,6 +360,7 @@ class Module extends XmlPersistableConfigurationObject {
                 ", sourceFolders=" + sourceFolders +
                 ", generatedSourceFolders=" + generatedSourceFolders +
                 ", testSourceFolders=" + testSourceFolders +
+                ", testGeneratedSourceFolders=" + testGeneratedSourceFolders +
                 ", excludeFolders=" + excludeFolders +
                 ", inheritOutputDirs=" + inheritOutputDirs +
                 ", outputDir=" + outputDir +

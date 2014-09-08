@@ -164,6 +164,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 idea.module.generatedSourceDirs += file('foo')
+idea.module.generatedTestDirs += file('foo2')
 """
 
         when:
@@ -172,6 +173,7 @@ idea.module.generatedSourceDirs += file('foo')
 
         then:
         module.contentRoots[0].generatedSourceDirectories.any { it.path.endsWith 'foo' }
+        module.contentRoots[0].generatedTestDirectories.any { it.path.endsWith 'foo2' }
     }
 
     def "provides dependencies"() {
