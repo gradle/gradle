@@ -40,7 +40,7 @@ allprojects { p ->
     def helper = new ModelRegistryHelper(project)
 
     helper.configure("toolChains") {
-          configure(it) {
+          it.configure {
             ${toolChain.buildScriptConfig}
           }
     }
