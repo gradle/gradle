@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.util.List;
@@ -122,6 +123,24 @@ public class ModelPath {
             if (INVALID_CHAR_MATCHER.matches(character)) {
                 throw new InvalidNameException(String.format("Model element name '%s' contains illegal character '%s' (only ASCII letters, numbers and the underscore are allowed).", name, character));
             }
+        }
+    }
+
+    @Nullable
+    public static ModelPath validatedPath(@Nullable String path) {
+        if (path == null) {
+            return null;
+        } else {
+            validatePath(path);
+            return path(path);
+        }
+    }
+
+    public static ModelPath nonNullValidatedPath(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path cannot be null");
+        } else {
+            return validatedPath(path);
         }
     }
 

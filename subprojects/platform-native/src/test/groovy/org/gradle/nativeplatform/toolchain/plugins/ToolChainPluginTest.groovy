@@ -19,17 +19,18 @@ package org.gradle.nativeplatform.toolchain.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelType
+import org.gradle.model.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.toolchain.ToolChain
 import org.gradle.nativeplatform.toolchain.ToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 abstract class ToolChainPluginTest extends Specification {
 
     def project = TestUtil.createRootProject()
+    def modelRegistryHelper = new ModelRegistryHelper(project)
 
     def setup() {
         project.plugins.apply(getPluginClass())
@@ -44,19 +45,19 @@ abstract class ToolChainPluginTest extends Specification {
     }
 
     ToolChainInternal getToolchain() {
-        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry)).getByName(getToolchainName()) as ToolChainInternal
+        modelRegistryHelper.get("toolChains", ToolChainRegistryInternal).getByName(getToolchainName()) as ToolChainInternal
     }
 
     void register() {
-        project.model {
-            toolChains {
-                create(getToolchainName(), getToolchainClass())
-            }
+        modelRegistryHelper.configure(ToolChainRegistry) {
+            it.create(getToolchainName(), getToolchainClass())
         }
     }
 
     void addDefaultToolchain() {
-        project.model { toolChains { addDefaultToolChains() } }
+        modelRegistryHelper.configure(ToolChainRegistryInternal) {
+            it.addDefaultToolChains()
+        }
     }
 
     def "tool chain is extended"() {

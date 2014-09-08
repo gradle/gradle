@@ -20,11 +20,11 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.model.fixture.ModelRegistryHelper
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
-import org.gradle.nativeplatform.platform.Platform
 import org.gradle.nativeplatform.platform.PlatformContainer
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.PlatformInternal
@@ -36,6 +36,7 @@ import spock.lang.Specification
 
 class NativeComponentModelPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
+    def modelRegistryHelper = new ModelRegistryHelper(project)
 
     def setup() {
         project.plugins.apply(NativeComponentModelPlugin)
@@ -79,20 +80,11 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "does not add defaults when domain is explicitly configured"() {
         when:
-        project.model {
-            toolChains {
-                add named(ToolChainInternal, "tc")
-            }
-            platforms {
-                add named(Platform, "platform")
-            }
-            buildTypes {
-                add named(BuildType, "bt")
-            }
-            flavors {
-                add named(Flavor, "flavor1")
-            }
-        }
+        modelRegistryHelper
+                .configure(ToolChainRegistry) { it.add toolChain("tc") }
+                .configure(PlatformContainer) { it.add named(PlatformInternal, "platform") }
+                .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
+                .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         and:
         project.evaluate()
@@ -107,20 +99,12 @@ class NativeComponentModelPluginTest extends Specification {
     def "creates binaries for executable"() {
         when:
         project.plugins.apply(NativeComponentModelPlugin)
-        project.model {
-            toolChains {
-                add toolChain("tc")
-            }
-            platforms {
-                add named(PlatformInternal, "platform")
-            }
-            buildTypes {
-                add named(BuildType, "bt")
-            }
-            flavors {
-                add named(Flavor, "flavor1")
-            }
-        }
+        modelRegistryHelper
+                .configure(ToolChainRegistry) { it.add toolChain("tc") }
+                .configure(PlatformContainer) { it.add named(PlatformInternal, "platform") }
+                .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
+                .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
+
         def executable = project.nativeRuntime.executables.create "test"
         project.evaluate()
 
@@ -142,20 +126,12 @@ class NativeComponentModelPluginTest extends Specification {
     def "creates binaries for library"() {
         when:
         project.plugins.apply(NativeComponentModelPlugin)
-        project.model {
-            toolChains {
-                add toolChain("tc")
-            }
-            platforms {
-                add named(PlatformInternal, "platform")
-            }
-            buildTypes {
-                add named(BuildType, "bt")
-            }
-            flavors {
-                add named(Flavor, "flavor1")
-            }
-        }
+        modelRegistryHelper
+                .configure(ToolChainRegistry) { it.add toolChain("tc") }
+                .configure(PlatformContainer) { it.add named(PlatformInternal, "platform") }
+                .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
+                .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
+
         def library = project.nativeRuntime.libraries.create "test"
         project.evaluate()
 
@@ -218,7 +194,7 @@ class NativeComponentModelPluginTest extends Specification {
         return collection.iterator().next()
     }
 
-    def named(Class type, def name) {
+    public <T> T named(Class<T> type, def name) {
         Stub(type) {
             getName() >> name
         }
