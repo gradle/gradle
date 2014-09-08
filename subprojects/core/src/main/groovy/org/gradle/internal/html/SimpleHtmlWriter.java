@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.html;
+package org.gradle.internal.html;
 
-import org.gradle.api.internal.xml.SimpleMarkupWriter;
+import org.gradle.internal.xml.SimpleMarkupWriter;
 
 import java.io.IOException;
 import java.io.Writer;

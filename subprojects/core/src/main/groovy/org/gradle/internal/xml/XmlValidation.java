@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.xml;
 
 public class XmlValidation {
     public static boolean isValidXmlName(String name) {

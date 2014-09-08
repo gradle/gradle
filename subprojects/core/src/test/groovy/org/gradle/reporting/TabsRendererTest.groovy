@@ -15,7 +15,7 @@
  */
 package org.gradle.reporting
 
-import org.gradle.api.internal.html.SimpleHtmlWriter
+import org.gradle.internal.html.SimpleHtmlWriter
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.Specification

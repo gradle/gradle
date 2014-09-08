@@ -15,7 +15,7 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.DurationFormatter;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;

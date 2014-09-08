@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.xml;
+package org.gradle.internal.xml;
 
 import java.io.IOException;
 import java.io.OutputStream;

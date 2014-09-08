@@ -15,7 +15,7 @@
  */
 package org.gradle.reporting;
 
-import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.util.GradleVersion;
 
 import java.io.IOException;

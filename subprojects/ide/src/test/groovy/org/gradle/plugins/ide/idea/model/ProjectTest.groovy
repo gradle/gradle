@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.internal.xml.XmlTransformer
 import spock.lang.Specification
 
 class ProjectTest extends Specification {

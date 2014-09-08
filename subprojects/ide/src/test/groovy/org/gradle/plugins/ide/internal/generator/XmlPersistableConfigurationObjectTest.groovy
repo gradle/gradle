@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.internal.generator
 
-import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
 import org.junit.Rule

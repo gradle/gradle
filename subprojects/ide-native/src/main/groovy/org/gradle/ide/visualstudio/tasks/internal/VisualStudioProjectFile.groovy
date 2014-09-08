@@ -16,7 +16,7 @@
 
 package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Transformer
-import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 

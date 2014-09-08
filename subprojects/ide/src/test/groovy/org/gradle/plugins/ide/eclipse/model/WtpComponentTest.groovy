@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.custommonkey.xmlunit.XMLUnit
-import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

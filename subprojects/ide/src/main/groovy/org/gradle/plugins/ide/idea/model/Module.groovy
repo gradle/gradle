@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**

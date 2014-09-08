@@ -21,7 +21,7 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.DomNode
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule

@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.xml
+package org.gradle.internal.xml
 
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.DomNode
-import org.gradle.util.TextUtil
-import spock.lang.Specification
-import org.junit.Rule
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TextUtil
+import org.junit.Rule
+import spock.lang.Specification
+
 import javax.xml.parsers.DocumentBuilderFactory
 
 class XmlTransformerTest extends Specification {
@@ -281,7 +282,7 @@ class XmlTransformerTest extends Specification {
         StringWriter writer = new StringWriter()
         def node = new DomNode('root')
         node.publicId = 'public-id'
-        node.systemId = getClass().getResource("xml-transformer-test.dtd")
+        node.systemId = tmpDir.createFile("thing.dtd").toURI()
         transformer.addAction { it.asElement().appendChild(it.asElement().ownerDocument.createElement('someChild')) }
 
         when:

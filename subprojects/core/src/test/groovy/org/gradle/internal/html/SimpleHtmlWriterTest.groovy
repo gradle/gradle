@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.html
+package org.gradle.internal.html
 
 import org.jsoup.Jsoup
 import spock.lang.Specification

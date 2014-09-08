@@ -16,7 +16,7 @@
 package org.gradle.ide.cdt.model
 
 import org.gradle.api.Incubating
-import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**

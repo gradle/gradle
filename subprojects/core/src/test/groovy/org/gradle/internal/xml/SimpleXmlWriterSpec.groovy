@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.xml
+package org.gradle.internal.xml
 
 import org.gradle.util.TextUtil
 import spock.lang.Specification

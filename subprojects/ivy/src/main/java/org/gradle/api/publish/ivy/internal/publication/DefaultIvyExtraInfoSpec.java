@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy.internal.publication;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyExtraInfo;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
-import org.gradle.util.XmlValidation;
+import org.gradle.internal.xml.XmlValidation;
 
 public class DefaultIvyExtraInfoSpec extends DefaultIvyExtraInfo implements IvyExtraInfoSpec {
     public DefaultIvyExtraInfoSpec() {

@@ -17,7 +17,7 @@ package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.util.GFileUtils;

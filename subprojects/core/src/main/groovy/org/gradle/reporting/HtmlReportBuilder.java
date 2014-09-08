@@ -16,7 +16,7 @@
 
 package org.gradle.reporting;
 
-import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.internal.html.SimpleHtmlWriter;
 
 import java.io.Writer;
 import java.net.URL;

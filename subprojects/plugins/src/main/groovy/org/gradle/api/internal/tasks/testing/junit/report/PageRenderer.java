@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.Action;
 import org.gradle.internal.ErroringAction;
-import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.reporting.TabsRenderer;
