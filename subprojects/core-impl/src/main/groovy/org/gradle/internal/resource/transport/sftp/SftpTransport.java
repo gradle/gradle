@@ -52,8 +52,8 @@ public class SftpTransport extends AbstractRepositoryTransport {
                 name,
                 accessor,
                 new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
-                new SftpResourceLister(sftpClientFactory, credentials),
-                temporaryFileProvider);
+                new SftpResourceLister(sftpClientFactory, credentials)
+        );
     }
 
     public boolean isLocal() {

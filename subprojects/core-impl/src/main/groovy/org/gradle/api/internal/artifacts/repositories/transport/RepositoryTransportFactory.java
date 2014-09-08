@@ -58,7 +58,7 @@ public class RepositoryTransportFactory {
     }
 
     private RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, temporaryFileProvider);
+        return new FileTransport(name);
     }
 
     private RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {

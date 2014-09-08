@@ -49,8 +49,8 @@ public class HttpTransport extends AbstractRepositoryTransport {
                 name,
                 accessor,
                 new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
-                new HttpResourceLister(accessor),
-                temporaryFileProvider);
+                new HttpResourceLister(accessor)
+        );
     }
 
     public boolean isLocal() {

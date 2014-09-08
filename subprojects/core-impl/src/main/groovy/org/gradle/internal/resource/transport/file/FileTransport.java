@@ -22,7 +22,6 @@ import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
 import org.gradle.internal.resource.transport.DefaultExternalResourceRepository;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 
 import java.io.IOException;
 import java.net.URI;
@@ -31,11 +30,11 @@ public class FileTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
     private final NoOpCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public FileTransport(String name, TemporaryFileProvider temporaryFileProvider) {
+    public FileTransport(String name) {
         super(name);
         FileResourceConnector connector = new FileResourceConnector();
         resourceAccessor = new NoOpCacheAwareExternalResourceAccessor(connector);
-        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, temporaryFileProvider);
+        repository = new DefaultExternalResourceRepository(name, connector, connector, connector);
     }
 
     public boolean isLocal() {
