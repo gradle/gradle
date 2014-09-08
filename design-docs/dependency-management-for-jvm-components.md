@@ -721,23 +721,6 @@ Infrastructure automatically wires up the correct transformation rule for each b
 
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
-### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project (DONE)
-
-- ~~Move tasks/plugins/etc that are used to compile native languages for the native runtime into `org.gradle.language.*`~~
-- ~~Move Visual Studio and CDE related classes into new subproject `ide-native`~~
-    - ~~Move ide-specific integration tests as well~~
-- ~~Move language-specific classes (`org.gradle.language.*`) out of `cpp` into a new subproject `language-native`~~
-    - ~~Move language-related integration tests as well, breaking into a better package structure~~
-- ~~Rename the remaining `cpp` subproject to `platform-native`~~
-    - ~~Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeplatform.*`~~
-    - ~~Move integration tests into `platform-native`, breaking into a better package structure~~
-- ~~Move runtime-specific classes (`org.gradle.runtime.*`) out of `language-jvm` into new subproject `platform-jvm`~~
-- ~~Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes~~
-    - ~~`language-jvm` should be for common base infrastructure~~
-- ~~Miscellaneous~~
-    - ~~Enable classycle for all projects~~
-    - ~~Split NativeSamplesIntegrationTest for subprojects~~
-
 ## Feature: Plugin implements custom language support
 
 ### Story: Build author declares target Java version for a Java library

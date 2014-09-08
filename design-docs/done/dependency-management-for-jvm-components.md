@@ -80,7 +80,7 @@ Combining native and jvm libraries in single project
 - Can combine native and JVM libraries in the same project
   - `gradle assemble` executes lifecycle tasks for each native library and each jvm library
 
-### Story: Only attach source sets of relevant languages to component
+### Story: Only attach source sets of relevant languages to component (DONE)
 
 - Don't attach Java source sets to native components.
 - Don't attach native language source sets to jvm components.
@@ -88,3 +88,21 @@ Combining native and jvm libraries in single project
 This story will involve defining 'input-type' for each component type: e.g. JvmByteCode for a JvmLibraryBinary and ObjectFile for NativeBinary.
 A language plugin will need to register the compiled output type for each source set. Then it will be possible for a component to only
 attach to those language source sets that have an appropriate output type.
+
+### Story: Reorganise 'cpp' project to more consistent with 'language-jvm' project (DONE)
+
+- ~~Move tasks/plugins/etc that are used to compile native languages for the native runtime into `org.gradle.language.*`~~
+- ~~Move Visual Studio and CDE related classes into new subproject `ide-native`~~
+    - ~~Move ide-specific integration tests as well~~
+- ~~Move language-specific classes (`org.gradle.language.*`) out of `cpp` into a new subproject `language-native`~~
+    - ~~Move language-related integration tests as well, breaking into a better package structure~~
+- ~~Rename the remaining `cpp` subproject to `platform-native`~~
+    - ~~Rename packages `org.gradle.nativebinaries.*` to `org.gradle.nativeplatform.*`~~
+    - ~~Move integration tests into `platform-native`, breaking into a better package structure~~
+- ~~Move runtime-specific classes (`org.gradle.runtime.*`) out of `language-jvm` into new subproject `platform-jvm`~~
+- ~~Add new `language-java` subproject and `language-groovy` subprojects: and move in any java/groovy-specific classes~~
+    - ~~`language-jvm` should be for common base infrastructure~~
+- ~~Miscellaneous~~
+    - ~~Enable classycle for all projects~~
+    - ~~Split NativeSamplesIntegrationTest for subprojects~~
+
