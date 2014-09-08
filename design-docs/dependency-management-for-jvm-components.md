@@ -180,6 +180,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - For windows resources source files, the output type is `res`.
     - Fail if windows resources are input to a component for which there are no windows binaries.
 - `PolymorphicDomainObjectContainer.containerWithType()` should instead override `withType()`.
+- Source sets are in the wrong package `org.gradle.nativeplatform.sourceset`
 
 ## Feature: Plugin defines a custom library type
 
@@ -828,8 +829,17 @@ Add a sample to show a JVM library built for multiple Java versions.
     - `org.gradle.platform.base.toolchain.ToolChain`
 - Change `JavaToolChain` to extend `ToolChain`.
 - Change `JvmPlatform` to extend `Platform`.
+- The `BinarySpec.buildable` flag should be `false` when a particular JVM binary cannot be built by the current JVM.
+- Configuration of the build should not fail when a JVM binary cannot be built. Instead the appropriate compilation task
+should fail.
+- The implementation should delegate to the JavaToolChain to determine if a binary is buildable.
 - Use a consistent DSL for declaring the target platforms of all platform aware component types.
 - Mention breaking change in release notes.
+
+#### Test cases
+
+- Running `gradle components` on a build which cannot be built with the current JVM should not fail, and should indicate that
+the binary is not buildable.
 
 #### Open issues
 
