@@ -62,7 +62,7 @@ dependencies {
     testFixturesCompile project(":internalTesting")
     testFixturesCompile libraries.ivy
 
-    testFixturesRuntime project(':coreImpl')
+    testFixturesRuntime project(':dependencyManagement')
     testFixturesRuntime project(':pluginUse')
 
     integTestCompile project(":internalIntegTesting")

@@ -24,7 +24,7 @@ dependencies {
     compile libraries.inject
 
     // Required by JavaScriptExtension#getGoogleApisRepository()
-    compile project(':coreImpl')
+    compile project(':dependencyManagement')
 }
 
 useTestFixtures()

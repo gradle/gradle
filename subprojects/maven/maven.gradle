@@ -18,7 +18,7 @@ dependencies {
     compile libraries.groovy
 
     compile project(':core')
-    compile project(':coreImpl')
+    compile project(':dependencyManagement')
     compile project(':plugins')
     compile project(':publish')
     compile libraries.slf4j_api

@@ -24,7 +24,7 @@ dependencies {
     compile libraries.groovy
 
     compile project(':core')
-    compile project(':coreImpl')
+    compile project(':dependencyManagement')
     compile project(':reporting')
     compile project(':platformJvm')
     compile project(':languageJvm')
@@ -59,4 +59,4 @@ test {
 
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
-useTestFixtures(project: ":coreImpl")
+useTestFixtures(project: ":dependencyManagement")

@@ -3,7 +3,7 @@ dependencies {
 
     integTestCompile project(':toolingApi')
     integTestCompile project(':launcher')
-    integTestCompile project(':coreImpl')
+    integTestCompile project(':dependencyManagement')
     integTestCompile libraries.ant
     integTestCompile libraries.jsoup
 

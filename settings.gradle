@@ -17,7 +17,7 @@ include 'distributions'
 include 'baseServices'
 include 'baseServicesGroovy'
 include 'core'
-include 'coreImpl'
+include 'dependencyManagement'
 include 'wrapper'
 include 'cli'
 include 'launcher'
@@ -70,6 +70,9 @@ include 'cunit'
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
     String fileBaseName = project.name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }
+    if (project.name == 'dependencyManagement') {
+        fileBaseName = 'core-impl'
+    }
     String projectDirName = "subprojects/$fileBaseName"
     project.projectDir = new File(settingsDir, projectDirName)
     project.buildFileName = "${fileBaseName}.gradle"

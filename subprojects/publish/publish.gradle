@@ -16,7 +16,7 @@
 
 dependencies {
     compile project(':core')
-    compile project(':coreImpl')
+    compile project(':dependencyManagement')
 
     testCompile libraries.groovy
 

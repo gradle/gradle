@@ -21,11 +21,11 @@ dependencies {
     compile project(':plugins')
     compile project(':platformNative')
     compile project(':languageNative')
-    compile project(':coreImpl')
+    compile project(':dependencyManagement')
 
     integTestRuntime project(':cunit')
 }
 
 useTestFixtures()
-useTestFixtures(project: ':coreImpl')
+useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':platformNative', sourceSet: 'testFixtures')

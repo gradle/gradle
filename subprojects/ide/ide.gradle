@@ -30,7 +30,7 @@ dependencies {
     compile libraries.inject
 
     testCompile libraries.xmlunit
-    testCompile project(':coreImpl')
+    testCompile project(':dependencyManagement')
 }
 
 useTestFixtures()

@@ -169,7 +169,7 @@ dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
     gradlePlugins pluginProjects
-    gradlePlugins project(':coreImpl')
+    gradlePlugins project(':dependencyManagement')
 }
 
 task verifyIsProductionBuildEnvironment << {
