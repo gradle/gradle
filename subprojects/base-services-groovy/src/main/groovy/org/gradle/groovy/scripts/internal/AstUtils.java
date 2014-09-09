@@ -17,6 +17,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import com.google.common.base.Predicate;
+import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.GroovyCodeVisitor;
 import org.codehaus.groovy.ast.MethodNode;
@@ -29,6 +30,7 @@ import org.gradle.api.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.ListIterator;
 
 /**
@@ -176,6 +178,15 @@ public abstract class AstUtils {
         } else {
             return Collections.singleton(statement);
         }
+    }
+
+    public static MethodNode getGeneratedClosureImplMethod(ClassNode classNode) {
+        if (!classNode.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
+            throw new IllegalArgumentException("expecting generated closure class node");
+        }
+
+        List<MethodNode> doCallMethods = classNode.getDeclaredMethods("doCall");
+        return doCallMethods.get(0);
     }
 
 }

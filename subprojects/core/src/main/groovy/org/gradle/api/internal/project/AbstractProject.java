@@ -84,6 +84,7 @@ import static org.gradle.util.GUtil.addMaps;
 import static org.gradle.util.GUtil.isTrue;
 
 public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
+
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
@@ -943,12 +944,17 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return (ExtensionContainerInternal) getConvention();
     }
 
-    // This is here temporarily as a quick way to expose it in the build script
-    // Longer term it will not be available via Project, but be only available in a build script
+
+    // TODO longer term, this method shouldn't be here, so there's no way for a user to call it with a general closure
+    public static final String NON_TOP_LEVEL_MODEL_BLOCK_MESSAGE = "model {} called with an untransformed closure - model {} must be a top level statement in the build script";
+
     public void model(@DelegatesTo(ModelDsl.class) Closure<?> modelRules) {
-        // TODO we should be verifying the the closure we are given here has been transformed
-        // TODO longer term, this method shouldn't be here, so there's no way for a user to call it with a general closure
-        new ClosureBackedAction<ModelDsl>(modelRules).execute(new DefaultModelDsl(getModelRegistry()));
+        if (DefaultModelDsl.isRulesBlock(modelRules)) {
+            new ClosureBackedAction<ModelDsl>(modelRules).execute(new DefaultModelDsl(getModelRegistry()));
+        } else {
+            // TODO update this to give link to docs that explain when/where model {} can be used, when we have that
+            throw new GradleException(NON_TOP_LEVEL_MODEL_BLOCK_MESSAGE);
+        }
     }
 
 }

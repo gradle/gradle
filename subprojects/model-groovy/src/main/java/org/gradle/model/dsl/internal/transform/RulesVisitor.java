@@ -17,7 +17,10 @@
 package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Lists;
+import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassHelper;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
@@ -32,6 +35,10 @@ import java.util.List;
 
 public class RulesVisitor extends RestrictiveCodeVisitor {
 
+    private static final String AST_NODE_METADATA_KEY = RulesVisitor.class.getName();
+    private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(RulesBlock.class);
+
+
     // TODO - have to do much better here
     public static final String INVALID_STATEMENT = "illegal rule";
 
@@ -42,8 +49,19 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         this.ruleVisitor = ruleVisitor;
     }
 
+    public static void visitGeneratedClosure(ClassNode node) {
+        MethodNode method = AstUtils.getGeneratedClosureImplMethod(node);
+        Boolean isRulesBlock = method.getCode().getNodeMetaData(AST_NODE_METADATA_KEY);
+        if (isRulesBlock != null) {
+            AnnotationNode markerAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
+            node.addAnnotation(markerAnnotation);
+        }
+    }
+
     @Override
     public void visitBlockStatement(BlockStatement block) {
+        block.setNodeMetaData(AST_NODE_METADATA_KEY, true);
+
         for (Statement statement : block.getStatements()) {
             statement.visit(this);
         }

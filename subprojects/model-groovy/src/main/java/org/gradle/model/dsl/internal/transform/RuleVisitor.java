@@ -39,7 +39,8 @@ import java.util.Set;
 public class RuleVisitor extends CodeVisitorSupport {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
-    public static final String AST_NODE_METADATA_KEY = ModelBlockTransformer.class.getName();
+
+    private static final String AST_NODE_METADATA_KEY = RuleVisitor.class.getName();
 
     private static final String DOLLAR = "$";
     private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(ExtractedInputs.class);
@@ -59,18 +60,16 @@ public class RuleVisitor extends CodeVisitorSupport {
 
     // Not part of a normal visitor, see ClosureCreationInterceptingVerifier
     public static void visitGeneratedClosure(ClassNode node) {
-        List<MethodNode> doCallMethods = node.getDeclaredMethods("doCall");
-        for (MethodNode method : doCallMethods) {
-            Set<String> inputs = method.getCode().getNodeMetaData(AST_NODE_METADATA_KEY);
-            if (inputs != null) {
-                AnnotationNode inputsAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
-                List<Expression> values = inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
-                for (String input : inputs) {
-                    values.add(new ConstantExpression(input));
-                }
-                inputsAnnotation.addMember("value", new ListExpression(values));
-                node.addAnnotation(inputsAnnotation);
+        MethodNode method = AstUtils.getGeneratedClosureImplMethod(node);
+        Set<String> inputs = method.getCode().getNodeMetaData(AST_NODE_METADATA_KEY);
+        if (inputs != null) {
+            AnnotationNode inputsAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
+            List<Expression> values = inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
+            for (String input : inputs) {
+                values.add(new ConstantExpression(input));
             }
+            inputsAnnotation.addMember("value", new ListExpression(values));
+            node.addAnnotation(inputsAnnotation);
         }
     }
 

@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Transformer;
 import org.gradle.model.dsl.ModelDsl;
 import org.gradle.model.dsl.internal.transform.ExtractedInputs;
+import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -68,5 +69,11 @@ public class DefaultModelDsl implements ModelDsl {
                 return ModelReference.untyped(ModelPath.path(s));
             }
         }
+    }
+
+    public static boolean isRulesBlock(Closure<?> closure) {
+        Class<? extends Closure> closureClass = closure.getClass();
+        RulesBlock annotation = closureClass.getAnnotation(RulesBlock.class);
+        return annotation != null;
     }
 }
