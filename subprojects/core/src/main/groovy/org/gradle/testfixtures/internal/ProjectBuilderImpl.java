@@ -80,8 +80,8 @@ public class ProjectBuilderImpl {
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
                 topLevelRegistry.get(FileResolver.class));
-        ClassLoaderScope baseScope = gradle.getClassLoaderScope().createSibling();
-        ClassLoaderScope rootProjectScope = baseScope.createSibling();
+        ClassLoaderScope baseScope = gradle.getClassLoaderScope();
+        ClassLoaderScope rootProjectScope = baseScope.createChild();
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
 
         gradle.setRootProject(project);

@@ -74,11 +74,6 @@ public interface ClassLoaderScope {
     ClassLoaderScope export(Factory<? extends ClassLoader> classLoader);
 
     /**
-     * Creates a scope with the same parent as this scope.
-     */
-    ClassLoaderScope createSibling();
-
-    /**
      * Creates a scope with this scope as parent.
      */
     ClassLoaderScope createChild();

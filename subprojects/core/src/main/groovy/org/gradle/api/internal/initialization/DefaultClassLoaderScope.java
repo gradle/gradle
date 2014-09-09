@@ -171,10 +171,6 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         }
     }
 
-    public ClassLoaderScope createSibling() {
-        return new DefaultClassLoaderScope(parent, classLoaderCache);
-    }
-
     public ClassLoaderScope createChild() {
         return new DefaultClassLoaderScope(this, classLoaderCache);
     }

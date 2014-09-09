@@ -246,23 +246,6 @@ class DefaultClassLoaderScopeTest extends Specification {
         child.exportClassLoader.getResource("local") == null
     }
 
-    def "sibling scopes can not access exported or local"() {
-        when:
-        file("local/local") << "bar"
-        file("export/export") << "bar"
-        scope.local(root.loader(classPath("local")))
-        scope.export(root.loader(classPath("export")))
-        def sibling = scope.lock().createSibling().lock()
-
-        then:
-        sibling.localClassLoader.getResource("root").text == "root"
-        sibling.localClassLoader.getResource("export") == null
-        sibling.localClassLoader.getResource("local") == null
-        sibling.exportClassLoader.getResource("root").text == "root"
-        sibling.exportClassLoader.getResource("export") == null
-        sibling.exportClassLoader.getResource("local") == null
-    }
-
     def "class loaders are reused"() {
         expect:
         backingCache.size() == 0
@@ -274,7 +257,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         def c2LoaderRoot = root.loader(c2)
         scope.export(c1LoaderRoot).local(c2LoaderRoot).lock()
 
-        def sibling = scope.createSibling().lock()
+        def sibling = root.createChild().lock()
         def child = scope.createChild().lock()
 
         scope.localClassLoader

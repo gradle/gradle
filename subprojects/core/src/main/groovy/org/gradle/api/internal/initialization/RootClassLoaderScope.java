@@ -57,10 +57,6 @@ public class RootClassLoaderScope implements ClassLoaderScope {
         throw new UnsupportedOperationException("root class loader scope is immutable");
     }
 
-    public ClassLoaderScope createSibling() {
-        return createChild();
-    }
-
     public ClassLoaderScope createChild() {
         return new DefaultClassLoaderScope(this, classLoaderCache);
     }
