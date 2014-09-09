@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.metadata.ProjectDependencyMetaData
 import org.gradle.api.internal.project.AbstractProject
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.util.TestUtil
@@ -45,13 +46,14 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     public void testCreateFromProjectDependency() {
         ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF);
         setUpDependency(projectDependency);
-        ProjectDependencyDescriptor dependencyDescriptor = (ProjectDependencyDescriptor) projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency, moduleDescriptor);
+        ProjectDependencyMetaData dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency, moduleDescriptor);
 
+        def dependencyDescriptor = dependencyMetaData.descriptor
         assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
         assertFalse(dependencyDescriptor.isChanging());
         assertFalse(dependencyDescriptor.isForce());
         assertEquals(IvyUtil.createModuleRevisionId("someGroup", "test", "someVersion"), dependencyDescriptor.getDependencyRevisionId());
-        assertSame(projectDependency.getDependencyProject(), dependencyDescriptor.getTargetProject());
+        assertSame(projectDependency, dependencyMetaData.source);
     }
 
     private ProjectDependency createProjectDependency(String dependencyConfiguration) {

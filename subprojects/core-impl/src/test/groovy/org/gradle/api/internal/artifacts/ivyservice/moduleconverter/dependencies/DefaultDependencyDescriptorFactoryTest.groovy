@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
+
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData
 import spock.lang.Specification
 
 public class DefaultDependencyDescriptorFactoryTest extends Specification {
     def configurationName = "conf"
     def moduleDescriptor = Stub(DefaultModuleDescriptor)
     def projectDependency = Stub(ProjectDependency)
-    def dependencyDescriptor = Stub(EnhancedDependencyDescriptor)
 
     def "delegates to internal factory"() {
         given:
         def ivyDependencyDescriptorFactory1 = Mock(IvyDependencyDescriptorFactory)
         def ivyDependencyDescriptorFactory2 = Mock(IvyDependencyDescriptorFactory)
-
+        def result = Stub(DslOriginDependencyMetaData)
 
         when:
         def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
@@ -39,13 +39,12 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         def created = dependencyDescriptorFactory.createDependencyDescriptor(configurationName, moduleDescriptor, projectDependency)
 
         then:
-        created instanceof DefaultDependencyMetaData
-        created.descriptor == dependencyDescriptor
+        created == result
 
         and:
         1 * ivyDependencyDescriptorFactory1.canConvert(projectDependency) >> false
         1 * ivyDependencyDescriptorFactory2.canConvert(projectDependency) >> true
-        1 * ivyDependencyDescriptorFactory2.createDependencyDescriptor(configurationName, projectDependency, moduleDescriptor) >> dependencyDescriptor
+        1 * ivyDependencyDescriptorFactory2.createDependencyDescriptor(configurationName, projectDependency, moduleDescriptor) >> result
     }
 
     def "fails where no internal factory can handle dependency type"() {

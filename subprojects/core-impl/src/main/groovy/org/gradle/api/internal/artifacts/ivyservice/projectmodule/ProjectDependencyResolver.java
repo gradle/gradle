@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleToModuleVersionResolver;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ProjectDependencyMetaData;
 
 import java.util.Set;
 
@@ -40,10 +39,9 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
-        DependencyDescriptor descriptor = dependency.getDescriptor();
-        if (descriptor instanceof ProjectDependencyDescriptor) {
-            ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
-            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(desc.getTargetProject().getPath());
+        if (dependency instanceof ProjectDependencyMetaData) {
+            ProjectDependencyMetaData projectDependency = (ProjectDependencyMetaData) dependency;
+            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(projectDependency.getSelector().getProjectPath());
             result.resolved(componentMetaData.toResolveMetaData());
         } else {
             delegate.resolve(dependency, result);

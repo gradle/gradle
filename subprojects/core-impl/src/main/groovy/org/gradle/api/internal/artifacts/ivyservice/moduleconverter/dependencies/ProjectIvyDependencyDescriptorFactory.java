@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Module;
@@ -23,6 +24,8 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.metadata.DefaultProjectDependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ProjectDependencyMetaData;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
@@ -30,13 +33,13 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         super(excludeRuleConverter);
     }
 
-    public EnhancedDependencyDescriptor createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
+    public ProjectDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
-        ProjectDependencyDescriptor dependencyDescriptor = new ProjectDependencyDescriptor(projectDependency, parent, moduleRevisionId, false, false, dependency.isTransitive());
+        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent, moduleRevisionId, false, false, dependency.isTransitive());
         addExcludesArtifactsAndDependencies(configuration, dependency, dependencyDescriptor);
-        return dependencyDescriptor;
+        return new DefaultProjectDependencyMetaData(dependencyDescriptor, projectDependency);
     }
 
     public boolean canConvert(ModuleDependency dependency) {

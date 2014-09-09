@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyToConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
@@ -40,10 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Interna
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -305,7 +301,7 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleDependency getModuleDependency() {
-            return ((EnhancedDependencyDescriptor) dependencyDescriptor).getModuleDependency();
+            return ((DslOriginDependencyMetaData) dependencyMetaData).getSource();
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData metaData1) {

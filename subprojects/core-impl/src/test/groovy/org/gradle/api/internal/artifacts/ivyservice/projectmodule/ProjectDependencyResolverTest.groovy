@@ -16,14 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.artifacts.metadata.ProjectDependencyMetaData
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
@@ -39,14 +39,8 @@ class ProjectDependencyResolverTest extends Specification {
             toResolveMetaData() >> resolveMetaData
         }
         def result = Mock(BuildableComponentResolveResult)
-        def dependencyProject = Stub(ProjectInternal) {
-            getPath() >> ":project"
-        }
-        def dependencyDescriptor = Stub(ProjectDependencyDescriptor) {
-            getTargetProject() >> dependencyProject
-        }
-        def dependencyMetaData = Stub(DependencyMetaData) {
-            getDescriptor() >> dependencyDescriptor
+        def dependencyMetaData = Stub(ProjectDependencyMetaData) {
+            getSelector() >> DefaultProjectComponentSelector.newSelector(":project")
         }
 
         when:

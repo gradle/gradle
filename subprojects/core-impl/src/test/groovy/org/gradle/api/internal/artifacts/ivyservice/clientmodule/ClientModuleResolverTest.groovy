@@ -23,8 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveRes
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
@@ -38,10 +38,7 @@ class ClientModuleResolverTest extends Specification {
 
     def result = Mock(BuildableComponentResolveResult)
     def metaData = Mock(MutableModuleVersionMetaData)
-    def descriptor = Mock(EnhancedDependencyDescriptor)
-    def dependency = Mock(DependencyMetaData) {
-        getDescriptor() >> descriptor
-    }
+    def dependency = Mock(DslOriginDependencyMetaData)
 
     def "replaces meta-data for a client module dependency"() {
         def clientModule = Mock(ClientModule)
@@ -56,8 +53,7 @@ class ClientModuleResolverTest extends Specification {
         then:
         1 * target.resolve(dependency, result)
         1 * result.getFailure() >> null
-        1 * dependency.descriptor >> descriptor
-        1 * descriptor.moduleDependency >> clientModule
+        1 * dependency.source >> clientModule
         1 * result.getMetaData() >> metaData
         1 * metaData.copy() >> metaData
         1 * clientModule.getDependencies() >> ([dep] as Set)
@@ -74,7 +70,6 @@ class ClientModuleResolverTest extends Specification {
     }
 
     def "does not replace meta-data when not client module"() {
-        def descriptor = Mock(EnhancedDependencyDescriptor)
         def moduleDependency = Mock(ModuleDependency)
 
         when:
@@ -83,8 +78,7 @@ class ClientModuleResolverTest extends Specification {
         then:
         1 * target.resolve(dependency, result)
         1 * result.getFailure() >> null
-        1 * dependency.descriptor >> descriptor
-        1 * descriptor.moduleDependency >> moduleDependency
+        1 * dependency.source >> moduleDependency
         0 * _
     }
 

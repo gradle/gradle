@@ -107,7 +107,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements External
 
     public List<DependencyMetaData> getDependencies() {
         if (dependencies == null) {
-            dependencies =populateDependenciesFromDescriptor();
+            dependencies = populateDependenciesFromDescriptor();
         }
         return dependencies;
     }

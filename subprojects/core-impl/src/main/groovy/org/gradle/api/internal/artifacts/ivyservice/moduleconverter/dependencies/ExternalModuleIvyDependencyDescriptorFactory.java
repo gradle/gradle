@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.metadata.DefaultDslOriginDependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData;
 
 public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
@@ -31,17 +34,16 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         return IvyUtil.createModuleRevisionId(dependency);
     }
 
-    public EnhancedDependencyDescriptor createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
+    public DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
-        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(
-                dependency,
+        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(
                 parent,
                 moduleRevisionId,
                 getExternalModuleDependency(dependency).isForce(),
                 getExternalModuleDependency(dependency).isChanging(),
                 getExternalModuleDependency(dependency).isTransitive());
         addExcludesArtifactsAndDependencies(configuration, getExternalModuleDependency(dependency), dependencyDescriptor);
-        return dependencyDescriptor;
+        return new DefaultDslOriginDependencyMetaData(dependencyDescriptor, dependency);
     }
 
     private ExternalModuleDependency getExternalModuleDependency(ModuleDependency dependency) {

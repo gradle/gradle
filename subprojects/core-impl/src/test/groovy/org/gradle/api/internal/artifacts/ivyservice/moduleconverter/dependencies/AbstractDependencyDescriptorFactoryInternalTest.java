@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
@@ -80,7 +80,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
                 setTransitive(true);
     }
 
-    protected void assertDependencyDescriptorHasCommonFixtureValues(DefaultDependencyDescriptor dependencyDescriptor) {
+    protected void assertDependencyDescriptorHasCommonFixtureValues(DependencyDescriptor dependencyDescriptor) {
         assertThat(dependencyDescriptor.getParentRevisionId(), equalTo(moduleDescriptor.getModuleRevisionId()));
         assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyDescriptor.getExcludeRules(TEST_CONF)[0]);
         assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF), equalTo(WrapUtil.toArray(TEST_DEP_CONF)));
@@ -88,7 +88,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
         assertDependencyDescriptorHasArtifacts(dependencyDescriptor);
     }
 
-    private void assertDependencyDescriptorHasArtifacts(DefaultDependencyDescriptor dependencyDescriptor) {
+    private void assertDependencyDescriptorHasArtifacts(DependencyDescriptor dependencyDescriptor) {
         List<DependencyArtifactDescriptor> artifactDescriptors = WrapUtil.toList(dependencyDescriptor.getDependencyArtifacts(TEST_CONF));
         assertThat(artifactDescriptors.size(), equalTo(2));
 

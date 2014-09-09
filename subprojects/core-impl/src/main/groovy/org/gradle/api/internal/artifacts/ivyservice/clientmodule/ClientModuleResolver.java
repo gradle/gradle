@@ -18,26 +18,21 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
-import org.gradle.internal.Transformers;
 
 import java.util.List;
 
 public class ClientModuleResolver implements DependencyToModuleVersionResolver {
     private final DependencyToModuleVersionResolver resolver;
     private final DependencyDescriptorFactory dependencyDescriptorFactory;
-    private final Transformer<MutableModuleVersionMetaData, ExternalComponentMetaData> toModuleVersionMetaData = Transformers.cast(MutableModuleVersionMetaData.class);
 
     public ClientModuleResolver(DependencyToModuleVersionResolver resolver, DependencyDescriptorFactory dependencyDescriptorFactory) {
         this.resolver = resolver;
@@ -50,13 +45,12 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
         if (result.getFailure() != null) {
             return;
         }
-        DependencyDescriptor descriptor = dependency.getDescriptor();
-        if (descriptor instanceof EnhancedDependencyDescriptor) {
-            ModuleDependency maybeClientModule = ((EnhancedDependencyDescriptor) descriptor).getModuleDependency();
+        if (dependency instanceof DslOriginDependencyMetaData) {
+            ModuleDependency maybeClientModule = ((DslOriginDependencyMetaData) dependency).getSource();
             if (maybeClientModule instanceof ClientModule) {
                 ClientModule clientModule = (ClientModule) maybeClientModule;
 
-                MutableModuleVersionMetaData clientModuleMetaData = toModuleVersionMetaData.transform(result.getMetaData()).copy();
+                MutableModuleVersionMetaData clientModuleMetaData = ((MutableModuleVersionMetaData)result.getMetaData()).copy();
                 addClientModuleDependencies(clientModule, clientModuleMetaData);
 
                 setClientModuleArtifact(clientModuleMetaData);

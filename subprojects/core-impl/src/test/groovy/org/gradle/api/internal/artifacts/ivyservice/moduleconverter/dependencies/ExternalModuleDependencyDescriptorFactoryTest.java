@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData;
 import org.hamcrest.Matchers;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
@@ -45,8 +46,8 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     @Test
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
-        DefaultDependencyDescriptor dependencyDescriptor = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, dependency, moduleDescriptor);
-        assertThat(dependencyDescriptor.getDependencyRevisionId(), equalTo(IvyUtil.createModuleRevisionId(dependency)));
+        DslOriginDependencyMetaData dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, dependency, moduleDescriptor);
+        assertThat(dependencyMetaData.getDescriptor().getDependencyRevisionId(), equalTo(IvyUtil.createModuleRevisionId(dependency)));
     }
 
     @Test
@@ -55,8 +56,9 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
                 "gradle-core", "1.0", TEST_DEP_CONF);
         setUpDependency(moduleDependency);
 
-        DefaultDependencyDescriptor dependencyDescriptor = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, moduleDependency, moduleDescriptor);
+        DslOriginDependencyMetaData dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, moduleDependency, moduleDescriptor);
 
+        DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
         assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
         assertEquals(dependencyDescriptor.isForce(), moduleDependency.isForce());
         assertEquals(IvyUtil.createModuleRevisionId(moduleDependency), dependencyDescriptor.getDependencyRevisionId());

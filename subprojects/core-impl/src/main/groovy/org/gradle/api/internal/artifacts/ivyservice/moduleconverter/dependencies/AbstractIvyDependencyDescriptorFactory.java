@@ -38,14 +38,14 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
     }
 
     protected void addExcludesArtifactsAndDependencies(String configuration, ModuleDependency dependency,
-                                                       EnhancedDependencyDescriptor dependencyDescriptor) {
+                                                       DefaultDependencyDescriptor dependencyDescriptor) {
         addArtifacts(configuration, dependency.getArtifacts(), dependencyDescriptor);
         addExcludes(configuration, dependency.getExcludeRules(), dependencyDescriptor);
         addDependencyConfiguration(configuration, dependency, dependencyDescriptor);
     }
 
     private void addArtifacts(String configuration, Set<DependencyArtifact> artifacts,
-                              EnhancedDependencyDescriptor dependencyDescriptor) {
+                              DefaultDependencyDescriptor dependencyDescriptor) {
         for (DependencyArtifact artifact : artifacts) {
             DefaultDependencyArtifactDescriptor artifactDescriptor;
             try {

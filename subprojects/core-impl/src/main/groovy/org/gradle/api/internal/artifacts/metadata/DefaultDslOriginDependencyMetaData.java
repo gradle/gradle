@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+package org.gradle.api.internal.artifacts.metadata;
+
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData;
 
-public interface IvyDependencyDescriptorFactory {
-    DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor moduleDescriptor);
+public class DefaultDslOriginDependencyMetaData extends DefaultDependencyMetaData implements DslOriginDependencyMetaData {
+    private final ModuleDependency source;
 
-    boolean canConvert(ModuleDependency dependency);
+    public DefaultDslOriginDependencyMetaData(DependencyDescriptor dependencyDescriptor, ModuleDependency source) {
+        super(dependencyDescriptor);
+        this.source = source;
+    }
+
+    public ModuleDependency getSource() {
+        return source;
+    }
 }
