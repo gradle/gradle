@@ -99,20 +99,14 @@ public class SettingsHandler {
         // We found the desired settings file, now build the associated buildSrc before loading settings.  This allows
         // the settings script to reference classes in the buildSrc.
         StartParameter buildSrcStartParameter = startParameter.newBuild();
-        buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(),
-                BaseSettings.DEFAULT_BUILD_SRC_DIR));
+        buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR));
         ClassLoaderScope buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
-        return loadSettings(gradle, settingsLocation, buildSourceClassLoader.createChild().lock(), startParameter);
+        return settingsProcessor.process(gradle, settingsLocation, buildSourceClassLoader, startParameter);
     }
 
     private SettingsLocation findSettings(StartParameter startParameter) {
         return settingsFinder.find(startParameter);
-    }
-
-    private SettingsInternal loadSettings(GradleInternal gradle, SettingsLocation settingsLocation,
-                                          ClassLoaderScope baseClassLoaderScope, StartParameter startParameter) {
-        return settingsProcessor.process(gradle, settingsLocation, baseClassLoaderScope, startParameter);
     }
 }
 

@@ -44,6 +44,7 @@ import static org.junit.Assert.*
 class DefaultSettingsTest {
     File settingsDir
     StartParameter startParameter
+    ClassLoaderScope rootClassLoaderScope
     ClassLoaderScope classLoaderScope
     Map gradleProperties
     ScriptSource scriptSourceMock
@@ -63,6 +64,7 @@ class DefaultSettingsTest {
         settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
+        rootClassLoaderScope = context.mock(ClassLoaderScope)
         classLoaderScope = context.mock(ClassLoaderScope)
 
         scriptSourceMock = context.mock(ScriptSource)
@@ -90,7 +92,7 @@ class DefaultSettingsTest {
                 will(returnValue(projectDescriptorRegistry));
         }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
-                    gradleMock, classLoaderScope, settingsDir, scriptSourceMock, startParameter);
+                    gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);
 
     }
 
