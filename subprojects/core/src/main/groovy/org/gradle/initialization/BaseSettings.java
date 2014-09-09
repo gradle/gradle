@@ -213,7 +213,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getRootClassLoaderScope(), this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
