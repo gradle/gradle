@@ -32,6 +32,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData>();
     private final Map<ArtifactRevisionId, DefaultLocalArtifactMetaData> artifactsByIvyId = new LinkedHashMap<ArtifactRevisionId, DefaultLocalArtifactMetaData>();
     private final Multimap<String, DefaultLocalArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
+    private final List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
@@ -70,6 +71,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     public void addDependency(DependencyMetaData dependency) {
+        dependencies.add(dependency);
         moduleDescriptor.addDependency(dependency.getDescriptor());
     }
 
@@ -141,12 +143,13 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             super(id, moduleDescriptor, componentIdentifier);
         }
 
-        public MutableModuleVersionMetaData copy() {
+        public ModuleVersionMetaData withSource(ModuleSource source) {
             throw new UnsupportedOperationException();
         }
 
-        public ModuleVersionMetaData withSource(ModuleSource source) {
-            throw new UnsupportedOperationException();
+        @Override
+        protected List<DependencyMetaData> populateDependenciesFromDescriptor() {
+            return dependencies;
         }
 
         public ComponentArtifactMetaData artifact(Artifact artifact) {

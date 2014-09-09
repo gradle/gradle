@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.metadata
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
@@ -167,6 +168,21 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         and:
         metaData.getArtifact(artifactMetadata1.id).file == file1
         metaData.getArtifact(artifactMetadata2.id).file == file2
+    }
+
+    def "can add dependencies"() {
+        def dependencyDescriptor = Stub(DependencyDescriptor)
+        def dependency = Stub(DependencyMetaData) {
+            getDescriptor() >> dependencyDescriptor
+        }
+
+        when:
+        metaData.addDependency(dependency)
+
+        then:
+        metaData.moduleDescriptor.dependencies as List == [dependencyDescriptor]
+        metaData.toResolveMetaData().dependencies == [dependency]
+        metaData.toResolveMetaData().descriptor.dependencies as List == [dependencyDescriptor]
     }
 
     def "can convert to publish meta-data"() {

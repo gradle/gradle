@@ -29,10 +29,6 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultIvyContextManager();
     }
 
-    ModuleDescriptorFactory createModuleDescriptorFactory() {
-        return new DefaultModuleDescriptorFactory();
-    }
-
     ExcludeRuleConverter createExcludeRuleConverter() {
         return new DefaultExcludeRuleConverter();
     }
@@ -56,13 +52,11 @@ class DependencyManagementGlobalScopeServices {
                 descriptorFactory);
     }
 
-    LocalComponentFactory createPublishLocalComponentFactory(ModuleDescriptorFactory moduleDescriptorFactory,
-                                                                            ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                                                            DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                                            ExcludeRuleConverter excludeRuleConverter,
-                                                                            ComponentIdentifierFactory componentIdentifierFactory) {
+    LocalComponentFactory createPublishLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+                                                             DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                             ExcludeRuleConverter excludeRuleConverter,
+                                                             ComponentIdentifierFactory componentIdentifierFactory) {
         return new ResolveLocalComponentFactory(
-                moduleDescriptorFactory,
                 configurationsToModuleDescriptorConverter,
                 new DefaultDependenciesToModuleDescriptorConverter(
                         dependencyDescriptorFactory,

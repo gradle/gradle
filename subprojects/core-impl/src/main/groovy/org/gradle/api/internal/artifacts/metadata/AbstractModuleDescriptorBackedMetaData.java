@@ -107,16 +107,17 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements External
 
     public List<DependencyMetaData> getDependencies() {
         if (dependencies == null) {
-            populateDependenciesFromDescriptor();
+            dependencies =populateDependenciesFromDescriptor();
         }
         return dependencies;
     }
 
-    private void populateDependenciesFromDescriptor() {
-        dependencies = new ArrayList<DependencyMetaData>();
-        for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
-            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
-        }
+     protected List<DependencyMetaData> populateDependenciesFromDescriptor() {
+         List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
+         for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
+             dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+         }
+         return dependencies;
     }
 
     public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
