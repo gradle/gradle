@@ -281,7 +281,7 @@ This story adds the capability for rules declared in scripts to take inputs.
             assert value == "foo-bar"
         }
         otherOtherThing {
-            value = $("otherOtherThing").value
+            value = $("otherThing").value
             assert value == "foo-bar"
         }
         
