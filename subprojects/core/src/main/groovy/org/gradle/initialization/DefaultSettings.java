@@ -27,10 +27,10 @@ import java.io.File;
 public class DefaultSettings extends BaseSettings {
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
-                    GradleInternal gradle,
-                    ClassLoaderScope classLoaderScope, File settingsDir,
+                    GradleInternal gradle, ClassLoaderScope classLoaderScope,
+                    ClassLoaderScope rootClassLoaderScope, File settingsDir,
                     ScriptSource settingsScript, StartParameter startParameter) {
-        super(serviceRegistryFactory, gradle, classLoaderScope, settingsDir, settingsScript, startParameter);
+        super(serviceRegistryFactory, gradle, classLoaderScope, rootClassLoaderScope, settingsDir, settingsScript, startParameter);
     }
 
 }

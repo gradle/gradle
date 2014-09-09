@@ -74,7 +74,6 @@ public class DefaultGradleLauncherTest {
 
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
-    private ClassLoaderScope settingsClassLoaderScope = context.mock(ClassLoaderScope.class);
     private ClassLoaderScope baseClassLoaderScope = context.mock(ClassLoaderScope.class);
     private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
     private LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
@@ -122,11 +121,7 @@ public class DefaultGradleLauncherTest {
                 will(returnValue(expectedRootProjectDescriptor));
                 allowing(settingsMock).getDefaultProject();
                 will(returnValue(expectedRootProjectDescriptor));
-                allowing(settingsMock).getClassLoaderScope();
-                will(returnValue(settingsClassLoaderScope));
-                allowing(settingsClassLoaderScope).createSibling();
-                will(returnValue(baseClassLoaderScope));
-                allowing(baseClassLoaderScope).lock();
+                allowing(settingsMock).getRootClassLoaderScope();
                 will(returnValue(baseClassLoaderScope));
                 allowing(gradleMock).getRootProject();
                 will(returnValue(expectedRootProject));

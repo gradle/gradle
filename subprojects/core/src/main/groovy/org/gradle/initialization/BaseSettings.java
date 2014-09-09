@@ -59,11 +59,13 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     private final ScriptPluginFactory scriptPluginFactory;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final ClassLoaderScope classLoaderScope;
+    private final ClassLoaderScope rootClassLoaderScope;
 
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                        ClassLoaderScope classLoaderScope, File settingsDir, ScriptSource settingsScript,
-                        StartParameter startParameter) {
+                        ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
+                        ScriptSource settingsScript, StartParameter startParameter) {
         this.gradle = gradle;
+        this.rootClassLoaderScope = rootClassLoaderScope;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
@@ -212,6 +214,10 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getClassLoaderScope(), this);
+    }
+
+    public ClassLoaderScope getRootClassLoaderScope() {
+        return rootClassLoaderScope;
     }
 
     public ClassLoaderScope getClassLoaderScope() {

@@ -33,7 +33,6 @@ class SettingsHandlerTest extends Specification {
     def settingsLocation = new SettingsLocation(GFileUtils.canonicalise(new File("someDir")), null);
     def startParameter = new StartParameter();
     def classLoaderScope = Mock(ClassLoaderScope)
-    def settingsClassLoaderScope = Mock(ClassLoaderScope)
     def settingsFinder = Mock(ISettingsFinder)
     def settingsProcessor = Mock(SettingsProcessor)
     def buildSourceBuilder = Mock(BuildSourceBuilder)
@@ -54,9 +53,7 @@ class SettingsHandlerTest extends Specification {
         gradle.getServices() >> services
         settingsFinder.find(startParameter) >> settingsLocation
         1 * buildSourceBuilder.buildAndCreateClassLoader({ StartParameter sp -> sp.currentDir == new File(settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR) }) >> classLoaderScope
-        1 * classLoaderScope.createChild() >> settingsClassLoaderScope
-        1 * settingsClassLoaderScope.lock() >> settingsClassLoaderScope
-        1 * settingsProcessor.process(gradle, settingsLocation, settingsClassLoaderScope, startParameter) >> settings
+        1 * settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter) >> settings
 
         then:
         settingsHandler.findAndLoadSettings(gradle).is(settings)

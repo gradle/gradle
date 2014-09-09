@@ -122,7 +122,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         buildListener.settingsEvaluated(settings);
 
         // Load build
-        buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getClassLoaderScope().createSibling().lock());
+        buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
         buildListener.projectsLoaded(gradle);
 
         // Configure build

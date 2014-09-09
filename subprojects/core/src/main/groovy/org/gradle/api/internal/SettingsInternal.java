@@ -25,6 +25,10 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 
 public interface SettingsInternal extends Settings {
+    /**
+     * Returns the scope containing all classes that should be visible to all build scripts.
+     */
+    ClassLoaderScope getRootClassLoaderScope();
 
     ClassLoaderScope getClassLoaderScope();
 

@@ -58,7 +58,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         Clock settingsProcessingClock = new Clock();
         Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(),
-                settingsLocation.getSettingsScriptSource(), properties, startParameter, baseClassLoaderScope.createChild());
+                settingsLocation.getSettingsScriptSource(), properties, startParameter, baseClassLoaderScope);
         applySettingsScript(settingsLocation, settings);
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
         return settings;

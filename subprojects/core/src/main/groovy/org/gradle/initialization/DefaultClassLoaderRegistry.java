@@ -28,7 +28,7 @@ import java.net.URLClassLoader;
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkToolsInitializer {
     private final ClassLoader apiOnlyClassLoader;
     private final ClassLoader apiAndPluginsClassLoader;
-    private final ClassLoader pluginsClassLoader;
+    private final ClassLoader extensionsClassLoader;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
@@ -36,9 +36,9 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
         apiOnlyClassLoader = restrictToGradleApi(classLoaderFactory, runtimeClassLoader);
 
         ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
-        pluginsClassLoader = new MutableURLClassLoader(runtimeClassLoader, pluginsClassPath);
+        extensionsClassLoader = new MutableURLClassLoader(runtimeClassLoader, pluginsClassPath);
 
-        this.apiAndPluginsClassLoader = restrictToGradleApi(classLoaderFactory, pluginsClassLoader);
+        this.apiAndPluginsClassLoader = restrictToGradleApi(classLoaderFactory, extensionsClassLoader);
     }
 
     private CachingClassLoader restrictToGradleApi(ClassLoaderFactory classLoaderFactory, ClassLoader classLoader) {
@@ -74,7 +74,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
     }
 
     public ClassLoader getPluginsClassLoader() {
-        return pluginsClassLoader;
+        return extensionsClassLoader;
     }
 
     public ClassLoader getGradleCoreApiClassLoader() {
