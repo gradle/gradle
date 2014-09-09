@@ -54,9 +54,7 @@ public class BuildSourceBuilder {
     public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
         ClassPath classpath = createBuildSourceClasspath(startParameter);
         ClassLoaderScope childScope = classLoaderScope.createChild();
-        if (!classpath.isEmpty()) {
-            childScope.export(classLoaderScope.loader(classpath));
-        }
+        childScope.export(classpath);
         childScope.lock();
         return childScope;
     }

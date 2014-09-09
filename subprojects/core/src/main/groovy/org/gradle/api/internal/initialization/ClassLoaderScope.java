@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 
 /**
@@ -50,28 +49,20 @@ public interface ClassLoaderScope {
     ClassLoaderScope getParent();
 
     /**
-     * Returns a factory for a loader based on the given classpath, whose parent is the export classloader of this scope.
-     * <p>
-     * There is no short circuiting for an empty classpath.
-     * Callers should verify the classpath argument is non empty.
-     * <p>
-     * It is strongly preferable to only invoke the factory after {@link #lock() locking} the scope as it allows the structure to be optimized.
-     */
-    Factory<? extends ClassLoader> loader(ClassPath classPath);
-
-    /**
-     * Makes the classes of the given classloader visible to this scope, but not to children.
+     * Makes the provided classes visible to this scope, but not to children. The classes are loaded in their own ClassLoader whose parent is the export
+     * ClassLoader of the parent scope.
      *
      * <p>Can not be called after being locked.
      */
-    ClassLoaderScope local(Factory<? extends ClassLoader> classLoader);
+    ClassLoaderScope local(ClassPath classPath);
 
     /**
-     * Makes the classes of the given classloader visible to this scope and its children.
+     * Makes the provided classes visible to this scope and its children. The classes are loaded in their own ClassLoader whose parent is the export ClassLoader
+     * of the parent scope.
      *
      * <p>Can not be called after being locked.
      */
-    ClassLoaderScope export(Factory<? extends ClassLoader> classLoader);
+    ClassLoaderScope export(ClassPath classPath);
 
     /**
      * Creates a scope with this scope as parent.

@@ -67,11 +67,6 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
 
-        def factory = Factories.constant(exportClassLoader)
-        targetScope.getParent() >> Mock(ClassLoaderScope) {
-            loader(_) >> factory
-        }
-        targetScope.export(factory)
         1 * targetScope.getLocalClassLoader() >> scopeClassLoader
     }
 

@@ -35,7 +35,6 @@ import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
@@ -141,12 +140,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private void defineScriptHandlerClassScope(ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope) {
         Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
         Set<File> files = classpathConfiguration.getFiles();
-        if (!files.isEmpty()) {
-            ClassPath classPath = new DefaultClassPath(files);
-            Factory<? extends ClassLoader> loader = classLoaderScope.getParent().loader(classPath);
-            classLoaderScope.export(loader);
-        }
-
+        ClassPath classPath = new DefaultClassPath(files);
+        classLoaderScope.export(classPath);
         classLoaderScope.lock();
     }
 

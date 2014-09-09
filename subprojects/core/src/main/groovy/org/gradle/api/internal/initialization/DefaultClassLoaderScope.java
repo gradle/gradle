@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.util.*;
-
-import static com.google.common.collect.Lists.newLinkedList;
-import static org.gradle.util.CollectionUtils.unpack;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DefaultClassLoaderScope implements ClassLoaderScope {
 
@@ -35,8 +33,8 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     private boolean locked;
 
-    private List<Factory<? extends ClassLoader>> export = new LinkedList<Factory<? extends ClassLoader>>();
-    private List<Factory<? extends ClassLoader>> local = new LinkedList<Factory<? extends ClassLoader>>();
+    private List<ClassPath> export = new LinkedList<ClassPath>();
+    private List<ClassPath> local = new LinkedList<ClassPath>();
 
     // If these are not null, we are pessimistic (loaders asked for before locking)
     private MultiParentClassLoader exportingClassLoader;
@@ -51,41 +49,41 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         this.classLoaderCache = classLoaderCache;
     }
 
-    private ClassLoader buildLockedLoader(ClassLoader parent, List<? extends Factory<? extends ClassLoader>> rest) {
-        if (rest.size() == 1) {
-            ClassLoader loneLoader = rest.get(0).create();
-            if (isOrHasParent(loneLoader, parent)) {
-                return loneLoader;
-            } else {
-                return new CachingClassLoader(buildOpenLoader(parent, Collections.singleton(loneLoader)));
-            }
+    private ClassLoader buildLockedLoader(List<ClassPath> classPaths) {
+        if (classPaths.isEmpty()) {
+            return parent.getExportClassLoader();
+        }
+        if (classPaths.size() == 1) {
+            return loader(classPaths.get(0));
         }
 
-        return new CachingClassLoader(buildOpenLoader(parent, newLinkedList(unpack(rest))));
+        List<ClassLoader> loaders = new ArrayList<ClassLoader>(classPaths.size());
+        for (ClassPath classPath : classPaths) {
+            loaders.add(loader(classPath));
+        }
+        return new CachingClassLoader(new MultiParentClassLoader(loaders));
     }
 
-    private MultiParentClassLoader buildOpenLoader(ClassLoader parent, Collection<? extends ClassLoader> loaders) {
-        for (ClassLoader loader : loaders) {
-            if (isOrHasParent(loader, parent)) {
-                return new MultiParentClassLoader(loaders);
-            }
+    private ClassLoader buildLockedLoader(ClassLoader additional, List<ClassPath> classPaths) {
+        if (classPaths.isEmpty()) {
+            return additional;
         }
 
-        List<ClassLoader> parents = new ArrayList<ClassLoader>(loaders.size() + 1);
-        parents.add(parent);
-        for (ClassLoader loader : loaders) {
-            parents.add(loader);
+        List<ClassLoader> loaders = new ArrayList<ClassLoader>(classPaths.size() + 1);
+        loaders.add(additional);
+        for (ClassPath classPath : classPaths) {
+            loaders.add(loader(classPath));
         }
-        return new MultiParentClassLoader(parents);
+        return new CachingClassLoader(new MultiParentClassLoader(loaders));
     }
 
-    private boolean isOrHasParent(ClassLoader search, ClassLoader target) {
-        if (search.equals(target)) {
-            return true;
-        } else {
-            ClassLoader parent = search.getParent();
-            return parent != null && isOrHasParent(parent, target);
+    private MultiParentClassLoader buildOpenLoader(ClassLoader additional, List<ClassPath> classPaths) {
+        List<ClassLoader> loaders = new ArrayList<ClassLoader>(classPaths.size() + 1);
+        loaders.add(additional);
+        for (ClassPath classPath : classPaths) {
+            loaders.add(loader(classPath));
         }
+        return new MultiParentClassLoader(loaders);
     }
 
     private void buildEffectiveLoaders() {
@@ -95,13 +93,13 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
                     effectiveLocalClassLoader = parent.getExportClassLoader();
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 } else if (export.isEmpty()) {
-                    effectiveLocalClassLoader = buildLockedLoader(parent.getExportClassLoader(), local);
+                    effectiveLocalClassLoader = buildLockedLoader(local);
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 } else if (local.isEmpty()) {
-                    effectiveLocalClassLoader = buildLockedLoader(parent.getExportClassLoader(), export);
+                    effectiveLocalClassLoader = buildLockedLoader(export);
                     effectiveExportClassLoader = effectiveLocalClassLoader;
                 } else {
-                    effectiveExportClassLoader = buildLockedLoader(parent.getExportClassLoader(), export);
+                    effectiveExportClassLoader = buildLockedLoader(export);
                     effectiveLocalClassLoader = buildLockedLoader(effectiveExportClassLoader, local);
                 }
             } else { // creating before locking, have to create the most flexible setup
@@ -109,10 +107,10 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
                     throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
                 }
 
-                exportingClassLoader = buildOpenLoader(parent.getExportClassLoader(), newLinkedList(unpack(export)));
+                exportingClassLoader = buildOpenLoader(parent.getExportClassLoader(), export);
                 effectiveExportClassLoader = new CachingClassLoader(exportingClassLoader);
 
-                localClassLoader = buildOpenLoader(effectiveExportClassLoader, newLinkedList(unpack(local)));
+                localClassLoader = buildOpenLoader(effectiveExportClassLoader, local);
                 effectiveLocalClassLoader = new CachingClassLoader(localClassLoader);
             }
 
@@ -135,31 +133,35 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         return parent;
     }
 
-    public Factory<? extends ClassLoader> loader(final ClassPath classPath) {
-        return new Factory<ClassLoader>() {
-            public ClassLoader create() {
-                return classLoaderCache.get(getExportClassLoader(), classPath, null);
-            }
-        };
+    private ClassLoader loader(ClassPath classPath) {
+        return classLoaderCache.get(parent.getExportClassLoader(), classPath, null);
     }
 
-    public ClassLoaderScope local(Factory<? extends ClassLoader> classLoader) {
+    public ClassLoaderScope local(ClassPath classPath) {
+        if (classPath.isEmpty()) {
+            return this;
+        }
+
         assertNotLocked();
         if (localClassLoader != null) {
-            localClassLoader.addParent(classLoader.create());
+            localClassLoader.addParent(loader(classPath));
         } else {
-            local.add(classLoader);
+            local.add(classPath);
         }
 
         return this;
     }
 
-    public ClassLoaderScope export(Factory<? extends ClassLoader> classLoader) {
+    public ClassLoaderScope export(ClassPath classPath) {
+        if (classPath.isEmpty()) {
+            return this;
+        }
+
         assertNotLocked();
         if (exportingClassLoader != null) {
-            exportingClassLoader.addParent(classLoader.create());
+            exportingClassLoader.addParent(loader(classPath));
         } else {
-            export.add(classLoader);
+            export.add(classPath);
         }
 
         return this;
