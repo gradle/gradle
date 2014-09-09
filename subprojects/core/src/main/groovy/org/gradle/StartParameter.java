@@ -97,10 +97,11 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public StartParameter() {
         gradleHomeDir = new DefaultModuleRegistry().getGradleHome();
 
-        BuildLayoutParameters layoutDefaults = new BuildLayoutParameters();
-        searchUpwards = layoutDefaults.getSearchUpwards();
-        currentDir = layoutDefaults.getProjectDir();
-        gradleUserHomeDir = layoutDefaults.getGradleUserHomeDir();
+        BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
+        searchUpwards = layoutParameters.getSearchUpwards();
+        currentDir = layoutParameters.getCurrentDir();
+        projectDir = layoutParameters.getProjectDir();
+        gradleUserHomeDir = layoutParameters.getGradleUserHomeDir();
     }
 
     /**
@@ -300,7 +301,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         if (currentDir != null) {
             this.currentDir = GFileUtils.canonicalise(currentDir);
         } else {
-            this.currentDir = new BuildLayoutParameters().getProjectDir();
+            this.currentDir = new BuildLayoutParameters().getCurrentDir();
         }
     }
 

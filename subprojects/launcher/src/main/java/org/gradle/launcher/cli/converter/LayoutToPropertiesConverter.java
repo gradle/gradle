@@ -31,7 +31,7 @@ import java.util.Properties;
 
 public class LayoutToPropertiesConverter {
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
-        configureFromBuildDir(layout.getProjectDir(), layout.getSearchUpwards(), properties);
+        configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
         properties.putAll((Map) System.getProperties());
         return properties;

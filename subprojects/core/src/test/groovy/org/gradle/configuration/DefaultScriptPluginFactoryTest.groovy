@@ -24,7 +24,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.groovy.scripts.*
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer
-import org.gradle.internal.Factories
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry

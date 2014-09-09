@@ -34,7 +34,8 @@ class LayoutCommandLineConverterTest extends Specification {
 
     def "has reasonable defaults"() {
         expect:
-        convert().projectDir == canonicalise(SystemProperties.getCurrentDir())
+        convert().currentDir == canonicalise(SystemProperties.getCurrentDir())
+        convert().projectDir == null
         convert().gradleUserHomeDir == canonicalise(BuildLayoutParameters.DEFAULT_GRADLE_USER_HOME)
         convert().searchUpwards
     }
@@ -49,7 +50,7 @@ class LayoutCommandLineConverterTest extends Specification {
     def "converts relatively to the target dir"() {
         given:
         def root = temp.createDir('root')
-        def target = new BuildLayoutParameters().setProjectDir(root)
+        def target = new BuildLayoutParameters().setCurrentDir(root)
 
         when:
         converter.convert(['-p', 'projectDir', '-g', 'gradleDir'], target)
