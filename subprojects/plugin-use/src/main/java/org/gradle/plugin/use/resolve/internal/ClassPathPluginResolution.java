@@ -46,7 +46,10 @@ public class ClassPathPluginResolution implements PluginResolution {
     public Class<? extends Plugin> resolve() {
         ClassPath classPath = classPathFactory.create();
         Factory<? extends ClassLoader> loader = parent.loader(classPath);
-        PluginRegistry pluginRegistry = new DefaultPluginRegistry(loader, instantiator);
+        ClassLoaderScope loaderScope = parent.createChild();
+        loaderScope.local(loader);
+        loaderScope.lock();
+        PluginRegistry pluginRegistry = new DefaultPluginRegistry(loaderScope.getLocalClassLoader(), instantiator);
         return pluginRegistry.getTypeForId(pluginId.toString());
     }
 }
