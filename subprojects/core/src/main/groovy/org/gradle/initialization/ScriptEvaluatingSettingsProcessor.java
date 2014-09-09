@@ -68,7 +68,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         ScriptSource settingsScriptSource = settingsLocation.getSettingsScriptSource();
         ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
         ScriptHandler scriptHandler = scriptHandlerFactory.create(settingsScriptSource, settingsClassLoaderScope);
-        ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, scriptHandler, settingsClassLoaderScope, settingsClassLoaderScope.getParent(), "buildscript", SettingsScript.class, false);
+        ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, scriptHandler, settingsClassLoaderScope, settings.getRootClassLoaderScope(), "buildscript", SettingsScript.class, false);
         configurer.apply(settings);
     }
 
