@@ -15,28 +15,18 @@
  */
 package org.gradle.initialization;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
-import java.io.Serializable;
+import java.util.List;
 
-public class BuildFileProjectSpec extends AbstractProjectSpec implements Serializable {
+public class BuildFileProjectSpec extends AbstractProjectSpec {
     private final File buildFile;
 
     public BuildFileProjectSpec(File buildFile) {
         this.buildFile = buildFile;
-    }
-
-    public String getDisplayName() {
-        return String.format("project has build file '%s'", buildFile);
-    }
-
-    public boolean isCorresponding(File file) {
-        return buildFile.equals(file);
     }
 
     protected String formatNoMatchesMessage() {
@@ -47,8 +37,13 @@ public class BuildFileProjectSpec extends AbstractProjectSpec implements Seriali
         return String.format("Multiple projects in this build have build file '%s': %s", buildFile, matches);
     }
 
-    protected boolean select(ProjectIdentifier project) {
-        return buildFile.equals(project.getBuildFile());
+    @Override
+    protected <T extends ProjectIdentifier> void select(ProjectRegistry<? extends T> candidates, List<? super T> matches) {
+        for (T candidate : candidates.getAllProjects()) {
+            if (candidate.getBuildFile().equals(buildFile)) {
+                matches.add(candidate);
+            }
+        }
     }
 
     @Override
@@ -59,13 +54,5 @@ public class BuildFileProjectSpec extends AbstractProjectSpec implements Seriali
         if (!buildFile.isFile()) {
             throw new InvalidUserDataException(String.format("Build file '%s' is not a file.", buildFile));
         }
-    }
-
-    public boolean equals(Object obj) {
-        return EqualsBuilder.reflectionEquals(this, obj);
-    }
-
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

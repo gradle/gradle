@@ -15,17 +15,39 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectRegistry;
 
 import java.io.File;
+import java.util.List;
 
-public class DefaultProjectSpec extends ProjectDirectoryProjectSpec {
-    public DefaultProjectSpec(File dir) {
-        super(dir);
+public class DefaultProjectSpec extends AbstractProjectSpec {
+    private final boolean useRootWhenNoMatch;
+    private final File currentDir;
+
+    public DefaultProjectSpec(File currentDir, SettingsInternal settings) {
+        this.currentDir = currentDir;
+        this.useRootWhenNoMatch = currentDir.equals(settings.getSettingsDir());
     }
 
     @Override
-    protected void checkPreconditions(ProjectRegistry<?> registry) {
-        // Ignore
+    protected <T extends ProjectIdentifier> void select(ProjectRegistry<? extends T> candidates, List<? super T> matches) {
+        for (T candidate : candidates.getAllProjects()) {
+            if (candidate.getProjectDir().equals(currentDir)) {
+                matches.add(candidate);
+            }
+        }
+        if (useRootWhenNoMatch && matches.isEmpty()) {
+            matches.add(candidates.getProject(":"));
+        }
+    }
+
+    protected String formatNoMatchesMessage() {
+        return String.format("No projects in this build have project directory '%s'.", currentDir);
+    }
+
+    protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {
+        return String.format("Multiple projects in this build have project directory '%s': %s", currentDir, matches);
     }
 }

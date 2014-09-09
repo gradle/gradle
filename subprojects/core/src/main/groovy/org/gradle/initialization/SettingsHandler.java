@@ -17,8 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -47,44 +45,30 @@ public class SettingsHandler {
         StartParameter startParameter = gradle.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
 
-        ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter);
+        ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
 
-        if (!spec.containsProject(settings.getProjectRegistry())) {
-            // The settings we found did not include the desired default project
-            if (startParameter.getProjectDir() == null && spec.isCorresponding(settings.getSettingsDir())) {
-                // The desired default project is the settings directory
-                // So execute the root project instead.
-                settings.setDefaultProject(settings.getRootProject());
-            } else {
-                // Try again with an empty settings file.
-                StartParameter noSearchParameter = startParameter.newInstance();
-                noSearchParameter.useEmptySettings();
-                settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
-                if (settings == null) { // not using an assert to make sure it is not disabled
-                    throw new InternalError("Empty settings file does not contain expected project.");
-                }
-
-                // Set explicit build file, if required
-                if (noSearchParameter.getBuildFile() != null) {
-                    ProjectDescriptor rootProject = settings.getRootProject();
-                    rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
-                }
-                setDefaultProject(spec, settings);
-            }
-        } else {
+        if (spec.containsProject(settings.getProjectRegistry())) {
             setDefaultProject(spec, settings);
+            return settings;
         }
+
+        // Try again with empty settings
+        StartParameter noSearchParameter = startParameter.newInstance();
+        noSearchParameter.useEmptySettings();
+        settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
+
+        // Set explicit build file, if required
+        if (noSearchParameter.getBuildFile() != null) {
+            ProjectDescriptor rootProject = settings.getRootProject();
+            rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
+        }
+        setDefaultProject(spec, settings);
 
         return settings;
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {
-        try {
-            settings.setDefaultProject(spec.selectProject(settings.getProjectRegistry()));
-        } catch (InvalidUserDataException e) {
-            throw new GradleException(String.format("Could not select the default project for this build. %s",
-                    e.getMessage()), e);
-        }
+        settings.setDefaultProject(spec.selectProject(settings.getProjectRegistry()));
     }
 
     /**

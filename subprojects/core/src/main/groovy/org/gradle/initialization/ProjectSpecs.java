@@ -17,17 +17,21 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.SettingsInternal;
 
 import java.io.File;
 
 class ProjectSpecs {
 
-    static ProjectSpec forStartParameter(StartParameter startParameter) {
+    static ProjectSpec forStartParameter(StartParameter startParameter, SettingsInternal settings) {
         File explicitProjectDir = startParameter.getProjectDir();
         File explicitBuildFile = startParameter.getBuildFile();
-        ProjectSpec spec = explicitBuildFile != null
-                ? new BuildFileProjectSpec(explicitBuildFile)
-                : explicitProjectDir == null ? new DefaultProjectSpec(startParameter.getCurrentDir()) : new ProjectDirectoryProjectSpec(explicitProjectDir);
-        return spec;
+        if (explicitBuildFile != null) {
+            return new BuildFileProjectSpec(explicitBuildFile);
+        }
+        if (explicitProjectDir != null) {
+            return new ProjectDirectoryProjectSpec(explicitProjectDir);
+        }
+        return new DefaultProjectSpec(startParameter.getCurrentDir(), settings);
     }
 }
