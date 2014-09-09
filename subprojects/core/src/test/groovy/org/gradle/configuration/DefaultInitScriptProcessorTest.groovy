@@ -37,7 +37,7 @@ class DefaultInitScriptProcessorTest extends Specification {
         def scriptPlugin = Mock(ScriptPlugin)
 
         1 * gradleMock.getClassLoaderScope() >> gradleScope
-        1 * gradleScope.createSibling() >> siblingScope
+        1 * gradleScope.createChild() >> siblingScope
 
         1 * scriptHandlerFactory.create(initScriptMock, siblingScope) >> scriptHandler
         1 * scriptPluginFactory.create(initScriptMock, scriptHandler, siblingScope, gradleScope, "initscript", InitScript, false) >> scriptPlugin
