@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;
@@ -54,7 +55,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         ruleClosures.add(closure);
     }
 
-    public void processMetadata(ModuleVersionMetaData metadata) {
+    public void processMetadata(MutableModuleVersionMetaData metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         ruleActions.execute(details);
         executeRuleClosures(metadata, details);
