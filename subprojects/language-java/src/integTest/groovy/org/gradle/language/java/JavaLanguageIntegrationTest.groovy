@@ -253,6 +253,8 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         jarFile("build/jars/myLibJar/myLib.jar").getJavaVersion() == target
+        and:
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(java6App.sources*.classFile.fullPath as String[])
     }
 
 
