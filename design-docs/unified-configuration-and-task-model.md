@@ -585,6 +585,27 @@ To implement this, model objects will need to be serializable in some form.
 
 For up-to-date checks, the implementation of a rule also forms input to the rule. Need to include this and invalidate cached outputs. Fix this for tasks at the same time.
 
+## Extract all information available at compile time **once** from each script
+
+The DSL for declaring rules (e.g. model {}) allows us to extract information at compile time about rules and their inputs.
+Given that the rule definitions should be free of context, this information should only be extracted once.
+
+Consider:
+
+    # scriptPlugin.groovy
+    model {
+      foo.bar {
+      
+      }
+    }
+    
+    # root build.gradle of 1000 subproject build
+    allprojects {
+      apply from: "scriptPlugin.groovy"
+    }
+
+There should be no need to actually execute the `model {}` block in `scriptPlugin.groovy` 1000 times because the rule information within can be extracted _once_ at compile time and then reused in each context it is applied.
+
 # Implementation plan - Later milestones
 
 ## Native language plugins use model rules to configure the native components model
