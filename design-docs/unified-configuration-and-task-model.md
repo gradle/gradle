@@ -326,17 +326,17 @@ One potential option will be to insert a fake statement as the first statement o
 ### Test cases
 
 - Compile time failure
-  - Non string literal given to $() method
-  - No arguments given to $()
-  - More than one argument given
-  - `null` given as string argument
-  - `""` (empty string) given as argument
+  - ~~Non string literal given to $() method~~
+  - ~~No arguments given to $()~~
+  - ~~More than one argument given~~
+  - ~~`null` given as string argument~~
+  - ~~`""` (empty string) given as argument~~
   - Invalid model path given as argument (see validation in `ModelPath`)
 - Input binding failure
   - Unbound input (i.e. incorrect path) produces error message with line number of input declaration, and suggestions on alternatives (e.g. assume user mistyped name)
 - Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error
 - Success
-  - Existing inputs can be used
+  - ~~Existing inputs can be used~~
   - Inputs are finalized when used
   - Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)
   - `$(String)` can be used anywhere in code body (e.g. `if` body)

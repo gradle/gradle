@@ -115,6 +115,11 @@ public class RuleVisitor extends CodeVisitorSupport {
             error(call, INVALID_ARGUMENT_LIST);
         } else {
             String modelPath = argExpression.getText();
+            if (modelPath.isEmpty()) {
+                error(argExpression, INVALID_ARGUMENT_LIST);
+                return;
+            }
+
             try {
                 ModelPath.validatePath(modelPath);
             } catch (Exception e) {

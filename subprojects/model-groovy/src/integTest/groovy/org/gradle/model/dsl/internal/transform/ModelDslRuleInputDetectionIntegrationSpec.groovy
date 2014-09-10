@@ -51,6 +51,9 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
                 '$("a" + "b")',
                 'def a = "foo"; $(a)',
                 '$("foo", "bar")',
+                '$()',
+                '$(null)',
+                '$("")'
         ]
     }
 
