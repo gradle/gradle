@@ -27,6 +27,7 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
 import org.gradle.groovy.scripts.internal.AstUtils;
+import org.gradle.internal.SystemProperties;
 import org.gradle.model.dsl.RuleInputAccess;
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
 import org.gradle.model.internal.core.ModelPath;
@@ -122,9 +123,16 @@ public class RuleVisitor extends CodeVisitorSupport {
 
             try {
                 ModelPath.validatePath(modelPath);
-            } catch (Exception e) {
-                // TODO - awkwardness around InvalidPathException/InvalidModelException - messages aren't going to be great
-                error(argExpression, e.getMessage());
+            } catch (ModelPath.InvalidPathException e) {
+                // TODO find a better way to present this information in the error message
+                // Attempt to mimic Gradle nested exception output
+                String message = "Invalid model path given as rule input." + SystemProperties.getLineSeparator() +
+                        "  > " + e.getMessage();
+                if (e.getCause() != null) {
+                    // if there is a cause, it's an invalid name exception
+                    message += SystemProperties.getLineSeparator() + "    > " + e.getCause().getMessage();
+                }
+                error(argExpression, message);
                 return;
             }
 

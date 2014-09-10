@@ -154,7 +154,7 @@ public class ModelPath {
         }
     }
 
-    public static void validatePath(String path) {
+    public static void validatePath(String path) throws InvalidPathException {
         if (path.isEmpty()) {
             throw new InvalidPathException("Cannot use an empty string as a model path.", null);
         }

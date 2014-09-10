@@ -156,4 +156,39 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         ]
     }
 
+    def "input model path must be valid"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+
+              void apply(Project project) {}
+
+              @RuleSource
+              static class Rules {
+                @Model
+                List<String> strings() {
+                  []
+                }
+              }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+              tasks {
+                \$("foo. bar") // line 21
+              }
+            }
+        """
+
+        then:
+        fails "tasks"
+        failure.assertHasLineNumber(21)
+        failure.assertThatCause(containsString("Invalid model path given as rule input."))
+        failure.assertThatCause(containsString("Model path 'foo. bar' is invalid due to invalid name component."))
+        failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
+    }
+
 }
