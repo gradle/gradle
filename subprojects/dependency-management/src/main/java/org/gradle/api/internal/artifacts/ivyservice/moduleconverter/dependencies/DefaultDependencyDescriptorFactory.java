@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.util.WrapUtil;
 
 import java.util.List;

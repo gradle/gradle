@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.component;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 
 public class DefaultComponentIdentifierFactory implements ComponentIdentifierFactory {
     public ComponentIdentifier createComponentIdentifier(ModuleInternal module) {

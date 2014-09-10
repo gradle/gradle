@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.internal.component.external.model.ModuleVersionMetaData;
 
 import java.util.Locale;
 import java.util.Map;

@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
+import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 
 import java.util.Collection;
 

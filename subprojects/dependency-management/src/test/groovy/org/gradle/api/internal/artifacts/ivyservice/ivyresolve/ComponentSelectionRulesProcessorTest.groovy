@@ -27,14 +27,14 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.ClosureBackedRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules
 import org.gradle.api.internal.DelegatingTargetedRuleAction
-import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.DefaultMavenModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
+import org.gradle.internal.component.model.DefaultDependencyMetaData
+import org.gradle.internal.component.external.model.DefaultIvyModuleVersionMetaData
+import org.gradle.internal.component.external.model.DefaultMavenModuleVersionMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.external.model.ModuleVersionMetaData
 import spock.lang.Specification
 
 class ComponentSelectionRulesProcessorTest extends Specification {

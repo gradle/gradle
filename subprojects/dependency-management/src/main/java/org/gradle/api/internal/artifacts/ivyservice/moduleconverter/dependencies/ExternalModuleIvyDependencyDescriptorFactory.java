@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.metadata.DefaultDslOriginDependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData;
+import org.gradle.internal.component.local.model.DefaultDslOriginDependencyMetaData;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 
 public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
 
 class DefaultComponentSelectionTest extends Specification {

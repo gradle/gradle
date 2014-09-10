@@ -22,12 +22,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
 import spock.lang.Specification
 
 class RepositoryChainDependencyResolverTest extends Specification {

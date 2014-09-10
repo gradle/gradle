@@ -18,7 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.internal.component.external.model.BuildableModuleVersionPublishMetaData;
+import org.gradle.internal.component.external.model.DefaultModuleVersionPublishMetaData;
+import org.gradle.internal.component.external.model.ModuleVersionArtifactPublishMetaData;
+import org.gradle.internal.component.external.model.ModuleVersionPublishMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

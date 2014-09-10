@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
+import org.gradle.internal.component.model.ExternalComponentMetaData;
 
 public interface ComponentResolveResult {
     /**

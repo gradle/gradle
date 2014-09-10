@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
+import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactMetaData
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.resource.LocallyAvailableExternalResource
 import spock.lang.Specification
 

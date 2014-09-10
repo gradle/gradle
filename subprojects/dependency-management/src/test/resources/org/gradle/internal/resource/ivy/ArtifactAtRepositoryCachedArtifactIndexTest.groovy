@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.ivy
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
 import org.gradle.internal.resource.cached.CachedArtifact
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey

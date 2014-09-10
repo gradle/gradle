@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.model.DependencyMetaData;
 
 public class DefaultComponentSelection implements ComponentSelectionInternal {
     private DependencyMetaData metadata;

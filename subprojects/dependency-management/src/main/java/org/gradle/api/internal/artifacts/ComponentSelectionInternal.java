@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ComponentSelection;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
 
 public interface ComponentSelectionInternal extends ComponentSelection {
     boolean isRejected();

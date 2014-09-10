@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.messaging.serialize.SerializerSpec
 
 public class ComponentSelectorSerializerTest extends SerializerSpec {

@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toDomainObjectSet

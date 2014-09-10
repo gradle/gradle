@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.ModuleInternal
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import spock.lang.Specification
 
 class DefaultComponentIdentifierFactoryTest extends Specification {

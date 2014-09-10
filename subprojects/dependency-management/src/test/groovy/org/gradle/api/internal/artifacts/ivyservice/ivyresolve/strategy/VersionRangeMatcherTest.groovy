@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleVersionMetaData
 
 import spock.lang.Specification
 

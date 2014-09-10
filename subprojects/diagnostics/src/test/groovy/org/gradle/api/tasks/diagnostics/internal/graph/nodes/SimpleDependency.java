@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId;
+import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId;
 
 public class SimpleDependency implements RenderableDependency {
 

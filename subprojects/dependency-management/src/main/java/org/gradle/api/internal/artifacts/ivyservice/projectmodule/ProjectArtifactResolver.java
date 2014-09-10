@@ -19,9 +19,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
-import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ExternalComponentMetaData;
+import org.gradle.internal.component.local.model.LocalArtifactMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 
 import java.util.Set;

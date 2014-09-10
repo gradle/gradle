@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class RenderableUnresolvedDependencyResultTest extends Specification {
 

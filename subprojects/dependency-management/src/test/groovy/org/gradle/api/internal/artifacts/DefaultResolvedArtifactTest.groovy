@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ResolvedModuleVersion
-import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.Factory
 import org.gradle.util.Matchers
 import spock.lang.Specification

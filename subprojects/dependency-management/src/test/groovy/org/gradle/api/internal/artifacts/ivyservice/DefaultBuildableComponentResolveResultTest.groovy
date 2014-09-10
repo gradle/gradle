@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleVersionMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector

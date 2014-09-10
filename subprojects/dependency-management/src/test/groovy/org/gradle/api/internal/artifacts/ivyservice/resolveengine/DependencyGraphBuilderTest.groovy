@@ -26,7 +26,7 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.*
@@ -38,10 +38,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBi
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.api.internal.artifacts.metadata.BuildableIvyModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.DefaultDslOriginDependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.BuildableIvyModuleVersionMetaData
+import org.gradle.internal.component.local.model.DefaultDslOriginDependencyMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.external.model.ModuleVersionMetaData
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 

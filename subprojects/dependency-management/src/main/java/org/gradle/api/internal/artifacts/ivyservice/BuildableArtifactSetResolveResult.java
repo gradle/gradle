@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
 
 import java.util.Collection;
 

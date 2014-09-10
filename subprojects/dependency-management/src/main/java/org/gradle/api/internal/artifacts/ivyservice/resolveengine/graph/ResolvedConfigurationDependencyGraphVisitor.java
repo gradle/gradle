@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

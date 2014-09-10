@@ -18,10 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 

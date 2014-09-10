@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData;
-import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.internal.component.model.ExternalComponentMetaData;
+import org.gradle.internal.component.model.ConfigurationMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
 
 import java.util.Set;
 

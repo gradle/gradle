@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
-import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
-import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
+import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
 import spock.lang.Specification
 
 class DefaultConfigurationsToArtifactsConverterTest extends Specification {

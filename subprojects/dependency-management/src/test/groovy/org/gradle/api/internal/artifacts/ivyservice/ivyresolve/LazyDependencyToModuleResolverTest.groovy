@@ -29,10 +29,10 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.DefaultIvyModuleVersionMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId

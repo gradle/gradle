@@ -15,11 +15,11 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
 import spock.lang.Specification
 
 class InMemoryArtifactsCacheTest extends Specification {

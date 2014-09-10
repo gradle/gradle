@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier
+import org.gradle.internal.component.model.ComponentArtifactIdentifier
 import spock.lang.Specification
 
 class DefaultBuildableArtifactResolveResultTest extends Specification {

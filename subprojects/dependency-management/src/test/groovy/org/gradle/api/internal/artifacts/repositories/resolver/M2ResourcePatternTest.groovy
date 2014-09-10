@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId
+import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 
 class M2ResourcePatternTest extends Specification {
     def "can construct from URI and pattern"() {

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
 import spock.lang.Specification
 
 public class DefaultDependencyDescriptorFactoryTest extends Specification {

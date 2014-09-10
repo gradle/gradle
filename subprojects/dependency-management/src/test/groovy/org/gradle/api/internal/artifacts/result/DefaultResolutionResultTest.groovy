@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result
 
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.Factory
 import spock.lang.Specification
 

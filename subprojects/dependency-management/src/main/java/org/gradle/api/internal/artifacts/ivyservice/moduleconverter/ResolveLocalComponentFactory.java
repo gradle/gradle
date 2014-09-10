@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.metadata.DefaultLocalComponentMetaData;
-import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
+import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 
 import java.util.Set;
 

@@ -16,14 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
-import org.gradle.api.internal.artifacts.metadata.ProjectDependencyMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
+import org.gradle.internal.component.local.model.ProjectDependencyMetaData
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {

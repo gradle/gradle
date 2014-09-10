@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
+import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 
 import java.util.Collection;
 

@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.MapSerializer;

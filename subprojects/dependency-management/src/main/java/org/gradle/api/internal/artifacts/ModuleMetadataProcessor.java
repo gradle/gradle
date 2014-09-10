@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
+import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 
 public interface ModuleMetadataProcessor {
     void processMetadata(MutableModuleVersionMetaData metadata);

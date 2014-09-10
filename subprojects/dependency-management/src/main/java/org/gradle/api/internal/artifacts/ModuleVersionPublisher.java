@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
+import org.gradle.internal.component.external.model.ModuleVersionPublishMetaData;
 
 import java.io.IOException;
 

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.filestore.ivy;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.file.TemporaryFileProvider;

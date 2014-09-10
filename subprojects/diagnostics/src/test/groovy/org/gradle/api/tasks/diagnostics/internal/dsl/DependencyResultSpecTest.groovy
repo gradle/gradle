@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.dsl
 
-import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency

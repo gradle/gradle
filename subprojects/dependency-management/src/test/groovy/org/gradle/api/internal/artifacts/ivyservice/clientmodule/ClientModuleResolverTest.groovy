@@ -23,10 +23,10 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveRes
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
+import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector

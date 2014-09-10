@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.cached.ivy;
 
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier;
 
 public class ArtifactAtRepositoryKey {
     private final String repositoryId;

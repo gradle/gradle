@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.messaging.serialize.SerializerSpec
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId

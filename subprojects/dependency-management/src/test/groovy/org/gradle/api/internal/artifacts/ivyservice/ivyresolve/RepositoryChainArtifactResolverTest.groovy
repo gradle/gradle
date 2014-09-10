@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetResolveResult
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.ExternalComponentMetaData
+import org.gradle.internal.component.model.ComponentArtifactMetaData
+import org.gradle.internal.component.model.ExternalComponentMetaData
 import spock.lang.Specification
 
 class RepositoryChainArtifactResolverTest extends Specification {

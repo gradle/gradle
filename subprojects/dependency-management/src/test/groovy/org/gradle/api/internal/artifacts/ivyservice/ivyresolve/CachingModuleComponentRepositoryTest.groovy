@@ -25,8 +25,13 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetR
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
-import org.gradle.api.internal.artifacts.metadata.*
 import org.gradle.api.internal.component.ArtifactType
+import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.component.model.ComponentArtifactMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.ExternalComponentMetaData
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider

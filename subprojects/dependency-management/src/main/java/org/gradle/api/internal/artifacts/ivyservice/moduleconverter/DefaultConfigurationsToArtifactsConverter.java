@@ -19,9 +19,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName;
-import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
-import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 import org.gradle.util.GUtil;
 
 import java.util.HashMap;

@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
-import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
+import org.gradle.internal.component.external.model.IvyModuleVersionMetaData
+import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 

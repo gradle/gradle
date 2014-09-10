@@ -23,7 +23,7 @@ import java.util.Collection;
 
 public interface VersionLister {
     /**
-     * Creates a visitor for the given module. Call {@link VersionPatternVisitor#visit(ResourcePattern, org.gradle.api.internal.artifacts.metadata.IvyArtifactName)} to search for versions.
+     * Creates a visitor for the given module. Call {@link VersionPatternVisitor#visit(ResourcePattern, org.gradle.internal.component.model.IvyArtifactName)} to search for versions.
      *
      * @param dest collection to add versions to
      * @param result used to add candidate locations.

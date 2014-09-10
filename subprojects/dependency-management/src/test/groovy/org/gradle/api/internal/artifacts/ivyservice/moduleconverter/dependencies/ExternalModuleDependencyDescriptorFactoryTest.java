@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 import org.hamcrest.Matchers;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;

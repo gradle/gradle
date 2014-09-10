@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.artifacts.metadata.DslOriginDependencyMetaData;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 
 public interface IvyDependencyDescriptorFactory {
     DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor moduleDescriptor);

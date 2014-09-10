@@ -32,9 +32,10 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveR
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
-import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.component.external.model.*;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;

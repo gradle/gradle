@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 
 class RenderableDependencyResultTest extends Specification {

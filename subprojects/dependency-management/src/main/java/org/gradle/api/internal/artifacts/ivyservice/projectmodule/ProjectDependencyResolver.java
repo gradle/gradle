@@ -21,9 +21,9 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveRes
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleToModuleVersionResolver;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
-import org.gradle.api.internal.artifacts.metadata.ProjectDependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetaData;
+import org.gradle.internal.component.local.model.ProjectDependencyMetaData;
 
 import java.util.Set;
 

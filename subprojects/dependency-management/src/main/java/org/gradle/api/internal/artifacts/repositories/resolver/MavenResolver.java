@@ -26,10 +26,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareReso
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.component.external.model.*;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceNotFoundException;

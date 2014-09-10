@@ -29,10 +29,10 @@ import org.gradle.api.internal.NoInputsRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentSelectionRulesProcessor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
-import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData
+import org.gradle.internal.component.model.DefaultDependencyMetaData
 import spock.lang.Specification
 
 class DefaultComponentSelectionRulesTest extends Specification {

@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor

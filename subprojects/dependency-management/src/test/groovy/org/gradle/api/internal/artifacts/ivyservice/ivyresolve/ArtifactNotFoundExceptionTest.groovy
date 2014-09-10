@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier
+import org.gradle.internal.component.model.ComponentArtifactIdentifier
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
