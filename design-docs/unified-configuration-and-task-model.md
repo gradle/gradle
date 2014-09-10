@@ -337,7 +337,7 @@ One potential option will be to insert a fake statement as the first statement o
 - Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error
 - Success
   - ~~Existing inputs can be used~~
-  - Inputs are finalized when used
+  - ~~Inputs are finalized when used~~
   - Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)
   - `$(String)` can be used anywhere in code body (e.g. `if` body)
 - ~~Nested `model {}` usage~~

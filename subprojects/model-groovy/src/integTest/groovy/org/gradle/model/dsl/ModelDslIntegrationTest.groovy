@@ -69,4 +69,44 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         output.contains "strings: " + ["foo"]
     }
 
+    def "inputs are fully configured when used in rules"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+
+              void apply(Project project) {}
+
+              @RuleSource
+              static class Rules {
+                @Model
+                List<String> strings() {
+                  []
+                }
+              }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+              tasks {
+                create("printStrings").doLast {
+                  println "strings: " + \$("strings")
+                }
+              }
+              strings {
+                add "foo"
+              }
+              strings {
+                add "bar"
+              }
+            }
+        """
+
+        then:
+        succeeds "printStrings"
+        output.contains "strings: " + ["foo", "bar"]
+    }
+
 }
