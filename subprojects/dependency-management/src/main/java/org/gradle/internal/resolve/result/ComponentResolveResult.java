@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public interface ComponentResolveResult {
+public interface ComponentResolveResult extends ResolveResult {
     /**
      * Returns the module version id of the component.
      *

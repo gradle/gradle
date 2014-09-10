@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public interface ModuleVersionIdResolveResult {
+public interface ModuleVersionIdResolveResult extends ResolveResult {
     /**
      * Returns the resolve failure, if any.
      */
@@ -28,7 +28,7 @@ public interface ModuleVersionIdResolveResult {
     ModuleVersionResolveException getFailure();
 
     /**
-     * Returns the identifier of this module version.
+     * Returns the identifier of this component.
      *
      * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
      */

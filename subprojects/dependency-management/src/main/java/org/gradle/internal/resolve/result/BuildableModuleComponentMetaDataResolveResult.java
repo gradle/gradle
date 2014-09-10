@@ -24,7 +24,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 /**
  * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
  */
-public interface BuildableModuleComponentMetaDataResolveResult extends ResourceAwareResolveResult {
+public interface BuildableModuleComponentMetaDataResolveResult extends ResourceAwareResolveResult, ResolveResult {
     static enum State {
         Resolved, Missing, Failed, ProbablyMissing, Unknown
     }

@@ -32,6 +32,10 @@ class SubstitutedModuleVersionIdResolveResult implements ModuleVersionIdResolveR
         this.selectionReason = selectionReason;
     }
 
+    public boolean hasResult() {
+        return result.hasResult();
+    }
+
     public ModuleVersionResolveException getFailure() {
         return result.getFailure();
     }

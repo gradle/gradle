@@ -64,6 +64,10 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             return failure;
         }
 
+        public boolean hasResult() {
+            return false;
+        }
+
         public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
             throw failure;
         }

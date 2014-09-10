@@ -42,7 +42,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
     final target = Mock(DependencyToComponentResolver)
     final matcher = Mock(VersionMatcher)
     final versionSelectionRules = Mock(ComponentSelectionRulesInternal)
-    final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher, versionSelectionRules)
+    final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher)
 
     def "does not resolve module for static version dependency until requested"() {
         def dependency = dependency()

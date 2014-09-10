@@ -72,8 +72,12 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     }
 
     private void assertHasResult() {
-        if (failure == null && metaData == null) {
+        if (!hasResult()) {
             throw new IllegalStateException("No result has been specified.");
         }
+    }
+
+    public boolean hasResult() {
+        return failure != null || metaData != null;
     }
 }

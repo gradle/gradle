@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
@@ -38,12 +37,10 @@ import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult;
 public class LazyDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToComponentResolver dependencyResolver;
     private final VersionMatcher versionMatcher;
-    private final ComponentSelectionRulesInternal versionSelectionRules;
 
-    public LazyDependencyToModuleResolver(DependencyToComponentResolver dependencyResolver, VersionMatcher versionMatcher, ComponentSelectionRulesInternal versionSelectionRules) {
+    public LazyDependencyToModuleResolver(DependencyToComponentResolver dependencyResolver, VersionMatcher versionMatcher) {
         this.dependencyResolver = dependencyResolver;
         this.versionMatcher = versionMatcher;
-        this.versionSelectionRules = versionSelectionRules;
     }
 
     public ModuleVersionIdResolveResult resolve(DependencyMetaData dependency) {
@@ -105,6 +102,10 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             id = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
         }
 
+        public boolean hasResult() {
+            return true;
+        }
+
         public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
             return id;
         }
@@ -125,6 +126,10 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
     private class DynamicVersionResolveResult extends AbstractVersionResolveResult {
         public DynamicVersionResolveResult(DependencyMetaData dependency) {
             super(dependency);
+        }
+
+        public boolean hasResult() {
+            return resolve().hasResult();
         }
 
         @Override

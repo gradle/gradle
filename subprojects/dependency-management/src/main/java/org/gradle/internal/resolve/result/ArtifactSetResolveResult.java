@@ -16,12 +16,12 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.util.Set;
 
-public interface ArtifactSetResolveResult {
+public interface ArtifactSetResolveResult extends ResolveResult {
     /**
      * Returns the resolve failure, if any.
      */
