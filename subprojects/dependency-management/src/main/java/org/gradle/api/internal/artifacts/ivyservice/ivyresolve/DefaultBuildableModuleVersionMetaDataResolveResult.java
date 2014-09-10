@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
+import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 

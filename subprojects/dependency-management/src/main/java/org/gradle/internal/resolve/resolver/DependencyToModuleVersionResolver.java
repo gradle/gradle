@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.resolve.resolver;
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
-
-import java.io.Serializable;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 /**
- * A memento for any resolution state that is relevant to locate the artifacts of a resolved module version.
- *
- * Implementations must retain as little state as possible and must be able to be serialized. Also note that
- * a given instance may be passed to multiple repository instances.
+ * Resolves a dependency to a component instance.
  */
-public interface ModuleSource extends Serializable {
+public interface DependencyToModuleVersionResolver {
+    /**
+     * Resolves the given dependency to component instance. Failures are packaged up in the returned result.
+     */
+    void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result);
 }

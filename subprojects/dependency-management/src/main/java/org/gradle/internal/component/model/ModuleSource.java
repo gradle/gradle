@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
 
-public class DefaultComponentUsage implements ComponentUsage {
-    private final String configurationName;
+package org.gradle.internal.component.model;
 
-    public DefaultComponentUsage(String configurationName) {
-        this.configurationName = configurationName;
-    }
+import java.io.Serializable;
 
-    public String getConfigurationName() {
-        return configurationName;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("artifacts for configuration '%s'", configurationName);
-    }
+/**
+ * A memento for any resolution state that is relevant to locate the artifacts of a resolved module version.
+ *
+ * Implementations must retain as little state as possible and must be able to be serialized. Also note that
+ * a given instance may be passed to multiple repository instances.
+ */
+public interface ModuleSource extends Serializable {
 }

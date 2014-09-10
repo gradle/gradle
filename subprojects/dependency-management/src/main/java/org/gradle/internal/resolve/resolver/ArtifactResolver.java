@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.internal.component.model.ComponentUsage;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.api.internal.component.ArtifactType;

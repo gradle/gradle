@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver;
 import org.gradle.internal.resolve.result.ComponentResolveResult;
 import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult;
 

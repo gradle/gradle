@@ -16,9 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.component.ArtifactType
+import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
+import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier

@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.component.model;
 
-package org.gradle.api.internal.artifacts.ivyservice;
+public class DefaultComponentUsage implements ComponentUsage {
+    private final String configurationName;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+    public DefaultComponentUsage(String configurationName) {
+        this.configurationName = configurationName;
+    }
 
-import java.util.Set;
+    public String getConfigurationName() {
+        return configurationName;
+    }
 
-/**
- * Resolves a module to the meta-data for a module.
- */
-public interface ModuleToModuleVersionResolver {
-    void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableComponentResolveResult result);
+    @Override
+    public String toString() {
+        return String.format("artifacts for configuration '%s'", configurationName);
+    }
 }

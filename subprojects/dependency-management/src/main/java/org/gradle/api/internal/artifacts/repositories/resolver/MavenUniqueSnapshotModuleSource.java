@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.internal.component.model.ModuleSource;
 
 class MavenUniqueSnapshotModuleSource implements ModuleSource {
     private final String timestamp;

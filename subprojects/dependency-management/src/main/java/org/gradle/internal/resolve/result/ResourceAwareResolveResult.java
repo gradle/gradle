@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
 
-public interface ComponentUsage {
-    String getConfigurationName();
+package org.gradle.internal.resolve.result;
+
+import org.gradle.internal.resource.ExternalResourceName;
+
+public interface ResourceAwareResolveResult {
+    /**
+     * Adds a location that was used to build this result. This is used for diagnostic messages and logging.
+     */
+    void attempted(String locationDescription);
+
+    /**
+     * Adds a location that was used to build this result. This is used for diagnostic messages and logging.
+     */
+    void attempted(ExternalResourceName location);
 }

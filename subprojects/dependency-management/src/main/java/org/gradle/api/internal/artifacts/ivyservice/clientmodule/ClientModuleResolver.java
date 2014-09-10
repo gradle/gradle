@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;

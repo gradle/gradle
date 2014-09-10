@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
+import org.gradle.internal.component.model.ComponentUsage
+import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.component.model.ComponentArtifactMetaData

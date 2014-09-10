@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.component.model.ComponentArtifactIdentifier;

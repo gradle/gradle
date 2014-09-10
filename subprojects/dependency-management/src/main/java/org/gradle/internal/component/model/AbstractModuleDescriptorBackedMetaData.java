@@ -19,7 +19,6 @@ package org.gradle.internal.component.model;
 import org.apache.ivy.core.module.descriptor.*;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;

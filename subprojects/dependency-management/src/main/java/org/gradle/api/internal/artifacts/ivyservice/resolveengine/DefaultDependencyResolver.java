@@ -50,6 +50,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver;
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

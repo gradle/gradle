@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult
+import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.resource.ResourceException

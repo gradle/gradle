@@ -23,7 +23,7 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.external.model.BuildableModuleVersionPublishMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleVersionPublishMetaData;
 import org.gradle.internal.component.external.model.ModuleVersionMetaData;

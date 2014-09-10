@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.internal.component.model.ModuleSource;
+
 class RepositoryChainModuleSource implements ModuleSource {
     private final String repositoryId;
     private final ModuleSource delegate;

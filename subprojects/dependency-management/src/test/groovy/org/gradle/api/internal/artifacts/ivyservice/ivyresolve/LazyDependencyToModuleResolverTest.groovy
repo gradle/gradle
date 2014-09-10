@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
+import org.gradle.internal.resolve.resolver.ArtifactResolver
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher

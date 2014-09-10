@@ -40,11 +40,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Resolut
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.external.model.BuildableIvyModuleVersionMetaData
 import org.gradle.internal.component.local.model.DefaultDslOriginDependencyMetaData
+import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleVersionMetaData
 import org.gradle.api.specs.Spec
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.internal.resolve.resolver.ArtifactResolver
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver
+import org.gradle.internal.resolve.resolver.ModuleToModuleVersionResolver
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.ComponentResolveResult
 import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+package org.gradle.internal.resolve.result
 
-/**
- * Resolves a dependency to a component instance.
- */
-public interface DependencyToModuleVersionResolver {
-    /**
-     * Resolves the given dependency to component instance. Failures are packaged up in the returned result.
-     */
-    void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result);
+import spock.lang.Specification
+
+class DefaultResourceAwareResolveResultTest extends Specification {
+    def "copies values to target result"() {
+        def src = new DefaultResourceAwareResolveResult()
+        src.attempted("a")
+        src.attempted("b")
+        def dest = new DefaultResourceAwareResolveResult()
+
+        when:
+        src.applyTo(dest)
+
+        then:
+        dest.attempted == ["a", "b"]
+    }
 }

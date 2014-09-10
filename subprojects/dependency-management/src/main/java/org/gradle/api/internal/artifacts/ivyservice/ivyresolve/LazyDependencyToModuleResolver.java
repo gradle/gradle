@@ -20,18 +20,19 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
-import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver;
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.gradle.internal.resolve.result.ComponentResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult;
 
 /**
- * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't actually retrieve module descriptors until
+ * A {@link org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't actually retrieve module descriptors until
  * required.
  */
 public class LazyDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {

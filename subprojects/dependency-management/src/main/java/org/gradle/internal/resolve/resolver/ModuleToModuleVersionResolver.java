@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.internal.resolve.resolver;
 
-import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
-public interface ResourceAwareResolveResult {
-    /**
-     * Adds a location that was used to build this result. This is used for diagnostic messages and logging.
-     */
-    void attempted(String locationDescription);
+import java.util.Set;
 
-    /**
-     * Adds a location that was used to build this result. This is used for diagnostic messages and logging.
-     */
-    void attempted(ExternalResourceName location);
+/**
+ * Resolves a module to the meta-data for a module.
+ */
+public interface ModuleToModuleVersionResolver {
+    void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableComponentResolveResult result);
 }

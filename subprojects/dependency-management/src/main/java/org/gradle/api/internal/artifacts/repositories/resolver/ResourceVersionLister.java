@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceException;

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Encoder;

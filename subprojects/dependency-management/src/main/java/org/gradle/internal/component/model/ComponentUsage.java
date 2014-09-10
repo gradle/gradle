@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.internal.component.model;
 
-import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult;
-
-/**
- * Resolves a dependency to the id for a module.
- */
-public interface DependencyToModuleVersionIdResolver {
-    /**
-     * Resolves the given dependency to a module version id. Note that failures are packaged up into the result.
-     */
-    ModuleVersionIdResolveResult resolve(DependencyMetaData dependencyDescriptor);
+public interface ComponentUsage {
+    String getConfigurationName();
 }

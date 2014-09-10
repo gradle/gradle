@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.internal.resolve.result;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 
 import java.util.ArrayList;
