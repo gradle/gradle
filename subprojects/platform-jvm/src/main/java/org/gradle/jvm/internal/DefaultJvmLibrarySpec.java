@@ -34,7 +34,7 @@ import org.gradle.jvm.JvmLibrarySpec;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal {
+public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal<JvmLibraryBinarySpec> {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final FunctionalSourceSet mainSourceSet;
     private final ComponentSpecIdentifier identifier;

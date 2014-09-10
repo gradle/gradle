@@ -29,7 +29,6 @@ import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.AbstractAnnotationDrivenMethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -39,7 +38,7 @@ import org.gradle.platform.base.internal.rules.RuleContext;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<A> {
+public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<A> {
 
     private final String modelName;
     private final Class<A> annotationClass;
@@ -76,9 +75,7 @@ public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U exte
     }
 
     protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
-        if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
-            throw new InvalidComponentModelException(String.format("%s method must not have a return value.", annotationClass.getSimpleName()));
-        }
+        assertIsVoidMethod(ruleDefinition, annotationClass.getSimpleName());
         if (ruleDefinition.getReferences().size() != 1) {
             throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type '%s'.", annotationClass.getSimpleName(), builderInterface.toString()));
         }

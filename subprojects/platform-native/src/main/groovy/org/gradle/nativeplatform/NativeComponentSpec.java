@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.platform.base.ComponentSpec;
 
@@ -23,11 +22,7 @@ import org.gradle.platform.base.ComponentSpec;
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
 @Incubating
-public interface NativeComponentSpec extends ComponentSpec {
-    /**
-     * {@inheritDoc}
-     */
-    DomainObjectSet<NativeBinarySpec> getBinaries();
+public interface NativeComponentSpec extends ComponentSpec<NativeBinarySpec> {
 
     /**
      * The name that is used to construct the output file names when building this component.

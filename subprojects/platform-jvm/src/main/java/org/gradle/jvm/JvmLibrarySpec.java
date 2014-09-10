@@ -27,7 +27,7 @@ import java.util.Set;
  * Definition of a JVM library component that is to be built by Gradle.
  */
 @Incubating
-public interface JvmLibrarySpec extends LibrarySpec {
+public interface JvmLibrarySpec extends LibrarySpec<JvmLibraryBinarySpec> {
     /**
      * {@inheritDoc}
      */

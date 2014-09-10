@@ -22,6 +22,6 @@ import org.gradle.platform.base.ApplicationSpec;
  * An executable native component that is built by Gradle.
  */
 @Incubating
-public interface NativeExecutableSpec extends ApplicationSpec, NativeComponentSpec, TargetedNativeComponent {
+public interface NativeExecutableSpec extends ApplicationSpec<NativeBinarySpec>, NativeComponentSpec, TargetedNativeComponent {
     
 }

@@ -31,7 +31,7 @@ import org.gradle.util.GUtil;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
+public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal<NativeBinarySpec> {
     private final FunctionalSourceSet mainSourceSet;
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier id;

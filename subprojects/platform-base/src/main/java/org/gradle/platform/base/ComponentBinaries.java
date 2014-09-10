@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.test;
+package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A component representing a suite of tests that will be executed together.
- *
- * @param <T> The type of the {@link org.gradle.platform.base.BinarySpec} associated with
- * the TestSuiteSpec.
- */
+ * Declares the binaries that should be built for a custom {@link org.gradle.platform.base.ComponentSpec} type.
+ **/
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 @Incubating
-public interface TestSuiteSpec<T extends BinarySpec> extends ComponentSpec<T> {
-    /**
-     * The tested component.
-     */
-    ComponentSpec getTestedComponent();
+public @interface ComponentBinaries {
 }

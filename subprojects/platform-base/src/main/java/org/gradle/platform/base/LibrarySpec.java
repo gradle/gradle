@@ -20,7 +20,11 @@ import org.gradle.api.Incubating;
 
 /**
  * A specification of a {@link org.gradle.platform.base.Library}.
+ *
+ * @param <T> The type of the {@link org.gradle.platform.base.BinarySpec} associated with
+ * the LibarySpec.
  */
 @Incubating
-public interface LibrarySpec extends ComponentSpec {
+public interface LibrarySpec<T extends BinarySpec> extends ComponentSpec<T> {
+
 }
