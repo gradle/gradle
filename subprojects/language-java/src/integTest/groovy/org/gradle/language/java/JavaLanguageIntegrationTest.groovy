@@ -320,7 +320,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         fails "assemble"
 
         and:
-        assert errorOutput.contains("Could not determine java version from '$badTarget'")
+        assert failure.assertHasCause("Could not determine java version from '$badTarget'")
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -347,7 +347,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         fails "assemble"
 
         and:
-        assert errorOutput.contains("Could not use target JVM platform: '$badTarget' when using JDK: '${JavaVersion.current()}'. Change to a lower target.")
+        assert failure.assertHasCause("Could not use target JVM platform: '$badTarget' when using JDK: '${JavaVersion.current()}'. Change to a lower target.")
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
