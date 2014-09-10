@@ -39,7 +39,7 @@ public class GCLoggingCollector implements DataCollector {
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {
-        this.collect(testProjectDir, operation, Locale.getDefault());
+        collect(testProjectDir, operation, Locale.getDefault());
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation, Locale locale) {
@@ -57,7 +57,7 @@ public class GCLoggingCollector implements DataCollector {
 
     private void collect(BufferedReader reader, MeasuredOperation operation, Locale locale) throws IOException {
         char decimalSeparator = (new DecimalFormatSymbols(locale)).getDecimalSeparator();
-        Pattern collectionEventPattern = Pattern.compile("\\d+\\" + decimalSeparator + "\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\" + decimalSeparator + "\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)");
+        Pattern collectionEventPattern = Pattern.compile(String.format("\\d+\\%s\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator, decimalSeparator));
         Pattern memoryPoolPattern = Pattern.compile("([\\w\\s]+) total (\\d+)K, used (\\d+)K \\[.+");
 
         long totalHeapUsage = 0;
