@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,10 +39,14 @@ public class GCLoggingCollector implements DataCollector {
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {
+        this.collect(testProjectDir, operation, Locale.getDefault());
+    }
+
+    public void collect(File testProjectDir, MeasuredOperation operation, Locale locale) {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(logFile));
             try {
-                collect(reader, operation);
+                collect(reader, operation, locale);
             } finally {
                 reader.close();
             }
@@ -49,8 +55,9 @@ public class GCLoggingCollector implements DataCollector {
         }
     }
 
-    private void collect(BufferedReader reader, MeasuredOperation operation) throws IOException {
-        Pattern collectionEventPattern = Pattern.compile("\\d+\\.\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\.\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)");
+    private void collect(BufferedReader reader, MeasuredOperation operation, Locale locale) throws IOException {
+        char decimalSeparator = (new DecimalFormatSymbols(locale)).getDecimalSeparator();
+        Pattern collectionEventPattern = Pattern.compile("\\d+\\" + decimalSeparator + "\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\" + decimalSeparator + "\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)");
         Pattern memoryPoolPattern = Pattern.compile("([\\w\\s]+) total (\\d+)K, used (\\d+)K \\[.+");
 
         long totalHeapUsage = 0;

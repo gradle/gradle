@@ -31,14 +31,14 @@ class GCLoggingCollectorTest extends Specification {
     def collector = new GCLoggingCollector()
 
     @Unroll
-    def "parses GC Log #logName"() {
+    def "parses GC Log #logName with locale #locale"() {
         def operation = new MeasuredOperation()
         def projectDir = tmpDir.createDir("project")
         resources.getResource(logName).copyTo(projectDir.file("gc.txt"))
 
         when:
         collector.beforeExecute(projectDir, Stub(GradleExecuter))
-        collector.collect(projectDir, operation)
+        collector.collect(projectDir, operation, locale)
 
         then:
         operation.totalHeapUsage == DataAmount.kbytes(totalHeapUsage)
@@ -47,9 +47,10 @@ class GCLoggingCollectorTest extends Specification {
         operation.maxCommittedHeap == DataAmount.kbytes(maxCommittedHeap)
 
         where:
-        logName    | totalHeapUsage | maxHeapUsage | maxUncollectedHeap | maxCommittedHeap
-        "gc-1.txt" | 76639          | 33334        | 20002              | 44092
-        "gc-2.txt" | 140210         | 40427        | 34145              | 223360
-        "gc-3.txt" | 183544         | 119384       | 37982              | 295488
+        logName    | totalHeapUsage | maxHeapUsage | maxUncollectedHeap | maxCommittedHeap | locale
+        "gc-1.txt" | 76639          | 33334        | 20002              | 44092            | Locale.US
+        "gc-2.txt" | 140210         | 40427        | 34145              | 223360           | Locale.US
+        "gc-3.txt" | 183544         | 119384       | 37982              | 295488           | Locale.US
+        "gc-4.txt" | 709909         | 292868       | 86455              | 474176           | Locale.GERMANY
     }
 }
