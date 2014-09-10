@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
@@ -75,6 +76,10 @@ task hello {
          * and leaking gradle dist under test into ~/.gradle/wrapper.
          */
         if (!dist.wrapperSupportsGradleUserHomeCommandLineOption) {
+            if (!dist.supportsSpacesInGradleAndJavaOpts) {
+                // Don't use the test-specific location as this contains spaces
+                executer.withGradleUserHomeDir(new IntegrationTestBuildContext().gradleUserHomeDir)
+            }
             executer.withGradleOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
         }
         return executer
