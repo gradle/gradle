@@ -21,6 +21,8 @@ import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
     private final ModuleComponentRepositoryAccess delegate;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
+package org.gradle.internal.resolve
 
 import org.gradle.internal.component.model.ComponentArtifactIdentifier
 import org.gradle.util.TextUtil

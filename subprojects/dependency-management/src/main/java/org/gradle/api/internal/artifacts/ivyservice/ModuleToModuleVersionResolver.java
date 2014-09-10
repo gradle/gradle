@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.util.Set;
 

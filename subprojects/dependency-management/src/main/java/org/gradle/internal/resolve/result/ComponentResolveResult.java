@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public interface ComponentResolveResult {
     /**
      * Returns the module version id of the component.
      *
-     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
     ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
 

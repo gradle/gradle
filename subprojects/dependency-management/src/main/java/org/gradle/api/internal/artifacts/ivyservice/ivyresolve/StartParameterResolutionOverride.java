@@ -27,6 +27,10 @@ import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.resolve.ArtifactResolveException;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 import java.util.concurrent.TimeUnit;
 

@@ -23,6 +23,8 @@ import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.internal.component.local.model.LocalArtifactMetaData;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 import java.util.Set;
 

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 
 /**

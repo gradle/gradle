@@ -22,6 +22,9 @@ import org.gradle.internal.component.model.ComponentArtifactIdentifier
 import org.gradle.internal.component.model.ComponentArtifactMetaData
 import org.gradle.internal.component.model.ExternalComponentMetaData
 import org.gradle.api.internal.component.ArtifactType
+import org.gradle.internal.resolve.ArtifactResolveException
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
 import spock.lang.Specification
 
 class ErrorHandlingArtifactResolverTest extends Specification {

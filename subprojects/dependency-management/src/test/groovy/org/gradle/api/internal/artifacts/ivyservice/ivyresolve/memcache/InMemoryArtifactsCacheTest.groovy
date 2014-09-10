@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
+import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
 import spock.lang.Specification
 

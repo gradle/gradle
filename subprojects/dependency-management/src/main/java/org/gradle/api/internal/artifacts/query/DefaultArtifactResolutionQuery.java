@@ -41,6 +41,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.resolve.result.*;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Arrays;

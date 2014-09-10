@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.result.ComponentResolveResult;
+import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult;
 
 class SubstitutedModuleVersionIdResolveResult implements ModuleVersionIdResolveResult {
 

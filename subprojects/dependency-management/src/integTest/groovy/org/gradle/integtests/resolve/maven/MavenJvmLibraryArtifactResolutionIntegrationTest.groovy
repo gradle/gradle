@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.maven
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository

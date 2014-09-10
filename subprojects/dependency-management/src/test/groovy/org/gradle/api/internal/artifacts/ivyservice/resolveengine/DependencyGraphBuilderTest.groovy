@@ -43,6 +43,11 @@ import org.gradle.internal.component.local.model.DefaultDslOriginDependencyMetaD
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleVersionMetaData
 import org.gradle.api.specs.Spec
+import org.gradle.internal.resolve.ModuleVersionNotFoundException
+import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.ComponentResolveResult
+import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId

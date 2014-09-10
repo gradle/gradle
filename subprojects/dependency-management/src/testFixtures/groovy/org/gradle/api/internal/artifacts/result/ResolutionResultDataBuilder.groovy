@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId

@@ -23,7 +23,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
-class DefaultComponentSpecSelectorTest extends Specification {
+class DefaultProjectComponentSelectorTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
         ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(':myPath')

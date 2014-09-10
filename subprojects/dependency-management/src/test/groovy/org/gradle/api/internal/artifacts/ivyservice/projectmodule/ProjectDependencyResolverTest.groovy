@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
-import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
 import org.gradle.internal.component.model.DependencyMetaData

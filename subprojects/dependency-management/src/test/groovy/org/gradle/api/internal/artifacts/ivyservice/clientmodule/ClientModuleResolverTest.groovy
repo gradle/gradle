@@ -19,9 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData

@@ -19,8 +19,8 @@ package org.gradle.integtests.resolve
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
+import org.gradle.internal.resolve.ModuleVersionNotFoundException
+import org.gradle.internal.resolve.ArtifactNotFoundException
 import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil

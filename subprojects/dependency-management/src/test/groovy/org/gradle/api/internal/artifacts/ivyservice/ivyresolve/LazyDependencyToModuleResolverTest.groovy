@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.internal.component.external.model.DefaultIvyModuleVersionMetaData
 import org.gradle.internal.component.model.DependencyMetaData

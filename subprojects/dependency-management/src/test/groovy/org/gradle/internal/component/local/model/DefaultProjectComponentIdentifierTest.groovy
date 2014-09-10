@@ -21,7 +21,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
-class DefaultComponentSpecIdentifierTest extends Specification {
+class DefaultProjectComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
         ProjectComponentIdentifier defaultBuildComponentIdentifier = new DefaultProjectComponentIdentifier(':myPath')

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
-import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.component.model.ComponentArtifactMetaData
 import org.gradle.internal.component.model.ExternalComponentMetaData
 import spock.lang.Specification

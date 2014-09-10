@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.component.external.model.IvyModuleVersionMetaData;
 import org.gradle.internal.component.external.model.ModuleVersionMetaData;
 import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;

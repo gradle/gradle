@@ -44,6 +44,8 @@ import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.result.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

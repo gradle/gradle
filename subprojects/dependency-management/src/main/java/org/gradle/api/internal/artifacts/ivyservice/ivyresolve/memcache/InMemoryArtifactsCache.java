@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 
 import java.io.File;

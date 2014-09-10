@@ -19,6 +19,8 @@ import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
