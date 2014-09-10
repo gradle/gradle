@@ -142,4 +142,64 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assertDuplicateInputIsSameObject"
     }
 
+    def "can use model block in script plugin"() {
+        given:
+        settingsFile << "include 'a'; include 'b'"
+        when:
+
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+
+              void apply(Project project) {}
+
+              @RuleSource
+              static class Rules {
+                @Model
+                String foo() {
+                  "foo"
+                }
+
+                @Model
+                List<String> strings() {
+                  []
+                }
+              }
+            }
+
+            subprojects {
+                apply plugin: MyPlugin
+                apply from: "\$rootDir/script.gradle"
+            }
+        """
+        file("a/build.gradle") << """
+            model {
+              strings { add "a" }
+            }
+        """
+        file("b/build.gradle") << """
+            model {
+              strings { add "b" }
+            }
+        """
+        file("script.gradle") << """
+            model {
+              tasks {
+                create("printStrings").doLast {
+                  println project.name + ": " + \$("strings")
+                }
+              }
+              strings {
+                add \$("foo")
+              }
+            }
+        """
+
+        then:
+        succeeds "printStrings"
+        output.contains "a: " + ["foo", "a"]
+        output.contains "b: " + ["foo", "b"]
+    }
+
 }
