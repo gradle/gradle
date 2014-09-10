@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import org.gradle.internal.component.external.model.MavenModuleVersionMetaData
+import org.gradle.internal.component.external.model.MavenModuleResolveMetaData
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
@@ -52,7 +52,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def descriptor = metaData.descriptor
 
         then:
-        metaData instanceof MavenModuleVersionMetaData
+        metaData instanceof MavenModuleResolveMetaData
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')

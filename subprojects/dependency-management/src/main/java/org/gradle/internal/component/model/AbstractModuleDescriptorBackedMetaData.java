@@ -23,7 +23,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
-public abstract class AbstractModuleDescriptorBackedMetaData implements ExternalComponentMetaData {
+public abstract class AbstractModuleDescriptorBackedMetaData implements ComponentResolveMetaData {
     private static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     private final ModuleVersionIdentifier moduleVersionIdentifier;
@@ -170,7 +170,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements External
             return String.format("%s:%s", moduleVersionIdentifier, name);
         }
 
-        public ExternalComponentMetaData getComponent() {
+        public ComponentResolveMetaData getComponent() {
             return AbstractModuleDescriptorBackedMetaData.this;
         }
 

@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
@@ -30,7 +30,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "can query id and meta-data when resolved"() {
         ModuleVersionIdentifier id = Stub()
-        ModuleVersionMetaData metaData = Stub() {
+        ModuleComponentResolveMetaData metaData = Stub() {
             getId() >> id
         }
 
@@ -95,7 +95,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "failure is null when successfully resolved"() {
         when:
-        result.resolved(Mock(ModuleVersionMetaData))
+        result.resolved(Mock(ModuleComponentResolveMetaData))
 
         then:
         result.failure == null

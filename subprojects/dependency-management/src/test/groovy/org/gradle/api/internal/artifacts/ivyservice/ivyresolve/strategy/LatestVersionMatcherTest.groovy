@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import spock.lang.Specification
 
 class LatestVersionMatcherTest extends Specification {
@@ -54,7 +54,7 @@ class LatestVersionMatcherTest extends Specification {
     }
 
     def "accepts a candidate version iff its status is equal to or higher than the selector's status"() {
-        def metadata = Stub(ModuleVersionMetaData) {
+        def metadata = Stub(ModuleComponentResolveMetaData) {
             getStatus() >> "silver"
             getStatusScheme() >> ["bronze", "silver", "gold"]
         }
@@ -66,7 +66,7 @@ class LatestVersionMatcherTest extends Specification {
     }
 
     def "rejects a candidate version if selector's status is not contained in candidate's status scheme"() {
-        def metadata = Stub(ModuleVersionMetaData) {
+        def metadata = Stub(ModuleComponentResolveMetaData) {
             getStatus() >> "silver"
             getStatusScheme() >> ["bronze", "silver", "gold"]
         }

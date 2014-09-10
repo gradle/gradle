@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentUsage;
-import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.model.ModuleSource;
@@ -35,9 +35,9 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         repositories.put(repository.getId(), repository);
     }
 
-    public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
-        ExternalComponentMetaData unpackedComponent = unpackSource(component);
+        ComponentResolveMetaData unpackedComponent = unpackSource(component);
         // First try to determine the artifacts locally before going remote
         sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, artifactType, result);
         if (!result.hasResult()) {
@@ -45,9 +45,9 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         }
     }
 
-    public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
-        ExternalComponentMetaData unpackedComponent = unpackSource(component);
+        ComponentResolveMetaData unpackedComponent = unpackSource(component);
         // First try to determine the artifacts locally before going remote
         sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, usage, result);
         if (!result.hasResult()) {
@@ -82,7 +82,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         return repositorySource(original).getDelegate();
     }
 
-    private ExternalComponentMetaData unpackSource(ExternalComponentMetaData component) {
+    private ComponentResolveMetaData unpackSource(ComponentResolveMetaData component) {
         return component.withSource(repositorySource(component.getSource()).getDelegate());
     }
 }

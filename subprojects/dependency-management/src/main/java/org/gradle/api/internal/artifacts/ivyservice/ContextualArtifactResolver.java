@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentUsage;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -37,7 +37,7 @@ public class ContextualArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveModuleArtifacts(final ExternalComponentMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
         executeInContext(String.format("Resolve %s for %s", artifactType, component), new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 delegate.resolveModuleArtifacts(component, artifactType, result);
@@ -45,7 +45,7 @@ public class ContextualArtifactResolver implements ArtifactResolver {
         });
     }
 
-    public void resolveModuleArtifacts(final ExternalComponentMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
         executeInContext(String.format("Resolve %s for %s", usage, component), new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 delegate.resolveModuleArtifacts(component, usage, result);

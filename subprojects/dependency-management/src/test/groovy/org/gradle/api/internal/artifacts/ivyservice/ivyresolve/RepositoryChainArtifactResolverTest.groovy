@@ -21,12 +21,12 @@ import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.component.model.ComponentArtifactMetaData
-import org.gradle.internal.component.model.ExternalComponentMetaData
+import org.gradle.internal.component.model.ComponentResolveMetaData
 import spock.lang.Specification
 
 class RepositoryChainArtifactResolverTest extends Specification {
     final artifact = Mock(ComponentArtifactMetaData)
-    final component = Mock(ExternalComponentMetaData)
+    final component = Mock(ComponentResolveMetaData)
     final originalSource = Mock(ModuleSource)
     final result = new DefaultBuildableArtifactResolveResult()
     final artifactSetResult = new DefaultBuildableArtifactSetResolveResult()

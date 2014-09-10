@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.math.BigInteger;
@@ -27,9 +27,9 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     private final ModuleSource moduleSource;
     private final BigInteger descriptorHash;
     private final long ageMillis;
-    private final MutableModuleVersionMetaData metaData;
+    private final MutableModuleComponentResolveMetaData metaData;
 
-    public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, MutableModuleVersionMetaData metaData, BuildCommencedTimeProvider timeProvider) {
+    public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, MutableModuleComponentResolveMetaData metaData, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.descriptorHash = entry.moduleDescriptorHash;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
@@ -48,7 +48,7 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
         return isMissing() ? null : new DefaultResolvedModuleVersion(getMetaData().getId());
     }
 
-    public MutableModuleVersionMetaData getMetaData() {
+    public MutableModuleComponentResolveMetaData getMetaData() {
         return metaData;
     }
 

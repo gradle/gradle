@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.Lists;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 
 import java.util.*;
 
@@ -44,7 +44,7 @@ public class ChainVersionMatcher implements VersionMatcher {
         return getCompatibleMatcher(selector).accept(selector, candidate);
     }
 
-    public boolean accept(String selector, ModuleVersionMetaData candidate) {
+    public boolean accept(String selector, ModuleComponentResolveMetaData candidate) {
         return getCompatibleMatcher(selector).accept(selector, candidate);
     }
 

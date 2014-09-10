@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
 
 public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainDependencyResolver dependencyResolver;
@@ -45,8 +45,8 @@ public class UserResolverChain implements RepositoryChain {
         artifactResolver.add(repository);
     }
 
-    private static class ModuleTransformer implements Transformer<ModuleVersionMetaData, RepositoryChainModuleResolution> {
-        public ModuleVersionMetaData transform(RepositoryChainModuleResolution original) {
+    private static class ModuleTransformer implements Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> {
+        public ModuleComponentResolveMetaData transform(RepositoryChainModuleResolution original) {
             RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(original.repository.getId(), original.moduleSource);
             return original.module.withSource(moduleSource);
         }

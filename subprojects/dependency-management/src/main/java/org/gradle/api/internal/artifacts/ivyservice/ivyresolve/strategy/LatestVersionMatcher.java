@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 
 public class LatestVersionMatcher implements VersionMatcher {
     public boolean canHandle(String selector) {
@@ -34,7 +34,7 @@ public class LatestVersionMatcher implements VersionMatcher {
         throw new UnsupportedOperationException("accept(String, String)");
     }
 
-    public boolean accept(String selector, ModuleVersionMetaData candidate) {
+    public boolean accept(String selector, ModuleComponentResolveMetaData candidate) {
         String selectorStatus = selector.substring("latest.".length());
         int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
         int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());

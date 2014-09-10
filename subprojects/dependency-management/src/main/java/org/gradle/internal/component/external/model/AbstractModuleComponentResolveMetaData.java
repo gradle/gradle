@@ -37,11 +37,11 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractModuleVersionMetaData extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
+abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDescriptorBackedMetaData implements MutableModuleComponentResolveMetaData {
     private Set<ModuleVersionArtifactMetaData> artifacts;
     private Multimap<String, ModuleVersionArtifactMetaData> artifactsByConfig;
 
-    public AbstractModuleVersionMetaData(ModuleDescriptor moduleDescriptor) {
+    public AbstractModuleComponentResolveMetaData(ModuleDescriptor moduleDescriptor) {
         this(moduleVersionIdentifier(moduleDescriptor), moduleDescriptor, moduleComponentIdentifier(moduleDescriptor));
     }
     
@@ -53,20 +53,20 @@ abstract class AbstractModuleVersionMetaData extends AbstractModuleDescriptorBac
         return DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier(descriptor));
     }
 
-    public AbstractModuleVersionMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+    public AbstractModuleComponentResolveMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
         super(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
     }
 
-    protected void copyTo(AbstractModuleVersionMetaData copy) {
+    protected void copyTo(AbstractModuleComponentResolveMetaData copy) {
         super.copyTo(copy);
         copy.artifacts = artifacts;
         copy.artifactsByConfig = artifactsByConfig;
     }
 
-    public abstract AbstractModuleVersionMetaData copy();
+    public abstract AbstractModuleComponentResolveMetaData copy();
 
-    public ModuleVersionMetaData withSource(ModuleSource source) {
-        AbstractModuleVersionMetaData copy = copy();
+    public ModuleComponentResolveMetaData withSource(ModuleSource source) {
+        AbstractModuleComponentResolveMetaData copy = copy();
         copy.setModuleSource(source);
         return copy;
     }

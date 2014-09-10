@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult
 import spock.lang.Specification
@@ -142,7 +142,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     }
 
     def "delegates request for module artifacts by type"() {
-        def moduleMetaData = Stub(ModuleVersionMetaData)
+        def moduleMetaData = Stub(ModuleComponentResolveMetaData)
         def artifactType = ArtifactType.JAVADOC
         def result = Mock(BuildableArtifactSetResolveResult)
 
@@ -162,7 +162,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     }
 
     def "delegates request for module artifacts for usage"() {
-        def moduleMetaData = Stub(ModuleVersionMetaData)
+        def moduleMetaData = Stub(ModuleComponentResolveMetaData)
         def componentUsage = Stub(ComponentUsage)
         def result = Mock(BuildableArtifactSetResolveResult)
 

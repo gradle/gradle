@@ -26,9 +26,9 @@ import org.gradle.api.internal.artifacts.DefaultComponentSelection;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.ExternalComponentMetaData;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 import java.util.Collection;
@@ -51,7 +51,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return versionMatcher.isDynamic(selector.getVersion());
     }
 
-    public ExternalComponentMetaData choose(ExternalComponentMetaData one, ExternalComponentMetaData two) {
+    public ComponentResolveMetaData choose(ComponentResolveMetaData one, ComponentResolveMetaData two) {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
@@ -68,8 +68,8 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return comparison < 0 ? two : one;
     }
 
-    private boolean isGeneratedModuleDescriptor(ExternalComponentMetaData externalComponentMetaData) {
-        return externalComponentMetaData.isGenerated();
+    private boolean isGeneratedModuleDescriptor(ComponentResolveMetaData componentResolveMetaData) {
+        return componentResolveMetaData.isGenerated();
     }
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
@@ -129,11 +129,11 @@ class NewestVersionComponentChooser implements ComponentChooser {
 
     private final class MetadataVersionMatchingRule implements RuleAction<ComponentSelection> {
         public List<Class<?>> getInputTypes() {
-            return Collections.<Class<?>>singletonList(ModuleVersionMetaData.class);
+            return Collections.<Class<?>>singletonList(ModuleComponentResolveMetaData.class);
         }
 
         public void execute(ComponentSelection selection, List<?> inputs) {
-            ModuleVersionMetaData metadata = (ModuleVersionMetaData) inputs.get(0);
+            ModuleComponentResolveMetaData metadata = (ModuleComponentResolveMetaData) inputs.get(0);
             if (!versionMatcher.accept(selection.getRequested().getVersion(), metadata)) {
                 selection.reject("Does not match requested version or status");
             }

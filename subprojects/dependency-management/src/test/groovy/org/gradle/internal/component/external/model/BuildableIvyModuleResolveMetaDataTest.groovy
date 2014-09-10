@@ -21,10 +21,10 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import spock.lang.Specification
 
-class BuildableIvyModuleVersionMetaDataTest extends Specification {
+class BuildableIvyModuleResolveMetaDataTest extends Specification {
 
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
-    def meta = new BuildableIvyModuleVersionMetaData(md)
+    def meta = new BuildableIvyModuleResolveMetaData(md)
 
     def "adds correct artifact to meta-data"() {
         def a = new BuildableIvyArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])

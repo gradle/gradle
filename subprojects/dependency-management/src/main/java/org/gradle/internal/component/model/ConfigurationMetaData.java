@@ -29,7 +29,7 @@ public interface ConfigurationMetaData {
 
     String getName();
 
-    ExternalComponentMetaData getComponent();
+    ComponentResolveMetaData getComponent();
 
     List<DependencyMetaData> getDependencies();
 

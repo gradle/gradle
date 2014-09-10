@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 
 import java.util.Comparator;
 import java.util.regex.Matcher;
@@ -131,7 +131,7 @@ public class VersionRangeMatcher implements VersionMatcher {
         throw new IllegalArgumentException("Not a version range selector: " + selector);
     }
 
-    public boolean accept(String selector, ModuleVersionMetaData candidate) {
+    public boolean accept(String selector, ModuleComponentResolveMetaData candidate) {
         return accept(selector, candidate.getId().getVersion());
     }
 

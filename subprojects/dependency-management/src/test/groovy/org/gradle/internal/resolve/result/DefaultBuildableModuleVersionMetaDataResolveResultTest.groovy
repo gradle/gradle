@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result
 
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -66,7 +66,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
     }
 
     def "can mark as resolved using meta-data"() {
-        def metaData = Stub(MutableModuleVersionMetaData)
+        def metaData = Stub(MutableModuleComponentResolveMetaData)
 
         when:
         descriptor.resolved(metaData, moduleSource)

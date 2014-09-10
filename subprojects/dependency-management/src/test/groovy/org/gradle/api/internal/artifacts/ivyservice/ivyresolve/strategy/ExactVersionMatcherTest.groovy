@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 
 import spock.lang.Specification
 
@@ -74,7 +74,7 @@ class ExactVersionMatcherTest extends Specification {
     }
 
     def "supports metadata-aware accept method (with same result)"() {
-        def metadata = Stub(ModuleVersionMetaData) {
+        def metadata = Stub(ModuleComponentResolveMetaData) {
             getId() >> Stub(ModuleVersionIdentifier) {
                 getVersion() >> metadataVersion
             }

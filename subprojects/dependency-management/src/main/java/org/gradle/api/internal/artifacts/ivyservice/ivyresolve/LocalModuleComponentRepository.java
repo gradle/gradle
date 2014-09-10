@@ -18,13 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.component.model.ComponentUsage;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.ExternalComponentMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
@@ -66,14 +63,14 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             }
         }
 
-        public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             delegate.getLocalAccess().resolveModuleArtifacts(component, artifactType, result);
             if(!result.hasResult()) {
                 delegate.getRemoteAccess().resolveModuleArtifacts(component, artifactType, result);
             }
         }
 
-        public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             delegate.getLocalAccess().resolveModuleArtifacts(component, componentUsage, result);
             if(!result.hasResult()) {
                 delegate.getRemoteAccess().resolveModuleArtifacts(component, componentUsage, result);
@@ -95,10 +92,10 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         }
 
-        public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         }
 
-        public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
         }
 
         public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {

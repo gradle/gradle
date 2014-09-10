@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.internal.component.model.ModuleSource
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import spock.lang.Specification
 
 class CachedModuleVersionResultTest extends Specification {
@@ -26,7 +26,7 @@ class CachedModuleVersionResultTest extends Specification {
     def "knows if result is cachable"() {
         def resolved = Mock(BuildableModuleVersionMetaDataResolveResult) {
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
-            getMetaData() >> Stub(MutableModuleVersionMetaData)
+            getMetaData() >> Stub(MutableModuleComponentResolveMetaData)
         }
         def missing = Mock(BuildableModuleVersionMetaDataResolveResult) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Missing }
         def probablyMissing = Mock(BuildableModuleVersionMetaDataResolveResult) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing }
@@ -55,13 +55,13 @@ class CachedModuleVersionResultTest extends Specification {
 
         then:
         1 * resolved.getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
-        1 * resolved.getMetaData() >> Stub(MutableModuleVersionMetaData)
+        1 * resolved.getMetaData() >> Stub(MutableModuleComponentResolveMetaData)
     }
 
     def "supplies cached data"() {
-        def suppliedMetaData = Mock(MutableModuleVersionMetaData)
-        def cachedMetaData = Mock(MutableModuleVersionMetaData)
-        def metaData = Mock(MutableModuleVersionMetaData)
+        def suppliedMetaData = Mock(MutableModuleComponentResolveMetaData)
+        def cachedMetaData = Mock(MutableModuleComponentResolveMetaData)
+        def metaData = Mock(MutableModuleComponentResolveMetaData)
         def source = Mock(ModuleSource)
         def resolved = Mock(BuildableModuleVersionMetaDataResolveResult) {
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved

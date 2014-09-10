@@ -17,11 +17,11 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.MavenModuleResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
-import org.gradle.internal.component.external.model.MavenModuleVersionMetaData;
 import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -41,8 +41,8 @@ public class MavenLocalResolver extends MavenResolver {
 
     @Override
     @Nullable
-    protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
+    protected MutableModuleComponentResolveMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+        MutableModuleComponentResolveMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
         if (metaData == null) {
             return null;
         }
@@ -53,7 +53,7 @@ public class MavenLocalResolver extends MavenResolver {
         return metaData;
     }
 
-    private boolean isOrphanedPom(MavenModuleVersionMetaData metaData, ExternalResourceArtifactResolver artifactResolver) {
+    private boolean isOrphanedPom(MavenModuleResolveMetaData metaData, ExternalResourceArtifactResolver artifactResolver) {
         if (metaData.isPomPackaging()) {
             return false;
         }

@@ -15,15 +15,15 @@
  */
 package org.gradle.internal.resolve.result;
 
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 
 public class DefaultBuildableModuleVersionMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionMetaDataResolveResult {
     private State state = State.Unknown;
     private ModuleSource moduleSource;
     private ModuleVersionResolveException failure;
-    private MutableModuleVersionMetaData metaData;
+    private MutableModuleComponentResolveMetaData metaData;
 
     private void reset(State state) {
         this.state = state;
@@ -36,7 +36,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult extends DefaultR
         reset(State.Unknown);
     }
 
-    public void resolved(MutableModuleVersionMetaData metaData, ModuleSource moduleSource) {
+    public void resolved(MutableModuleComponentResolveMetaData metaData, ModuleSource moduleSource) {
         reset(State.Resolved);
         this.metaData = metaData;
         this.moduleSource = moduleSource;
@@ -68,7 +68,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult extends DefaultR
         return failure;
     }
 
-    public MutableModuleVersionMetaData getMetaData() throws ModuleVersionResolveException {
+    public MutableModuleComponentResolveMetaData getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
     }

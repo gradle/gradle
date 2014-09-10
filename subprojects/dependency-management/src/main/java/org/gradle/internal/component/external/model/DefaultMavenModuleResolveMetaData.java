@@ -25,32 +25,32 @@ import org.gradle.internal.component.model.DependencyMetaData;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class DefaultMavenModuleVersionMetaData extends AbstractModuleVersionMetaData implements MavenModuleVersionMetaData {
+public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentResolveMetaData implements MavenModuleResolveMetaData {
     private static final String POM_PACKAGING = "pom";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;
     private final boolean relocated;
 
-    public DefaultMavenModuleVersionMetaData(ModuleDescriptor moduleDescriptor, String packaging, boolean relocated) {
+    public DefaultMavenModuleResolveMetaData(ModuleDescriptor moduleDescriptor, String packaging, boolean relocated) {
         super(moduleDescriptor);
         this.packaging = packaging;
         this.relocated = relocated;
     }
 
-    public DefaultMavenModuleVersionMetaData(ModuleVersionIdentifier id, ModuleDescriptor descriptor, ModuleComponentIdentifier componentId, String packaging, boolean relocated) {
+    public DefaultMavenModuleResolveMetaData(ModuleVersionIdentifier id, ModuleDescriptor descriptor, ModuleComponentIdentifier componentId, String packaging, boolean relocated) {
         super(id, descriptor, componentId);
         this.packaging = packaging;
         this.relocated = relocated;
     }
 
-    public DefaultMavenModuleVersionMetaData(DependencyMetaData dependencyMetaData) {
+    public DefaultMavenModuleResolveMetaData(DependencyMetaData dependencyMetaData) {
         this(IvyUtil.createModuleDescriptor(dependencyMetaData.getDescriptor()), "jar", false);
     }
 
     @Override
-    public DefaultMavenModuleVersionMetaData copy() {
+    public DefaultMavenModuleResolveMetaData copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultMavenModuleVersionMetaData copy = new DefaultMavenModuleVersionMetaData(getId(), getDescriptor(), getComponentId(), packaging, relocated);
+        DefaultMavenModuleResolveMetaData copy = new DefaultMavenModuleResolveMetaData(getId(), getDescriptor(), getComponentId(), packaging, relocated);
         copyTo(copy);
         return copy;
     }

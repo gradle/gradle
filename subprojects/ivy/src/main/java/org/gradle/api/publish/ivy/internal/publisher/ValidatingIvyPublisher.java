@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Disconnect
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedIvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
@@ -63,7 +63,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .notEmpty()
                 .validInFileName();
 
-        MutableModuleVersionMetaData metadata = parseIvyFile(publication);
+        MutableModuleComponentResolveMetaData metadata = parseIvyFile(publication);
         ModuleVersionIdentifier moduleId = metadata.getId();
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
@@ -78,7 +78,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .validInFileName();
     }
 
-    private MutableModuleVersionMetaData parseIvyFile(IvyNormalizedPublication publication) {
+    private MutableModuleComponentResolveMetaData parseIvyFile(IvyNormalizedPublication publication) {
         try {
             return moduleDescriptorParser.parseMetaData(parserSettings, publication.getDescriptorFile());
         } catch (MetaDataParseException pe) {

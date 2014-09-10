@@ -38,11 +38,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBi
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.internal.component.external.model.BuildableIvyModuleVersionMetaData
+import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData
 import org.gradle.internal.component.local.model.DefaultDslOriginDependencyMetaData
 import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.api.specs.Spec
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -76,7 +76,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _, _) >> { it[2].resolved(root) }
 
-        _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ModuleVersionMetaData module, ComponentUsage context, BuildableArtifactSetResolveResult result ->
+        _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ModuleComponentResolveMetaData module, ComponentUsage context, BuildableArtifactSetResolveResult result ->
             result.resolved(module.artifacts)
         }
     }
@@ -899,13 +899,13 @@ class DependencyGraphBuilderTest extends Specification {
         return metaData
     }
 
-    def config(ModuleVersionMetaData metaData, String name, String... extendsFrom) {
+    def config(ModuleComponentResolveMetaData metaData, String name, String... extendsFrom) {
         def configuration = new org.apache.ivy.core.module.descriptor.Configuration(name, org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC, null, extendsFrom, true, null)
         metaData.descriptor.addConfiguration(configuration)
         return configuration
     }
 
-    def traverses(Map<String, ?> args = [:], TestMetaData from, ModuleVersionMetaData to) {
+    def traverses(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         def idResolveResult = selectorResolvesTo(dependencyMetaData, to.id);
         ComponentResolveResult resolveResult = Mock()
@@ -914,7 +914,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * resolveResult.metaData >> to
     }
 
-    def doesNotResolve(Map<String, ?> args = [:], TestMetaData from, ModuleVersionMetaData to) {
+    def doesNotResolve(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         ModuleVersionIdResolveResult result = Mock()
         (0..1) * dependencyResolver.resolve(dependencyMetaData) >> result
@@ -924,7 +924,7 @@ class DependencyGraphBuilderTest extends Specification {
         0 * result._
     }
 
-    def traversesMissing(Map<String, ?> args = [:], TestMetaData from, ModuleVersionMetaData to) {
+    def traversesMissing(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         def idResolveResult = selectorResolvesTo(dependencyMetaData, to.id)
         ComponentResolveResult resolveResult = Mock()
@@ -932,7 +932,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * resolveResult.failure >> { return new ModuleVersionNotFoundException(newId("org", "a", "1.2")) }
     }
 
-    def traversesBroken(Map<String, ?> args = [:], TestMetaData from, ModuleVersionMetaData to) {
+    def traversesBroken(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         def idResolveResult = selectorResolvesTo(dependencyMetaData, to.id)
         ComponentResolveResult resolveResult = Mock()
@@ -982,7 +982,7 @@ class DependencyGraphBuilderTest extends Specification {
         return result
     }
 
-    def ids(ModuleVersionMetaData... descriptors) {
+    def ids(ModuleComponentResolveMetaData... descriptors) {
         return descriptors.collect { it.id } as Set
     }
 
@@ -1002,7 +1002,7 @@ class DependencyGraphBuilderTest extends Specification {
         return config.resolvedArtifacts.collect { it.moduleVersion.id } as Set
     }
 
-    private static class TestMetaData extends BuildableIvyModuleVersionMetaData {
+    private static class TestMetaData extends BuildableIvyModuleResolveMetaData {
         def deps = []
 
         TestMetaData(DefaultModuleDescriptor module) {

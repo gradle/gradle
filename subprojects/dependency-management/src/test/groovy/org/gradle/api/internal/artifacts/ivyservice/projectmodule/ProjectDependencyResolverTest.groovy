@@ -21,7 +21,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
 import org.gradle.internal.component.local.model.ProjectDependencyMetaData
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class ProjectDependencyResolverTest extends Specification {
 
     def "resolves project dependency"() {
         setup:
-        def resolveMetaData = Stub(ModuleVersionMetaData)
+        def resolveMetaData = Stub(ModuleComponentResolveMetaData)
         def componentMetaData = Stub(MutableLocalComponentMetaData) {
             toResolveMetaData() >> resolveMetaData
         }

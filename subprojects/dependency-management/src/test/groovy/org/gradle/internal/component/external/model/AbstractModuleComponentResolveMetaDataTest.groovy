@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
 
-abstract class AbstractModuleVersionMetaDataTest extends Specification {
+abstract class AbstractModuleComponentResolveMetaDataTest extends Specification {
 
     def id = Stub(ModuleVersionIdentifier)
     def componentId = Stub(ModuleComponentIdentifier)
@@ -33,7 +33,7 @@ abstract class AbstractModuleVersionMetaDataTest extends Specification {
         metaData = createMetaData(id, moduleDescriptor, componentId)
     }
 
-    abstract AbstractModuleVersionMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier);
+    abstract AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier);
 
     def "has useful string representation"() {
         given:

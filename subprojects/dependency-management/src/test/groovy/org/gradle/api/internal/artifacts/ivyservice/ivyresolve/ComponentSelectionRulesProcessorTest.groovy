@@ -31,10 +31,10 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules
 import org.gradle.api.internal.DelegatingTargetedRuleAction
 import org.gradle.internal.component.model.DefaultDependencyMetaData
-import org.gradle.internal.component.external.model.DefaultIvyModuleVersionMetaData
-import org.gradle.internal.component.external.model.DefaultMavenModuleVersionMetaData
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
 import spock.lang.Specification
 
@@ -52,7 +52,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     def "all non-rejecting rules are evaluated" () {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
+                def md = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
                 result.resolved(md, null)
             }
         }
@@ -61,11 +61,11 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs -> closureCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
-        rule { ComponentSelection cs, ModuleVersionMetaData mvm -> closureCalled << 3 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closureCalled << 3 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
         rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
-        rule { ComponentSelection cs, ComponentMetadata cm, ModuleVersionMetaData mvm -> closureCalled << 6 }
-        rule { ComponentSelection cs, ModuleVersionMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
+        rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 6 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
         targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 8 }
 
         and:
@@ -109,8 +109,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 1 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 2 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 3}
-        rule { ComponentSelection cs, ModuleVersionMetaData mvm -> closuresCalled << 4}
-        targetedRule("group", "module") { ComponentSelection cs, ModuleVersionMetaData mvm -> closuresCalled << 5}
+        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 4}
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 5}
         rule { ComponentSelection cs -> closuresCalled << 6 }
         rule { ComponentSelection cs -> cs.reject("rejected") }
 
@@ -166,7 +166,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
+                def md = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
                 result.resolved(md, null)
             }
         }
@@ -184,7 +184,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component" () {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultMavenModuleVersionMetaData(Stub(ModuleDescriptor), "bundle", false)
+                def md = new DefaultMavenModuleResolveMetaData(Stub(ModuleDescriptor), "bundle", false)
                 result.resolved(md, null)
             }
         }
@@ -202,7 +202,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     def "only matching targeted rules get called" () {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
-                def md = new DefaultIvyModuleVersionMetaData(Stub(ModuleDescriptor))
+                def md = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
                 result.resolved(md, null)
             }
         }
@@ -213,13 +213,13 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 2 }
         targetedRule("group", "module1") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 3 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 4 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleVersionMetaData mvm -> closuresCalled << 5 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 5 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 6 }
         targetedRule("group1", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 7 }
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closuresCalled << 8 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleVersionMetaData mvm -> closuresCalled << 9 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleVersionMetaData mvm, ComponentMetadata cm -> closuresCalled << 10 }
-        targetedRule("group", "module1") { ComponentSelection cs, ModuleVersionMetaData mvm, ComponentMetadata cm -> closuresCalled << 11 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closuresCalled << 9 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closuresCalled << 10 }
+        targetedRule("group", "module1") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closuresCalled << 11 }
 
         and:
         apply(moduleAccess)

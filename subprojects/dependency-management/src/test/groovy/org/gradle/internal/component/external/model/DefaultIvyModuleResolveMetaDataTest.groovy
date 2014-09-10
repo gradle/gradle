@@ -22,11 +22,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.model.DependencyMetaData
 
-class DefaultIvyModuleVersionMetaDataTest extends AbstractModuleVersionMetaDataTest {
+class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetaDataTest {
 
     @Override
-    AbstractModuleVersionMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
-        return new DefaultIvyModuleVersionMetaData(id, moduleDescriptor, componentId)
+    AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+        return new DefaultIvyModuleResolveMetaData(id, moduleDescriptor, componentId)
     }
 
     def "can make a copy"() {

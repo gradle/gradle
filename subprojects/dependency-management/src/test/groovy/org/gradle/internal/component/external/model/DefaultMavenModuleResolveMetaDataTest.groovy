@@ -22,11 +22,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.model.DependencyMetaData
 
-class DefaultMavenModuleVersionMetaDataTest extends AbstractModuleVersionMetaDataTest {
+class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetaDataTest {
 
     @Override
-    AbstractModuleVersionMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
-        return new DefaultMavenModuleVersionMetaData(id, moduleDescriptor, componentId, "pom", false)
+    AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+        return new DefaultMavenModuleResolveMetaData(id, moduleDescriptor, componentId, "pom", false)
     }
 
     def "can make a copy"() {
@@ -55,7 +55,7 @@ class DefaultMavenModuleVersionMetaDataTest extends AbstractModuleVersionMetaDat
 
     def "recognises pom packaging"() {
         when:
-        def metaData = new DefaultMavenModuleVersionMetaData(id, moduleDescriptor, componentId, packaging, false)
+        def metaData = new DefaultMavenModuleResolveMetaData(id, moduleDescriptor, componentId, packaging, false)
 
         then:
         metaData.packaging == packaging

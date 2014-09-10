@@ -20,7 +20,7 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveR
 import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.ModuleVersionListing
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -75,9 +75,9 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "caches and supplies remote metadata"() {
-        def suppliedMetaData = Stub(MutableModuleVersionMetaData)
-        def cachedCopy = Stub(MutableModuleVersionMetaData)
-        def originalMetaData = Stub(MutableModuleVersionMetaData)
+        def suppliedMetaData = Stub(MutableModuleComponentResolveMetaData)
+        def cachedCopy = Stub(MutableModuleComponentResolveMetaData)
+        def originalMetaData = Stub(MutableModuleComponentResolveMetaData)
         def source = Stub(ModuleSource)
         def resolvedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
@@ -110,7 +110,7 @@ class InMemoryMetaDataCacheTest extends Specification {
 
     def "caches and supplies remote and local metadata"() {
         def moduleSource = Stub(ModuleSource)
-        def moduleMetaData = Stub(MutableModuleVersionMetaData)
+        def moduleMetaData = Stub(MutableModuleComponentResolveMetaData)
         _ * moduleMetaData.copy() >> moduleMetaData
         def resolvedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
             getMetaData() >> moduleMetaData

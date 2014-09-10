@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.result.*;
 import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +40,9 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
     private final List<ModuleComponentRepository> repositories = new ArrayList<ModuleComponentRepository>();
     private final List<String> repositoryNames = new ArrayList<String>();
     private final ComponentChooser componentChooser;
-    private final Transformer<ModuleVersionMetaData, RepositoryChainModuleResolution> metaDataFactory;
+    private final Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory;
 
-    public RepositoryChainDependencyResolver(ComponentChooser componentChooser, Transformer<ModuleVersionMetaData, RepositoryChainModuleResolution> metaDataFactory) {
+    public RepositoryChainDependencyResolver(ComponentChooser componentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
         this.componentChooser = componentChooser;
         this.metaDataFactory = metaDataFactory;
     }

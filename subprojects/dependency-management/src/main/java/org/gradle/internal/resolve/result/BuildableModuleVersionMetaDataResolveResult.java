@@ -17,7 +17,7 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -44,7 +44,7 @@ public interface BuildableModuleVersionMetaDataResolveResult extends ResourceAwa
      *
      * @throws ModuleVersionResolveException If the resolution was not successful.
      */
-    MutableModuleVersionMetaData getMetaData() throws ModuleVersionResolveException;
+    MutableModuleComponentResolveMetaData getMetaData() throws ModuleVersionResolveException;
 
     @Nullable
     ModuleVersionResolveException getFailure();
@@ -52,7 +52,7 @@ public interface BuildableModuleVersionMetaDataResolveResult extends ResourceAwa
     /**
      * Marks the module version as resolved, with the given meta-data and source.
      */
-    void resolved(MutableModuleVersionMetaData metaData, ModuleSource moduleSource);
+    void resolved(MutableModuleComponentResolveMetaData metaData, ModuleSource moduleSource);
 
     /**
      * Marks the resolve as failed with the given exception.

@@ -265,7 +265,7 @@ public class DependencyGraphBuilder {
 
         private void calculateTargetConfigurations() {
             targetConfigurations.clear();
-            ExternalComponentMetaData targetModuleVersion = targetModuleRevision.getMetaData();
+            ComponentResolveMetaData targetModuleVersion = targetModuleRevision.getMetaData();
             if (targetModuleVersion == null) {
                 // Broken version
                 return;
@@ -508,7 +508,7 @@ public class DependencyGraphBuilder {
 
         private final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
         private final ModuleResolveState module;
-        private ExternalComponentMetaData metaData;
+        private ComponentResolveMetaData metaData;
         private ModuleState state = ModuleState.New;
         private ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         private ModuleVersionIdResolveResult idResolveResult;
@@ -566,7 +566,7 @@ public class DependencyGraphBuilder {
             return resolveResult;
         }
 
-        public ExternalComponentMetaData getMetaData() {
+        public ComponentResolveMetaData getMetaData() {
             if (metaData == null) {
                 resolve();
             }

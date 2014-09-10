@@ -25,10 +25,10 @@ import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.external.model.IvyModuleVersionMetaData;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult;
@@ -80,7 +80,7 @@ public class ComponentSelectionRulesProcessor {
 
         List<Object> inputs = Lists.newArrayList();
         for (Class<?> inputType : rule.getInputTypes()) {
-            if (inputType == ModuleVersionMetaData.class) {
+            if (inputType == ModuleComponentResolveMetaData.class) {
                 inputs.add(metadataProvider.getMetaData());
                 continue;
             }
@@ -111,7 +111,7 @@ public class ComponentSelectionRulesProcessor {
     private static class MetadataProvider {
         private final ComponentSelection componentSelection;
         private final ModuleComponentRepositoryAccess moduleAccess;
-        private MutableModuleVersionMetaData cachedMetaData;
+        private MutableModuleComponentResolveMetaData cachedMetaData;
 
         private MetadataProvider(ComponentSelection componentSelection, ModuleComponentRepositoryAccess moduleAccess) {
             this.componentSelection = componentSelection;
@@ -123,22 +123,22 @@ public class ComponentSelectionRulesProcessor {
         }
 
         public IvyModuleDescriptor getIvyModuleDescriptor() {
-            ModuleVersionMetaData metaData = getMetaData();
-            if (metaData instanceof IvyModuleVersionMetaData) {
-                IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metaData;
+            ModuleComponentResolveMetaData metaData = getMetaData();
+            if (metaData instanceof IvyModuleResolveMetaData) {
+                IvyModuleResolveMetaData ivyMetadata = (IvyModuleResolveMetaData) metaData;
                 return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
             }
             return null;
         }
 
-        public MutableModuleVersionMetaData getMetaData() {
+        public MutableModuleComponentResolveMetaData getMetaData() {
             if (cachedMetaData == null) {
                 cachedMetaData = initMetaData(componentSelection, moduleAccess);
             }
             return cachedMetaData;
         }
 
-        private MutableModuleVersionMetaData initMetaData(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
+        private MutableModuleComponentResolveMetaData initMetaData(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
             BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
             DependencyMetaData dependency = ((ComponentSelectionInternal) selection).getDependencyMetaData().withRequestedVersion(selection.getCandidate().getVersion());
             moduleAccess.resolveComponentMetaData(dependency, selection.getCandidate(), descriptorResult);

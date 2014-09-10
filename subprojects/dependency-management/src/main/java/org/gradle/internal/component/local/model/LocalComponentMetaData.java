@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.external.model.BuildableModuleVersionPublishMetaData;
 import org.gradle.internal.component.model.ComponentArtifactIdentifier;
-import org.gradle.internal.component.model.ExternalComponentMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 
 public interface LocalComponentMetaData {
     ModuleVersionIdentifier getId();
@@ -28,7 +28,7 @@ public interface LocalComponentMetaData {
     /**
      * Converts this component to resolve meta-data.
      */
-    ExternalComponentMetaData toResolveMetaData();
+    ComponentResolveMetaData toResolveMetaData();
 
     /**
      * Converts this component to publication meta-data.

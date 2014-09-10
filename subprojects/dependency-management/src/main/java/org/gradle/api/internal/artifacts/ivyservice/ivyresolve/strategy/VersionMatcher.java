@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 
 import java.util.Comparator;
 
@@ -55,7 +55,7 @@ public interface VersionMatcher extends Comparator<String> {
      * {@code false} for the given selector, in which case it should return the same result as
      * {@code accept(selector, candidate.getId().getVersion()}.
      */
-    public boolean accept(String selector, ModuleVersionMetaData candidate);
+    public boolean accept(String selector, ModuleComponentResolveMetaData candidate);
 
     /**
      *

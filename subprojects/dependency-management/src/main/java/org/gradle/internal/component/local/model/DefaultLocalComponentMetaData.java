@@ -23,10 +23,10 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.external.model.BuildableModuleVersionPublishMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleVersionPublishMetaData;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
 import org.gradle.internal.component.model.*;
 
 import java.io.File;
@@ -91,7 +91,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return artifactsById.get(artifactIdentifier);
     }
 
-    public ExternalComponentMetaData toResolveMetaData() {
+    public ComponentResolveMetaData toResolveMetaData() {
         return new LocalComponentResolveMetaData();
     }
 
@@ -147,7 +147,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             super(id, moduleDescriptor, componentIdentifier);
         }
 
-        public ModuleVersionMetaData withSource(ModuleSource source) {
+        public ModuleComponentResolveMetaData withSource(ModuleSource source) {
             throw new UnsupportedOperationException();
         }
 

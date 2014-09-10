@@ -19,11 +19,11 @@ import org.gradle.internal.component.model.DependencyMetaData;
 
 import java.util.List;
 
-public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
+public interface MutableModuleComponentResolveMetaData extends ModuleComponentResolveMetaData {
     /**
      * Creates a deep copy of this meta-data.
      */
-    MutableModuleVersionMetaData copy();
+    MutableModuleComponentResolveMetaData copy();
 
     void setChanging(boolean changing);
     void setStatus(String status);

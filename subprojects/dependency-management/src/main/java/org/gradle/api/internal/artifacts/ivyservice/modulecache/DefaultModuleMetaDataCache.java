@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.hash.HashValue;
@@ -86,7 +86,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
-    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource) {
+    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetaData metaData, ModuleSource moduleSource) {
         ModuleDescriptor moduleDescriptor = metaData.getDescriptor();
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), metaData.isChanging());
         LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
@@ -99,7 +99,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new RevisionKey(repository.getId(), id);
     }
 
-    private ModuleDescriptorCacheEntry createEntry(ModuleVersionMetaData metaData, HashValue moduleDescriptorHash, ModuleSource moduleSource) {
+    private ModuleDescriptorCacheEntry createEntry(ModuleComponentResolveMetaData metaData, HashValue moduleDescriptorHash, ModuleSource moduleSource) {
         return ModuleDescriptorCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger(), moduleSource);
     }
 

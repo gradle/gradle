@@ -18,18 +18,18 @@ package org.gradle.internal.component.external.model;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.model.ExternalComponentMetaData;
 
 import java.util.Set;
 
 /**
  * The meta-data for a module version that is required during dependency resolution.
  */
-public interface ModuleVersionMetaData extends ExternalComponentMetaData {
+public interface ModuleComponentResolveMetaData extends ComponentResolveMetaData {
     ModuleComponentIdentifier getComponentId();
 
-    ModuleVersionMetaData withSource(ModuleSource source);
+    ModuleComponentResolveMetaData withSource(ModuleSource source);
 
     Set<ModuleVersionArtifactMetaData> getArtifacts();
 

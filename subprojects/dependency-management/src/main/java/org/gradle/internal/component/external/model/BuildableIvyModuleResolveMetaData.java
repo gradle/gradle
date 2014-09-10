@@ -26,10 +26,10 @@ import java.util.Set;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Arrays.asList;
 
-public class BuildableIvyModuleVersionMetaData extends DefaultIvyModuleVersionMetaData {
+public class BuildableIvyModuleResolveMetaData extends DefaultIvyModuleResolveMetaData {
     private final DefaultModuleDescriptor module;
 
-    public BuildableIvyModuleVersionMetaData(DefaultModuleDescriptor module) {
+    public BuildableIvyModuleResolveMetaData(DefaultModuleDescriptor module) {
         super(module);
         this.module = module;
     }

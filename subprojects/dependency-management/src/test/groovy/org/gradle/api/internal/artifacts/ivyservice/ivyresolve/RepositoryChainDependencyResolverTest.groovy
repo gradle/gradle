@@ -27,8 +27,8 @@ import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.DefaultModuleVersionListing
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
@@ -41,7 +41,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
     final moduleVersionId = DefaultModuleVersionIdentifier.newId("group", "project", "1.0")
     final dependencyDescriptor = Stub(DependencyDescriptor)
 
-    final Transformer<ModuleVersionMetaData, RepositoryChainModuleResolution> transformer = Mock(Transformer)
+    final Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> transformer = Mock(Transformer)
     final result = Mock(BuildableComponentResolveResult)
     final moduleSource = Mock(ModuleSource)
     def localAccess = Mock(ModuleComponentRepositoryAccess)
@@ -97,7 +97,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -137,7 +137,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -184,7 +184,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -212,7 +212,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
         and:
@@ -241,7 +241,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -335,7 +335,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo1
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -368,7 +368,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -401,7 +401,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
         and:
@@ -434,7 +434,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -473,7 +473,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
         and:
@@ -508,7 +508,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -545,7 +545,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo1
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
         and:
@@ -577,7 +577,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -612,7 +612,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
             assert metaData == this.metaData
         }
 
@@ -686,7 +686,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
     }
 
     def metaData(String version) {
-        return Stub(MutableModuleVersionMetaData) {
+        return Stub(MutableModuleComponentResolveMetaData) {
             toString() >> version
             getId() >> DefaultModuleVersionIdentifier.newId("org", "module", version)
             getDescriptor() >> descriptor(version)

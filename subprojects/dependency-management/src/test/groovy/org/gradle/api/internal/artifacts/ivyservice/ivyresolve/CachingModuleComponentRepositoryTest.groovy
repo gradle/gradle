@@ -29,10 +29,10 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.ComponentArtifactMetaData
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.model.ExternalComponentMetaData
+import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionSelectionResolveResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
@@ -115,12 +115,12 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         realLocalAccess.resolveComponentMetaData(dependency, componentId, result) >> {
-            result.resolved(Mock(MutableModuleVersionMetaData), Mock(ModuleSource))
+            result.resolved(Mock(MutableModuleComponentResolveMetaData), Mock(ModuleSource))
         }
         0 * _
     }
     def "does not use cache when artifacts for type can be determined locally"() {
-        def component = Mock(ExternalComponentMetaData)
+        def component = Mock(ComponentResolveMetaData)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def artifactType = ArtifactType.JAVADOC
@@ -139,7 +139,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     }
 
     def "does not use cache when artifacts for usage can be determined locally"() {
-        def component = Mock(ExternalComponentMetaData)
+        def component = Mock(ComponentResolveMetaData)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def componentUsage = Mock(ComponentUsage)

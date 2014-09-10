@@ -16,6 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -23,10 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Downloaded
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.internal.component.external.model.DefaultIvyModuleVersionMetaData;
 import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -94,22 +94,22 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         return new IvyRemoteRepositoryAccess();
     }
 
-    protected MutableModuleVersionMetaData createMetaDataForDependency(DependencyMetaData dependency) {
-        return new DefaultIvyModuleVersionMetaData(dependency);
+    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(DependencyMetaData dependency) {
+        return new DefaultIvyModuleResolveMetaData(dependency);
     }
 
-    protected MutableModuleVersionMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
+    protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
         return metaDataParser.parseMetaData(context, cachedResource);
     }
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
 
-        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
             result.resolved(configuration.getArtifacts());
         }
 
         @Override
-        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             ConfigurationMetaData configuration = module.getConfiguration("javadoc");
             if (configuration != null) {
                 result.resolved(configuration.getArtifacts());
@@ -117,7 +117,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         }
 
         @Override
-        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             ConfigurationMetaData configuration = module.getConfiguration("sources");
             if (configuration != null) {
                 result.resolved(configuration.getArtifacts());
@@ -127,18 +127,18 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
             // Configuration artifacts are determined locally
         }
 
         @Override
-        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             // Probe for artifact with classifier
             result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
         }
 
         @Override
-        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             // Probe for artifact with classifier
             result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }

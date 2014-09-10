@@ -46,24 +46,24 @@ class ModuleDescriptorCacheEntry {
         return new ModuleDescriptorCacheEntry(TYPE_MISSING, false, null, createTimestamp, BigInteger.ZERO, null);
     }
 
-    public static ModuleDescriptorCacheEntry forMetaData(ModuleVersionMetaData metaData, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
+    public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetaData metaData, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
         byte type = getType(metaData);
         String packaging = getPackaging(metaData);
         return new ModuleDescriptorCacheEntry(type, metaData.isChanging(), packaging, createTimestamp, moduleDescriptorHash, moduleSource);
     }
 
-    private static String getPackaging(ModuleVersionMetaData metaData) {
-        return metaData instanceof MavenModuleVersionMetaData ? ((MavenModuleVersionMetaData) metaData).getPackaging() : null;
+    private static String getPackaging(ModuleComponentResolveMetaData metaData) {
+        return metaData instanceof MavenModuleResolveMetaData ? ((MavenModuleResolveMetaData) metaData).getPackaging() : null;
     }
 
-    private static byte getType(ModuleVersionMetaData metaData) {
+    private static byte getType(ModuleComponentResolveMetaData metaData) {
         if (metaData == null) {
             return TYPE_MISSING;
         }
-        if (metaData instanceof IvyModuleVersionMetaData) {
+        if (metaData instanceof IvyModuleResolveMetaData) {
             return TYPE_IVY;
         }
-        if (metaData instanceof MavenModuleVersionMetaData) {
+        if (metaData instanceof MavenModuleResolveMetaData) {
             return TYPE_MAVEN;
         }
         throw new IllegalArgumentException("Not a valid module version type: " + metaData);
@@ -73,20 +73,20 @@ class ModuleDescriptorCacheEntry {
         return type == TYPE_MISSING;
     }
     
-    public MutableModuleVersionMetaData createMetaData(ModuleDescriptor descriptor) {
+    public MutableModuleComponentResolveMetaData createMetaData(ModuleDescriptor descriptor) {
         switch (type) {
             case TYPE_IVY:
-                return configure(new DefaultIvyModuleVersionMetaData(descriptor));
+                return configure(new DefaultIvyModuleResolveMetaData(descriptor));
             case TYPE_MAVEN:
                 // TODO Relocation is not currently cached
-                return configure(new DefaultMavenModuleVersionMetaData(descriptor, packaging, false));
+                return configure(new DefaultMavenModuleResolveMetaData(descriptor, packaging, false));
             case TYPE_MISSING:
             default:
                 return null;
         }
     }
 
-    private MutableModuleVersionMetaData configure(MutableModuleVersionMetaData input) {
+    private MutableModuleComponentResolveMetaData configure(MutableModuleComponentResolveMetaData input) {
         input.setChanging(isChanging);
         return input;
     }

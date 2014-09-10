@@ -20,13 +20,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 
 import java.util.List;
 
@@ -50,7 +50,7 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
             if (maybeClientModule instanceof ClientModule) {
                 ClientModule clientModule = (ClientModule) maybeClientModule;
 
-                MutableModuleVersionMetaData clientModuleMetaData = ((MutableModuleVersionMetaData)result.getMetaData()).copy();
+                MutableModuleComponentResolveMetaData clientModuleMetaData = ((MutableModuleComponentResolveMetaData)result.getMetaData()).copy();
                 addClientModuleDependencies(clientModule, clientModuleMetaData);
 
                 setClientModuleArtifact(clientModuleMetaData);
@@ -60,7 +60,7 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
         }
     }
 
-    private void addClientModuleDependencies(ClientModule clientModule, MutableModuleVersionMetaData clientModuleMetaData) {
+    private void addClientModuleDependencies(ClientModule clientModule, MutableModuleComponentResolveMetaData clientModuleMetaData) {
         List<DependencyMetaData> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
             DependencyMetaData dependencyMetaData = dependencyDescriptorFactory.createDependencyDescriptor(moduleDependency.getConfiguration(), clientModuleMetaData.getDescriptor(), moduleDependency);
@@ -69,7 +69,7 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
         clientModuleMetaData.setDependencies(dependencies);
     }
 
-    private void setClientModuleArtifact(MutableModuleVersionMetaData clientModuleMetaData) {
+    private void setClientModuleArtifact(MutableModuleComponentResolveMetaData clientModuleMetaData) {
         ModuleVersionArtifactMetaData artifact = clientModuleMetaData.artifact("jar", "jar", null);
         clientModuleMetaData.setArtifacts(Sets.newHashSet(artifact));
     }

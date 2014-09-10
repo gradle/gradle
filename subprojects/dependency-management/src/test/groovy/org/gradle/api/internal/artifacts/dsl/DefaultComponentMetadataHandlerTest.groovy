@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.component.external.model.IvyModuleVersionMetaData
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.component.external.model.IvyModuleResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     def handler = new DefaultComponentMetadataHandler(new DirectInstantiator())
 
     def "processing fails when status is not present in status scheme"() {
-        def metadata = Stub(MutableModuleVersionMetaData) {
+        def metadata = Stub(MutableModuleComponentResolveMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "green"
             getStatusScheme() >> ["alpha", "beta"]
@@ -47,7 +47,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "supports rule with untyped ComponentMetaDataDetails parameter"() {
-        def metadata = Stub(MutableModuleVersionMetaData) {
+        def metadata = Stub(MutableModuleComponentResolveMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
@@ -73,7 +73,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "supports rule with typed ComponentMetaDataDetails parameter"() {
-        def metadata = Stub(MutableModuleVersionMetaData) {
+        def metadata = Stub(MutableModuleComponentResolveMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
@@ -127,7 +127,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "rule with IvyModuleDescriptor parameter does not get invoked for non-Ivy components"() {
-        def metadata = Stub(MutableModuleVersionMetaData) {
+        def metadata = Stub(MutableModuleComponentResolveMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
@@ -149,7 +149,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.eachComponent { -> }
 
         when:
-        handler.processMetadata(Stub(MutableModuleVersionMetaData))
+        handler.processMetadata(Stub(MutableModuleComponentResolveMetaData))
 
         then:
         InvalidUserCodeException e = thrown()
@@ -160,7 +160,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.eachComponent { String s -> }
 
         when:
-        handler.processMetadata(Stub(MutableModuleVersionMetaData))
+        handler.processMetadata(Stub(MutableModuleComponentResolveMetaData))
 
         then:
         InvalidUserCodeException e = thrown()
@@ -168,7 +168,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "complains if rule has unsupported parameter type"() {
-        def metadata = Stub(MutableModuleVersionMetaData) {
+        def metadata = Stub(MutableModuleComponentResolveMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
@@ -231,5 +231,5 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
     }
 
-    interface TestIvyMetaData extends IvyModuleVersionMetaData, MutableModuleVersionMetaData {}
+    interface TestIvyMetaData extends IvyModuleResolveMetaData, MutableModuleComponentResolveMetaData {}
 }

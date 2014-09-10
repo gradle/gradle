@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentUsage;
-import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -32,7 +32,7 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
         this.resolver = resolver;
     }
 
-    public void resolveModuleArtifacts(ExternalComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         try {
             resolver.resolveModuleArtifacts(component, artifactType, result);
         } catch (Throwable t) {
@@ -40,7 +40,7 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
         }
     }
 
-    public void resolveModuleArtifacts(ExternalComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         try {
             resolver.resolveModuleArtifacts(component, usage, result);
         } catch (Throwable t) {

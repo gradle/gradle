@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
 import java.io.File;
 
 public interface MetaDataParser {
-    MutableModuleVersionMetaData parseMetaData(DescriptorParseContext context, LocallyAvailableExternalResource resource) throws MetaDataParseException;
+    MutableModuleComponentResolveMetaData parseMetaData(DescriptorParseContext context, LocallyAvailableExternalResource resource) throws MetaDataParseException;
 
-    MutableModuleVersionMetaData parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException;
+    MutableModuleComponentResolveMetaData parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException;
 
-    MutableModuleVersionMetaData parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException;
+    MutableModuleComponentResolveMetaData parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException;
 }

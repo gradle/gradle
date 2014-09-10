@@ -37,9 +37,9 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.internal.component.external.model.BuildableIvyArtifact;
-import org.gradle.internal.component.external.model.BuildableIvyModuleVersionMetaData;
-import org.gradle.internal.component.external.model.DefaultIvyModuleVersionMetaData;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
+import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
@@ -84,7 +84,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         this.resolverStrategy = resolverStrategy;
     }
 
-    protected MutableModuleVersionMetaData doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected MutableModuleComponentResolveMetaData doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties(), resolverStrategy);
         return doParseDescriptorWithProvidedParser(parser, validate);
     }
@@ -93,7 +93,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         return new Parser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, resolverStrategy);
     }
 
-    private MutableModuleVersionMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws IOException, ParseException {
+    private MutableModuleComponentResolveMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws IOException, ParseException {
         parser.setValidate(validate);
         parser.parse();
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
@@ -144,7 +144,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private final List<String> errors = new ArrayList<String>();
 
         private final DefaultModuleDescriptor md;
-        protected BuildableIvyModuleVersionMetaData metaData;
+        protected BuildableIvyModuleResolveMetaData metaData;
 
         protected AbstractParser(ExternalResource resource) {
             this.res = resource; // used for log and date only
@@ -399,7 +399,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return md;
         }
 
-        public DefaultIvyModuleVersionMetaData getMetaData() {
+        public DefaultIvyModuleResolveMetaData getMetaData() {
             return metaData;
         }
 
@@ -1136,7 +1136,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if ("dependencies".equals(qName) && state == State.DEPS) {
                 state = State.NONE;
             } else if (state == State.INFO && "info".equals(qName)) {
-                metaData = new BuildableIvyModuleVersionMetaData(getMd());
+                metaData = new BuildableIvyModuleResolveMetaData(getMd());
                 state = State.NONE;
             } else if (state == State.DESCRIPTION && "description".equals(qName)) {
                 getMd().setDescription(buffer == null ? "" : buffer.toString().trim());

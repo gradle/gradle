@@ -125,7 +125,7 @@ class DefaultDependencyMetaDataTest extends Specification {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
         def metaData = new DefaultDependencyMetaData(descriptor)
         def fromConfiguration = Stub(ConfigurationMetaData)
-        def targetComponent = Stub(ExternalComponentMetaData)
+        def targetComponent = Stub(ComponentResolveMetaData)
         def toConfiguration = Stub(ConfigurationMetaData)
         def artifact1 = Stub(ComponentArtifactMetaData)
         def artifact2 = Stub(ComponentArtifactMetaData)

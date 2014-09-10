@@ -83,7 +83,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     @Override
-    protected MutableModuleVersionMetaData processMetaData(MutableModuleVersionMetaData metaData) {
+    protected MutableModuleComponentResolveMetaData processMetaData(MutableModuleComponentResolveMetaData metaData) {
         if (metaData.getId().getVersion().endsWith("-SNAPSHOT")) {
             metaData.setChanging(true);
         }
@@ -172,21 +172,21 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     @Override
-    protected MutableModuleVersionMetaData createMetaDataForDependency(DependencyMetaData dependency) {
-        return new DefaultMavenModuleVersionMetaData(dependency);
+    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(DependencyMetaData dependency) {
+        return new DefaultMavenModuleResolveMetaData(dependency);
     }
 
-    protected MutableModuleVersionMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
+    protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
         return metaDataParser.parseMetaData(context, cachedResource);
     }
 
-    protected static MavenModuleVersionMetaData mavenMetaData(ModuleVersionMetaData metaData) {
-        return Transformers.cast(MavenModuleVersionMetaData.class).transform(metaData);
+    protected static MavenModuleResolveMetaData mavenMetaData(ModuleComponentResolveMetaData metaData) {
+        return Transformers.cast(MavenModuleResolveMetaData.class).transform(metaData);
     }
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
             if (mavenMetaData(module).isKnownJarPackaging()) {
                 ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
                 result.resolved(ImmutableSet.of(artifact));
@@ -194,20 +194,20 @@ public class MavenResolver extends ExternalResourceResolver {
         }
 
         @Override
-        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             // Javadoc artifacts are optional, so we need to probe for them remotely
         }
 
         @Override
-        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             // Javadoc artifacts are optional, so we need to probe for them remotely
         }
     }
 
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
-            MavenModuleVersionMetaData mavenMetaData = mavenMetaData(module);
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+            MavenModuleResolveMetaData mavenMetaData = mavenMetaData(module);
             if (mavenMetaData.isPomPackaging()) {
                 Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
                 artifacts.addAll(findOptionalArtifacts(module, "jar", null));
@@ -225,12 +225,12 @@ public class MavenResolver extends ExternalResourceResolver {
         }
 
         @Override
-        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
         }
 
         @Override
-        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }
     }

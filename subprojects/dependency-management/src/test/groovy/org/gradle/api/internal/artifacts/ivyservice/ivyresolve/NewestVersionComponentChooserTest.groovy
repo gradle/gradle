@@ -25,9 +25,9 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.model.ExternalComponentMetaData
-import org.gradle.internal.component.external.model.ModuleVersionMetaData
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
@@ -57,10 +57,10 @@ class NewestVersionComponentChooserTest extends Specification {
     }
 
     def "chooses latest version for component meta data"() {
-        def one = Stub(ExternalComponentMetaData) {
+        def one = Stub(ComponentResolveMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Stub(ExternalComponentMetaData) {
+        def two = Stub(ComponentResolveMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
 
@@ -80,10 +80,10 @@ class NewestVersionComponentChooserTest extends Specification {
     }
 
     def "chooses non-generated descriptor over generated"() {
-        def one = Mock(ExternalComponentMetaData) {
+        def one = Mock(ComponentResolveMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Mock(ExternalComponentMetaData) {
+        def two = Mock(ComponentResolveMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
 
@@ -139,15 +139,15 @@ class NewestVersionComponentChooserTest extends Specification {
         _ * dependency.getRequested() >> selector
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
         _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleVersionMetaDataResolveResult result ->
-            result.resolved(Stub(MutableModuleVersionMetaData) {
+            result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
             }, null)
         }
         1 * versionMatcher.needModuleMetadata("latest.milestone") >> true
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        1 * versionMatcher.accept("latest.milestone", {ModuleVersionMetaData md -> md.componentId.version == "2.0"}) >> false
-        1 * versionMatcher.accept("latest.milestone", {ModuleVersionMetaData md -> md.componentId.version == "1.3"}) >> true
+        1 * versionMatcher.accept("latest.milestone", {ModuleComponentResolveMetaData md -> md.componentId.version == "2.0"}) >> false
+        1 * versionMatcher.accept("latest.milestone", {ModuleComponentResolveMetaData md -> md.componentId.version == "1.3"}) >> true
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -200,14 +200,14 @@ class NewestVersionComponentChooserTest extends Specification {
         _ * dependency.getRequested() >> selector
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
         _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleVersionMetaDataResolveResult result ->
-            result.resolved(Stub(MutableModuleVersionMetaData) {
+            result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
             }, null)
         }
         1 * versionMatcher.needModuleMetadata("latest.release") >> true
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        _ * versionMatcher.accept("latest.release", _) >> { pattern, MutableModuleVersionMetaData metadata ->
+        _ * versionMatcher.accept("latest.release", _) >> { pattern, MutableModuleComponentResolveMetaData metadata ->
             // latest.integration should return 1.3 according to this version matcher
             switch(metadata.componentId.version) {
                 case "2.0": return false
@@ -286,7 +286,7 @@ class NewestVersionComponentChooserTest extends Specification {
         _ * dependency.getRequested() >> selector
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
         _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleVersionMetaDataResolveResult result ->
-            result.resolved(Stub(MutableModuleVersionMetaData) {
+            result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
             }, null)
         }

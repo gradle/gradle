@@ -18,12 +18,12 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.internal.component.model.ExternalComponentMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
-    private ExternalComponentMetaData metaData;
+    private ComponentResolveMetaData metaData;
     private ModuleVersionResolveException failure;
 
     public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
@@ -40,11 +40,11 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         failed(new ModuleVersionNotFoundException(versionIdentifier, getAttempted()));
     }
 
-    public void resolved(ExternalComponentMetaData metaData) {
+    public void resolved(ComponentResolveMetaData metaData) {
         this.metaData = metaData;
     }
 
-    public void setMetaData(ExternalComponentMetaData metaData) {
+    public void setMetaData(ComponentResolveMetaData metaData) {
         assertResolved();
         this.metaData = metaData;
     }
@@ -54,7 +54,7 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         return metaData.getId();
     }
 
-    public ExternalComponentMetaData getMetaData() throws ModuleVersionResolveException {
+    public ComponentResolveMetaData getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
     }

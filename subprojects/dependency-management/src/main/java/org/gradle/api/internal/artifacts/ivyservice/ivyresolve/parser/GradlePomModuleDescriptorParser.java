@@ -26,8 +26,8 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.internal.component.external.model.DefaultMavenModuleVersionMetaData;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +56,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return "gradle pom parser";
     }
 
-    protected MutableModuleVersionMetaData doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
+    protected MutableModuleComponentResolveMetaData doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
         PomReader pomReader = new PomReader(resource);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader);
 
@@ -64,9 +64,9 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
         if(pomReader.getRelocation() != null) {
-            return new DefaultMavenModuleVersionMetaData(moduleDescriptor, "pom", true);
+            return new DefaultMavenModuleResolveMetaData(moduleDescriptor, "pom", true);
         }
-        return new DefaultMavenModuleVersionMetaData(moduleDescriptor, pomReader.getPackaging(), false);
+        return new DefaultMavenModuleResolveMetaData(moduleDescriptor, pomReader.getPackaging(), false);
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {

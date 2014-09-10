@@ -24,10 +24,10 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.component.external.model.IvyModuleVersionMetaData;
-import org.gradle.internal.component.external.model.ModuleVersionMetaData;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;
@@ -55,7 +55,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         ruleClosures.add(closure);
     }
 
-    public void processMetadata(MutableModuleVersionMetaData metadata) {
+    public void processMetadata(MutableModuleComponentResolveMetaData metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         ruleActions.execute(details);
         executeRuleClosures(metadata, details);
@@ -64,13 +64,13 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
     }
 
-    private void executeRuleClosures(ModuleVersionMetaData metadata, ComponentMetadataDetails details) {
+    private void executeRuleClosures(ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details) {
         for (Closure<?> closure : ruleClosures) {
             executeRuleClosure(metadata, details, closure);
         }
     }
 
-    private void executeRuleClosure(ModuleVersionMetaData metadata, ComponentMetadataDetails details, Closure<?> closure) {
+    private void executeRuleClosure(ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details, Closure<?> closure) {
         Class<?>[] parameterTypes = closure.getParameterTypes();
         if (parameterTypes.length == 0) {
             throw new InvalidUserCodeException("A component metadata rule needs to have at least one parameter.");
@@ -88,10 +88,10 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
         for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
             if (parameterType == IvyModuleDescriptor.class) {
-                if (!(metadata instanceof IvyModuleVersionMetaData)) {
+                if (!(metadata instanceof IvyModuleResolveMetaData)) {
                     return;
                 }
-                IvyModuleVersionMetaData ivyMetadata = (IvyModuleVersionMetaData) metadata;
+                IvyModuleResolveMetaData ivyMetadata = (IvyModuleResolveMetaData) metadata;
                 args.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
             } else {
                 throw new InvalidUserCodeException(String.format("Unsupported parameter type for component metadata rule: %s", parameterType.getName()));
