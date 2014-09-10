@@ -335,11 +335,11 @@ One potential option will be to insert a fake statement as the first statement o
 - Input binding failure
   - Unbound input (i.e. incorrect path) produces error message with line number of input declaration, and suggestions on alternatives (e.g. assume user mistyped name)
 - Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error
-- Success
+- ~~Success~~
   - ~~Existing inputs can be used~~
   - ~~Inputs are finalized when used~~
-  - Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)
-  - `$(String)` can be used anywhere in code body (e.g. `if` body)
+  - ~~Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)~~
+  - ~~`$(String)` can be used anywhere in code body (e.g. `if` body)~~
 - ~~Nested `model {}` usage~~
   - ~~Can use model rules in nested context that don't require inputs~~
   - ~~Attempted use of inputs in model rule in nested context yields “unsupported” error message~~
