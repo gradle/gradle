@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
 import spock.lang.Specification

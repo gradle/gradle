@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing;
+import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 public interface ModuleVersionsCache {
 

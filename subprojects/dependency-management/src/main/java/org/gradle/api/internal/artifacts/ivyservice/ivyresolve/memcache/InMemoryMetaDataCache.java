@@ -18,15 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing;
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult.State.Listed;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult.State.ProbablyListed;
+import static org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult.State.Listed;
+import static org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult.State.ProbablyListed;
 
 class InMemoryMetaDataCache {
     private final Map<ModuleVersionSelector, ModuleVersionListing> moduleVersionListing = new HashMap<ModuleVersionSelector, ModuleVersionListing>();

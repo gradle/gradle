@@ -28,6 +28,8 @@ import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.ExternalComponentMetaData
 import org.gradle.internal.component.external.model.ModuleVersionMetaData
 import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult
+import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
 
 class NewestVersionComponentChooserTest extends Specification {

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 import org.gradle.util.CollectionUtils;
 
 import java.util.HashSet;

@@ -25,6 +25,8 @@ import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
 import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector

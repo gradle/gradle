@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.*;
+import static org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult.State.*;
 
 class CachedModuleVersionResult {
     private final BuildableModuleVersionMetaDataResolveResult.State state;

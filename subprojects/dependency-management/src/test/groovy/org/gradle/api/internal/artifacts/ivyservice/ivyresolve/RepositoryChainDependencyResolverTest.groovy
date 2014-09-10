@@ -29,6 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleVersionMetaData
 import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
+import org.gradle.internal.resolve.result.DefaultModuleVersionListing
+import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
 
 class RepositoryChainDependencyResolverTest extends Specification {

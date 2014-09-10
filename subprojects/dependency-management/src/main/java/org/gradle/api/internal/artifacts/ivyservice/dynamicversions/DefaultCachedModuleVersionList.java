@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing;
+import org.gradle.internal.resolve.result.ModuleVersionListing;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 class DefaultCachedModuleVersionList implements ModuleVersionsCache.CachedModuleVersionList {

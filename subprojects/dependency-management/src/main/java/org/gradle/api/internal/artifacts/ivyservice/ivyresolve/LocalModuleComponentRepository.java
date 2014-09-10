@@ -26,6 +26,8 @@ import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
 
 public class LocalModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleMetadataProcessor metadataProcessor;

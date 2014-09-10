@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 public interface ComponentChooser {
     boolean canSelectMultipleComponents(ModuleVersionSelector selector);

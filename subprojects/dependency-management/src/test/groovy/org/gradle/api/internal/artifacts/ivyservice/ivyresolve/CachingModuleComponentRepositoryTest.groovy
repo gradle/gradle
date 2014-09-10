@@ -33,6 +33,9 @@ import org.gradle.internal.component.external.model.MutableModuleVersionMetaData
 import org.gradle.internal.component.model.ComponentArtifactMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.ExternalComponentMetaData
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionSelectionResolveResult
+import org.gradle.internal.resolve.result.ModuleVersionListing
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider

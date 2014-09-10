@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
 import java.util.Collection;
 

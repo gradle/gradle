@@ -20,6 +20,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.resolve.result.DefaultModuleVersionListing;
+import org.gradle.internal.resolve.result.ModuleVersionListing;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;

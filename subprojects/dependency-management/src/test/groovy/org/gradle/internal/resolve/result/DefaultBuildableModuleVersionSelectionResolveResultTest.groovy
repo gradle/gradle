@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
+package org.gradle.internal.resolve.result
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult.State.*
+import static org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult.State.*
 
 class DefaultBuildableModuleVersionSelectionResolveResultTest extends Specification {
     def descriptor = new DefaultBuildableModuleVersionSelectionResolveResult()

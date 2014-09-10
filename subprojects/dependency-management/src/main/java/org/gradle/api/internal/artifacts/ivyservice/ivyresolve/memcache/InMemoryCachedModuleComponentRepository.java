@@ -22,6 +22,8 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
 
 // TODO:DAZ Should share local and remote caches, and use make in-memory caching a decorator over filesystem caching
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {

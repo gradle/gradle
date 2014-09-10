@@ -20,6 +20,8 @@ import org.gradle.internal.component.model.*;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
 
 public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
     private final ModuleComponentRepositoryAccess delegate;

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
 /**
  * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.

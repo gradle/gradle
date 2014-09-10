@@ -35,6 +35,7 @@ import org.gradle.internal.component.external.model.DefaultIvyModuleVersionMetaD
 import org.gradle.internal.component.external.model.DefaultMavenModuleVersionMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleVersionMetaData
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
 import spock.lang.Specification
 
 class ComponentSelectionRulesProcessorTest extends Specification {

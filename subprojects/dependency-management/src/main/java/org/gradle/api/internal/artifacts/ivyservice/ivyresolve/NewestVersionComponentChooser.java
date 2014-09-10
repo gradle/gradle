@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionM
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.ExternalComponentMetaData;
 import org.gradle.internal.component.external.model.ModuleVersionMetaData;
+import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 import java.util.Collection;
 import java.util.Collections;

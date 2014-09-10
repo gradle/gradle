@@ -30,6 +30,8 @@ import org.gradle.internal.component.external.model.IvyModuleVersionMetaData;
 import org.gradle.internal.component.external.model.ModuleVersionMetaData;
 import org.gradle.internal.component.external.model.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
+import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
