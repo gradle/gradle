@@ -109,4 +109,37 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         output.contains "strings: " + ["foo", "bar"]
     }
 
+    def "the same input can be referenced more than once, and refers to the same object"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+
+              void apply(Project project) {}
+
+              @RuleSource
+              static class Rules {
+                @Model
+                List<String> strings() {
+                  []
+                }
+              }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+              tasks {
+                create("assertDuplicateInputIsSameObject").doLast {
+                  assert \$("strings").is(\$("strings"))
+                }
+              }
+            }
+        """
+
+        then:
+        succeeds "assertDuplicateInputIsSameObject"
+    }
+
 }
