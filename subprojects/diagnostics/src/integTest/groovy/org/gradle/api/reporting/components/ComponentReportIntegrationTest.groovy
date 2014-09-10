@@ -16,7 +16,6 @@
 
 package org.gradle.api.reporting.components
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
