@@ -159,6 +159,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return true;
     }
 
+    public boolean isWrapperSupportsGradleUserHomeCommandLineOption() {
+        return isSameOrNewer("1.7");
+    }
+
     public boolean isSupportsSpacesInGradleAndJavaOpts() {
         return isSameOrNewer("1.0-milestone-5");
     }

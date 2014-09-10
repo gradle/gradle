@@ -99,4 +99,9 @@ public interface GradleDistribution {
      * The 'ivy' repository was introduced in Milestone-3, but early versions didn't work with spaces in the artifact pattern.
      */
     boolean isFullySupportsIvyRepository();
+
+    /**
+     * Returns true if the wrapper for this version honours the --gradle-user-home command-line option.
+     */
+    boolean isWrapperSupportsGradleUserHomeCommandLineOption();
 }

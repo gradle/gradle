@@ -18,10 +18,11 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
-    IntegrationTestBuildContext integrationTestBuildContext = new IntegrationTestBuildContext()
+    def setup() {
+        requireOwnGradleUserHomeDir()
+    }
 
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         expect:
@@ -47,8 +48,6 @@ task wrapper(type: Wrapper) {
     gradleVersion = '$executionVersion.version.version'
 }
 
-//(SF) not sure if we want to keep coverage for old 'urlRoot' that was already removed
-//I'm keeping it so that old versions are tested via the urlRoot.
 if (wrapper.hasProperty('urlRoot')) {
     println "configuring the wrapper using the old way: 'urlRoot'..."
     wrapper.urlRoot = '${executionVersion.binDistribution.parentFile.toURI()}'
@@ -64,24 +63,21 @@ task hello {
 }
 """
         version(wrapperGenVersion).withTasks('wrapper').run()
-        def result = version(wrapperGenVersion).usingExecutable('gradlew').withArgument(customGradleUserHomeSystemProperty()).withDeprecationChecksDisabled().withTasks('hello').run()
+        def result = version(wrapperGenVersion).usingExecutable('gradlew').withTasks('hello').run()
         assert result.output.contains("hello from $executionVersion.version.version")
     }
 
-
-    /**
-     * We additionally pass the gradle user home as a system property.
-     * Early gradle wrapper (< 1.7 don't honor --gradle-user-home command line option correctly
-     * and leaking gradle dist under test into ~/.gradle/wrapper.
-     * */
-    def customGradleUserHomeSystemProperty() {
-        return "-Dgradle.user.home=${integrationTestBuildContext.getGradleUserHomeDir().absolutePath}"
-    }
-
     GradleExecuter version(GradleDistribution dist) {
-        def executer = dist.executer(temporaryFolder)
-        executer.withDeprecationChecksDisabled()
-        executer.inDirectory(testDirectory)
+        def executer = super.version(dist)
+        /**
+         * We additionally pass the gradle user home as a system property.
+         * Early gradle wrapper (< 1.7 don't honor --gradle-user-home command line option correctly
+         * and leaking gradle dist under test into ~/.gradle/wrapper.
+         */
+        if (!dist.wrapperSupportsGradleUserHomeCommandLineOption) {
+            executer.withGradleOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
+        }
+        return executer
     }
 }
 
