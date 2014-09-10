@@ -31,6 +31,7 @@ useTestFixtures()
 useTestFixtures(project: ":messaging")
 useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":platformBase")
+useTestFixtures(project: ":modelCore")
 
 strictCompile()
 useClassycle(exclude: ["org/gradle/nativeplatform/plugins/**",

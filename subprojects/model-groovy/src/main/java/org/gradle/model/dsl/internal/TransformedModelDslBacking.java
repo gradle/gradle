@@ -29,18 +29,18 @@ import org.gradle.util.CollectionUtils;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultModelDsl implements ModelDsl {
+public class TransformedModelDslBacking implements ModelDsl {
 
     private static final InputReferencesExtractor INPUT_PATHS_EXTRACTOR = new InputReferencesExtractor();
 
     private final ModelRegistry modelRegistry;
     private final Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor;
 
-    public DefaultModelDsl(ModelRegistry modelRegistry) {
+    public TransformedModelDslBacking(ModelRegistry modelRegistry) {
         this(modelRegistry, INPUT_PATHS_EXTRACTOR);
     }
 
-    DefaultModelDsl(ModelRegistry modelRegistry, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor) {
+    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor) {
         this.modelRegistry = modelRegistry;
         this.inputPathsExtractor = inputPathsExtractor;
     }
@@ -71,7 +71,7 @@ public class DefaultModelDsl implements ModelDsl {
         }
     }
 
-    public static boolean isRulesBlock(Closure<?> closure) {
+    public static boolean isTransformedBlock(Closure<?> closure) {
         Class<? extends Closure> closureClass = closure.getClass();
         RulesBlock annotation = closureClass.getAnnotation(RulesBlock.class);
         return annotation != null;

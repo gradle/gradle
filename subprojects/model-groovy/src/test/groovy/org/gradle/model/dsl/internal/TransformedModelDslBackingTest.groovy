@@ -23,11 +23,11 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
-class DefaultModelDslTest extends Specification {
+class TransformedModelDslBackingTest extends Specification {
 
     def modelRegistry = new DefaultModelRegistry()
     Transformer<List<ModelReference<?>>, Closure<?>> referenceExtractor = Mock()
-    def modelDsl = new DefaultModelDsl(getModelRegistry(), referenceExtractor)
+    def modelDsl = new TransformedModelDslBacking(getModelRegistry(), referenceExtractor)
 
     void register(String pathString, Object element) {
         def path = new ModelPath(pathString)

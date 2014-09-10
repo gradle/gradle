@@ -61,7 +61,8 @@ import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.ModelDsl;
-import org.gradle.model.dsl.internal.DefaultModelDsl;
+import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
+import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -946,14 +947,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
 
     // TODO longer term, this method shouldn't be here, so there's no way for a user to call it with a general closure
-    public static final String NON_TOP_LEVEL_MODEL_BLOCK_MESSAGE = "model {} called with an untransformed closure - model {} must be a top level statement in the build script";
-
     public void model(@DelegatesTo(ModelDsl.class) Closure<?> modelRules) {
-        if (DefaultModelDsl.isRulesBlock(modelRules)) {
-            new ClosureBackedAction<ModelDsl>(modelRules).execute(new DefaultModelDsl(getModelRegistry()));
+        if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
+            new ClosureBackedAction<ModelDsl>(modelRules).execute(new TransformedModelDslBacking(getModelRegistry()));
         } else {
-            // TODO update this to give link to docs that explain when/where model {} can be used, when we have that
-            throw new GradleException(NON_TOP_LEVEL_MODEL_BLOCK_MESSAGE);
+            new NonTransformedModelDslBacking(getModelRegistry()).configure(modelRules);
         }
     }
 

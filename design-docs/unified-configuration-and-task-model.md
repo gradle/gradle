@@ -298,6 +298,17 @@ This story adds the capability for rules declared in scripts to take inputs.
 - Add notion of 'default' read only type to model registrations (which is what is returned here, given that there is no type information)
 - Transform closure implementation in some way to make model element available as result of $() method call (possibly transform in $() implementation, or rewrite statement)
 
+#### Existing use of 'model block'
+
+Users are already using `model {}` to configure the native and publishing plugins. 
+At the moment, this is implemented as a method on project and can therefore be called from anywhere where there is a project instance (e.g. `subprojects {}`).
+As we are introducing a compile time transform for the model block this is now a problem.
+It is not feasible to transform all uses of `model {}` throughout the statement tree as we cannot reliably infer that the invocation doesn't correspond to a different method.
+
+Therefore, supporting for using `model {}` in nested contexts will be supported in the manner it is now.
+That is, usage in a nested context only allows input-less mutation rules and should not be subject to new restrictions.
+If the user tries to use inputs, in a nested context, they should be told (via the error message) that this is not supported.
+
 ### Transform notes
 
 - Only support string literal arguments to `$()` (anything else is a compile time error)
@@ -329,8 +340,10 @@ One potential option will be to insert a fake statement as the first statement o
   - Inputs are finalized when used
   - Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)
   - `$(String)` can be used anywhere in code body (e.g. `if` body)
+- ~~Nested `model {}` usage~~
+  - ~~Can use model rules in nested context that don't require inputs~~
+  - ~~Attempted use of inputs in model rule in nested context yields “unsupported” error message~~
 
-  
 ## Story: Configuration performed to “bridged” model element made in afterEvaluate() is visible to creation rule
 
 This story adds coverage to ensure that model rules are fired **AFTER** afterEvaluate().

@@ -28,22 +28,17 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
     def setup() {
         buildFile << """
-            import org.gradle.model.internal.fixture.ModelRegistryHelper
-
             subprojects {
                 apply plugin: 'cpp'
                 apply plugin: 'visual-studio'
 
-                def modelRegistryHelper = new ModelRegistryHelper(project)
-
-                modelRegistryHelper.configure("platforms") {
-                    it.configure {
+                model {
+                    platforms {
                         win32 {
                             architecture "i386"
                         }
                     }
-                }.configure("buildTypes") {
-                    it.configure {
+                    buildTypes {
                         debug
                         release
                     }
