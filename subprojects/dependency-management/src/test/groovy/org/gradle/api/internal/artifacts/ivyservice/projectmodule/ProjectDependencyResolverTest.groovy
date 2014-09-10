@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectComponentRegistry registry = Mock()
-    final DependencyToModuleVersionResolver target = Mock()
+    final DependencyToComponentResolver target = Mock()
     final LocalComponentFactory converter = Mock()
     final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, converter, target)
 

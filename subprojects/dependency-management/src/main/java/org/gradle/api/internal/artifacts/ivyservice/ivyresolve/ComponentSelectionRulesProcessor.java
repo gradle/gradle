@@ -30,8 +30,8 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetaDa
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +139,7 @@ public class ComponentSelectionRulesProcessor {
         }
 
         private MutableModuleComponentResolveMetaData initMetaData(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
-            BuildableModuleVersionMetaDataResolveResult descriptorResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
+            BuildableModuleComponentMetaDataResolveResult descriptorResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
             DependencyMetaData dependency = ((ComponentSelectionInternal) selection).getDependencyMetaData().withRequestedVersion(selection.getCandidate().getVersion());
             moduleAccess.resolveComponentMetaData(dependency, selection.getCandidate(), descriptorResult);
             return descriptorResult.getMetaData();

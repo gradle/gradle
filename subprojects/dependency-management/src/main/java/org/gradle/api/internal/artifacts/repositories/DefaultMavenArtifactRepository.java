@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -40,12 +40,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final RepositoryTransportFactory transportFactory;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
-    private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
-    private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
+    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
+    private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                          FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+                                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
+                                          FileStore<ModuleComponentArtifactMetaData> artifactFileStore) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -104,7 +104,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore);
     }
 
-    protected FileStore<ModuleVersionArtifactMetaData> getArtifactFileStore() {
+    protected FileStore<ModuleComponentArtifactMetaData> getArtifactFileStore() {
         return artifactFileStore;
     }
 
@@ -112,7 +112,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return transportFactory.createTransport(scheme, getName(), getCredentials());
     }
 
-    protected LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> getLocallyAvailableResourceFinder() {
+    protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> getLocallyAvailableResourceFinder() {
         return locallyAvailableResourceFinder;
     }
 }

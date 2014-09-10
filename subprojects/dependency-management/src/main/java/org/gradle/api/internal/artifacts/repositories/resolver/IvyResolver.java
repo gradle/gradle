@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -26,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Downloaded
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -44,8 +44,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     private boolean m2Compatible;
 
     public IvyResolver(String name, RepositoryTransport transport,
-                       LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+                       LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
+                       boolean dynamicResolve, ResolverStrategy resolverStrategy, FileStore<ModuleComponentArtifactMetaData> artifactFileStore) {
         super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore);
         this.metaDataParser = new DownloadedIvyModuleDescriptorParser(resolverStrategy);
         this.dynamicResolve = dynamicResolve;

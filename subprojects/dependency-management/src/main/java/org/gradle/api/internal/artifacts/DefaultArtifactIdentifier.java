@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 
@@ -36,7 +36,7 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
         this.classifier = classifier;
     }
 
-    public DefaultArtifactIdentifier(DefaultModuleVersionArtifactIdentifier id) {
+    public DefaultArtifactIdentifier(DefaultModuleComponentArtifactIdentifier id) {
         this(newId(id.getComponentIdentifier()), id.getName().getName(), id.getName().getType(), id.getName().getExtension(), id.getName().getClassifier());
     }
 

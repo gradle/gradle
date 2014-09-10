@@ -23,8 +23,8 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
 
 public class LocalModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleMetadataProcessor metadataProcessor;
@@ -45,20 +45,20 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     }
 
     private class LocalAccess implements ModuleComponentRepositoryAccess {
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
             delegate.getLocalAccess().listModuleVersions(dependency, result);
             if (!result.hasResult()) {
                 delegate.getRemoteAccess().listModuleVersions(dependency, result);
             }
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
             delegate.getLocalAccess().resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
             if (!result.hasResult()) {
                 delegate.getRemoteAccess().resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
             }
 
-            if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+            if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
                 metadataProcessor.processMetadata(result.getMetaData());
             }
         }
@@ -86,10 +86,10 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     }
 
     private static class RemoteAccess implements ModuleComponentRepositoryAccess {
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
         }
 
         public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {

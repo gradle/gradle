@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -34,8 +34,8 @@ public class MavenLocalResolver extends MavenResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
 
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
-                              LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                              FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+                              LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
+                              FileStore<ModuleComponentArtifactMetaData> artifactFileStore) {
         super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore);
     }
 
@@ -59,7 +59,7 @@ public class MavenLocalResolver extends MavenResolver {
         }
 
         // check custom packaging
-        ModuleVersionArtifactMetaData artifact;
+        ModuleComponentArtifactMetaData artifact;
         if (metaData.isKnownJarPackaging()) {
             artifact = metaData.artifact("jar", "jar", null);
         } else {

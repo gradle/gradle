@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resolve.resolver;
 
-import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+package org.gradle.internal.component.external.model;
 
-/**
- * Resolves a dependency to a component instance.
- */
-public interface DependencyToModuleVersionResolver {
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.internal.component.model.IvyArtifactName;
+
+import java.io.File;
+
+// TODO:ADAM - This is actually Ivy artifact publish meta data
+public interface IvyModuleArtifactPublishMetaData {
+    ModuleComponentArtifactIdentifier getId();
+
     /**
-     * Resolves the given dependency to component instance. Failures are packaged up in the returned result.
+     * Converts this artifact to an Ivy artifact. This method is here while we transition away from the Ivy types.
      */
-    void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result);
+    Artifact toIvyArtifact();
+
+    IvyArtifactName getArtifactName();
+
+    File getFile();
 }

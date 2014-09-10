@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceException;
@@ -37,14 +37,14 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceArtifactResolver.class);
 
     private final ExternalResourceRepository repository;
-    private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
     private final List<ResourcePattern> ivyPatterns;
     private final List<ResourcePattern> artifactPatterns;
-    private final FileStore<ModuleVersionArtifactMetaData> fileStore;
+    private final FileStore<ModuleComponentArtifactMetaData> fileStore;
     private final CacheAwareExternalResourceAccessor resourceAccessor;
 
-    public DefaultExternalResourceArtifactResolver(ExternalResourceRepository repository, LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                                   List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, FileStore<ModuleVersionArtifactMetaData> fileStore, CacheAwareExternalResourceAccessor resourceAccessor) {
+    public DefaultExternalResourceArtifactResolver(ExternalResourceRepository repository, LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
+                                                   List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, FileStore<ModuleComponentArtifactMetaData> fileStore, CacheAwareExternalResourceAccessor resourceAccessor) {
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.ivyPatterns = ivyPatterns;
@@ -53,19 +53,19 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         this.resourceAccessor = resourceAccessor;
     }
 
-    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
         return downloadStaticResource(ivyPatterns, artifact, result);
     }
 
-    public LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+    public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
         return downloadStaticResource(artifactPatterns, artifact, result);
     }
 
-    public boolean artifactExists(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+    public boolean artifactExists(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
         return staticResourceExists(artifactPatterns, artifact, result);
     }
 
-    private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+    private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
             ExternalResourceName location = resourcePattern.getLocation(artifact);
             result.attempted(location);
@@ -81,7 +81,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return false;
     }
 
-    private LocallyAvailableExternalResource downloadStaticResource(List<ResourcePattern> patternList, final ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+    private LocallyAvailableExternalResource downloadStaticResource(List<ResourcePattern> patternList, final ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
             ExternalResourceName location = resourcePattern.getLocation(artifact);
             result.attempted(location);

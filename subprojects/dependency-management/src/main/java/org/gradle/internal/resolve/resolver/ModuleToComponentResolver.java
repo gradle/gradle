@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
-import java.util.Collection;
+import java.util.Set;
 
-// TODO:ADAM - This is actually Ivy module publish meta data
-public interface ModuleVersionPublishMetaData {
-    ModuleVersionIdentifier getId();
-
-    Collection<ModuleVersionArtifactPublishMetaData> getArtifacts();
+/**
+ * Resolves a module to the meta-data for a module.
+ */
+public interface ModuleToComponentResolver {
+    void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableComponentResolveResult result);
 }

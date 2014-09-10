@@ -51,8 +51,8 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +93,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             public void execute(Ivy ivy) {
                 RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler);
 
-                DependencyToModuleVersionResolver dependencyResolver = repositoryChain.getDependencyResolver();
+                DependencyToComponentResolver dependencyResolver = repositoryChain.getDependencyResolver();
                 dependencyResolver = new ClientModuleResolver(dependencyResolver, dependencyDescriptorFactory);
                 ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, dependencyResolver);
                 dependencyResolver = projectDependencyResolver;

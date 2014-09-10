@@ -17,23 +17,11 @@
 package org.gradle.internal.component.external.model;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
 
-/**
- * Meta-data for an artifact that belongs to some module version.
- */
-public interface ModuleVersionArtifactMetaData extends ComponentArtifactMetaData {
-    ModuleVersionArtifactIdentifier getId();
+import java.io.File;
 
-    /**
-     * Converts this artifact to an Ivy artifact. This method is here while we transition away from the Ivy types.
-     */
-    Artifact toIvyArtifact();
+public interface BuildableIvyModulePublishMetaData extends IvyModulePublishMetaData {
+    void addArtifact(IvyModuleArtifactPublishMetaData artifact);
 
-    /**
-     * Produces an ArtifactIdentifier for this artifact (it's not actually an identifier - just a bucket of attributes).
-     * TODO:ADAM - remove this
-     */
-    ArtifactIdentifier toArtifactIdentifier();
+    void addArtifact(Artifact artifact, File file);
 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 /**
  * A repository of module components.
  *
- * The plan is to sync this with {@link org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver} and rename it
+ * The plan is to sync this with {@link org.gradle.internal.resolve.resolver.DependencyToComponentResolver} and rename it
  * to have 'resolver' instead of 'repository' in its name.
  */
 public interface ModuleComponentRepository {

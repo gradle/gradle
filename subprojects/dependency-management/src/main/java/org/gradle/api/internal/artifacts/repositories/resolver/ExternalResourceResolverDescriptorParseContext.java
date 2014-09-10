@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DefaultDependencyMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.*;
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
@@ -49,7 +49,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI(), localResource);
     }
 
-    private File resolveMetaDataArtifactFile(ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver dependencyResolver,
+    private File resolveMetaDataArtifactFile(ModuleVersionIdentifier moduleVersionIdentifier, DependencyToComponentResolver dependencyResolver,
                                              ArtifactResolver artifactResolver, ArtifactType artifactType) {
         BuildableComponentResolveResult moduleVersionResolveResult = new DefaultBuildableComponentResolveResult();
         dependencyResolver.resolve(new DefaultDependencyMetaData(moduleVersionIdentifier), moduleVersionResolveResult);

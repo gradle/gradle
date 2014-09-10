@@ -20,8 +20,8 @@ import org.gradle.internal.component.model.*;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
 
 public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
     private final ModuleComponentRepositoryAccess delegate;
@@ -30,11 +30,11 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
         this.delegate = delegate;
     }
 
-    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
         delegate.listModuleVersions(dependency, result);
     }
 
-    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
         delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
     }
 

@@ -21,8 +21,8 @@ import org.gradle.internal.component.model.*;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
 
 /**
  * Provides access to a repository of components that are identified by a ModuleComponentIdentifier.
@@ -31,12 +31,12 @@ public interface ModuleComponentRepositoryAccess {
     /**
      * Resolves the given dependency to a list of module versions.
      */
-    void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
+    void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result);
 
     /**
      * Resolves the metadata for a module component.
      */
-    void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
+    void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result);
 
     /**
      * Resolves a set of artifacts belonging to the given component, based on the supplied usage. Any failures are packaged up in the result.

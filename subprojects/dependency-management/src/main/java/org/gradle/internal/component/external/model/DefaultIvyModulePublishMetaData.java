@@ -25,11 +25,11 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersionPublishMetaData {
+public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublishMetaData {
     private final ModuleVersionIdentifier id;
-    private final Map<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData>();
+    private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData>();
 
-    public DefaultModuleVersionPublishMetaData(ModuleVersionIdentifier id) {
+    public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id) {
         this.id = id;
     }
 
@@ -38,29 +38,29 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
     }
 
     public void addArtifact(Artifact artifact, File file) {
-        DefaultModuleVersionArtifactPublishMetaData publishMetaData = new DefaultModuleVersionArtifactPublishMetaData(id, artifact, file);
+        DefaultIvyModuleArtifactPublishMetaData publishMetaData = new DefaultIvyModuleArtifactPublishMetaData(id, artifact, file);
         artifactsById.put(publishMetaData.getId(), publishMetaData);
     }
 
-    public void addArtifact(ModuleVersionArtifactPublishMetaData artifact) {
+    public void addArtifact(IvyModuleArtifactPublishMetaData artifact) {
         artifactsById.put(artifact.getId(), artifact);
     }
 
-    public Collection<ModuleVersionArtifactPublishMetaData> getArtifacts() {
+    public Collection<IvyModuleArtifactPublishMetaData> getArtifacts() {
         return artifactsById.values();
     }
 
-    public ModuleVersionArtifactPublishMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier) {
+    public IvyModuleArtifactPublishMetaData getArtifact(ModuleComponentArtifactIdentifier artifactIdentifier) {
         return artifactsById.get(artifactIdentifier);
     }
 
-    private static class DefaultModuleVersionArtifactPublishMetaData implements ModuleVersionArtifactPublishMetaData {
-        private final DefaultModuleVersionArtifactIdentifier id;
+    private static class DefaultIvyModuleArtifactPublishMetaData implements IvyModuleArtifactPublishMetaData {
+        private final DefaultModuleComponentArtifactIdentifier id;
         private final Artifact artifact;
         private final File file;
 
-        private DefaultModuleVersionArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
-            this.id = new DefaultModuleVersionArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), artifact);
+        private DefaultIvyModuleArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
+            this.id = new DefaultModuleComponentArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), artifact);
             this.artifact = artifact;
             this.file = file;
         }
@@ -73,7 +73,7 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
             return artifact;
         }
 
-        public ModuleVersionArtifactIdentifier getId() {
+        public ModuleComponentArtifactIdentifier getId() {
             return id;
         }
 

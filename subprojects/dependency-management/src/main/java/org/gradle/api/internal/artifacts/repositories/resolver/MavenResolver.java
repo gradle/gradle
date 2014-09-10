@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
@@ -47,8 +47,8 @@ public class MavenResolver extends ExternalResourceResolver {
     private final MetaDataParser metaDataParser;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
-                         LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                         FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
+                         FileStore<ModuleComponentArtifactMetaData> artifactFileStore) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),
@@ -66,7 +66,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return root;
     }
 
-    protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
         if (isSnapshotVersion(moduleComponentIdentifier)) {
             final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
             if (uniqueSnapshotVersion != null) {
@@ -90,9 +90,9 @@ public class MavenResolver extends ExternalResourceResolver {
         return metaData;
     }
 
-    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, ModuleComponentIdentifier module, BuildableModuleVersionMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
+    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, ModuleComponentIdentifier module, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(dependency, module, result, createArtifactResolver(snapshotSource));
-        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+        if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             result.setModuleSource(snapshotSource);
         }
     }
@@ -188,7 +188,7 @@ public class MavenResolver extends ExternalResourceResolver {
         @Override
         protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
             if (mavenMetaData(module).isKnownJarPackaging()) {
-                ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
+                ModuleComponentArtifactMetaData artifact = module.artifact("jar", "jar", null);
                 result.resolved(ImmutableSet.of(artifact));
             }
         }
@@ -213,12 +213,12 @@ public class MavenResolver extends ExternalResourceResolver {
                 artifacts.addAll(findOptionalArtifacts(module, "jar", null));
                 result.resolved(artifacts);
             } else {
-                ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
+                ModuleComponentArtifactMetaData artifactMetaData = module.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
 
                 if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
                     result.resolved(ImmutableSet.of(artifactMetaData));
                 } else {
-                    ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
+                    ModuleComponentArtifactMetaData artifact = module.artifact("jar", "jar", null);
                     result.resolved(ImmutableSet.of(artifact));
                 }
             }

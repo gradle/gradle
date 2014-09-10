@@ -31,10 +31,10 @@ public interface ModuleComponentResolveMetaData extends ComponentResolveMetaData
 
     ModuleComponentResolveMetaData withSource(ModuleSource source);
 
-    Set<ModuleVersionArtifactMetaData> getArtifacts();
+    Set<ModuleComponentArtifactMetaData> getArtifacts();
 
-    ModuleVersionArtifactMetaData artifact(Artifact artifact);
+    ModuleComponentArtifactMetaData artifact(Artifact artifact);
 
-    ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
+    ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
 
 }

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.internal.component.external.model.BuildableModuleVersionPublishMetaData;
+import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
@@ -64,7 +64,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
 
                 // Need to convert a second time, to determine which artifacts to publish (and yes, this isn't a great way to do things...)
                 componentMetaData = publishLocalComponentFactory.convert(configurationsToPublish, module);
-                BuildableModuleVersionPublishMetaData publishMetaData = componentMetaData.toPublishMetaData();
+                BuildableIvyModulePublishMetaData publishMetaData = componentMetaData.toPublishMetaData();
                 if (descriptor != null) {
                     Artifact artifact = MDArtifact.newIvyArtifact(componentMetaData.getModuleDescriptor());
                     publishMetaData.addArtifact(artifact, descriptor);

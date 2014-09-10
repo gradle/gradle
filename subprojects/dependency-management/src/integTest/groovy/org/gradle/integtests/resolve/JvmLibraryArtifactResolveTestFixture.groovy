@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ArtifactNotFoundException
-import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
@@ -85,7 +85,7 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture expectSourceArtifactNotFound(String artifactClassifier) {
-        expectedSourceFailure = new ArtifactNotFoundException(new DefaultModuleVersionArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]), [])
+        expectedSourceFailure = new ArtifactNotFoundException(new DefaultModuleComponentArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]), [])
         this
     }
 
@@ -100,7 +100,7 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture expectJavadocArtifactNotFound(String artifactClassifier) {
-        expectedJavadocFailure = new ArtifactNotFoundException(new DefaultModuleVersionArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]), [])
+        expectedJavadocFailure = new ArtifactNotFoundException(new DefaultModuleComponentArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]), [])
         this
     }
 

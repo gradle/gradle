@@ -17,22 +17,22 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
+import org.gradle.internal.resolve.resolver.ModuleToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
-import org.gradle.internal.resolve.resolver.ModuleToModuleVersionResolver;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.ProjectDependencyMetaData;
 
 import java.util.Set;
 
-public class ProjectDependencyResolver implements DependencyToModuleVersionResolver, ModuleToModuleVersionResolver {
+public class ProjectDependencyResolver implements DependencyToComponentResolver, ModuleToComponentResolver {
     private final ProjectComponentRegistry projectComponentRegistry;
-    private final DependencyToModuleVersionResolver delegate;
+    private final DependencyToComponentResolver delegate;
     private final LocalComponentFactory localComponentFactory;
 
-    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, LocalComponentFactory localComponentFactory, DependencyToModuleVersionResolver delegate) {
+    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, LocalComponentFactory localComponentFactory, DependencyToComponentResolver delegate) {
         this.projectComponentRegistry = projectComponentRegistry;
         this.delegate = delegate;
         this.localComponentFactory = localComponentFactory;

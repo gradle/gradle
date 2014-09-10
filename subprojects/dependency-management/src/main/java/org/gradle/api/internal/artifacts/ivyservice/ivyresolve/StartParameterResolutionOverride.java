@@ -28,8 +28,8 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
 
 import java.util.concurrent.TimeUnit;
 
@@ -98,11 +98,11 @@ public class StartParameterResolutionOverride {
     }
 
     private static class FailedRemoteAccess implements ModuleComponentRepositoryAccess {
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
             result.failed(new ModuleVersionResolveException(dependency.getRequested(), "No cached version listing for %s available for offline mode."));
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
             result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, "No cached version of %s available for offline mode."));
         }
 

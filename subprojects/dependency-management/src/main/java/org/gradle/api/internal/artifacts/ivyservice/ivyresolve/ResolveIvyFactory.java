@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
@@ -112,8 +112,8 @@ public class ResolveIvyFactory {
     /**
      * Provides access to the top-level resolver chain for looking up parent modules when parsing module descriptor files.
      */
-    private static class ParentModuleLookupResolver implements RepositoryChain, DependencyToModuleVersionResolver, ArtifactResolver {
-        private final DependencyToModuleVersionResolver dependencyResolver;
+    private static class ParentModuleLookupResolver implements RepositoryChain, DependencyToComponentResolver, ArtifactResolver {
+        private final DependencyToComponentResolver dependencyResolver;
         private final ArtifactResolver artifactResolver;
         private final CacheLockingManager cacheLockingManager;
 
@@ -127,7 +127,7 @@ public class ResolveIvyFactory {
             return this;
         }
 
-        public DependencyToModuleVersionResolver getDependencyResolver() {
+        public DependencyToComponentResolver getDependencyResolver() {
             return this;
         }
 

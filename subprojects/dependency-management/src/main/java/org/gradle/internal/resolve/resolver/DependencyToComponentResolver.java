@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.resolve.resolver;
 
-package org.gradle.internal.component.external.model;
-
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactIdentifier;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 /**
- * An immutable identifier for an artifact that belongs to some module version.
+ * Resolves a dependency to a component instance.
  */
-public interface ModuleVersionArtifactIdentifier extends ComponentArtifactIdentifier {
+public interface DependencyToComponentResolver {
     /**
-     * Returns the id of the component that this artifact belongs to.
+     * Resolves the given dependency to component instance. Failures are packaged up in the returned result.
      */
-    ModuleComponentIdentifier getComponentIdentifier();
+    void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result);
 }

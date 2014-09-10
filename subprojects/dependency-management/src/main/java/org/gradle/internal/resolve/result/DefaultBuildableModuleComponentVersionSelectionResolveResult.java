@@ -19,7 +19,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
 
-public class DefaultBuildableModuleVersionSelectionResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionSelectionResolveResult {
+public class DefaultBuildableModuleComponentVersionSelectionResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleComponentVersionSelectionResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
     private ModuleVersionListing versions;

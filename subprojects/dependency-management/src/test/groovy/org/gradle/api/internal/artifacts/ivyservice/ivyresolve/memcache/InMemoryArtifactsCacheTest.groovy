@@ -19,7 +19,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.ArtifactResolveException
-import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import spock.lang.Specification
 
 class InMemoryArtifactsCacheTest extends Specification {
@@ -32,7 +32,7 @@ class InMemoryArtifactsCacheTest extends Specification {
     }
 
     def "caches and supplies artifacts"() {
-        def artifactId = Stub(ModuleVersionArtifactIdentifier)
+        def artifactId = Stub(ModuleComponentArtifactIdentifier)
         def artifactFile = new File("foo")
 
         given:
@@ -44,7 +44,7 @@ class InMemoryArtifactsCacheTest extends Specification {
         def sameIdResult = Mock(BuildableArtifactResolveResult)
 
         when:
-        def differentId = Stub(ModuleVersionArtifactIdentifier)
+        def differentId = Stub(ModuleComponentArtifactIdentifier)
         def differentIdFound = cache.supplyArtifact(differentId, differentIdResult)
 
         then:
@@ -60,7 +60,7 @@ class InMemoryArtifactsCacheTest extends Specification {
     }
 
     def "does not cache failed artifact resolves"() {
-        def artifactId = Stub(ModuleVersionArtifactIdentifier)
+        def artifactId = Stub(ModuleComponentArtifactIdentifier)
         def failedResult = Stub(BuildableArtifactResolveResult) { getFailure() >> new ArtifactResolveException("bad") }
         cache.newArtifact(artifactId, failedResult)
 

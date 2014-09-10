@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
@@ -36,12 +36,12 @@ class InMemoryMetaDataCacheTest extends Specification {
 
     def "caches and supplies module versions"() {
         def listing = Mock(ModuleVersionListing)
-        def result = Mock(BuildableModuleVersionSelectionResolveResult)
-        def missingResult = Mock(BuildableModuleVersionSelectionResolveResult)
+        def result = Mock(BuildableModuleComponentVersionSelectionResolveResult)
+        def missingResult = Mock(BuildableModuleComponentVersionSelectionResolveResult)
 
         given:
-        cache.newModuleVersions(newSelector("org", "foo-remote", "1.0"), Stub(BuildableModuleVersionSelectionResolveResult) {
-            getState() >> BuildableModuleVersionSelectionResolveResult.State.Listed
+        cache.newModuleVersions(newSelector("org", "foo-remote", "1.0"), Stub(BuildableModuleComponentVersionSelectionResolveResult) {
+            getState() >> BuildableModuleComponentVersionSelectionResolveResult.State.Listed
             getVersions() >> listing
         })
 
@@ -59,12 +59,12 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "does not cache failed module version listing"() {
-        def failedResult = Stub(BuildableModuleVersionSelectionResolveResult) {
-            getState() >> BuildableModuleVersionSelectionResolveResult.State.Failed
+        def failedResult = Stub(BuildableModuleComponentVersionSelectionResolveResult) {
+            getState() >> BuildableModuleComponentVersionSelectionResolveResult.State.Failed
         }
         cache.newModuleVersions(newSelector("org", "lib", "1.0"), failedResult)
 
-        def result = Mock(BuildableModuleVersionSelectionResolveResult)
+        def result = Mock(BuildableModuleComponentVersionSelectionResolveResult)
 
         when:
         def foundInCache = cache.supplyModuleVersions(newSelector("org", "lib", "1.0"), result)
@@ -79,12 +79,12 @@ class InMemoryMetaDataCacheTest extends Specification {
         def cachedCopy = Stub(MutableModuleComponentResolveMetaData)
         def originalMetaData = Stub(MutableModuleComponentResolveMetaData)
         def source = Stub(ModuleSource)
-        def resolvedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
-            getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
+        def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> originalMetaData
             getModuleSource() >> source
         }
-        def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
+        def result = Mock(BuildableModuleComponentMetaDataResolveResult.class)
 
         given:
         _ * originalMetaData.copy() >> cachedCopy
@@ -112,12 +112,12 @@ class InMemoryMetaDataCacheTest extends Specification {
         def moduleSource = Stub(ModuleSource)
         def moduleMetaData = Stub(MutableModuleComponentResolveMetaData)
         _ * moduleMetaData.copy() >> moduleMetaData
-        def resolvedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
+        def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
             getMetaData() >> moduleMetaData
             getModuleSource() >> moduleSource
-            getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         }
-        def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
+        def result = Mock(BuildableModuleComponentMetaDataResolveResult.class)
 
         given:
         cache.newDependencyResult(componentId("org", "remote", "1.0"), resolvedResult)
@@ -132,10 +132,10 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "does not cache failed resolves"() {
-        def failedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Failed }
+        def failedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.Failed }
         cache.newDependencyResult(componentId("org", "lib", "1.0"), failedResult)
 
-        def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
+        def result = Mock(BuildableModuleComponentMetaDataResolveResult.class)
 
         when:
         def fromCache = cache.supplyMetaData(componentId("org", "lib", "1.0"), result)

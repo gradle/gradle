@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
@@ -45,15 +45,15 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
-    private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
     private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
     private final ResolverStrategy resolverStrategy;
-    private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
+    private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder, Instantiator instantiator,
-                                        ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder, Instantiator instantiator,
+                                        ResolverStrategy resolverStrategy, FileStore<ModuleComponentArtifactMetaData> artifactFileStore) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;

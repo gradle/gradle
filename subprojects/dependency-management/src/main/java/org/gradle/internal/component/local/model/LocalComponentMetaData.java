@@ -18,7 +18,7 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.component.external.model.BuildableModuleVersionPublishMetaData;
+import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 
@@ -33,7 +33,7 @@ public interface LocalComponentMetaData {
     /**
      * Converts this component to publication meta-data.
      */
-    BuildableModuleVersionPublishMetaData toPublishMetaData();
+    BuildableIvyModulePublishMetaData toPublishMetaData();
 
     @Nullable
     LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier);

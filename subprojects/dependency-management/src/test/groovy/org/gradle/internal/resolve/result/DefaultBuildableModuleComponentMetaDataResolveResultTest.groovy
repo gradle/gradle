@@ -23,13 +23,13 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specification {
-    def descriptor = new DefaultBuildableModuleVersionMetaDataResolveResult()
+class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specification {
+    def descriptor = new DefaultBuildableModuleComponentMetaDataResolveResult()
     def moduleSource = Stub(ModuleSource)
 
     def "has unknown state by default"() {
         expect:
-        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Unknown
+        descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Unknown
         !descriptor.hasResult()
     }
 
@@ -38,7 +38,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.missing()
 
         then:
-        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Missing
+        descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Missing
         descriptor.failure == null
         descriptor.hasResult()
     }
@@ -48,7 +48,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.probablyMissing()
 
         then:
-        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing
+        descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.ProbablyMissing
         descriptor.failure == null
         descriptor.hasResult()
     }
@@ -60,7 +60,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.failed(failure)
 
         then:
-        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Failed
+        descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Failed
         descriptor.failure == failure
         descriptor.hasResult()
     }
@@ -72,7 +72,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(metaData, moduleSource)
 
         then:
-        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Resolved
+        descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Resolved
         descriptor.failure == null
         descriptor.metaData == metaData
         descriptor.moduleSource == moduleSource

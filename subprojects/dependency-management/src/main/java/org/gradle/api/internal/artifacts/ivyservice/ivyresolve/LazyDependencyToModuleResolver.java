@@ -25,8 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
 import org.gradle.internal.resolve.result.ComponentResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult;
@@ -36,11 +36,11 @@ import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult;
  * required.
  */
 public class LazyDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
-    private final DependencyToModuleVersionResolver dependencyResolver;
+    private final DependencyToComponentResolver dependencyResolver;
     private final VersionMatcher versionMatcher;
     private final ComponentSelectionRulesInternal versionSelectionRules;
 
-    public LazyDependencyToModuleResolver(DependencyToModuleVersionResolver dependencyResolver, VersionMatcher versionMatcher, ComponentSelectionRulesInternal versionSelectionRules) {
+    public LazyDependencyToModuleResolver(DependencyToComponentResolver dependencyResolver, VersionMatcher versionMatcher, ComponentSelectionRulesInternal versionSelectionRules) {
         this.dependencyResolver = dependencyResolver;
         this.versionMatcher = versionMatcher;
         this.versionSelectionRules = versionSelectionRules;

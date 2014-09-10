@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
 import org.gradle.internal.resource.ExternalResourceName;
 
 import java.net.URI;
@@ -49,7 +49,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
 
-    protected Map<String, String> toAttributes(ModuleVersionArtifactMetaData artifact) {
+    protected Map<String, String> toAttributes(ModuleComponentArtifactMetaData artifact) {
         Map<String, String> attributes = toAttributes(artifact.getId().getComponentIdentifier());
         attributes.putAll(toAttributes(artifact.getName()));
         return attributes;

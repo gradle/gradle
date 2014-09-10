@@ -21,8 +21,8 @@ import org.gradle.internal.component.model.*;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
 
 /**
  * A wrapper around a {@link ModuleComponentRepository} that handles releasing the cache lock before making remote calls.
@@ -51,7 +51,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
             this.cacheLockingManager = cacheLockingManager;
         }
 
-        public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleVersionSelectionResolveResult result) {
+        public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleComponentVersionSelectionResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("List %s using repository %s", dependency, name), new Runnable() {
                 public void run() {
                     delegate.listModuleVersions(dependency, result);
@@ -59,7 +59,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
             });
         }
 
-        public void resolveComponentMetaData(final DependencyMetaData dependency, final ModuleComponentIdentifier moduleComponentIdentifier, final BuildableModuleVersionMetaDataResolveResult result) {
+        public void resolveComponentMetaData(final DependencyMetaData dependency, final ModuleComponentIdentifier moduleComponentIdentifier, final BuildableModuleComponentMetaDataResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, name), new Runnable() {
                 public void run() {
                     delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);

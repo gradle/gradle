@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
@@ -41,7 +41,7 @@ class ModuleDescriptorStoreTest extends Specification {
     IvyModuleDescriptorWriter ivyModuleDescriptorWriter = Mock()
     IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser = Mock()
     ModuleComponentIdentifier moduleComponentIdentifier = Mock()
-    def resolver = Mock(DependencyToModuleVersionResolver)
+    def resolver = Mock(DependencyToComponentResolver)
 
     def setup() {
         store = new ModuleDescriptorStore(pathKeyFileStore, ivyModuleDescriptorWriter, ivyXmlModuleDescriptorParser);

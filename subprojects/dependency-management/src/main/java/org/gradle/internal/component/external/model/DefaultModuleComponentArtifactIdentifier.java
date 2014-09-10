@@ -25,23 +25,23 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.Collections;
 import java.util.Map;
 
-public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArtifactIdentifier {
+public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier {
     private final ModuleComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
 
-    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, Artifact artifact) {
+    public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, Artifact artifact) {
         this(componentIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
     }
 
-    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
+    public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
         this(componentIdentifier, name, type, extension, Collections.<String, String>emptyMap());
     }
 
-    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
+    public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
         this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension, attributes));
     }
 
-    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+    public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this.componentIdentifier = componentIdentifier;
         this.name = artifact;
     }
@@ -76,7 +76,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        DefaultModuleVersionArtifactIdentifier other = (DefaultModuleVersionArtifactIdentifier) obj;
+        DefaultModuleComponentArtifactIdentifier other = (DefaultModuleComponentArtifactIdentifier) obj;
         return other.componentIdentifier.equals(componentIdentifier)
                 && other.name.equals(name);
     }

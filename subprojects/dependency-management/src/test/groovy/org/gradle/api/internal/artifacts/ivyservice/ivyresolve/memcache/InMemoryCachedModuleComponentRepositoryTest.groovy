@@ -22,11 +22,11 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
 import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -50,8 +50,8 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def selector = newSelector("org", "lib", "1.0")
     def dep = Stub(DependencyMetaData) { getRequested() >> selector }
 
-    def listingResult = Mock(BuildableModuleVersionSelectionResolveResult)
-    def metaDataResult = Mock(BuildableModuleVersionMetaDataResolveResult)
+    def listingResult = Mock(BuildableModuleComponentVersionSelectionResolveResult)
+    def metaDataResult = Mock(BuildableModuleComponentMetaDataResolveResult)
 
     def "delegates"() {
         when:
@@ -183,8 +183,8 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def "retrieves and caches artifacts"() {
         def result = Mock(BuildableArtifactResolveResult)
-        def artifactId = Stub(ModuleVersionArtifactIdentifier)
-        def artifact = Stub(ModuleVersionArtifactMetaData) {
+        def artifactId = Stub(ModuleComponentArtifactIdentifier)
+        def artifact = Stub(ModuleComponentArtifactMetaData) {
             getId() >> artifactId
         }
         def moduleSource = Mock(ModuleSource)
@@ -210,8 +210,8 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def "uses artifacts from cache"() {
         def result = Mock(BuildableArtifactResolveResult)
-        def artifactId = Stub(ModuleVersionArtifactIdentifier)
-        def artifact = Stub(ModuleVersionArtifactMetaData) {
+        def artifactId = Stub(ModuleComponentArtifactIdentifier)
+        def artifact = Stub(ModuleComponentArtifactMetaData) {
             getId() >> artifactId
         }
         def moduleSource = Mock(ModuleSource)

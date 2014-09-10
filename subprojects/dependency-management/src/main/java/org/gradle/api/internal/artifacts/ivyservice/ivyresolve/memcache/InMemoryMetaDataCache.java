@@ -18,15 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult.State.Listed;
-import static org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult.State.ProbablyListed;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult.State.Listed;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult.State.ProbablyListed;
 
 class InMemoryMetaDataCache {
     private final Map<ModuleVersionSelector, ModuleVersionListing> moduleVersionListing = new HashMap<ModuleVersionSelector, ModuleVersionListing>();
@@ -37,7 +37,7 @@ class InMemoryMetaDataCache {
         this.stats = stats;
     }
 
-    public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionSelectionResolveResult result) {
+    public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleComponentVersionSelectionResolveResult result) {
         ModuleVersionListing moduleVersionListing1 = moduleVersionListing.get(requested);
         if (moduleVersionListing1 == null) {
             return false;
@@ -46,13 +46,13 @@ class InMemoryMetaDataCache {
         return true;
     }
 
-    public void newModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionSelectionResolveResult result) {
+    public void newModuleVersions(ModuleVersionSelector requested, BuildableModuleComponentVersionSelectionResolveResult result) {
         if (result.getState() == Listed || result.getState() == ProbablyListed) {
             moduleVersionListing.put(requested, result.getVersions());
         }
     }
 
-    boolean supplyMetaData(ModuleComponentIdentifier requested, BuildableModuleVersionMetaDataResolveResult result) {
+    boolean supplyMetaData(ModuleComponentIdentifier requested, BuildableModuleComponentMetaDataResolveResult result) {
         CachedModuleVersionResult fromCache = metaData.get(requested);
         if (fromCache == null) {
             return false;
@@ -62,7 +62,7 @@ class InMemoryMetaDataCache {
         return true;
     }
 
-    void newDependencyResult(ModuleComponentIdentifier requested, BuildableModuleVersionMetaDataResolveResult result) {
+    void newDependencyResult(ModuleComponentIdentifier requested, BuildableModuleComponentMetaDataResolveResult result) {
         CachedModuleVersionResult cachedResult = new CachedModuleVersionResult(result);
         if (cachedResult.isCacheable()) {
             metaData.put(requested, cachedResult);

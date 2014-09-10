@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 
 public interface RepositoryChain {
-    public DependencyToModuleVersionResolver getDependencyResolver();
+    public DependencyToComponentResolver getDependencyResolver();
     public ArtifactResolver getArtifactResolver();
 }

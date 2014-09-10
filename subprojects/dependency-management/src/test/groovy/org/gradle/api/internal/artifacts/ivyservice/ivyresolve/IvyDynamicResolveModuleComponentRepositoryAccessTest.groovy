@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
 class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification {
@@ -29,7 +29,7 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
     final metaData = Mock(MutableModuleComponentResolveMetaData)
     final requestedDependency = Mock(DependencyMetaData)
     final moduleComponentId = Mock(ModuleComponentIdentifier)
-    final result = Mock(BuildableModuleVersionMetaDataResolveResult)
+    final result = Mock(BuildableModuleComponentMetaDataResolveResult)
     final ModuleComponentRepositoryAccess access = new IvyDynamicResolveModuleComponentRepositoryAccess(target)
 
     def "replaces each dependency version with revConstraint"() {
@@ -37,7 +37,7 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
         def transformed = dependency()
 
         given:
-        result.state >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
+        result.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         result.metaData >> metaData
 
         when:
@@ -58,7 +58,7 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
 
         then:
         1 * target.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
-        _ * result.state >> BuildableModuleVersionMetaDataResolveResult.State.Missing
+        _ * result.state >> BuildableModuleComponentMetaDataResolveResult.State.Missing
         0 * result._
     }
 

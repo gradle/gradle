@@ -22,8 +22,8 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
 
 // TODO:DAZ Should share local and remote caches, and use make in-memory caching a decorator over filesystem caching
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
@@ -58,14 +58,14 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             this.metaDataCache = metaDataCache;
         }
 
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
             if(!metaDataCache.supplyModuleVersions(dependency.getRequested(), result)) {
                 super.listModuleVersions(dependency, result);
                 metaDataCache.newModuleVersions(dependency.getRequested(), result);
             }
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
             if(!metaDataCache.supplyMetaData(moduleComponentIdentifier, result)) {
                 super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
                 metaDataCache.newDependencyResult(moduleComponentIdentifier, result);

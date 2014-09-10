@@ -19,10 +19,10 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.internal.resolve.result.BuildableModuleVersionSelectionResolveResult.State.*
+import static org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult.State.*
 
-class DefaultBuildableModuleVersionSelectionResolveResultTest extends Specification {
-    def descriptor = new DefaultBuildableModuleVersionSelectionResolveResult()
+class DefaultBuildableModuleComponentVersionSelectionResolveResultTest extends Specification {
+    def descriptor = new DefaultBuildableModuleComponentVersionSelectionResolveResult()
     def listing = Mock(ModuleVersionListing)
 
     def "has unknown state by default"() {

@@ -28,7 +28,7 @@ import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
 
@@ -138,7 +138,7 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         _ * dependency.getRequested() >> selector
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
-        _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleVersionMetaDataResolveResult result ->
+        _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleComponentMetaDataResolveResult result ->
             result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
             }, null)
@@ -199,7 +199,7 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         _ * dependency.getRequested() >> selector
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
-        _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleVersionMetaDataResolveResult result ->
+        _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleComponentMetaDataResolveResult result ->
             result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
             }, null)
@@ -285,7 +285,7 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         _ * dependency.getRequested() >> selector
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
-        _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleVersionMetaDataResolveResult result ->
+        _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleComponentMetaDataResolveResult result ->
             result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
             }, null)

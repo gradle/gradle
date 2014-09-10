@@ -20,19 +20,19 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ClientModuleResolverTest extends Specification {
-    final target = Mock(DependencyToModuleVersionResolver)
+    final target = Mock(DependencyToComponentResolver)
     final dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
     final ClientModuleResolver resolver = new ClientModuleResolver(target, dependencyDescriptorFactory)
 
@@ -45,7 +45,7 @@ class ClientModuleResolverTest extends Specification {
         def dep = Mock(ModuleDependency)
         def moduleDescriptor = Mock(ModuleDescriptor)
         def dependencyMetaData = Mock(DependencyMetaData)
-        def artifact = Mock(ModuleVersionArtifactMetaData)
+        def artifact = Mock(ModuleComponentArtifactMetaData)
 
         when:
         resolver.resolve(dependency, result)

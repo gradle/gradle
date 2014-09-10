@@ -19,20 +19,20 @@ package org.gradle.internal.component.external.model
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
-class DefaultModuleVersionArtifactIdentifierTest extends Specification {
+class DefaultModuleComponentArtifactIdentifierTest extends Specification {
     def "has useful string representation"() {
         def componentId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
 
         expect:
-        def noClassifier = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", "ext", [:])
+        def noClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", [:])
         noClassifier.displayName == "name.ext (group:module:version)"
         noClassifier.toString() == "name.ext (group:module:version)"
 
-        def withClassifier = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", "ext", ['classifier': 'classifier'])
+        def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", ['classifier': 'classifier'])
         withClassifier.displayName == "name-classifier.ext (group:module:version)"
         withClassifier.toString() == "name-classifier.ext (group:module:version)"
 
-        def noExtension = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", null, ['classifier': 'classifier'])
+        def noExtension = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, ['classifier': 'classifier'])
         noExtension.displayName == "name-classifier (group:module:version)"
         noExtension.toString() == "name-classifier (group:module:version)"
     }
@@ -41,15 +41,15 @@ class DefaultModuleVersionArtifactIdentifierTest extends Specification {
         def componentId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def otherComponentId = DefaultModuleComponentIdentifier.newId("group", "module", "2")
 
-        def withClassifier = new DefaultModuleVersionArtifactIdentifier(componentId,  "name", "type", "ext", ['classifier': 'classifier'])
-        def same = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", "ext", ['classifier': 'classifier'])
-        def differentModule = new DefaultModuleVersionArtifactIdentifier(otherComponentId, "name", "type", "ext", ['classifier': 'classifier'])
-        def differentName = new DefaultModuleVersionArtifactIdentifier(componentId, "2", "type", "ext", ['classifier': 'classifier'])
-        def differentType = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "2", "ext", ['classifier': 'classifier'])
-        def differentExt = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", "2", ['classifier': 'classifier'])
-        def differentAttributes = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", "ext", ['classifier': '2'])
-        def emptyParts = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", null, [:])
-        def emptyPartsSame = new DefaultModuleVersionArtifactIdentifier(componentId, "name", "type", null, [:])
+        def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId,  "name", "type", "ext", ['classifier': 'classifier'])
+        def same = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", ['classifier': 'classifier'])
+        def differentModule = new DefaultModuleComponentArtifactIdentifier(otherComponentId, "name", "type", "ext", ['classifier': 'classifier'])
+        def differentName = new DefaultModuleComponentArtifactIdentifier(componentId, "2", "type", "ext", ['classifier': 'classifier'])
+        def differentType = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "2", "ext", ['classifier': 'classifier'])
+        def differentExt = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "2", ['classifier': 'classifier'])
+        def differentAttributes = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", ['classifier': '2'])
+        def emptyParts = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, [:])
+        def emptyPartsSame = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", null, [:])
 
         expect:
         withClassifier Matchers.strictlyEqual(same)

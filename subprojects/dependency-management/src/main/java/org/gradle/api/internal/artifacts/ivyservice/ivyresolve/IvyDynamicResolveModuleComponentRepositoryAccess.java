@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,14 +45,14 @@ class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleCompone
         super(delegate);
     }
 
-    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
         super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
-        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+        if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }
     }
 
-    private void transformDependencies(BuildableModuleVersionMetaDataResolveResult result) {
+    private void transformDependencies(BuildableModuleComponentMetaDataResolveResult result) {
         MutableModuleComponentResolveMetaData metaData = result.getMetaData();
         List<DependencyMetaData> transformed = new ArrayList<DependencyMetaData>();
         for (DependencyMetaData dependency : metaData.getDependencies()) {

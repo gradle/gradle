@@ -20,7 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 
@@ -32,7 +32,7 @@ public class UserResolverChain implements RepositoryChain {
         this.dependencyResolver = new RepositoryChainDependencyResolver(new NewestVersionComponentChooser(latestStrategy, versionMatcher, versionSelectionRules), new ModuleTransformer());
     }
 
-    public DependencyToModuleVersionResolver getDependencyResolver() {
+    public DependencyToComponentResolver getDependencyResolver() {
         return dependencyResolver;
     }
 

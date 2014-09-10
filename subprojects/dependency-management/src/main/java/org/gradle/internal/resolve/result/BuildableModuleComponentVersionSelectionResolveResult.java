@@ -17,16 +17,17 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import java.util.Collection;
+
 /**
- * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
+ * The result of attempting to resolve a dependency descriptor to a list of candidate versions that might match that descriptor.
  */
-public interface BuildableModuleVersionMetaDataResolveResult extends ResourceAwareResolveResult {
+public interface BuildableModuleComponentVersionSelectionResolveResult extends ResourceAwareResolveResult {
+
     static enum State {
-        Resolved, Missing, Failed, ProbablyMissing, Unknown
+        Listed, ProbablyListed, Failed, Unknown
     }
 
     /**
@@ -40,39 +41,32 @@ public interface BuildableModuleVersionMetaDataResolveResult extends ResourceAwa
     boolean hasResult();
 
     /**
-     * Returns the meta-data.
+     * Returns the versions that match the selector.
      *
      * @throws ModuleVersionResolveException If the resolution was not successful.
      */
-    MutableModuleComponentResolveMetaData getMetaData() throws ModuleVersionResolveException;
+    ModuleVersionListing getVersions() throws ModuleVersionResolveException;
 
     @Nullable
     ModuleVersionResolveException getFailure();
 
     /**
-     * Marks the module version as resolved, with the given meta-data and source.
+     * Marks the module as having been listed to have the specified versions available.
      */
-    void resolved(MutableModuleComponentResolveMetaData metaData, ModuleSource moduleSource);
+    void listed(ModuleVersionListing versions);
 
     /**
-     * Marks the resolve as failed with the given exception.
+     * Marks the module as having been listed to have the specified versions available.
+     */
+    void listed(Collection<String> versions);
+
+    /**
+     * Marks the module as probably having no versions available.
+     */
+    void probablyListed(ModuleVersionListing versions);
+
+    /**
+     * Marks the list as failed with the given exception.
      */
     void failed(ModuleVersionResolveException failure);
-
-    /**
-     * Marks the module version as definitely missing.
-     */
-    void missing();
-
-    /**
-     * Marks the module version as probably missing.
-     */
-    void probablyMissing();
-
-    /**
-     * The repository-specific source for this module version.
-     */
-    public ModuleSource getModuleSource();
-
-    void setModuleSource(ModuleSource moduleSource);
 }

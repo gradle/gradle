@@ -19,7 +19,7 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public class DefaultBuildableModuleVersionMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionMetaDataResolveResult {
+public class DefaultBuildableModuleComponentMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleComponentMetaDataResolveResult {
     private State state = State.Unknown;
     private ModuleSource moduleSource;
     private ModuleVersionResolveException failure;

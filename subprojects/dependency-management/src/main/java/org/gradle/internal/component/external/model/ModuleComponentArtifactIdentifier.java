@@ -16,12 +16,15 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 
-import java.io.File;
-
-public interface BuildableModuleVersionPublishMetaData extends ModuleVersionPublishMetaData {
-    void addArtifact(ModuleVersionArtifactPublishMetaData artifact);
-
-    void addArtifact(Artifact artifact, File file);
+/**
+ * An immutable identifier for an artifact that belongs to some module version.
+ */
+public interface ModuleComponentArtifactIdentifier extends ComponentArtifactIdentifier {
+    /**
+     * Returns the id of the component that this artifact belongs to.
+     */
+    ModuleComponentIdentifier getComponentIdentifier();
 }

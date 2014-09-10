@@ -28,8 +28,8 @@ import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactPublishMetaData;
-import org.gradle.internal.component.external.model.ModuleVersionPublishMetaData;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
+import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -73,8 +73,8 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
 
     protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
 
-    public void publish(ModuleVersionPublishMetaData moduleVersion) {
-        for (ModuleVersionArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
+    public void publish(IvyModulePublishMetaData moduleVersion) {
+        for (IvyModuleArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
             collectArtifact(artifact.toIvyArtifact(), artifact.getFile());
         }
         publish();

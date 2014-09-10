@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.ArtifactResolveException
-import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
@@ -33,16 +33,16 @@ class ExternalResourceResolverTest extends Specification {
     VersionLister versionLister = Mock()
     LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
-    ModuleVersionArtifactIdentifier artifactIdentifier = Stub() {
+    ModuleComponentArtifactIdentifier artifactIdentifier = Stub() {
         getDisplayName() >> 'some-artifact'
     }
-    ModuleVersionArtifactMetaData artifact = Stub() {
+    ModuleComponentArtifactMetaData artifact = Stub() {
         getId() >> artifactIdentifier
     }
     MavenUniqueSnapshotModuleSource moduleSource = Mock()
     File downloadedFile = Mock(File)
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
-    FileStore<ModuleVersionArtifactMetaData> fileStore = Stub()
+    FileStore<ModuleComponentArtifactMetaData> fileStore = Stub()
     ExternalResourceResolver resolver
 
     def setup() {

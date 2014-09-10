@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData;
 import org.gradle.internal.resource.ExternalResourceName;
 
 import java.net.URI;
@@ -40,13 +40,13 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         return String.format("M2 pattern '%s'", getPattern());
     }
 
-    public ExternalResourceName getLocation(ModuleVersionArtifactMetaData artifact) {
+    public ExternalResourceName getLocation(ModuleComponentArtifactMetaData artifact) {
         Map<String, String> attributes = toAttributes(artifact);
         String pattern = maybeSubstituteTimestamp(artifact, getBase().getPath());
         return getBase().getRoot().resolve(substituteTokens(pattern, attributes));
     }
 
-    private String maybeSubstituteTimestamp(ModuleVersionArtifactMetaData artifact, String pattern) {
+    private String maybeSubstituteTimestamp(ModuleComponentArtifactMetaData artifact, String pattern) {
         if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier) {
             String timestampedVersion = ((MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId()).getTimestampedVersion();
             pattern = pattern.replaceFirst("\\-\\[revision\\]", "-" + timestampedVersion);

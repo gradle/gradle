@@ -25,21 +25,21 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.internal.resolve.resolver.ArtifactResolver
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionResolver
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class LazyDependencyToModuleResolverTest extends Specification {
-    final target = Mock(DependencyToModuleVersionResolver)
+    final target = Mock(DependencyToComponentResolver)
     final matcher = Mock(VersionMatcher)
     final versionSelectionRules = Mock(ComponentSelectionRulesInternal)
     final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher, versionSelectionRules)
@@ -205,9 +205,9 @@ class LazyDependencyToModuleResolverTest extends Specification {
         _ * artifact.moduleRevisionId >> IvyUtil.createModuleRevisionId("group", "module", "1.0")
         _ * artifact.name >> 'artifact'
         _ * artifact.ext >> 'zip'
-        return Stub(ModuleVersionArtifactMetaData) {
+        return Stub(ModuleComponentArtifactMetaData) {
             getArtifact() >> artifact
-            getId() >> Stub(ModuleVersionArtifactIdentifier) {
+            getId() >> Stub(ModuleComponentArtifactIdentifier) {
                 getDisplayName() >> "artifact.zip"
             }
         }

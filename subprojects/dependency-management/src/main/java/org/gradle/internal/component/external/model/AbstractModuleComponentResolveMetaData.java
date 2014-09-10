@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDescriptorBackedMetaData implements MutableModuleComponentResolveMetaData {
-    private Set<ModuleVersionArtifactMetaData> artifacts;
-    private Multimap<String, ModuleVersionArtifactMetaData> artifactsByConfig;
+    private Set<ModuleComponentArtifactMetaData> artifacts;
+    private Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig;
 
     public AbstractModuleComponentResolveMetaData(ModuleDescriptor moduleDescriptor) {
         this(moduleVersionIdentifier(moduleDescriptor), moduleDescriptor, moduleComponentIdentifier(moduleDescriptor));
@@ -76,24 +76,24 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         return (ModuleComponentIdentifier) super.getComponentId();
     }
 
-    public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
-        return new DefaultModuleVersionArtifactMetaData(getComponentId(), artifact);
+    public ModuleComponentArtifactMetaData artifact(Artifact artifact) {
+        return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
     }
 
-    public ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
+    public ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
         Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
         Artifact artifact = new DefaultArtifact(getDescriptor().getModuleRevisionId(), null, getId().getName(), type, extension, extraAttributes);
-        return new DefaultModuleVersionArtifactMetaData(getComponentId(), artifact);
+        return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
     }
 
-    public Set<ModuleVersionArtifactMetaData> getArtifacts() {
+    public Set<ModuleComponentArtifactMetaData> getArtifacts() {
         if (artifacts == null) {
             populateArtifactsFromDescriptor();
         }
         return artifacts;
     }
 
-    public void setArtifacts(Iterable<? extends ModuleVersionArtifactMetaData> artifacts) {
+    public void setArtifacts(Iterable<? extends ModuleComponentArtifactMetaData> artifacts) {
         this.artifacts = Sets.newLinkedHashSet(artifacts);
         this.artifactsByConfig = LinkedHashMultimap.create();
         for (String config : getDescriptor().getConfigurationsNames()) {
@@ -113,9 +113,9 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
     }
 
     private void populateArtifactsFromDescriptor() {
-        Map<Artifact, ModuleVersionArtifactMetaData> artifactToMetaData = Maps.newLinkedHashMap();
+        Map<Artifact, ModuleComponentArtifactMetaData> artifactToMetaData = Maps.newLinkedHashMap();
         for (Artifact descriptorArtifact : getDescriptor().getAllArtifacts()) {
-            ModuleVersionArtifactMetaData artifact = artifact(descriptorArtifact);
+            ModuleComponentArtifactMetaData artifact = artifact(descriptorArtifact);
             artifactToMetaData.put(descriptorArtifact, artifact);
         }
 

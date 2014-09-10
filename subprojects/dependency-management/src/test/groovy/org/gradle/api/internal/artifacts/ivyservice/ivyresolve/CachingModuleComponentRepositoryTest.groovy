@@ -27,14 +27,14 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersio
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.component.ArtifactType
-import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
-import org.gradle.internal.component.external.model.ModuleVersionArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.ComponentArtifactMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.ComponentResolveMetaData
-import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionMetaDataResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionSelectionResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentVersionSelectionResolveResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
@@ -62,8 +62,8 @@ class CachingModuleComponentRepositoryTest extends Specification {
     @Unroll
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
-        def artifactId = Stub(ModuleVersionArtifactIdentifier)
-        def artifact = Stub(ModuleVersionArtifactMetaData) {
+        def artifactId = Stub(ModuleComponentArtifactIdentifier)
+        def artifact = Stub(ModuleComponentArtifactMetaData) {
             getId() >> artifactId
         }
 
@@ -93,7 +93,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
     def "does not use cache when module version listing can be determined locally"() {
         def dependency = Mock(DependencyMetaData)
-        def result = new DefaultBuildableModuleVersionSelectionResolveResult()
+        def result = new DefaultBuildableModuleComponentVersionSelectionResolveResult()
 
         when:
         repo.localAccess.listModuleVersions(dependency, result)
@@ -108,7 +108,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def "does not use cache when component metadata can be determined locally"() {
         def dependency = Mock(DependencyMetaData)
         def componentId = Mock(ModuleComponentIdentifier)
-        def result = new DefaultBuildableModuleVersionMetaDataResolveResult()
+        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
 
         when:
         repo.localAccess.resolveComponentMetaData(dependency, componentId, result)

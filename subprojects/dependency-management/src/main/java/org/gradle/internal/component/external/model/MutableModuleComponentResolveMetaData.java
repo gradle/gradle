@@ -37,5 +37,5 @@ public interface MutableModuleComponentResolveMetaData extends ModuleComponentRe
     /**
      * Replaces the artifacts of this module version.
      */
-    void setArtifacts(Iterable<? extends ModuleVersionArtifactMetaData> artifacts);
+    void setArtifacts(Iterable<? extends ModuleComponentArtifactMetaData> artifacts);
 }

@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.external.model.BuildableModuleVersionPublishMetaData;
-import org.gradle.internal.component.external.model.DefaultModuleVersionPublishMetaData;
+import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.internal.component.model.*;
 
 import java.io.File;
@@ -95,8 +95,8 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return new LocalComponentResolveMetaData();
     }
 
-    public BuildableModuleVersionPublishMetaData toPublishMetaData() {
-        DefaultModuleVersionPublishMetaData publishMetaData = new DefaultModuleVersionPublishMetaData(id);
+    public BuildableIvyModulePublishMetaData toPublishMetaData() {
+        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id);
         for (DefaultLocalArtifactMetaData artifact : artifactsById.values()) {
             publishMetaData.addArtifact(artifact.artifact, artifact.file);
         }

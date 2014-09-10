@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
-import org.gradle.internal.component.external.model.DefaultModuleVersionArtifactIdentifier;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
@@ -29,12 +29,12 @@ import java.util.Map;
 
 import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
-public class ModuleVersionArtifactIdentifierSerializer implements Serializer<ModuleVersionArtifactIdentifier> {
+public class ModuleVersionArtifactIdentifierSerializer implements Serializer<ModuleComponentArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
     private final MapSerializer<String, String> attributesSerializer = new MapSerializer<String, String>(STRING_SERIALIZER, STRING_SERIALIZER);
 
-    public void write(Encoder encoder, ModuleVersionArtifactIdentifier value) throws Exception {
-        DefaultModuleVersionArtifactIdentifier artifact = (DefaultModuleVersionArtifactIdentifier) value;
+    public void write(Encoder encoder, ModuleComponentArtifactIdentifier value) throws Exception {
+        DefaultModuleComponentArtifactIdentifier artifact = (DefaultModuleComponentArtifactIdentifier) value;
         componentIdentifierSerializer.write(encoder, artifact.getComponentIdentifier());
         IvyArtifactName ivyArtifactName = artifact.getName();
         encoder.writeString(ivyArtifactName.getName());
@@ -43,12 +43,12 @@ public class ModuleVersionArtifactIdentifierSerializer implements Serializer<Mod
         attributesSerializer.write(encoder, ivyArtifactName.getAttributes());
     }
 
-    public ModuleVersionArtifactIdentifier read(Decoder decoder) throws Exception {
+    public ModuleComponentArtifactIdentifier read(Decoder decoder) throws Exception {
         ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         String artifactName = decoder.readString();
         String type = decoder.readString();
         String extension = decoder.readNullableString();
         Map<String, String> attributes = attributesSerializer.read(decoder);
-        return new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifactName, type, extension, attributes);
+        return new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifactName, type, extension, attributes);
     }
 }

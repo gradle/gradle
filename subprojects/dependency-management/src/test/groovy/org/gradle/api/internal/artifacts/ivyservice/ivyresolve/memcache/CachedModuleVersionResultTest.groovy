@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import spock.lang.Specification
@@ -24,13 +24,13 @@ import spock.lang.Specification
 class CachedModuleVersionResultTest extends Specification {
 
     def "knows if result is cachable"() {
-        def resolved = Mock(BuildableModuleVersionMetaDataResolveResult) {
-            getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
+        def resolved = Mock(BuildableModuleComponentMetaDataResolveResult) {
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> Stub(MutableModuleComponentResolveMetaData)
         }
-        def missing = Mock(BuildableModuleVersionMetaDataResolveResult) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Missing }
-        def probablyMissing = Mock(BuildableModuleVersionMetaDataResolveResult) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing }
-        def failed = Mock(BuildableModuleVersionMetaDataResolveResult) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Failed }
+        def missing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing }
+        def probablyMissing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.ProbablyMissing }
+        def failed = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.Failed }
 
         expect:
         new CachedModuleVersionResult(resolved).cacheable
@@ -40,21 +40,21 @@ class CachedModuleVersionResultTest extends Specification {
     }
 
     def "interrogates result only when resolved"() {
-        def resolved = Mock(BuildableModuleVersionMetaDataResolveResult)
-        def missing = Mock(BuildableModuleVersionMetaDataResolveResult)
+        def resolved = Mock(BuildableModuleComponentMetaDataResolveResult)
+        def missing = Mock(BuildableModuleComponentMetaDataResolveResult)
 
         when:
         new CachedModuleVersionResult(missing)
 
         then:
-        1 * missing.getState() >> BuildableModuleVersionMetaDataResolveResult.State.Missing
+        1 * missing.getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing
         0 * missing._
 
         when:
         new CachedModuleVersionResult(resolved)
 
         then:
-        1 * resolved.getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
+        1 * resolved.getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         1 * resolved.getMetaData() >> Stub(MutableModuleComponentResolveMetaData)
     }
 
@@ -63,15 +63,15 @@ class CachedModuleVersionResultTest extends Specification {
         def cachedMetaData = Mock(MutableModuleComponentResolveMetaData)
         def metaData = Mock(MutableModuleComponentResolveMetaData)
         def source = Mock(ModuleSource)
-        def resolved = Mock(BuildableModuleVersionMetaDataResolveResult) {
-            getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
+        def resolved = Mock(BuildableModuleComponentMetaDataResolveResult) {
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> metaData
             getModuleSource() >> source
         }
-        def missing = Mock(BuildableModuleVersionMetaDataResolveResult) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Missing }
-        def probablyMissing = Mock(BuildableModuleVersionMetaDataResolveResult) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing }
+        def missing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing }
+        def probablyMissing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.ProbablyMissing }
 
-        def result = Mock(BuildableModuleVersionMetaDataResolveResult)
+        def result = Mock(BuildableModuleComponentMetaDataResolveResult)
 
         when:
         def cached = new CachedModuleVersionResult(resolved)

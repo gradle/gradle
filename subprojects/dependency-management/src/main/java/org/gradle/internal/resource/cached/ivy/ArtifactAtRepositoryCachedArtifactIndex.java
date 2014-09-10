@@ -18,7 +18,7 @@ package org.gradle.internal.resource.cached.ivy;
 
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.resource.cached.CachedArtifact;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.internal.resource.cached.DefaultCachedArtifact;
@@ -57,7 +57,7 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
     }
 
     private static class ArtifactAtRepositoryKeySerializer implements Serializer<ArtifactAtRepositoryKey> {
-        private final Serializer<ModuleVersionArtifactIdentifier> artifactIdSerializer = new ModuleVersionArtifactIdentifierSerializer();
+        private final Serializer<ModuleComponentArtifactIdentifier> artifactIdSerializer = new ModuleVersionArtifactIdentifierSerializer();
 
         public void write(Encoder encoder, ArtifactAtRepositoryKey value) throws Exception {
             encoder.writeString(value.getRepositoryId());
@@ -66,7 +66,7 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
 
         public ArtifactAtRepositoryKey read(Decoder decoder) throws Exception {
             String repositoryId = decoder.readString();
-            ModuleVersionArtifactIdentifier artifactIdentifier = artifactIdSerializer.read(decoder);
+            ModuleComponentArtifactIdentifier artifactIdentifier = artifactIdSerializer.read(decoder);
             return new ArtifactAtRepositoryKey(repositoryId, artifactIdentifier);
         }
     }

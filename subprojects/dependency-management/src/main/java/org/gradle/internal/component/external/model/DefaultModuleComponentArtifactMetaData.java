@@ -25,19 +25,19 @@ import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifactMetaData {
-    private final DefaultModuleVersionArtifactIdentifier id;
+public class DefaultModuleComponentArtifactMetaData implements ModuleComponentArtifactMetaData {
+    private final DefaultModuleComponentArtifactIdentifier id;
 
-    public DefaultModuleVersionArtifactMetaData(ModuleComponentIdentifier componentIdentifier, Artifact artifact) {
-        this(new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact));
+    public DefaultModuleComponentArtifactMetaData(ModuleComponentIdentifier componentIdentifier, Artifact artifact) {
+        this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
     }
 
-    public DefaultModuleVersionArtifactMetaData(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
-        this(new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact));
+    public DefaultModuleComponentArtifactMetaData(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+        this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
     }
 
-    public DefaultModuleVersionArtifactMetaData(ModuleVersionArtifactIdentifier moduleVersionArtifactIdentifier) {
-        this.id = (DefaultModuleVersionArtifactIdentifier) moduleVersionArtifactIdentifier;
+    public DefaultModuleComponentArtifactMetaData(ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier) {
+        this.id = (DefaultModuleComponentArtifactIdentifier) moduleComponentArtifactIdentifier;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
         return id.toString();
     }
 
-    public ModuleVersionArtifactIdentifier getId() {
+    public ModuleComponentArtifactIdentifier getId() {
         return id;
     }
 

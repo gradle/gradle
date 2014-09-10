@@ -16,21 +16,12 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-import java.io.File;
+import java.util.Collection;
 
-// TODO:ADAM - This is actually Ivy artifact publish meta data
-public interface ModuleVersionArtifactPublishMetaData {
-    ModuleVersionArtifactIdentifier getId();
+public interface IvyModulePublishMetaData {
+    ModuleVersionIdentifier getId();
 
-    /**
-     * Converts this artifact to an Ivy artifact. This method is here while we transition away from the Ivy types.
-     */
-    Artifact toIvyArtifact();
-
-    IvyArtifactName getArtifactName();
-
-    File getFile();
+    Collection<IvyModuleArtifactPublishMetaData> getArtifacts();
 }

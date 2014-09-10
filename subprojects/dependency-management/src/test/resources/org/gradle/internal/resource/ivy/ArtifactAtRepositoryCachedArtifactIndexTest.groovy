@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.ivy
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.internal.component.external.model.ModuleVersionArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.resource.cached.CachedArtifact
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
@@ -68,7 +68,7 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
     def "stored artifact is put into persistentIndexedCache"() {
         setup:
         1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
-        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleVersionArtifactIdentifier));
+        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier));
         def testFile = folder.createFile("aTestFile");
         when:
         index.store(key, testFile, BigInteger.TEN)
@@ -123,7 +123,7 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
     def createEntryInPersistentCache() {
         1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
         1 * cacheLockingManager.useCache("lookup from artifact resolution cache \'cacheFile\'", _) >> {descr, factory -> factory.create()}
-        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleVersionArtifactIdentifier));
+        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier));
         1 * persistentIndexedCache.get(key) >> cachedArtifact;
         key
     }

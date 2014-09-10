@@ -43,7 +43,7 @@ import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver;
-import org.gradle.internal.resolve.resolver.ModuleToModuleVersionResolver;
+import org.gradle.internal.resolve.resolver.ModuleToComponentResolver;
 import org.gradle.internal.resolve.result.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,11 +55,11 @@ public class DependencyGraphBuilder {
     private final DependencyToModuleVersionIdResolver dependencyResolver;
     private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
     private final ConflictHandler conflictHandler;
-    private final ModuleToModuleVersionResolver moduleResolver;
+    private final ModuleToComponentResolver moduleResolver;
     private final ArtifactResolver artifactResolver;
 
     public DependencyGraphBuilder(DependencyToModuleVersionIdResolver dependencyResolver,
-                                  ModuleToModuleVersionResolver moduleResolver,
+                                  ModuleToComponentResolver moduleResolver,
                                   ArtifactResolver artifactResolver,
                                   ConflictHandler conflictHandler,
                                   DependencyToConfigurationResolver dependencyToConfigurationResolver) {

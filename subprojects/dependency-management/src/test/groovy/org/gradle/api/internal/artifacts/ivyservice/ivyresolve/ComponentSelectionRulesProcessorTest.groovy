@@ -35,7 +35,7 @@ import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaD
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
-import org.gradle.internal.resolve.result.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
 class ComponentSelectionRulesProcessorTest extends Specification {
@@ -51,7 +51,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "all non-rejecting rules are evaluated" () {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
+            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
                 result.resolved(md, null)
             }
@@ -165,7 +165,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     def "produces sensible error when rule action throws exception" () {
         def ComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules()
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
+            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
                 result.resolved(md, null)
             }
@@ -183,7 +183,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component" () {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
+            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result ->
                 def md = new DefaultMavenModuleResolveMetaData(Stub(ModuleDescriptor), "bundle", false)
                 result.resolved(md, null)
             }
@@ -201,7 +201,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "only matching targeted rules get called" () {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
-            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result ->
+            resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
                 result.resolved(md, null)
             }
