@@ -260,9 +260,10 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "multiple targets should produce in the correct bytecode"() {
-        JavaVersion target1 = JavaVersion.VERSION_1_6
-        JavaVersion target2 = JavaVersion.VERSION_1_7
-        JavaVersion target3 = JavaVersion.VERSION_1_8
+        JavaVersion target1 = JavaVersion.VERSION_1_5
+        JavaVersion target2 = JavaVersion.VERSION_1_6
+        JavaVersion target3 = JavaVersion.VERSION_1_7
+        JavaVersion target4 = JavaVersion.VERSION_1_8
         when:
         def javaApp = new TestJavaLibrary()
         javaApp.sources*.writeToDir(file("src/myLib/java"))
@@ -278,6 +279,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
                 target java("$target1")
                 target java("$target2")
                 target java("$target3")
+                target java("$target4")
             }
         }
     }
@@ -291,6 +293,8 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         jarFile("build/jars/myLibJar/jdk$target2/myLib.jar").getJavaVersion() == target2
         and:
         jarFile("build/jars/myLibJar/jdk$target3/myLib.jar").getJavaVersion() == target3
+        and:
+        jarFile("build/jars/myLibJar/jdk$target4/myLib.jar").getJavaVersion() == target4
     }
 
     def "erroneous target should produce reasonable error message"() {
@@ -348,8 +352,9 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "component report contains target data"() {
-        String target1 = JavaVersion.VERSION_1_6;
-        String target2 = JavaVersion.current();
+        String target1 = JavaVersion.VERSION_1_5;
+        String target2 = JavaVersion.VERSION_1_6;
+        String target3 = JavaVersion.current();
         when:
         def javaApp = new TestJavaLibrary()
         javaApp.sources*.writeToDir(file("src/myLib/java"))
@@ -364,6 +369,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
             myLib {
                 target java("$target1")
                 target java("$target2")
+                target java("$target3")
             }
         }
     }
@@ -375,6 +381,8 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         assert output.contains("platform: target JDK ${target1}")
         and:
         assert output.contains("platform: target JDK ${target2}")
+        and:
+        assert output.contains("platform: target JDK ${target3}")
     }
 
     private JarTestFixture jarFile(String s) {
