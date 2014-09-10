@@ -340,6 +340,7 @@ One potential option will be to insert a fake statement as the first statement o
   - ~~Inputs are finalized when used~~
   - ~~Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)~~
   - ~~`$(String)` can be used anywhere in code body (e.g. `if` body)~~
+  - ~~Rule defined in script plugin can access inputs with correct context (i.e. inputs are linked to correct project scope)~~
 - ~~Nested `model {}` usage~~
   - ~~Can use model rules in nested context that don't require inputs~~
   - ~~Attempted use of inputs in model rule in nested context yields “unsupported” error message~~
