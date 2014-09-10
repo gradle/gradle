@@ -94,17 +94,10 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
                             .withComponentName(jvmLibrary.getName())
                             .withTypeString("jar");
-                    final BinaryNamingScheme namingScheme;
-
-                    if (jvmLibrary.getTargets().size() <= 1) {
-                        namingScheme = componentBuilder //keep the existing task&jar naming schemes when we only have one target
-                                .build();
-                    } else {
-                        namingScheme = componentBuilder
-                                .withVariantDimension("jdk"+target)
-                                .build();
+                    if (jvmLibrary.getTargets().size() > 1) { //Only add variant dimension for multiple jdk targets to avoid breaking the default naming scheme
+                        componentBuilder = componentBuilder.withVariantDimension("jdk" + target);
                     }
-
+                    BinaryNamingScheme namingScheme = componentBuilder.build();
                     JvmPlatform platform = new DefaultJvmPlatform(target);
                     List<String> errors = platform.getErrors(toolChain);
                     if (!errors.isEmpty()) {
