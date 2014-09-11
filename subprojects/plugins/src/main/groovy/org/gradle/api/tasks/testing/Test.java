@@ -877,7 +877,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests. <p> To configure TestNG specific options, see {@link #useJUnit(groovy.lang.Closure)}.
+     * Specifies that JUnit should be used to execute the tests. <p> To configure JUnit specific options, see {@link #useJUnit(groovy.lang.Closure)}.
      */
     public void useJUnit() {
         useJUnit(null);
