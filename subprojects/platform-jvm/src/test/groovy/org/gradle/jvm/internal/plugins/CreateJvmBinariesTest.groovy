@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.internal.plugins
 
-import org.gradle.api.JavaVersion
+import org.gradle.api.internal.platform.JvmPlatform
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
@@ -61,7 +61,7 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * toolChain.javaVersion >> JavaVersion.current()
+        1 * toolChain.assertValidPlatform(_ as JvmPlatform)
         1 * binaries.add({ DefaultJarBinarySpec binary ->
             binary.namingScheme == namingScheme
             binary.library == library
@@ -88,7 +88,7 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * toolChain.javaVersion >> JavaVersion.current()
+        1 * toolChain.assertValidPlatform(_ as JvmPlatform)
         1 * binaries.add({ DefaultJarBinarySpec binary ->
             binary.namingScheme == namingScheme
             binary.library == library

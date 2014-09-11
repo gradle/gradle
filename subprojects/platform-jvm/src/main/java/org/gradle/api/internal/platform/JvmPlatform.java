@@ -19,9 +19,6 @@ package org.gradle.api.internal.platform;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Named;
-import org.gradle.jvm.toolchain.JavaToolChain;
-
-import java.util.List;
 
 /**
  * Defines and configures a JVM platform.
@@ -42,7 +39,5 @@ import java.util.List;
 @Incubating
 public interface JvmPlatform extends Named {
     JavaVersion getTargetCompatibility();
-
-    List<String> getErrors(JavaToolChain toolChain);
     //TODO: Set<File> getBootclasspath();
 }

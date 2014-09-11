@@ -18,11 +18,6 @@ package org.gradle.api.internal.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.jvm.toolchain.JavaToolChain;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Incubating
 public class DefaultJvmPlatform implements JvmPlatform {
@@ -35,15 +30,6 @@ public class DefaultJvmPlatform implements JvmPlatform {
     public JavaVersion getTargetCompatibility() {
         return targetCompatibility;
        }
-
-    public List<String> getErrors(JavaToolChain toolChain) {
-        JavaVersion version = toolChain.getJavaVersion();
-        if (targetCompatibility.compareTo(version) > 0) {
-            return Arrays.asList("Could not use target JVM platform: '"+targetCompatibility+"' when using JDK: '"+version+"'. Change to a lower target.");
-        }
-
-        return new ArrayList<String>();
-    }
 
     public String getName() {
         return "target JDK " + targetCompatibility;

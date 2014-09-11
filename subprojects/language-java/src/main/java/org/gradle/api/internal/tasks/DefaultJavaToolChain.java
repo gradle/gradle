@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.platform.JvmPlatform;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -63,5 +64,11 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
 
     public JavaVersion getJavaVersion() {
         return javaVersion;
+    }
+
+    public void assertValidPlatform(JvmPlatform platform) {
+        if (platform.getTargetCompatibility().compareTo(getJavaVersion()) > 0) {
+            throw new IllegalArgumentException(String.format("Could not use target JVM platform: '"+platform.getTargetCompatibility()+"' when using JDK: '"+getJavaVersion()+"'. Change to a lower target."));
+        }
     }
 }
