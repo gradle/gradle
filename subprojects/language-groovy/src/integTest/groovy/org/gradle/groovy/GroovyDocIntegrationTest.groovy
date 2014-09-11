@@ -34,7 +34,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             }
 
             dependencies {
-                compile "org.codehaus.groovy:${module}:${version}"
+                compile "org.codehaus.groovy:${module}:${MultiVersionIntegrationSpec.version}"
             }
         """
 

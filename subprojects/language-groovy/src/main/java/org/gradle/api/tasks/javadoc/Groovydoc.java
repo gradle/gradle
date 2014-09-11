@@ -21,12 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 
 import java.io.File;
 import java.io.Serializable;
@@ -103,7 +98,7 @@ public class Groovydoc extends SourceTask {
      * Returns the classpath containing the Groovy library to be used.
      *
      * @return The classpath containing the Groovy library to be used
-     */   
+     */
     @InputFiles
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
@@ -117,10 +112,10 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-      * Returns the classpath used to locate classes referenced by the documented sources.
-      *
-      * @return The classpath used to locate classes referenced by the documented sources
-      */
+     * Returns the classpath used to locate classes referenced by the documented sources.
+     *
+     * @return The classpath used to locate classes referenced by the documented sources
+     */
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
@@ -182,7 +177,8 @@ public class Groovydoc extends SourceTask {
     /**
      * Returns the title for the package index(first) page. Set to {@code null} when there is no document title.
      */
-    @Input @Optional
+    @Input
+    @Optional
     public String getDocTitle() {
         return docTitle;
     }
@@ -199,7 +195,8 @@ public class Groovydoc extends SourceTask {
     /**
      * Returns the HTML header for each page. Set to {@code null} when there is no header.
      */
-    @Input @Optional
+    @Input
+    @Optional
     public String getHeader() {
         return header;
     }
@@ -216,7 +213,8 @@ public class Groovydoc extends SourceTask {
     /**
      * Returns the HTML footer for each page. Set to {@code null} when there is no footer.
      */
-    @Input @Optional
+    @Input
+    @Optional
     public String getFooter() {
         return footer;
     }

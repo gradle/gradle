@@ -45,8 +45,6 @@ public interface IsolatedAntBuilder {
      * Executes the given closure against an isolated {@link org.gradle.api.AntBuilder} instance. The builder will
      * have visible to it an isolated version of Ant, Groovy and the specified libraries (if any). Each call to this
      * method is given a separate Ant project.
-     *
-     * @param antClosure The closure to execute
      */
     void execute(Closure antClosure);
 }
