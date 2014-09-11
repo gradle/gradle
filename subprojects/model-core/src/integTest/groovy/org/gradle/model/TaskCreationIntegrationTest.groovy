@@ -372,18 +372,17 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "task created in afterEvaluate() is visible to a rule taking TaskContainer as input"() {
         when:
-        buildScript """
+        buildScript '''
             import org.gradle.model.*
-            import org.gradle.model.internal.core.*
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {}
 
                 @RuleSource
                 static class Rules {
-                    @Model
-                    Boolean fromAfterEvaluateTaskAvailable(TaskContainer tasks) {
-                        tasks.findByName("fromAfterEvaluate") != null
+                    @Mutate
+                    void fromAfterEvaluateTaskAvailable(TaskContainer tasks) {
+                        tasks.fromAfterEvaluate.value = "from plugin"
                     }
                 }
             }
@@ -392,15 +391,18 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             project.afterEvaluate {
                 project.tasks.create("fromAfterEvaluate") {
-                     // internal API here
-                     doFirst {
-                        assert modelRegistry.get(ModelPath.path("fromAfterEvaluateTaskAvailable"), ModelType.of(Boolean))
-                     }
+                    ext.value = "from after evaluate"
+                    doLast {
+                        println "value: $value"
+                    }
                 }
             }
-        """
+        '''
 
         then:
         succeeds "fromAfterEvaluate"
+
+        and:
+        output.contains "value: from plugin"
     }
 }
