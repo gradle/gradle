@@ -18,6 +18,8 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -26,6 +28,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentResolveMetaData metaData;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
+    private ComponentSelectionReason selectionReason;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -45,6 +48,14 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         return moduleVersionId;
     }
 
+    public ComponentSelectionReason getSelectionReason() {
+        return selectionReason;
+    }
+
+    public void setSelectionReason(ComponentSelectionReason reason) {
+        this.selectionReason = reason;
+    }
+
     public ComponentResolveMetaData getMetaData() {
         assertResolved();
         return metaData;
@@ -57,10 +68,8 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     public void resolved(ComponentResolveMetaData metaData) {
-        reset();
+        resolved(metaData.getComponentId(), metaData.getId());
         this.metaData = metaData;
-        id = metaData.getComponentId();
-        moduleVersionId = metaData.getId();
     }
 
     public void failed(ModuleVersionResolveException failure) {
@@ -82,5 +91,6 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         metaData = null;
         id = null;
         moduleVersionId = null;
+        selectionReason = VersionSelectionReasons.REQUESTED;
     }
 }

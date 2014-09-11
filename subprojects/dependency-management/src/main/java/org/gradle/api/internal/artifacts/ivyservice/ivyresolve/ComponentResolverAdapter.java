@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
+import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver;
+import org.gradle.internal.resolve.result.*;
 
 /**
  * Takes separate dependency->id and id->meta-data resolvers and presents them as a single dependency->meta-data resolver.
  */
-public class ComponentResolverAdapter implements DependencyToComponentResolver {
+public class ComponentResolverAdapter implements DependencyToModuleVersionIdResolver {
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
 
@@ -35,18 +37,107 @@ public class ComponentResolverAdapter implements DependencyToComponentResolver {
         this.metaDataResolver = metaDataResolver;
     }
 
-    public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
-        DefaultBuildableComponentIdResolveResult idResult = new DefaultBuildableComponentIdResolveResult();
+    public ModuleVersionIdResolveResult resolve(final DependencyMetaData dependency) {
+        final DefaultBuildableComponentIdResolveResult idResult = new DefaultBuildableComponentIdResolveResult();
         idResolver.resolve(dependency, idResult);
         if (idResult.getFailure() != null) {
-            idResult.applyTo(result);
-            result.failed(idResult.getFailure());
-            return;
+            return new BrokenResult(idResult);
         }
         if (idResult.getMetaData() != null) {
-            result.resolved(idResult.getMetaData());
-            return;
+            return new WithMetaDataResult(idResult);
         }
-        metaDataResolver.resolve(dependency, idResult.getId(), result);
+        return new LazyResult(idResult, dependency);
+    }
+
+    private static class WithMetaDataResult implements ModuleVersionIdResolveResult {
+        private final BuildableComponentIdResolveResult idResult;
+
+        public WithMetaDataResult(BuildableComponentIdResolveResult idResult) {
+            this.idResult = idResult;
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return null;
+        }
+
+        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
+            return idResult.getModuleVersionId();
+        }
+
+        public ComponentResolveResult resolve() throws ModuleVersionResolveException {
+            DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
+            result.resolved(idResult.getMetaData());
+            return result;
+        }
+
+        public ComponentSelectionReason getSelectionReason() {
+            return idResult.getSelectionReason();
+        }
+
+        public boolean hasResult() {
+            return true;
+        }
+    }
+
+    private static class BrokenResult implements ModuleVersionIdResolveResult {
+        private final ModuleVersionResolveException failure;
+        private final BuildableComponentIdResolveResult idResult;
+
+        public BrokenResult(BuildableComponentIdResolveResult idResult) {
+            failure = idResult.getFailure();
+            this.idResult = idResult;
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return failure;
+        }
+
+        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
+            throw failure;
+        }
+
+        public ComponentResolveResult resolve() throws ModuleVersionResolveException {
+            throw failure;
+        }
+
+        public ComponentSelectionReason getSelectionReason() {
+            return idResult.getSelectionReason();
+        }
+
+        public boolean hasResult() {
+            return true;
+        }
+    }
+
+    private class LazyResult implements ModuleVersionIdResolveResult {
+        private final BuildableComponentIdResolveResult idResult;
+        private final DependencyMetaData dependency;
+
+        public LazyResult(BuildableComponentIdResolveResult idResult, DependencyMetaData dependency) {
+            this.idResult = idResult;
+            this.dependency = dependency;
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return null;
+        }
+
+        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
+            return idResult.getModuleVersionId();
+        }
+
+        public ComponentResolveResult resolve() throws ModuleVersionResolveException {
+            DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
+            metaDataResolver.resolve(dependency, idResult.getId(), result);
+            return result;
+        }
+
+        public ComponentSelectionReason getSelectionReason() {
+            return idResult.getSelectionReason();
+        }
+
+        public boolean hasResult() {
+            return true;
+        }
     }
 }

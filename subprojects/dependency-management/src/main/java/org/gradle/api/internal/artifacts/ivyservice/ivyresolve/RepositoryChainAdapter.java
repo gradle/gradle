@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -57,11 +59,13 @@ public class RepositoryChainAdapter implements DependencyToComponentIdResolver, 
     }
 
     public void resolve(DependencyMetaData dependency, ComponentIdentifier identifier, BuildableComponentResolveResult result) {
-        ModuleVersionSelector requested = dependency.getRequested();
-        DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-        if (!id.equals(identifier)) {
-            throw new UnsupportedOperationException("Dependency and component id have mismatching identifiers.");
+        if (!(identifier instanceof ModuleComponentIdentifier)) {
+            throw new UnsupportedOperationException("Can only resolve module components");
         }
+
+        // Force the requested version
+        ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) identifier;
+        dependency = dependency.withRequestedVersion(new DefaultModuleVersionSelector(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
 
         resolver.resolve(dependency, result);
     }

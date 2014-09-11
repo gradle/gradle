@@ -94,10 +94,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 RepositoryChainAdapter adapter = new RepositoryChainAdapter(dependencyResolver, versionMatcher);
                 ClientModuleResolver clientModuleResolver = new ClientModuleResolver(adapter, dependencyDescriptorFactory);
                 ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, adapter);
-                dependencyResolver = new ComponentResolverAdapter(projectDependencyResolver, clientModuleResolver);
-                ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal)configuration.getResolutionStrategy();
-                DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher);
-                idResolver = new VersionForcingDependencyToModuleResolver(idResolver, resolutionStrategy.getDependencyResolveRule());
+                ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal) configuration.getResolutionStrategy();
+                VersionForcingDependencyToModuleResolver substitutionResolver = new VersionForcingDependencyToModuleResolver(projectDependencyResolver, resolutionStrategy.getDependencyResolveRule());
+                DependencyToModuleVersionIdResolver idResolver = new ComponentResolverAdapter(substitutionResolver, clientModuleResolver);
 
                 ArtifactResolver artifactResolver = createArtifactResolver(repositoryChain);
 

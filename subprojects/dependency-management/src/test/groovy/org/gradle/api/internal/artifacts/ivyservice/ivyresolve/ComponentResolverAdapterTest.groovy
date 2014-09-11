@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
@@ -29,7 +30,6 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 class ComponentResolverAdapterTest extends Specification {
-    def result = Mock(BuildableComponentResolveResult)
     def requested = new DefaultModuleVersionSelector("group", "module", "version")
     def dependency = Stub(DependencyMetaData) {
         getRequested() >> requested
@@ -38,32 +38,49 @@ class ComponentResolverAdapterTest extends Specification {
     def id = Stub(ComponentIdentifier)
     def mvId = Stub(ModuleVersionIdentifier)
     def metaData = Stub(ComponentResolveMetaData)
+    def reason = Stub(ComponentSelectionReason)
     def idResolver = Mock(DependencyToComponentIdResolver)
     def resolver = new ComponentResolverAdapter(idResolver, metaDataResolver)
 
     def "resolves id and then meta-data"() {
         when:
-        resolver.resolve(dependency, result)
+        def result = resolver.resolve(dependency)
 
         then:
+        result.id == mvId
+        result.selectionReason == reason
+        result.failure == null
+
+        and:
         1 * idResolver.resolve(dependency, _) >> { DependencyMetaData dependency, BuildableComponentIdResolveResult idResult ->
             idResult.resolved(id, mvId)
+            idResult.selectionReason = reason
         }
+        0 * metaDataResolver._
+
+        when:
+        result.resolve().metaData == metaData
+
+        then:
         1 * metaDataResolver.resolve(dependency, id, _) >> { DependencyMetaData dependency, ComponentIdentifier id, BuildableComponentResolveResult metaDataResult ->
             metaDataResult.resolved(metaData)
         }
-        1 * result.resolved(metaData)
     }
 
     def "does not resolve meta-data when it is available during id resolution"() {
         when:
-        resolver.resolve(dependency, result)
+        def result = resolver.resolve(dependency)
 
         then:
         1 * idResolver.resolve(dependency, _) >> { DependencyMetaData dependency, BuildableComponentIdResolveResult idResult ->
             idResult.resolved(metaData)
         }
-        1 * result.resolved(metaData)
+        0 * metaDataResolver._
+
+        when:
+        result.resolve().metaData == metaData
+
+        then:
         0 * metaDataResolver._
     }
 
@@ -71,15 +88,17 @@ class ComponentResolverAdapterTest extends Specification {
         def failure = new ModuleVersionResolveException(requested, "broken")
 
         when:
-        resolver.resolve(dependency, result)
+        def result = resolver.resolve(dependency)
 
         then:
+        result.failure == failure
+        result.selectionReason == reason
+
+        and:
         1 * idResolver.resolve(dependency, _) >> { DependencyMetaData dependency, BuildableComponentIdResolveResult idResult ->
-            idResult.attempted("a")
             idResult.failed(failure)
+            idResult.selectionReason = reason
         }
-        1 * result.attempted("a")
-        1 * result.failed(failure)
         0 * metaDataResolver._
     }
 }

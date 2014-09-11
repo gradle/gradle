@@ -16,95 +16,65 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.Action
+import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver
-import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
-
 class VersionForcingDependencyToModuleResolverSpec extends Specification {
-    final target = Mock(DependencyToModuleVersionIdResolver)
-    final resolvedVersion = Mock(ModuleVersionIdResolveResult)
-    final forced = createModuleRevisionId('group', 'module', 'forced')
+    def requested = new DefaultModuleVersionSelector("group", "module", "version")
+    def dependency = Mock(DependencyMetaData) {
+        getRequested() >> requested
+    }
+    def result = Mock(BuildableComponentIdResolveResult)
+    def target = Mock(DependencyToComponentIdResolver)
+    def rule = Mock(Action)
+    def resolver = new VersionForcingDependencyToModuleResolver(target, rule)
 
     def "passes through dependency when it does not match any rule"() {
-        def dep = dependency('org', 'module', '1.0')
-        def rule = Mock(Action)
-        def resolver = new VersionForcingDependencyToModuleResolver(target, rule)
+        given:
+        rule.execute(_) >> { DependencyResolveDetails details ->
+        }
 
         when:
-        def result = resolver.resolve(dep)
+        resolver.resolve(dependency, result)
 
         then:
-        result == resolvedVersion
-
-        and:
-        1 * target.resolve(dep) >> resolvedVersion
-        1 * rule.execute( {it.requested.group == 'org' && it.requested.name == 'module' && it.requested.version == '1.0'} )
-        0 * target._
+        1 * target.resolve(dependency, result)
     }
 
     def "replaces dependency by rule"() {
-        def dep = dependency('org', 'module', '0.5')
-        def modified = dependency('org', 'module', '1.0')
+        def substitutedDependency = Stub(DependencyMetaData)
 
-        def force = { it.useVersion("1.0") } as Action
-
-        def resolver = new VersionForcingDependencyToModuleResolver(target, force)
+        given:
+        rule.execute(_) >> { DependencyResolveDetails details ->
+            details.useVersion("new")
+        }
 
         when:
-        SubstitutedModuleVersionIdResolveResult result = resolver.resolve(dep)
+        resolver.resolve(dependency, result)
 
         then:
-        result.result == resolvedVersion
-        result.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
-
-        and:
-        1 * dep.withRequestedVersion(DefaultModuleVersionSelector.newInstance("org", "module", "1.0")) >> modified
-        1 * target.resolve(modified) >> resolvedVersion
-        0 * target._
+        1 * dependency.withRequestedVersion(new DefaultModuleVersionSelector("group", "module", "new")) >> substitutedDependency
+        1 * target.resolve(substitutedDependency, result)
     }
 
     def "explosive rule yields failure result that provides context"() {
-        def force = { throw new Error("Boo!") } as Action
-        def resolver = new VersionForcingDependencyToModuleResolver(target, force)
+        given:
+        def failure = new RuntimeException("broken")
+        rule.execute(_) >> { DependencyResolveDetails details ->
+            throw failure
+        }
 
         when:
-        def result = resolver.resolve(dependency('org', 'module', '0.5'))
+        resolver.resolve(dependency, result)
 
         then:
-        result.failure.message == "Could not resolve org:module:0.5."
-        result.failure.cause.message == 'Boo!'
-        result.selectionReason == VersionSelectionReasons.REQUESTED
-    }
-
-    def "failed result uses correct exception"() {
-        def force = { throw new Error("Boo!") } as Action
-        def resolver = new VersionForcingDependencyToModuleResolver(target, force)
-        def result = resolver.resolve(dependency('org', 'module', '0.5'))
-
-        when:
-        result.getId()
-
-        then:
-        def ex = thrown(ModuleVersionResolveException)
-        ex == result.failure
-
-        when:
-        result.resolve()
-
-        then:
-        def ex2 = thrown(ModuleVersionResolveException)
-        ex2 == result.failure
-    }
-
-    def dependency(String group, String module, String version) {
-        Mock(DependencyMetaData) {
-            getRequested() >> new DefaultModuleVersionSelector(group, module, version)
+        1 * result.failed(_) >> { ModuleVersionResolveException e ->
+            assert e.cause == failure
         }
     }
 }

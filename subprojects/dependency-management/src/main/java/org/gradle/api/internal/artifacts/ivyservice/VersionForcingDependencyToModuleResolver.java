@@ -16,68 +16,37 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver;
-import org.gradle.internal.resolve.result.ComponentResolveResult;
-import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult;
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
-public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
-    private final DependencyToModuleVersionIdResolver resolver;
-    private Action<DependencyResolveDetailsInternal> rule;
+public class VersionForcingDependencyToModuleResolver implements DependencyToComponentIdResolver {
+    private final DependencyToComponentIdResolver resolver;
+    private final Action<DependencyResolveDetailsInternal> rule;
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
+    public VersionForcingDependencyToModuleResolver(DependencyToComponentIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
         this.resolver = resolver;
         this.rule = rule;
     }
 
-    public ModuleVersionIdResolveResult resolve(DependencyMetaData dependency) {
+    public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector module = dependency.getRequested();
         DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails(module);
         try {
             rule.execute(details);
         } catch (Throwable e) {
-            return new FailedDependencyResolveRuleResult(module, e);
+            result.failed(new ModuleVersionResolveException(module, e));
+            return;
         }
         if (details.isUpdated()) {
             DependencyMetaData substitutedDependency = dependency.withRequestedVersion(details.getTarget());
-            ModuleVersionIdResolveResult result = resolver.resolve(substitutedDependency);
-            return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason());
+            resolver.resolve(substitutedDependency, result);
+            result.setSelectionReason(details.getSelectionReason());
+            return;
         }
-        return resolver.resolve(dependency);
-    }
-
-    private class FailedDependencyResolveRuleResult implements ModuleVersionIdResolveResult {
-
-        private final ModuleVersionResolveException failure;
-
-        public FailedDependencyResolveRuleResult(ModuleVersionSelector module, Throwable problem) {
-            this.failure = new ModuleVersionResolveException(module, problem);
-        }
-
-        public ModuleVersionResolveException getFailure() {
-            return failure;
-        }
-
-        public boolean hasResult() {
-            return false;
-        }
-
-        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
-            throw failure;
-        }
-
-        public ComponentResolveResult resolve() throws ModuleVersionResolveException {
-            throw failure;
-        }
-
-        public ComponentSelectionReason getSelectionReason() {
-            return VersionSelectionReasons.REQUESTED;
-        }
+        resolver.resolve(dependency, result);
     }
 }

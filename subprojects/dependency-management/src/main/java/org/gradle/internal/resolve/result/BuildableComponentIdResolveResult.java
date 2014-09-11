@@ -19,6 +19,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -29,6 +30,8 @@ public interface BuildableComponentIdResolveResult extends ResolveResult, Resour
 
     ModuleVersionIdentifier getModuleVersionId();
 
+    ComponentSelectionReason getSelectionReason();
+
     /**
      * Returns the meta-data for the component, if it was available at resolve time.
      */
@@ -38,6 +41,8 @@ public interface BuildableComponentIdResolveResult extends ResolveResult, Resour
     void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
 
     void resolved(ComponentResolveMetaData metaData);
+
+    void setSelectionReason(ComponentSelectionReason reason);
 
     void failed(ModuleVersionResolveException failure);
 }
