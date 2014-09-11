@@ -46,10 +46,10 @@ class ModuleDescriptorCacheEntry {
         return new ModuleDescriptorCacheEntry(TYPE_MISSING, false, null, createTimestamp, BigInteger.ZERO, null);
     }
 
-    public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetaData metaData, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
+    public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetaData metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
         byte type = getType(metaData);
         String packaging = getPackaging(metaData);
-        return new ModuleDescriptorCacheEntry(type, metaData.isChanging(), packaging, createTimestamp, moduleDescriptorHash, moduleSource);
+        return new ModuleDescriptorCacheEntry(type, metaData.isChanging(), packaging, createTimestamp, moduleDescriptorHash, metaData.getSource());
     }
 
     private static String getPackaging(ModuleComponentResolveMetaData metaData) {
@@ -88,6 +88,7 @@ class ModuleDescriptorCacheEntry {
 
     private MutableModuleComponentResolveMetaData configure(MutableModuleComponentResolveMetaData input) {
         input.setChanging(isChanging);
+        input.setSource(moduleSource);
         return input;
     }
 }

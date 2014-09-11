@@ -16,17 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.ModuleSource;
 
 class RepositoryChainModuleResolution implements Versioned {
     public final ModuleComponentRepository repository;
     public final MutableModuleComponentResolveMetaData module;
-    public final ModuleSource moduleSource;
 
-    public RepositoryChainModuleResolution(ModuleComponentRepository repository, MutableModuleComponentResolveMetaData module, ModuleSource moduleSource) {
+    public RepositoryChainModuleResolution(ModuleComponentRepository repository, MutableModuleComponentResolveMetaData module) {
         this.repository = repository;
         this.module = module;
-        this.moduleSource = moduleSource;
     }
 
     public boolean isGeneratedModuleDescriptor() {

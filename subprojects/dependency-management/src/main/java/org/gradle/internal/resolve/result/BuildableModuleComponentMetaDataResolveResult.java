@@ -18,7 +18,6 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 /**
@@ -52,7 +51,7 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
     /**
      * Marks the module version as resolved, with the given meta-data and source.
      */
-    void resolved(MutableModuleComponentResolveMetaData metaData, ModuleSource moduleSource);
+    void resolved(MutableModuleComponentResolveMetaData metaData);
 
     /**
      * Marks the resolve as failed with the given exception.
@@ -68,11 +67,4 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
      * Marks the module version as probably missing.
      */
     void probablyMissing();
-
-    /**
-     * The repository-specific source for this module version.
-     */
-    public ModuleSource getModuleSource();
-
-    void setModuleSource(ModuleSource moduleSource);
 }

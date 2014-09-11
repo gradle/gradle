@@ -53,7 +53,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
-                result.resolved(md, null)
+                result.resolved(md)
             }
         }
         def closureCalled = []
@@ -185,7 +185,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result ->
                 def md = new DefaultMavenModuleResolveMetaData(Stub(ModuleDescriptor), "bundle", false)
-                result.resolved(md, null)
+                result.resolved(md)
             }
         }
         def closuresCalled = []
@@ -203,7 +203,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         def moduleAccess = Stub(ModuleComponentRepositoryAccess) {
             resolveComponentMetaData(_, _, _) >> { DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result ->
                 def md = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
-                result.resolved(md, null)
+                result.resolved(md)
             }
         }
         def closuresCalled = []

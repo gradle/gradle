@@ -20,15 +20,14 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
-import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
@@ -86,11 +85,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
-    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetaData metaData, ModuleSource moduleSource) {
+    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetaData metaData) {
         ModuleDescriptor moduleDescriptor = metaData.getDescriptor();
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), metaData.isChanging());
         LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
-        ModuleDescriptorCacheEntry entry = createEntry(metaData, resource.getSha1(), moduleSource);
+        ModuleDescriptorCacheEntry entry = createEntry(metaData, resource.getSha1());
         getCache().put(createKey(repository, metaData.getComponentId()), entry);
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
@@ -99,8 +98,8 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new RevisionKey(repository.getId(), id);
     }
 
-    private ModuleDescriptorCacheEntry createEntry(ModuleComponentResolveMetaData metaData, HashValue moduleDescriptorHash, ModuleSource moduleSource) {
-        return ModuleDescriptorCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger(), moduleSource);
+    private ModuleDescriptorCacheEntry createEntry(ModuleComponentResolveMetaData metaData, HashValue moduleDescriptorHash) {
+        return ModuleDescriptorCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
     }
 
     private static class RevisionKey {

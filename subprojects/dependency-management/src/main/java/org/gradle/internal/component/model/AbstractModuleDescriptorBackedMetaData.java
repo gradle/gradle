@@ -16,7 +16,10 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.Configuration;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.util.CollectionUtils;
@@ -62,6 +65,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
     public ModuleSource getSource() {
         return moduleSource;
+    }
+
+    public void setSource(ModuleSource source) {
+        this.moduleSource = source;
     }
 
     public void setModuleSource(ModuleSource moduleSource) {

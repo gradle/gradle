@@ -18,23 +18,19 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.component.model.ModuleSource;
 
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.*;
 
 class CachedModuleVersionResult {
     private final BuildableModuleComponentMetaDataResolveResult.State state;
     private final MutableModuleComponentResolveMetaData metaData;
-    private final ModuleSource moduleSource;
 
     public CachedModuleVersionResult(BuildableModuleComponentMetaDataResolveResult result) {
         this.state = result.getState();
         if (state == Resolved) {
             this.metaData = result.getMetaData().copy();
-            this.moduleSource = result.getModuleSource();
         } else {
             this.metaData = null;
-            this.moduleSource = null;
         }
     }
 
@@ -45,7 +41,8 @@ class CachedModuleVersionResult {
     public void supply(BuildableModuleComponentMetaDataResolveResult result) {
         assert isCacheable() : "Results are not cacheable, cannot supply the results.";
         if (state == Resolved) {
-            result.resolved(metaData.copy(), moduleSource);
+            MutableModuleComponentResolveMetaData metaData = this.metaData.copy();
+            result.resolved(metaData);
         } else if (state == Missing) {
             result.missing();
         } else if (state == ProbablyMissing) {

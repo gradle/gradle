@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
+
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Transformer
@@ -22,13 +23,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.model.ModuleSource
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import org.gradle.internal.resolve.result.DefaultModuleVersionListing
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
@@ -43,7 +43,6 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
     final Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> transformer = Mock(Transformer)
     final result = Mock(BuildableComponentResolveResult)
-    final moduleSource = Mock(ModuleSource)
     def localAccess = Mock(ModuleComponentRepositoryAccess)
     def remoteAccess = Mock(ModuleComponentRepositoryAccess)
     def localAccess2 = Mock(ModuleComponentRepositoryAccess)
@@ -89,11 +88,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo
             metaData
         }
@@ -129,11 +127,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         _ * componentSelectionStrategy.choose(versionListing, dynamicDependency, localAccess) >> selectedId
         1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
         1 * localAccess.resolveComponentMetaData(dependency, selectedId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo
             metaData
         }
@@ -176,11 +173,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         1 * componentSelectionStrategy.choose(versionListing2, dynamicDependency, localAccess2) >> selectedId
         1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
         1 * localAccess2.resolveComponentMetaData(dependency, selectedId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo2
             metaData
         }
@@ -204,11 +200,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo
             metaData
         }
@@ -233,11 +228,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.probablyMissing()
         }
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo
             metaData
         }
@@ -327,11 +321,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo1
             metaData
         }
@@ -360,11 +353,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.missing()
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo2
             metaData
         }
@@ -393,11 +385,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.probablyMissing()
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo2
             metaData
         }
@@ -426,11 +417,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo2
             metaData
         }
@@ -465,11 +455,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.missing()
         }
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo2
             metaData
         }
@@ -500,11 +489,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.probablyMissing()
         }
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo2
             metaData
         }
@@ -537,11 +525,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.missing()
         }
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo1
             metaData
         }
@@ -569,11 +556,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
             throw new RuntimeException("broken")
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo2
             metaData
         }
@@ -604,11 +590,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.resolved(metaData, moduleSource)
+            result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
-            assert it.moduleSource == moduleSource
             assert it.repository == repo2
             metaData
         }

@@ -17,12 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -31,6 +26,10 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.external.model.*;
 import org.gradle.internal.component.model.*;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceNotFoundException;
@@ -93,7 +92,7 @@ public class MavenResolver extends ExternalResourceResolver {
     private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, ModuleComponentIdentifier module, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(dependency, module, result, createArtifactResolver(snapshotSource));
         if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            result.setModuleSource(snapshotSource);
+            result.getMetaData().setSource(snapshotSource);
         }
     }
 

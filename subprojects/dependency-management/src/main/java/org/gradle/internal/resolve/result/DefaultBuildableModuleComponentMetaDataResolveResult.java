@@ -16,12 +16,10 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableModuleComponentMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleComponentMetaDataResolveResult {
     private State state = State.Unknown;
-    private ModuleSource moduleSource;
     private ModuleVersionResolveException failure;
     private MutableModuleComponentResolveMetaData metaData;
 
@@ -29,17 +27,15 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
         this.state = state;
         metaData = null;
         failure = null;
-        moduleSource = null;
     }
 
     public void reset() {
         reset(State.Unknown);
     }
 
-    public void resolved(MutableModuleComponentResolveMetaData metaData, ModuleSource moduleSource) {
+    public void resolved(MutableModuleComponentResolveMetaData metaData) {
         reset(State.Resolved);
         this.metaData = metaData;
-        this.moduleSource = moduleSource;
     }
 
     public void missing() {
@@ -86,15 +82,5 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
         if (state != State.Resolved) {
             throw new IllegalStateException("This module has not been resolved.");
         }
-    }
-
-    public ModuleSource getModuleSource() {
-        assertResolved();
-        return moduleSource;
-    }
-
-    public void setModuleSource(ModuleSource moduleSource) {
-        assertResolved();
-        this.moduleSource = moduleSource;
     }
 }

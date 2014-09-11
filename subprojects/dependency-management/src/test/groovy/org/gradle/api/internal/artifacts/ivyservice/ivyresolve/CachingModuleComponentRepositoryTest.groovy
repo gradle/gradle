@@ -19,10 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.internal.component.model.ModuleSource
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
-import org.gradle.internal.component.model.ComponentUsage
-import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
@@ -30,12 +26,8 @@ import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.component.model.ComponentArtifactMetaData
-import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.model.ComponentResolveMetaData
-import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentVersionSelectionResolveResult
-import org.gradle.internal.resolve.result.ModuleVersionListing
+import org.gradle.internal.component.model.*
+import org.gradle.internal.resolve.result.*
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
@@ -115,10 +107,11 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         realLocalAccess.resolveComponentMetaData(dependency, componentId, result) >> {
-            result.resolved(Mock(MutableModuleComponentResolveMetaData), Mock(ModuleSource))
+            result.resolved(Mock(MutableModuleComponentResolveMetaData))
         }
         0 * _
     }
+
     def "does not use cache when artifacts for type can be determined locally"() {
         def component = Mock(ComponentResolveMetaData)
         def source = Mock(ModuleSource)

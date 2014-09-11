@@ -15,12 +15,12 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
+
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult
-import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.ModuleVersionListing
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -78,11 +78,9 @@ class InMemoryMetaDataCacheTest extends Specification {
         def suppliedMetaData = Stub(MutableModuleComponentResolveMetaData)
         def cachedCopy = Stub(MutableModuleComponentResolveMetaData)
         def originalMetaData = Stub(MutableModuleComponentResolveMetaData)
-        def source = Stub(ModuleSource)
         def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> originalMetaData
-            getModuleSource() >> source
         }
         def result = Mock(BuildableModuleComponentMetaDataResolveResult.class)
 
@@ -105,16 +103,14 @@ class InMemoryMetaDataCacheTest extends Specification {
         match
         stats.metadataServed == 1
         _ * cachedCopy.copy() >> suppliedMetaData
-        1 * result.resolved(suppliedMetaData, source)
+        1 * result.resolved(suppliedMetaData)
     }
 
     def "caches and supplies remote and local metadata"() {
-        def moduleSource = Stub(ModuleSource)
         def moduleMetaData = Stub(MutableModuleComponentResolveMetaData)
         _ * moduleMetaData.copy() >> moduleMetaData
         def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
             getMetaData() >> moduleMetaData
-            getModuleSource() >> moduleSource
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         }
         def result = Mock(BuildableModuleComponentMetaDataResolveResult.class)
@@ -128,7 +124,7 @@ class InMemoryMetaDataCacheTest extends Specification {
         then:
         found
         stats.metadataServed == 1
-        1 * result.resolved(moduleMetaData, moduleSource)
+        1 * result.resolved(moduleMetaData)
     }
 
     def "does not cache failed resolves"() {

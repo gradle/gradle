@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
-import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
 class CachedModuleVersionResultTest extends Specification {
@@ -62,11 +61,9 @@ class CachedModuleVersionResultTest extends Specification {
         def suppliedMetaData = Mock(MutableModuleComponentResolveMetaData)
         def cachedMetaData = Mock(MutableModuleComponentResolveMetaData)
         def metaData = Mock(MutableModuleComponentResolveMetaData)
-        def source = Mock(ModuleSource)
         def resolved = Mock(BuildableModuleComponentMetaDataResolveResult) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> metaData
-            getModuleSource() >> source
         }
         def missing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing }
         def probablyMissing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.ProbablyMissing }
@@ -84,7 +81,7 @@ class CachedModuleVersionResultTest extends Specification {
 
         then:
         1 * cachedMetaData.copy() >> suppliedMetaData
-        1 * result.resolved(suppliedMetaData, source)
+        1 * result.resolved(suppliedMetaData)
 
         when:
         new CachedModuleVersionResult(missing).supply(result)

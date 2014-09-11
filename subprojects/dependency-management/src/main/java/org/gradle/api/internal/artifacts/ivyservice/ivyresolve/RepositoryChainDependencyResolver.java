@@ -139,7 +139,7 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
                     }
                     break;
                 case Resolved:
-                    RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, request.resolveResult.getMetaData(), request.resolveResult.getModuleSource());
+                    RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, request.resolveResult.getMetaData());
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
                         return moduleResolution;
                     }

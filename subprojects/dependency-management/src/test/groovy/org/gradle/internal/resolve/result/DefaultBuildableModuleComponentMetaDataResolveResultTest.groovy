@@ -16,16 +16,14 @@
 
 package org.gradle.internal.resolve.result
 
-import org.gradle.internal.component.model.ModuleSource
-import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specification {
     def descriptor = new DefaultBuildableModuleComponentMetaDataResolveResult()
-    def moduleSource = Stub(ModuleSource)
 
     def "has unknown state by default"() {
         expect:
@@ -69,13 +67,12 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         def metaData = Stub(MutableModuleComponentResolveMetaData)
 
         when:
-        descriptor.resolved(metaData, moduleSource)
+        descriptor.resolved(metaData)
 
         then:
         descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Resolved
         descriptor.failure == null
         descriptor.metaData == metaData
-        descriptor.moduleSource == moduleSource
         descriptor.hasResult()
     }
 
@@ -106,75 +103,5 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         then:
         ModuleVersionResolveException e = thrown()
         e == failure
-    }
-
-    def "cannot get module source when failed"() {
-        given:
-        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
-        descriptor.failed(failure)
-
-        when:
-        descriptor.getModuleSource()
-
-        then:
-        ModuleVersionResolveException e = thrown()
-        e == failure
-    }
-
-    def "cannot set module source when failed"() {
-        given:
-        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
-        descriptor.failed(failure)
-
-        when:
-        descriptor.setModuleSource(Mock(ModuleSource))
-
-        then:
-        ModuleVersionResolveException e = thrown()
-        e == failure
-    }
-
-    def "cannot get module source when missing"() {
-        given:
-        descriptor.missing()
-
-        when:
-        descriptor.getModuleSource()
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "cannot set module source when missing"() {
-        given:
-        descriptor.missing()
-
-        when:
-        descriptor.setModuleSource(Mock(ModuleSource))
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "cannot get module source when probably missing"() {
-        given:
-        descriptor.probablyMissing()
-
-        when:
-        descriptor.getModuleSource()
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "cannot set module source when probably missing"() {
-        given:
-        descriptor.probablyMissing()
-
-        when:
-        descriptor.setModuleSource(Mock(ModuleSource))
-
-        then:
-        thrown(IllegalStateException)
     }
 }

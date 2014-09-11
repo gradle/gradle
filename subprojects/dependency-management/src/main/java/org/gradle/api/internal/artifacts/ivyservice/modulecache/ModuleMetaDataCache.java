@@ -27,7 +27,7 @@ import java.math.BigInteger;
 public interface ModuleMetaDataCache {
     CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 
-    CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetaData metaData, ModuleSource moduleSource);
+    CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetaData metaData);
 
     CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 

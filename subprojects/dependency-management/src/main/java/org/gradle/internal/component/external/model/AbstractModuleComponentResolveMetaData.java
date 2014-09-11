@@ -27,10 +27,10 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.AbstractModuleDescriptorBackedMetaData;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
+import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -65,7 +65,7 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
 
     public abstract AbstractModuleComponentResolveMetaData copy();
 
-    public ModuleComponentResolveMetaData withSource(ModuleSource source) {
+    public MutableModuleComponentResolveMetaData withSource(ModuleSource source) {
         AbstractModuleComponentResolveMetaData copy = copy();
         copy.setModuleSource(source);
         return copy;

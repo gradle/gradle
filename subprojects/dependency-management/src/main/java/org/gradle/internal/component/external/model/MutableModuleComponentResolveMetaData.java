@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.List;
 
@@ -28,6 +29,8 @@ public interface MutableModuleComponentResolveMetaData extends ModuleComponentRe
     void setChanging(boolean changing);
     void setStatus(String status);
     void setStatusScheme(List<String> statusScheme);
+
+    void setSource(ModuleSource source);
 
     /**
      * Replaces the dependencies of this module version.

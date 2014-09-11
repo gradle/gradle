@@ -141,7 +141,7 @@ class NewestVersionComponentChooserTest extends Specification {
         _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleComponentMetaDataResolveResult result ->
             result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
-            }, null)
+            })
         }
         1 * versionMatcher.needModuleMetadata("latest.milestone") >> true
         1 * listing.versions >> (versions as Set)
@@ -202,7 +202,7 @@ class NewestVersionComponentChooserTest extends Specification {
         _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleComponentMetaDataResolveResult result ->
             result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
-            }, null)
+            })
         }
         1 * versionMatcher.needModuleMetadata("latest.release") >> true
         1 * listing.versions >> (versions as Set)
@@ -288,7 +288,7 @@ class NewestVersionComponentChooserTest extends Specification {
         _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleComponentMetaDataResolveResult result ->
             result.resolved(Stub(MutableModuleComponentResolveMetaData) {
                 getComponentId() >> { candidateId }
-            }, null)
+            })
         }
         1 * versionMatcher.needModuleMetadata("latest.release") >> true
         1 * listing.versions >> (versions as Set)
