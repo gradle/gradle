@@ -24,20 +24,24 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.registry.ModelRegistry;
 
 public class TaskModelPopulatingConfigurationAction implements ProjectConfigureAction {
     public void execute(ProjectInternal projectInternal) {
         for (Task task : projectInternal.getTasks()) {
-            final String name = task.getName();
-            final ModelPath modelPath = TaskContainerInternal.MODEL_PATH.child(name);
+            registerTask(projectInternal, task);
+        }
+    }
 
-            if (projectInternal.getModelRegistry().state(modelPath) == null) {
-                projectInternal.getModelRegistry().create(InstanceBackedModelCreator.of(
-                        ModelReference.of(modelPath, ModelType.of(Task.class)),
-                        new SimpleModelRuleDescriptor("Project.<init>.tasks." + name + "()"),
+    private <T extends Task> void registerTask(ProjectInternal projectInternal, T task) {
+        final String name = task.getName();
+        final ModelPath modelPath = TaskContainerInternal.MODEL_PATH.child(name);
+        ModelRegistry modelRegistry = projectInternal.getModelRegistry();
+
+        modelRegistry.create(InstanceBackedModelCreator.of(
+                ModelReference.of(modelPath, ModelType.typeOf(task)),
+                        new SimpleModelRuleDescriptor("TaskModelPopulatingConfigurationAction." + name),
                         task
                 ));
-            }
-        }
     }
 }

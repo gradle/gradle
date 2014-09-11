@@ -69,6 +69,11 @@ public abstract class ModelType<T> {
         return new Simple<T>(TypeToken.of(clazz));
     }
 
+    public static <T> ModelType<T> typeOf(T instance) {
+        @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) instance.getClass();
+        return of(clazz);
+    }
+
     public static ModelType<?> of(Type type) {
         return toModelType(TypeToken.of(type));
     }

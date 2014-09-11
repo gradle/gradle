@@ -402,4 +402,38 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         succeeds "value"
     }
 
+    def "rule can depend on a concrete task type"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(CollectionBuilder<Task> tasks, Exec execTask) {
+                        tasks.create("name") {
+                            it.doLast {
+                                println "name: \${execTask.name}"
+                            }
+                        }
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            task injected(type: Exec)
+        """
+
+        then:
+        succeeds "name"
+
+        and:
+        output.contains "name: injected"
+    }
 }
