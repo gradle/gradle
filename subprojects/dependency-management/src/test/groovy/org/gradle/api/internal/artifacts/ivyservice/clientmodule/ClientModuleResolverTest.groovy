@@ -19,23 +19,25 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
-import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
-import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ClientModuleResolverTest extends Specification {
-    final target = Mock(DependencyToComponentResolver)
+    final target = Mock(ComponentMetaDataResolver)
     final dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
     final ClientModuleResolver resolver = new ClientModuleResolver(target, dependencyDescriptorFactory)
 
+    def id = Mock(ComponentIdentifier)
     def result = Mock(BuildableComponentResolveResult)
     def metaData = Mock(MutableModuleComponentResolveMetaData)
     def dependency = Mock(DslOriginDependencyMetaData)
@@ -48,10 +50,10 @@ class ClientModuleResolverTest extends Specification {
         def artifact = Mock(ModuleComponentArtifactMetaData)
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(dependency, id, result)
 
         then:
-        1 * target.resolve(dependency, result)
+        1 * target.resolve(dependency, id, result)
         1 * result.getFailure() >> null
         1 * dependency.source >> clientModule
         1 * result.getMetaData() >> metaData
@@ -73,10 +75,10 @@ class ClientModuleResolverTest extends Specification {
         def moduleDependency = Mock(ModuleDependency)
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(dependency, id, result)
 
         then:
-        1 * target.resolve(dependency, result)
+        1 * target.resolve(dependency, id, result)
         1 * result.getFailure() >> null
         1 * dependency.source >> moduleDependency
         0 * _
@@ -84,10 +86,10 @@ class ClientModuleResolverTest extends Specification {
 
     def "does not replace meta-data for broken module version"() {
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(dependency, id, result)
 
         then:
-        1 * target.resolve(dependency, result)
+        1 * target.resolve(dependency, id, result)
         _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         0 * _
     }

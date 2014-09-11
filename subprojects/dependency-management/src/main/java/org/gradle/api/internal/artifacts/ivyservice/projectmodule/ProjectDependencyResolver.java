@@ -17,28 +17,29 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
-import org.gradle.internal.resolve.resolver.ModuleToComponentResolver;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
-import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.ProjectDependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.resolver.ModuleToComponentResolver;
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.util.Set;
 
-public class ProjectDependencyResolver implements DependencyToComponentResolver, ModuleToComponentResolver {
+public class ProjectDependencyResolver implements DependencyToComponentIdResolver, ModuleToComponentResolver {
     private final ProjectComponentRegistry projectComponentRegistry;
-    private final DependencyToComponentResolver delegate;
+    private final DependencyToComponentIdResolver delegate;
     private final LocalComponentFactory localComponentFactory;
 
-    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, LocalComponentFactory localComponentFactory, DependencyToComponentResolver delegate) {
+    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, LocalComponentFactory localComponentFactory, DependencyToComponentIdResolver delegate) {
         this.projectComponentRegistry = projectComponentRegistry;
         this.delegate = delegate;
         this.localComponentFactory = localComponentFactory;
     }
 
-    public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
+    public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         if (dependency instanceof ProjectDependencyMetaData) {
             ProjectDependencyMetaData projectDependency = (ProjectDependencyMetaData) dependency;
             LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(projectDependency.getSelector().getProjectPath());

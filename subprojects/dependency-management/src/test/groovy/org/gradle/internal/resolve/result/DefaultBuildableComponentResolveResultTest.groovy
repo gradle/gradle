@@ -19,6 +19,7 @@ package org.gradle.internal.resolve.result
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
@@ -120,5 +121,41 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         then:
         result.failure instanceof ModuleVersionNotFoundException
+    }
+
+    def "copies results to an id resolve result"() {
+        def idResult = Mock(BuildableComponentIdResolveResult)
+        def metaData = Stub(ComponentResolveMetaData)
+
+        given:
+        result.attempted("a")
+        result.attempted("b")
+        result.resolved(metaData)
+
+        when:
+        result.applyTo(idResult)
+
+        then:
+        1 * idResult.attempted("a")
+        1 * idResult.attempted("b")
+        1 * idResult.resolved(metaData)
+    }
+
+    def "copies failure result to an id resolve result"() {
+        def idResult = Mock(BuildableComponentIdResolveResult)
+        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), "broken")
+
+        given:
+        result.attempted("a")
+        result.attempted("b")
+        result.failed(failure)
+
+        when:
+        result.applyTo(idResult)
+
+        then:
+        1 * idResult.attempted("a")
+        1 * idResult.attempted("b")
+        1 * idResult.failed(failure)
     }
 }

@@ -80,4 +80,14 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     public boolean hasResult() {
         return failure != null || metaData != null;
     }
+
+    public void applyTo(BuildableComponentIdResolveResult idResolve) {
+        super.applyTo(idResolve);
+        if (failure != null) {
+            idResolve.failed(failure);
+        }
+        if (metaData != null) {
+            idResolve.resolved(metaData);
+        }
+    }
 }

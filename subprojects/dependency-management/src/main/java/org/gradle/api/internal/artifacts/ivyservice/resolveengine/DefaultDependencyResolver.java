@@ -26,10 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
@@ -94,9 +91,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler);
 
                 DependencyToComponentResolver dependencyResolver = repositoryChain.getDependencyResolver();
-                dependencyResolver = new ClientModuleResolver(dependencyResolver, dependencyDescriptorFactory);
-                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, dependencyResolver);
-                dependencyResolver = projectDependencyResolver;
+                RepositoryChainAdapter adapter = new RepositoryChainAdapter(dependencyResolver, versionMatcher);
+                ClientModuleResolver clientModuleResolver = new ClientModuleResolver(adapter, dependencyDescriptorFactory);
+                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, adapter);
+                dependencyResolver = new ComponentResolverAdapter(projectDependencyResolver, clientModuleResolver);
                 ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal)configuration.getResolutionStrategy();
                 DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher);
                 idResolver = new VersionForcingDependencyToModuleResolver(idResolver, resolutionStrategy.getDependencyResolveRule());
