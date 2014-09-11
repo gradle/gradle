@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.tooling.internal.protocol;
 
 /**
- * <p>A <code>BuildCancelledException</code> is thrown when a build is interrupted due to cancellation request.
+ * A wrapper thrown when a build action throws an exception to signal cancellation. The failure will be attached as the cause of this exception.
  *
- * @since 2.1
+ * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
+ *
+ * @since 2.2-rc-1
  */
-@Incubating
-public class BuildCancelledException extends RuntimeException {
-    public BuildCancelledException() {
-    }
-
-    public BuildCancelledException(String message) {
-        super(message);
-    }
-
-    public BuildCancelledException(String message, Throwable cause) {
-        super(message, cause);
+public class InternalBuildCancelledException extends RuntimeException {
+    public InternalBuildCancelledException(Throwable cause) {
+        super(cause);
     }
 }

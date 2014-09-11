@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client
 
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.initialization.BuildAction
 import org.gradle.initialization.BuildCancellationToken
@@ -24,8 +25,6 @@ import org.gradle.launcher.daemon.context.DaemonUidCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
-import org.gradle.tooling.BuildCancelledException
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.atomic.AtomicReference
@@ -201,8 +200,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
 
         then:
-        GradleConnectionException gce = thrown()
-        gce instanceof BuildCancelledException
+        BuildCancelledException gce = thrown()
         1 * connector.connect(compatibilitySpec) >> connection
         1 * connection.getUid() >> '1'
         1 * connector.maybeConnect(_) >> { args ->
@@ -236,8 +234,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
 
         then:
-        GradleConnectionException gce = thrown()
-        gce instanceof BuildCancelledException
+        BuildCancelledException gce = thrown()
         gce == cancelledException
         1 * connector.connect(compatibilitySpec) >> connection
         1 * connection.getUid() >> '1'

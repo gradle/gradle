@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.BuildCancelledException;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildCancellationToken;
@@ -22,6 +23,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.*;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
@@ -39,6 +41,13 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         try {
             return executer.execute(action, cancellationToken, parameters);
         } catch (ReportedException e) {
+            Throwable t = e.getCause();
+            while (t != null) {
+                if (t instanceof BuildCancelledException) {
+                    throw new InternalBuildCancelledException(t);
+                }
+                t = t.getCause();
+            }
             throw new BuildExceptionVersion1(e.getCause());
         }
     }

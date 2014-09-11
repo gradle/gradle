@@ -15,12 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 
@@ -49,11 +51,30 @@ abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
                     + "\n" + failure.getMessage(), failure.getCause()));
         } else if (failure instanceof GradleConnectionException) {
             handler.onFailure((GradleConnectionException) failure);
+        } else if (failure.getCause() instanceof InternalBuildCancelledException) {
+            handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause().getCause()));
+        } else if (isR21CancellingException(failure)) {
+            handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof BuildExceptionVersion1) {
             handler.onFailure(new BuildException(connectionFailureMessage(failure), failure.getCause()));
         } else {
             handler.onFailure(new GradleConnectionException(connectionFailureMessage(failure), failure));
         }
+    }
+
+    /**
+     * Checks if the failure is result of build cancellation as reported in release 2.1
+     */
+    private boolean isR21CancellingException(Throwable failure) {
+        Throwable t = failure;
+        while (t != null) {
+            if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())
+                    || "org.gradle.tooling.BuildCancelledException".equals(t.getClass().getName())) {
+                return true;
+            }
+            t = t.getCause();
+        }
+        return false;
     }
 
     protected abstract String connectionFailureMessage(Throwable failure);

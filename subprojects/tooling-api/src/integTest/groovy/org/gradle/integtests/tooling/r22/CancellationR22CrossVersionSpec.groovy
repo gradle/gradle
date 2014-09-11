@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r21
+
+
+package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r21.HangingBuildAction
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.*
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-@ToolingApiVersion("=2.1")
+@ToolingApiVersion(">=2.2")
 @TargetGradleVersion(">=1.0-milestone-8")
-class CancellationCrossVersionSpec extends ToolingApiSpecification {
+class CancellationR22CrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         // in-process call does not support cancelling (yet)
         toolingApi.isEmbedded = false
@@ -74,14 +77,14 @@ task notExecuted(dependsOn: hang) << {
             cancel.cancel()
             resultHandler.finished()
         }
+
         then:
         output.toString().contains("__waiting__")
         output.toString().contains("__finished__")
         !output.toString().contains("__should_not_run__")
         new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted(':hang')
 
-        resultHandler.failure instanceof GradleConnectionException
-        resultHandler.failure.cause.cause.message.contains('Build cancelled.')
+        resultHandler.failure instanceof BuildCancelledException
     }
 
     @TargetGradleVersion(">=2.1")
@@ -117,14 +120,13 @@ task hang << {
             cancel.cancel()
             resultHandler.finished()
         }
+
         then:
         output.toString().contains("__waiting__")
         output.toString().contains("__finished__")
         new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted(':hang')
 
-        resultHandler.failure instanceof GradleConnectionException
-        resultHandler.failure.cause.cause.class.name == 'org.gradle.api.BuildCancelledException'
-        resultHandler.failure.cause.cause.message.contains('Build cancelled.')
+        resultHandler.failure instanceof BuildCancelledException
     }
 
     @TargetGradleVersion(">=2.1")
@@ -158,12 +160,11 @@ task hang << {
             marker.text = 'go!'
             resultHandler.finished()
         }
+
         then:
         output.toString().contains("__waiting__")
         !output.toString().contains("__finished__")
-        // TODO until we implement proper cancelling this depends on timing
-        resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
-        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.failure instanceof BuildCancelledException
     }
 
     @TargetGradleVersion(">=2.1")
@@ -187,6 +188,10 @@ task hang << {
         }
         then:
         resultHandler.failure instanceof BuildCancelledException
+    }
+
+    def "can cancel model retrieval"() {
+        // TODO
     }
 
     @TargetGradleVersion(">=2.1")
@@ -229,8 +234,7 @@ task hang << {
         output.toString().contains("waiting")
         // TODO add when print 'finished' is preceeded with call to BuildController and we're able to cancel it
         // !output.toString().contains("finished")
-        resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
-        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.failure instanceof BuildCancelledException // ||
     }
 
     @TargetGradleVersion(">=2.1")

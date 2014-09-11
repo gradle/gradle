@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
@@ -23,7 +24,6 @@ import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.ReportedException;
-import org.gradle.tooling.BuildCancelledException;
 
 /**
  * Actually executes the build.
@@ -46,7 +46,13 @@ public class ExecuteBuild extends BuildCommandOnly {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().updateCancellationToken(build.getIdentifier());
             Object result = actionExecuter.execute(build.getAction(), cancellationToken, build.getParameters());
             if (cancellationToken.isCancellationRequested()) {
-                execution.setException(new BuildCancelledException("Build cancelled."));
+                if (!(execution.getException() instanceof BuildCancelledException)) {
+                    BuildCancelledException cancelledException = new BuildCancelledException("Build cancelled.");
+                    if (execution.getException() != null) {
+                        cancelledException.initCause(execution.getException());
+                    }
+                    execution.setException(cancelledException);
+                }
             } else {
                 execution.setResult(result);
             }
