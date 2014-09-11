@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public interface ModuleVersionIdResolveResult extends ResolveResult {
-    /**
-     * Returns the resolve failure, if any.
-     */
+public interface ComponentIdResolveResult extends ResolveResult {
     @Nullable
     ModuleVersionResolveException getFailure();
 
-    /**
-     * Returns the identifier of this component.
-     *
-     * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
-     */
-    ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
+    ComponentIdentifier getId();
 
-    /**
-     * Resolves the meta-data for this module version, if required. Failures are packaged up in the result.
-     * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
-     */
-    ComponentResolveResult resolve() throws ModuleVersionResolveException;
+    ModuleVersionIdentifier getModuleVersionId();
 
-    /**
-     * @return why given id was selected. Should return a value even if the resolve failed.
-     */
     ComponentSelectionReason getSelectionReason();
+
+    /**
+     * Returns the meta-data for the component, if it was available at resolve time.
+     */
+    @Nullable
+    ComponentResolveMetaData getMetaData();
 }

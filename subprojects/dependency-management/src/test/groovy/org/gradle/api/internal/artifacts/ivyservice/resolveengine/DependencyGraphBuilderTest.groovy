@@ -24,12 +24,14 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
-import org.gradle.api.internal.artifacts.ivyservice.*
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
@@ -37,21 +39,22 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.specs.Spec
 import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.local.model.DefaultDslOriginDependencyMetaData
 import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
-import org.gradle.api.specs.Spec
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver
-import org.gradle.internal.resolve.resolver.DependencyToModuleVersionIdResolver
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.resolver.ModuleToComponentResolver
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
-import org.gradle.internal.resolve.result.ComponentResolveResult
-import org.gradle.internal.resolve.result.ModuleVersionIdResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -59,16 +62,17 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
 
 class DependencyGraphBuilderTest extends Specification {
-    final ConfigurationInternal configuration = Mock()
-    final ModuleConflictResolver conflictResolver = Mock()
-    final DependencyToModuleVersionIdResolver dependencyResolver = Mock()
-    final ArtifactResolver artifactResolver = Mock()
-    final ResolutionResultBuilder resultBuilder = Mock()
-    final TestMetaData root = revision('root')
-    final ModuleToComponentResolver moduleResolver = Mock()
-    final DependencyToConfigurationResolver dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
-    final ModuleReplacementsData moduleReplacements = Mock()
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(dependencyResolver, moduleResolver, artifactResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), dependencyToConfigurationResolver)
+    def configuration = Mock(ConfigurationInternal)
+    def conflictResolver = Mock(ModuleConflictResolver)
+    def idResolver = Mock(DependencyToComponentIdResolver)
+    def metaDataResolver = Mock(ComponentMetaDataResolver)
+    def artifactResolver = Mock(ArtifactResolver)
+    def resultBuilder = Mock(ResolutionResultBuilder)
+    def TestMetaData root = revision('root')
+    def moduleResolver = Mock(ModuleToComponentResolver)
+    def dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
+    def moduleReplacements = Mock(ModuleReplacementsData)
+    def builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, artifactResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), dependencyToConfigurationResolver)
 
     def setup() {
         config(root, 'root', 'default')
@@ -167,7 +171,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses root, c
         traverses a, d, revision: 'latest'
         doesNotResolve b, d, revision: 'latest'
-        doesNotResolve c, d
+        doesNotTraverse c, d
 
         when:
         def result = resolve()
@@ -189,7 +193,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses selected, c
         traverses root, b
         traverses b, d
-        doesNotResolve d, evicted // Conflict is deeper than all dependencies of selected module
+        doesNotTraverse d, evicted // Conflict is deeper than all dependencies of selected module
         doesNotResolve evicted, e
 
         when:
@@ -278,7 +282,7 @@ class DependencyGraphBuilderTest extends Specification {
         def c = revision('c')
         traverses root, selected
         traverses selected, b
-        doesNotResolve root, evicted
+        doesNotTraverse root, evicted
         doesNotResolve evicted, c
 
         when:
@@ -340,7 +344,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses selectedA, c
         traverses root, evictedB
         traverses root, selectedB
-        doesNotResolve selectedB, evictedA2
+        doesNotTraverse selectedB, evictedA2
 
         when:
         def result = resolve()
@@ -449,7 +453,7 @@ class DependencyGraphBuilderTest extends Specification {
         def selected = revision('a', '1.2')
         def evicted = revision('a', '1.1')
         traverses root, selected
-        doesNotResolve root, evicted
+        doesNotTraverse root, evicted
 
         when:
         def result = resolve()
@@ -624,8 +628,8 @@ class DependencyGraphBuilderTest extends Specification {
         traverses root, a
         traverses root, b
         doesNotResolve b, a
-        brokenSelector b, 'unknown'
         brokenSelector a, 'unknown'
+        doesNotResolve b, revision('unknown')
 
         when:
         def result = resolve()
@@ -881,7 +885,7 @@ class DependencyGraphBuilderTest extends Specification {
         def b = revision("b")
         traverses root, b
         traverses root, forced, force: true
-        doesNotResolve b, evicted
+        doesNotTraverse b, evicted
 
         when:
         def result = resolve()
@@ -907,37 +911,38 @@ class DependencyGraphBuilderTest extends Specification {
 
     def traverses(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
-        def idResolveResult = selectorResolvesTo(dependencyMetaData, to.id);
-        ComponentResolveResult resolveResult = Mock()
-        1 * idResolveResult.resolve() >> resolveResult
-        _ * resolveResult.id >> to.id
-        _ * resolveResult.metaData >> to
+        selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
+        1 * metaDataResolver.resolve(dependencyMetaData, to.componentId, _) >> { DependencyMetaData dep, ComponentIdentifier id, BuildableComponentResolveResult result ->
+            result.resolved(to)
+        }
+    }
+
+    def doesNotTraverse(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
+        def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
+        selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
+        0 * metaDataResolver.resolve(_, to.componentId, _)
     }
 
     def doesNotResolve(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
-        ModuleVersionIdResolveResult result = Mock()
-        (0..1) * dependencyResolver.resolve(dependencyMetaData) >> result
-        _ * result.id >> to.id;
-        _ * result.failure >> null
-        _ * result.selectionReason >> null
-        0 * result._
+        0 * idResolver.resolve(dependencyMetaData, _)
+        0 * metaDataResolver.resolve(_, to.componentId, _)
     }
 
     def traversesMissing(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
-        def idResolveResult = selectorResolvesTo(dependencyMetaData, to.id)
-        ComponentResolveResult resolveResult = Mock()
-        1 * idResolveResult.resolve() >> resolveResult
-        _ * resolveResult.failure >> { return new ModuleVersionNotFoundException(newId("org", "a", "1.2")) }
+        selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
+        1 * metaDataResolver.resolve(_, to.componentId, _) >> { DependencyMetaData dep, ComponentIdentifier id, BuildableComponentResolveResult result ->
+            result.notFound(to.id)
+        }
     }
 
     def traversesBroken(Map<String, ?> args = [:], TestMetaData from, ModuleComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
-        def idResolveResult = selectorResolvesTo(dependencyMetaData, to.id)
-        ComponentResolveResult resolveResult = Mock()
-        1 * idResolveResult.resolve() >> resolveResult
-        _ * resolveResult.failure >> { return new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken") }
+        selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
+        1 * metaDataResolver.resolve(_, to.componentId, _) >> { DependencyMetaData dep, ComponentIdentifier id, BuildableComponentResolveResult result ->
+            result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
+        }
     }
 
     ModuleVersionIdentifier toModuleVersionIdentifier(ModuleRevisionId moduleRevisionId) {
@@ -950,11 +955,9 @@ class DependencyGraphBuilderTest extends Specification {
 
     def brokenSelector(Map<String, ?> args = [:], TestMetaData from, String to) {
         def dependencyMetaData = dependsOn(args, from, createModuleRevisionId("group", to, "1.0"))
-        ModuleVersionIdResolveResult result = Mock()
-        (0..1) * dependencyResolver.resolve(dependencyMetaData) >> result
-        _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
-        _ * result.selectionReason >> VersionSelectionReasons.REQUESTED
-        0 * result._
+        1 * idResolver.resolve(dependencyMetaData, _) >> { DependencyMetaData dep, BuildableComponentIdResolveResult result ->
+            result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
+        }
     }
 
     def dependsOn(Map<String, ?> args = [:], TestMetaData from, ModuleRevisionId to) {
@@ -975,11 +978,10 @@ class DependencyGraphBuilderTest extends Specification {
         return dependencyMetaData
     }
 
-    def selectorResolvesTo(DependencyMetaData dependencyMetaData, ModuleVersionIdentifier to) {
-        ModuleVersionIdResolveResult result = Mock()
-        1 * dependencyResolver.resolve(dependencyMetaData) >> result
-        1 * result.id >> to
-        return result
+    def selectorResolvesTo(DependencyMetaData dependencyMetaData, ModuleComponentIdentifier id, ModuleVersionIdentifier mvId) {
+        1 * idResolver.resolve(dependencyMetaData, _) >> { DependencyMetaData dep, BuildableComponentIdResolveResult result ->
+            result.resolved(id, mvId)
+        }
     }
 
     def ids(ModuleComponentResolveMetaData... descriptors) {
