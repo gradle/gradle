@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
-import org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -46,7 +45,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
             return new CommandLineJavaCompiler();
         }
 
-        Compiler<JavaCompileSpec> compiler = new Jdk6JavaCompiler();
+        Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler();
         if (options.isFork() && !jointCompilation) {
             return new DaemonJavaCompiler(daemonWorkingDir, compiler, compilerDaemonFactory);
         }

@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler
-import org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
@@ -31,7 +30,7 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         expect:
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
-        compiler.delegate instanceof Jdk6JavaCompiler
+        compiler.delegate instanceof JdkJavaCompiler
     }
 
     def "creates in-process compiler when not forking and joint compilation"() {
@@ -39,7 +38,7 @@ class DefaultJavaCompilerFactoryTest extends Specification {
 
         expect:
         def compiler = factory.createForJointCompilation(options)
-        compiler instanceof Jdk6JavaCompiler
+        compiler instanceof JdkJavaCompiler
     }
 
     def "creates command line compiler when forking and forkOptions.executable is set"() {
@@ -68,7 +67,7 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
         compiler.delegate instanceof DaemonJavaCompiler
-        compiler.delegate.delegate instanceof Jdk6JavaCompiler
+        compiler.delegate.delegate instanceof JdkJavaCompiler
     }
 
     def "creates in-process compiler when forking and joint compilation"() {
@@ -76,6 +75,6 @@ class DefaultJavaCompilerFactoryTest extends Specification {
 
         expect:
         def compiler = factory.createForJointCompilation(options)
-        compiler instanceof Jdk6JavaCompiler
+        compiler instanceof JdkJavaCompiler
     }
 }

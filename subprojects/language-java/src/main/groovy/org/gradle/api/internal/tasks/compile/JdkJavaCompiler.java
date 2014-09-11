@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.jdk6;
+package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.jvm.Jvm;
@@ -35,8 +32,8 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class Jdk6JavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Jdk6JavaCompiler.class);
+public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
