@@ -20,7 +20,6 @@ import org.gradle.api.internal.cache.Loader;
 import org.gradle.api.internal.cache.SingleOperationPersistentStore;
 import org.gradle.api.internal.cache.Stash;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDataSerializer;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.cache.CacheRepository;
 
@@ -31,7 +30,7 @@ public class LocalClassSetAnalysisStore implements Loader<ClassSetAnalysisData>,
 
     public LocalClassSetAnalysisStore(CacheRepository cacheRepository, JavaCompile javaCompile) {
         //Single operation store that we throw away after the operation makes the implementation simpler.
-        this.store = new SingleOperationPersistentStore<ClassSetAnalysisData>(cacheRepository, javaCompile, "local class set analysis", new ClassSetAnalysisDataSerializer());
+        this.store = new SingleOperationPersistentStore<ClassSetAnalysisData>(cacheRepository, javaCompile, "local class set analysis", new ClassSetAnalysisData.Serializer());
     }
 
     public void put(ClassSetAnalysisData analysis) {

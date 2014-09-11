@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassFilesAnalyzer
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

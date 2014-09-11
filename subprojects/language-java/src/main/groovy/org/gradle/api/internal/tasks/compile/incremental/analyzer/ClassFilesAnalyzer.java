@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.deps;
+package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 
 import java.io.File;
 
@@ -56,6 +56,6 @@ public class ClassFilesAnalyzer implements FileVisitor {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new DefaultClassSetAnalysisData(accumulator.getDependentsMap());
+        return new ClassSetAnalysisData(accumulator.getDependentsMap());
     }
 }

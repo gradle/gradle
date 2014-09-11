@@ -21,7 +21,7 @@ import org.gradle.api.internal.cache.Stash;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassFilesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;

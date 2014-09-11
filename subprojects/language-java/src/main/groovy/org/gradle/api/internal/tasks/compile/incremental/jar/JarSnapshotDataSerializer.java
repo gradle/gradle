@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDataSerializer;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.MapSerializer;
@@ -35,7 +34,7 @@ public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
 
     public JarSnapshotDataSerializer() {
         mapSerializer = new MapSerializer<String, byte[]>(STRING_SERIALIZER, BYTE_ARRAY_SERIALIZER);
-        analysisSerializer = new ClassSetAnalysisDataSerializer();
+        analysisSerializer = new ClassSetAnalysisData.Serializer();
     }
 
     public JarSnapshotData read(Decoder decoder) throws Exception {

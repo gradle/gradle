@@ -25,17 +25,17 @@ import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDepe
 
 class ClassSetAnalysisDataSerializerTest extends Specification {
 
-    @Subject serializer = new ClassSetAnalysisDataSerializer()
+    @Subject serializer = new ClassSetAnalysisData.Serializer()
 
     def "serializes"() {
-        def data = new DefaultClassSetAnalysisData(
+        def data = new ClassSetAnalysisData(
                 ["A": dependents("B", "C"), "B": new DefaultDependentsSet(true, ["C"]), "C": dependents(), "D": new DependencyToAll(), ])
         def os = new ByteArrayOutputStream()
         def e = new OutputStreamBackedEncoder(os)
 
         when:
         serializer.write(e, data)
-        DefaultClassSetAnalysisData read = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(os.toByteArray())))
+        ClassSetAnalysisData read = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(os.toByteArray())))
 
         then:
         read.dependents.keySet() == data.dependents.keySet()

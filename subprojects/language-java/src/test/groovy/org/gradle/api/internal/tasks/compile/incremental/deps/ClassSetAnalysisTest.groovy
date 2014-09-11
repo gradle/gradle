@@ -23,7 +23,7 @@ import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDepe
 class ClassSetAnalysisTest extends Specification {
 
     ClassSetAnalysis analysis(Map<String, DependentsSet> dependents) {
-        new ClassSetAnalysis(new DefaultClassSetAnalysisData(dependents))
+        new ClassSetAnalysis(new ClassSetAnalysisData(dependents))
     }
 
     def "returns empty analysis"() {

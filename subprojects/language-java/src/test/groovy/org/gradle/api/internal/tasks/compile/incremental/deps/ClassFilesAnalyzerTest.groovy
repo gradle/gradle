@@ -21,6 +21,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer
 import spock.lang.Specification
 import spock.lang.Subject
 

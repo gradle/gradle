@@ -16,6 +16,69 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-public interface ClassSetAnalysisData {
-    DependentsSet getDependents(String className);
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.MapSerializer;
+import org.gradle.messaging.serialize.SetSerializer;
+
+import java.util.Map;
+import java.util.Set;
+
+import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
+
+public class ClassSetAnalysisData {
+
+    final Map<String, DependentsSet> dependents;
+
+    public ClassSetAnalysisData(Map<String, DependentsSet> dependents) {
+        this.dependents = dependents;
+    }
+
+    public DependentsSet getDependents(String className) {
+        return dependents.get(className);
+    }
+
+    public static class Serializer implements org.gradle.messaging.serialize.Serializer<ClassSetAnalysisData> {
+
+        private final MapSerializer<String, DependentsSet> serializer = new MapSerializer<String, DependentsSet>(
+                STRING_SERIALIZER, new DependentsSetSerializer());
+
+        public ClassSetAnalysisData read(Decoder decoder) throws Exception {
+            //we only support one kind of data
+            return new ClassSetAnalysisData(serializer.read(decoder));
+        }
+
+        public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
+            //we only support one kind of data
+            serializer.write(encoder, value.dependents);
+        }
+
+        private static class DependentsSetSerializer implements org.gradle.messaging.serialize.Serializer<DependentsSet> {
+
+            private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
+
+            public DependentsSet read(Decoder decoder) throws Exception {
+                int control = decoder.readSmallInt();
+                if (control == 0) {
+                    return new DependencyToAll();
+                }
+                if (control != 1 && control != 2) {
+                    throw new IllegalArgumentException("Unable to read the data. Unexpected control value: " + control);
+                }
+                Set<String> classes = setSerializer.read(decoder);
+                return new DefaultDependentsSet(control == 1, classes);
+            }
+
+            public void write(Encoder encoder, DependentsSet value) throws Exception {
+                if (value instanceof DependencyToAll) {
+                    encoder.writeSmallInt(0);
+                } else if (value instanceof DefaultDependentsSet) {
+                    encoder.writeSmallInt(value.isDependencyToAll() ? 1 : 2);
+                    setSerializer.write(encoder, value.getDependentClasses());
+                } else {
+                    throw new IllegalArgumentException("Don't know how to serialize value of type: " + value.getClass() + ", value: " + value);
+                }
+            }
+        }
+    }
 }
