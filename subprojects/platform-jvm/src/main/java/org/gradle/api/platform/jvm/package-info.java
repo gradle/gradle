@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.platform.jvm.JvmPlatform;
-
 /**
- * Definition of a JVM binary build for a {@link org.gradle.jvm.JvmLibrary}.
+ * Classes for managing platform variance
  */
-@Incubating
-public interface JvmLibraryBinarySpec extends JvmBinarySpec {
-    JvmPlatform getTargetPlatform();
-
-    void setTargetPlatform(JvmPlatform platform);
-}
+package org.gradle.api.platform.jvm;

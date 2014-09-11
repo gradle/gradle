@@ -16,8 +16,8 @@
 package org.gradle.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.platform.DefaultJvmPlatform;
-import org.gradle.api.internal.platform.JvmPlatform;
+import org.gradle.api.platform.jvm.DefaultJvmPlatform;
+import org.gradle.api.platform.jvm.JvmPlatform;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.service.ServiceRegistry;

@@ -17,7 +17,7 @@ package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.internal.platform.JvmPlatform;
+import org.gradle.api.platform.jvm.JvmPlatform;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;

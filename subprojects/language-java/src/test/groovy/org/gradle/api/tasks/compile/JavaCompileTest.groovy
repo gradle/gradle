@@ -18,7 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.TaskExecutionHistory
-import org.gradle.api.internal.platform.JvmPlatform
+import org.gradle.api.platform.jvm.JvmPlatform
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
