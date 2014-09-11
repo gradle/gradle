@@ -681,4 +681,37 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         "org.utils:api:1.2" | _
         "org.utils:api*"    | _
     }
+
+    def "copies selection rules when configuration is copied" () {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.2"
+            }
+
+            def closuresCalled = []
+            configurations.conf {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection cs -> closuresCalled << 0 }
+                        all { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 1 }
+                        all { ComponentSelection cs, ComponentMetadata metadata,  IvyModuleDescriptor imd -> closuresCalled << 2 }
+                        module("org.utils:api") { ComponentSelection cs -> closuresCalled << 3 }
+                        module("org.utils:api") { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 4 }
+                        module("org.utils:api") { ComponentSelection cs, ComponentMetadata metadata,  IvyModuleDescriptor imd -> closuresCalled << 5 }
+                    }
+                }
+            }
+            configurations.add(configurations.conf.copy())
+
+            task('checkConf') << {
+                configurations.confCopy.files
+                assert closuresCalled == [ 0, 3, 1, 2, 4, 5 ]
+            }
+        """
+
+        expect:
+        succeeds 'checkConf'
+    }
 }
