@@ -81,8 +81,10 @@ public class AntGroovydoc {
                     public Object doCall(Object ignore) {
                         for (Groovydoc.Link link : links) {
                             antBuilder.invokeMethod("link", new Object[]{
-                                    "packages", Joiner.on(",").join(link.getPackages()),
-                                    "href", link.getUrl()
+                                    ImmutableMap.of(
+                                            "packages", Joiner.on(",").join(link.getPackages()),
+                                            "href", link.getUrl()
+                                    )
                             });
                         }
 
