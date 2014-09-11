@@ -17,7 +17,11 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.*;
+import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.service.ServiceRegistration;

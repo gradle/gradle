@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.daemon;
+package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
+import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 

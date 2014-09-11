@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.recomp;
+package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeProcessor;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
@@ -36,7 +37,7 @@ public class RecompilationSpecProvider {
 
     public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs, PreviousCompilation previousCompilation, JarClasspathSnapshot jarClasspathSnapshot) {
         //creating an action that will be executed against all changes
-        DefaultRecompilationSpec spec = new DefaultRecompilationSpec();
+        RecompilationSpec spec = new RecompilationSpec();
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(previousCompilation, sourceToNameConverter);
         JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarClasspathSnapshot, previousCompilation);
         InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, jarChangeProcessor);
@@ -52,11 +53,11 @@ public class RecompilationSpecProvider {
     }
 
     private static class InputChangeAction implements Action<InputFileDetails> {
-        private final DefaultRecompilationSpec spec;
+        private final RecompilationSpec spec;
         private final JavaChangeProcessor javaChangeProcessor;
         private final JarChangeProcessor jarChangeProcessor;
 
-        public InputChangeAction(DefaultRecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, JarChangeProcessor jarChangeProcessor) {
+        public InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, JarChangeProcessor jarChangeProcessor) {
             this.spec = spec;
             this.javaChangeProcessor = javaChangeProcessor;
             this.jarChangeProcessor = jarChangeProcessor;

@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class JarChangeDependentsFinder {

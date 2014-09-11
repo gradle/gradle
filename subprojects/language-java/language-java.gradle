@@ -5,8 +5,7 @@ dependencies {
     compile project(":languageJvm")
 }
 
-useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**", "org/gradle/external/javadoc/**"])
-//useClassycle(exclude: ["org/gradle/external/javadoc/**"])
+useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/javadoc/**"])
 strictCompile()
 useTestFixtures()
 useTestFixtures(project:":platformBase")

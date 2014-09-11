@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import org.gradle.api.internal.hash.Hasher;
-import org.gradle.api.internal.tasks.compile.incremental.cache.ClassAnalysisCache;
 import org.gradle.internal.Factory;
 
 import java.io.File;

@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
+
 public interface GeneralCompileCaches {
     ClassAnalysisCache getClassAnalysisCache();
     JarSnapshotCache getJarSnapshotCache();

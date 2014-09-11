@@ -20,7 +20,6 @@ import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
 import org.gradle.internal.Factory;
 
 public class CachingJarSnapshotter implements JarSnapshotter {

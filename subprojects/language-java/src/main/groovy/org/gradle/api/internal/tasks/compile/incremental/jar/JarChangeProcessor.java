@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.recomp;
+package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarArchive;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeDependentsFinder;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-class JarChangeProcessor {
+public class JarChangeProcessor {
 
     private final FileOperations fileOperations;
     private final JarClasspathSnapshot jarClasspathSnapshot;
@@ -36,7 +33,7 @@ class JarChangeProcessor {
         this.previousCompilation = previousCompilation;
     }
 
-    public void processChange(InputFileDetails input, DefaultRecompilationSpec spec) {
+    public void processChange(InputFileDetails input, RecompilationSpec spec) {
         JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
         JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarClasspathSnapshot, previousCompilation);
         DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
@@ -44,6 +41,6 @@ class JarChangeProcessor {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;
         }
-        spec.classesToCompile.addAll(actualDependents.getDependentClasses());
+        spec.getClassNames().addAll(actualDependents.getDependentClasses());
     }
 }

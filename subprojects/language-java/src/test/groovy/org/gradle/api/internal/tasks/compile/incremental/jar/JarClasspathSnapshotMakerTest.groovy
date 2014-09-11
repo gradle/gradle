@@ -19,7 +19,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis
 import spock.lang.Specification
 import spock.lang.Subject

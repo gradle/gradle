@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.cache;
+package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.cache.Cache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.File;

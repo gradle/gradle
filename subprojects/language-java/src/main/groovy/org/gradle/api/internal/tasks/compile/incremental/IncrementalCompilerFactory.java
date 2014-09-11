@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenc
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.jar.*;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 

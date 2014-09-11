@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
+import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
+
 public interface CompileCaches extends GeneralCompileCaches {
     LocalJarClasspathSnapshotStore getLocalJarClasspathSnapshotStore();
     LocalClassSetAnalysisStore getLocalClassSetAnalysisStore();

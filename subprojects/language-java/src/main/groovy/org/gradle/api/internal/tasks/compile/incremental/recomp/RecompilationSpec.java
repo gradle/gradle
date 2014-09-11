@@ -16,10 +16,28 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 
-public interface RecompilationSpec {
-    Collection<String> getClassNames();
-    boolean isFullRebuildNeeded();
-    String getFullRebuildCause();
+public class RecompilationSpec {
+
+    private final Collection<String> classesToCompile = new LinkedHashSet<String>();
+    private String fullRebuildCause;
+
+    public Collection<String> getClassNames() {
+        return classesToCompile;
+    }
+
+    public boolean isFullRebuildNeeded() {
+        return fullRebuildCause != null;
+    }
+
+    public String getFullRebuildCause() {
+        return fullRebuildCause;
+    }
+
+    public void setFullRebuildCause(String description, File file) {
+        fullRebuildCause = description != null? description : "'" + file.getName() + "' was changed";
+    }
 }

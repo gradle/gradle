@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
-
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import java.util.Set;
 

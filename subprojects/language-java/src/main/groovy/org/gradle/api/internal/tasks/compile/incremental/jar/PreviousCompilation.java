@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.model;
+package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.cache.JarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.cache.LocalJarClasspathSnapshotStore;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotData;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
 
 import java.io.File;
 import java.util.Map;

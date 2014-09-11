@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.deps.*;
 
 import java.util.Arrays;
 import java.util.HashSet;

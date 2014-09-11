@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotWriter
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification

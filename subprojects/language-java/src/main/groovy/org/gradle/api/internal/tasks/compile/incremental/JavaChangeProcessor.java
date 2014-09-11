@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.recomp;
+package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 class JavaChangeProcessor {
@@ -31,14 +31,14 @@ class JavaChangeProcessor {
         this.sourceToNameConverter = sourceToNameConverter;
     }
 
-    public void processChange(InputFileDetails input, DefaultRecompilationSpec spec) {
+    public void processChange(InputFileDetails input, RecompilationSpec spec) {
         String className = sourceToNameConverter.getClassName(input.getFile());
-        spec.classesToCompile.add(className);
+        spec.getClassNames().add(className);
         DependentsSet actualDependents = previousCompilation.getDependents(className);
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;
         }
-        spec.classesToCompile.addAll(actualDependents.getDependentClasses());
+        spec.getClassNames().addAll(actualDependents.getDependentClasses());
     }
 }
