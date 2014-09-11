@@ -27,9 +27,18 @@ import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 import java.io.File;
 
 public class AntDependsStaleClassCleaner extends StaleClassCleaner {
+
+    private final Factory<AntBuilder> antBuilderFactory;
+    private final CompileOptions compileOptions;
+    private File dependencyCacheDir;
+
     public AntDependsStaleClassCleaner(Factory<AntBuilder> antBuilderFactory, CompileOptions compileOptions) {
         this.antBuilderFactory = antBuilderFactory;
         this.compileOptions = compileOptions;
+    }
+
+    public void setDependencyCacheDir(File dependencyCacheDir) {
+        this.dependencyCacheDir = dependencyCacheDir;
     }
 
     public void execute() {
@@ -50,11 +59,4 @@ public class AntDependsStaleClassCleaner extends StaleClassCleaner {
         }});
     }
 
-    public void setDependencyCacheDir(File dependencyCacheDir) {
-        this.dependencyCacheDir = dependencyCacheDir;
-    }
-
-    private final Factory<AntBuilder> antBuilderFactory;
-    private final CompileOptions compileOptions;
-    private File dependencyCacheDir;
 }
