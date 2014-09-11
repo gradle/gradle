@@ -27,6 +27,11 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
+// This import must be here due to a clash in Java 8 between this and java.util.Optional.
+// Be careful running “Optimize Imports” as it will wipe this out.
+// If there's no import below this comment, this has happened.
+import org.gradle.api.tasks.Optional;
+
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
  *
