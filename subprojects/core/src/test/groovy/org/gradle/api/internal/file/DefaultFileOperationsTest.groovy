@@ -105,22 +105,6 @@ public class DefaultFileOperationsTest extends Specification {
         fileTree.resolver.is(resolver)
     }
 
-    def createsAndConfiguresFileTree() {
-        given:
-        TestFile baseDir = expectPathResolved('base')
-        
-        when:
-        def fileTree = fileOperations.fileTree('base') {
-            builtBy 1
-        }
-        
-        then:
-        fileTree instanceof FileTree
-        fileTree.dir == baseDir
-        fileTree.resolver.is(resolver)
-        fileTree.builtBy == [1] as Set
-    }
-    
     def createsFileTreeFromMap() {
         TestFile baseDir = expectPathResolved('base')
 

@@ -635,7 +635,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public ConfigurableFileCollection files(Object paths, Closure closure) {
-        return getFileOperations().files(paths, closure);
+        return ConfigureUtil.configure(closure, getFileOperations().files(paths));
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
@@ -643,7 +643,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
-        return getFileOperations().fileTree(baseDir, closure);
+        return ConfigureUtil.configure(closure, getFileOperations().fileTree(baseDir));
     }
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
@@ -753,7 +753,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public WorkResult copy(Closure closure) {
-        return getFileOperations().copy(closure);
+        return copy(new ClosureBackedAction<CopySpec>(closure));
+    }
+
+    public WorkResult copy(Action<? super CopySpec> action) {
+        return getFileOperations().copy(action);
     }
 
     public WorkResult sync(Action<? super CopySpec> action) {
@@ -761,7 +765,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public CopySpec copySpec(Closure closure) {
-        return getFileOperations().copySpec(closure);
+        return copySpec(new ClosureBackedAction<CopySpec>(closure));
     }
 
     public CopySpec copySpec(Action<? super CopySpec> action) {

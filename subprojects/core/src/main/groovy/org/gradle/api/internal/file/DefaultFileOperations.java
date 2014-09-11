@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.*;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
@@ -40,14 +38,11 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.*;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
-
-import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultFileOperations implements FileOperations, ProcessOperations, ExecActionFactory {
     private final FileResolver fileResolver;
@@ -86,16 +81,8 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
         return new DefaultConfigurableFileCollection(fileResolver, taskResolver, paths);
     }
 
-    public ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        return configure(configureClosure, files(paths));
-    }
-
     public ConfigurableFileTree fileTree(Object baseDir) {
         return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, fileCopier);
-    }
-
-    public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
-        return ConfigureUtil.configure(closure, fileTree(baseDir));
     }
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
@@ -134,16 +121,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
         return deleteAction.delete(paths);
     }
 
-    public WorkResult copy(Closure closure) {
-        return fileCopier.copy(new ClosureBackedAction<CopySpec>(closure));
+    public WorkResult copy(Action<? super CopySpec> action) {
+        return fileCopier.copy(action);
     }
 
     public WorkResult sync(Action<? super CopySpec> action) {
         return fileCopier.sync(action);
-    }
-
-    public CopySpec copySpec(Closure closure) {
-        return copySpec(new ClosureBackedAction<CopySpec>(closure));
     }
 
     public CopySpec copySpec(Action<? super CopySpec> action) {

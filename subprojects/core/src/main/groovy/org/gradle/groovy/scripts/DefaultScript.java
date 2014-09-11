@@ -126,7 +126,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        return fileOperations.files(paths, configureClosure);
+        return ConfigureUtil.configure(configureClosure, fileOperations.files(paths));
     }
 
     public String relativePath(Object path) {
@@ -142,7 +142,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure) {
-        return fileOperations.fileTree(baseDir, configureClosure);
+        return ConfigureUtil.configure(configureClosure, fileOperations.fileTree(baseDir));
     }
 
     public FileTree zipTree(Object zipPath) {
@@ -158,7 +158,11 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public WorkResult copy(Closure closure) {
-        return fileOperations.copy(closure);
+        return copy(new ClosureBackedAction<CopySpec>(closure));
+    }
+
+    public WorkResult copy(Action<? super CopySpec> action) {
+        return fileOperations.copy(action);
     }
 
     public WorkResult sync(Action<? super CopySpec> action) {
@@ -166,7 +170,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public CopySpec copySpec(Closure closure) {
-        return fileOperations.copySpec(closure);
+        return fileOperations.copySpec(new ClosureBackedAction<CopySpec>(closure));
     }
 
     public CopySpec copySpec(Action<? super CopySpec> action) {
