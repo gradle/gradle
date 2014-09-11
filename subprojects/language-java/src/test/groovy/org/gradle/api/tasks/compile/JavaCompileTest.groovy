@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.TaskExecutionHistory
+import org.gradle.api.internal.platform.JvmPlatform
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
@@ -28,6 +30,7 @@ import spock.lang.Specification
 class JavaCompileTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def toolChain = Mock(JavaToolChainInternal)
+    def platform = Mock(JvmPlatform)
     def compiler = Mock(Compiler)
     def task = TestUtil.createTask(JavaCompile)
 
@@ -36,12 +39,14 @@ class JavaCompileTest extends Specification {
         task.outputs.history = Stub(TaskExecutionHistory)
         task.destinationDir = tmpDir.file("classes")
         task.toolChain = toolChain
+        task.targetPlatform = platform
 
         when:
         task.compile()
 
         then:
         1 * toolChain.newCompiler(!null) >> compiler
+        2 * platform.getTargetCompatibility() >> JavaVersion.current() //calls this 1 time for targetCompatibility and 1 time for sourceCompatibility which will change once sourceCompatibility can be defined with new model
         1 * compiler.execute(!null) >> Stub(WorkResult)
     }
 }

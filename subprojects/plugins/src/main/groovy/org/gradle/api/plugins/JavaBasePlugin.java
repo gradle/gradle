@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.platform.DefaultJvmPlatform;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
@@ -193,6 +194,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getTasks().withType(JavaCompile.class, new Action<JavaCompile>() {
             public void execute(final JavaCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
+                conventionMapping.map("targetPlatform", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return new DefaultJvmPlatform(javaConvention.getTargetCompatibility());
+                    }
+                });
                 conventionMapping.map("dependencyCacheDir", new Callable<Object>() {
                     public Object call() throws Exception {
                         return javaConvention.getDependencyCacheDir();

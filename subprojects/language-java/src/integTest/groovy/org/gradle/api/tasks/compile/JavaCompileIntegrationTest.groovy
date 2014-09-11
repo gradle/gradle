@@ -42,4 +42,17 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/classes/Foo.class").exists()
     }
+
+    def "default settings are correctly applied for java plugin"() {
+        buildFile << """
+            apply plugin:"java"
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        run("compileJava")
+        then:
+        file("build/classes/main/Foo.class").exists()
+    }
 }

@@ -61,8 +61,8 @@ import java.io.File;
  */
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
-    private final CompileOptions compileOptions = new CompileOptions();
     private JvmPlatform platform;
+    private final CompileOptions compileOptions = new CompileOptions();
 
     /**
      * Returns the tool chain that will be used to compile the Java source.
@@ -170,22 +170,8 @@ public class JavaCompile extends AbstractCompile {
         spec.setTempDir(getTemporaryDir());
         spec.setClasspath(getClasspath());
         spec.setDependencyCacheDir(getDependencyCacheDir());
-        if (platform == null) { //legacy components
-            spec.setTargetCompatibility(getTargetCompatibility());
-            spec.setSourceCompatibility(getSourceCompatibility());
-        } else if (getTargetCompatibility() == null && getSourceCompatibility() == null) {
-            spec.setTargetCompatibility(platform.getTargetCompatibility().toString());
-            spec.setSourceCompatibility(platform.getTargetCompatibility().toString()); //TODO: Source compatibility should be possible to configure separately
-        } else if (platform != null && getTargetCompatibility() != null && getSourceCompatibility() != null) {
-            if (getTargetCompatibility().equals(platform.getTargetCompatibility().toString())) {
-                spec.setTargetCompatibility(getTargetCompatibility());
-                spec.setSourceCompatibility(getSourceCompatibility());
-            } else {
-                throw new RuntimeException("Cannot create Java Compile spec because platform target compatibility is different from Java Compile target compatibility");
-            }
-        } else {
-            throw new RuntimeException("Cannot create Java Compile spec because either platform or source and target compatibility have not been set");
-        }
+        spec.setTargetCompatibility(getTargetPlatform().getTargetCompatibility().toString());
+        spec.setSourceCompatibility(getTargetPlatform().getTargetCompatibility().toString()); //TODO: freekh Source compatibility should be possible to configure separately
         spec.setCompileOptions(compileOptions);
         return spec;
     }
