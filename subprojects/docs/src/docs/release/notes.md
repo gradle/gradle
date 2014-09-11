@@ -241,6 +241,7 @@ We would like to thank the following community members for making contributions 
     - handle German-localised `readelf` when parsing output in integration tests
     - fix performance tests for Locale settings using not `.` as decimal separator
 * [Derek Eskens](https://github.com/snekse) - documentation improvements.
+* [Justin Ryan](https://github.com/quidryan) - documentation fixes.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
