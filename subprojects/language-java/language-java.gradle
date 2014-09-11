@@ -5,7 +5,9 @@ dependencies {
     compile project(":languageJvm")
 }
 
-useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/javadoc/**"])
+// These public packages have classes that are tangled with the corresponding internal package.
+useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/javadoc/**", ])
+
 strictCompile()
 useTestFixtures()
-useTestFixtures(project:":platformBase")
+useTestFixtures(project: ":platformBase")
