@@ -238,6 +238,7 @@ We would like to thank the following community members for making contributions 
 * [Clark Brewer](https://github.com/brewerc) - spelling corrections
 * [Guilherme Espada](https://github.com/GUIpsp) - allow to use OpenJDK with Gradle
 * [Harald Schmitt](https://github.com/surfing) - handle German-localised `readelf` when parsing output in integration tests.
+* [Derek Eskens](https://github.com/snekse) - documentation improvements.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

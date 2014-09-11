@@ -35,14 +35,6 @@
         <sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames" title="Defining tasks - using strings for task names">
             <sourcefile file="build.gradle"/>
         </sample>
-        <tip>
-            <title>Don't forget about the build phases.</title>
-            <para>A task has both Configuration and Actions. When using the <literal>&lt;&lt;</literal>, you are simply using a 
-                shortcut to define an action. Code defined in the configuration section of your task will get executed 
-                during the configuration phase of the build regardless of what task was targeted.
-                See <xref linkend="buildLifecycle"/> for more details about the build lifecycle.
-            </para>
-        </tip>
         <para>There is an alternative syntax for defining tasks, which you may prefer to use:</para>
         <sample id="addToTaskContainer" dir="userguide/tasks/addToTaskContainer" title="Defining tasks with alternative syntax">
             <sourcefile file="build.gradle"/>
@@ -112,6 +104,14 @@
         <sample id="defineAndConfigure" dir="userguide/tasks/defineAndConfigure" title="Defining a task with closure">
             <sourcefile file="build.gradle" snippet="no-description"/>
         </sample>
+        <tip>
+            <title>Don't forget about the build phases</title>
+            <para>A task has both configuration and actions.
+                When using the <literal>&lt;&lt;</literal>, you are simply using a shortcut to define an action.
+                Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted.
+                See <xref linkend="build_lifecycle"/> for more details about the build lifecycle.
+            </para>
+        </tip>
     </section>
     <section id='sec:adding_dependencies_to_tasks'>
         <title>Adding dependencies to a task</title>
