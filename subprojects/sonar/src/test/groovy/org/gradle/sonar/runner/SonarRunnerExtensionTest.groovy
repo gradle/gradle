@@ -15,27 +15,30 @@
  */
 package org.gradle.sonar.runner
 
-import org.gradle.api.Action
+import org.gradle.listener.ActionBroadcast
 import spock.lang.Specification
 
 class SonarRunnerExtensionTest extends Specification {
-    def extension = new SonarRunnerExtension()
 
     def "evaluate properties blocks"() {
+        def actionBroadcast = new ActionBroadcast<SonarProperties>()
+        def extension = new SonarRunnerExtension(actionBroadcast)
         def props = ["key.1": "value 1"]
 
         when:
-        extension.sonarProperties({
+        extension.sonarProperties {
             it.property "key.2", ["value 2"]
             it.properties(["key.3": "value 3", "key.4": "value 4"])
-        } as Action)
-        extension.sonarProperties({
+        }
+
+        extension.sonarProperties {
             it.property "key.5", "value 5"
             it.properties["key.2"] << "value 6"
             it.properties.remove("key.3")
-        } as Action)
+        }
 
-        extension.evaluateSonarPropertiesBlocks(props)
+        def sonarProperties = new SonarProperties(props)
+        actionBroadcast.execute(sonarProperties)
 
         then:
         props == ["key.1": "value 1", "key.2": ["value 2", "value 6"], "key.4": "value 4", "key.5": "value 5"]

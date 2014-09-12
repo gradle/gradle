@@ -20,8 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.listener.ActionBroadcast;
 
-import java.util.Map;
-
 /**
  * An extension for configuring the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner"> Sonar Runner</a>.
  * <p>
@@ -47,7 +45,11 @@ public class SonarRunnerExtension {
     public static final String SONAR_RUNNER_TASK_NAME = "sonarRunner";
 
     private boolean skipProject;
-    private final ActionBroadcast<SonarProperties> propertiesActions = new ActionBroadcast<SonarProperties>();
+    private final ActionBroadcast<SonarProperties> propertiesActions;
+
+    public SonarRunnerExtension(ActionBroadcast<SonarProperties> propertiesActions) {
+        this.propertiesActions = propertiesActions;
+    }
 
     /**
      * Adds an action that configures Sonar properties for the associated Gradle project.
@@ -68,12 +70,6 @@ public class SonarRunnerExtension {
      */
     public void sonarProperties(Action<? super SonarProperties> action) {
         propertiesActions.add(action);
-    }
-
-    public void evaluateSonarPropertiesBlocks(Map<String, Object> properties) {
-        SonarProperties sonarProperties = new SonarProperties();
-        sonarProperties.setProperties(properties);
-        propertiesActions.execute(sonarProperties);
     }
 
     /**

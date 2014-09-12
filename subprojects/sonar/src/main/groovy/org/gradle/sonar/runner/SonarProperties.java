@@ -34,6 +34,10 @@ import java.util.Map;
 @Incubating
 public class SonarProperties {
 
+    public SonarProperties(Map<String, Object> properties) {
+        this.properties = properties;
+    }
+
     private Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     /**
@@ -60,11 +64,6 @@ public class SonarProperties {
      */
     public Map<String, Object> getProperties() {
         return properties;
-    }
-
-    public void setProperties(Map<String, ?> properties) {
-        @SuppressWarnings("unchecked") Map<String, Object> cast = (Map<String, Object>) properties;
-        this.properties = cast;
     }
 
 }

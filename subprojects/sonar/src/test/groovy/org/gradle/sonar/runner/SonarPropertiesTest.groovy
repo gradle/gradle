@@ -18,7 +18,7 @@ package org.gradle.sonar.runner
 import spock.lang.Specification
 
 class SonarPropertiesTest extends Specification {
-    def properties = new SonarProperties()
+    def properties = new SonarProperties([:])
 
     def "set a single property"() {
         when:
@@ -38,7 +38,7 @@ class SonarPropertiesTest extends Specification {
 
     def "read and write the properties map directly"() {
         when:
-        properties.properties = [foo: "one", bar: "two"]
+        properties.properties.putAll(foo: "one", bar: "two")
         properties.properties.bar *= 2
         properties.properties.remove("foo")
 

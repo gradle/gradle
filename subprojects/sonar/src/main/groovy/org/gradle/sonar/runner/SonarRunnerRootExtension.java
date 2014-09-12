@@ -17,6 +17,7 @@
 package org.gradle.sonar.runner;
 
 import org.gradle.api.Action;
+import org.gradle.listener.ActionBroadcast;
 import org.gradle.process.JavaForkOptions;
 
 /**
@@ -45,6 +46,10 @@ public class SonarRunnerRootExtension extends SonarRunnerExtension {
 
     private String toolVersion = DEFAULT_SONAR_RUNNER_VERSION;
     private JavaForkOptions forkOptions;
+
+    public SonarRunnerRootExtension(ActionBroadcast<SonarProperties> propertiesActions) {
+        super(propertiesActions);
+    }
 
     /**
      * Configure the {@link #forkOptions}.

@@ -37,6 +37,8 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.listener.ActionBroadcast;
+import org.gradle.sonar.runner.SonarProperties;
 import org.gradle.sonar.runner.SonarRunnerExtension;
 import org.gradle.sonar.runner.SonarRunnerRootExtension;
 import org.gradle.sonar.runner.tasks.SonarRunner;
@@ -138,21 +140,30 @@ public class SonarRunnerPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         targetProject = project;
-        SonarRunner sonarRunnerTask = createTask(project);
 
-        SonarRunnerRootExtension rootExtension = project.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerRootExtension.class);
-        addConfiguration(project, rootExtension);
-        rootExtension.setForkOptions(sonarRunnerTask.getForkOptions());
+        final Map<Project, ActionBroadcast<SonarProperties>> actionBroadcastMap = Maps.newHashMap();
+        SonarRunner sonarRunnerTask = createTask(project, actionBroadcastMap);
 
+        ActionBroadcast<SonarProperties> actionBroadcast = addBroadcaster(actionBroadcastMap, project);
+        SonarRunnerRootExtension rootExtension = project.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerRootExtension.class, actionBroadcast);
         project.subprojects(new Action<Project>() {
-            public void execute(Project project11) {
-                project11.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerExtension.class);
+            public void execute(Project project) {
+                ActionBroadcast<SonarProperties> actionBroadcast = addBroadcaster(actionBroadcastMap, project);
+                project.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerExtension.class, actionBroadcast);
             }
         });
 
+        addConfiguration(project, rootExtension);
+        rootExtension.setForkOptions(sonarRunnerTask.getForkOptions());
     }
 
-    private SonarRunner createTask(final Project project) {
+    private ActionBroadcast<SonarProperties> addBroadcaster(Map<Project, ActionBroadcast<SonarProperties>> actionBroadcastMap, Project project) {
+        ActionBroadcast<SonarProperties> actionBroadcast = new ActionBroadcast<SonarProperties>();
+        actionBroadcastMap.put(project, actionBroadcast);
+        return actionBroadcast;
+    }
+
+    private SonarRunner createTask(final Project project, final Map<Project, ActionBroadcast<SonarProperties>> actionBroadcastMap) {
         SonarRunner sonarRunnerTask = project.getTasks().create(SonarRunnerExtension.SONAR_RUNNER_TASK_NAME, SonarRunner.class);
         sonarRunnerTask.setDescription("Analyzes " + project + " and its subprojects with Sonar Runner.");
 
@@ -160,7 +171,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         conventionMapping.map("sonarProperties", new Callable<Object>() {
             public Object call() throws Exception {
                 Map<String, Object> properties = Maps.newLinkedHashMap();
-                computeSonarProperties(project, properties);
+                computeSonarProperties(project, properties, actionBroadcastMap);
                 return properties;
             }
         });
@@ -186,7 +197,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         return sonarRunnerTask;
     }
 
-    public void computeSonarProperties(Project project, Map<String, Object> properties) {
+    public void computeSonarProperties(Project project, Map<String, Object> properties, Map<Project, ActionBroadcast<SonarProperties>> sonarPropertiesActionBroadcastMap) {
         SonarRunnerExtension extension = project.getExtensions().getByType(SonarRunnerExtension.class);
         if (extension.isSkipProject()) {
             return;
@@ -194,7 +205,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
 
         Map<String, Object> rawProperties = Maps.newLinkedHashMap();
         addGradleDefaults(project, rawProperties);
-        extension.evaluateSonarPropertiesBlocks(rawProperties);
+        evaluateSonarPropertiesBlocks(sonarPropertiesActionBroadcastMap.get(project), rawProperties);
         if (project.equals(targetProject)) {
             addSystemProperties(rawProperties);
         }
@@ -224,7 +235,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
 
         properties.put(convertKey("sonar.modules", projectPrefix), modules);
         for (Project childProject : enabledChildProjects) {
-            computeSonarProperties(childProject, properties);
+            computeSonarProperties(childProject, properties, sonarPropertiesActionBroadcastMap);
         }
     }
 
@@ -372,6 +383,11 @@ public class SonarRunnerPlugin implements Plugin<Project> {
                         }
                     }
                 });
+    }
+
+    private static void evaluateSonarPropertiesBlocks(ActionBroadcast<? super SonarProperties> propertiesActions, Map<String, Object> properties) {
+        SonarProperties sonarProperties = new SonarProperties(properties);
+        propertiesActions.execute(sonarProperties);
     }
 
 }
