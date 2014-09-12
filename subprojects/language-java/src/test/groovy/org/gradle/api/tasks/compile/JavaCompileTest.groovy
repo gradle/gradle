@@ -46,7 +46,7 @@ class JavaCompileTest extends Specification {
 
         then:
         1 * toolChain.newCompiler(!null) >> compiler
-        2 * platform.getTargetCompatibility() >> JavaVersion.current() //calls this 1 time for targetCompatibility and 1 time for sourceCompatibility which will change once sourceCompatibility can be defined with new model
+        1 * platform.getTargetCompatibility() >> JavaVersion.current()
         1 * compiler.execute(!null) >> Stub(WorkResult)
     }
 }
