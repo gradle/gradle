@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resource.cached.ivy;
 
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifierSerializer;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.resource.cached.CachedArtifact;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
@@ -29,6 +29,8 @@ import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex {
     private final BuildCommencedTimeProvider timeProvider;
@@ -48,12 +50,12 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
         storeInternal(key, createEntry(artifactFile, moduleDescriptorHash));
     }
 
-    public void storeMissing(ArtifactAtRepositoryKey key, BigInteger descriptorHash) {
-        storeInternal(key, createMissingEntry(descriptorHash));
+    public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {
+        storeInternal(key, createMissingEntry(attemptedLocations, descriptorHash));
     }
 
-    CachedArtifact createMissingEntry(BigInteger descriptorHash) {
-        return new DefaultCachedArtifact(timeProvider.getCurrentTime(), descriptorHash);
+    CachedArtifact createMissingEntry(List<String> attemptedLocations, BigInteger descriptorHash) {
+        return new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash);
     }
 
     private static class ArtifactAtRepositoryKeySerializer implements Serializer<ArtifactAtRepositoryKey> {
@@ -74,26 +76,35 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
     private static class CachedArtifactSerializer implements Serializer<CachedArtifact> {
         public void write(Encoder encoder, CachedArtifact value) throws Exception {
             encoder.writeBoolean(value.isMissing());
-            if (!value.isMissing()) {
-                encoder.writeString(value.getCachedFile().getPath());
-            }
             encoder.writeLong(value.getCachedAt());
             byte[] hash = value.getDescriptorHash().toByteArray();
             encoder.writeBinary(hash);
+            if (!value.isMissing()) {
+                encoder.writeString(value.getCachedFile().getPath());
+            } else {
+                encoder.writeSmallInt(value.attemptedLocations().size());
+                for (String location : value.attemptedLocations()) {
+                    encoder.writeString(location);
+                }
+            }
         }
 
         public CachedArtifact read(Decoder decoder) throws Exception {
             boolean isMissing = decoder.readBoolean();
-            File file;
-            if (!isMissing) {
-                file = new File(decoder.readString());
-            } else {
-                file = null;
-            }
             long createTimestamp = decoder.readLong();
             byte[] encodedHash = decoder.readBinary();
             BigInteger hash = new BigInteger(encodedHash);
-            return new DefaultCachedArtifact(file, createTimestamp, hash);
+            if (!isMissing) {
+                File file = new File(decoder.readString());
+                return new DefaultCachedArtifact(file, createTimestamp, hash);
+            } else {
+                int size = decoder.readSmallInt();
+                List<String> attempted = new ArrayList<String>(size);
+                for (int i = 0; i < size; i++) {
+                    attempted.add(decoder.readString());
+                }
+                return new DefaultCachedArtifact(attempted, createTimestamp, hash);
+            }
         }
     }
 }

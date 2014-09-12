@@ -247,6 +247,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 if (cached.isMissing()) {
                     if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
+                        for (String location : cached.attemptedLocations()) {
+                            result.attempted(location);
+                        }
                         result.notFound(artifact.getId());
                     }
                 } else {
@@ -330,7 +333,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             if (failure == null) {
                 artifactAtRepositoryCachedResolutionIndex.store(artifactCacheKey(artifact), result.getFile(), cachingModuleSource.getDescriptorHash());
             } else if (failure instanceof ArtifactNotFoundException) {
-                artifactAtRepositoryCachedResolutionIndex.storeMissing(artifactCacheKey(artifact), cachingModuleSource.getDescriptorHash());
+                artifactAtRepositoryCachedResolutionIndex.storeMissing(artifactCacheKey(artifact), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }
         }
     }

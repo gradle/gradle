@@ -17,7 +17,10 @@
 package org.gradle.internal.resource.cached;
 
 import java.math.BigInteger;
+import java.util.List;
 
 public interface CachedArtifact extends CachedItem {
     BigInteger getDescriptorHash();
+
+    List<String> attemptedLocations();
 }

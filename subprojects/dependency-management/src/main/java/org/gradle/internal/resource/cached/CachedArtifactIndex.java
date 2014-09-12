@@ -21,6 +21,7 @@ import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.List;
 
 public interface CachedArtifactIndex {
     /**
@@ -31,7 +32,6 @@ public interface CachedArtifactIndex {
      * @param key The key to cache this resolution under in the index. Cannot be null.
      * @param artifactFile The artifact file in the persistent file store. Cannot be null
      * @param moduleDescriptorHash The checksum (SHA1) of the related moduledescriptor.
-     * @see #storeMissing(ArtifactAtRepositoryKey, BigInteger)
      */
     void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash);
 
@@ -41,7 +41,7 @@ public interface CachedArtifactIndex {
      * @param key The key to cache this resolution under in the index.
      * @param descriptorHash The SHA1 hash of the related moduleDescriptor
      */
-    void storeMissing(ArtifactAtRepositoryKey key, BigInteger descriptorHash);
+    void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash);
 
     /**
      * Lookup a cached resolution.

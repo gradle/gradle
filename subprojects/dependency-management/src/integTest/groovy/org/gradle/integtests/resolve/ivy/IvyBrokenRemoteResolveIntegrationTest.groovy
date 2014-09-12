@@ -17,8 +17,6 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-import static org.hamcrest.Matchers.containsString
-
 class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     public void "reports and recovers from missing module"() {
@@ -44,7 +42,21 @@ task showMissing << { println configurations.missing.files }
         then:
         fails("showMissing")
         failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-                .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+                .assertResolutionFailure(':missing')
+                .assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${module.ivy.uri}
+    ${module.jar.uri}
+""")
+
+        when:
+        module.ivy.expectGetMissing()
+        module.jar.expectHeadMissing()
+
+        then:
+        fails("showMissing")
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+                .assertResolutionFailure(':missing')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
     ${module.ivy.uri}
@@ -220,8 +232,10 @@ Searched in the following locations:
 
         then:
         fails "retrieve"
-        // TODO - report on the locations when cached
-        failure.assertThatCause(containsString("Artifact 'projectA.jar (group:projectA:1.2)' not found."))
+
+        failure.assertHasCause("""Artifact 'projectA.jar (group:projectA:1.2)' not found.
+Searched in the following locations:
+    ${module.jar.uri}""")
     }
 
     public void "reports and recovers from failed artifact download"() {

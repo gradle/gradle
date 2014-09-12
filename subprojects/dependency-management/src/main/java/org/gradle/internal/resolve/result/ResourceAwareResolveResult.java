@@ -18,7 +18,11 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.internal.resource.ExternalResourceName;
 
+import java.util.List;
+
 public interface ResourceAwareResolveResult {
+    List<String> getAttempted();
+
     /**
      * Adds a location that was used to build this result. This is used for diagnostic messages and logging.
      */
