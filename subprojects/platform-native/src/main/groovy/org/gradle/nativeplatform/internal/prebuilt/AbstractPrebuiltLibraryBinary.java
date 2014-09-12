@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.PrebuiltLibrary;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.io.File;
 import java.util.Collections;
@@ -35,10 +35,10 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
     private final String name;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
-    private final Platform targetPlatform;
+    private final NativePlatform targetPlatform;
     private final Flavor flavor;
 
-    public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
+    public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor) {
         this.name = name;
         this.library = library;
         this.buildType = buildType;
@@ -67,7 +67,7 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
         return flavor;
     }
 
-    public Platform getTargetPlatform() {
+    public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 

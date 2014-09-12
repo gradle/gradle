@@ -20,7 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 
 import java.util.Collections;
@@ -58,8 +58,8 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
         return chooseElements(BuildType.class, candidates, buildTypes);
     }
 
-    public Set<Platform> choosePlatforms(Set<? extends Platform> candidates) {
-        return chooseElements(Platform.class, candidates, targetPlatforms);
+    public Set<NativePlatform> choosePlatforms(Set<? extends NativePlatform> candidates) {
+        return chooseElements(NativePlatform.class, candidates, targetPlatforms);
     }
 
     private <T extends Named> Set<T> chooseElements(Class<T> type, Set<? extends T> candidates, final Set<String> names) {

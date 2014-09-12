@@ -19,7 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
-import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.ToolChain
 import org.gradle.nativeplatform.internal.DefaultStaticLibraryArchiverSpec
 
@@ -44,7 +44,7 @@ class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
     /**
      * The platform being targeted.
      */
-    Platform targetPlatform
+    NativePlatform targetPlatform
 
     // Invalidate output when the tool chain output changes
     @Input

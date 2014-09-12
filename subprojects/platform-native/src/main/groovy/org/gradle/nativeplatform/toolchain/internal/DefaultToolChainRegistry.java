@@ -19,8 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.util.TreeVisitor;
 
@@ -62,7 +62,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
     }
 
-    public ToolChainInternal getForPlatform(PlatformInternal targetPlatform) {
+    public ToolChainInternal getForPlatform(NativePlatformInternal targetPlatform) {
         for (ToolChainInternal toolChain : searchOrder) {
             if (toolChain.select(targetPlatform).isAvailable()) {
                 return toolChain;
@@ -79,10 +79,10 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
     }
 
     private static class UnavailableToolChainDescription implements ToolSearchResult {
-        private final Platform targetPlatform;
+        private final NativePlatform targetPlatform;
         private final Map<String, PlatformToolProvider> candidates;
 
-        private UnavailableToolChainDescription(Platform targetPlatform, Map<String, PlatformToolProvider> candidates) {
+        private UnavailableToolChainDescription(NativePlatform targetPlatform, Map<String, PlatformToolProvider> candidates) {
             this.targetPlatform = targetPlatform;
             this.candidates = candidates;
         }
@@ -122,7 +122,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             return "unavailable";
         }
 
-        public PlatformToolProvider select(PlatformInternal targetPlatform) {
+        public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), failure);
         }
 

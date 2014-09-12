@@ -22,8 +22,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.nativebase.internal.incremental.IncrementalCompilerBuilder;
-import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -40,7 +40,7 @@ import java.util.Map;
 @Incubating
 public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ToolChainInternal toolChain;
-    private PlatformInternal targetPlatform;
+    private NativePlatformInternal targetPlatform;
     private boolean positionIndependentCode;
     private File objectFileDir;
     private ConfigurableFileCollection includes;
@@ -99,12 +99,12 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * The platform being targeted.
      */
-    public Platform getTargetPlatform() {
+    public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
-    public void setTargetPlatform(Platform targetPlatform) {
-        this.targetPlatform = (PlatformInternal) targetPlatform;
+    public void setTargetPlatform(NativePlatform targetPlatform) {
+        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**

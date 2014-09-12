@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal
 import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal
 import org.gradle.nativeplatform.platform.Architecture
-import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.ArchitectureNotationParser
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
@@ -42,7 +42,7 @@ class VisualStudioProjectMapperTest extends Specification {
     def flavorOne = Mock(Flavor)
     def buildTypeOne = Mock(BuildType)
     def buildTypeTwo = Mock(BuildType)
-    def platformOne = Mock(Platform)
+    def platformOne = Mock(NativePlatform)
 
     def setup() {
         executableBinary = createExecutableBinary("exeBinaryName", buildTypeOne, platformOne)

@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.platform;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.platform.base.Platform;
 
 /**
  * A target platform for building native binaries. Each target platform is given a name, and may optionally be given
@@ -37,7 +38,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface Platform extends Named {
+public interface NativePlatform extends Platform {
     /**
      * Returns a human-consumable display name for this platform.
      */

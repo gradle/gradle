@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.nativeplatform.*;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.util.GUtil;
 
 import java.util.Set;
@@ -44,7 +44,7 @@ class DefaultLibraryResolver {
 
     private class LibraryResolution {
         private Flavor flavor;
-        private Platform platform;
+        private NativePlatform platform;
         private BuildType buildType;
 
         public LibraryResolution withFlavor(Flavor flavor) {
@@ -52,7 +52,7 @@ class DefaultLibraryResolver {
             return this;
         }
 
-        public LibraryResolution withPlatform(Platform platform) {
+        public LibraryResolution withPlatform(NativePlatform platform) {
             this.platform = platform;
             return this;
         }

@@ -27,7 +27,7 @@ import org.junit.Rule
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class NativeNativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
     @Rule public final Sample cppLib = sample(testDirProvider, 'cpp-lib')
     @Rule public final Sample cppExe = sample(testDirProvider, 'cpp-exe')

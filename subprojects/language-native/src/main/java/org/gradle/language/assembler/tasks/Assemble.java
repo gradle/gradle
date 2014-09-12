@@ -22,8 +22,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.assembler.internal.DefaultAssembleSpec;
-import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
 
@@ -38,7 +38,7 @@ import java.util.List;
 public class Assemble extends DefaultTask {
     private FileCollection source;
     private ToolChainInternal toolChain;
-    private PlatformInternal targetPlatform;
+    private NativePlatformInternal targetPlatform;
     private File objectFileDir;
     private List<String> assemblerArgs;
 
@@ -109,12 +109,12 @@ public class Assemble extends DefaultTask {
     /**
      * The platform being targeted.
      */
-    public Platform getTargetPlatform() {
+    public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
-    public void setTargetPlatform(Platform targetPlatform) {
-        this.targetPlatform = (PlatformInternal) targetPlatform;
+    public void setTargetPlatform(NativePlatform targetPlatform) {
+        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**

@@ -56,7 +56,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def instantiator = new DirectInstantiator()
     def toolChain = new TestToolChain("test", operatingSystem, fileResolver, execActionFactory, toolSearchPath, metaDataProvider, instantiator)
-    def platform = Stub(PlatformInternal)
+    def platform = Stub(NativePlatformInternal)
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
@@ -140,8 +140,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def "selected toolChain applies platform configuration action"() {
-        def platform1 = Mock(PlatformInternal)
-        def platform2 = Mock(PlatformInternal)
+        def platform1 = Mock(NativePlatformInternal)
+        def platform2 = Mock(NativePlatformInternal)
         platform1.name >> "platform1"
         platform2.name >> "platform2"
 
@@ -176,8 +176,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
 
     def "selected toolChain uses objectfile suffix based on targetplatform"() {
-        def platform1 = Mock(PlatformInternal)
-        def platform2 = Mock(PlatformInternal)
+        def platform1 = Mock(NativePlatformInternal)
+        def platform2 = Mock(NativePlatformInternal)
         platform1.getName() >> "platform1"
         def platformOSWin = Mock(OperatingSystemInternal)
         platformOSWin.isWindows() >> true

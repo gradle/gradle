@@ -23,8 +23,8 @@ import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.nativebase.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.language.rc.internal.DefaultWindowsResourceCompileSpec;
-import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -44,7 +44,7 @@ import java.util.Map;
 public class WindowsResourceCompile extends DefaultTask {
 
     private ToolChainInternal toolChain;
-    private PlatformInternal targetPlatform;
+    private NativePlatformInternal targetPlatform;
     private File outputDir;
     private ConfigurableFileCollection includes;
     private ConfigurableFileCollection source;
@@ -96,12 +96,12 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * The platform being targeted.
      */
-    public Platform getTargetPlatform() {
+    public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
-    public void setTargetPlatform(Platform targetPlatform) {
-        this.targetPlatform = (PlatformInternal) targetPlatform;
+    public void setTargetPlatform(NativePlatform targetPlatform) {
+        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**

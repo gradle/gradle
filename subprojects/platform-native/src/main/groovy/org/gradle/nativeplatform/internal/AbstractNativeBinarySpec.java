@@ -24,7 +24,7 @@ import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.sourceset.DependentSourceSet;
 import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -46,12 +46,12 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
     private final ToolChain toolChain;
-    private final Platform targetPlatform;
+    private final NativePlatform targetPlatform;
     private final BuildType buildType;
     private final NativeDependencyResolver resolver;
     private boolean buildable;
 
-    protected AbstractNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChain toolChain, PlatformToolProvider toolProvider, Platform targetPlatform,
+    protected AbstractNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChain toolChain, PlatformToolProvider toolProvider, NativePlatform targetPlatform,
                                        BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         this.component = owner;
         this.toolProvider = toolProvider;
@@ -94,7 +94,7 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         return toolChain;
     }
 
-    public Platform getTargetPlatform() {
+    public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 

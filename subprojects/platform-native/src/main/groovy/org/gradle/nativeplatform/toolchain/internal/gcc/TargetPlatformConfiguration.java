@@ -16,13 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 
 public interface TargetPlatformConfiguration {
     /**
      * Returns whether a platform is supported or not.
      */
-    boolean supportsPlatform(PlatformInternal targetPlatform);
+    boolean supportsPlatform(NativePlatformInternal targetPlatform);
 
     /**
      *  applies a platform specific toolchain configuration

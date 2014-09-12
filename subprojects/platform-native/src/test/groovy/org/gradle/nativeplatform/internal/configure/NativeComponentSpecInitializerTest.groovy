@@ -22,8 +22,8 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
-import org.gradle.nativeplatform.platform.Platform
-import org.gradle.nativeplatform.platform.internal.PlatformInternal
+import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal
@@ -38,7 +38,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def nativeBinariesFactory = Mock(NativeBinariesFactory)
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
 
-    def platform = createStub(PlatformInternal, "platform1")
+    def platform = createStub(NativePlatformInternal, "platform1")
     def buildType = createStub(BuildType, "buildType1")
     def flavor = createStub(Flavor, "flavor1")
 
@@ -62,7 +62,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def "does not use variant dimension names when component targets a single point on dimension"() {
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                [platform, Mock(Platform)], [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
+                [platform, Mock(NativePlatform)], [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
         component.targetPlatforms("platform1")
         component.targetBuildTypes("buildType1")
         component.targetFlavors("flavor1")
@@ -77,7 +77,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     }
 
     def "includes platform in name for when multiple platforms"() {
-        def platform2 = createStub(PlatformInternal, "platform2")
+        def platform2 = createStub(NativePlatformInternal, "platform2")
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 [platform, platform2], [buildType], [flavor])

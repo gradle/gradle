@@ -21,7 +21,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
-import org.gradle.nativeplatform.platform.internal.DefaultPlatform
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall
 
@@ -34,7 +34,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
         this.binaryFile = binaryFile
 
         VisualStudioInstall vsInstall = findVisualStudio()
-        DefaultPlatform targetPlatform = new DefaultPlatform("default");
+        DefaultNativePlatform targetPlatform = new DefaultNativePlatform("default");
         vcBin = vsInstall.getVisualCpp().getBinaryPath(targetPlatform)
         vcPath = vsInstall.getVisualCpp().getPath(targetPlatform).join(';')
     }

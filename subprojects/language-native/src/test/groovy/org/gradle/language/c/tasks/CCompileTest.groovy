@@ -17,7 +17,7 @@
 package org.gradle.language.c.tasks
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.nativeplatform.platform.internal.PlatformInternal
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
@@ -30,7 +30,7 @@ class CCompileTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
     CCompile cCompile = TestUtil.createTask(CCompile)
     def toolChain = Mock(ToolChainInternal)
-    def platform = Mock(PlatformInternal)
+    def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<CppCompileSpec> cCompiler = Mock(Compiler)
 

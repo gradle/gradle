@@ -22,14 +22,14 @@ import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.PrebuiltStaticLibraryBinary;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.io.File;
 
 public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltStaticLibraryBinary {
     private File staticLibraryFile;
 
-    public DefaultPrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
+    public DefaultPrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor) {
         super(name, library, buildType, targetPlatform, flavor);
     }
 

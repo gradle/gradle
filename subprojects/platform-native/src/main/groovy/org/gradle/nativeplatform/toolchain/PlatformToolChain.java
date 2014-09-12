@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
 /**
  * A platform specific configurable tool chain.
@@ -27,5 +27,5 @@ public interface PlatformToolChain {
     /**
      * Returns the platform which this tool chain builds for.
      */
-    Platform getPlatform();
+    NativePlatform getPlatform();
 }

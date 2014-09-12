@@ -21,7 +21,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.PlatformToolChain;
@@ -107,7 +107,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         configInsertLocation++;
     }
 
-    public PlatformToolProvider select(PlatformInternal targetPlatform) {
+    public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         TargetPlatformConfiguration targetPlatformConfigurationConfiguration = getPlatformConfiguration(targetPlatform);
         ToolChainAvailability result = new ToolChainAvailability();
         if (targetPlatformConfigurationConfiguration == null) {
@@ -176,7 +176,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     protected void configureDefaultTools(DefaultGccPlatformToolChain toolChain) {
     }
 
-    protected TargetPlatformConfiguration getPlatformConfiguration(PlatformInternal targetPlatform) {
+    protected TargetPlatformConfiguration getPlatformConfiguration(NativePlatformInternal targetPlatform) {
         for (TargetPlatformConfiguration platformConfig : platformConfigs) {
             if (platformConfig.supportsPlatform(targetPlatform)) {
                 return platformConfig;
@@ -186,7 +186,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
-        public boolean supportsPlatform(PlatformInternal targetPlatform) {
+        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && targetPlatform.getArchitecture() == ArchitectureInternal.TOOL_CHAIN_DEFAULT;
         }
@@ -197,7 +197,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     private class Intel32Architecture implements TargetPlatformConfiguration {
 
-        public boolean supportsPlatform(PlatformInternal targetPlatform) {
+        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent() && targetPlatform.getArchitecture().isI386();
         }
 
@@ -227,7 +227,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     private class Intel64Architecture implements TargetPlatformConfiguration {
-        public boolean supportsPlatform(PlatformInternal targetPlatform) {
+        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && targetPlatform.getArchitecture().isAmd64();
         }
@@ -267,7 +267,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             this.configurationAction = configurationAction;
         }
 
-        public boolean supportsPlatform(PlatformInternal targetPlatform) {
+        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return platformNames.contains(targetPlatform.getName());
         }
 

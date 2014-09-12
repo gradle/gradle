@@ -19,7 +19,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
-import org.gradle.nativeplatform.platform.internal.DefaultPlatform
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -30,7 +30,7 @@ class DefaultToolChainRegistryTest extends Specification {
     def instantiator = project.services.get(Instantiator)
     def registry = instantiator.newInstance(DefaultToolChainRegistry, instantiator)
     def NamedDomainObjectFactory<TestToolChain> factory = Mock(NamedDomainObjectFactory)
-    def platform = new DefaultPlatform("platform")
+    def platform = new DefaultNativePlatform("platform")
 
     def "setup"() {
         project.extensions.add("toolChains", registry)

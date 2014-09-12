@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativeplatform.platform.internal.PlatformInternal
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory
 import org.gradle.process.internal.ExecActionFactory
@@ -41,7 +41,7 @@ class GccToolChainTest extends Specification {
 
         when:
         toolChain.target("platform", action)
-        toolChain.select(Stub(PlatformInternal) { getName() >> "platform" })
+        toolChain.select(Stub(NativePlatformInternal) { getName() >> "platform" })
 
         then:
         1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
