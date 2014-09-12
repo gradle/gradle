@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.sonar.runner
+package org.gradle.sonar.runner.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -24,6 +24,9 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.internal.jvm.Jvm
+import org.gradle.sonar.runner.SonarRunnerExtension
+import org.gradle.sonar.runner.SonarRunnerRootExtension
+import org.gradle.sonar.runner.tasks.SonarRunner
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 /**
  * A plugin for analyzing projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
@@ -92,10 +95,6 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin
 @Incubating
 class SonarRunnerPlugin implements Plugin<Project> {
 
-    static final String SONAR_RUNNER_CONFIGURATION_NAME = 'sonarRunner'
-    static final String SONAR_RUNNER_EXTENSION_NAME = 'sonarRunner'
-    static final String SONAR_RUNNER_TASK_NAME = 'sonarRunner'
-
     Project targetProject
 
     void apply(Project project) {
@@ -108,17 +107,17 @@ class SonarRunnerPlugin implements Plugin<Project> {
 
     private void addExtensions(Project project, SonarRunner sonarRunnerTask) {
         def rootExtension = project.extensions.create(
-                SONAR_RUNNER_EXTENSION_NAME,
+                SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME,
                 SonarRunnerRootExtension
         )
         rootExtension.forkOptions = sonarRunnerTask.forkOptions
         project.subprojects {
-            extensions.create(SONAR_RUNNER_EXTENSION_NAME, SonarRunnerExtension)
+            extensions.create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerExtension)
         }
     }
 
     private SonarRunner createTask(Project project) {
-        def sonarRunnerTask = project.tasks.create(SONAR_RUNNER_TASK_NAME, SonarRunner)
+        def sonarRunnerTask = project.tasks.create(SonarRunnerExtension.SONAR_RUNNER_TASK_NAME, SonarRunner)
         sonarRunnerTask.with {
             description = "Analyzes $project and its subprojects with Sonar Runner."
 
@@ -256,7 +255,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
     }
 
     private void addConfiguration() {
-        this.targetProject.configurations.create(SONAR_RUNNER_CONFIGURATION_NAME).with {
+        this.targetProject.configurations.create(SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME).with {
             visible = false
             transitive = false
             description = 'The SonarRunner configuration to use to run analysis'

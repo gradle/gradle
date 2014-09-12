@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.sonar.runner
+package org.gradle.sonar.runner.plugins
 
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -24,6 +24,9 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.process.internal.JavaExecHandleBuilder
+import org.gradle.sonar.runner.SonarRunnerExtension
+import org.gradle.sonar.runner.SonarRunnerRootExtension
+import org.gradle.sonar.runner.tasks.SonarRunner
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil

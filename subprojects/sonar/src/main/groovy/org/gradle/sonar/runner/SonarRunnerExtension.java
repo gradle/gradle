@@ -42,6 +42,10 @@ import java.util.Map;
 @Incubating
 public class SonarRunnerExtension {
 
+    public static final String SONAR_RUNNER_CONFIGURATION_NAME = "sonarRunner";
+    public static final String SONAR_RUNNER_EXTENSION_NAME = "sonarRunner";
+    public static final String SONAR_RUNNER_TASK_NAME = "sonarRunner";
+
     private boolean skipProject;
     private final ActionBroadcast<SonarProperties> propertiesActions = new ActionBroadcast<SonarProperties>();
 

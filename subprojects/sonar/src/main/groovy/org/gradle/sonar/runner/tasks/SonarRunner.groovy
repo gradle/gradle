@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.sonar.runner
+package org.gradle.sonar.runner.tasks
 
 import groovy.transform.PackageScope
 import org.gradle.api.DefaultTask
@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.process.internal.JavaExecHandleBuilder
+import org.gradle.sonar.runner.SonarRunnerExtension
 
 import javax.inject.Inject
 
@@ -55,7 +56,7 @@ class SonarRunner extends DefaultTask {
     Properties sonarProperties
 
     /**
-     * Options for the analysis process. Configured via {@link SonarRunnerRootExtension#forkOptions}.
+     * Options for the analysis process. Configured via {@link org.gradle.sonar.runner.SonarRunnerRootExtension#forkOptions}.
      */
     JavaForkOptions getForkOptions() {
         if (forkOptions == null) {
@@ -87,7 +88,7 @@ class SonarRunner extends DefaultTask {
         getForkOptions().copyTo(javaExec)
 
         javaExec.setClasspath(
-                project.configurations[SonarRunnerPlugin.SONAR_RUNNER_CONFIGURATION_NAME]
+                project.configurations[SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME]
         )
 
         javaExec.setMain('org.sonar.runner.Main')

@@ -338,7 +338,7 @@
             <tr>
                 <td><literal>sonarRunner</literal></td>
                 <td>-</td>
-                <td><apilink class="org.gradle.sonar.runner.SonarRunner"/></td>
+                <td><apilink class="org.gradle.sonar.runner.tasks.SonarRunner"/></td>
                 <td>Analyzes a project hierarchy and stores the results in the Sonar database.</td>
             </tr>
         </table>
