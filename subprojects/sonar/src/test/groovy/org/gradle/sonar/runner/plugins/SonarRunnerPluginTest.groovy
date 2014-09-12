@@ -71,7 +71,7 @@ class SonarRunnerPluginTest extends Specification {
     def "adds a sonarRunner task to the target project"() {
         expect:
         parentProject.tasks.findByName("sonarRunner") instanceof SonarRunner
-        parentProject.tasks.sonarRunner.description == "Analyzes project ':parent' and its subprojects with Sonar Runner."
+        parentSonarRunnerTask().description == "Analyzes project ':parent' and its subprojects with Sonar Runner."
 
         childProject.tasks.findByName("sonarRunner") == null
     }
@@ -83,7 +83,7 @@ class SonarRunnerPluginTest extends Specification {
         childProject.plugins.apply(JavaPlugin)
 
         then:
-        expect(parentProject.tasks.sonarRunner, TaskDependencyMatchers.dependsOnPaths(containsInAnyOrder(":parent:test", ":parent:child:test")))
+        expect(parentSonarRunnerTask(), TaskDependencyMatchers.dependsOnPaths(containsInAnyOrder(":parent:test", ":parent:child:test")))
     }
 
     def "doesn't make sonarRunner task depend on test task of skipped projects"() {
@@ -94,12 +94,12 @@ class SonarRunnerPluginTest extends Specification {
         childProject.sonarRunner.skipProject = true
 
         then:
-        expect(parentProject.tasks.sonarRunner, TaskDependencyMatchers.dependsOnPaths(contains(":parent:test")))
+        expect(parentSonarRunnerTask(), TaskDependencyMatchers.dependsOnPaths(contains(":parent:test")))
     }
 
     def "adds default properties for target project and its subprojects"() {
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.sources"] == ""
@@ -121,7 +121,7 @@ class SonarRunnerPluginTest extends Specification {
 
     def "adds additional default properties for target project"() {
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.projectKey"] == "group:parent"
@@ -140,7 +140,7 @@ class SonarRunnerPluginTest extends Specification {
         parentProject.group = "" // or null, but only rootProject.group can effectively be set to null
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.projectKey"] == "parent"
@@ -155,7 +155,7 @@ class SonarRunnerPluginTest extends Specification {
         childProject.targetCompatibility = 1.7
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.java.source"] == "1.5"
@@ -186,7 +186,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.sources"] == new File(parentProject.projectDir, "src") as String
@@ -201,7 +201,7 @@ class SonarRunnerPluginTest extends Specification {
         parentProject.plugins.apply(JavaPlugin)
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         !properties.containsKey("sonar.tests")
@@ -215,7 +215,7 @@ class SonarRunnerPluginTest extends Specification {
         childProject2.plugins.apply(JavaPlugin)
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.sources"] == ""
@@ -230,7 +230,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.some.key"] == "some value"
@@ -245,7 +245,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["child.sonar.some.key"] == "other value"
@@ -254,7 +254,7 @@ class SonarRunnerPluginTest extends Specification {
 
     def "adds 'modules' properties declaring (prefixes of) subprojects"() {
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.modules"] == "child,child2"
@@ -290,7 +290,7 @@ class SonarRunnerPluginTest extends Specification {
         parentProject.version = "1.2.3"
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.projectVersion"] == "1.2.3"
@@ -309,7 +309,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["some.object"] == "object"
@@ -322,7 +322,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         !properties.containsKey("some.key")
@@ -333,7 +333,7 @@ class SonarRunnerPluginTest extends Specification {
         System.setProperty("sonar.projectVersion", "3.2")
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.some.key"] == "some value"
@@ -372,7 +372,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         properties["sonar.some.key"] == "win"
@@ -382,7 +382,7 @@ class SonarRunnerPluginTest extends Specification {
         childProject.sonarRunner.skipProject = true
 
         when:
-        def properties = parentProject.tasks.sonarRunner.sonarProperties
+        def properties = parentSonarRunnerTask().sonarProperties
 
         then:
         !properties.any { key, value -> key.startsWith("child.sonar.") }
@@ -391,7 +391,7 @@ class SonarRunnerPluginTest extends Specification {
     def "sets default fork options correctly"() {
 
         when:
-        JavaForkOptions forkOptions = parentProject.tasks.sonarRunner.forkOptions
+        JavaForkOptions forkOptions = parentSonarRunnerTask().forkOptions
         SonarRunnerRootExtension rootExtension = parentProject.extensions.sonarRunner
 
         then:
@@ -409,7 +409,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        JavaForkOptions forkOptions = parentProject.tasks.sonarRunner.forkOptions
+        JavaForkOptions forkOptions = parentSonarRunnerTask().forkOptions
 
         then:
         forkOptions.allJvmArgs.contains('-Xmx1024m')
@@ -419,11 +419,15 @@ class SonarRunnerPluginTest extends Specification {
     def "sonar java process is configured properly"() {
 
         when:
-        JavaExecHandleBuilder handleBuilder = parentProject.tasks.sonarRunner.prepareExec()
+        JavaExecHandleBuilder handleBuilder = parentSonarRunnerTask().prepareExec()
 
         then:
         handleBuilder.main == 'org.sonar.runner.Main'
         handleBuilder.classpath.files*.name.contains("sonar-runner-dist-2.3.jar")
+    }
+
+    private SonarRunner parentSonarRunnerTask() {
+        parentProject.tasks.sonarRunner as SonarRunner
     }
 
     def "can choose sonar runner version"() {
@@ -433,7 +437,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        JavaExecHandleBuilder handleBuilder = parentProject.tasks.sonarRunner.prepareExec()
+        JavaExecHandleBuilder handleBuilder = parentSonarRunnerTask().prepareExec()
 
         then:
         handleBuilder.classpath.files*.name.contains("sonar-runner-dist-2.4.jar")
