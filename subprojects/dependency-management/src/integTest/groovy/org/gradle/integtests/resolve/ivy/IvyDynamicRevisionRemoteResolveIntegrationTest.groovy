@@ -736,6 +736,16 @@ Searched in the following locations:
     ${directoryList.uri}
 """)
 
+        when: "no version > 2"
+        directoryList.expectGet()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Searched in the following locations:
+    ${directoryList.uri}
+""")
+
         when:
         def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
 
@@ -757,8 +767,18 @@ dependencies {
 }
 """
 
-        when: "no version > 2"
+        when: "no versions"
         def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        directoryList.expectGetMissing()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Searched in the following locations:
+    ${directoryList.uri}
+""")
+
+        when: "no versions"
         directoryList.expectGetMissing()
 
         then:

@@ -48,7 +48,11 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
         then:
         fails 'retrieve'
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause('Could not find org.group.name:projectA:1.2')
+                .assertHasCause("""Could not find org.group.name:projectA:1.2.
+Searched in the following locations:
+    ${module.ivy.uri}
+    ${module.jar.uri}
+""")
     }
 
     void "resolve missing dynamic dependencies from a SFTP Ivy repository"() {
@@ -77,7 +81,10 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
         then:
         fails 'retrieve'
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause('Could not find any version that matches org.group.name:projectA:1.+')
+                .assertHasCause("""Could not find any version that matches org.group.name:projectA:1.+.
+Searched in the following locations:
+    ${ivySftpRepo.uri}/org.group.name/projectA/
+""")
     }
 
     void "resolve dependencies from a SFTP Ivy repository with invalid credentials"() {
