@@ -38,14 +38,14 @@ libraries.jcip = "net.jcip:jcip-annotations:1.0@jar"
 libraries.inject = dependencies.module('javax.inject:javax.inject:1')
 
 // Logging
-libraries.slf4j_api = dependencies.module('org.slf4j:slf4j-api:1.7.5')
-libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.5') {
+libraries.slf4j_api = dependencies.module('org.slf4j:slf4j-api:1.7.7')
+libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.7') {
     dependency libraries.slf4j_api
 }
-libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.5') {
+libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.7') {
     dependency libraries.slf4j_api
 }
-libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.5') {
+libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.7') {
     dependency libraries.slf4j_api
 }
 libraries.logback_core = dependencies.module('ch.qos.logback:logback-core:1.0.13')
