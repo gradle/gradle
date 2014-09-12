@@ -19,23 +19,30 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
-import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.*;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Missing;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
 
 class CachedModuleVersionResult {
     private final BuildableModuleComponentMetaDataResolveResult.State state;
+    private final boolean authoritative;
     private final MutableModuleComponentResolveMetaData metaData;
 
     public CachedModuleVersionResult(BuildableModuleComponentMetaDataResolveResult result) {
         this.state = result.getState();
         if (state == Resolved) {
             this.metaData = result.getMetaData().copy();
+            this.authoritative = result.isAuthoritative();
+        } else if (state == Missing) {
+            this.metaData = null;
+            this.authoritative = result.isAuthoritative();
         } else {
             this.metaData = null;
+            this.authoritative = false;
         }
     }
 
     public boolean isCacheable() {
-        return state == Missing || state == ProbablyMissing || state == Resolved;
+        return state == Missing || state == Resolved;
     }
 
     public void supply(BuildableModuleComponentMetaDataResolveResult result) {
@@ -43,10 +50,10 @@ class CachedModuleVersionResult {
         if (state == Resolved) {
             MutableModuleComponentResolveMetaData metaData = this.metaData.copy();
             result.resolved(metaData);
+            result.setAuthoritative(authoritative);
         } else if (state == Missing) {
             result.missing();
-        } else if (state == ProbablyMissing) {
-            result.probablyMissing();
+            result.setAuthoritative(authoritative);
         }
     }
 }

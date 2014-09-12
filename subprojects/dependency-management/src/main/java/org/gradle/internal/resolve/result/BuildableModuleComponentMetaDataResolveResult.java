@@ -25,7 +25,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
  */
 public interface BuildableModuleComponentMetaDataResolveResult extends ResourceAwareResolveResult, ResolveResult {
     static enum State {
-        Resolved, Missing, Failed, ProbablyMissing, Unknown
+        Resolved, Missing, Failed, Unknown
     }
 
     /**
@@ -64,7 +64,9 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
     void missing();
 
     /**
-     * Marks the module version as probably missing.
+     * Returns true if the result is from an authoritative source. Defaults to true.
      */
-    void probablyMissing();
+    boolean isAuthoritative();
+
+    void setAuthoritative(boolean authoritative);
 }

@@ -27,7 +27,7 @@ import java.util.Collection;
 public interface BuildableModuleComponentVersionSelectionResolveResult extends ResourceAwareResolveResult, ResolveResult {
 
     static enum State {
-        Listed, ProbablyListed, Failed, Unknown
+        Listed, Failed, Unknown
     }
 
     /**
@@ -61,12 +61,14 @@ public interface BuildableModuleComponentVersionSelectionResolveResult extends R
     void listed(Collection<String> versions);
 
     /**
-     * Marks the module as probably having no versions available.
-     */
-    void probablyListed(ModuleVersionListing versions);
-
-    /**
      * Marks the list as failed with the given exception.
      */
     void failed(ModuleVersionResolveException failure);
+
+    /**
+     * Returns true if the result is from an authoritative source. Defaults to true.
+     */
+    boolean isAuthoritative();
+
+    void setAuthoritative(boolean authoritative);
 }

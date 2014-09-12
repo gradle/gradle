@@ -38,6 +38,7 @@ class DefaultBuildableModuleComponentVersionSelectionResolveResultTest extends S
         then:
         descriptor.state == Listed
         descriptor.failure == null
+        descriptor.authoritative
         descriptor.hasResult()
     }
 
@@ -47,17 +48,8 @@ class DefaultBuildableModuleComponentVersionSelectionResolveResultTest extends S
 
         then:
         descriptor.state == Listed
+        descriptor.authoritative
         descriptor.versions.versions*.version as Set == ['1.2', '1.3'] as Set
-    }
-
-    def "can mark as probably listed"() {
-        when:
-        descriptor.probablyListed(listing)
-
-        then:
-        descriptor.state == ProbablyListed
-        descriptor.failure == null
-        descriptor.hasResult()
     }
 
     def "can mark as failed"() {
@@ -69,6 +61,7 @@ class DefaultBuildableModuleComponentVersionSelectionResolveResultTest extends S
         then:
         descriptor.state == Failed
         descriptor.failure == failure
+        descriptor.authoritative
         descriptor.hasResult()
     }
 
@@ -83,6 +76,14 @@ class DefaultBuildableModuleComponentVersionSelectionResolveResultTest extends S
     def "cannot get listing when has no result"() {
         when:
         descriptor.versions
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "cannot get authoritative flag when has no result"() {
+        when:
+        descriptor.authoritative
 
         then:
         thrown(IllegalStateException)

@@ -225,7 +225,8 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.probablyMissing()
+            result.missing()
+            result.authoritative = false
         }
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData)
@@ -295,7 +296,8 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.probablyMissing()
+            result.missing()
+            result.authoritative = false
         }
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
@@ -446,10 +448,12 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.probablyMissing()
+            result.missing()
+            result.authoritative = false
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.probablyMissing()
+            result.missing()
+            result.authoritative = false
         }
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
@@ -486,7 +490,8 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.missing()
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.probablyMissing()
+            result.missing()
+            result.authoritative = false
         }
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData)
@@ -518,7 +523,8 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.probablyMissing()
+            result.missing()
+            result.authoritative = false
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->

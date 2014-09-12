@@ -125,10 +125,8 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
             }
             switch (request.resolveResult.getState()) {
                 case Missing:
-                    break;
-                case ProbablyMissing:
                     // Queue this up for checking again later
-                    if (request.canMakeFurtherAttempts()) {
+                    if (!request.resolveResult.isAuthoritative() && request.canMakeFurtherAttempts()) {
                         missing.add(request);
                     }
                     break;
@@ -224,15 +222,12 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
                 case Failed:
                     resolveResult.failed(selectionResult.getFailure());
                     break;
-                case ProbablyListed:
-                    if (!resolveDependency(dependency, moduleAccess, resolveResult)) {
-                        resolveResult.probablyMissing();
-                    }
-                    break;
                 case Listed:
                     if (!resolveDependency(dependency, moduleAccess, resolveResult)) {
                         resolveResult.missing();
+                        resolveResult.setAuthoritative(selectionResult.isAuthoritative());
                     }
+                    break;
             }
         }
 

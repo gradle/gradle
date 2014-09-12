@@ -38,16 +38,7 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         then:
         descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Missing
         descriptor.failure == null
-        descriptor.hasResult()
-    }
-
-    def "can mark as probably missing"() {
-        when:
-        descriptor.probablyMissing()
-
-        then:
-        descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.ProbablyMissing
-        descriptor.failure == null
+        descriptor.authoritative
         descriptor.hasResult()
     }
 
@@ -60,6 +51,7 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         then:
         descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Failed
         descriptor.failure == failure
+        descriptor.authoritative
         descriptor.hasResult()
     }
 
@@ -73,6 +65,7 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Resolved
         descriptor.failure == null
         descriptor.metaData == metaData
+        descriptor.authoritative
         descriptor.hasResult()
     }
 
@@ -87,6 +80,14 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
     def "cannot get meta-data when has no result"() {
         when:
         descriptor.metaData
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "cannot get authoritative flag when has no result"() {
+        when:
+        descriptor.authoritative
 
         then:
         thrown(IllegalStateException)

@@ -23,11 +23,13 @@ public class DefaultBuildableModuleComponentVersionSelectionResolveResult extend
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
     private ModuleVersionListing versions;
+    private boolean authoritative;
 
     private void reset(State state) {
         this.state = state;
         versions = null;
         failure = null;
+        authoritative = false;
     }
 
     public State getState() {
@@ -51,6 +53,7 @@ public class DefaultBuildableModuleComponentVersionSelectionResolveResult extend
     public void listed(ModuleVersionListing versions) {
         reset(State.Listed);
         this.versions = versions;
+        this.authoritative = true;
     }
 
     public void listed(Collection<String> versions) {
@@ -61,14 +64,20 @@ public class DefaultBuildableModuleComponentVersionSelectionResolveResult extend
         listed(listing);
     }
 
-    public void probablyListed(ModuleVersionListing versions) {
-        reset(State.ProbablyListed);
-        this.versions = versions;
-    }
-
     public void failed(ModuleVersionResolveException failure) {
         reset(State.Failed);
         this.failure = failure;
+        this.authoritative = true;
+    }
+
+    public boolean isAuthoritative() {
+        assertHasResult();
+        return authoritative;
+    }
+
+    public void setAuthoritative(boolean authoritative) {
+        assertHasResult();
+        this.authoritative = authoritative;
     }
 
     private void assertHasResult() {

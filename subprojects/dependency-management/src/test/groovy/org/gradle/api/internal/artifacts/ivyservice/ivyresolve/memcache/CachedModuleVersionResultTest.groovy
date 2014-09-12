@@ -27,15 +27,21 @@ class CachedModuleVersionResultTest extends Specification {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> Stub(MutableModuleComponentResolveMetaData)
         }
-        def missing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing }
-        def probablyMissing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.ProbablyMissing }
-        def failed = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.Failed }
+        def missing = Mock(BuildableModuleComponentMetaDataResolveResult) {
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing
+        }
+        def failed = Mock(BuildableModuleComponentMetaDataResolveResult) {
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Failed
+        }
+        def unknown = Mock(BuildableModuleComponentMetaDataResolveResult) {
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Unknown
+        }
 
         expect:
         new CachedModuleVersionResult(resolved).cacheable
         new CachedModuleVersionResult(missing).cacheable
-        new CachedModuleVersionResult(probablyMissing).cacheable
         !new CachedModuleVersionResult(failed).cacheable
+        !new CachedModuleVersionResult(unknown).cacheable
     }
 
     def "interrogates result only when resolved"() {
@@ -46,15 +52,16 @@ class CachedModuleVersionResultTest extends Specification {
         new CachedModuleVersionResult(missing)
 
         then:
-        1 * missing.getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing
+        1 * missing.state >> BuildableModuleComponentMetaDataResolveResult.State.Missing
+        1 * missing.authoritative >> true
         0 * missing._
 
         when:
         new CachedModuleVersionResult(resolved)
 
         then:
-        1 * resolved.getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
-        1 * resolved.getMetaData() >> Stub(MutableModuleComponentResolveMetaData)
+        1 * resolved.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
+        1 * resolved.metaData >> Stub(MutableModuleComponentResolveMetaData)
     }
 
     def "supplies cached data"() {
@@ -65,8 +72,14 @@ class CachedModuleVersionResultTest extends Specification {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> metaData
         }
-        def missing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing }
-        def probablyMissing = Mock(BuildableModuleComponentMetaDataResolveResult) { getState() >> BuildableModuleComponentMetaDataResolveResult.State.ProbablyMissing }
+        def missing = Mock(BuildableModuleComponentMetaDataResolveResult) {
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing
+            isAuthoritative() >> true
+        }
+        def probablyMissing = Mock(BuildableModuleComponentMetaDataResolveResult) {
+            getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing
+            isAuthoritative() >> false
+        }
 
         def result = Mock(BuildableModuleComponentMetaDataResolveResult)
 
@@ -82,15 +95,24 @@ class CachedModuleVersionResultTest extends Specification {
         then:
         1 * cachedMetaData.copy() >> suppliedMetaData
         1 * result.resolved(suppliedMetaData)
+        1 * result.setAuthoritative(false)
+        0 * result._
+
 
         when:
         new CachedModuleVersionResult(missing).supply(result)
+
         then:
         1 * result.missing()
+        1 * result.setAuthoritative(true)
+        0 * result._
 
         when:
         new CachedModuleVersionResult(probablyMissing).supply(result)
+
         then:
-        1 * result.probablyMissing()
+        1 * result.missing()
+        1 * result.setAuthoritative(false)
+        0 * result._
     }
 }

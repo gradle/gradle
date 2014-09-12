@@ -130,13 +130,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
                     LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
                 } else {
-                    if (cachedModuleVersionList.getAgeMillis() == 0) {
-                        // Verified since the start of this build, assume still missing
-                        result.listed(versionList);
-                    } else {
-                        // Was missing last time we checked
-                        result.probablyListed(versionList);
-                    }
+                    result.listed(versionList);
+                    // When age == 0, verified since the start of this build, assume listing hasn't changed
+                    result.setAuthoritative(cachedModuleVersionList.getAgeMillis() == 0);
                 }
             }
         }
@@ -162,13 +158,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     return;
                 }
                 LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'", moduleComponentIdentifier, delegate.getName());
-                if (cachedMetaData.getAgeMillis() == 0) {
-                    // Verified since the start of this build, assume still missing
-                    result.missing();
-                } else {
-                    // Was missing last time we checked
-                    result.probablyMissing();
-                }
+                result.missing();
+                // When age == 0, verified since the start of this build, assume still missing
+                result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
                 return;
             }
             MutableModuleComponentResolveMetaData metaData = cachedMetaData.getMetaData();
@@ -189,6 +181,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
             metaData.setSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), metaData.getSource()));
             result.resolved(metaData);
+            // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
+            result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
         }
 
         public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {

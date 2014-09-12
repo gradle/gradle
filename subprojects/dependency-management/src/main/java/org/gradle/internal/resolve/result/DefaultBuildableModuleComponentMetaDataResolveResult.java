@@ -22,11 +22,13 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
     private MutableModuleComponentResolveMetaData metaData;
+    private boolean authoritative;
 
     private void reset(State state) {
         this.state = state;
         metaData = null;
         failure = null;
+        authoritative = false;
     }
 
     public void reset() {
@@ -36,19 +38,18 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     public void resolved(MutableModuleComponentResolveMetaData metaData) {
         reset(State.Resolved);
         this.metaData = metaData;
+        authoritative = true;
     }
 
     public void missing() {
         reset(State.Missing);
-    }
-
-    public void probablyMissing() {
-        reset(State.ProbablyMissing);
+        authoritative = true;
     }
 
     public void failed(ModuleVersionResolveException failure) {
         reset(State.Failed);
         this.failure = failure;
+        authoritative = true;
     }
 
     public State getState() {
@@ -67,6 +68,16 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     public MutableModuleComponentResolveMetaData getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
+    }
+
+    public boolean isAuthoritative() {
+        assertHasResult();
+        return authoritative;
+    }
+
+    public void setAuthoritative(boolean authoritative) {
+        assertHasResult();
+        this.authoritative = authoritative;
     }
 
     private void assertHasResult() {

@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult.State.Listed;
-import static org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult.State.ProbablyListed;
 
 class InMemoryMetaDataCache {
     private final Map<ModuleVersionSelector, ModuleVersionListing> moduleVersionListing = new HashMap<ModuleVersionSelector, ModuleVersionListing>();
@@ -47,7 +46,7 @@ class InMemoryMetaDataCache {
     }
 
     public void newModuleVersions(ModuleVersionSelector requested, BuildableModuleComponentVersionSelectionResolveResult result) {
-        if (result.getState() == Listed || result.getState() == ProbablyListed) {
+        if (result.getState() == Listed) {
             moduleVersionListing.put(requested, result.getVersions());
         }
     }
