@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.sonar.runner
+package org.gradle.sonar.runner
 
 import groovy.json.JsonSlurper
 import org.apache.http.HttpResponse

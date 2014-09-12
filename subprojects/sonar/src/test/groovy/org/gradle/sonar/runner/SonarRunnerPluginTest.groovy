@@ -15,7 +15,8 @@
  */
 
 
-package org.gradle.api.sonar.runner
+package org.gradle.sonar.runner
+
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskDependencyMatchers
@@ -34,7 +35,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder
 import static spock.util.matcher.HamcrestSupport.expect
 
 class SonarRunnerPluginTest extends Specification {
-    @Rule SetSystemProperties systemProperties
+    @Rule
+    SetSystemProperties systemProperties
 
     def rootProject = TestUtil.builder().withName("root").build()
     def parentProject = TestUtil.builder().withName("parent").withParent(rootProject).build()

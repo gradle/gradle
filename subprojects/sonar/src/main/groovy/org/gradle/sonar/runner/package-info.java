@@ -19,4 +19,4 @@
  * <p>
  * Please see <a href="http://gradle.org/current/docs/userguide/sonar_runner_plugin.html">Sonar Runner Plugin</a>
  */
-package org.gradle.api.sonar.runner;
+package org.gradle.sonar.runner;

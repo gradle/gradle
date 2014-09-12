@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.sonar.runner
+package org.gradle.sonar.runner
 
 import spock.lang.Specification
 
@@ -33,7 +33,7 @@ class SonarPropertiesTest extends Specification {
         properties.properties foo: "one", bar: "two"
 
         then:
-        properties.properties == [foo:  "one", bar: "two"]
+        properties.properties == [foo: "one", bar: "two"]
     }
 
     def "read and write the properties map directly"() {

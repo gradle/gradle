@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.api.sonar.runner
+package org.gradle.sonar.runner
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project

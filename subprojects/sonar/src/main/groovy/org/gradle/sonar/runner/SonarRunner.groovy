@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.api.sonar.runner
+package org.gradle.sonar.runner
 
 import groovy.transform.PackageScope
 import org.gradle.api.DefaultTask

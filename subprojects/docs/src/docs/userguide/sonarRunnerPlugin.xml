@@ -79,15 +79,15 @@
 
     <section>
         <title>Configuring the Sonar Runner</title>
-        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.sonar.runner.SonarRunnerRootExtension" /> extension to the project and a
-            <apilink class="org.gradle.api.sonar.runner.SonarRunnerExtension" /> extension to its subprojects,
+        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" /> extension to the project and a
+            <apilink class="org.gradle.sonar.runner.SonarRunnerExtension" /> extension to its subprojects,
             which allows you to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration
             includes connection settings for the Sonar server and database.
         </para>
         <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
-        <para>In addition to set Sonar properties, the <apilink class="org.gradle.api.sonar.runner.SonarRunnerRootExtension" /> extension allows the configuration of the Sonar Runner version and
+        <para>In addition to set Sonar properties, the <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" /> extension allows the configuration of the Sonar Runner version and
             the <apilink class="org.gradle.process.JavaForkOptions" /> of the forked Sonar Runner process.
         </para>
         <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar runner version">
@@ -198,7 +198,7 @@
         <title>Specifying the Sonar Runner version</title>
         <para>
             By default, version 2.3 of the Sonar Runner is used.
-            To specify an alternative version, set the <apilink class="org.gradle.api.sonar.runner.SonarRunnerRootExtension" method="getToolVersion()"/> property
+            To specify an alternative version, set the <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" method="getToolVersion()"/> property
             of the <literal>sonarRunner</literal> extension of the project the plugin was applied to to the desired version.
             This will result in the Sonar Runner dependency <literal>org.codehaus.sonar.runner:sonar-runner-dist:«toolVersion»</literal> being used as the Sonar Runner.
         </para>
@@ -338,7 +338,7 @@
             <tr>
                 <td><literal>sonarRunner</literal></td>
                 <td>-</td>
-                <td><apilink class="org.gradle.api.sonar.runner.SonarRunner"/></td>
+                <td><apilink class="org.gradle.sonar.runner.SonarRunner"/></td>
                 <td>Analyzes a project hierarchy and stores the results in the Sonar database.</td>
             </tr>
         </table>

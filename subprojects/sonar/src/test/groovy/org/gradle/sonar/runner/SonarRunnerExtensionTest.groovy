@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.sonar.runner
+package org.gradle.sonar.runner
 
 import org.gradle.api.Action
 import spock.lang.Specification
