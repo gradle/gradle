@@ -72,11 +72,13 @@ Additional binaries
 -------------------
 Classes 'main'
     build using task: :classes
+    platform: target JDK 1.7
     tool chain: current JDK (1.7)
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
+    platform: target JDK 1.7
     tool chain: current JDK (1.7)
     classes dir: build/classes/test
     resources dir: build/resources/test

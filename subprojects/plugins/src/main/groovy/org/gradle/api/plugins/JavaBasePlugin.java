@@ -149,6 +149,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                         return sourceSet.getOutput().getResourcesDir();
                     }
                 });
+                binary.setTargetPlatform(new DefaultJvmPlatform(JavaVersion.current()));
 
                 binary.getSource().add(javaSourceSet);
                 binary.getSource().add(resourceSet);
