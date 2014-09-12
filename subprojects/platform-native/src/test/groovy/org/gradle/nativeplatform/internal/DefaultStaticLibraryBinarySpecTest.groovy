@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -35,7 +35,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
     def library = Stub(NativeLibrarySpec)
-    def toolChain = Stub(ToolChainInternal)
+    def toolChain = Stub(NativeToolChainInternal)
     def platform = Stub(NativePlatform)
     def buildType = Stub(BuildType)
     final resolver = Stub(NativeDependencyResolver)

@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 class NativeComponentSpecInitializerTest extends Specification {
     def toolChains = Mock(ToolChainRegistryInternal)
-    def toolChain = Mock(ToolChainInternal)
+    def toolChain = Mock(NativeToolChainInternal)
     def toolProvider = Mock(PlatformToolProvider)
     def nativeBinariesFactory = Mock(NativeBinariesFactory)
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)

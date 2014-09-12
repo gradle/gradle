@@ -25,10 +25,10 @@ import org.gradle.language.nativebase.internal.incremental.IncrementalCompilerBu
 import org.gradle.language.rc.internal.DefaultWindowsResourceCompileSpec;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -43,7 +43,7 @@ import java.util.Map;
 @Incubating
 public class WindowsResourceCompile extends DefaultTask {
 
-    private ToolChainInternal toolChain;
+    private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private File outputDir;
     private ConfigurableFileCollection includes;
@@ -85,12 +85,12 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * The tool chain used for compilation.
      */
-    public ToolChain getToolChain() {
+    public NativeToolChain getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(ToolChain toolChain) {
-        this.toolChain = (ToolChainInternal) toolChain;
+    public void setToolChain(NativeToolChain toolChain) {
+        this.toolChain = (NativeToolChainInternal) toolChain;
     }
 
     /**

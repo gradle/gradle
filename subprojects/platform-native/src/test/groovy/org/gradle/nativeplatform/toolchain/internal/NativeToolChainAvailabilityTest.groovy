@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
-class ToolChainAvailabilityTest extends Specification {
+class NativeToolChainAvailabilityTest extends Specification {
     def "visits message"() {
         def visitor = Mock(TreeVisitor)
 

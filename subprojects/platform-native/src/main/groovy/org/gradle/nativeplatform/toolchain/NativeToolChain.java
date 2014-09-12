@@ -25,7 +25,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface ToolChain extends Named {
+public interface NativeToolChain extends Named {
     /**
      * Returns a human consumable name for this tool chain.
      *

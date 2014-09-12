@@ -55,7 +55,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def operatingSystem = Stub(OperatingSystem)
 
     def instantiator = new DirectInstantiator()
-    def toolChain = new TestToolChain("test", operatingSystem, fileResolver, execActionFactory, toolSearchPath, metaDataProvider, instantiator)
+    def toolChain = new TestNativeToolChain("test", operatingSystem, fileResolver, execActionFactory, toolSearchPath, metaDataProvider, instantiator)
     def platform = Stub(NativePlatformInternal)
 
     def "is unavailable when platform is not known and is not the default platform"() {
@@ -360,8 +360,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         return formatter.toString()
     }
 
-    static class TestToolChain extends AbstractGccCompatibleToolChain {
-        TestToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
+    static class TestNativeToolChain extends AbstractGccCompatibleToolChain {
+        TestNativeToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
             super(name, operatingSystem, fileResolver, execActionFactory, tools, metaDataProvider, instantiator)
         }
 

@@ -21,8 +21,8 @@ import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 
 public interface NativeBinariesFactory {
-    void createNativeBinaries(NativeComponentSpec component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, PlatformToolProvider toolProvider, NativePlatform platform, BuildType buildType, Flavor flavor);
+    void createNativeBinaries(NativeComponentSpec component, BinaryNamingSchemeBuilder namingScheme, NativeToolChain toolChain, PlatformToolProvider toolProvider, NativePlatform platform, BuildType buildType, Flavor flavor);
 }

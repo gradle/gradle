@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.toolchain.PlatformToolChain;
 
 import java.io.File;
 
-public abstract class ExtendableToolChain<T extends PlatformToolChain> implements ToolChainInternal {
+public abstract class ExtendableToolChain<T extends PlatformToolChain> implements NativeToolChainInternal {
     private final String name;
     protected final OperatingSystem operatingSystem;
     private final FileResolver fileResolver;

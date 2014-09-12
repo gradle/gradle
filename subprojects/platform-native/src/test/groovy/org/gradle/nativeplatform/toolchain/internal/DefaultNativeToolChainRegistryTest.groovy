@@ -25,16 +25,16 @@ import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class DefaultToolChainRegistryTest extends Specification {
+class DefaultNativeToolChainRegistryTest extends Specification {
     def project = TestUtil.createRootProject()
     def instantiator = project.services.get(Instantiator)
     def registry = instantiator.newInstance(DefaultToolChainRegistry, instantiator)
-    def NamedDomainObjectFactory<TestToolChain> factory = Mock(NamedDomainObjectFactory)
+    def NamedDomainObjectFactory<TestNativeToolChain> factory = Mock(NamedDomainObjectFactory)
     def platform = new DefaultNativePlatform("platform")
 
     def "setup"() {
         project.extensions.add("toolChains", registry)
-        registry.registerFactory(TestToolChain, factory)
+        registry.registerFactory(TestNativeToolChain, factory)
     }
 
     def "adds default tool chains"() {
@@ -43,9 +43,9 @@ class DefaultToolChainRegistryTest extends Specification {
         def defaultToolChain3 = availableToolChain("test3")
 
         when:
-        registry.registerDefaultToolChain("test1", TestToolChain)
-        registry.registerDefaultToolChain("test2", TestToolChain)
-        registry.registerDefaultToolChain("test3", TestToolChain)
+        registry.registerDefaultToolChain("test1", TestNativeToolChain)
+        registry.registerDefaultToolChain("test2", TestNativeToolChain)
+        registry.registerDefaultToolChain("test3", TestNativeToolChain)
         registry.addDefaultToolChains()
 
         then:
@@ -57,10 +57,10 @@ class DefaultToolChainRegistryTest extends Specification {
         def configuredToolChain = unavailableToolChain("configured")
 
         when:
-        registry.registerDefaultToolChain("default", TestToolChain)
+        registry.registerDefaultToolChain("default", TestNativeToolChain)
 
         and:
-        registry.create("configured", TestToolChain)
+        registry.create("configured", TestNativeToolChain)
 
         and:
         registry.addDefaultToolChains()
@@ -75,9 +75,9 @@ class DefaultToolChainRegistryTest extends Specification {
         unavailableToolChain("test3", "not me either")
 
         given:
-        registry.registerDefaultToolChain("test", TestToolChain)
-        registry.registerDefaultToolChain("test2", TestToolChain)
-        registry.registerDefaultToolChain("test3", TestToolChain)
+        registry.registerDefaultToolChain("test", TestNativeToolChain)
+        registry.registerDefaultToolChain("test2", TestNativeToolChain)
+        registry.registerDefaultToolChain("test3", TestNativeToolChain)
         registry.addDefaultToolChains()
 
         and:
@@ -100,7 +100,7 @@ class DefaultToolChainRegistryTest extends Specification {
         def anotherToolChain = unavailableToolChain("another")
 
         when:
-        registry.registerDefaultToolChain("test", TestToolChain)
+        registry.registerDefaultToolChain("test", TestNativeToolChain)
         registry.addDefaultToolChains()
 
         and:
@@ -108,7 +108,7 @@ class DefaultToolChainRegistryTest extends Specification {
             test {
                 baseDir = "foo"
             }
-            another(TestToolChain) {
+            another(TestNativeToolChain) {
                 baseDir = "bar"
             }
         }
@@ -127,9 +127,9 @@ class DefaultToolChainRegistryTest extends Specification {
         def tcFirst = availableToolChain("first")
 
         when:
-        registry.create("test", TestToolChain)
-        registry.create("test2", TestToolChain)
-        registry.create("first", TestToolChain)
+        registry.create("test", TestNativeToolChain)
+        registry.create("test2", TestNativeToolChain)
+        registry.create("first", TestNativeToolChain)
 
         then:
         registry.toList() == [tcFirst, test, tc2]
@@ -153,7 +153,7 @@ class DefaultToolChainRegistryTest extends Specification {
         PlatformToolProvider platformToolChain = Stub(PlatformToolProvider) {
             _ * isAvailable() >> true
         }
-        TestToolChain testToolChain = Mock(TestToolChain) {
+        TestNativeToolChain testToolChain = Mock(TestNativeToolChain) {
             _ * getName() >> name
             _ * select(platform) >> platformToolChain
         }
@@ -166,7 +166,7 @@ class DefaultToolChainRegistryTest extends Specification {
             _ * isAvailable() >> false
             _ * explain(_) >> { it[0].node(message) }
         }
-        TestToolChain testToolChain = Mock(TestToolChain) {
+        TestNativeToolChain testToolChain = Mock(TestNativeToolChain) {
             _ * getName() >> name
             _ * getDisplayName() >> "Tool chain '$name'"
             _ * select(platform) >> platformToolChain
@@ -175,7 +175,7 @@ class DefaultToolChainRegistryTest extends Specification {
         return testToolChain
     }
 
-    interface TestToolChain extends ToolChainInternal
+    interface TestNativeToolChain extends NativeToolChainInternal
     {
         void setBaseDir(String value);
     }

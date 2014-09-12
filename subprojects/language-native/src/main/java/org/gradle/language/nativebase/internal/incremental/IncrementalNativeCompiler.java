@@ -29,7 +29,7 @@ import org.gradle.language.nativebase.internal.incremental.sourceparser.CSourceP
 import org.gradle.language.nativebase.internal.incremental.sourceparser.RegexBackedCSourceParser;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
-import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
@@ -44,7 +44,7 @@ public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
 
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
-    public IncrementalNativeCompiler(TaskInternal task, TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, Compiler<NativeCompileSpec> delegateCompiler, ToolChain toolChain) {
+    public IncrementalNativeCompiler(TaskInternal task, TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, Compiler<NativeCompileSpec> delegateCompiler, NativeToolChain toolChain) {
         this.task = task;
         this.cacheAccess = cacheAccess;
         this.fileSnapshotter = fileSnapshotter;

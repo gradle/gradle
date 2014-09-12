@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
@@ -54,7 +54,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
         for (NativePlatform platform : targetedComponent.choosePlatforms(allPlatforms)) {
             NativePlatformInternal platformInternal = (NativePlatformInternal) platform;
-            ToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
+            NativeToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
             PlatformToolProvider toolProvider = toolChain.select(platformInternal);
             for (BuildType buildType : targetedComponent.chooseBuildTypes(allBuildTypes)) {
                 for (Flavor flavor : targetedComponent.chooseFlavors(allFlavors)) {

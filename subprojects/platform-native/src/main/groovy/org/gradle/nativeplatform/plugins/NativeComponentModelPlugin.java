@@ -38,7 +38,7 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.PlatformContainer;
 import org.gradle.nativeplatform.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.DefaultToolChainRegistry;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecContainer;
@@ -218,7 +218,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private static class MarkBinariesBuildable implements Action<NativeBinarySpec> {
         public void execute(NativeBinarySpec nativeBinarySpec) {
-            ToolChainInternal toolChainInternal = (ToolChainInternal) nativeBinarySpec.getToolChain();
+            NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) nativeBinarySpec.getToolChain();
             boolean canBuild = toolChainInternal.select((NativePlatformInternal) nativeBinarySpec.getTargetPlatform()).isAvailable();
             ((NativeBinarySpecInternal) nativeBinarySpec).setBuildable(canBuild);
         }

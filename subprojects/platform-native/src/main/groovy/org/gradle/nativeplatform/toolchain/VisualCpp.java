@@ -25,7 +25,7 @@ import java.io.File;
  * The Visual C++ tool chain.
  */
 @Incubating
-public interface VisualCpp extends ToolChain {
+public interface VisualCpp extends NativeToolChain {
     /**
      * The directory where Visual Studio or Visual C++ is installed.
      */

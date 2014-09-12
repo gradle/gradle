@@ -14,31 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain;
+package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
-import org.gradle.api.platform.jvm.JvmPlatform;
-import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.ToolChain;
 
 /**
- * A set of tools for building from Java source.
- *
- * <p>A {@code JavaToolChain} is able to:
- *
- * <ul>
- *
- * <li>Compile Java source to bytecode.</li>
- *
- * <li>Generate Javadoc from Java source.</li>
- *
- * </ul>
+ * A set of compilers that are used together to construct binaries.
  */
 @Incubating
-@HasInternalProtocol
-public interface JavaToolChain extends ToolChain {
-    String getDisplayName();
-    JavaVersion getJavaVersion();
-    void assertValidPlatform(JvmPlatform platform);
+public interface ToolChain {
 }
