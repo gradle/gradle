@@ -60,6 +60,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
 
+    private BoundModelCreator inCreation;
+
     private static String toString(ModelRuleDescriptor descriptor) {
         StringBuilder stringBuilder = new StringBuilder();
         descriptor.describeTo(stringBuilder);
@@ -190,6 +192,10 @@ public class DefaultModelRegistry implements ModelRegistry {
             return toState(creator.getCreator().getPath(), ModelState.Status.PENDING);
         }
 
+        if (inCreation != null && inCreation.getCreator().getPath().equals(path)) {
+            return toState(inCreation.getCreator().getPath(), ModelState.Status.IN_CREATION);
+        }
+
         return null;
     }
 
@@ -225,14 +231,11 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void remove(ModelPath path) {
-        if (creations.remove(path) == null) {
-            if (store.remove(path) == null) {
-                throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
-            } else {
-                if (isDependedOn(path)) {
-                    throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
-                }
-            }
+        if (creations.remove(path) == null && store.remove(path) == null) {
+            throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
+        }
+        if (isDependedOn(path)) {
+            throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
         }
     }
 
@@ -286,8 +289,12 @@ public class DefaultModelRegistry implements ModelRegistry {
             return store.get(path);
         }
 
-        BoundModelCreator creation = removeCreator(path);
-        return createAndClose(creation);
+        inCreation = removeCreator(path);
+        try {
+            return createAndClose(inCreation);
+        } finally {
+            inCreation = null;
+        }
     }
 
     private ModelElement createAndClose(BoundModelCreator creation) {

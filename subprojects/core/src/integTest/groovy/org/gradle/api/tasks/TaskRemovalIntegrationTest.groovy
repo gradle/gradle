@@ -16,14 +16,9 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.api.Task
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.model.internal.report.unbound.UnboundRule
-import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import org.hamcrest.Matchers
 import spock.lang.Unroll
-
-import static org.gradle.model.report.unbound.UnboundRulesReportMatchers.unbound
 
 class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
@@ -93,11 +88,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         fails "foo"
 
         then:
-        failure.assertThatCause(unbound(
-                UnboundRule.descriptor('MyPlugin$Rules#linkFooToBar(org.gradle.api.Task, org.gradle.api.Task)')
-                        .mutableInput(UnboundRuleInput.type(Task).bound().path("tasks.bar"))
-                        .immutableInput(UnboundRuleInput.type(Task).path("tasks.foo").suggestions("tasks.bar"))
-        ))
+        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
 
         where:
         annotationClass << ["Mutate", "Finalize"]

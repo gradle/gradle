@@ -70,7 +70,6 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":messaging")
-useTestFixtures(project: ":modelCore", sourceSet: "integTest")
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

@@ -34,3 +34,4 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":modelCore")

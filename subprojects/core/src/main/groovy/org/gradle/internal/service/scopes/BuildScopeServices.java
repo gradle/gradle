@@ -160,7 +160,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new BuildScriptProcessor(get(ScriptPluginFactory.class)),
                 new DelayedConfigurationActions()
         );
-        Action<? super ProjectInternal> projectFinalizer = Actions.composite(new TaskModelPopulatingConfigurationAction(), new TaskModelRealizingConfigurationAction(),
+        Action<? super ProjectInternal> projectFinalizer = Actions.composite(new TaskModelRealizingConfigurationAction(),
                 new ModelRegistryValidatingConfigurationAction());
         return new LifecycleProjectEvaluator(withActionsEvaluator, projectFinalizer);
     }

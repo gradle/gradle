@@ -21,6 +21,7 @@ public class ModelState {
     public enum Status {
         // TODO probably need to capture iterim states (e.g. MUTATING)
         PENDING,
+        IN_CREATION,
         FINALIZED
     }
 

@@ -405,4 +405,34 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains "value: from plugin"
     }
+
+    def "registering a creation rule for a task that already exists"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTask(CollectionBuilder<Task> tasks) {
+                        tasks.create("foo")
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            task foo {}
+        """
+
+        then:
+        fails "foo"
+
+        and:
+        failure.assertHasCause("Cannot register model creation rule 'MyPlugin\$Rules#addTask(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>) > create(foo)' for path 'tasks.foo' as the rule 'Project.<init>.tasks.foo()' is already registered to create a model element at this path")
+    }
 }
